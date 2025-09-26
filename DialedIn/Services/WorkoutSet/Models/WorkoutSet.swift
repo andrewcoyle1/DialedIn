@@ -1,0 +1,202 @@
+//
+//  WorkoutSet.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 23/09/2025.
+//
+
+import Foundation
+import IdentifiableByString
+
+struct WorkoutSet: Identifiable, Codable, StringIdentifiable, Hashable {
+    let id: String
+    let authorId: String
+    var index: Int
+    var reps: Int?
+    var weightKg: Double?
+    var durationSec: Int?
+    var distanceMeters: Double?
+    var rpe: Double?
+    var isWarmup: Bool
+    var completedAt: Date?
+    var dateCreated: Date
+    
+    init(
+        id: String,
+        authorId: String,
+        index: Int,
+        reps: Int? = nil,
+        weightKg: Double? = nil,
+        durationSec: Int? = nil,
+        distanceMeters: Double? = nil,
+        rpe: Double? = nil,
+        isWarmup: Bool,
+        completedAt: Date? = nil,
+        dateCreated: Date
+    ) {
+        self.id = id
+        self.authorId = authorId
+        self.index = index
+        self.reps = reps
+        self.weightKg = weightKg
+        self.durationSec = durationSec
+        self.distanceMeters = distanceMeters
+        self.rpe = rpe
+        self.isWarmup = isWarmup
+        self.completedAt = completedAt
+        self.dateCreated = dateCreated
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case authorId = "author_id"
+        case index
+        case reps
+        case weightKg = "weight_kg"
+        case durationSec = "duration_sec"
+        case distanceMeters = "distance_meters"
+        case rpe
+        case isWarmup
+        case completedAt = "completed_at"
+        case dateCreated = "date_created"
+    }
+
+    static var mock: WorkoutSet {
+        mocks[0]
+    }
+    
+    static var mocks: [WorkoutSet] {
+        [
+            WorkoutSet(
+                id: "1",
+                authorId: "1",
+                index: 1,
+                reps: 12,
+                weightKg: 60,
+                durationSec: nil,
+                distanceMeters: nil,
+                rpe: 7.5,
+                isWarmup: true,
+                completedAt: Date().addingTimeInterval(-3600),
+                dateCreated: Date().addingTimeInterval(-7200)
+            ),
+            WorkoutSet(
+                id: "2",
+                authorId: "2",
+                index: 2,
+                reps: 8,
+                weightKg: 80,
+                durationSec: nil,
+                distanceMeters: nil,
+                rpe: 8.5,
+                isWarmup: false,
+                completedAt: Date().addingTimeInterval(-3500),
+                dateCreated: Date().addingTimeInterval(-7100)
+            ),
+            WorkoutSet(
+                id: "3",
+                authorId: "3",
+                index: 3,
+                reps: nil,
+                weightKg: nil,
+                durationSec: 60,
+                distanceMeters: nil,
+                rpe: 6,
+                isWarmup: false,
+                completedAt: Date().addingTimeInterval(-3400),
+                dateCreated: Date().addingTimeInterval(-7000)
+            ),
+            WorkoutSet(
+                id: "4",
+                authorId: "4",
+                index: 4,
+                reps: 15,
+                weightKg: 40,
+                durationSec: nil,
+                distanceMeters: nil,
+                rpe: 5,
+                isWarmup: true,
+                completedAt: Date().addingTimeInterval(-3300),
+                dateCreated: Date().addingTimeInterval(-6900)
+            ),
+            WorkoutSet(
+                id: "5",
+                authorId: "5",
+                index: 5,
+                reps: 10,
+                weightKg: 90,
+                durationSec: nil,
+                distanceMeters: nil,
+                rpe: 9,
+                isWarmup: false,
+                completedAt: Date().addingTimeInterval(-3200),
+                dateCreated: Date().addingTimeInterval(-6800)
+            ),
+            WorkoutSet(
+                id: "6",
+                authorId: "6",
+                index: 6,
+                reps: nil,
+                weightKg: nil,
+                durationSec: 120,
+                distanceMeters: 400,
+                rpe: 8,
+                isWarmup: false,
+                completedAt: Date().addingTimeInterval(-3100),
+                dateCreated: Date().addingTimeInterval(-6700)
+            ),
+            WorkoutSet(
+                id: "7",
+                authorId: "7",
+                index: 7,
+                reps: 20,
+                weightKg: 20,
+                durationSec: nil,
+                distanceMeters: nil,
+                rpe: 4,
+                isWarmup: true,
+                completedAt: Date().addingTimeInterval(-3000),
+                dateCreated: Date().addingTimeInterval(-6600)
+            ),
+            WorkoutSet(
+                id: "8",
+                authorId: "8",
+                index: 8,
+                reps: 6,
+                weightKg: 110,
+                durationSec: nil,
+                distanceMeters: nil,
+                rpe: 10,
+                isWarmup: false,
+                completedAt: Date().addingTimeInterval(-2900),
+                dateCreated: Date().addingTimeInterval(-6500)
+            ),
+            WorkoutSet(
+                id: "9",
+                authorId: "9",
+                index: 9,
+                reps: nil,
+                weightKg: nil,
+                durationSec: 180,
+                distanceMeters: 1000,
+                rpe: 7,
+                isWarmup: false,
+                completedAt: Date().addingTimeInterval(-2800),
+                dateCreated: Date().addingTimeInterval(-6400)
+            ),
+            WorkoutSet(
+                id: "10",
+                authorId: "10",
+                index: 10,
+                reps: 8,
+                weightKg: 70,
+                durationSec: nil,
+                distanceMeters: nil,
+                rpe: 8,
+                isWarmup: false,
+                completedAt: Date().addingTimeInterval(-2700),
+                dateCreated: Date().addingTimeInterval(-6300)
+            )
+        ]
+    }
+}

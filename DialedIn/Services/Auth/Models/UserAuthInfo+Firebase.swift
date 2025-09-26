@@ -1,0 +1,19 @@
+//
+//  UserAuthInfo+Firebase.swift
+//  AIChatCourse
+//
+//  Created by Andrew Coyle on 10/12/24.
+//
+import FirebaseAuth
+
+extension UserAuthInfo {
+    
+    init(user: User) {
+        self.uid = user.uid
+        self.email = user.email
+        self.isAnonymous = user.isAnonymous
+        self.creationDate = user.metadata.creationDate
+        self.lastSignInDate = user.metadata.lastSignInDate
+    }
+
+}

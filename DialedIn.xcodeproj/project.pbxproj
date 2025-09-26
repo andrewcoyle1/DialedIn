@@ -6,6 +6,20 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D01431202E54B2150053AD15 /* SwiftfulFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D014311F2E54B2150053AD15 /* SwiftfulFirestore */; };
+		D0A29B6C2E54B03900DA64F7 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B6B2E54B03900DA64F7 /* FirebaseAnalytics */; };
+		D0A29B6E2E54B03900DA64F7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B6D2E54B03900DA64F7 /* FirebaseAuth */; };
+		D0A29B702E54B03900DA64F7 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B6F2E54B03900DA64F7 /* FirebaseCore */; };
+		D0A29B722E54B03900DA64F7 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B712E54B03900DA64F7 /* FirebaseFirestore */; };
+		D0A29B742E54B03900DA64F7 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B732E54B03900DA64F7 /* FirebaseStorage */; };
+		D0A29B772E54B05200DA64F7 /* SignInAppleAsync in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B762E54B05200DA64F7 /* SignInAppleAsync */; };
+		D0A29B7B2E54B07C00DA64F7 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B7A2E54B07C00DA64F7 /* FirebaseCrashlytics */; };
+		D0A29B7E2E54B0AE00DA64F7 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B7D2E54B0AE00DA64F7 /* Mixpanel */; };
+		D0A29B812E54B0E400DA64F7 /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B802E54B0E400DA64F7 /* SwiftfulUtilities */; };
+		D0A29B842E54B0FA00DA64F7 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B832E54B0FA00DA64F7 /* SDWebImageSwiftUI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		D0A2994B2E54AEA800DA64F7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +66,17 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0A29B842E54B0FA00DA64F7 /* SDWebImageSwiftUI in Frameworks */,
+				D0A29B6C2E54B03900DA64F7 /* FirebaseAnalytics in Frameworks */,
+				D0A29B722E54B03900DA64F7 /* FirebaseFirestore in Frameworks */,
+				D0A29B812E54B0E400DA64F7 /* SwiftfulUtilities in Frameworks */,
+				D0A29B772E54B05200DA64F7 /* SignInAppleAsync in Frameworks */,
+				D0A29B7B2E54B07C00DA64F7 /* FirebaseCrashlytics in Frameworks */,
+				D0A29B702E54B03900DA64F7 /* FirebaseCore in Frameworks */,
+				D0A29B742E54B03900DA64F7 /* FirebaseStorage in Frameworks */,
+				D01431202E54B2150053AD15 /* SwiftfulFirestore in Frameworks */,
+				D0A29B7E2E54B0AE00DA64F7 /* Mixpanel in Frameworks */,
+				D0A29B6E2E54B03900DA64F7 /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +103,7 @@
 				D0A2993F2E54AEA700DA64F7 /* DialedIn */,
 				D0A2994D2E54AEA800DA64F7 /* DialedInTests */,
 				D0A299572E54AEA800DA64F7 /* DialedInUITests */,
+				D0A29B792E54B07C00DA64F7 /* Frameworks */,
 				D0A2993E2E54AEA700DA64F7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -92,6 +118,13 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		D0A29B792E54B07C00DA64F7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -102,6 +135,8 @@
 				D0A299392E54AEA700DA64F7 /* Sources */,
 				D0A2993A2E54AEA700DA64F7 /* Frameworks */,
 				D0A2993B2E54AEA700DA64F7 /* Resources */,
+				D01433B92E54BCA10053AD15 /* ShellScript */,
+				D01433BA2E54BCB50053AD15 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -112,6 +147,17 @@
 			);
 			name = DialedIn;
 			packageProductDependencies = (
+				D0A29B6B2E54B03900DA64F7 /* FirebaseAnalytics */,
+				D0A29B6D2E54B03900DA64F7 /* FirebaseAuth */,
+				D0A29B6F2E54B03900DA64F7 /* FirebaseCore */,
+				D0A29B712E54B03900DA64F7 /* FirebaseFirestore */,
+				D0A29B732E54B03900DA64F7 /* FirebaseStorage */,
+				D0A29B762E54B05200DA64F7 /* SignInAppleAsync */,
+				D0A29B7A2E54B07C00DA64F7 /* FirebaseCrashlytics */,
+				D0A29B7D2E54B0AE00DA64F7 /* Mixpanel */,
+				D0A29B802E54B0E400DA64F7 /* SwiftfulUtilities */,
+				D0A29B832E54B0FA00DA64F7 /* SDWebImageSwiftUI */,
+				D014311F2E54B2150053AD15 /* SwiftfulFirestore */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -195,6 +241,14 @@
 			);
 			mainGroup = D0A299342E54AEA700DA64F7;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				D0A29B752E54B05200DA64F7 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */,
+				D0A29B7C2E54B0AE00DA64F7 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
+				D0A29B7F2E54B0E400DA64F7 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */,
+				D0A29B822E54B0FA00DA64F7 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
+				D014311E2E54B2150053AD15 /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
 			projectDirPath = "";
@@ -230,6 +284,46 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		D01433B92E54BCA10053AD15 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\n# Check if running in a SwiftUI preview\nif [ \"$XCODE_RUNNING_FOR_PREVIEWS\" != \"1\" ]; then\n    if which swiftlint > /dev/null; then\n        swiftlint # Uncomment if you want to auto-fix: swiftlint --fix &&\n    else\n        echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\n    fi\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		D01433BA2E54BCB50053AD15 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"${CONFIGURATION}\" == \"Debug\" ]; then\n  GOOGLE_SERVICE_INFO_PLIST=\"${PROJECT_DIR}/DialedIn/GoogleServicePLists/GoogleService-Info-Dev.plist\"\nelif [ \"${CONFIGURATION}\" == \"Mock\" ]; then\n  echo \"Skipping Crashlytics upload for Mock configuration.\"\n  exit 0  # Use `exit 0` if `return` does not work in your environment\nelif [ \"${CONFIGURATION}\" == \"Release\" ]; then\n  GOOGLE_SERVICE_INFO_PLIST=\"${PROJECT_DIR}/DialedIn/GoogleServicePLists/GoogleService-Info-Prod.plist\"\nelse\n  echo \"No matching build configuration found for GoogleService-Info.plist!\"\n  exit 1\nfi\n\n# Run the Crashlytics script with the selected plist file\n\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\" -gsp \"${GOOGLE_SERVICE_INFO_PLIST}\"\n\n\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		D0A299392E54AEA700DA64F7 /* Sources */ = {
@@ -269,6 +363,168 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		D014316D2E54B47D0053AD15 /* Mock */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = VRNWC32C76;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Mock;
+		};
+		D014316E2E54B47D0053AD15 /* Mock */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DialedIn/DialedIn.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = VRNWC32C76;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "DialedIn - Mock";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.mock;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Mock;
+		};
+		D014316F2E54B47D0053AD15 /* Mock */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VRNWC32C76;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedInTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DialedIn.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DialedIn";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Mock;
+		};
+		D01431702E54B47D0053AD15 /* Mock */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VRNWC32C76;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedInUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = DialedIn;
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Mock;
+		};
 		D0A2995C2E54AEA800DA64F7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -307,7 +563,7 @@
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -369,7 +625,7 @@
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -381,6 +637,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -390,14 +647,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DialedIn/DialedIn.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "DialedIn - Dev";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -413,18 +674,19 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
@@ -434,14 +696,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DialedIn/DialedIn.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = DialedIn;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -462,13 +728,14 @@
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
@@ -582,6 +849,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D0A2995C2E54AEA800DA64F7 /* Debug */,
+				D014316D2E54B47D0053AD15 /* Mock */,
 				D0A2995D2E54AEA800DA64F7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -591,6 +859,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D0A2995F2E54AEA800DA64F7 /* Debug */,
+				D014316E2E54B47D0053AD15 /* Mock */,
 				D0A299602E54AEA800DA64F7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -600,6 +869,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D0A299622E54AEA800DA64F7 /* Debug */,
+				D014316F2E54B47D0053AD15 /* Mock */,
 				D0A299632E54AEA800DA64F7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -609,12 +879,122 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D0A299652E54AEA800DA64F7 /* Debug */,
+				D01431702E54B47D0053AD15 /* Mock */,
 				D0A299662E54AEA800DA64F7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D014311E2E54B2150053AD15 /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulFirestore";
+			requirement = {
+				kind = exactVersion;
+				version = 11.0.1;
+			};
+		};
+		D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.3.0;
+			};
+		};
+		D0A29B752E54B05200DA64F7 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SignInAppleAsync";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+		D0A29B7C2E54B0AE00DA64F7 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mixpanel/mixpanel-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
+		D0A29B7F2E54B0E400DA64F7 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulUtilities";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+		D0A29B822E54B0FA00DA64F7 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.1.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D014311F2E54B2150053AD15 /* SwiftfulFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D014311E2E54B2150053AD15 /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */;
+			productName = SwiftfulFirestore;
+		};
+		D0A29B6B2E54B03900DA64F7 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		D0A29B6D2E54B03900DA64F7 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		D0A29B6F2E54B03900DA64F7 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		D0A29B712E54B03900DA64F7 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		D0A29B732E54B03900DA64F7 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+		D0A29B762E54B05200DA64F7 /* SignInAppleAsync */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A29B752E54B05200DA64F7 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */;
+			productName = SignInAppleAsync;
+		};
+		D0A29B7A2E54B07C00DA64F7 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		D0A29B7D2E54B0AE00DA64F7 /* Mixpanel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A29B7C2E54B0AE00DA64F7 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
+			productName = Mixpanel;
+		};
+		D0A29B802E54B0E400DA64F7 /* SwiftfulUtilities */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A29B7F2E54B0E400DA64F7 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
+			productName = SwiftfulUtilities;
+		};
+		D0A29B832E54B0FA00DA64F7 /* SDWebImageSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0A29B822E54B0FA00DA64F7 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
+			productName = SDWebImageSwiftUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D0A299352E54AEA700DA64F7 /* Project object */;
 }
