@@ -17,16 +17,18 @@ protocol RemoteUserService: Sendable {
     func updateProfileImageUrl(userId: String, url: String?) async throws
     func updateLastSignInDate(userId: String) async throws
     func markOnboardingCompleted(userId: String) async throws
-    func addExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
-    func removeExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
     func addCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
     func removeCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
     func addBookmarkedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
     func removeBookmarkedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
     func addFavouritedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
     func removeFavouritedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
-    func addWorkoutTemplate(userId: String, workoutTemplateId: String) async throws
-    func removeWorkoutTemplate(userId: String, workoutTemplateId: String) async throws
+    func addCreatedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws
+    func removeCreatedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws
+    func addBookmarkedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws
+    func removeBookmarkedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws
+    func addFavouritedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws
+    func removeFavouritedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws
     func blockUser(currentUserId: String, blockedUserId: String) async throws
     func unblockUser(currentUserId: String, blockedUserId: String) async throws
     func deleteUser(userId: String) async throws

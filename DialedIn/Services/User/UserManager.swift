@@ -125,18 +125,6 @@ class UserManager {
         try await remote.markOnboardingCompleted(userId: uid)
     }
     
-    // MARK: - Bookmarks
-    
-    func addExerciseTemplate(exerciseId: String) async throws {
-        let uid = try currentUserId()
-        try await remote.addExerciseTemplate(userId: uid, exerciseTemplateId: exerciseId)
-    }
-    
-    func removeExerciseTemplate(exerciseId: String) async throws {
-        let uid = try currentUserId()
-        try await remote.removeExerciseTemplate(userId: uid, exerciseTemplateId: exerciseId)
-    }
-    
     // MARK: - Created/Bookmarked/Favourited Exercise Templates
     
     func addCreatedExerciseTemplate(exerciseId: String) async throws {
@@ -169,14 +157,36 @@ class UserManager {
         try await remote.removeFavouritedExerciseTemplate(userId: uid, exerciseTemplateId: exerciseId)
     }
     
-    func addWorkoutTemplate(workoutId: String) async throws {
+    // MARK: - Created/Bookmarked/Favourited Workout Templates
+    
+    func addCreatedWorkoutTemplate(workoutId: String) async throws {
         let uid = try currentUserId()
-        try await remote.addWorkoutTemplate(userId: uid, workoutTemplateId: workoutId)
+        try await remote.addCreatedWorkoutTemplate(userId: uid, workoutTemplateId: workoutId)
     }
     
-    func removeWorkoutTemplate(workoutId: String) async throws {
+    func removeCreatedWorkoutTemplate(workoutId: String) async throws {
         let uid = try currentUserId()
-        try await remote.removeWorkoutTemplate(userId: uid, workoutTemplateId: workoutId)
+        try await remote.removeCreatedWorkoutTemplate(userId: uid, workoutTemplateId: workoutId)
+    }
+    
+    func addBookmarkedWorkoutTemplate(workoutId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.addBookmarkedWorkoutTemplate(userId: uid, workoutTemplateId: workoutId)
+    }
+    
+    func removeBookmarkedWorkoutTemplate(workoutId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.removeBookmarkedWorkoutTemplate(userId: uid, workoutTemplateId: workoutId)
+    }
+    
+    func addFavouritedWorkoutTemplate(workoutId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.addFavouritedWorkoutTemplate(userId: uid, workoutTemplateId: workoutId)
+    }
+    
+    func removeFavouritedWorkoutTemplate(workoutId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.removeFavouritedWorkoutTemplate(userId: uid, workoutTemplateId: workoutId)
     }
     
     // MARK: - User Blocking

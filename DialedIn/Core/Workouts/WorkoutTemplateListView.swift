@@ -15,16 +15,17 @@ struct WorkoutTemplateListView: View {
     
     var body: some View {
         NavigationStack(path: $path) {
-            List(templates) { template in
-                CustomListCellView(
-                    imageName: nil,
-                    title: template.name,
-                    subtitle: template.notes
-                )
-                .anyButton(.highlight) {
-                    path.append(.workoutTemplateDetail(template: template))
+            List {
+                ForEach(templates) { template in
+                    CustomListCellView(
+                        imageName: nil,
+                        title: template.name
+                    )
+                    .anyButton(.highlight) {
+                        path.append(.workoutTemplateDetail(template: template))
+                    }
+                    .removeListRowFormatting()
                 }
-                .removeListRowFormatting()
             }
             .navigationTitle("Workout Templates")
             .toolbar {

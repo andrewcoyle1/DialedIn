@@ -121,22 +121,23 @@ struct ProfileView: View {
 
 #Preview("User Has No Image") {
     ProfileView()
-        .environment(UserManager(services: MockUserServices(user: UserModel(
-                                                                    userId: UUID().uuidString,
-                                                                    email: "alicecooper@gmail.com",
-                                                                    isAnonymous: false,
-                                                                    firstName: "",
-                                                                    lastName: "Cooper",
-                                                                    dateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
-                                                                    gender: .male,
-                                                                    profileImageUrl: nil,
-                                                                    creationDate: Date(),
-                                                                    creationVersion: nil,
-                                                                    lastSignInDate: Date(),
-                                                                    didCompleteOnboarding: true,
-                                                                    exerciseTemplateIds: [],
-                                                                    workoutTemplateIds: [],
-                                                                    blockedUserIds: [])
+        .environment(
+            UserManager(
+                services: MockUserServices(
+                    user: UserModel(
+                        userId: UUID().uuidString,
+                        email: "alicecooper@gmail.com",
+                        isAnonymous: false,
+                        firstName: "",
+                        lastName: "Cooper",
+                        dateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
+                        gender: .male,
+                        profileImageUrl: nil,
+                        creationDate: Date(),
+                        creationVersion: nil,
+                        lastSignInDate: Date(),
+                        didCompleteOnboarding: true,
+                        blockedUserIds: [])
                 )
             )
         )

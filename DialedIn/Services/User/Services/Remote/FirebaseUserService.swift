@@ -84,20 +84,6 @@ struct FirebaseUserService: RemoteUserService {
         ])
     }
     
-    // MARK: - Bookmarks
-    
-    func addExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.exerciseTemplateIds.rawValue: FieldValue.arrayUnion([exerciseTemplateId])
-        ])
-    }
-    
-    func removeExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.exerciseTemplateIds.rawValue: FieldValue.arrayRemove([exerciseTemplateId])
-        ])
-    }
-    
     // MARK: - Created/Bookmarked/Favourited Exercise Templates
     
     func addCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
@@ -136,15 +122,39 @@ struct FirebaseUserService: RemoteUserService {
         ])
     }
     
-    func addWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
+    func addCreatedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
         try await collection.document(userId).updateData([
-            UserModel.CodingKeys.workoutTemplateIds.rawValue: FieldValue.arrayUnion([workoutTemplateId])
+            UserModel.CodingKeys.createdWorkoutTemplateIds.rawValue: FieldValue.arrayUnion([workoutTemplateId])
         ])
     }
     
-    func removeWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
+    func removeCreatedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
         try await collection.document(userId).updateData([
-            UserModel.CodingKeys.workoutTemplateIds.rawValue: FieldValue.arrayRemove([workoutTemplateId])
+            UserModel.CodingKeys.createdWorkoutTemplateIds.rawValue: FieldValue.arrayRemove([workoutTemplateId])
+        ])
+    }
+    
+    func addBookmarkedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.bookmarkedWorkoutTemplateIds.rawValue: FieldValue.arrayUnion([workoutTemplateId])
+        ])
+    }
+    
+    func removeBookmarkedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.bookmarkedWorkoutTemplateIds.rawValue: FieldValue.arrayRemove([workoutTemplateId])
+        ])
+    }
+    
+    func addFavouritedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.favouritedWorkoutTemplateIds.rawValue: FieldValue.arrayUnion([workoutTemplateId])
+        ])
+    }
+    
+    func removeFavouritedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.favouritedWorkoutTemplateIds.rawValue: FieldValue.arrayRemove([workoutTemplateId])
         ])
     }
     

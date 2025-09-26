@@ -6,22 +6,36 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct CreateWorkoutView: View {
     
+    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
+    @Environment(UserManager.self) private var userManager
     @Environment(\.dismiss) private var dismiss
     
     @State private var workoutName: String = ""
-    @State private var workoutTemplateNotes: String = ""
+    @State private var workoutTemplateDescription: String = ""
+    
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var selectedImageData: Data?
+    @State private var isImagePickerPresented: Bool = false
     @State var exercises: [ExerciseTemplateModel] = ExerciseTemplateModel.mocks
-
+    
+    @State private var showDebugView: Bool = false
+    
+    @State var isSaving: Bool = false
+    private var canSave: Bool {
+        !workoutName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
     @State private var showAddExerciseModal: Bool = false
     
     var body: some View {
         NavigationStack {
             List {
+                imageSection
                 nameSection
-                notesSection
                 exerciseTemplatesSection
             }
             .navigationTitle("Create Workout")
@@ -33,35 +47,108 @@ struct CreateWorkoutView: View {
                     Image(systemName: "xmark")
                     }
                 }
-                
+                ToolbarSpacer(.fixed, placement: .topBarLeading)
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showDebugView = true
+                    } label: {
+                        Image(systemName: "info")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        createWorkout()
+                        Task {
+                            do {
+                                try await onSavePressed()
+                            } catch {
+                                
+                            }
+                        }
                     } label: {
                     Image(systemName: "checkmark")
                     }
                     .buttonStyle(.glassProminent)
+                    .disabled(!canSave || isSaving)
                 }
             }
+            .onChange(of: selectedPhotoItem) {
+                guard let newItem = selectedPhotoItem else { return }
+                
+                Task {
+                    do {
+                        if let data = try await newItem.loadTransferable(type: Data.self) {
+                            await MainActor.run {
+                                selectedImageData = data
+                                // TODO: Add log manager
+                            }
+                        } else {
+                            await MainActor.run {
+                                // TODO: Add log manager
+                            }
+                        }
+                    } catch {
+                        await MainActor.run {
+                            // TODO: Add log manager
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showDebugView, content: {
+                DevSettingsView()
+            })
             .sheet(isPresented: $showAddExerciseModal) {
                 AddExerciseModal(selectedExercises: $exercises)
             }
         }
     }
     
+    private var imageSection: some View {
+        Section("Workout Image") {
+            HStack {
+                Spacer()
+                Button {
+                    onImageSelectorPressed()
+                } label: {
+                    ZStack {
+                        Rectangle()
+                            .fill(Color.secondary.opacity(0.001))
+                        Group {
+                            if let data = selectedImageData {
+                                #if canImport(UIKit)
+                                if let uiImage = UIImage(data: data) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                }
+                                #elseif canImport(AppKit)
+                                if let nsImage = NSImage(data: data) {
+                                    Image(nsImage: nsImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                }
+                                #endif
+                            } else {
+                                Image(systemName: "dumbbell.fill")
+                                    .font(.system(size: 120))
+                                    .foregroundStyle(.accent)
+                            }
+                        }
+                    }
+                    .frame(width: 120, height: 120)
+                }
+                .photosPicker(isPresented: $isImagePickerPresented, selection: $selectedPhotoItem, matching: .images)
+                Spacer()
+            }
+        }
+        .removeListRowFormatting()
+    }
+    
     private var nameSection: some View {
         Section {
             TextField("Enter workout name", text: $workoutName)
+            TextField("Enter workout description", text: $workoutTemplateDescription)
         } header: {
             Text("Workout name")
-        }
-    }
-    
-    private var notesSection: some View {
-        Section {
-            TextField("Enter workout template notes.", text: $workoutTemplateNotes)
-        } header: {
-            Text("Notes")
         }
     }
     
@@ -94,21 +181,51 @@ struct CreateWorkoutView: View {
         }
     }
     
+    private func onImageSelectorPressed() {
+        // Show the image picker sheet for selecting a profile image
+        isImagePickerPresented = true
+    }
+    
     private func cancel() {
         dismiss()
     }
     
-    private func createWorkout() {
-        _ = WorkoutTemplateModel(
-            id: UUID().uuidString,
-            authorId: UUID().uuidString,
-            name: workoutName,
-            notes: workoutTemplateNotes != "" ? workoutTemplateNotes : nil,
-            dateCreated: Date(),
-            dateModified: nil,
-            exercises: []
-        )
-        // TODO: Add save workout logic here
+    private func onSavePressed() async throws {
+        guard !isSaving, canSave else { return }
+        isSaving = true
+        
+        do {
+            guard let userId = userManager.currentUser?.userId else {
+                return
+            }
+            
+            let newWorkout = WorkoutTemplateModel(
+                id: UUID().uuidString,
+                authorId: userId,
+                name: workoutName,
+                description: workoutTemplateDescription,
+                imageURL: nil,
+                dateCreated: Date(),
+                dateModified: Date(),
+                exercises: exercises
+            )
+            
+            #if canImport(UIKit)
+            let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
+            try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: uiImage)
+            #elseif canImport(AppKit)
+            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
+            try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: nsImage)
+            #endif
+            // Track created template on the user document
+            try await userManager.addCreatedWorkoutTemplate(workoutId: newWorkout.id)
+            // Auto-bookmark authored templates
+            try await userManager.addBookmarkedWorkoutTemplate(workoutId: newWorkout.id)
+            try await workoutTemplateManager.bookmarkWorkoutTemplate(id: newWorkout.id, isBookmarked: true)
+        } catch {
+            
+        }
+        isSaving = false
         dismiss()
     }
     
@@ -125,6 +242,7 @@ struct CreateWorkoutView: View {
         .sheet(isPresented: $showingSheet) {
             CreateWorkoutView()
         }
+        .previewEnvironment()
 }
 
 #Preview("Without Exercises") {
@@ -135,4 +253,5 @@ struct CreateWorkoutView: View {
         .sheet(isPresented: $showingSheet) {
             CreateWorkoutView(exercises: [])
         }
+        .previewEnvironment()
 }

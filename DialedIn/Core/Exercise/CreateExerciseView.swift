@@ -115,19 +115,19 @@ struct CreateExerciseView: View {
                             .fill(Color.secondary.opacity(0.001))
                         Group {
                             if let data = selectedImageData {
-#if canImport(UIKit)
+                                #if canImport(UIKit)
                                 if let uiImage = UIImage(data: data) {
                                     Image(uiImage: uiImage)
                                         .resizable()
                                         .scaledToFill()
                                 }
-#elseif canImport(AppKit)
+                                #elseif canImport(AppKit)
                                 if let nsImage = NSImage(data: data) {
                                     Image(nsImage: nsImage)
                                         .resizable()
                                         .scaledToFill()
                                 }
-#endif
+                                #endif
                             } else {
                                 Image(systemName: "dumbbell.fill")
                                     .font(.system(size: 120))
@@ -226,6 +226,9 @@ struct CreateExerciseView: View {
 #endif
             // Track created template on the user document
             try await userManager.addCreatedExerciseTemplate(exerciseId: newExercise.id)
+            // Auto-bookmark authored templates
+            try await userManager.addBookmarkedExerciseTemplate(exerciseId: newExercise.id)
+            try await exerciseTemplateManager.bookmarkExerciseTemplate(id: newExercise.id, isBookmarked: true)
         } catch {
             
         }

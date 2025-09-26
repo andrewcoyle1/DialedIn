@@ -14,9 +14,7 @@ struct WorkoutTemplateDetailView: View {
     
     var body: some View {
         List {
-            if let notes = template.notes, !notes.isEmpty {
-                Section(header: Text("Notes")) { Text(notes) }
-            }
+            
             Section(header: Text("Exercises")) {
                 ForEach(template.exercises) { exercise in
                     exerciseSection(exercise: exercise)

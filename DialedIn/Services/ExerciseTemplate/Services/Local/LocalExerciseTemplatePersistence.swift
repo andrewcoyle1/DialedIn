@@ -12,4 +12,5 @@ protocol LocalExerciseTemplatePersistence {
     func getLocalExerciseTemplates(ids: [String]) throws -> [ExerciseTemplateModel]
     func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel]
     func bookmarkExerciseTemplate(id: String, isBookmarked: Bool) throws
+    func favouriteExerciseTemplate(id: String, isFavourited: Bool) throws
 }

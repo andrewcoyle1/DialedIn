@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TabBarView: View {
-        
+    
     private enum Section: String, CaseIterable, Identifiable {
         case dashboard
         case exercises
@@ -38,62 +38,31 @@ struct TabBarView: View {
     
     @State private var selectedSection: Section? = .dashboard
     
-    private var shouldUseSplitView: Bool {
-        #if os(macOS)
-        return true
-        #elseif targetEnvironment(macCatalyst)
-        return true
-        #else
-        return UIDevice.current.userInterfaceIdiom == .pad
-        #endif
-    }
-        
     var body: some View {
-                Group {
-                        if shouldUseSplitView {
-                                NavigationSplitView {
-                                        List(Section.allCases, selection: $selectedSection) { section in
-                                                Label(section.title, systemImage: section.systemImage)
-                                                        .tag(section)
-                                        }
-                                        .navigationTitle("Dialed In")
-                                } detail: {
-                                        switch selectedSection ?? .dashboard {
-                                        case .dashboard:
-                                                DashboardView()
-                                        case .exercises:
-                                                TrainingView()
-                                        case .nutrition:
-                                                Text("Nutrition")
-                                        case .profile:
-                                                ProfileView()
-                                        }
-                                }
-                        } else {
-                                TabView {
-                                        DashboardView()
-                                                .tabItem {
-                                                        Label("Dashboard", systemImage: "house")
-                                                }
-                                        
-                                        TrainingView()
-                                                .tabItem {
-                                                        Label("Exercises", systemImage: "dumbbell")
-                                                }
-                                        
-                                        Text("Nutrition")
-                                                .tabItem {
-                                                        Label("Nutrition", systemImage: "carrot")
-                                                }
-                                        
-                                        ProfileView()
-                                                .tabItem {
-                                                        Label("Profile", systemImage: "person.fill")
-                                                }
-                                }
-                        }
+        TabView {
+            DashboardView()
+                .tabItem {
+                    Label("Dashboard", systemImage: "house")
                 }
-        
+            
+            TrainingView()
+                .tabItem {
+                    Label("Exercises", systemImage: "dumbbell")
+                }
+            
+            NutritionView()
+                .tabItem {
+                    Label("Nutrition", systemImage: "carrot")
+                }
+            
+            ProfileView()
+                .tabItem {
+                    Label("Profile", systemImage: "person.fill")
+                }
+        }
+        .tabViewStyle(.sidebarAdaptable)
+        .defaultAdaptableTabBarPlacement(.sidebar)
+        .tabBarMinimizeBehavior(.onScrollDown)
     }
 }
 

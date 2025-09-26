@@ -69,16 +69,6 @@ struct MockUserService: RemoteUserService {
         try tryShowError()
     }
     
-    func addExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-    
-    func removeExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-    
     func addCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
@@ -109,12 +99,32 @@ struct MockUserService: RemoteUserService {
         try tryShowError()
     }
     
-    func addWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
+    func addCreatedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
     }
     
-    func removeWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
+    func removeCreatedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
+    
+    func addBookmarkedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
+    
+    func removeBookmarkedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
+    
+    func addFavouritedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
+    
+    func removeFavouritedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
     }

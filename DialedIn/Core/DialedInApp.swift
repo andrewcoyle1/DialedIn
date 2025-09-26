@@ -19,6 +19,7 @@ struct DialedInApp: App {
         WindowGroup {
             AppView()
                 .environment(delegate.dependencies.exerciseTemplateManager)
+                .environment(delegate.dependencies.workoutTemplateManager)
                 .environment(delegate.dependencies.userManager)
                 .environment(delegate.dependencies.authManager)
                 .environment(delegate.dependencies.logManager)
@@ -75,6 +76,7 @@ struct Dependencies {
     let authManager: AuthManager
     let userManager: UserManager
     let exerciseTemplateManager: ExerciseTemplateManager
+    let workoutTemplateManager: WorkoutTemplateManager
     let logManager: LogManager
     let reportManager: ReportManager
 
@@ -84,6 +86,7 @@ struct Dependencies {
             authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil))
             userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
             exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
+            workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices())
             logManager = LogManager(services: [
                 ConsoleService(printParameters: false)
             ])
@@ -100,6 +103,7 @@ struct Dependencies {
             authManager = AuthManager(service: FirebaseAuthService(), logManager: logs)
             userManager = UserManager(services: ProductionUserServices(), logManager: logs)
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
+            workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
             
@@ -113,6 +117,7 @@ struct Dependencies {
             authManager = AuthManager(service: FirebaseAuthService(), logManager: logs)
             userManager = UserManager(services: ProductionUserServices(), logManager: logs)
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
+            workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
         }
@@ -128,5 +133,6 @@ extension View {
             .environment(LogManager(services: []))
             .environment(ReportManager(service: MockReportService(), userManager: UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))))
             .environment(ExerciseTemplateManager(services: MockExerciseTemplateServices()))
+            .environment(WorkoutTemplateManager(services: MockWorkoutTemplateServices()))
     }
 }

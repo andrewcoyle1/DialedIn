@@ -38,7 +38,6 @@ struct ExerciseDetailView: View {
     var body: some View {
         List {
             pickerSection
-            
             switch section {
             case .description:
                 aboutSection
@@ -73,24 +72,30 @@ struct ExerciseDetailView: View {
                     Image(systemName: isFavourited ? "heart.fill" : "heart")
                 }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task {
-                        await onBookmarkPressed()
+            // Hide bookmark button when the current user is the author
+            if userManager.currentUser?.userId != nil && userManager.currentUser?.userId != exerciseTemplate.authorId {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        Task {
+                            await onBookmarkPressed()
+                        }
+                    } label: {
+                        Image(systemName: isBookmarked ? "book.closed.fill" : "book.closed")
                     }
-                } label: {
-                    Image(systemName: isBookmarked ? "book.closed.fill" : "book.closed")
                 }
             }
         }
         .task {
             let user = userManager.currentUser
-            isBookmarked = (user?.bookmarkedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false) || (user?.exerciseTemplateIds?.contains(exerciseTemplate.id) ?? false)
+            // Always treat authored templates as bookmarked
+            let isAuthor = user?.userId == exerciseTemplate.authorId
+            isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false)
             isFavourited = user?.favouritedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false
         }
         .onChange(of: userManager.currentUser) { _, _ in
             let user = userManager.currentUser
-            isBookmarked = (user?.bookmarkedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false) || (user?.exerciseTemplateIds?.contains(exerciseTemplate.id) ?? false)
+            let isAuthor = user?.userId == exerciseTemplate.authorId
+            isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false)
             isFavourited = user?.favouritedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false
         }
 #if DEBUG || MOCK
@@ -185,15 +190,13 @@ extension ExerciseDetailView {
     private var aboutSection: some View {
         Group {
             if let url = exerciseTemplate.imageURL {
-                Section {
-                    imageSection(url: url)
-                }
-                .removeListRowFormatting()
+                imageSection(url: url)
             }
             
             if let description = exerciseTemplate.description {
                 descriptionSection(description: description)
             }
+            
             if !exerciseTemplate.instructions.isEmpty {
                 instructionsSection
             }
@@ -422,7 +425,7 @@ extension ExerciseDetailView {
     private var pickerSection: some View {
         Section {
             Picker("Section", selection: $section) {
-                Text("Description").tag(CustomSection.description)
+                Text("About").tag(CustomSection.description)
                 Text("History").tag(CustomSection.history)
                 Text("Charts").tag(CustomSection.charts)
                 Text("Records").tag(CustomSection.records)
@@ -434,9 +437,11 @@ extension ExerciseDetailView {
     }
     
     private func imageSection(url: String) -> some View {
-        ImageLoaderView(urlString: url, resizingMode: .fill)
-            .frame(maxWidth: .infinity, minHeight: 180)
-        
+        Section {
+            ImageLoaderView(urlString: url, resizingMode: .fill)
+                .frame(maxWidth: .infinity, minHeight: 180)
+        }
+        .removeListRowFormatting()
     }
     
     private func descriptionSection(description: String) -> some View {

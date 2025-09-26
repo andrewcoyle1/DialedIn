@@ -16,41 +16,41 @@ struct WorkoutsView: View {
     @State private var searchText: String = ""
     
     var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    ForEach(workouts) { workout in
-                        CustomListCellView(
-                            imageName: workout.imageURL,
-                            title: workout.name,
-                            subtitle: workout.notes,
-                        )
-                        .removeListRowFormatting()
-                        
-                    }
-                } header: {
-                    Text("Workout Templates")
+        Group {
+            ForEach(workouts) { workout in
+                CustomListCellView(
+                    imageName: workout.imageURL,
+                    title: workout.name
+                )
+                .removeListRowFormatting()
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showAddWorkoutModal = true
+                } label: {
+                    Image(systemName: "plus")
                 }
+                .buttonStyle(.glassProminent)
             }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showAddWorkoutModal = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .buttonStyle(.glassProminent)
-                }
-            }
-            .searchable(text: $searchText)
-            .sheet(isPresented: $showAddWorkoutModal) {
-                CreateWorkoutView()
-            }
+        }
+        .searchable(text: $searchText)
+        .sheet(isPresented: $showAddWorkoutModal) {
+            CreateWorkoutView()
         }
     }
 }
 
 #Preview {
-    WorkoutsView()
-        .previewEnvironment()
+    NavigationStack {
+        List {
+            Section {
+                WorkoutsView()
+            } header: {
+                Text("Workout Templates")
+            }
+        }
+    }
+    .previewEnvironment()
 }

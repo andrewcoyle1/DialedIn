@@ -38,15 +38,14 @@ struct UserModel: Codable, Equatable {
     let didCompleteOnboarding: Bool?
     
     // Exercise Templates
-    // Deprecated: previously used for bookmarks
-    let exerciseTemplateIds: [String]?
-    // New explicit arrays
     let createdExerciseTemplateIds: [String]?
     let bookmarkedExerciseTemplateIds: [String]?
     let favouritedExerciseTemplateIds: [String]?
-
+    
     // Workout Templates
-    let workoutTemplateIds: [String]?
+    let createdWorkoutTemplateIds: [String]?
+    let bookmarkedWorkoutTemplateIds: [String]?
+    let favouritedWorkoutTemplateIds: [String]?
 
     // Blocked Users
     let blockedUserIds: [String]?
@@ -64,11 +63,12 @@ struct UserModel: Codable, Equatable {
         creationVersion: String? = nil,
         lastSignInDate: Date? = nil,
         didCompleteOnboarding: Bool? = nil,
-        exerciseTemplateIds: [String]? = nil,
         createdExerciseTemplateIds: [String]? = nil,
         bookmarkedExerciseTemplateIds: [String]? = nil,
         favouritedExerciseTemplateIds: [String]? = nil,
-        workoutTemplateIds: [String]? = nil,
+        createdWorkoutTemplateIds: [String]? = nil,
+        bookmarkedWorkoutTemplateIds: [String]? = nil,
+        favouritedWorkoutTemplateIds: [String]? = nil,
         blockedUserIds: [String]? = nil
     ) {
         self.userId = userId
@@ -83,11 +83,12 @@ struct UserModel: Codable, Equatable {
         self.creationVersion = creationVersion
         self.lastSignInDate = lastSignInDate
         self.didCompleteOnboarding = didCompleteOnboarding
-        self.exerciseTemplateIds = exerciseTemplateIds
         self.createdExerciseTemplateIds = createdExerciseTemplateIds
         self.bookmarkedExerciseTemplateIds = bookmarkedExerciseTemplateIds
         self.favouritedExerciseTemplateIds = favouritedExerciseTemplateIds
-        self.workoutTemplateIds = workoutTemplateIds
+        self.createdWorkoutTemplateIds = createdWorkoutTemplateIds
+        self.bookmarkedWorkoutTemplateIds = bookmarkedWorkoutTemplateIds
+        self.favouritedWorkoutTemplateIds = favouritedWorkoutTemplateIds
         self.blockedUserIds = blockedUserIds
     }
 
@@ -119,11 +120,12 @@ struct UserModel: Codable, Equatable {
         case creationVersion = "creation_version"
         case lastSignInDate = "last_sign_in_date"
         case didCompleteOnboarding = "did_complete_onboarding"
-        case exerciseTemplateIds = "exercise_template_ids"
         case createdExerciseTemplateIds = "created_exercise_template_ids"
         case bookmarkedExerciseTemplateIds = "bookmarked_exercise_template_ids"
         case favouritedExerciseTemplateIds = "favourited_exercise_template_ids"
-        case workoutTemplateIds = "workout_template_ids"
+        case createdWorkoutTemplateIds = "created_workout_template_ids"
+        case bookmarkedWorkoutTemplateIds = "bookmarked_workout_template_ids"
+        case favouritedWorkoutTemplateIds = "favourited_workout_template_ids"
         case blockedUserIds = "blocked_user_ids"
     }
     
