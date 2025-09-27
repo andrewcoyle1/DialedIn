@@ -126,9 +126,7 @@ struct WorkoutTemplateModel: Identifiable, Codable, StringIdentifiable, Hashable
             imageURL: Constants.randomImage,
             dateCreated: Date(timeIntervalSinceNow: -86400 * 7),
             dateModified: Date(timeIntervalSinceNow: -86400 * 2),
-            exercises: [
-                
-            ],
+            exercises: ExerciseTemplateModel.mocks,
             bookmarkCount: 12,
             favouriteCount: 3
         ),
@@ -140,9 +138,7 @@ struct WorkoutTemplateModel: Identifiable, Codable, StringIdentifiable, Hashable
             imageURL: nil,
             dateCreated: Date(timeIntervalSinceNow: -86400 * 14),
             dateModified: Date(),
-            exercises: [
-                
-            ],
+            exercises: ExerciseTemplateModel.mocks,
             bookmarkCount: 18,
             favouriteCount: 1
         ),
@@ -154,9 +150,7 @@ struct WorkoutTemplateModel: Identifiable, Codable, StringIdentifiable, Hashable
             imageURL: Constants.randomImage,
             dateCreated: Date(timeIntervalSinceNow: -86400 * 3),
             dateModified: Date(timeIntervalSinceNow: -86400),
-            exercises: [
-                
-            ],
+            exercises: ExerciseTemplateModel.mocks,
             bookmarkCount: 28,
             favouriteCount: 5
         )

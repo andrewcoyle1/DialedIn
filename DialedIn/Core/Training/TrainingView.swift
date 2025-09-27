@@ -18,7 +18,8 @@ struct TrainingView: View {
     
     @State private var presentationMode: PresentationMode = .exercises
     @State private var showDebugView: Bool = false
-    @State private var searchTask: Task<Void, Never>?
+    @State private var searchExerciseTask: Task<Void, Never>?
+    @State private var searchWorkoutTask: Task<Void, Never>?
     @State private var isLoading: Bool = false
     @State private var searchText: String = ""
     @State private var showAlert: AnyAppAlert?
@@ -51,8 +52,7 @@ struct TrainingView: View {
                 case .workouts:
                     workoutSection
                 case .exercises:
-                    ExerciseView()
-                    // exerciseSection
+                    exerciseSection
                 }
             }
             .navigationTitle("Training")
@@ -127,7 +127,7 @@ struct TrainingView: View {
                     }
                 } else if let workout = selectedWorkoutTemplate {
                     NavigationStack {
-                        WorkoutTemplateDetailView(template: workout)
+                        WorkoutTemplateDetailView(workout: workout)
                     }
                 } else {
                     Text("Select an item")
@@ -180,29 +180,29 @@ extension TrainingView {
     }
     
     private var exerciseSection: some View {
-            Group {
-                if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    
-                    if !favouriteExercises.isEmpty {
-                        favouriteExerciseTemplatesSection
-                    }
-                    
-                    if !myExercisesVisible.isEmpty {
-                        myExerciseSection
-                    }
-                    
-                    if !bookmarkedOnlyExercises.isEmpty {
-                        bookmarkedExerciseTemplatesSection
-                    }
-                    
-                    if !trendingExercisesDeduped.isEmpty {
-                        exerciseTemplateSection
-                    }
-                } else {
-                    // Show search results when there is a query
+        Group {
+            if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                
+                if !favouriteExercises.isEmpty {
+                    favouriteExerciseTemplatesSection
+                }
+                
+                if !myExercisesVisible.isEmpty {
+                    myExerciseSection
+                }
+                
+                if !bookmarkedOnlyExercises.isEmpty {
+                    bookmarkedExerciseTemplatesSection
+                }
+                
+                if !trendingExercisesDeduped.isEmpty {
                     exerciseTemplateSection
                 }
+            } else {
+                // Show search results when there is a query
+                exerciseTemplateSection
             }
+        }
     }
     
     private var myExerciseIds: Set<String> {
@@ -364,9 +364,42 @@ extension TrainingView {
         Task {
             try? await exerciseTemplateManager.incrementExerciseTemplateInteraction(id: exercise.id)
         }
-            selectedWorkoutTemplate = nil
-            selectedExerciseTemplate = exercise
-            isShowingInspector = true
+        selectedWorkoutTemplate = nil
+        selectedExerciseTemplate = exercise
+        isShowingInspector = true
+    }
+    
+    private func performExerciseSearch(for query: String) {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        searchExerciseTask?.cancel()
+        guard !trimmed.isEmpty else {
+            // When clearing search, show top templates
+            Task { await loadTopExercisesIfNeeded() }
+            isLoading = false
+            return
+        }
+        isLoading = true
+        let currentQuery = trimmed
+        searchExerciseTask = Task { [exerciseTemplateManager] in
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled else { return }
+            do {
+                let results = try await exerciseTemplateManager.getExerciseTemplatesByName(name: currentQuery)
+                await MainActor.run {
+                    exercises = results
+                    isLoading = false
+                }
+            } catch {
+                showAlert = AnyAppAlert(
+                    title: "No Exercises Found",
+                    subtitle: "We couldn't find any exercise templates matching your search. Please try a different name or check your connection."
+                )
+                await MainActor.run {
+                    isLoading = false
+                    exercises = []
+                }
+            }
+        }
     }
     
     private func onAddExercisePressed() {
@@ -435,9 +468,9 @@ extension TrainingView {
             )
         }
     }
+}
     
-    // MARK: - De-duplication helpers
-    
+extension TrainingView {
     private var myWorkoutIds: Set<String> {
         Set(myWorkouts.map { $0.id })
     }
@@ -574,10 +607,10 @@ extension TrainingView {
         selectedWorkoutTemplate = workout
         isShowingInspector = true
     }
-        
-    private func performExerciseSearch(for query: String) {
+    
+    private func performWorkoutSearch(for query: String) {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        searchTask?.cancel()
+        searchWorkoutTask?.cancel()
         guard !trimmed.isEmpty else {
             // When clearing search, show top templates
             Task { await loadTopExercisesIfNeeded() }
@@ -586,23 +619,23 @@ extension TrainingView {
         }
         isLoading = true
         let currentQuery = trimmed
-        searchTask = Task { [exerciseTemplateManager] in
+        searchWorkoutTask = Task { [workoutTemplateManager] in
             try? await Task.sleep(for: .milliseconds(350))
             guard !Task.isCancelled else { return }
             do {
-                let results = try await exerciseTemplateManager.getExerciseTemplatesByName(name: currentQuery)
+                let results = try await workoutTemplateManager.getWorkoutTemplatesByName(name: currentQuery)
                 await MainActor.run {
-                    exercises = results
+                    workouts = results
                     isLoading = false
                 }
             } catch {
                 showAlert = AnyAppAlert(
-                    title: "No Exercises Found",
-                    subtitle: "We couldn't find any exercise templates matching your search. Please try a different name or check your connection."
+                    title: "No Workouts Found",
+                    subtitle: "We couldn't find any workout templates matching your search. Please try a different name or check your connection."
                 )
                 await MainActor.run {
                     isLoading = false
-                    exercises = []
+                    workouts = []
                 }
             }
         }

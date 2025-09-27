@@ -1,5 +1,5 @@
 //
-//  ExerciseTemplateServices.swift
+//  WorkoutTemplateServices.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 26/09/2025.

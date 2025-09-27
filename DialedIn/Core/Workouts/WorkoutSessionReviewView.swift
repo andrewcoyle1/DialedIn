@@ -9,7 +9,7 @@ import SwiftUI
 
 struct WorkoutSessionReviewView: View {
     @Environment(\.dismiss) private var dismiss
-    let session: WorkoutSession
+    let session: WorkoutSessionModel
     
     var body: some View {
         NavigationStack {
@@ -66,7 +66,7 @@ struct WorkoutSessionReviewView: View {
         }
     }
     
-    private func setSummary(_ set: WorkoutSet, mode: TrackingMode) -> String {
+    private func setSummary(_ set: WorkoutSetModel, mode: TrackingMode) -> String {
         switch mode {
         case .weightReps:
             return "x\(set.reps ?? 0) @ \(Int(set.weightKg ?? 0))kg"
@@ -81,5 +81,5 @@ struct WorkoutSessionReviewView: View {
 }
 
 #Preview {
-    WorkoutSessionReviewView(session: WorkoutSession.mock)
+    WorkoutSessionReviewView(session: WorkoutSessionModel.mock)
 }

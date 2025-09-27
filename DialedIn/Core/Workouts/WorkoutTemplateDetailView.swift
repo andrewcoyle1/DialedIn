@@ -9,19 +9,24 @@ import SwiftUI
 
 struct WorkoutTemplateDetailView: View {
     @Environment(\.dismiss) private var dismiss
-    let template: WorkoutTemplateModel
+    let workout: WorkoutTemplateModel
     @State private var showStartSessionSheet: Bool = false
     
     var body: some View {
         List {
-            
+            if let url = workout.imageURL {
+                imageSection(url: url)
+            }
+
             Section(header: Text("Exercises")) {
-                ForEach(template.exercises) { exercise in
+                ForEach(workout.exercises) { exercise in
                     exerciseSection(exercise: exercise)
                 }
             }
         }
-        .navigationTitle(template.name)
+        .navigationTitle(workout.name)
+        .navigationSubtitle(workout.description ?? "")
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -33,10 +38,16 @@ struct WorkoutTemplateDetailView: View {
             }
         }
         .sheet(isPresented: $showStartSessionSheet) {
-            // In real app, pass actual userId from auth
-            let session = WorkoutSession.mock
-            WorkoutSessionReviewView(session: session)
+            WorkoutStartView(template: workout)
         }
+    }
+    
+    private func imageSection(url: String) -> some View {
+        Section {
+            ImageLoaderView(urlString: url, resizingMode: .fill)
+                .frame(maxWidth: .infinity, minHeight: 180)
+        }
+        .removeListRowFormatting()
     }
     
     private func exerciseSection(exercise: ExerciseTemplateModel) -> some View {
@@ -53,43 +64,14 @@ struct WorkoutTemplateDetailView: View {
                 Text(notes)
                     .foregroundColor(.secondary)
             }
-                /*
-            if !exercise.sets.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(exercise.sets, id: \.self) { set in
-                            Text(setDescription(set, mode: exercise.trackingMode))
-                                .font(.footnote)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.accentColor.opacity(0.12))
-                                .cornerRadius(8)
-                        }
-                    }
-                }
-            }
-                 */
         }
         .padding(.vertical, 4)
     }
-    /*
-    private func setDescription(_ set: WorkoutSetTemplate, mode: TrackingMode) -> String {
-        switch mode {
-        case .weightReps:
-            return "x\(set.reps ?? 0) @ \(Int((set.weightKg ?? 0)))kg"
-        case .repsOnly:
-            return "x\(set.reps ?? 0)"
-        case .timeOnly:
-            return "\(set.durationSec ?? 0)s"
-        case .distanceTime:
-            return "\(Int(set.distanceMeters ?? 0))m / \(set.durationSec ?? 0)s"
-        }
-    }
-     */
 }
 
 #Preview {
     NavigationStack {
-        WorkoutTemplateDetailView(template: WorkoutTemplateModel.mocks[0])
+        WorkoutTemplateDetailView(workout: WorkoutTemplateModel.mock)
     }
+    .previewEnvironment()
 }

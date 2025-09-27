@@ -8,7 +8,7 @@
 import Foundation
 import IdentifiableByString
 
-struct WorkoutSet: Identifiable, Codable, StringIdentifiable, Hashable {
+struct WorkoutSetModel: Identifiable, Codable, StringIdentifiable, Hashable {
     let id: String
     let authorId: String
     var index: Int
@@ -61,13 +61,13 @@ struct WorkoutSet: Identifiable, Codable, StringIdentifiable, Hashable {
         case dateCreated = "date_created"
     }
 
-    static var mock: WorkoutSet {
+    static var mock: WorkoutSetModel {
         mocks[0]
     }
     
-    static var mocks: [WorkoutSet] {
+    static var mocks: [WorkoutSetModel] {
         [
-            WorkoutSet(
+            WorkoutSetModel(
                 id: "1",
                 authorId: "1",
                 index: 1,
@@ -80,7 +80,7 @@ struct WorkoutSet: Identifiable, Codable, StringIdentifiable, Hashable {
                 completedAt: Date().addingTimeInterval(-3600),
                 dateCreated: Date().addingTimeInterval(-7200)
             ),
-            WorkoutSet(
+            WorkoutSetModel(
                 id: "2",
                 authorId: "2",
                 index: 2,
@@ -93,7 +93,7 @@ struct WorkoutSet: Identifiable, Codable, StringIdentifiable, Hashable {
                 completedAt: Date().addingTimeInterval(-3500),
                 dateCreated: Date().addingTimeInterval(-7100)
             ),
-            WorkoutSet(
+            WorkoutSetModel(
                 id: "3",
                 authorId: "3",
                 index: 3,
@@ -106,7 +106,7 @@ struct WorkoutSet: Identifiable, Codable, StringIdentifiable, Hashable {
                 completedAt: Date().addingTimeInterval(-3400),
                 dateCreated: Date().addingTimeInterval(-7000)
             ),
-            WorkoutSet(
+            WorkoutSetModel(
                 id: "4",
                 authorId: "4",
                 index: 4,
@@ -119,7 +119,7 @@ struct WorkoutSet: Identifiable, Codable, StringIdentifiable, Hashable {
                 completedAt: Date().addingTimeInterval(-3300),
                 dateCreated: Date().addingTimeInterval(-6900)
             ),
-            WorkoutSet(
+            WorkoutSetModel(
                 id: "5",
                 authorId: "5",
                 index: 5,
@@ -132,7 +132,7 @@ struct WorkoutSet: Identifiable, Codable, StringIdentifiable, Hashable {
                 completedAt: Date().addingTimeInterval(-3200),
                 dateCreated: Date().addingTimeInterval(-6800)
             ),
-            WorkoutSet(
+            WorkoutSetModel(
                 id: "6",
                 authorId: "6",
                 index: 6,
@@ -145,7 +145,7 @@ struct WorkoutSet: Identifiable, Codable, StringIdentifiable, Hashable {
                 completedAt: Date().addingTimeInterval(-3100),
                 dateCreated: Date().addingTimeInterval(-6700)
             ),
-            WorkoutSet(
+            WorkoutSetModel(
                 id: "7",
                 authorId: "7",
                 index: 7,
@@ -158,7 +158,7 @@ struct WorkoutSet: Identifiable, Codable, StringIdentifiable, Hashable {
                 completedAt: Date().addingTimeInterval(-3000),
                 dateCreated: Date().addingTimeInterval(-6600)
             ),
-            WorkoutSet(
+            WorkoutSetModel(
                 id: "8",
                 authorId: "8",
                 index: 8,
@@ -171,7 +171,7 @@ struct WorkoutSet: Identifiable, Codable, StringIdentifiable, Hashable {
                 completedAt: Date().addingTimeInterval(-2900),
                 dateCreated: Date().addingTimeInterval(-6500)
             ),
-            WorkoutSet(
+            WorkoutSetModel(
                 id: "9",
                 authorId: "9",
                 index: 9,
@@ -184,7 +184,7 @@ struct WorkoutSet: Identifiable, Codable, StringIdentifiable, Hashable {
                 completedAt: Date().addingTimeInterval(-2800),
                 dateCreated: Date().addingTimeInterval(-6400)
             ),
-            WorkoutSet(
+            WorkoutSetModel(
                 id: "10",
                 authorId: "10",
                 index: 10,

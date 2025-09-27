@@ -1,0 +1,142 @@
+//
+//  WorkoutSession.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 23/09/2025.
+//
+
+import Foundation
+import IdentifiableByString
+
+struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable {
+    let id: String
+    let authorId: String
+    let name: String
+    let workoutTemplateId: String?
+    let dateCreated: Date
+    private(set) var dateModified: Date
+    private(set) var endedAt: Date?
+    var notes: String?
+    private(set) var exercises: [WorkoutExerciseModel]
+    
+    init(
+        id: String,
+        authorId: String,
+        name: String,
+        workoutTemplateId: String? = nil,
+        dateCreated: Date,
+        dateModified: Date? = nil,
+        endedAt: Date? = nil,
+        notes: String? = nil,
+        exercises: [WorkoutExerciseModel]
+    ) {
+        self.id = id
+        self.authorId = authorId
+        self.name = name
+        self.workoutTemplateId = workoutTemplateId
+        self.dateCreated = dateCreated
+        self.dateModified = dateModified ?? dateCreated
+        self.endedAt = endedAt
+        self.notes = notes
+        self.exercises = exercises
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case authorId = "author_id"
+        case name = "name"
+        case workoutTemplateId = "workout_template_id"
+        case dateCreated = "date_created"
+        case dateModified = "date_modified"
+        case endedAt = "ended_at"
+        case notes
+        case exercises
+    }
+
+    init(authorId: String, template: WorkoutTemplateModel, notes: String? = nil) {
+        self.id = UUID().uuidString
+        self.authorId = authorId
+        self.name = template.name
+        self.workoutTemplateId = template.id
+        self.dateCreated = .now
+        self.dateModified = .now
+        self.endedAt = nil
+        self.notes = notes
+        self.exercises = template.exercises.map { exerciseTemplate in
+            let mode = WorkoutSessionModel.trackingMode(for: exerciseTemplate.type)
+            let sets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: authorId)
+            return WorkoutExerciseModel(
+                id: UUID().uuidString,
+                authorId: authorId,
+                templateId: exerciseTemplate.exerciseId,
+                name: exerciseTemplate.name,
+                trackingMode: mode,
+                notes: nil,
+                sets: sets
+            )
+        }
+    }
+
+    private static func trackingMode(for category: ExerciseCategory) -> TrackingMode {
+        switch category {
+        case .repsOnly:
+            return .repsOnly
+        case .cardio:
+            return .distanceTime
+        case .duration:
+            return .timeOnly
+        case .none:
+            return .repsOnly
+        case .barbell, .dumbbell, .kettlebell, .medicineBall, .machine, .cable, .weightedBodyweight, .assistedBodyweight:
+            return .weightReps
+        }
+    }
+
+    // Mutating methods for workout tracker
+    mutating func updateExercises(_ exercises: [WorkoutExerciseModel]) {
+        self.exercises = exercises
+        self.dateModified = Date()
+    }
+    
+    mutating func endSession(at date: Date) {
+        self.endedAt = date
+        self.dateModified = date
+    }
+    
+    private static func defaultSets(trackingMode: TrackingMode, authorId: String) -> [WorkoutSetModel] {
+        switch trackingMode {
+        case .weightReps:
+            return [0, 1, 2].map { index in
+                WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
+                                weightKg: nil, durationSec: nil, distanceMeters: nil, rpe: nil,
+                                isWarmup: index == 0, completedAt: nil, dateCreated: .now)
+            }
+        case .repsOnly:
+            return [0, 1, 2].map { index in
+                WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
+                                weightKg: nil, durationSec: nil, distanceMeters: nil, rpe: nil,
+                                isWarmup: index == 0, completedAt: nil, dateCreated: .now)
+            }
+        case .timeOnly:
+            return [WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: 1, reps: nil,
+                                    weightKg: nil, durationSec: 60, distanceMeters: nil, rpe: nil,
+                                    isWarmup: false, completedAt: nil, dateCreated: .now)]
+        case .distanceTime:
+            return [WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: 1, reps: nil,
+                                    weightKg: nil, durationSec: 120, distanceMeters: 400, rpe: nil,
+                                    isWarmup: false, completedAt: nil, dateCreated: .now)]
+        }
+    }
+    
+    static var mock: WorkoutSessionModel {
+        mocks[0]
+    }
+    
+    static var mocks: [WorkoutSessionModel] {
+        [
+            WorkoutSessionModel(authorId: MockAuthService().currentUser?.uid ?? "1", template: WorkoutTemplateModel.mocks[0]),
+            WorkoutSessionModel(authorId: MockAuthService().currentUser?.uid ?? "1", template: WorkoutTemplateModel.mocks[1]),
+            WorkoutSessionModel(authorId: MockAuthService().currentUser?.uid ?? "1", template: WorkoutTemplateModel.mocks[2])
+        ]
+    }
+}

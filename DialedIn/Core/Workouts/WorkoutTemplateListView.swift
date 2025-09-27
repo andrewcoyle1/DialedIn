@@ -8,10 +8,12 @@
 import SwiftUI
 
 struct WorkoutTemplateListView: View {
-    private let service: WorkoutTemplateProviding = LocalWorkoutTemplateService()
+    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     @State private var templates: [WorkoutTemplateModel] = []
     @Environment(\.dismiss) private var dismiss
     @State private var path: [NavigationPathOption] = []
+    @State private var isLoading: Bool = false
+    @State private var showAlert: AnyAppAlert?
     
     var body: some View {
         NavigationStack(path: $path) {
@@ -33,9 +35,8 @@ struct WorkoutTemplateListView: View {
                     Button { dismiss() } label: { Image(systemName: "chevron.left") }
                 }
             }
-            .onAppear {
-                templates = service.fetchTemplates()
-            }
+            .task { await loadTemplates() }
+            .showCustomAlert(alert: $showAlert)
             .navigationDestinationForCoreModule(path: $path)
         }
     }
@@ -43,4 +44,22 @@ struct WorkoutTemplateListView: View {
  
 #Preview {
     WorkoutTemplateListView()
+}
+
+extension WorkoutTemplateListView {
+    private func loadTemplates() async {
+        isLoading = true
+        do {
+            let top = try await workoutTemplateManager.getTopWorkoutTemplatesByClicks(limitTo: 20)
+            await MainActor.run {
+                templates = top
+                isLoading = false
+            }
+        } catch {
+            await MainActor.run {
+                isLoading = false
+                showAlert = AnyAppAlert(title: "Unable to Load Workouts", subtitle: "Please try again later.")
+            }
+        }
+    }
 }

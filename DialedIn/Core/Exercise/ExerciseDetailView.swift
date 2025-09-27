@@ -10,15 +10,13 @@ import SwiftUI
 struct ExerciseDetailView: View {
     
     @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
+    @Environment(ExerciseHistoryManager.self) private var exerciseHistoryManager
     @Environment(UserManager.self) private var userManager
     
     var exerciseTemplate: ExerciseTemplateModel
-    var records: [(String, String)] = [
-        ("2024-05-12", "100 kg x 5 reps"),
-        ("2024-04-28", "97.5 kg x 4 reps"),
-        ("2024-04-14", "95 kg x 6 reps"),
-        ("2024-03-30", "92.5 kg x 7 reps")
-    ]
+    @State private var history: [ExerciseHistoryEntryModel] = []
+    @State private var records: [(String, String)] = []
+    @State private var isLoadingHistory: Bool = false
     @State var section: CustomSection = .description
     @State private var isBookmarked: Bool = false
     @State private var isFavourited: Bool = false
@@ -50,7 +48,7 @@ struct ExerciseDetailView: View {
             }
         }
         .navigationTitle(exerciseTemplate.name)
-        .navigationSubtitle("Performed 14 times")
+        .navigationSubtitle(performedSubtitle)
         .navigationBarTitleDisplayMode(.large)
         .showCustomAlert(alert: $showAlert)
         .toolbar {
@@ -85,13 +83,7 @@ struct ExerciseDetailView: View {
                 }
             }
         }
-        .task {
-            let user = userManager.currentUser
-            // Always treat authored templates as bookmarked
-            let isAuthor = user?.userId == exerciseTemplate.authorId
-            isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false)
-            isFavourited = user?.favouritedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false
-        }
+        .task { await loadInitialState() }
         .onChange(of: userManager.currentUser) { _, _ in
             let user = userManager.currentUser
             let isAuthor = user?.userId == exerciseTemplate.authorId
@@ -103,6 +95,78 @@ struct ExerciseDetailView: View {
             DevSettingsView()
         }
 #endif
+    }
+    private var performedSubtitle: String {
+        if isLoadingHistory { return "Loading…" }
+        let count = history.count
+        if count == 0 { return "No history yet" }
+        if count == 1 { return "Performed 1 time" }
+        return "Performed \(count) times"
+    }
+
+    private func loadInitialState() async {
+        let user = userManager.currentUser
+        // Always treat authored templates as bookmarked
+        let isAuthor = user?.userId == exerciseTemplate.authorId
+        isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false)
+        isFavourited = user?.favouritedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false
+        await loadHistory()
+    }
+
+    private func loadHistory() async {
+        guard let userId = userManager.currentUser?.userId else { return }
+        isLoadingHistory = true
+        do {
+            var filtered: [ExerciseHistoryEntryModel] = []
+            // Remote by author, filter by template
+            let remoteItems = try await exerciseHistoryManager.getExerciseHistoryForAuthor(authorId: userId, limitTo: 200)
+            filtered = remoteItems.filter { $0.templateId == exerciseTemplate.id }
+            // Fallback to local cache if remote empty
+            if filtered.isEmpty {
+                if let localItems = try? exerciseHistoryManager.getLocalExerciseHistoryForTemplate(templateId: exerciseTemplate.id, limitTo: 200) {
+                    filtered = localItems.filter { $0.authorId == userId }
+                }
+            }
+            await MainActor.run {
+                history = filtered
+                records = buildRecords(from: filtered)
+                isLoadingHistory = false
+            }
+        } catch {
+            // Try local on error
+            if let localItems = try? exerciseHistoryManager.getLocalExerciseHistoryForTemplate(templateId: exerciseTemplate.id, limitTo: 200) {
+                let filtered = localItems.filter { $0.authorId == userId }
+                await MainActor.run {
+                    history = filtered
+                    records = buildRecords(from: filtered)
+                    isLoadingHistory = false
+                }
+            } else {
+                await MainActor.run { isLoadingHistory = false }
+            }
+        }
+    }
+
+    private func buildRecords(from entries: [ExerciseHistoryEntryModel]) -> [(String, String)] {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        // Simple record sample: best weight x reps from first set of each entry
+        // You can refine to compute 1RM, best volume, etc.
+        let tuples: [(String, String)] = entries.compactMap { entry in
+            guard let first = entry.sets.first else { return nil }
+            let dateStr = formatter.string(from: entry.performedAt)
+            if let weight = first.weightKg, let reps = first.reps {
+                return (dateStr, String(format: "%.0f kg x %d reps", weight, reps))
+            } else if let reps = first.reps {
+                return (dateStr, "Reps: \(reps)")
+            } else if let durationSec = first.durationSec {
+                return (dateStr, "Duration: \(durationSec)s")
+            } else if let distanceMeters = first.distanceMeters {
+                return (dateStr, String(format: "%.0f m", distanceMeters))
+            }
+            return (dateStr, "Completed")
+        }
+        return tuples
     }
     
     private func authorSection(id: String) -> some View {
@@ -217,33 +281,24 @@ extension ExerciseDetailView {
     private var historySection: some View {
         Group {
             Section(header: Text("History")) {
-                // Dummy data for demonstration
-                
-                // TODO: This will need to be removed
-                // swiftlint:disable:next large_tuple
-                let dummyHistory: [(id: UUID, date: Date, reps: Int, weight: Double, notes: String?)] = [
-                    (UUID(), Date().addingTimeInterval(-86400 * 2), 10, 60.0, "Felt strong, good form."),
-                    (UUID(), Date().addingTimeInterval(-86400 * 5), 8, 62.5, nil),
-                    (UUID(), Date().addingTimeInterval(-86400 * 10), 12, 55.0, "Tried a new grip.")
-                ]
-                
-                if dummyHistory.isEmpty {
+                if isLoadingHistory {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                } else if history.isEmpty {
                     Text("No history yet.")
                         .foregroundColor(.secondary)
                 } else {
-                    ForEach(dummyHistory, id: \.id) { entry in
+                    ForEach(history, id: \.id) { entry in
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
-                                Text(entry.date, style: .date)
+                                Text(entry.performedAt, style: .date)
                                     .font(.subheadline)
                                     .foregroundColor(.primary)
                                 Spacer()
-                                Text("\(entry.reps) reps")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text("\(entry.weight, specifier: "%.1f") kg")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                if let first = entry.sets.first {
+                                    if let reps = first.reps { Text("\(reps) reps").font(.caption).foregroundColor(.secondary) }
+                                    if let weightKg = first.weightKg { Text(String(format: "%.1f kg", weightKg)).font(.caption).foregroundColor(.secondary) }
+                                }
                             }
                             if let notes = entry.notes, !notes.isEmpty {
                                 Text(notes)
@@ -268,27 +323,18 @@ extension ExerciseDetailView {
     private var weightProgressChart: some View {
         Section(header: Text("Weight Progress Chart")) {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Weight lifted over last 5 sessions")
+                Text("Weight lifted over last sessions")
                     .font(.subheadline)
+                let weights: [Double] = history.compactMap { $0.sets.first?.weightKg }
                 HStack(alignment: .bottom, spacing: 4) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.blue)
-                        .frame(width: 20, height: 40)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.blue)
-                        .frame(width: 20, height: 60)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.blue)
-                        .frame(width: 20, height: 50)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.blue)
-                        .frame(width: 20, height: 70)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.blue)
-                        .frame(width: 20, height: 65)
+                    ForEach(Array(weights.enumerated()), id: \.offset) { _, weightKg in
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.blue)
+                            .frame(width: 20, height: CGFloat(max(10, min(100, weightKg))))
+                    }
                 }
                 .padding(.vertical, 8)
-                Text("60kg, 62.5kg, 61kg, 65kg, 64kg")
+                Text(weights.map { String(format: "%.1fkg", $0) }.joined(separator: ", "))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -299,27 +345,18 @@ extension ExerciseDetailView {
     private var repsProgressChart: some View {
         Section(header: Text("Reps Progress Chart")) {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Reps performed over last 5 sessions")
+                Text("Reps performed over last sessions")
                     .font(.subheadline)
+                let reps: [Int] = history.compactMap { $0.sets.first?.reps }
                 HStack(alignment: .bottom, spacing: 4) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.green)
-                        .frame(width: 20, height: 30)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.green)
-                        .frame(width: 20, height: 35)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.green)
-                        .frame(width: 20, height: 32)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.green)
-                        .frame(width: 20, height: 38)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.green)
-                        .frame(width: 20, height: 36)
+                    ForEach(Array(reps.enumerated()), id: \.offset) { _, reps in
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.green)
+                            .frame(width: 20, height: CGFloat(max(10, min(100, reps * 5))))
+                    }
                 }
                 .padding(.vertical, 8)
-                Text("10, 8, 12, 9, 11 reps")
+                Text(reps.map { String($0) }.joined(separator: ", ") + " reps")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

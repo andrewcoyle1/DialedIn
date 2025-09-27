@@ -8,11 +8,14 @@
 import SwiftUI
 
 struct AddExerciseModal: View {
-    
     @Environment(\.dismiss) private var dismiss
+    @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
+    @Environment(LogManager.self) private var logManager
     
-    @State private var exercises: [ExerciseTemplateModel] = ExerciseTemplateModel.mocks
+    @State private var exercises: [ExerciseTemplateModel] = []
     @State private var searchText: String = ""
+    @State private var isLoading: Bool = false
+    @State private var errorMessage: String?
     
     @Binding var selectedExercises: [ExerciseTemplateModel]
     
@@ -31,17 +34,44 @@ struct AddExerciseModal: View {
     }
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(filteredExercises) { exercise in
-                    CustomListCellView(imageName: exercise.imageURL, title: exercise.name, subtitle: exercise.description, isSelected: selectedExercises.contains(where: { $0.id == exercise.id }))
-                        .anyButton {
-                            onExercisePressed(exercise: exercise)
+            Group {
+                if isLoading {
+                    VStack {
+                        ProgressView()
+                        Text("Loading exercises...")
+                            .foregroundStyle(.secondary)
+                    }
+                } else if let errorMessage = errorMessage {
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.largeTitle)
+                            .foregroundStyle(.orange)
+                        Text("Error Loading Exercises")
+                            .font(.headline)
+                        Text(errorMessage)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button("Try Again") {
+                            Task {
+                                await loadExercises()
+                            }
                         }
-                        .removeListRowFormatting()
-
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .padding()
+                } else {
+                    List {
+                        ForEach(filteredExercises) { exercise in
+                            CustomListCellView(imageName: exercise.imageURL, title: exercise.name, subtitle: exercise.description, isSelected: selectedExercises.contains(where: { $0.id == exercise.id }))
+                                .anyButton {
+                                    onExercisePressed(exercise: exercise)
+                                }
+                                .removeListRowFormatting()
+                        }
+                    }
+                    .scrollIndicators(.hidden)
                 }
             }
-            .scrollIndicators(.hidden)
             .searchable(text: $searchText)
             .navigationTitle("Add Exercises")
             .navigationSubtitle("Select one or more exercises to add")
@@ -53,7 +83,14 @@ struct AddExerciseModal: View {
                         Image(systemName: "xmark")
                     }
                 }
-                
+            }
+            .task {
+                await loadExercises()
+            }
+            .onChange(of: searchText) {
+                Task {
+                    await searchExercises()
+                }
             }
         }
     }
@@ -68,6 +105,57 @@ struct AddExerciseModal: View {
     private func onDismissPressed() {
         dismiss()
     }
+    
+    private func loadExercises() async {
+        guard !isLoading else { return }
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            // Load top exercises when not searching
+            let loadedExercises = try await exerciseTemplateManager.getTopExerciseTemplatesByClicks(limitTo: 50)
+            await MainActor.run {
+                exercises = loadedExercises
+                isLoading = false
+            }
+        } catch {
+            // Fallback to local exercises if remote fails
+            do {
+                let localExercises = try exerciseTemplateManager.getAllLocalExerciseTemplates()
+                await MainActor.run {
+                    exercises = localExercises
+                    isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    errorMessage = "Failed to load exercises. Please check your connection and try again."
+                }
+            }
+        }
+    }
+    
+    private func searchExercises() async {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // If search is empty, reload top exercises
+        guard !query.isEmpty else {
+            await loadExercises()
+            return
+        }
+        
+        // Don't search for very short queries to avoid too many API calls
+        guard query.count >= 2 else { return }
+        
+        do {
+            let searchResults = try await exerciseTemplateManager.getExerciseTemplatesByName(name: query)
+            await MainActor.run {
+                exercises = searchResults
+            }
+        } catch {
+            // Don't show error for search failures, just keep current results
+        }
+    }
 }
 
 #Preview {
@@ -79,4 +167,5 @@ struct AddExerciseModal: View {
     .sheet(isPresented: $showModal) {
         AddExerciseModal(selectedExercises: $selectedExercises)
     }
+    .previewEnvironment()
 }

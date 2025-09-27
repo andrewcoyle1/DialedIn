@@ -12,6 +12,7 @@ struct CreateWorkoutView: View {
     
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     @Environment(UserManager.self) private var userManager
+    @Environment(LogManager.self) private var logManager
     @Environment(\.dismiss) private var dismiss
     
     @State private var workoutName: String = ""
@@ -20,7 +21,7 @@ struct CreateWorkoutView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var selectedImageData: Data?
     @State private var isImagePickerPresented: Bool = false
-    @State var exercises: [ExerciseTemplateModel] = ExerciseTemplateModel.mocks
+    @State var exercises: [ExerciseTemplateModel] = []
     
     @State private var showDebugView: Bool = false
     
@@ -30,6 +31,7 @@ struct CreateWorkoutView: View {
     }
     
     @State private var showAddExerciseModal: Bool = false
+    @State private var saveError: String?
     
     var body: some View {
         NavigationStack {
@@ -61,7 +63,9 @@ struct CreateWorkoutView: View {
                             do {
                                 try await onSavePressed()
                             } catch {
-                                
+                                await MainActor.run {
+                                    saveError = "Failed to save workout. Please try again."
+                                }
                             }
                         }
                     } label: {
@@ -79,17 +83,10 @@ struct CreateWorkoutView: View {
                         if let data = try await newItem.loadTransferable(type: Data.self) {
                             await MainActor.run {
                                 selectedImageData = data
-                                // TODO: Add log manager
-                            }
-                        } else {
-                            await MainActor.run {
-                                // TODO: Add log manager
                             }
                         }
                     } catch {
-                        await MainActor.run {
-                            // TODO: Add log manager
-                        }
+                        
                     }
                 }
             }
@@ -98,6 +95,13 @@ struct CreateWorkoutView: View {
             })
             .sheet(isPresented: $showAddExerciseModal) {
                 AddExerciseModal(selectedExercises: $exercises)
+            }
+            .alert("Error", isPresented: .constant(saveError != nil)) {
+                Button("OK") {
+                    saveError = nil
+                }
+            } message: {
+                Text(saveError ?? "")
             }
         }
     }
@@ -164,7 +168,7 @@ struct CreateWorkoutView: View {
                     .foregroundStyle(.secondary)
             }
             Button {
-                
+                onAddExercisePressed()
             } label: {
                 Text("Add exercise template")
             }
@@ -196,6 +200,7 @@ struct CreateWorkoutView: View {
         
         do {
             guard let userId = userManager.currentUser?.userId else {
+                isSaving = false
                 return
             }
             
@@ -217,13 +222,19 @@ struct CreateWorkoutView: View {
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
             try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: nsImage)
             #endif
+            
             // Track created template on the user document
             try await userManager.addCreatedWorkoutTemplate(workoutId: newWorkout.id)
             // Auto-bookmark authored templates
             try await userManager.addBookmarkedWorkoutTemplate(workoutId: newWorkout.id)
             try await workoutTemplateManager.bookmarkWorkoutTemplate(id: newWorkout.id, isBookmarked: true)
+            
+
+            
         } catch {
             
+            isSaving = false
+            throw error // Re-throw to allow caller to handle the error
         }
         isSaving = false
         dismiss()

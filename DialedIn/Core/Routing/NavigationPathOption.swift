@@ -24,7 +24,7 @@ extension View {
                 case .workoutTemplateList:
                     WorkoutTemplateListView()
                 case .workoutTemplateDetail(template: let template):
-                    WorkoutTemplateDetailView(template: template)
+                    WorkoutTemplateDetailView(workout: template)
                 }
             }
     }

@@ -5,10 +5,10 @@
 //  Created by Andrew Coyle on 23/09/2025.
 //
 
-//import SwiftUI
+// import SwiftUI
 //
-//struct ExerciseView: View {
-//    
+// struct ExerciseView: View {
+//
 //    @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
 //    @Environment(UserManager.self) private var userManager
 //    
@@ -242,7 +242,7 @@
 //            )
 //        }
 //    }
-//}
+// }
 
 import SwiftUI
 #if os(iOS)
@@ -292,33 +292,12 @@ struct ExerciseView: View {
                 exerciseTemplateSection
             }
         }
+        .task {
+            await loadMyExercisesIfNeeded()
+            await loadTopExercisesIfNeeded()
+            await syncSavedExercisesFromUser()
+        }
     }
-}
-
-#Preview {
-    TabView {
-        ExerciseView()
-            .tabItem {
-                Label("Exercise", systemImage: "dumbbell")
-            }
-        
-        ExerciseView()
-            .tabItem {
-                Label("Exercise", systemImage: "dumbbell")
-            }
-        
-        ExerciseView()
-            .tabItem {
-                Label("Exercise", systemImage: "dumbbell")
-            }
-        
-        ExerciseView()
-            .tabItem {
-                Label("Exercise", systemImage: "dumbbell")
-            }
-    }
-    .tabBarMinimizeBehavior(.onScrollDown)
-    .previewEnvironment()
 }
 
 extension ExerciseView {

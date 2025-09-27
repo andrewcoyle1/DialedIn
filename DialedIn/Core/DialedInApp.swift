@@ -20,6 +20,8 @@ struct DialedInApp: App {
             AppView()
                 .environment(delegate.dependencies.exerciseTemplateManager)
                 .environment(delegate.dependencies.workoutTemplateManager)
+                .environment(delegate.dependencies.workoutSessionManager)
+                .environment(delegate.dependencies.exerciseHistoryManager)
                 .environment(delegate.dependencies.userManager)
                 .environment(delegate.dependencies.authManager)
                 .environment(delegate.dependencies.logManager)
@@ -77,6 +79,8 @@ struct Dependencies {
     let userManager: UserManager
     let exerciseTemplateManager: ExerciseTemplateManager
     let workoutTemplateManager: WorkoutTemplateManager
+    let workoutSessionManager: WorkoutSessionManager
+    let exerciseHistoryManager: ExerciseHistoryManager
     let logManager: LogManager
     let reportManager: ReportManager
 
@@ -87,6 +91,8 @@ struct Dependencies {
             userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
             exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
             workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices())
+            workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
+            exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())
             logManager = LogManager(services: [
                 ConsoleService(printParameters: false)
             ])
@@ -104,6 +110,8 @@ struct Dependencies {
             userManager = UserManager(services: ProductionUserServices(), logManager: logs)
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices())
+            workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
+            exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
             
@@ -118,6 +126,9 @@ struct Dependencies {
             userManager = UserManager(services: ProductionUserServices(), logManager: logs)
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices())
+            workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
+            exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
+
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
         }
@@ -134,5 +145,7 @@ extension View {
             .environment(ReportManager(service: MockReportService(), userManager: UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))))
             .environment(ExerciseTemplateManager(services: MockExerciseTemplateServices()))
             .environment(WorkoutTemplateManager(services: MockWorkoutTemplateServices()))
+            .environment(WorkoutSessionManager(services: MockWorkoutSessionServices()))
+            .environment(ExerciseHistoryManager(services: MockExerciseHistoryServices()))
     }
 }
