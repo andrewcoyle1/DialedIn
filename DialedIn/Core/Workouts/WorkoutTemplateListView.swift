@@ -44,6 +44,7 @@ struct WorkoutTemplateListView: View {
  
 #Preview {
     WorkoutTemplateListView()
+        .previewEnvironment()
 }
 
 extension WorkoutTemplateListView {

@@ -11,6 +11,8 @@ enum NavigationPathOption: Hashable {
     case exerciseTemplate(exerciseTemplate: ExerciseTemplateModel)
     case workoutTemplateList
     case workoutTemplateDetail(template: WorkoutTemplateModel)
+    case ingredientTemplateDetail(template: IngredientTemplateModel)
+    case recipeTemplateDetail(template: RecipeTemplateModel)
 }
 
 extension View {
@@ -24,7 +26,11 @@ extension View {
                 case .workoutTemplateList:
                     WorkoutTemplateListView()
                 case .workoutTemplateDetail(template: let template):
-                    WorkoutTemplateDetailView(workout: template)
+                    WorkoutTemplateDetailView(workoutTemplate: template)
+                case .ingredientTemplateDetail(template: let template):
+                    IngredientDetailView(ingredientTemplate: template)
+                case .recipeTemplateDetail(template: let template):
+                    RecipeDetailView(recipeTemplate: template)
                 }
             }
     }

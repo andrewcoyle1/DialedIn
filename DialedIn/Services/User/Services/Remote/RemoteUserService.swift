@@ -29,6 +29,18 @@ protocol RemoteUserService: Sendable {
     func removeBookmarkedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws
     func addFavouritedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws
     func removeFavouritedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws
+    func addCreatedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws
+    func removeCreatedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws
+    func addBookmarkedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws
+    func removeBookmarkedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws
+    func addFavouritedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws
+    func removeFavouritedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws
+    func addCreatedRecipeTemplate(userId: String, recipeTemplateId: String) async throws
+    func removeCreatedRecipeTemplate(userId: String, recipeTemplateId: String) async throws
+    func addBookmarkedRecipeTemplate(userId: String, recipeTemplateId: String) async throws
+    func removeBookmarkedRecipeTemplate(userId: String, recipeTemplateId: String) async throws
+    func addFavouritedRecipeTemplate(userId: String, recipeTemplateId: String) async throws
+    func removeFavouritedRecipeTemplate(userId: String, recipeTemplateId: String) async throws
     func blockUser(currentUserId: String, blockedUserId: String) async throws
     func unblockUser(currentUserId: String, blockedUserId: String) async throws
     func deleteUser(userId: String) async throws

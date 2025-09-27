@@ -20,7 +20,7 @@ struct TabBarView: View {
         var title: String {
             switch self {
             case .dashboard: return "Dashboard"
-            case .exercises: return "Exercises"
+            case .exercises: return "Training"
             case .nutrition: return "Nutrition"
             case .profile: return "Profile"
             }

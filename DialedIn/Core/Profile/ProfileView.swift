@@ -22,6 +22,7 @@ struct ProfileView: View {
                 workoutTemplateSection
             }
             .navigationTitle("Profile")
+            .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
             .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showDevSettings, content: {
                 DevSettingsView()

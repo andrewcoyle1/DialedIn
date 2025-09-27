@@ -46,6 +46,16 @@ struct UserModel: Codable, Equatable {
     let createdWorkoutTemplateIds: [String]?
     let bookmarkedWorkoutTemplateIds: [String]?
     let favouritedWorkoutTemplateIds: [String]?
+    
+    // Ingredient Templates
+    let createdIngredientTemplateIds: [String]?
+    let bookmarkedIngredientTemplateIds: [String]?
+    let favouritedIngredientTemplateIds: [String]?
+    
+    // Recipe Templates
+    let createdRecipeTemplateIds: [String]?
+    let bookmarkedRecipeTemplateIds: [String]?
+    let favouritedRecipeTemplateIds: [String]?
 
     // Blocked Users
     let blockedUserIds: [String]?
@@ -69,6 +79,12 @@ struct UserModel: Codable, Equatable {
         createdWorkoutTemplateIds: [String]? = nil,
         bookmarkedWorkoutTemplateIds: [String]? = nil,
         favouritedWorkoutTemplateIds: [String]? = nil,
+        createdIngredientTemplateIds: [String]? = nil,
+        bookmarkedIngredientTemplateIds: [String]? = nil,
+        favouritedIngredientTemplateIds: [String]? = nil,
+        createdRecipeTemplateIds: [String]? = nil,
+        bookmarkedRecipeTemplateIds: [String]? = nil,
+        favouritedRecipeTemplateIds: [String]? = nil,
         blockedUserIds: [String]? = nil
     ) {
         self.userId = userId
@@ -89,6 +105,12 @@ struct UserModel: Codable, Equatable {
         self.createdWorkoutTemplateIds = createdWorkoutTemplateIds
         self.bookmarkedWorkoutTemplateIds = bookmarkedWorkoutTemplateIds
         self.favouritedWorkoutTemplateIds = favouritedWorkoutTemplateIds
+        self.createdIngredientTemplateIds = createdIngredientTemplateIds
+        self.bookmarkedIngredientTemplateIds = bookmarkedIngredientTemplateIds
+        self.favouritedIngredientTemplateIds = favouritedIngredientTemplateIds
+        self.createdRecipeTemplateIds = createdRecipeTemplateIds
+        self.bookmarkedRecipeTemplateIds = bookmarkedRecipeTemplateIds
+        self.favouritedRecipeTemplateIds = favouritedRecipeTemplateIds
         self.blockedUserIds = blockedUserIds
     }
 
@@ -126,6 +148,12 @@ struct UserModel: Codable, Equatable {
         case createdWorkoutTemplateIds = "created_workout_template_ids"
         case bookmarkedWorkoutTemplateIds = "bookmarked_workout_template_ids"
         case favouritedWorkoutTemplateIds = "favourited_workout_template_ids"
+        case createdIngredientTemplateIds = "created_ingredient_template_ids"
+        case bookmarkedIngredientTemplateIds = "bookmarked_ingredient_template_ids"
+        case favouritedIngredientTemplateIds = "favourited_ingredient_template_ids"
+        case createdRecipeTemplateIds = "created_recipe_template_ids"
+        case bookmarkedRecipeTemplateIds = "bookmarked_recipe_template_ids"
+        case favouritedRecipeTemplateIds = "favourited_recipe_template_ids"
         case blockedUserIds = "blocked_user_ids"
     }
     
@@ -142,7 +170,20 @@ struct UserModel: Codable, Equatable {
             "user_\(CodingKeys.creationVersion.rawValue)": creationVersion,
             "user_\(CodingKeys.lastSignInDate.rawValue)": lastSignInDate,
             "user_\(CodingKeys.didCompleteOnboarding.rawValue)": didCompleteOnboarding,
-            "user_\(CodingKeys.profileImageUrl.rawValue)": profileImageUrl
+            "user_\(CodingKeys.profileImageUrl.rawValue)": profileImageUrl,
+            "user_\(CodingKeys.createdExerciseTemplateIds.rawValue)": createdExerciseTemplateIds,
+            "user_\(CodingKeys.bookmarkedExerciseTemplateIds.rawValue)": bookmarkedExerciseTemplateIds,
+            "user_\(CodingKeys.favouritedExerciseTemplateIds.rawValue)": favouritedExerciseTemplateIds,
+            "user_\(CodingKeys.createdWorkoutTemplateIds.rawValue)": createdWorkoutTemplateIds,
+            "user_\(CodingKeys.bookmarkedWorkoutTemplateIds.rawValue)": bookmarkedWorkoutTemplateIds,
+            "user_\(CodingKeys.favouritedWorkoutTemplateIds.rawValue)": favouritedWorkoutTemplateIds,
+            "user_\(CodingKeys.createdIngredientTemplateIds.rawValue)": createdIngredientTemplateIds,
+            "user_\(CodingKeys.bookmarkedIngredientTemplateIds.rawValue)": bookmarkedIngredientTemplateIds,
+            "user_\(CodingKeys.favouritedIngredientTemplateIds.rawValue)": favouritedIngredientTemplateIds,
+            "user_\(CodingKeys.createdRecipeTemplateIds.rawValue)": createdRecipeTemplateIds,
+            "user_\(CodingKeys.bookmarkedRecipeTemplateIds.rawValue)": bookmarkedRecipeTemplateIds,
+            "user_\(CodingKeys.favouritedRecipeTemplateIds.rawValue)": favouritedRecipeTemplateIds,
+            "user_\(CodingKeys.blockedUserIds.rawValue)": blockedUserIds
         ]
         return dict.compactMapValues({ $0 })
     }
@@ -165,7 +206,20 @@ struct UserModel: Codable, Equatable {
                 creationDate: now,
                 creationVersion: "1.0.0",
                 lastSignInDate: now,
-                didCompleteOnboarding: true
+                didCompleteOnboarding: true,
+                createdExerciseTemplateIds: ["exercise1", "exercise2"],
+                bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
+                favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
+                createdWorkoutTemplateIds: ["workout1", "workout2"],
+                bookmarkedWorkoutTemplateIds: ["workout3", "workout4"],
+                favouritedWorkoutTemplateIds: ["workout5", "workout6"],
+                createdIngredientTemplateIds: ["ingredient1", "ingredient2"],
+                bookmarkedIngredientTemplateIds: ["ingredient3", "ingredient4"],
+                favouritedIngredientTemplateIds: ["ingredient5", "ingredient6"],
+                createdRecipeTemplateIds: ["recipe1", "recipe2"],
+                bookmarkedRecipeTemplateIds: ["recipe3", "recipe4"],
+                favouritedRecipeTemplateIds: ["recipe5", "recipe6"],
+                blockedUserIds: ["user2", "user3"]
             ),
             UserModel(
                 userId: "user2",
@@ -175,7 +229,20 @@ struct UserModel: Codable, Equatable {
                 creationDate: now.addingTimeInterval(-86400),
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-3600),
-                didCompleteOnboarding: false
+                didCompleteOnboarding: false,
+                createdExerciseTemplateIds: ["exercise1", "exercise2"],
+                bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
+                favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
+                createdWorkoutTemplateIds: ["workout1", "workout2"],
+                bookmarkedWorkoutTemplateIds: ["workout3", "workout4"],
+                favouritedWorkoutTemplateIds: ["workout5", "workout6"],
+                createdIngredientTemplateIds: ["ingredient1", "ingredient2"],
+                bookmarkedIngredientTemplateIds: ["ingredient3", "ingredient4"],
+                favouritedIngredientTemplateIds: ["ingredient5", "ingredient6"],
+                createdRecipeTemplateIds: ["recipe1", "recipe2"],
+                bookmarkedRecipeTemplateIds: ["recipe3", "recipe4"],
+                favouritedRecipeTemplateIds: ["recipe5", "recipe6"],
+                blockedUserIds: ["user1", "user3"]
             ),
             UserModel(
                 userId: "user3",
@@ -185,7 +252,20 @@ struct UserModel: Codable, Equatable {
                 creationDate: now.addingTimeInterval(-3 * 86400 - 2 * 3600),
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-2 * 3600),
-                didCompleteOnboarding: true
+                didCompleteOnboarding: true,
+                createdExerciseTemplateIds: ["exercise1", "exercise2"],
+                bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
+                favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
+                createdWorkoutTemplateIds: ["workout1", "workout2"],
+                bookmarkedWorkoutTemplateIds: ["workout3", "workout4"],
+                favouritedWorkoutTemplateIds: ["workout5", "workout6"],
+                createdIngredientTemplateIds: ["ingredient1", "ingredient2"],
+                bookmarkedIngredientTemplateIds: ["ingredient3", "ingredient4"],
+                favouritedIngredientTemplateIds: ["ingredient5", "ingredient6"],
+                createdRecipeTemplateIds: ["recipe1", "recipe2"],
+                bookmarkedRecipeTemplateIds: ["recipe3", "recipe4"],
+                favouritedRecipeTemplateIds: ["recipe5", "recipe6"],
+                blockedUserIds: ["user1", "user2"]
             ),
             UserModel(
                 userId: "user4",
@@ -195,7 +275,20 @@ struct UserModel: Codable, Equatable {
                 creationDate: now.addingTimeInterval(-5 * 86400 - 4 * 3600),
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-4 * 3600),
-                didCompleteOnboarding: nil
+                didCompleteOnboarding: nil,
+                createdExerciseTemplateIds: ["exercise1", "exercise2"],
+                bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
+                favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
+                createdWorkoutTemplateIds: ["workout1", "workout2"],
+                bookmarkedWorkoutTemplateIds: ["workout3", "workout4"],
+                favouritedWorkoutTemplateIds: ["workout5", "workout6"],
+                createdIngredientTemplateIds: ["ingredient1", "ingredient2"],
+                bookmarkedIngredientTemplateIds: ["ingredient3", "ingredient4"],
+                favouritedIngredientTemplateIds: ["ingredient5", "ingredient6"],
+                createdRecipeTemplateIds: ["recipe1", "recipe2"],
+                bookmarkedRecipeTemplateIds: ["recipe3", "recipe4"],
+                favouritedRecipeTemplateIds: ["recipe5", "recipe6"],
+                blockedUserIds: ["user1", "user2"]
             )
         ]
     }

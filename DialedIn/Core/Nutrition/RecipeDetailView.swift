@@ -1,17 +1,18 @@
 //
-//  WorkoutTemplateDetailView.swift
+//  RecipeDetailView.swift
 //  DialedIn
 //
-//  Created by AI Assistant on 23/09/2025.
+//  Created by Andrew Coyle on 27/09/2025.
 //
 
 import SwiftUI
 
-struct WorkoutTemplateDetailView: View {
+struct RecipeDetailView: View {
     @Environment(UserManager.self) private var userManager
-    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
+    @Environment(RecipeTemplateManager.self) private var recipeTemplateManager
     @Environment(\.dismiss) private var dismiss
-    let workoutTemplate: WorkoutTemplateModel
+    
+    let recipeTemplate: RecipeTemplateModel
     @State private var showStartSessionSheet: Bool = false
     
     @State private var isBookmarked: Bool = false
@@ -25,18 +26,18 @@ struct WorkoutTemplateDetailView: View {
     
     var body: some View {
         List {
-            if let url = workoutTemplate.imageURL {
+            if let url = recipeTemplate.imageURL {
                 imageSection(url: url)
             }
 
-            Section(header: Text("Exercises")) {
-                ForEach(workoutTemplate.exercises) { exercise in
-                    exerciseSection(exercise: exercise)
+            Section(header: Text("Ingredients")) {
+                ForEach(recipeTemplate.ingredients) { wrapper in
+                    ingredientSection(wrapper: wrapper)
                 }
             }
         }
-        .navigationTitle(workoutTemplate.name)
-        .navigationSubtitle(workoutTemplate.description ?? "")
+        .navigationTitle(recipeTemplate.name)
+        .navigationSubtitle(recipeTemplate.description ?? "")
         .navigationBarTitleDisplayMode(.large)
         .showCustomAlert(alert: $showAlert)
         .toolbar {
@@ -60,7 +61,7 @@ struct WorkoutTemplateDetailView: View {
                 }
             }
             // Hide bookmark button when the current user is the author
-            if userManager.currentUser?.userId != nil && userManager.currentUser?.userId != workoutTemplate.authorId {
+            if userManager.currentUser?.userId != nil && userManager.currentUser?.userId != recipeTemplate.authorId {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Task {
@@ -85,21 +86,21 @@ struct WorkoutTemplateDetailView: View {
         .onAppear { loadInitialState()}
         .onChange(of: userManager.currentUser) {_, _ in
             let user = userManager.currentUser
-            let isAuthor = user?.userId == workoutTemplate.authorId
-            isBookmarked = isAuthor || (user?.bookmarkedWorkoutTemplateIds?.contains(workoutTemplate.id) ?? false) || (user?.createdWorkoutTemplateIds?.contains(workoutTemplate.id) ?? false)
-            isFavourited = user?.favouritedWorkoutTemplateIds?.contains(workoutTemplate.id) ?? false
+            let isAuthor = user?.userId == recipeTemplate.authorId
+            isBookmarked = isAuthor || (user?.bookmarkedRecipeTemplateIds?.contains(recipeTemplate.id) ?? false) || (user?.createdRecipeTemplateIds?.contains(recipeTemplate.id) ?? false)
+            isFavourited = user?.favouritedRecipeTemplateIds?.contains(recipeTemplate.id) ?? false
         }
         .sheet(isPresented: $showStartSessionSheet) {
-            WorkoutStartView(template: workoutTemplate)
+            RecipeStartView(recipe: recipeTemplate)
         }
     }
     
     private func loadInitialState() {
         let user = userManager.currentUser
         // Always treat authored templates as bookmarked
-        let isAuthor = user?.userId == workoutTemplate.authorId
-        isBookmarked = isAuthor || (user?.bookmarkedWorkoutTemplateIds?.contains(workoutTemplate.id) ?? false) || (user?.createdWorkoutTemplateIds?.contains(workoutTemplate.id) ?? false)
-        isFavourited = user?.favouritedWorkoutTemplateIds?.contains(workoutTemplate.id) ?? false
+        let isAuthor = user?.userId == recipeTemplate.authorId
+        isBookmarked = isAuthor || (user?.bookmarkedRecipeTemplateIds?.contains(recipeTemplate.id) ?? false) || (user?.createdRecipeTemplateIds?.contains(recipeTemplate.id) ?? false)
+        isFavourited = user?.favouritedRecipeTemplateIds?.contains(recipeTemplate.id) ?? false
     }
     
     private func imageSection(url: String) -> some View {
@@ -110,22 +111,29 @@ struct WorkoutTemplateDetailView: View {
         .removeListRowFormatting()
     }
     
-    private func exerciseSection(exercise: ExerciseTemplateModel) -> some View {
+    private func ingredientSection(wrapper: RecipeIngredientModel) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(exercise.name)
+                Text(wrapper.ingredient.name)
                     .fontWeight(.semibold)
                 Spacer()
-                Text(exercise.type.description)
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
+                Text("\(Int(wrapper.amount)) \(displayUnit(wrapper.unit))")
+                    .foregroundStyle(.secondary)
             }
-            if let notes = exercise.description, !notes.isEmpty {
+            if let notes = wrapper.ingredient.description, !notes.isEmpty {
                 Text(notes)
                     .foregroundColor(.secondary)
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private func displayUnit(_ unit: IngredientAmountUnit) -> String {
+        switch unit {
+        case .grams: return "g"
+        case .milliliters: return "ml"
+        case .units: return "units"
+        }
     }
     
     private func onBookmarkPressed() async {
@@ -133,16 +141,16 @@ struct WorkoutTemplateDetailView: View {
         do {
             // If unbookmarking and currently favourited, unfavourite first to enforce rule
             if !newState && isFavourited {
-                try await workoutTemplateManager.favouriteWorkoutTemplate(id: workoutTemplate.id, isFavourited: false)
+                try await recipeTemplateManager.favouriteRecipeTemplate(id: recipeTemplate.id, isFavourited: false)
                 isFavourited = false
                 // Remove from user's favourited list
-                try await userManager.removeFavouritedWorkoutTemplate(workoutId: workoutTemplate.id)
+                try await userManager.removeFavouritedRecipeTemplate(recipeId: recipeTemplate.id)
             }
-            try await workoutTemplateManager.bookmarkWorkoutTemplate(id: workoutTemplate.id, isBookmarked: newState)
+            try await recipeTemplateManager.bookmarkRecipeTemplate(id: recipeTemplate.id, isBookmarked: newState)
             if newState {
-                try await userManager.addBookmarkedWorkoutTemplate(workoutId: workoutTemplate.id)
+                try await userManager.addBookmarkedRecipeTemplate(recipeId: recipeTemplate.id)
             } else {
-                try await userManager.removeBookmarkedWorkoutTemplate(workoutId: workoutTemplate.id)
+                try await userManager.removeBookmarkedRecipeTemplate(recipeId: recipeTemplate.id)
             }
             isBookmarked = newState
         } catch {
@@ -155,15 +163,15 @@ struct WorkoutTemplateDetailView: View {
         do {
             // If favouriting and not bookmarked, bookmark first to enforce rule
             if newState && !isBookmarked {
-                try await workoutTemplateManager.bookmarkWorkoutTemplate(id: workoutTemplate.id, isBookmarked: true)
-                try await userManager.addBookmarkedWorkoutTemplate(workoutId: workoutTemplate.id)
+                try await recipeTemplateManager.bookmarkRecipeTemplate(id: recipeTemplate.id, isBookmarked: true)
+                try await userManager.addBookmarkedRecipeTemplate(recipeId: recipeTemplate.id)
                 isBookmarked = true
             }
-            try await workoutTemplateManager.favouriteWorkoutTemplate(id: workoutTemplate.id, isFavourited: newState)
+            try await recipeTemplateManager.favouriteRecipeTemplate(id: recipeTemplate.id, isFavourited: newState)
             if newState {
-                try await userManager.addFavouritedWorkoutTemplate(workoutId: workoutTemplate.id)
+                try await userManager.addFavouritedRecipeTemplate(recipeId: recipeTemplate.id)
             } else {
-                try await userManager.removeFavouritedWorkoutTemplate(workoutId: workoutTemplate.id)
+                try await userManager.removeFavouritedRecipeTemplate(recipeId: recipeTemplate.id)
             }
             isFavourited = newState
         } catch {
@@ -174,7 +182,7 @@ struct WorkoutTemplateDetailView: View {
 
 #Preview {
     NavigationStack {
-        WorkoutTemplateDetailView(workoutTemplate: WorkoutTemplateModel.mock)
+        RecipeDetailView(recipeTemplate: RecipeTemplateModel.mock)
     }
     .previewEnvironment()
 }

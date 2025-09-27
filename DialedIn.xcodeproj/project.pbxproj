@@ -43,9 +43,22 @@
 		D0A299542E54AEA800DA64F7 /* DialedInUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DialedInUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D05807742E882B3C009B42C1 /* Exceptions for "DialedIn" folder in "DialedIn" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Services/User/Untitled.swift,
+			);
+			target = D0A2993C2E54AEA700DA64F7 /* DialedIn */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		D0A2993F2E54AEA700DA64F7 /* DialedIn */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D05807742E882B3C009B42C1 /* Exceptions for "DialedIn" folder in "DialedIn" target */,
+			);
 			path = DialedIn;
 			sourceTree = "<group>";
 		};

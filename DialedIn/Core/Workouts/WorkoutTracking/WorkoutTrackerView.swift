@@ -27,6 +27,11 @@ struct WorkoutTrackerView: View {
     @State private var workoutNotes = ""
     @State private var currentExerciseIndex = 0
     
+    // Rest timer state (independent from workout duration)
+    @State private var restDurationSeconds: Int = 90
+    @State private var restStartTime: Date?
+    @State private var restEndTime: Date?
+    
     // Error handling
     @State private var errorMessage: String?
     @State private var showingError = false
@@ -46,31 +51,31 @@ struct WorkoutTrackerView: View {
                 } header: {
                     Text("Workout Overview")
                 }
-                    // Exercise List
-                    ForEach(Array(workoutSession.exercises.enumerated()), id: \.element.id) { index, exercise in
-                        Section {
-                            ExerciseTrackerCard(
-                                exercise: exercise,
-                                exerciseIndex: index,
-                                isCurrentExercise: index == currentExerciseIndex,
-                                isExpanded: expandedExerciseIds.contains(exercise.id),
-                                onToggleExpansion: { toggleExerciseExpansion(exercise.id) },
-                                onSetUpdate: { updatedSet in updateSet(updatedSet, in: exercise.id) },
-                                onAddSet: { addSet(to: exercise.id) },
-                                onDeleteSet: { setId in deleteSet(setId, from: exercise.id) }
-                            )
-                        } header: {
-                            Text(exercise.name)
-                        }
-                        .removeListRowFormatting()
+                // Exercise List
+                ForEach(Array(workoutSession.exercises.enumerated()), id: \.element.id) { index, exercise in
+                    Section {
+                        ExerciseTrackerCard(
+                            exercise: exercise,
+                            exerciseIndex: index,
+                            isCurrentExercise: index == currentExerciseIndex,
+                            isExpanded: expandedExerciseIds.contains(exercise.id),
+                            onToggleExpansion: { toggleExerciseExpansion(exercise.id) },
+                            onSetUpdate: { updatedSet in updateSet(updatedSet, in: exercise.id) },
+                            onAddSet: { addSet(to: exercise.id) },
+                            onDeleteSet: { setId in deleteSet(setId, from: exercise.id) }
+                        )
+                    } header: {
+                        Text(exercise.name)
                     }
+                    .removeListRowFormatting()
+                }
             }
             // .animation(.easeInOut(duration: 0.3), value: expandedExerciseIds)
             .navigationTitle(workoutSession.name)
             .navigationBarTitleDisplayMode(.large)
             .navigationSubtitle(formattedElapsedTime)
             .scrollIndicators(.hidden)
-            .tabViewBottomAccessory {
+            .safeAreaInset(edge: .bottom) {
                 // Timer Header
                 timerHeaderView
             }
@@ -149,48 +154,46 @@ struct WorkoutTrackerView: View {
     }
     
     // MARK: - Timer Header
-    
     private var timerHeaderView: some View {
-        VStack(spacing: 8) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Workout Time")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+        Button {
+            if isRestActive {
+                cancelRestTimer()
+            } else {
+                startRestTimer()
+            }
+        } label: {
+            VStack {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(isRestActive ? "Rest Timer" : "Workout Time")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        if isRestActive {
+                            Text(formattedRestRemaining)
+                                .font(.title2.bold())
+                                .foregroundColor(.primary)
+                        } else {
+                            Text(formattedElapsedTime)
+                                .font(.title2.bold())
+                                .foregroundColor(isActive ? .primary : .orange)
+                        }
+                    }
                     
-                    Text(formattedElapsedTime)
-                        .font(.title2.bold())
-                        .foregroundColor(isActive ? .primary : .orange)
-                }
-                
-                Spacer()
-                
-                Button {
-                    pauseResumeWorkout()
-                } label: {
-                    Image(systemName: isActive ? "pause.circle.fill" : "play.circle.fill")
+                    Spacer()
+                    
+                    Image(systemName: isRestActive ? "stop.circle.fill" : "timer")
                         .font(.title2)
-                        .foregroundColor(isActive ? .orange : .green)
+                        .foregroundColor(isRestActive ? .red : .blue)
+                }
+                if let interval = restTimerInterval {
+                    ProgressView(timerInterval: interval, countsDown: true).progressViewStyle(.linear)
                 }
             }
-            
-            // Progress indicator
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 4)
-                    
-                    Rectangle()
-                        .fill(Color.blue)
-                        .frame(width: progressWidth(geometryWidth: geometry.size.width), height: 4)
-                }
-            }
-            .frame(height: 4)
+            .padding(.horizontal)
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .shadow(color: .black.opacity(0.1), radius: 2, y: 2)
+        .buttonStyle(.glass)
+        .padding(.horizontal)
     }
     
     // MARK: - Workout Overview Card
@@ -260,6 +263,24 @@ struct WorkoutTrackerView: View {
         } else {
             return String(format: "%d:%02d", minutes, seconds)
         }
+    }
+    
+    private var isRestActive: Bool {
+        guard let end = restEndTime else { return false }
+        return Date() < end
+    }
+    
+    private var restTimerInterval: ClosedRange<Date>? {
+        guard let start = restStartTime, let end = restEndTime, Date() < end else { return nil }
+        return start...end
+    }
+    
+    private var formattedRestRemaining: String {
+        guard let end = restEndTime else { return "Ready" }
+        let remaining = max(0, Int(ceil(end.timeIntervalSinceNow)))
+        let minutes = remaining / 60
+        let seconds = remaining % 60
+        return String(format: "%d:%02d", minutes, seconds)
     }
     
     private var completedSetsCount: Int {
@@ -356,9 +377,15 @@ struct WorkoutTrackerView: View {
         }
         
         var updatedExercises = workoutSession.exercises
+        let previousCompletedAt = updatedExercises[exerciseIndex].sets[setIndex].completedAt
         updatedExercises[exerciseIndex].sets[setIndex] = updatedSet
         workoutSession.updateExercises(updatedExercises)
         saveWorkoutProgress()
+        
+        // Start a rest timer when a set transitions from incomplete -> complete
+        if previousCompletedAt == nil, updatedSet.completedAt != nil {
+            startRestTimer()
+        }
         
         // Check if all sets in current exercise are completed and move to next exercise
         if exerciseIndex == currentExerciseIndex && areAllSetsCompleted(in: exerciseId) {
@@ -427,6 +454,19 @@ struct WorkoutTrackerView: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Rest Timer Controls
+    
+    private func startRestTimer(durationSeconds: Int = 0) {
+        let duration = durationSeconds > 0 ? durationSeconds : restDurationSeconds
+        restStartTime = Date()
+        restEndTime = Date().addingTimeInterval(TimeInterval(duration))
+    }
+    
+    private func cancelRestTimer() {
+        restStartTime = nil
+        restEndTime = nil
     }
     
     private func updateWorkoutNotes() {

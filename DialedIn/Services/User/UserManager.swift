@@ -189,6 +189,70 @@ class UserManager {
         try await remote.removeFavouritedWorkoutTemplate(userId: uid, workoutTemplateId: workoutId)
     }
     
+    // MARK: - Created/Bookmarked/Favourited Ingredient Templates
+
+    func addCreatedIngredientTemplate(ingredientId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.addCreatedIngredientTemplate(userId: uid, ingredientTemplateId: ingredientId)
+    }
+
+    func removeCreatedIngredientTemplate(ingredientId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.removeCreatedIngredientTemplate(userId: uid, ingredientTemplateId: ingredientId)
+    }
+
+    func addBookmarkedIngredientTemplate(ingredientId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.addBookmarkedIngredientTemplate(userId: uid, ingredientTemplateId: ingredientId)
+    }
+
+    func removeBookmarkedIngredientTemplate(ingredientId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.removeBookmarkedIngredientTemplate(userId: uid, ingredientTemplateId: ingredientId)
+    }
+
+    func addFavouritedIngredientTemplate(ingredientId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.addFavouritedIngredientTemplate(userId: uid, ingredientTemplateId: ingredientId)
+    }
+
+    func removeFavouritedIngredientTemplate(ingredientId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.removeFavouritedIngredientTemplate(userId: uid, ingredientTemplateId: ingredientId)
+    }
+
+    // MARK: - Created/Bookmarked/Favourited Recipe Templates
+
+    func addCreatedRecipeTemplate(recipeId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.addCreatedRecipeTemplate(userId: uid, recipeTemplateId: recipeId)
+    }
+
+    func removeCreatedRecipeTemplate(recipeId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.removeCreatedRecipeTemplate(userId: uid, recipeTemplateId: recipeId)
+    }
+
+    func addBookmarkedRecipeTemplate(recipeId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.addBookmarkedRecipeTemplate(userId: uid, recipeTemplateId: recipeId)
+    }
+
+    func removeBookmarkedRecipeTemplate(recipeId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.removeBookmarkedRecipeTemplate(userId: uid, recipeTemplateId: recipeId)
+    }
+
+    func addFavouritedRecipeTemplate(recipeId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.addFavouritedRecipeTemplate(userId: uid, recipeTemplateId: recipeId)
+    }
+
+    func removeFavouritedRecipeTemplate(recipeId: String) async throws {
+        let uid = try currentUserId()
+        try await remote.removeFavouritedRecipeTemplate(userId: uid, recipeTemplateId: recipeId)
+    }
+    
     // MARK: - User Blocking
     
     func blockUser(userId: String) async throws {

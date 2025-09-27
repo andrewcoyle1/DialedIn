@@ -158,6 +158,80 @@ struct FirebaseUserService: RemoteUserService {
         ])
     }
     
+    // MARK: - Created/Bookmarked/Favourited Ingredient Templates
+
+    func addCreatedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.createdIngredientTemplateIds.rawValue: FieldValue.arrayUnion([ingredientTemplateId])
+        ])
+    }
+
+    func removeCreatedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.createdIngredientTemplateIds.rawValue: FieldValue.arrayRemove([ingredientTemplateId])
+        ])
+    }
+
+    func addBookmarkedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.bookmarkedIngredientTemplateIds.rawValue: FieldValue.arrayUnion([ingredientTemplateId])
+        ])
+    }
+
+    func removeBookmarkedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.bookmarkedIngredientTemplateIds.rawValue: FieldValue.arrayRemove([ingredientTemplateId])
+        ])
+    }
+
+    func addFavouritedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.favouritedIngredientTemplateIds.rawValue: FieldValue.arrayUnion([ingredientTemplateId])
+        ])
+    }
+
+    func removeFavouritedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.favouritedIngredientTemplateIds.rawValue: FieldValue.arrayRemove([ingredientTemplateId])
+        ])
+    }
+
+    func addCreatedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.createdRecipeTemplateIds.rawValue: FieldValue.arrayUnion([recipeTemplateId])
+        ])
+    }
+
+    func removeCreatedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.createdRecipeTemplateIds.rawValue: FieldValue.arrayRemove([recipeTemplateId])
+        ])
+    }
+
+    func addBookmarkedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.bookmarkedRecipeTemplateIds.rawValue: FieldValue.arrayUnion([recipeTemplateId])
+        ])
+    }
+
+    func removeBookmarkedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.bookmarkedRecipeTemplateIds.rawValue: FieldValue.arrayRemove([recipeTemplateId])
+        ])
+    }
+
+    func addFavouritedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.favouritedRecipeTemplateIds.rawValue: FieldValue.arrayUnion([recipeTemplateId])
+        ])
+    }
+
+    func removeFavouritedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.favouritedRecipeTemplateIds.rawValue: FieldValue.arrayRemove([recipeTemplateId])
+        ])
+    }
+
     // MARK: - User blocking
     func blockUser(currentUserId: String, blockedUserId: String) async throws {
         try await collection.document(currentUserId).updateData([

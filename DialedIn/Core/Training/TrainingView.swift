@@ -16,7 +16,7 @@ struct TrainingView: View {
     @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     
-    @State private var presentationMode: PresentationMode = .exercises
+    @State private var presentationMode: TrainingPresentationMode = .exercises
     @State private var showDebugView: Bool = false
     @State private var searchExerciseTask: Task<Void, Never>?
     @State private var searchWorkoutTask: Task<Void, Never>?
@@ -39,7 +39,7 @@ struct TrainingView: View {
     @State private var showAddWorkoutModal: Bool = false
     @State private var selectedWorkoutTemplate: WorkoutTemplateModel?
 
-    enum PresentationMode {
+    enum TrainingPresentationMode {
         case workouts
         case exercises
     }
@@ -127,7 +127,7 @@ struct TrainingView: View {
                     }
                 } else if let workout = selectedWorkoutTemplate {
                     NavigationStack {
-                        WorkoutTemplateDetailView(workout: workout)
+                        WorkoutTemplateDetailView(workoutTemplate: workout)
                     }
                 } else {
                     Text("Select an item")
@@ -170,8 +170,8 @@ extension TrainingView {
     private var pickerSection: some View {
         Section {
             Picker("Section", selection: $presentationMode) {
-                Text("Exercises").tag(PresentationMode.exercises)
-                Text("Workouts").tag(PresentationMode.workouts)
+                Text("Exercises").tag(TrainingPresentationMode.exercises)
+                Text("Workouts").tag(TrainingPresentationMode.workouts)
             }
             .pickerStyle(.segmented)
         }
@@ -187,9 +187,7 @@ extension TrainingView {
                     favouriteExerciseTemplatesSection
                 }
                 
-                if !myExercisesVisible.isEmpty {
-                    myExerciseSection
-                }
+                myExerciseSection
                 
                 if !bookmarkedOnlyExercises.isEmpty {
                     bookmarkedExerciseTemplatesSection
@@ -476,7 +474,7 @@ extension TrainingView {
     }
     
     private var favouriteWorkoutIds: Set<String> {
-        Set(favouriteExercises.map { $0.id })
+        Set(favouriteWorkouts.map { $0.id })
     }
     
     private var myWorkoutsVisible: [WorkoutTemplateModel] {
@@ -613,7 +611,7 @@ extension TrainingView {
         searchWorkoutTask?.cancel()
         guard !trimmed.isEmpty else {
             // When clearing search, show top templates
-            Task { await loadTopExercisesIfNeeded() }
+            Task { await loadTopWorkoutsIfNeeded() }
             isLoading = false
             return
         }
