@@ -14,7 +14,7 @@ struct FirebaseReportService: RemoteReportService {
     func submit(report: ReportSubmission) async throws {
         try await collection.document(report.reportId).setData([
             "report_id": report.reportId,
-            "reporter_user_id": report.reporterUserId,
+            "author_id": report.reporterUserId,
             "reported_user_id": report.reportedUserId as Any,
             "content_type": report.contentType.rawValue,
             "content_id": report.contentId,

@@ -433,7 +433,7 @@ struct WorkoutTrackerView: View {
         updatedExercises[exerciseIndex].sets.removeAll { $0.id == setId }
         
         // Reindex remaining sets
-        for (index, _) in updatedExercises[exerciseIndex].sets.enumerated() {
+        for index in updatedExercises[exerciseIndex].sets.indices {
             updatedExercises[exerciseIndex].sets[index].index = index + 1
         }
         

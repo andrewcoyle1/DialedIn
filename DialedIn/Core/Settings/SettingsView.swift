@@ -205,10 +205,12 @@ struct SettingsView: View {
 
         Task {
             do {
-                async let deleteAuth: () = authManager.deleteAccount()
-                async let deleteUser: () = userManager.deleteCurrentUser()
-                
-                let (_, _) = await (try deleteAuth, try deleteUser)
+                // Require recent authentication before destructive deletion
+                try await authManager.reauthenticateWithApple()
+                // Ensure app-side data removal completes while auth still valid,
+                // then remove auth account.
+                try await userManager.deleteCurrentUser()
+                try await authManager.deleteAccount()
                 
                 logManager.deleteUserProfile()
                 logManager.trackEvent(event: Event.deleteAccountSuccess)

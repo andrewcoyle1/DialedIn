@@ -41,5 +41,3 @@ struct RecipeIngredientModel: Identifiable, Codable, Hashable, StringIdentifiabl
         Array(IngredientTemplateModel.mocks.prefix(10)).map { RecipeIngredientModel(ingredient: $0, amount: 1) }
     }
 }
-
-

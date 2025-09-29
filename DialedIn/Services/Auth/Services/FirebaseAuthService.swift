@@ -77,6 +77,21 @@ struct FirebaseAuthService: AuthService {
         try Auth.auth().signOut()
     }
     
+    @MainActor
+    func reauthenticateWithApple() async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw AuthError.userNotFound
+        }
+        let helper = SignInWithAppleHelper()
+        let response = try await helper.signIn()
+        let credential = OAuthProvider.credential(
+            providerID: AuthProviderID.apple,
+            idToken: response.token,
+            rawNonce: response.nonce
+        )
+        try await user.reauthenticate(with: credential)
+    }
+
     func deleteAccount() async throws {
         guard let user = Auth.auth().currentUser else {
             throw AuthError.userNotFound

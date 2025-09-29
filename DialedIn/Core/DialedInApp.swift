@@ -9,6 +9,7 @@ import SwiftUI
 import Firebase
 import FirebaseCore
 import FirebaseAnalytics
+import FirebaseAppCheck
 
 @main
 struct DialedInApp: App {
@@ -24,6 +25,7 @@ struct DialedInApp: App {
                 .environment(delegate.dependencies.exerciseHistoryManager)
                 .environment(delegate.dependencies.ingredientTemplateManager)
                 .environment(delegate.dependencies.recipeTemplateManager)
+                .environment(delegate.dependencies.aiManager)
                 .environment(delegate.dependencies.userManager)
                 .environment(delegate.dependencies.authManager)
                 .environment(delegate.dependencies.logManager)
@@ -66,13 +68,27 @@ enum BuildConfiguration {
             let options = FirebaseOptions(contentsOfFile: plist)!
             FirebaseApp.configure(options: options)
             Analytics.setAnalyticsCollectionEnabled(true)
+            configureAppCheckDebug()
         case .prod:
             let plist = Bundle.main.path(forResource: "GoogleService-Info-Prod", ofType: "plist")!
             let options = FirebaseOptions(contentsOfFile: plist)!
             FirebaseApp.configure(options: options)
             Analytics.setAnalyticsCollectionEnabled(true)
+            configureAppCheckProd()
         }
     }
+}
+
+private func configureAppCheckDebug() {
+#if DEBUG
+    AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
+#endif
+}
+
+private func configureAppCheckProd() {
+#if !DEBUG
+    AppCheck.setAppCheckProviderFactory(CombinedAppCheckProviderFactory())
+#endif
 }
 
 @MainActor
@@ -85,7 +101,7 @@ struct Dependencies {
     let exerciseHistoryManager: ExerciseHistoryManager
     let ingredientTemplateManager: IngredientTemplateManager
     let recipeTemplateManager: RecipeTemplateManager
-
+    let aiManager: AIManager
     let logManager: LogManager
     let reportManager: ReportManager
 
@@ -100,7 +116,7 @@ struct Dependencies {
             exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())
             ingredientTemplateManager = IngredientTemplateManager(services: MockIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: MockRecipeTemplateServices())
-
+            aiManager = AIManager(service: MockAIService())
             logManager = LogManager(services: [
                 ConsoleService(printParameters: false)
             ])
@@ -122,6 +138,7 @@ struct Dependencies {
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             ingredientTemplateManager = IngredientTemplateManager(services: ProductionIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: ProductionRecipeTemplateServices())
+            aiManager = AIManager(service: GoogleAIService())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
             
@@ -140,6 +157,7 @@ struct Dependencies {
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             ingredientTemplateManager = IngredientTemplateManager(services: ProductionIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: ProductionRecipeTemplateServices())
+            aiManager = AIManager(service: GoogleAIService())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
         }
@@ -160,5 +178,6 @@ extension View {
             .environment(ExerciseHistoryManager(services: MockExerciseHistoryServices()))
             .environment(IngredientTemplateManager(services: MockIngredientTemplateServices()))
             .environment(RecipeTemplateManager(services: MockRecipeTemplateServices()))
+            .environment(AIManager(service: MockAIService()))
     }
 }

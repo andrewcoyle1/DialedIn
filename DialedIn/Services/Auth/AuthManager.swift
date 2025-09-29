@@ -72,6 +72,10 @@ class AuthManager {
         
     }
     
+    func reauthenticateWithApple() async throws {
+        try await service.reauthenticateWithApple()
+    }
+    
     func deleteAccount() async throws {
         logManager?.trackEvent(event: Event.deleteAccountStart)
         

@@ -61,6 +61,7 @@ struct ExerciseHistoryEntryModel: Identifiable, Codable, StringIdentifiable, Has
         case dateModified = "date_modified"
     }
     
+    // swiftlint:disable:next function_parameter_count
     static func newEntry(
         authorId: String,
         templateId: String,

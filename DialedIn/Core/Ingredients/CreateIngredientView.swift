@@ -13,14 +13,12 @@ struct CreateIngredientView: View {
     @Environment(UserManager.self) private var userManager
     @Environment(\.dismiss) private var dismiss
     
-    @State private var ingredientName: String = ""
-    @State private var ingredientDescription: String?
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var selectedImageData: Data?
     @State private var isImagePickerPresented: Bool = false
     
-    @State private var name: String = ""
-    @State private var description: String = ""
+    @State private var name: String?
+    @State private var description: String?
     @State private var measurementMethod: MeasurementMethod = .weight
     @State private var calories: Double?
     @State private var protein: Double?
@@ -40,7 +38,7 @@ struct CreateIngredientView: View {
     
     @State var isSaving: Bool = false
     private var canSave: Bool {
-        !ingredientName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !(name?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
     }
     
     var body: some View {
@@ -71,7 +69,7 @@ struct CreateIngredientView: View {
                         Image(systemName: "info")
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .bottomBar) {
                     Button {
                         Task {
                             do {
@@ -81,8 +79,10 @@ struct CreateIngredientView: View {
                             }
                         }
                     } label: {
-                        Image(systemName: "checkmark")
+                        Text("Save Ingredient")
                     }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 55)
                     .buttonStyle(.glassProminent)
                     .disabled(!canSave || isSaving)
                 }
@@ -159,11 +159,16 @@ struct CreateIngredientView: View {
     
     private var nameSection: some View {
         Section {
-            TextField("Add name", text: $ingredientName)
-            TextField("Add description", text: Binding(
-                get: { ingredientDescription ?? "" },
+            TextField("Add name", text: Binding(
+                get: { name ?? "" },
                 set: { newValue in
-                    ingredientDescription = newValue.isEmpty ? nil : newValue
+                    name = newValue.isEmpty ? nil : newValue
+                }
+            ))
+            TextField("Add description", text: Binding(
+                get: { description ?? "" },
+                set: { newValue in
+                    description = newValue.isEmpty ? nil : newValue
                 }
             ))
         } header: {
@@ -299,7 +304,7 @@ struct CreateIngredientView: View {
     }
     
     private func onSavePressed() async throws {
-        guard !isSaving, canSave else { return }
+        guard let ingredientName = name, !isSaving, canSave else { return }
         isSaving = true
         
         do {
@@ -311,7 +316,7 @@ struct CreateIngredientView: View {
                 ingredientId: UUID().uuidString,
                 authorId: userId,
                 name: ingredientName,
-                description: ingredientDescription,
+                description: description,
                 measurementMethod: measurementMethod,
                 calories: calories,
                 protein: protein,

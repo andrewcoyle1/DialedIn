@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+@preconcurrency import FirebaseFunctions
 
 struct AppView: View {
 
@@ -41,6 +42,24 @@ struct AppView: View {
             if user?.didCompleteOnboarding == true {
                 appState.updateViewState(showTabBarView: true)
             }
+        }
+        .task {
+            await getDataFromMyNewEndpoint()
+        }
+    }
+    
+    private func getDataFromMyNewEndpoint() async {
+        logManager.trackEvent(eventName: "HELLODEV:: START", type: .info)
+
+        do {
+            let result = try await Functions.functions().httpsCallable("helloDeveloper").call()
+            let string = result.data as? String
+            
+            logManager.trackEvent(eventName: "HELLODEV:: \(string ?? "nostring")", type: .info)
+            
+        } catch {
+            logManager.trackEvent(eventName: "HELLODEV:: ERROR \(error.localizedDescription)", type: .info)
+
         }
     }
     

@@ -18,7 +18,7 @@ class ExerciseHistoryEntryEntity {
     var workoutExerciseId: String
     var performedAt: Date
     var notes: String?
-    var sets: [WorkoutSetEntity]
+    @Relationship(deleteRule: .cascade, inverse: \ExerciseHistorySetEntity.entry) var sets: [ExerciseHistorySetEntity]
     var dateCreated: Date
     var dateModified: Date
     
@@ -31,7 +31,7 @@ class ExerciseHistoryEntryEntity {
         self.workoutExerciseId = model.workoutExerciseId
         self.performedAt = model.performedAt
         self.notes = model.notes
-        self.sets = model.sets.map { WorkoutSetEntity(from: $0) }
+        self.sets = model.sets.map { ExerciseHistorySetEntity(from: $0) }
         self.dateCreated = model.dateCreated
         self.dateModified = model.dateModified
     }

@@ -19,9 +19,12 @@ struct FirebaseImageUploadService {
         return try await imageReference(path: path).downloadURL()
     }
     
+    func deleteImage(path: String) async throws {
+        try await imageReference(path: path).delete()
+    }
+    
     private func imageReference(path: String) -> StorageReference {
-        let name = "\(path).jpg"
-        return Storage.storage().reference(withPath: name)
+        return Storage.storage().reference(withPath: path)
     }
     
     private func saveImage(data: Data, path: String) async throws -> URL {

@@ -158,6 +158,7 @@ struct IngredientTemplateModel: Identifiable, Codable, StringIdentifiable, Hasha
         return dict.compactMapValues({ $0 })
     }
     
+    // swiftlint:disable:next function_parameter_count
     static func newIngredientTemplate(
         name: String,
         authorId: String,

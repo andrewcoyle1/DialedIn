@@ -16,7 +16,7 @@ struct FirebaseUserService: RemoteUserService {
     func saveUser(user: UserModel, image: PlatformImage? = nil) async throws {
         if let image {
             // Upload the image
-            let path = "users/\(user.userId)"
+            let path = "users/\(user.userId)/profile.jpg"
             let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
             
             // Update user image name

@@ -50,6 +50,11 @@ struct MockAuthService: AuthService {
         return (user, false)
     }
     
+    func reauthenticateWithApple() async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
+    
     func signOut() throws {
         try tryShowError()
     }

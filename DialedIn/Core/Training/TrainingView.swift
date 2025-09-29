@@ -16,7 +16,7 @@ struct TrainingView: View {
     @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     
-    @State private var presentationMode: TrainingPresentationMode = .exercises
+    @State private var presentationMode: TrainingPresentationMode = .workouts
     @State private var showDebugView: Bool = false
     @State private var searchExerciseTask: Task<Void, Never>?
     @State private var searchWorkoutTask: Task<Void, Never>?
@@ -170,8 +170,8 @@ extension TrainingView {
     private var pickerSection: some View {
         Section {
             Picker("Section", selection: $presentationMode) {
-                Text("Exercises").tag(TrainingPresentationMode.exercises)
                 Text("Workouts").tag(TrainingPresentationMode.workouts)
+                Text("Exercises").tag(TrainingPresentationMode.exercises)
             }
             .pickerStyle(.segmented)
         }

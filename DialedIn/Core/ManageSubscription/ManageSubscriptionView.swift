@@ -146,7 +146,8 @@ extension ManageSubscriptionView {
             }
         }
     }
-
+    
+    // swiftlint:disable:next function_parameter_count
     private func planRow(title: String, subtitle: String, price: String, trial: String?, isSelected: Bool, onSelect: @escaping () -> Void) -> some View {
         Button(action: onSelect) {
             HStack(alignment: .center, spacing: 12) {

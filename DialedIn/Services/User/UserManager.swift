@@ -271,10 +271,65 @@ class UserManager {
         logManager?.trackEvent(event: Event.deleteAccountStart)
         
         let uid = try currentUserId()
+
+        // 1) Delete/anonymize LOCAL data first (best-effort)
+        do {
+            let workoutSessions = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
+            try workoutSessions.deleteAllLocalWorkoutSessionsForAuthor(authorId: uid)
+        } catch { /* ignore local errors */ }
+        do {
+            let exerciseHistory = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
+            try exerciseHistory.deleteAllLocalExerciseHistoryForAuthor(authorId: uid)
+        } catch { /* ignore local errors */ }
+
+        // 2) Delete/anonymize REMOTE data in parallel while auth is still valid
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            // Profile image in Storage (best-effort; ignore if missing)
+            group.addTask {
+                do {
+                    try await FirebaseImageUploadService().deleteImage(path: "users/\(uid)/profile.jpg")
+                } catch {
+                    /* ignore storage deletion errors */
+                }
+            }
+            // Workout Sessions
+            group.addTask {
+                let manager = await WorkoutSessionManager(services: ProductionWorkoutSessionServices())
+                try await manager.deleteAllWorkoutSessionsForAuthor(authorId: uid)
+            }
+            // Exercise History
+            group.addTask {
+                let manager = await ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
+                try await manager.deleteAllExerciseHistoryForAuthor(authorId: uid)
+            }
+            // Templates: remove author_id to anonymize authored content
+            group.addTask {
+                let manager = await ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
+                try await manager.removeAuthorIdFromAllExerciseTemplates(id: uid)
+            }
+            group.addTask {
+                let manager = await WorkoutTemplateManager(services: ProductionWorkoutTemplateServices())
+                try await manager.removeAuthorIdFromAllWorkoutTemplates(id: uid)
+            }
+            group.addTask {
+                let manager = await IngredientTemplateManager(services: ProductionIngredientTemplateServices())
+                try await manager.removeAuthorIdFromAllIngredientTemplates(id: uid)
+            }
+            group.addTask {
+                let manager = await RecipeTemplateManager(services: ProductionRecipeTemplateServices())
+                try await manager.removeAuthorIdFromAllRecipeTemplates(id: uid)
+            }
+            try await group.waitForAll()
+        }
+
+        // 3) Remove the user profile document
         try await remote.deleteUser(userId: uid)
+
+        // 4) Clear local cache/state
         self.clearAllLocalData()
         logManager?.trackEvent(event: Event.deleteAccountSuccess)
-        
+
+        // 5) Reset UserManager state (does not sign out Auth)
         signOut()
     }
     

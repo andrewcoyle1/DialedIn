@@ -16,7 +16,7 @@ struct CreateRecipeView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var recipeName: String = ""
-    @State private var recipeTemplateDescription: String = ""
+    @State private var recipeTemplateDescription: String?
     
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var selectedImageData: Data?
@@ -98,10 +98,8 @@ struct CreateRecipeView: View {
                     ingredients.map { $0.ingredient }
                 }, set: { newTemplates in
                     var currentMap = Dictionary(uniqueKeysWithValues: ingredients.map { ($0.ingredient.id, $0) })
-                    for tmpl in newTemplates {
-                        if currentMap[tmpl.id] == nil {
-                            currentMap[tmpl.id] = RecipeIngredientModel(ingredient: tmpl, amount: 1)
-                        }
+                    for tmpl in newTemplates where currentMap[tmpl.id] == nil {
+                        currentMap[tmpl.id] = RecipeIngredientModel(ingredient: tmpl, amount: 1)
                     }
                     let newIds = Set(newTemplates.map { $0.id })
                     currentMap = currentMap.filter { newIds.contains($0.key) }
@@ -162,7 +160,12 @@ struct CreateRecipeView: View {
     private var nameSection: some View {
         Section {
             TextField("Enter recipe name", text: $recipeName)
-            TextField("Enter recipe description", text: $recipeTemplateDescription)
+            TextField("Enter recipe description", text: Binding(
+                get: { recipeTemplateDescription ?? "" },
+                set: { newValue in
+                    recipeTemplateDescription = newValue.isEmpty ? nil : newValue
+                }
+            ))
         } header: {
             Text("Recipe name")
         }

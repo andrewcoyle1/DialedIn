@@ -16,7 +16,7 @@ struct CreateWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var workoutName: String = ""
-    @State private var workoutTemplateDescription: String = ""
+    @State private var workoutTemplateDescription: String?
     
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var selectedImageData: Data?
@@ -150,7 +150,12 @@ struct CreateWorkoutView: View {
     private var nameSection: some View {
         Section {
             TextField("Enter workout name", text: $workoutName)
-            TextField("Enter workout description", text: $workoutTemplateDescription)
+            TextField("Enter workout description", text: Binding(
+                get: { workoutTemplateDescription ?? "" },
+                set: { newValue in
+                    workoutTemplateDescription = newValue.isEmpty ? nil : newValue
+                }
+            ))
         } header: {
             Text("Workout name")
         }
@@ -228,9 +233,7 @@ struct CreateWorkoutView: View {
             // Auto-bookmark authored templates
             try await userManager.addBookmarkedWorkoutTemplate(workoutId: newWorkout.id)
             try await workoutTemplateManager.bookmarkWorkoutTemplate(id: newWorkout.id, isBookmarked: true)
-            
-
-            
+             
         } catch {
             
             isSaving = false

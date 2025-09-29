@@ -189,7 +189,7 @@ struct WorkoutStartView: View {
                     notes: workoutNotes.isEmpty ? nil : workoutNotes
                 )
                 
-                // Save locally first
+                // Save locally first (MainActor-isolated)
                 try workoutSessionManager.addLocalWorkoutSession(session: session)
                 
                 await MainActor.run {
