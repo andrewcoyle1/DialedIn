@@ -295,7 +295,17 @@ struct CreateExerciseView: View {
             try await userManager.addBookmarkedExerciseTemplate(exerciseId: newExercise.id)
             try await exerciseTemplateManager.bookmarkExerciseTemplate(id: newExercise.id, isBookmarked: true)
         } catch {
-            
+            logManager.trackEvent(
+                eventName: "exercise_create_failed",
+                parameters: [
+                    "error": String(describing: error),
+                    "has_image": (selectedImageData != nil || generatedImage != nil)
+                ],
+                type: .severe
+            )
+            alert = AnyAppAlert(title: "Save Failed", subtitle: error.localizedDescription)
+            isSaving = false
+            return
         }
         isSaving = false
         dismiss()

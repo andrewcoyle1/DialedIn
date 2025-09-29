@@ -11,7 +11,7 @@ import SwiftUI
     func uploadImage(image: PlatformImage, path: String) async throws -> URL
 }
 
-struct FirebaseImageUploadService {
+struct FirebaseImageUploadService: ImageUploadService {
     
     func uploadImage(image: PlatformImage, path: String) async throws -> URL {
         let data = try await prepareJPEGData(image: image)

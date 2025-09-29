@@ -66,15 +66,15 @@ enum BuildConfiguration {
         case .dev:
             let plist = Bundle.main.path(forResource: "GoogleService-Info-Dev", ofType: "plist")!
             let options = FirebaseOptions(contentsOfFile: plist)!
+            configureAppCheckDebug()
             FirebaseApp.configure(options: options)
             Analytics.setAnalyticsCollectionEnabled(true)
-            configureAppCheckDebug()
         case .prod:
             let plist = Bundle.main.path(forResource: "GoogleService-Info-Prod", ofType: "plist")!
             let options = FirebaseOptions(contentsOfFile: plist)!
+            configureAppCheckProd()
             FirebaseApp.configure(options: options)
             Analytics.setAnalyticsCollectionEnabled(true)
-            configureAppCheckProd()
         }
     }
 }
@@ -87,7 +87,7 @@ private func configureAppCheckDebug() {
 
 private func configureAppCheckProd() {
 #if !DEBUG
-    AppCheck.setAppCheckProviderFactory(CombinedAppCheckProviderFactory())
+    AppCheck.setAppCheckProviderFactory(ProductionAppCheckProviderFactory())
 #endif
 }
 
