@@ -10,14 +10,57 @@ import SwiftUI
 @MainActor
 @Observable
 class WorkoutSessionManager: LocalWorkoutSessionPersistence, RemoteWorkoutSessionService {
+    
     private let local: LocalWorkoutSessionPersistence
     private let remote: RemoteWorkoutSessionService
+    
+    // MARK: - UI Presentation State
+    // Currently active (in-progress) workout session the user can resume
+    var activeSession: WorkoutSessionModel?
+    
+    // Controls presentation of the full screen tracker UI
+    var isTrackerPresented: Bool = false
     
     init(services: WorkoutSessionServices) {
         self.remote = services.remote
         self.local = services.local
     }
     
+    // MARK: - Active Session Controls
+    func startActiveSession(_ session: WorkoutSessionModel) {
+        activeSession = session
+        // Persist active session locally
+        try? local.setActiveLocalWorkoutSession(session)
+        // Do not auto-present here to avoid double presentation when started from a view that already presents the tracker
+        isTrackerPresented = false
+    }
+    
+    func minimizeActiveSession() {
+        isTrackerPresented = false
+    }
+    
+    func reopenActiveSession() {
+        // Always refresh from local to ensure we have the latest edits
+        activeSession = try? local.getActiveLocalWorkoutSession()
+        guard activeSession != nil else { return }
+        isTrackerPresented = true
+    }
+    
+    func endActiveSession() {
+        activeSession = nil
+        isTrackerPresented = false
+        // Clear persisted active session
+        try? local.setActiveLocalWorkoutSession(nil)
+    }
+
+    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel? {
+        try local.getActiveLocalWorkoutSession()
+    }
+
+    func setActiveLocalWorkoutSession(_ session: WorkoutSessionModel?) throws {
+        try local.setActiveLocalWorkoutSession(session)
+    }
+
     // MARK: - Remote Operations
 
     // Create

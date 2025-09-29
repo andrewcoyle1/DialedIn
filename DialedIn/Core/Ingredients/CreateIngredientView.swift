@@ -11,6 +11,8 @@ import PhotosUI
 struct CreateIngredientView: View {
     @Environment(IngredientTemplateManager.self) private var ingredientTemplateManager
     @Environment(UserManager.self) private var userManager
+    @Environment(LogManager.self) private var logManager
+    @Environment(AIManager.self) private var aiManager
     @Environment(\.dismiss) private var dismiss
     
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -40,6 +42,10 @@ struct CreateIngredientView: View {
     private var canSave: Bool {
         !(name?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
     }
+    
+    @State private var isGenerating: Bool = false
+    @State private var generatedImage: UIImage?
+    @State private var alert: AnyAppAlert?
     
     var body: some View {
         NavigationStack {
@@ -112,12 +118,13 @@ struct CreateIngredientView: View {
             .sheet(isPresented: $showDebugView) {
                 DevSettingsView()
             }
+            .showCustomAlert(alert: $alert)
         }
         
     }
     
     private var imageSection: some View {
-        Section("Ingredient Image") {
+        Section {
             HStack {
                 Spacer()
                 Button {
@@ -142,9 +149,21 @@ struct CreateIngredientView: View {
                                 }
                                 #endif
                             } else {
+                                #if canImport(UIKit)
+                                if let generatedImage {
+                                    Image(uiImage: generatedImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                } else {
+                                    Image(systemName: "carrot.fill")
+                                        .font(.system(size: 120))
+                                        .foregroundStyle(.accent)
+                                }
+                                #else
                                 Image(systemName: "carrot.fill")
                                     .font(.system(size: 120))
                                     .foregroundStyle(.accent)
+                                #endif
                             }
                         }
                     }
@@ -152,6 +171,18 @@ struct CreateIngredientView: View {
                 }
                 .photosPicker(isPresented: $isImagePickerPresented, selection: $selectedPhotoItem, matching: .images)
                 Spacer()
+            }
+        } header: {
+            HStack {
+                Text("Ingredient Image")
+                Spacer()
+                Button {
+                    onGenerateImagePressed()
+                } label: {
+                    Image(systemName: "wand.and.sparkles")
+                        .font(.system(size: 20))
+                }
+                .disabled(isGenerating || (name?.isEmpty ?? true))
             }
         }
         .removeListRowFormatting()
@@ -339,7 +370,7 @@ struct CreateIngredientView: View {
             )
             
 #if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
+            let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
             try await ingredientTemplateManager.createIngredientTemplate(ingredient: newIngredient, image: uiImage)
 #elseif canImport(AppKit)
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
@@ -359,6 +390,36 @@ struct CreateIngredientView: View {
     
     private func onCancelPressed() {
         dismiss()
+    }
+
+    private func onGenerateImagePressed() {
+        isGenerating = true
+        Task {
+            do {
+                logManager.trackEvent(eventName: "AI_Image_Generate_Start", parameters: [
+                    "subject": "ingredient",
+                    "has_name": !(name?.isEmpty ?? true)
+                ])
+                let imageDescriptionBuilder = ImageDescriptionBuilder(
+                    subject: .ingredient,
+                    mode: .marketingConcise,
+                    name: name ?? "",
+                    description: description,
+                    contextNotes: "",
+                    desiredStyle: "",
+                    backgroundPreference: "",
+                    lightingPreference: "",
+                    framingNotes: ""
+                )
+                let prompt = imageDescriptionBuilder.build()
+                generatedImage = try await aiManager.generateImage(input: prompt)
+                logManager.trackEvent(eventName: "AI_Image_Generate_Success")
+            } catch {
+                logManager.trackEvent(eventName: "AI_Image_Generate_Fail", parameters: error.eventParameters, type: .severe)
+                alert = AnyAppAlert(error: error)
+            }
+            isGenerating = false
+        }
     }
 }
 

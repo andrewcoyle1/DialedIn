@@ -12,10 +12,12 @@ struct MockWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     
     var workoutSessions: [WorkoutSessionModel]
     var showError: Bool
+    var activeSession: WorkoutSessionModel?
     
-    init(sessions: [WorkoutSessionModel] = WorkoutSessionModel.mocks, showError: Bool = false) {
+    init(sessions: [WorkoutSessionModel] = WorkoutSessionModel.mocks, showError: Bool = false, hasActiveSession: Bool = false) {
         self.workoutSessions = sessions
         self.showError = showError
+        self.activeSession = hasActiveSession ? sessions.first : nil
     }
     
     private func tryShowError() throws {
@@ -68,6 +70,17 @@ struct MockWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws {
         try tryShowError()
+    }
+    
+    // MARK: - Active Session
+    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel? {
+        try tryShowError()
+        return activeSession
+    }
+    
+    func setActiveLocalWorkoutSession(_ session: WorkoutSessionModel?) throws {
+        try tryShowError()
+        // In-memory assignment occurs via value semantics; no persistent backing needed for mock
     }
     
 }

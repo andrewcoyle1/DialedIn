@@ -23,4 +23,8 @@ protocol LocalWorkoutSessionPersistence {
     // Delete
     func deleteLocalWorkoutSession(id: String) throws
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws
+
+    // Active session persistence
+    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
+    func setActiveLocalWorkoutSession(_ session: WorkoutSessionModel?) throws
 }

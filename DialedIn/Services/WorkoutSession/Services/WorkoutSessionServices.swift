@@ -14,9 +14,9 @@ struct MockWorkoutSessionServices: WorkoutSessionServices {
     let remote: RemoteWorkoutSessionService
     let local: LocalWorkoutSessionPersistence
     
-    init(sessions: [WorkoutSessionModel] = WorkoutSessionModel.mocks, delay: Double = 0, showError: Bool = false) {
+    init(sessions: [WorkoutSessionModel] = WorkoutSessionModel.mocks, delay: Double = 0, showError: Bool = false, hasActiveSession: Bool = false) {
         self.remote = MockWorkoutSessionService(sessions: sessions, delay: delay, showError: showError)
-        self.local = MockWorkoutSessionPersistence(sessions: sessions, showError: showError)
+        self.local = MockWorkoutSessionPersistence(sessions: sessions, showError: showError, hasActiveSession: hasActiveSession)
     }
 }
 

@@ -36,7 +36,9 @@ struct TabBarView: View {
         }
     }
     
+    @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @State private var selectedSection: Section? = .dashboard
+    @State private var presentTracker: Bool = false
     
     var body: some View {
         TabView {
@@ -44,17 +46,17 @@ struct TabBarView: View {
                 .tabItem {
                     Label("Dashboard", systemImage: "house")
                 }
-            
+
             TrainingView()
                 .tabItem {
                     Label("Exercises", systemImage: "dumbbell")
                 }
-            
+
             NutritionView()
                 .tabItem {
                     Label("Nutrition", systemImage: "carrot")
                 }
-            
+
             ProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")
@@ -63,6 +65,32 @@ struct TabBarView: View {
         .tabViewStyle(.sidebarAdaptable)
         .defaultAdaptableTabBarPlacement(.sidebar)
         .tabBarMinimizeBehavior(.onScrollDown)
+        .tabViewBottomAccessory {
+            if let active = workoutSessionManager.activeSession, !workoutSessionManager.isTrackerPresented {
+                Button {
+                    workoutSessionManager.reopenActiveSession()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "figure.strengthtraining.traditional")
+                        Text(active.name)
+                            .lineLimit(1)
+                        Text("Resume")
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal, 12)
+                    .frame(height: 38)
+                }
+            }
+        }
+        .fullScreenCover(isPresented: Binding(get: {
+            workoutSessionManager.isTrackerPresented
+        }, set: { newValue in
+            workoutSessionManager.isTrackerPresented = newValue
+        })) {
+            if let session = workoutSessionManager.activeSession {
+                WorkoutTrackerView(workoutSession: session)
+            }
+        }
     }
 }
 

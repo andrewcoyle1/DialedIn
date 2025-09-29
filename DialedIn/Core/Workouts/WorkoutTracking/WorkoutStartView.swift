@@ -49,8 +49,10 @@ struct WorkoutStartView: View {
             }
         }
         .fullScreenCover(isPresented: $showingTracker, onDismiss: {
-            // Dismiss the start view when tracker is dismissed
-            dismiss()
+            // Start screen dismisses itself when tracker is dismissed if no active session
+            if workoutSessionManager.activeSession == nil {
+                dismiss()
+            }
         }) {
             if let session = createdSession {
                 WorkoutTrackerView(workoutSession: session)
@@ -194,6 +196,7 @@ struct WorkoutStartView: View {
                 
                 await MainActor.run {
                     createdSession = session
+                    workoutSessionManager.startActiveSession(session)
                     isStarting = false
                     showingTracker = true
                 }

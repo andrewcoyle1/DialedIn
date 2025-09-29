@@ -14,6 +14,7 @@ struct CreateRecipeView: View {
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(AIManager.self) private var aiManager
     
     @State private var recipeName: String = ""
     @State private var recipeTemplateDescription: String?
@@ -32,6 +33,10 @@ struct CreateRecipeView: View {
     
     @State private var showAddIngredientModal: Bool = false
     @State private var saveError: String?
+    
+    @State private var isGenerating: Bool = false
+    @State private var generatedImage: UIImage?
+    @State private var alert: AnyAppAlert?
     
     var body: some View {
         NavigationStack {
@@ -113,11 +118,12 @@ struct CreateRecipeView: View {
             } message: {
                 Text(saveError ?? "")
             }
+            .showCustomAlert(alert: $alert)
         }
     }
     
     private var imageSection: some View {
-        Section("Recipe Image") {
+        Section {
             HStack {
                 Spacer()
                 Button {
@@ -128,23 +134,35 @@ struct CreateRecipeView: View {
                             .fill(Color.secondary.opacity(0.001))
                         Group {
                             if let data = selectedImageData {
-#if canImport(UIKit)
+                                #if canImport(UIKit)
                                 if let uiImage = UIImage(data: data) {
                                     Image(uiImage: uiImage)
                                         .resizable()
                                         .scaledToFill()
                                 }
-#elseif canImport(AppKit)
+                                #elseif canImport(AppKit)
                                 if let nsImage = NSImage(data: data) {
                                     Image(nsImage: nsImage)
                                         .resizable()
                                         .scaledToFill()
                                 }
-#endif
+                                #endif
                             } else {
+                                #if canImport(UIKit)
+                                if let generatedImage {
+                                    Image(uiImage: generatedImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                } else {
+                                    Image(systemName: "tray.fill")
+                                        .font(.system(size: 120))
+                                        .foregroundStyle(.accent)
+                                }
+                                #else
                                 Image(systemName: "tray.fill")
                                     .font(.system(size: 120))
                                     .foregroundStyle(.accent)
+                                #endif
                             }
                         }
                     }
@@ -152,6 +170,18 @@ struct CreateRecipeView: View {
                 }
                 .photosPicker(isPresented: $isImagePickerPresented, selection: $selectedPhotoItem, matching: .images)
                 Spacer()
+            }
+        } header: {
+            HStack {
+                Text("Recipe Image")
+                Spacer()
+                Button {
+                    onGenerateImagePressed()
+                } label: {
+                    Image(systemName: "wand.and.sparkles")
+                        .font(.system(size: 20))
+                }
+                .disabled(isGenerating || recipeName.isEmpty)
             }
         }
         .removeListRowFormatting()
@@ -246,13 +276,13 @@ struct CreateRecipeView: View {
                 ingredients: ingredients
             )
             
-#if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
+            #if canImport(UIKit)
+            let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
             try await recipeTemplateManager.createRecipeTemplate(recipe: newRecipe, image: uiImage)
-#elseif canImport(AppKit)
+            #elseif canImport(AppKit)
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
             try await recipeTemplateManager.createRecipeTemplate(recipe: newRecipe, image: nsImage)
-#endif
+            #endif
             
             // Track created template on the user document
             try await userManager.addCreatedRecipeTemplate(recipeId: newRecipe.id)
@@ -271,6 +301,36 @@ struct CreateRecipeView: View {
     
     private func onAddIngredientPressed() {
         showAddIngredientModal = true
+    }
+    
+    private func onGenerateImagePressed() {
+        isGenerating = true
+        Task {
+            do {
+                logManager.trackEvent(eventName: "AI_Image_Generate_Start", parameters: [
+                    "subject": "recipe",
+                    "has_name": !recipeName.isEmpty
+                ])
+                let imageDescriptionBuilder = ImageDescriptionBuilder(
+                    subject: .recipe,
+                    mode: .marketingConcise,
+                    name: recipeName,
+                    description: recipeTemplateDescription,
+                    contextNotes: "",
+                    desiredStyle: "",
+                    backgroundPreference: "",
+                    lightingPreference: "",
+                    framingNotes: ""
+                )
+                let prompt = imageDescriptionBuilder.build()
+                generatedImage = try await aiManager.generateImage(input: prompt)
+                logManager.trackEvent(eventName: "AI_Image_Generate_Success")
+            } catch {
+                logManager.trackEvent(eventName: "AI_Image_Generate_Fail", parameters: error.eventParameters, type: .severe)
+                alert = AnyAppAlert(error: error)
+            }
+            isGenerating = false
+        }
     }
 }
 

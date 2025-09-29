@@ -39,6 +39,7 @@ struct WorkoutTrackerView: View {
     init(workoutSession: WorkoutSessionModel) {
         self._workoutSession = State(initialValue: workoutSession)
         self._workoutNotes = State(initialValue: workoutSession.notes ?? "")
+        self._startTime = State(initialValue: workoutSession.dateCreated)
     }
     
     var body: some View {
@@ -82,6 +83,8 @@ struct WorkoutTrackerView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
+                        // Minimize instead of ending the session
+                        workoutSessionManager.minimizeActiveSession()
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
@@ -121,6 +124,21 @@ struct WorkoutTrackerView: View {
             }
         }
         .onAppear {
+            // Refresh from local active session to ensure persisted edits are loaded
+            if let latest = try? workoutSessionManager.getLocalWorkoutSession(id: workoutSession.id) {
+                workoutSession = latest
+                workoutNotes = latest.notes ?? ""
+            } else if let activeOpt = try? workoutSessionManager.getActiveLocalWorkoutSession() {
+                if activeOpt.id == workoutSession.id {
+                    workoutSession = activeOpt
+                    workoutNotes = activeOpt.notes ?? ""
+                }
+            }
+            // Ensure start time comes from the session creation time
+            startTime = workoutSession.dateCreated
+            // Seed elapsed time based on start time so resume shows correct duration
+            elapsedTime = max(0, Date().timeIntervalSince(startTime))
+            
             startTimer()
             // Expand first exercise by default
             if let firstExercise = workoutSession.exercises.first {
@@ -447,6 +465,11 @@ struct WorkoutTrackerView: View {
         Task {
             do {
                 try workoutSessionManager.updateLocalWorkoutSession(session: workoutSession)
+                // Keep active session storage in sync so minimize/restore loads latest edits
+                try? workoutSessionManager.setActiveLocalWorkoutSession(workoutSession)
+                await MainActor.run {
+                    workoutSessionManager.activeSession = workoutSession
+                }
             } catch {
                 await MainActor.run {
                     errorMessage = "Failed to save progress: \(error.localizedDescription)"
@@ -517,6 +540,7 @@ struct WorkoutTrackerView: View {
                 try await createExerciseHistoryEntries(performedAt: endTime)
                 
                 await MainActor.run {
+                    workoutSessionManager.endActiveSession()
                     dismiss()
                 }
             } catch {

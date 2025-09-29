@@ -14,6 +14,7 @@ struct CreateWorkoutView: View {
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(AIManager.self) private var aiManager
     
     @State private var workoutName: String = ""
     @State private var workoutTemplateDescription: String?
@@ -32,6 +33,10 @@ struct CreateWorkoutView: View {
     
     @State private var showAddExerciseModal: Bool = false
     @State private var saveError: String?
+    
+    @State private var isGenerating: Bool = false
+    @State private var generatedImage: UIImage?
+    @State private var alert: AnyAppAlert?
     
     var body: some View {
         NavigationStack {
@@ -103,11 +108,12 @@ struct CreateWorkoutView: View {
             } message: {
                 Text(saveError ?? "")
             }
+            .showCustomAlert(alert: $alert)
         }
     }
     
     private var imageSection: some View {
-        Section("Workout Image") {
+        Section {
             HStack {
                 Spacer()
                 Button {
@@ -132,9 +138,21 @@ struct CreateWorkoutView: View {
                                 }
                                 #endif
                             } else {
+                                #if canImport(UIKit)
+                                if let generatedImage {
+                                    Image(uiImage: generatedImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                } else {
+                                    Image(systemName: "dumbbell.fill")
+                                        .font(.system(size: 120))
+                                        .foregroundStyle(.accent)
+                                }
+                                #else
                                 Image(systemName: "dumbbell.fill")
                                     .font(.system(size: 120))
                                     .foregroundStyle(.accent)
+                                #endif
                             }
                         }
                     }
@@ -142,6 +160,18 @@ struct CreateWorkoutView: View {
                 }
                 .photosPicker(isPresented: $isImagePickerPresented, selection: $selectedPhotoItem, matching: .images)
                 Spacer()
+            }
+        } header: {
+            HStack {
+                Text("Workout Image")
+                Spacer()
+                Button {
+                    onGenerateImagePressed()
+                } label: {
+                    Image(systemName: "wand.and.sparkles")
+                        .font(.system(size: 20))
+                }
+                .disabled(isGenerating || workoutName.isEmpty)
             }
         }
         .removeListRowFormatting()
@@ -221,7 +251,7 @@ struct CreateWorkoutView: View {
             )
             
             #if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
+            let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
             try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: uiImage)
             #elseif canImport(AppKit)
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
@@ -245,6 +275,36 @@ struct CreateWorkoutView: View {
     
     private func onAddExercisePressed() {
         showAddExerciseModal = true
+    }
+
+    private func onGenerateImagePressed() {
+        isGenerating = true
+        Task {
+            do {
+                logManager.trackEvent(eventName: "AI_Image_Generate_Start", parameters: [
+                    "subject": "workout",
+                    "has_name": !workoutName.isEmpty
+                ])
+                let imageDescriptionBuilder = ImageDescriptionBuilder(
+                    subject: .workout,
+                    mode: .marketingConcise,
+                    name: workoutName,
+                    description: workoutTemplateDescription,
+                    contextNotes: "",
+                    desiredStyle: "",
+                    backgroundPreference: "",
+                    lightingPreference: "",
+                    framingNotes: ""
+                )
+                let prompt = imageDescriptionBuilder.build()
+                generatedImage = try await aiManager.generateImage(input: prompt)
+                logManager.trackEvent(eventName: "AI_Image_Generate_Success")
+            } catch {
+                logManager.trackEvent(eventName: "AI_Image_Generate_Fail", parameters: error.eventParameters, type: .severe)
+                alert = AnyAppAlert(error: error)
+            }
+            isGenerating = false
+        }
     }
 }
 

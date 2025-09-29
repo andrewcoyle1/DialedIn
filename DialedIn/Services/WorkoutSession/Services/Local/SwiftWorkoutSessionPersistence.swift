@@ -12,6 +12,7 @@ import SwiftUI
 class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     private var container: ModelContainer
     private let storeURL: URL
+    private let activeSessionDefaultsKey = "activeWorkoutSessionId"
     
     private var mainContext: ModelContext {
         container.mainContext
@@ -213,6 +214,22 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
             } else {
                 throw error
             }
+        }
+    }
+    
+    // MARK: - Active Session Persistence (UserDefaults + SwiftData fallback)
+    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel? {
+        if let sessionId = UserDefaults.standard.string(forKey: activeSessionDefaultsKey) {
+            return try? getLocalWorkoutSession(id: sessionId)
+        }
+        return nil
+    }
+    
+    func setActiveLocalWorkoutSession(_ session: WorkoutSessionModel?) throws {
+        if let session {
+            UserDefaults.standard.set(session.id, forKey: activeSessionDefaultsKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: activeSessionDefaultsKey)
         }
     }
     
