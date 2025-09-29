@@ -9,8 +9,26 @@ import Foundation
 
 extension Error {
     var eventParameters: [String: Any] {
-        [
-            "error_description": localizedDescription
+        let nsError = self as NSError
+        var params: [String: Any] = [
+            "error_description": localizedDescription,
+            "error_domain": nsError.domain,
+            "error_code": nsError.code
         ]
+        // Include userInfo payload if present (flatten shallow keys to primitives/strings where possible)
+        for (key, value) in nsError.userInfo {
+            switch value {
+            case let str as String:
+                params[key] = str
+            case let num as NSNumber:
+                params[key] = num
+            case let url as URL:
+                params[key] = url.absoluteString
+            default:
+                // Fallback to String(description:)
+                params[key] = String(describing: value)
+            }
+        }
+        return params
     }
 }

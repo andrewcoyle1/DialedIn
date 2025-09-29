@@ -20,19 +20,14 @@ struct FirebaseExerciseTemplateService: RemoteExerciseTemplateService {
         
         if let image {
             // Upload the image
-            let path = "exercise_templates/\(exercise.id)"
+            let path = "exercise_templates/\(exercise.id)/image.jpg"
             let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
-            
             // Persist the download URL on the exercise that will be saved
             exerciseToSave.updateImageURL(imageUrl: url.absoluteString)
         }
         
         // Upload the (possibly updated) exercise
         try collection.document(exerciseToSave.id).setData(from: exerciseToSave, merge: true)
-        // Also persist lowercased name for case-insensitive prefix search
-        try await collection.document(exerciseToSave.id).setData([
-            "name_lower": exerciseToSave.name.lowercased()
-        ], merge: true)
     }
     
     func getExerciseTemplate(id: String) async throws -> ExerciseTemplateModel {

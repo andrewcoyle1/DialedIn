@@ -20,7 +20,7 @@ struct FirebaseWorkoutTemplateService: RemoteWorkoutTemplateService {
         
         if let image {
             // Upload the image
-            let path = "workout_templates/\(workout.id)"
+            let path = "workout_templates/\(workout.id)/image.jpg"
             let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
             
             // Persist the download URL on the exercise that will be saved

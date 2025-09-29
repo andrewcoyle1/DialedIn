@@ -20,7 +20,7 @@ struct FirebaseIngredientTemplateService: RemoteIngredientTemplateService {
         
         if let image {
             // Upload the image
-            let path = "ingredient_templates/\(ingredient.id)"
+            let path = "ingredient_templates/\(ingredient.id)/image.jpg"
             let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
             
             // Persist the download URL on the ingredient that will be saved

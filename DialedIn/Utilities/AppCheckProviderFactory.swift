@@ -8,13 +8,18 @@
 import Foundation
 import FirebaseCore
 import FirebaseAppCheck
+import DeviceCheck
 
-final class CombinedAppCheckProviderFactory: NSObject, AppCheckProviderFactory {
+final class ProductionAppCheckProviderFactory: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? {
-        if #available(iOS 14.0, *) {
+        #if canImport(UIKit)
+        if #available(iOS 14.0, *), DCAppAttestService.shared.isSupported {
             return AppAttestProvider(app: app)
         } else {
             return DeviceCheckProvider(app: app)
         }
+        #else
+        return DeviceCheckProvider(app: app)
+        #endif
     }
 }

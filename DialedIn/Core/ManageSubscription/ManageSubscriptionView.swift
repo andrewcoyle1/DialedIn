@@ -214,7 +214,7 @@ extension ManageSubscriptionView {
                     Image(systemName: "arrow.clockwise.circle.fill")
                         .foregroundStyle(.blue)
                     Text("Restore Purchases")
-                }
+                }   
             }
             .disabled(isLoading)
 

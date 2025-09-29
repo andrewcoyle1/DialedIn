@@ -200,9 +200,7 @@ struct CreateExerciseView: View {
                 generatedImage = try await aiManager.generateImage(input: prompt)
                 logManager.trackEvent(eventName: "AI_Image_Generate_Success")
             } catch {
-                logManager.trackEvent(eventName: "AI_Image_Generate_Fail", parameters: [
-                    "error": error.localizedDescription
-                ], type: .severe)
+                logManager.trackEvent(eventName: "AI_Image_Generate_Fail", parameters: error.eventParameters, type: .severe)
                 alert = AnyAppAlert(error: error)
             }
             isGenerating = false
@@ -282,13 +280,13 @@ struct CreateExerciseView: View {
                 clickCount: 0
             )
             
-#if canImport(UIKit)
+            #if canImport(UIKit)
             let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
             try await exerciseTemplateManager.createExerciseTemplate(exercise: newExercise, image: uiImage)
-#elseif canImport(AppKit)
+            #elseif canImport(AppKit)
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
             try await exerciseTemplateManager.createExerciseTemplate(exercise: newExercise, image: nsImage)
-#endif
+            #endif
             // Track created template on the user document
             try await userManager.addCreatedExerciseTemplate(exerciseId: newExercise.id)
             // Auto-bookmark authored templates
