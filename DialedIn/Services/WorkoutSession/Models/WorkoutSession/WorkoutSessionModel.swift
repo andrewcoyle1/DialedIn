@@ -62,7 +62,7 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
         self.dateModified = .now
         self.endedAt = nil
         self.notes = notes
-        self.exercises = template.exercises.map { exerciseTemplate in
+        self.exercises = template.exercises.enumerated().map { (idx, exerciseTemplate) in
             let mode = WorkoutSessionModel.trackingMode(for: exerciseTemplate.type)
             let sets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: authorId)
             return WorkoutExerciseModel(
@@ -71,6 +71,7 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
                 templateId: exerciseTemplate.exerciseId,
                 name: exerciseTemplate.name,
                 trackingMode: mode,
+                index: idx + 1,
                 notes: nil,
                 sets: sets
             )

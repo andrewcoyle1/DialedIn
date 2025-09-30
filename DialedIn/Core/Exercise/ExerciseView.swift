@@ -254,7 +254,9 @@ struct ExerciseView: View {
     @Environment(UserManager.self) private var userManager
     @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
     
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
+    #endif
     @State private var searchTask: Task<Void, Never>?
     @State private var isLoading: Bool = false
     @State private var searchText: String = ""

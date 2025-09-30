@@ -23,9 +23,9 @@ struct ExerciseDetailView: View {
     
     @State private var showAlert: AnyAppAlert?
     
-#if DEBUG || MOCK
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
-#endif
+    #endif
     
     enum CustomSection: Hashable {
         case description
@@ -52,7 +52,7 @@ struct ExerciseDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .showCustomAlert(alert: $showAlert)
         .toolbar {
-#if DEBUG || MOCK
+            #if DEBUG || MOCK
             ToolbarItem(placement: .topBarLeading) {
                 Button {
                     showDebugView = true
@@ -60,7 +60,7 @@ struct ExerciseDetailView: View {
                     Image(systemName: "info")
                 }
             }
-#endif
+            #endif
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
@@ -90,11 +90,11 @@ struct ExerciseDetailView: View {
             isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false)
             isFavourited = user?.favouritedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false
         }
-#if DEBUG || MOCK
+        #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
             DevSettingsView()
         }
-#endif
+        #endif
     }
     private var performedSubtitle: String {
         if isLoadingHistory { return "Loading…" }

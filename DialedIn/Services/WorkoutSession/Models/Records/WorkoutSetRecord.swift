@@ -40,4 +40,3 @@ struct WorkoutSetRecord: Codable {
         case templateId = "template_id"
     }
 }
-

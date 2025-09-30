@@ -15,9 +15,11 @@ struct OnboardingAuthView: View {
     
     @State private var navigateToCreateProfile: Bool = false
     @State var showAlert: AnyAppAlert?
-    
+
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
-    
+    #endif
+
     var body: some View {
         List {
             whySection

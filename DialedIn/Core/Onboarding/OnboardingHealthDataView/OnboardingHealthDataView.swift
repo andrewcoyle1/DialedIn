@@ -10,8 +10,10 @@ import SwiftUI
 struct OnboardingHealthDataView: View {
     @State private var navigateNext: Bool = false
 
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
-    
+    #endif
+
     var body: some View {
         List {
             Section {
@@ -59,23 +61,23 @@ struct OnboardingHealthDataView: View {
         }
         .navigationTitle("Health Data")
         .navigationBarTitleDisplayMode(.large)
-#if !DEBUG && !MOCK
-.navigationBarBackButtonHidden(true)
-#else
-.toolbar {
-    ToolbarItem(placement: .topBarLeading) {
-        Button {
-            showDebugView = true
-        } label: {
-            Image(systemName: "info")
+        #if !DEBUG && !MOCK
+        .navigationBarBackButtonHidden(true)
+        #else
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showDebugView = true
+                } label: {
+                    Image(systemName: "info")
+                }
+            }
         }
-    }
-}
-.sheet(isPresented: $showDebugView) {
-    DevSettingsView()
-}
-#endif
-.navigationDestination(isPresented: $navigateNext) {
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
+        .navigationDestination(isPresented: $navigateNext) {
             OnboardingCompletedView()
         }
         .screenAppearAnalytics(name: "OnboardingNotifications")

@@ -23,9 +23,11 @@ struct CreateRecipeView: View {
     @State private var selectedImageData: Data?
     @State private var isImagePickerPresented: Bool = false
     @State var ingredients: [RecipeIngredientModel] = []
-    
+
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
-    
+    #endif
+
     @State var isSaving: Bool = false
     private var canSave: Bool {
         !recipeName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -54,6 +56,7 @@ struct CreateRecipeView: View {
                         Image(systemName: "xmark")
                     }
                 }
+                #if DEBUG || MOCK
                 ToolbarSpacer(.fixed, placement: .topBarLeading)
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -62,6 +65,7 @@ struct CreateRecipeView: View {
                         Image(systemName: "info")
                     }
                 }
+                #endif
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Task {
@@ -95,9 +99,11 @@ struct CreateRecipeView: View {
                     }
                 }
             }
+            #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView, content: {
                 DevSettingsView()
             })
+            #endif
             .sheet(isPresented: $showAddIngredientModal) {
                 AddIngredientModal(selectedIngredients: Binding(get: {
                     ingredients.map { $0.ingredient }

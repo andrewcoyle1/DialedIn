@@ -11,6 +11,9 @@ struct WorkoutTrackerView: View {
     @Environment(UserManager.self) private var userManager
     @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @Environment(ExerciseHistoryManager.self) private var exerciseHistoryManager
+    #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+	@Environment(WorkoutActivityViewModel.self) private var workoutActivityViewModel
+    #endif
     @Environment(\.dismiss) private var dismiss
     
     // Session state
@@ -107,20 +110,20 @@ struct WorkoutTrackerView: View {
                     .buttonStyle(.glassProminent)
                 }
                 
-                // Next Exercise button (only shown if current exercise is completed and there's a next exercise)
-                if isCurrentExerciseCompleted && currentExerciseIndex < workoutSession.exercises.count - 1 {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            moveToNextExercise()
-                        } label: {
-                            HStack {
-                                Text("Next Exercise")
-                                Image(systemName: "arrow.right")
-                            }
-                        }
-                        .buttonStyle(.bordered)
-                    }
-                }
+//                // Next Exercise button (only shown if current exercise is completed and there's a next exercise)
+//                if isCurrentExerciseCompleted && currentExerciseIndex < workoutSession.exercises.count - 1 {
+//                    ToolbarItem(placement: .topBarTrailing) {
+//                        Button {
+//                            moveToNextExercise()
+//                        } label: {
+//                            HStack {
+//                                Text("Next Exercise")
+//                                Image(systemName: "arrow.right")
+//                            }
+//                        }
+//                        .buttonStyle(.bordered)
+//                    }
+//                }
             }
         }
         .onAppear {
@@ -138,8 +141,19 @@ struct WorkoutTrackerView: View {
             startTime = workoutSession.dateCreated
             // Seed elapsed time based on start time so resume shows correct duration
             elapsedTime = max(0, Date().timeIntervalSince(startTime))
-            
-            startTimer()
+
+            #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+			// Start Live Activity if not already started
+			workoutActivityViewModel.startLiveActivity(
+				session: workoutSession,
+				isActive: isActive,
+				currentExerciseIndex: currentExerciseIndex,
+				restEndsAt: restEndTime,
+				statusMessage: isRestActive ? "Resting" : nil
+			)
+            #endif
+
+			startTimer()
             // Expand first exercise by default
             if let firstExercise = workoutSession.exercises.first {
                 expandedExerciseIds.insert(firstExercise.id)
@@ -151,7 +165,20 @@ struct WorkoutTrackerView: View {
         .alert("End Workout?", isPresented: $showingEndWorkoutAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Discard", role: .destructive) {
-                dismiss()
+                Task {
+                    do {
+                        try workoutSessionManager.deleteLocalWorkoutSession(id: workoutSession.id)
+                        await MainActor.run {
+                            workoutSessionManager.endActiveSession()
+                            dismiss()
+                        }
+                    } catch {
+                        await MainActor.run {
+                            errorMessage = "Failed to discard workout: \(error.localizedDescription)"
+                            showingError = true
+                        }
+                    }
+                }
             }
             Button("Save & Exit") {
                 saveAndExit()
@@ -310,15 +337,17 @@ struct WorkoutTrackerView: View {
     }
     
     private var formattedVolume: String {
-        let totalVolume = workoutSession.exercises.flatMap(\.sets)
+        let totalVolume = computeTotalVolumeKg()
+        return String(format: "%.0f kg", totalVolume)
+    }
+
+    private func computeTotalVolumeKg() -> Double {
+        workoutSession.exercises.flatMap(\.sets)
             .compactMap { set in
                 guard let weight = set.weightKg, let reps = set.reps else { return nil }
                 return weight * Double(reps)
             }
-            
-            .reduce(0.0, { $0 + $1 })
-        
-        return String(format: "%.0f kg", totalVolume)
+            .reduce(0.0, +)
     }
     
     private func progressWidth(geometryWidth: CGFloat) -> CGFloat {
@@ -334,12 +363,24 @@ struct WorkoutTrackerView: View {
     }
     
     // MARK: - Timer Functions
-    
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             if isActive {
                 elapsedTime += 1
             }
+
+            #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+            // Push periodic updates to Live Activity
+            workoutActivityViewModel.updateLiveActivity(
+                session: workoutSession,
+                isActive: isActive,
+                currentExerciseIndex: currentExerciseIndex,
+                restEndsAt: restEndTime,
+                statusMessage: isRestActive ? "Resting" : nil,
+                totalVolumeKg: computeTotalVolumeKg(),
+                elapsedTime: elapsedTime
+            )
+            #endif
         }
     }
     
@@ -350,6 +391,18 @@ struct WorkoutTrackerView: View {
     
     private func pauseResumeWorkout() {
         isActive.toggle()
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        // Update activity immediately when toggling pause/resume
+        workoutActivityViewModel.updateLiveActivity(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: restEndTime,
+            statusMessage: isRestActive ? "Resting" : nil,
+            totalVolumeKg: computeTotalVolumeKg(),
+            elapsedTime: elapsedTime
+        )
+        #endif
     }
     
     // MARK: - Exercise Management
@@ -409,6 +462,19 @@ struct WorkoutTrackerView: View {
         if exerciseIndex == currentExerciseIndex && areAllSetsCompleted(in: exerciseId) {
             moveToNextExercise()
         }
+
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        // Update activity to reflect set/volume/progress changes
+        workoutActivityViewModel.updateLiveActivity(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: restEndTime,
+            statusMessage: isRestActive ? "Resting" : nil,
+            totalVolumeKg: computeTotalVolumeKg(),
+            elapsedTime: elapsedTime
+        )
+        #endif
     }
     
     private func addSet(to exerciseId: String) {
@@ -440,6 +506,18 @@ struct WorkoutTrackerView: View {
         updatedExercises[exerciseIndex].sets.append(newSet)
         workoutSession.updateExercises(updatedExercises)
         saveWorkoutProgress()
+
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        workoutActivityViewModel.updateLiveActivity(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: restEndTime,
+            statusMessage: isRestActive ? "Resting" : nil,
+            totalVolumeKg: computeTotalVolumeKg(),
+            elapsedTime: elapsedTime
+        )
+        #endif
     }
     
     private func deleteSet(_ setId: String, from exerciseId: String) {
@@ -457,6 +535,18 @@ struct WorkoutTrackerView: View {
         
         workoutSession.updateExercises(updatedExercises)
         saveWorkoutProgress()
+
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        workoutActivityViewModel.updateLiveActivity(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: restEndTime,
+            statusMessage: isRestActive ? "Resting" : nil,
+            totalVolumeKg: computeTotalVolumeKg(),
+            elapsedTime: elapsedTime
+        )
+        #endif
     }
     
     // MARK: - Data Persistence
@@ -485,11 +575,34 @@ struct WorkoutTrackerView: View {
         let duration = durationSeconds > 0 ? durationSeconds : restDurationSeconds
         restStartTime = Date()
         restEndTime = Date().addingTimeInterval(TimeInterval(duration))
+
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        workoutActivityViewModel.updateLiveActivity(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: restEndTime,
+            statusMessage: "Resting",
+            totalVolumeKg: computeTotalVolumeKg(),
+            elapsedTime: elapsedTime
+        )
+        #endif
     }
     
     private func cancelRestTimer() {
         restStartTime = nil
         restEndTime = nil
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        workoutActivityViewModel.updateLiveActivity(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: restEndTime,
+            statusMessage: nil,
+            totalVolumeKg: computeTotalVolumeKg(),
+            elapsedTime: elapsedTime
+        )
+        #endif
     }
     
     private func updateWorkoutNotes() {
@@ -540,6 +653,9 @@ struct WorkoutTrackerView: View {
                 try await createExerciseHistoryEntries(performedAt: endTime)
                 
                 await MainActor.run {
+                    #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+                    workoutActivityViewModel.endLiveActivity(session: workoutSession, success: true)
+                    #endif
                     workoutSessionManager.endActiveSession()
                     dismiss()
                 }

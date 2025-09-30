@@ -83,6 +83,11 @@ struct RecipeDetailView: View {
             }
             
         }
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
         .onAppear { loadInitialState()}
         .onChange(of: userManager.currentUser) {_, _ in
             let user = userManager.currentUser

@@ -24,8 +24,10 @@ struct OnboardingCreateProfileView: View {
     
     @State private var isSaving: Bool = false
     @State private var navigateNext: Bool = false
-    
+
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
+    #endif
     
     private var canSave: Bool {
         !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

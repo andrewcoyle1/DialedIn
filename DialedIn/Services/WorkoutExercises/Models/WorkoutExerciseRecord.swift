@@ -14,6 +14,7 @@ struct WorkoutExerciseRecord: Codable {
     let templateId: String
     let name: String
     let trackingMode: TrackingMode
+    let index: Int
     let notes: String?
     let order: Int
     
@@ -24,6 +25,7 @@ struct WorkoutExerciseRecord: Codable {
         case templateId = "template_id"
         case name
         case trackingMode = "tracking_mode"
+        case index
         case notes
         case order
     }

@@ -45,6 +45,7 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
                 templateId: exercise.templateId,
                 name: exercise.name,
                 trackingMode: exercise.trackingMode,
+                index: exercise.index,
                 notes: exercise.notes,
                 order: exerciseOrder
             )
@@ -129,6 +130,7 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
                 templateId: record.templateId,
                 name: record.name,
                 trackingMode: record.trackingMode,
+                index: record.index,
                 notes: record.notes,
                 sets: sets
             )
@@ -218,6 +220,7 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
                 templateId: exercise.templateId,
                 name: exercise.name,
                 trackingMode: exercise.trackingMode,
+                index: exercise.index,
                 notes: exercise.notes,
                 order: exerciseOrder
             )
@@ -419,6 +422,7 @@ extension WorkoutExerciseModel {
             templateId: templateId,
             name: name,
             trackingMode: trackingMode,
+            index: index,
             notes: notes
         )
     }
@@ -431,6 +435,7 @@ extension WorkoutExerciseModel {
             templateId: templateId,
             name: name,
             trackingMode: trackingMode,
+            index: index,
             notes: notes,
             sets: sets
         )
@@ -467,6 +472,7 @@ struct WorkoutExerciseForFirebase: Codable {
     let templateId: String
     let name: String
     let trackingMode: TrackingMode
+    let index: Int
     let notes: String?
     
     enum CodingKeys: String, CodingKey {
@@ -475,6 +481,7 @@ struct WorkoutExerciseForFirebase: Codable {
         case templateId = "template_id"
         case name
         case trackingMode = "tracking_mode"
+        case index
         case notes
     }
 }

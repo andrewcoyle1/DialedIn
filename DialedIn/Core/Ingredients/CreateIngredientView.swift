@@ -9,6 +9,7 @@ import SwiftUI
 import PhotosUI
 
 struct CreateIngredientView: View {
+
     @Environment(IngredientTemplateManager.self) private var ingredientTemplateManager
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
@@ -36,16 +37,19 @@ struct CreateIngredientView: View {
     @State private var vitaminDMcg: Double?
     @State private var magnesiumMg: Double?
     @State private var zincMg: Double?
+
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
-    
+    #endif
+
+    @State private var isGenerating: Bool = false
+    @State private var generatedImage: UIImage?
+    @State private var alert: AnyAppAlert?
+
     @State var isSaving: Bool = false
     private var canSave: Bool {
         !(name?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
     }
-    
-    @State private var isGenerating: Bool = false
-    @State private var generatedImage: UIImage?
-    @State private var alert: AnyAppAlert?
     
     var body: some View {
         NavigationStack {
@@ -59,6 +63,7 @@ struct CreateIngredientView: View {
             .navigationSubtitle("Define ingredient details and nutrition")
             .navigationBarTitleDisplayMode(.large)
             .scrollIndicators(.hidden)
+            .screenAppearAnalytics(name: "CreateIngredientView")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -67,6 +72,7 @@ struct CreateIngredientView: View {
                         Image(systemName: "xmark")
                     }
                 }
+                #if DEBUG || MOCK
                 ToolbarSpacer(.fixed, placement: .topBarLeading)
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -75,20 +81,15 @@ struct CreateIngredientView: View {
                         Image(systemName: "info")
                     }
                 }
-                ToolbarItem(placement: .bottomBar) {
+                #endif
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Task {
-                            do {
-                                try await onSavePressed()
-                            } catch {
-                                
-                            }
+                            await onSavePressed()
                         }
                     } label: {
-                        Text("Save Ingredient")
+                        Image(systemName: "checkmark")
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 55)
                     .buttonStyle(.glassProminent)
                     .disabled(!canSave || isSaving)
                 }
@@ -97,32 +98,19 @@ struct CreateIngredientView: View {
                 guard let newItem = selectedPhotoItem else { return }
                 
                 Task {
-                    do {
-                        if let data = try await newItem.loadTransferable(type: Data.self) {
-                            await MainActor.run {
-                                selectedImageData = data
-                                // TODO: Add log manager
-                            }
-                        } else {
-                            await MainActor.run {
-                                // TODO: Add log manager
-                            }
-                        }
-                    } catch {
-                        await MainActor.run {
-                            // TODO: Add log manager
-                        }
-                    }
+                    await onImageSelectorChanged(newItem)
                 }
             }
+            #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView) {
                 DevSettingsView()
             }
+            #endif
             .showCustomAlert(alert: $alert)
         }
         
     }
-    
+
     private var imageSection: some View {
         Section {
             HStack {
@@ -331,10 +319,30 @@ struct CreateIngredientView: View {
     
     private func onImageSelectorPressed() {
         // Show the image picker sheet for selecting a profile image
+        logManager.trackEvent(event: Event.imageSelectorStart)
         isImagePickerPresented = true
     }
-    
-    private func onSavePressed() async throws {
+
+    private func onImageSelectorChanged(_ newItem: PhotosPickerItem) async {
+        do {
+            if let data = try await newItem.loadTransferable(type: Data.self) {
+                await MainActor.run {
+                    selectedImageData = data
+                    logManager.trackEvent(event: Event.imageSelectorSuccess)
+                }
+            } else {
+                await MainActor.run {
+                    logManager.trackEvent(event: Event.imageSelectorCancel)
+                }
+            }
+        } catch {
+            await MainActor.run {
+                logManager.trackEvent(event: Event.imageSelectorFail(error: error))
+            }
+        }
+    }
+
+    private func onSavePressed() async {
         guard let ingredientName = name, !isSaving, canSave else { return }
         isSaving = true
         
@@ -419,6 +427,53 @@ struct CreateIngredientView: View {
                 alert = AnyAppAlert(error: error)
             }
             isGenerating = false
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case createIngredientStart
+        case createIngredientSuccess
+        case createIngredientFail(error: Error)
+        case ingredientGenerateImageStart
+        case ingredientGenerateImageSuccess
+        case ingredientGenerateImageFail(error: Error)
+        case imageSelectorStart
+        case imageSelectorSuccess
+        case imageSelectorCancel
+        case imageSelectorFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .createIngredientStart:          return "CreateIngredient_Start"
+            case .createIngredientSuccess:        return "CreateIngredient_Success"
+            case .createIngredientFail:           return "CreateIngredient_Fail"
+            case .ingredientGenerateImageStart:   return "IngredientGenerateImage_Start"
+            case .ingredientGenerateImageSuccess: return "IngredientGenerateImage_Success"
+            case .ingredientGenerateImageFail:    return "IngredientGenerateImage_Fail"
+            case .imageSelectorStart:           return "IngredientImageSelector_Start"
+            case .imageSelectorSuccess:         return "IngredientImageSelector_Success"
+            case .imageSelectorCancel:          return "IngredientImageSelector_Cancel"
+            case .imageSelectorFail:            return "IngredientImageSelector_Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .createIngredientFail(error: let error), .ingredientGenerateImageFail(error: let error), .imageSelectorFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .createIngredientFail, .ingredientGenerateImageFail, .imageSelectorFail:
+                return .severe
+            default:
+                return .analytic
+
+            }
         }
     }
 }

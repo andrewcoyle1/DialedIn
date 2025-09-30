@@ -10,7 +10,9 @@ import SwiftUI
 struct ProfileView: View {
     
     @Environment(UserManager.self) private var userManager: UserManager
-    @State private var showDevSettings: Bool = false
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
     @State private var showCreateProfileSheet: Bool = false
     
     var body: some View {
@@ -24,9 +26,11 @@ struct ProfileView: View {
             .navigationTitle("Profile")
             .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
             .navigationBarTitleDisplayMode(.large)
-            .sheet(isPresented: $showDevSettings, content: {
+            #if DEBUG || MOCK
+            .sheet(isPresented: $showDebugView, content: {
                 DevSettingsView()
             })
+            #endif
             .sheet(isPresented: $showCreateProfileSheet) {
                 CreateAccountView()
                     .presentationDetents([
@@ -35,13 +39,15 @@ struct ProfileView: View {
                 // OnboardingCreateProfileView()
             }
             .toolbar {
+                #if DEBUG || MOCK
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        showDevSettings = true
+                        showDebugView = true
                     } label: {
                         Image(systemName: "info")
                     }
                 }
+                #endif
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {

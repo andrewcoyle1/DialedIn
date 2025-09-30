@@ -43,11 +43,14 @@ struct AppView: View {
                 appState.updateViewState(showTabBarView: true)
             }
         }
+        #if !MOCK
         .task {
             await getDataFromMyNewEndpoint()
         }
+        #endif
     }
     
+    #if !MOCK
     private func getDataFromMyNewEndpoint() async {
         logManager.trackEvent(eventName: "HELLODEV:: START", type: .info)
 
@@ -62,6 +65,7 @@ struct AppView: View {
 
         }
     }
+    #endif
     
     enum Event: LoggableEvent {
         case existingAuthStart

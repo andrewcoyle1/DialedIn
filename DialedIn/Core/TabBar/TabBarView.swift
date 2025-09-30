@@ -65,6 +65,7 @@ struct TabBarView: View {
         .tabViewStyle(.sidebarAdaptable)
         .defaultAdaptableTabBarPlacement(.sidebar)
         .tabBarMinimizeBehavior(.onScrollDown)
+        
         .tabViewBottomAccessory {
             if let active = workoutSessionManager.activeSession, !workoutSessionManager.isTrackerPresented {
                 Button {
@@ -89,6 +90,12 @@ struct TabBarView: View {
         })) {
             if let session = workoutSessionManager.activeSession {
                 WorkoutTrackerView(workoutSession: session)
+            }
+        }
+        .task {
+            // Load any active session from local storage when the TabBar appears
+            if let active = try? workoutSessionManager.getActiveLocalWorkoutSession() {
+                workoutSessionManager.activeSession = active
             }
         }
     }

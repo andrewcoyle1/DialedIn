@@ -10,6 +10,7 @@ import SwiftUI
 struct WorkoutTemplateDetailView: View {
     @Environment(UserManager.self) private var userManager
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
+    @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @Environment(\.dismiss) private var dismiss
     let workoutTemplate: WorkoutTemplateModel
     @State private var showStartSessionSheet: Bool = false
@@ -39,6 +40,11 @@ struct WorkoutTemplateDetailView: View {
         .navigationSubtitle(workoutTemplate.description ?? "")
         .navigationBarTitleDisplayMode(.large)
         .showCustomAlert(alert: $showAlert)
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
         .toolbar {
             #if DEBUG || MOCK
             ToolbarItem(placement: .topBarLeading) {
@@ -58,6 +64,7 @@ struct WorkoutTemplateDetailView: View {
                 } label: {
                     Image(systemName: isFavourited ? "heart.fill" : "heart")
                 }
+                .disabled(workoutSessionManager.activeSession != nil)
             }
             // Hide bookmark button when the current user is the author
             if userManager.currentUser?.userId != nil && userManager.currentUser?.userId != workoutTemplate.authorId {
@@ -91,6 +98,7 @@ struct WorkoutTemplateDetailView: View {
         }
         .sheet(isPresented: $showStartSessionSheet) {
             WorkoutStartView(template: workoutTemplate)
+                .environment(userManager)
         }
     }
     

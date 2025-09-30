@@ -17,7 +17,11 @@ struct TrainingView: View {
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     
     @State private var presentationMode: TrainingPresentationMode = .workouts
+
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
+    #endif
+    
     @State private var searchExerciseTask: Task<Void, Never>?
     @State private var searchWorkoutTask: Task<Void, Never>?
     @State private var isLoading: Bool = false
@@ -464,6 +468,39 @@ extension TrainingView {
                 title: "Unable to Load Saved Exercises",
                 subtitle: "We couldn't retrieve your saved exercise templates. Please try again later."
             )
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case start
+        case success
+        case fail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .start:    return "Start"
+            case .success:  return "Success"
+            case .fail:     return "Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .fail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .fail:
+                return .severe
+            default:
+                return .analytic
+
+            }
         }
     }
 }

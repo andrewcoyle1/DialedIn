@@ -15,7 +15,9 @@ struct WelcomeView: View {
     @State var imageName: String = Constants.randomImage
     @State private var showSignInView: Bool = false
 
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
+    #endif
     
     var body: some View {
         NavigationStack {

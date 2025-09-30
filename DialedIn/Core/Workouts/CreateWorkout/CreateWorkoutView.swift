@@ -23,9 +23,11 @@ struct CreateWorkoutView: View {
     @State private var selectedImageData: Data?
     @State private var isImagePickerPresented: Bool = false
     @State var exercises: [ExerciseTemplateModel] = []
-    
+
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
-    
+    #endif
+
     @State var isSaving: Bool = false
     private var canSave: Bool {
         !workoutName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -54,6 +56,7 @@ struct CreateWorkoutView: View {
                     Image(systemName: "xmark")
                     }
                 }
+                #if DEBUG || MOCK
                 ToolbarSpacer(.fixed, placement: .topBarLeading)
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -62,6 +65,7 @@ struct CreateWorkoutView: View {
                         Image(systemName: "info")
                     }
                 }
+                #endif
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Task {
@@ -95,9 +99,11 @@ struct CreateWorkoutView: View {
                     }
                 }
             }
+            #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView, content: {
                 DevSettingsView()
             })
+            #endif
             .sheet(isPresented: $showAddExerciseModal) {
                 AddExerciseModal(selectedExercises: $exercises)
             }

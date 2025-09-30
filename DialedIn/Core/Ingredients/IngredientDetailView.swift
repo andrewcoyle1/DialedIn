@@ -18,9 +18,9 @@ struct IngredientDetailView: View {
     
     @State private var showAlert: AnyAppAlert?
     
-#if DEBUG || MOCK
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
-#endif
+    #endif
     
     var body: some View {
         List {
@@ -31,7 +31,7 @@ struct IngredientDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .showCustomAlert(alert: $showAlert)
         .toolbar {
-#if DEBUG || MOCK
+            #if DEBUG || MOCK
             ToolbarItem(placement: .topBarLeading) {
                 Button {
                     showDebugView = true
@@ -39,7 +39,7 @@ struct IngredientDetailView: View {
                     Image(systemName: "info")
                 }
             }
-#endif
+            #endif
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
@@ -69,11 +69,11 @@ struct IngredientDetailView: View {
             isBookmarked = isAuthor || (user?.bookmarkedIngredientTemplateIds?.contains(ingredientTemplate.id) ?? false) || (user?.createdIngredientTemplateIds?.contains(ingredientTemplate.id) ?? false)
             isFavourited = user?.favouritedIngredientTemplateIds?.contains(ingredientTemplate.id) ?? false
         }
-#if DEBUG || MOCK
+        #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
             DevSettingsView()
         }
-#endif
+        #endif
     }
 
     private func loadInitialState() async {

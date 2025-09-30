@@ -39,7 +39,9 @@ struct NutritionView: View {
     @State private var showAddRecipeModal: Bool = false
     @State private var selectedRecipeTemplate: RecipeTemplateModel?
 
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
+    #endif
     
     enum NutritionPresentationMode {
         case recipes

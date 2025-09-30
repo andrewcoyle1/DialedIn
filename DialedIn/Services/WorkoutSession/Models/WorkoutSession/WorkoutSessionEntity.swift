@@ -25,7 +25,10 @@ class WorkoutSessionEntity {
         self.dateCreated = model.dateCreated
         self.endedAt = model.endedAt
         self.notes = model.notes
-        self.exercises = model.exercises.map { WorkoutExerciseEntity(from: $0) }
+        // Persist exercises in index order
+        self.exercises = model.exercises
+            .sorted { ($0.index) < ($1.index) }
+            .map { WorkoutExerciseEntity(from: $0) }
     }
 
     @MainActor
@@ -37,7 +40,15 @@ class WorkoutSessionEntity {
             dateCreated: dateCreated,
             endedAt: endedAt,
             notes: notes,
-            exercises: exercises.map { $0.toModel() }
+            // Load exercises sorted by index; sets also sorted by index
+            exercises: exercises
+                .sorted { ($0.sets.first?.index ?? 0) < ($1.sets.first?.index ?? 0) }
+                .map { entity in
+                    var model = entity.toModel()
+                    // Ensure sets are in index order
+                    model.sets = model.sets.sorted(by: { $0.index < $1.index })
+                    return model
+                }
         )
     }
 }
@@ -50,6 +61,7 @@ class WorkoutExerciseEntity {
     var templateId: String
     var name: String
     var trackingMode: TrackingMode
+    var index: Int
     var notes: String?
     @Relationship(deleteRule: .cascade, inverse: \WorkoutSetEntity.exercise) var sets: [WorkoutSetEntity]
     @Relationship var session: WorkoutSessionEntity?
@@ -60,8 +72,10 @@ class WorkoutExerciseEntity {
         self.templateId = model.templateId
         self.name = model.name
         self.trackingMode = model.trackingMode
+        self.index = model.index
         self.notes = model.notes
-        self.sets = model.sets.map { WorkoutSetEntity(from: $0) }
+        // Persist sets in index order
+        self.sets = model.sets.sorted(by: { $0.index < $1.index }).map { WorkoutSetEntity(from: $0) }
     }
 
     @MainActor
@@ -72,6 +86,7 @@ class WorkoutExerciseEntity {
             templateId: templateId,
             name: name,
             trackingMode: trackingMode,
+            index: index,
             notes: notes,
             sets: sets.map { $0.toModel() }
         )

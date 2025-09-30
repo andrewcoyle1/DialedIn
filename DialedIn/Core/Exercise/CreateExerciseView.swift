@@ -15,25 +15,28 @@ struct CreateExerciseView: View {
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
     @Environment(\.dismiss) private var dismiss
-    
-    @State private var exerciseName: String = ""
+
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var selectedImageData: Data?
+    @State private var isImagePickerPresented: Bool = false
+
+    @State private var exerciseName: String?
     @State private var exerciseDescription: String?
     @State private var instructions: [String] = []
     @State private var muscleGroups: [MuscleGroup] = []
     @State private var category: ExerciseCategory = .none
-    @State private var selectedPhotoItem: PhotosPickerItem?
-    @State private var selectedImageData: Data?
-    @State private var isImagePickerPresented: Bool = false
-    
+
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
+
     @State private var isGenerating: Bool = false
     @State private var generatedImage: UIImage?
-    
-    @State private var showDebugView: Bool = false
     @State private var alert: AnyAppAlert?
     
     @State var isSaving: Bool = false
     private var canSave: Bool {
-        !exerciseName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !(exerciseName?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
     }
     
     var body: some View {
@@ -48,6 +51,7 @@ struct CreateExerciseView: View {
             .navigationSubtitle("Define details and muscle groups")
             .navigationBarTitleDisplayMode(.large)
             .scrollIndicators(.hidden)
+            .screenAppearAnalytics(name: "CreateExerciseView")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -56,6 +60,7 @@ struct CreateExerciseView: View {
                         Image(systemName: "xmark")
                     }
                 }
+                #if DEBUG || MOCK
                 ToolbarSpacer(.fixed, placement: .topBarLeading)
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -64,14 +69,11 @@ struct CreateExerciseView: View {
                         Image(systemName: "info")
                     }
                 }
+                #endif
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Task {
-                            do {
-                                try await onSavePressed()
-                            } catch {
-                                
-                            }
+                            await onSavePressed()
                         }
                     } label: {
                         Image(systemName: "checkmark")
@@ -82,34 +84,19 @@ struct CreateExerciseView: View {
             }
             .onChange(of: selectedPhotoItem) {
                 guard let newItem = selectedPhotoItem else { return }
-                
                 Task {
-                    do {
-                        if let data = try await newItem.loadTransferable(type: Data.self) {
-                            await MainActor.run {
-                                selectedImageData = data
-                                // TODO: Add log manager
-                            }
-                        } else {
-                            await MainActor.run {
-                                // TODO: Add log manager
-                            }
-                        }
-                    } catch {
-                        await MainActor.run {
-                            // TODO: Add log manager
-                        }
-                    }
+                    await onImageSelectorChanged(newItem)
                 }
             }
+            #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView) {
                 DevSettingsView()
             }
+            #endif
             .showCustomAlert(alert: $alert)
         }
-        
     }
-    
+
     private var imageSection: some View {
         Section {
             HStack {
@@ -169,47 +156,20 @@ struct CreateExerciseView: View {
                     Image(systemName: "wand.and.sparkles")
                         .font(.system(size: 20))
                 }
-                .disabled(isGenerating || exerciseName.isEmpty)
+                .disabled(isGenerating || (exerciseName?.isEmpty ?? true))
             }
         }
         .removeListRowFormatting()
     }
-    
-    private func onGenerateImagePressed() {
-        isGenerating = true
-        Task {
-            do {
-                logManager.trackEvent(eventName: "AI_Image_Generate_Start", parameters: [
-                    "subject": "exercise",
-                    "has_name": !exerciseName.isEmpty
-                ])
-                let imageDescriptionBuilder = ImageDescriptionBuilder(
-                    subject: .exercise,
-                    mode: .marketingConcise,
-                    name: exerciseName,
-                    description: exerciseDescription,
-                    contextNotes: "",
-                    desiredStyle: "",
-                    backgroundPreference: "",
-                    lightingPreference: "",
-                    framingNotes: ""
-                )
-                
-                let prompt = imageDescriptionBuilder.build()
-                
-                generatedImage = try await aiManager.generateImage(input: prompt)
-                logManager.trackEvent(eventName: "AI_Image_Generate_Success")
-            } catch {
-                logManager.trackEvent(eventName: "AI_Image_Generate_Fail", parameters: error.eventParameters, type: .severe)
-                alert = AnyAppAlert(error: error)
-            }
-            isGenerating = false
-        }
-    }
-    
+
     private var nameSection: some View {
         Section {
-            TextField("Add name", text: $exerciseName)
+            TextField("Add name", text: Binding(
+                get: { exerciseName ?? "" },
+                set: { newValue in
+                    exerciseName = newValue.isEmpty ? nil : newValue
+                }
+            ))
             TextField("Add description", text: Binding(
                 get: { exerciseDescription ?? "" },
                 set: { newValue in
@@ -254,15 +214,36 @@ struct CreateExerciseView: View {
     }
     
     private func onImageSelectorPressed() {
-        // Show the image picker sheet for selecting a profile image
+        // Show the image picker sheet for selecting an image
+        logManager.trackEvent(event: Event.imageSelectorStart)
         isImagePickerPresented = true
     }
-    
-    private func onSavePressed() async throws {
-        guard !isSaving, canSave else { return }
+
+    private func onImageSelectorChanged(_ newItem: PhotosPickerItem) async {
+        do {
+            if let data = try await newItem.loadTransferable(type: Data.self) {
+                await MainActor.run {
+                    selectedImageData = data
+                    logManager.trackEvent(event: Event.imageSelectorSuccess)
+                }
+            } else {
+                await MainActor.run {
+                    logManager.trackEvent(event: Event.imageSelectorCancel)
+                }
+            }
+        } catch {
+            await MainActor.run {
+                logManager.trackEvent(event: Event.imageSelectorFail(error: error))
+            }
+        }
+    }
+
+    private func onSavePressed() async {
+        guard let exerciseName, !isSaving, canSave else { return }
         isSaving = true
         
         do {
+            logManager.trackEvent(event: Event.createExerciseStart)
             guard let userId = userManager.currentUser?.userId else {
                 return
             }
@@ -292,25 +273,95 @@ struct CreateExerciseView: View {
             // Auto-bookmark authored templates
             try await userManager.addBookmarkedExerciseTemplate(exerciseId: newExercise.id)
             try await exerciseTemplateManager.bookmarkExerciseTemplate(id: newExercise.id, isBookmarked: true)
+            logManager.trackEvent(event: Event.createExerciseSuccess)
         } catch {
-            logManager.trackEvent(
-                eventName: "exercise_create_failed",
-                parameters: [
-                    "error": String(describing: error),
-                    "has_image": (selectedImageData != nil || generatedImage != nil)
-                ],
-                type: .severe
-            )
-            alert = AnyAppAlert(title: "Save Failed", subtitle: error.localizedDescription)
+            logManager.trackEvent(event: Event.createExerciseFail(error: error))
+            alert = AnyAppAlert(title: "Unable to save exercise", subtitle: "Please check your internet connection and try again.")
             isSaving = false
             return
         }
         isSaving = false
         dismiss()
     }
-    
+
+    private func onGenerateImagePressed() {
+        isGenerating = true
+        Task {
+            do {
+                logManager.trackEvent(event: Event.exerciseGenerateImageStart)
+                let imageDescriptionBuilder = ImageDescriptionBuilder(
+                    subject: .exercise,
+                    mode: .marketingConcise,
+                    name: exerciseName ?? "",
+                    description: exerciseDescription,
+                    contextNotes: "",
+                    desiredStyle: "",
+                    backgroundPreference: "",
+                    lightingPreference: "",
+                    framingNotes: ""
+                )
+
+                let prompt = imageDescriptionBuilder.build()
+
+                generatedImage = try await aiManager.generateImage(input: prompt)
+                logManager.trackEvent(event: Event.exerciseGenerateImageSuccess)
+            } catch {
+                logManager.trackEvent(event: Event.exerciseGenerateImageFail(error: error))
+                alert = AnyAppAlert(title: "Unable to generate image", subtitle: "Please try again later.")
+            }
+            isGenerating = false
+        }
+    }
+
     private func onCancelPressed() {
         dismiss()
+    }
+
+    enum Event: LoggableEvent {
+        case createExerciseStart
+        case createExerciseSuccess
+        case createExerciseFail(error: Error)
+        case exerciseGenerateImageStart
+        case exerciseGenerateImageSuccess
+        case exerciseGenerateImageFail(error: Error)
+        case imageSelectorStart
+        case imageSelectorSuccess
+        case imageSelectorCancel
+        case imageSelectorFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .createExerciseStart:          return "CreateExercise_Start"
+            case .createExerciseSuccess:        return "CreateExercise_Success"
+            case .createExerciseFail:           return "CreateExercise_Fail"
+            case .exerciseGenerateImageStart:   return "ExerciseGenerateImage_Start"
+            case .exerciseGenerateImageSuccess: return "ExerciseGenerateImage_Success"
+            case .exerciseGenerateImageFail:    return "ExerciseGenerateImage_Fail"
+            case .imageSelectorStart:           return "ExerciseImageSelector_Start"
+            case .imageSelectorSuccess:         return "ExerciseImageSelector_Success"
+            case .imageSelectorCancel:          return "ExerciseImageSelector_Cancel"
+            case .imageSelectorFail:            return "ExerciseImageSelector_Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .createExerciseFail(error: let error), .exerciseGenerateImageFail(error: let error), .imageSelectorFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .createExerciseFail, .exerciseGenerateImageFail, .imageSelectorFail:
+                return .severe
+            default:
+                return .analytic
+
+            }
+        }
     }
 }
 

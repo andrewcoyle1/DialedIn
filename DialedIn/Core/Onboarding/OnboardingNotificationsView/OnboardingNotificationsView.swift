@@ -11,7 +11,9 @@ import UserNotifications
 struct OnboardingNotificationsView: View {
     @State private var navigateNext: Bool = false
 
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
+    #endif
     
     var body: some View {
         List {

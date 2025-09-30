@@ -12,9 +12,11 @@ struct OnboardingCompletedView: View {
     @Environment(AppState.self) private var root
     
     @State private var isCompletingProfileSetup: Bool = false
-    
+
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
-    
+    #endif
+
     var body: some View {
         VStack {
             Spacer()
@@ -27,22 +29,22 @@ struct OnboardingCompletedView: View {
             buttonSection
         })
         .padding(16)
-#if !DEBUG && !MOCK
-.navigationBarBackButtonHidden(true)
-#else
-.toolbar {
-    ToolbarItem(placement: .topBarLeading) {
-        Button {
-            showDebugView = true
-        } label: {
-            Image(systemName: "info")
+        #if !DEBUG && !MOCK
+        .navigationBarBackButtonHidden(true)
+        #else
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showDebugView = true
+                } label: {
+                    Image(systemName: "info")
+                }
+            }
         }
-    }
-}
-.sheet(isPresented: $showDebugView) {
-    DevSettingsView()
-}
-#endif
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
     }
     
     private var content: some View {

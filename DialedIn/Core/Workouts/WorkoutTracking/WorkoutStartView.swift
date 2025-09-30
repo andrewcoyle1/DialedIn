@@ -9,7 +9,9 @@ import SwiftUI
 
 struct WorkoutStartView: View {
     @Environment(UserManager.self) private var userManager
+    @Environment(ExerciseHistoryManager.self) private var exerciseHistoryManager
     @Environment(WorkoutSessionManager.self) private var workoutSessionManager
+    @Environment(WorkoutActivityViewModel.self) private var workoutActivityViewModel
     @Environment(\.dismiss) private var dismiss
     
     let template: WorkoutTemplateModel
@@ -53,9 +55,16 @@ struct WorkoutStartView: View {
             if workoutSessionManager.activeSession == nil {
                 dismiss()
             }
+            // swiftlint:disable:next multiple_closures_with_trailing_closure
         }) {
             if let session = createdSession {
                 WorkoutTrackerView(workoutSession: session)
+                .environment(userManager)
+                .environment(workoutSessionManager)
+                .environment(exerciseHistoryManager)
+                #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+                .environment(workoutActivityViewModel)
+                #endif
             }
         }
     }

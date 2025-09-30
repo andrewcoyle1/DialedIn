@@ -8,9 +8,11 @@
 import SwiftUI
 
 struct DashboardView: View {
-    
+
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
-    
+    #endif
+
     var body: some View {
         NavigationStack {
             List {
@@ -23,6 +25,7 @@ struct DashboardView: View {
             .navigationTitle("Dashboard")
             .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
             .toolbar {
+                #if DEBUG || MOCK
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
                         showDebugView = true
@@ -30,10 +33,13 @@ struct DashboardView: View {
                         Image(systemName: "info")
                     }
                 }
+                #endif
             }
+            #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView) {
                 DevSettingsView()
             }
+            #endif
         }
     }
 }

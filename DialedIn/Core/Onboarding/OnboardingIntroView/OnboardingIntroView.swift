@@ -8,9 +8,11 @@
 import SwiftUI
 
 struct OnboardingIntroView: View {
-    
+
+    #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
-    
+    #endif
+
     var body: some View {
         List {
             trainingSection
@@ -26,21 +28,21 @@ struct OnboardingIntroView: View {
         })
         .navigationTitle("Welcome to Dialed.")
         .navigationBarTitleDisplayMode(.large)
-#if !DEBUG && !MOCK
+        #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
-#else
-.toolbar {
-    ToolbarItem(placement: .topBarLeading) {
-        Button {
-            showDebugView = true
-        } label: {
-            Image(systemName: "info")
+        #else
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showDebugView = true
+                } label: {
+                    Image(systemName: "info")
+                }
+            }
         }
-    }
-}
-.sheet(isPresented: $showDebugView) {
-    DevSettingsView()
-}
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
         #endif
         .screenAppearAnalytics(name: "OnboardingIntro")
     }

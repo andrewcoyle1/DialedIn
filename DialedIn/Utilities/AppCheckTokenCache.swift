@@ -43,5 +43,3 @@ actor AppCheckTokenCache {
         lastFetchAt = nil
     }
 }
-
-

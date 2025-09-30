@@ -34,4 +34,3 @@ struct WorkoutSessionRecord: Codable {
         case totalExercises = "total_exercises"
     }
 }
-
