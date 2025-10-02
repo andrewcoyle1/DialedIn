@@ -204,4 +204,3 @@ struct TabBarView: View {
         .environment(WorkoutSessionManager(services: MockWorkoutSessionServices(hasActiveSession: true)))
         .previewEnvironment()
 }
-

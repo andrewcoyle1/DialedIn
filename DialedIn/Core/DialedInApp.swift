@@ -29,6 +29,7 @@ struct DialedInApp: App {
                 .environment(delegate.dependencies.ingredientTemplateManager)
                 .environment(delegate.dependencies.recipeTemplateManager)
                 .environment(delegate.dependencies.aiManager)
+                .environment(delegate.dependencies.pushManager)
                 .environment(delegate.dependencies.userManager)
                 .environment(delegate.dependencies.authManager)
                 .environment(delegate.dependencies.logManager)
@@ -95,6 +96,7 @@ struct Dependencies {
     let exerciseHistoryManager: ExerciseHistoryManager
     let ingredientTemplateManager: IngredientTemplateManager
     let recipeTemplateManager: RecipeTemplateManager
+    let pushManager: PushManager
     let aiManager: AIManager
     let logManager: LogManager
     let reportManager: ReportManager
@@ -168,6 +170,7 @@ struct Dependencies {
             workoutActivityViewModel = WorkoutActivityViewModel()
             #endif
         }
+        pushManager = PushManager(services: ProductionPushServices())
     }
 }
 
@@ -189,5 +192,6 @@ extension View {
             .environment(IngredientTemplateManager(services: MockIngredientTemplateServices()))
             .environment(RecipeTemplateManager(services: MockRecipeTemplateServices()))
             .environment(AIManager(service: MockAIService()))
+            .environment(PushManager(services: MockPushServices()))
     }
 }

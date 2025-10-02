@@ -63,7 +63,7 @@ struct AppView: View {
         case anonAuthStart
         case anonAuthSuccess
         case anonAuthFail(error: Error)
-        case attStatus(dict: [String : Any])
+        case attStatus(dict: [String: Any])
 
         var eventName: String {
             switch self {

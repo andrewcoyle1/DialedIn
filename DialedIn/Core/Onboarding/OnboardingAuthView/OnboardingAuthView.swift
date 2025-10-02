@@ -9,11 +9,13 @@ import SwiftUI
 import AuthenticationServices
 
 struct OnboardingAuthView: View {
+    @Environment(PushManager.self) private var pushManager
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
     
     @State private var navigateToCreateProfile: Bool = false
+    @State private var navigateToOnboardingNotifications: Bool = false
     @State var showAlert: AnyAppAlert?
 
     #if DEBUG || MOCK
@@ -48,6 +50,9 @@ struct OnboardingAuthView: View {
             OnboardingCreateProfileView()
         }
         .showCustomAlert(alert: $showAlert)
+        .task {
+            await handlePushNotificationsPermission()
+        }
         .safeAreaInset(edge: .bottom) {
             VStack {
                 SignInWithAppleButtonView(type: .signUp, style: .black, cornerRadius: 28)
@@ -56,7 +61,13 @@ struct OnboardingAuthView: View {
                         onSignInApplePressed()
                     }
                     .padding(.horizontal)
-                NavigationLink { OnboardingNotificationsView() } label: {
+                NavigationLink {
+                    if navigateToOnboardingNotifications {
+                        OnboardingNotificationsView()
+                    } else {
+                        OnboardingCompletedView()
+                    }
+                } label: {
                     Text("Not now")
                         .frame(maxWidth: .infinity)
                 }
@@ -99,7 +110,11 @@ struct OnboardingAuthView: View {
             Text("Guest Mode Limitations")
         }
     }
-    
+
+    private func handlePushNotificationsPermission() async {
+        navigateToOnboardingNotifications = await pushManager.canRequestAuthorisation()
+    }
+
     private func onSignInApplePressed() {
         
         Task {

@@ -6,20 +6,26 @@
 //
 
 import SwiftUI
-import UserNotifications
 
 struct OnboardingNotificationsView: View {
+    @Environment(PushManager.self) private var pushManager
+    @Environment(LogManager.self) private var logManager
     @State private var navigateNext: Bool = false
 
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
-    
+
+    @State private var showEnablePushNotificationsModal: Bool = false
+
     var body: some View {
         List {
             justificationSection
 
             reassuranceSection
+        }
+        .safeAreaInset(edge: .bottom) {
+            buttonSection
         }
         .navigationTitle("Notifications")
         .navigationBarTitleDisplayMode(.large)
@@ -43,12 +49,11 @@ struct OnboardingNotificationsView: View {
             OnboardingCompletedView()
         }
         .screenAppearAnalytics(name: "OnboardingNotifications")
-        .safeAreaInset(edge: .bottom) {
-            buttonSection
-                .padding(.horizontal)
+        .showModal(showModal: $showEnablePushNotificationsModal) {
+            pushNotificationModal
         }
     }
-    
+
     private var justificationSection: some View {
         Section {
             HStack(alignment: .top, spacing: 12) {
@@ -89,31 +94,118 @@ struct OnboardingNotificationsView: View {
     
     private var buttonSection: some View {
         VStack(spacing: 12) {
-            Button { requestNotifications() } label: {
+            Button {
+                onEnableNotificationsPressed()
+            } label: {
                 Text("Enable notifications")
                     .frame(maxWidth: .infinity)
                     .frame(height: 40)
             }
             .buttonStyle(.glassProminent)
 
-            NavigationLink { OnboardingCompletedView() } label: {
+            Button {
+                onSkipForNowPressed()
+            } label: {
                 Text("Not now")
                     .frame(maxWidth: .infinity)
             }
             .padding(.bottom)
         }
+        .padding(.horizontal)
     }
 
-    private func requestNotifications() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { _, _ in
-            DispatchQueue.main.async {
+    private func onEnableNotificationsPressed() {
+        showEnablePushNotificationsModal = true
+        logManager.trackEvent(event: Event.pushNotificationsModalShow)
+    }
+
+    private var pushNotificationModal: some View {
+        CustomModalView(
+            title: "Enable Push Notifications?",
+            subtitle: "We will send you reminders and updates",
+            primaryButtonTitle: "Enable",
+            primaryButtonAction: {
+                onEnablePushNotificationsPressed()
+            },
+            secondaryButtonTitle: "Cancel",
+            secondaryButtonAction: {
+                onCancelPushNotificationsPressed()
+            }
+        )
+    }
+
+    private func onEnablePushNotificationsPressed() {
+        showEnablePushNotificationsModal = false
+        logManager.trackEvent(event: Event.enableNotificationsStart)
+        Task {
+            do {
+                let isAuthorised = try await pushManager.requestAuthorisation()
+                logManager.trackEvent(event: Event.enableNotificationsSuccess(isAuthorised: isAuthorised))
                 navigateNext = true
+
+            } catch {
+                logManager.trackEvent(event: Event.enableNotficiationsFail(error: error))
+            }
+        }
+    }
+
+    private func onCancelPushNotificationsPressed() {
+        logManager.trackEvent(event: Event.pushNotificationsModalDismiss)
+        showEnablePushNotificationsModal = false
+    }
+
+    private func onSkipForNowPressed() {
+        logManager.trackEvent(event: Event.skipForNow)
+        navigateNext = true
+    }
+
+    enum Event: LoggableEvent {
+        case pushNotificationsModalShow
+        case pushNotificationsModalDismiss
+        case enableNotificationsStart
+        case enableNotificationsSuccess(isAuthorised: Bool)
+        case enableNotficiationsFail(error: Error)
+        case skipForNow
+
+        var eventName: String {
+            switch self {
+            case .pushNotificationsModalShow: return "Onboarding_PushNotifsModal_Show"
+            case .pushNotificationsModalDismiss: return "Onboarding_PushNotifsModal_Dismiss"
+            case .enableNotificationsStart:    return "Onboarding_EnableNotifications_Start"
+            case .enableNotificationsSuccess:  return "Onboarding_EnableNotifications_Success"
+            case .enableNotficiationsFail:     return "Onboarding_EnableNotifications_Fail"
+            case .skipForNow:                  return "Onboarding_Notifications_SkipForNow"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .enableNotificationsSuccess(isAuthorised: let isAuthorised):
+                return [
+                    "isAuthorised": isAuthorised
+                ] as [String: Any]
+            case .enableNotficiationsFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .enableNotficiationsFail:
+                return .warning
+            default:
+                return .analytic
+
             }
         }
     }
 }
 
 #Preview {
-    NavigationStack { OnboardingNotificationsView() }
-        .previewEnvironment()
+    NavigationStack {
+        OnboardingNotificationsView()
+    }
+    .previewEnvironment()
 }

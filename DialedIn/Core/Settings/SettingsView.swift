@@ -20,7 +20,7 @@ struct SettingsView: View {
     @State private var isAnonymousUser: Bool = false
     @State private var showCreateAccountView: Bool = false
     @State private var showAlert: AnyAppAlert?
-    @State private var showRatingsModel: Bool = false
+    @State private var showRatingsModal: Bool = false
     /// View Logic
     var body: some View {
         NavigationStack {
@@ -41,7 +41,7 @@ struct SettingsView: View {
             }
             .showCustomAlert(alert: $showAlert)
             .screenAppearAnalytics(name: "Settings")
-            .showModal(showModal: $showRatingsModel) {
+            .showModal(showModal: $showRatingsModal) {
                 ratingsModal
             }
         }
@@ -97,7 +97,7 @@ struct SettingsView: View {
     private var applicationSection: some View {
         Section {
             Button {
-
+                onRatingsButtonPressed()
             } label: {
                 Text("Rate us on the App Store")
             }
@@ -131,7 +131,7 @@ struct SettingsView: View {
 
     private func onRatingsButtonPressed() {
         logManager.trackEvent(event: Event.ratingsPressed)
-        showRatingsModel = true
+        showRatingsModal = true
     }
 
     private func onEnjoyingAppYesPressed() {
