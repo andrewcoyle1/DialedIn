@@ -186,8 +186,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SwiftfulThinking/SwiftfulUtilities.git",
       "state" : {
-        "revision" : "4ffa5a16cc4656a002fe87e7065510a9e0df04c1",
-        "version" : "1.1.0"
+        "revision" : "94c122e1e58cbcbe117200df211cf08ca6f5d6fb",
+        "version" : "1.1.6"
       }
     }
   ],

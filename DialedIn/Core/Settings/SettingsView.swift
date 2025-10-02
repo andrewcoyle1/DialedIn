@@ -20,7 +20,7 @@ struct SettingsView: View {
     @State private var isAnonymousUser: Bool = false
     @State private var showCreateAccountView: Bool = false
     @State private var showAlert: AnyAppAlert?
-
+    @State private var showRatingsModel: Bool = false
     /// View Logic
     var body: some View {
         NavigationStack {
@@ -41,9 +41,22 @@ struct SettingsView: View {
             }
             .showCustomAlert(alert: $showAlert)
             .screenAppearAnalytics(name: "Settings")
+            .showModal(showModal: $showRatingsModel) {
+                ratingsModal
+            }
         }
     }
-    
+
+    private var ratingsModal: some View {
+        CustomModalView(
+            title: "Are you enjoying Dialed?",
+            subtitle: "We'd love to hear your feedback!",
+            primaryButtonTitle: "Yes",
+            primaryButtonAction: { onEnjoyingAppYesPressed() },
+            secondaryButtonTitle: "Not now",
+            secondaryButtonAction: { onEnjoyingAppNoPressed() }
+        )
+    }
     private var accountSection: some View {
         Section {
             if isAnonymousUser {
@@ -83,6 +96,12 @@ struct SettingsView: View {
     
     private var applicationSection: some View {
         Section {
+            Button {
+
+            } label: {
+                Text("Rate us on the App Store")
+            }
+
             HStack(spacing: 8) {
                 Text("Version")
                 Spacer(minLength: 0)
@@ -96,12 +115,12 @@ struct SettingsView: View {
                 Text(Utilities.buildNumber ?? "")
                     .foregroundStyle(.secondary)
             }
-            
-            Text("Contact us")
-                .foregroundStyle(.blue)
-                .anyButton(.highlight, action: {
-                    
-                })
+
+            Button {
+                onContactUsPressed()
+            } label: {
+                Text("Contact us")
+            }
         } header: {
             Text("Application")
         } footer: {
@@ -109,7 +128,34 @@ struct SettingsView: View {
                 .baselineOffset(6)
         }
     }
-    
+
+    private func onRatingsButtonPressed() {
+        logManager.trackEvent(event: Event.ratingsPressed)
+        showRatingsModel = true
+    }
+
+    private func onEnjoyingAppYesPressed() {
+        logManager.trackEvent(event: Event.ratingsYesPressed)
+        showRatingsModal = false
+        AppStoreRatingsHelper.requestRatingsReview()
+    }
+
+    private func onEnjoyingAppNoPressed() {
+        logManager.trackEvent(event: Event.ratingsNoPressed)
+        showRatingsModal = false
+    }
+
+    private func onContactUsPressed() {
+        logManager.trackEvent(event: Event.contactUsPressed)
+        let email = "andrewcoyle.1@outlook.com"
+        let emailString = "mailto:\(email)"
+        guard let url = URL(string: emailString), UIApplication.shared.canOpenURL(url) else {
+            return
+        }
+
+        UIApplication.shared.open(url)
+    }
+
     /// Logger Events
     
     enum Event: LoggableEvent {
@@ -121,6 +167,10 @@ struct SettingsView: View {
         case deleteAccountSuccess
         case deleteAccountFail(error: Error)
         case createAccountPressed
+        case contactUsPressed
+        case ratingsPressed
+        case ratingsYesPressed
+        case ratingsNoPressed
 
         var eventName: String {
             switch self {
@@ -132,6 +182,10 @@ struct SettingsView: View {
             case .deleteAccountSuccess:         return "Settings_DeleteAccount_Success"
             case .deleteAccountFail:            return "Settings_DeleteAccount_Fail"
             case .createAccountPressed:         return "Settings_CreateAccount_Press"
+            case .contactUsPressed:             return "Settings_ContactUs_Press"
+            case .ratingsPressed:               return "Settings_Ratings_Press"
+            case .ratingsYesPressed:            return "Settings_RatingsYes_Press"
+            case .ratingsNoPressed:             return "Settings_RatingsNo_Press"
             }
         }
         
