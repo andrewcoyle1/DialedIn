@@ -208,7 +208,7 @@ extension ManageSubscriptionView {
     private var billingSection: some View {
         Section(header: Text("Billing")) {
             Button {
-                // TODO: Trigger restore purchases
+
             } label: {
                 HStack {
                     Image(systemName: "arrow.clockwise.circle.fill")
@@ -219,7 +219,7 @@ extension ManageSubscriptionView {
             .disabled(isLoading)
 
             Button {
-                // TODO: Present system manage subscriptions
+
             } label: {
                 HStack {
                     Image(systemName: "gearshape.fill")
@@ -275,7 +275,7 @@ extension ManageSubscriptionView {
             }
             Spacer(minLength: 0)
             Button {
-                // TODO: Trigger purchase flow for selectedPlan
+                
             } label: {
                 Text(isPremium ? "Manage" : primaryButtonTitle)
                     .frame(minWidth: 140)

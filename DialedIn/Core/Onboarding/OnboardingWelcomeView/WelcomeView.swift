@@ -1,5 +1,5 @@
 //
-//  WelcomeView.swift
+//  OnboardingWelcomeView.swift
 //  BrainBolt
 //
 //  Created by Andrew Coyle on 13/08/2025.
@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct WelcomeView: View {
-    
+struct OnboardingWelcomeView: View {
+
     @Environment(AppState.self) private var root
     @Environment(LogManager.self) private var logManager
     @Environment(\.dismiss) private var dismiss
@@ -147,7 +147,6 @@ struct WelcomeView: View {
     }
     
     /// Business Logic
-    
     private func handleDidSignIn(isNewUser: Bool) {
         logManager.trackEvent(event: Event.didSignIn(isNewUser: isNewUser))
         
@@ -164,18 +163,18 @@ struct WelcomeView: View {
 }
 
 #Preview("Functioning") {
-    WelcomeView()
+    OnboardingWelcomeView()
         .previewEnvironment()
 }
 
 #Preview("Slow Loading") {
-    WelcomeView()
+    OnboardingWelcomeView()
         .environment(AuthManager(service: MockAuthService(delay: 3)))
         .previewEnvironment()
 }
 
 #Preview("Auth Failure") {
-    WelcomeView()
+    OnboardingWelcomeView()
         .environment(AuthManager(service: MockAuthService(user: nil, showError: true)))
         .previewEnvironment()
 }

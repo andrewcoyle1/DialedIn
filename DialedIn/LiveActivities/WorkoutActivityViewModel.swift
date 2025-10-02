@@ -80,7 +80,7 @@ class WorkoutActivityViewModel {
 		)
 
 		Task {
-            await activity?.update(using: updatedState)
+            await activity?.update(ActivityContent<Activity<WorkoutActivityAttributes>.ContentState>(state: updatedState, staleDate: nil))
 		}
 	}
 

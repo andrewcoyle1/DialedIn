@@ -41,4 +41,14 @@ struct MockLocalPushService: LocalPushService {
             return false
         }
     }
+
+    func schedulePushNotificationsForNextWeek() async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
+
+    func scheduleNotification(title: String, subtitle: String, triggerDate: Date) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
 }

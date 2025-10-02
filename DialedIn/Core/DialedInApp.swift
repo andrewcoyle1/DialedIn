@@ -34,6 +34,7 @@ struct DialedInApp: App {
                 .environment(delegate.dependencies.authManager)
                 .environment(delegate.dependencies.logManager)
                 .environment(delegate.dependencies.reportManager)
+                .environment(delegate.dependencies.healthKitManager)
         }
     }
 }
@@ -100,6 +101,7 @@ struct Dependencies {
     let aiManager: AIManager
     let logManager: LogManager
     let reportManager: ReportManager
+    let healthKitManager: HealthKitManager
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     let workoutActivityViewModel: WorkoutActivityViewModel
     #endif
@@ -170,7 +172,8 @@ struct Dependencies {
             workoutActivityViewModel = WorkoutActivityViewModel()
             #endif
         }
-        pushManager = PushManager(services: ProductionPushServices())
+        pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
+        healthKitManager = HealthKitManager()
     }
 }
 
@@ -192,6 +195,7 @@ extension View {
             .environment(IngredientTemplateManager(services: MockIngredientTemplateServices()))
             .environment(RecipeTemplateManager(services: MockRecipeTemplateServices()))
             .environment(AIManager(service: MockAIService()))
-            .environment(PushManager(services: MockPushServices()))
+            .environment(PushManager(services: MockPushServices(), logManager: nil))
+            .environment(HealthKitManager())
     }
 }

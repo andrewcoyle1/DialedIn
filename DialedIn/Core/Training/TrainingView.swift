@@ -11,11 +11,7 @@ import UIKit
 #endif
 
 struct TrainingView: View {
-    
-    @Environment(UserManager.self) private var userManager
-    @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
-    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
-    
+
     @State private var presentationMode: TrainingPresentationMode = .workouts
 
     #if DEBUG || MOCK

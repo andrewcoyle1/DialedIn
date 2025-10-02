@@ -14,6 +14,8 @@ struct AppView: View {
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
+    @Environment(PushManager.self) private var pushManager
+    @Environment(HealthKitManager.self) private var healthKitManager
     @State var appState: AppState = AppState()
 
     var body: some View {
@@ -23,7 +25,7 @@ struct AppView: View {
                 TabBarView()
             },
             onboardingView: {
-                WelcomeView()
+                OnboardingFlow()
             }
         )
         .environment(appState)
@@ -34,6 +36,9 @@ struct AppView: View {
             try? await Task.sleep(for: .seconds(2))
             await showATTPromptIfNeeded()
         }
+        .onFirstAppear {
+            schedulePushNotifications()
+        }
         .onChange(of: appState.showTabBar) { _, showTabBar in
             if !showTabBar {
                 Task {
@@ -41,61 +46,15 @@ struct AppView: View {
                 }
             }
         }
-        .onChange(of: userManager.currentUser) { _, user in
-            // If an existing user has already completed onboarding on this or another device,
-            // immediately transition to the main app.
-            if user?.didCompleteOnboarding == true {
-                appState.updateViewState(showTabBarView: true)
-            }
-        }
     }
-    
+
+    private func schedulePushNotifications() {
+        pushManager.schedulePushNotificationsForNextWeek()
+    }
+
     private func showATTPromptIfNeeded() async {
-        #if !DEBUG && !MOCK
         let status = await AppTrackingTransparencyHelper.requestTrackingAuthorization()
         logManager.trackEvent(event: Event.attStatus(dict: status.eventParameters))
-        #endif
-    }
-
-    enum Event: LoggableEvent {
-        case existingAuthStart
-        case existingAuthFail(error: Error)
-        case anonAuthStart
-        case anonAuthSuccess
-        case anonAuthFail(error: Error)
-        case attStatus(dict: [String: Any])
-
-        var eventName: String {
-            switch self {
-            case .existingAuthStart: return "AppView_ExistingAuth_Start"
-            case .existingAuthFail:  return "AppView_ExistingAuth_Fail"
-            case .anonAuthStart:     return "AppView_AnonAuth_Start"
-            case .anonAuthSuccess:   return "AppView_AnonAuth_Success"
-            case .anonAuthFail:      return "AppView_AnonAuth_Fail"
-            case .attStatus:         return "AppView_ATTStatus"
-            }
-        }
-        
-        var parameters: [String: Any]? {
-            switch self {
-            case .existingAuthFail(error: let error), .anonAuthFail(error: let error):
-                return error.eventParameters
-            case .attStatus(dict: let dict):
-                return dict
-            default:
-                return nil
-            }
-        }
-        
-        var type: LogType {
-            switch self {
-            case .existingAuthFail, .anonAuthFail:
-                return .severe
-            default:
-                return .analytic
-            
-            }
-        }
     }
     
     private func checkUserStatus() async {
@@ -121,11 +80,52 @@ struct AppView: View {
 
                 // Log in
                 try await userManager.logIn(auth: result.user, isNewUser: result.isNewUser)
-                
+
             } catch {
                 logManager.trackEvent(event: Event.anonAuthFail(error: error))
                 try? await Task.sleep(for: .seconds(5))
                 await checkUserStatus()
+            }
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case existingAuthStart
+        case existingAuthFail(error: Error)
+        case anonAuthStart
+        case anonAuthSuccess
+        case anonAuthFail(error: Error)
+        case attStatus(dict: [String: Any])
+
+        var eventName: String {
+            switch self {
+            case .existingAuthStart: return "AppView_ExistingAuth_Start"
+            case .existingAuthFail:  return "AppView_ExistingAuth_Fail"
+            case .anonAuthStart:     return "AppView_AnonAuth_Start"
+            case .anonAuthSuccess:   return "AppView_AnonAuth_Success"
+            case .anonAuthFail:      return "AppView_AnonAuth_Fail"
+            case .attStatus:         return "AppView_ATTStatus"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .existingAuthFail(error: let error), .anonAuthFail(error: let error):
+                return error.eventParameters
+            case .attStatus(dict: let dict):
+                return dict
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .existingAuthFail, .anonAuthFail:
+                return .severe
+            default:
+                return .analytic
+
             }
         }
     }

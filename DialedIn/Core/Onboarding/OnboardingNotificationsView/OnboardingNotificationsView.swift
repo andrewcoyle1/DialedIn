@@ -9,6 +9,7 @@ import SwiftUI
 
 struct OnboardingNotificationsView: View {
     @Environment(PushManager.self) private var pushManager
+    @Environment(HealthKitManager.self) private var healthKitManager
     @Environment(LogManager.self) private var logManager
     @State private var navigateNext: Bool = false
 
@@ -46,7 +47,11 @@ struct OnboardingNotificationsView: View {
         }
         #endif
         .navigationDestination(isPresented: $navigateNext) {
-            OnboardingCompletedView()
+            if healthKitManager.needsAuthorizationForRequiredTypes() {
+                OnboardingHealthDataView()
+            } else {
+                OnboardingCompletedView()
+            }
         }
         .screenAppearAnalytics(name: "OnboardingNotifications")
         .showModal(showModal: $showEnablePushNotificationsModal) {

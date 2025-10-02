@@ -12,10 +12,6 @@ import UIKit
 
 struct NutritionView: View {
     
-    @Environment(UserManager.self) private var userManager
-    @Environment(IngredientTemplateManager.self) private var ingredientTemplateManager
-    @Environment(RecipeTemplateManager.self) private var recipeTemplateManager
-
     @State private var presentationMode: NutritionPresentationMode = .recipes
 
     @State private var isLoading: Bool = false

@@ -8,11 +8,15 @@
 import SwiftUI
 
 struct OnboardingHealthDataView: View {
+    @Environment(HealthKitManager.self) private var healthKitManager
+    @Environment(LogManager.self) private var logManager
     @State private var navigateNext: Bool = false
 
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
+
+    @State private var showAlert: AnyAppAlert?
 
     var body: some View {
         List {
@@ -61,6 +65,7 @@ struct OnboardingHealthDataView: View {
         }
         .navigationTitle("Health Data")
         .navigationBarTitleDisplayMode(.large)
+        .showCustomAlert(alert: $showAlert)
         #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
         #else
@@ -80,7 +85,7 @@ struct OnboardingHealthDataView: View {
         .navigationDestination(isPresented: $navigateNext) {
             OnboardingCompletedView()
         }
-        .screenAppearAnalytics(name: "OnboardingNotifications")
+        .screenAppearAnalytics(name: "OnboardingHealthData")
         .safeAreaInset(edge: .bottom) {
             buttonSection
                 .padding(.horizontal)
@@ -89,18 +94,74 @@ struct OnboardingHealthDataView: View {
     
     private var buttonSection: some View {
         VStack(spacing: 12) {
-            Button {  } label: {
+            Button {
+                onAllowAccessPressed()
+            } label: {
                 Text("Allow access to health data")
                     .frame(maxWidth: .infinity)
                     .frame(height: 40)
             }
             .buttonStyle(.glassProminent)
 
-            NavigationLink { OnboardingCompletedView() } label: {
-                Text("Not now")
+            Button {
+                onSkipForNowPressed()
+            } label: {
+                Text("Skip for now")
                     .frame(maxWidth: .infinity)
             }
-            .padding(.bottom)
+        }
+    }
+
+    private func onAllowAccessPressed() {
+        Task {
+            logManager.trackEvent(event: Event.enableHealthKitStart)
+            do {
+                try await healthKitManager.requestAuthorization()
+                logManager.trackEvent(event: Event.enableHealthKitSuccess)
+                navigateNext = true
+            } catch {
+                logManager.trackEvent(event: Event.enableHealthKitFail(error: error))
+                showAlert = AnyAppAlert(error: error)
+            }
+        }
+    }
+
+    private func onSkipForNowPressed() {
+        logManager.trackEvent(event: Event.skipForNow)
+        navigateNext = true
+    }
+    enum Event: LoggableEvent {
+        case enableHealthKitStart
+        case enableHealthKitSuccess
+        case enableHealthKitFail(error: Error)
+        case skipForNow
+
+        var eventName: String {
+            switch self {
+            case .enableHealthKitStart:    return "Onboarding_EnableHealthKit_Start"
+            case .enableHealthKitSuccess:  return "Onboarding_EnableHealthKit_Success"
+            case .enableHealthKitFail:     return "Onboarding_EnableHealthKit_Fail"
+            case .skipForNow:              return "Onboarding_EnableHealthKit_Skip"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .enableHealthKitFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .enableHealthKitFail:
+                return .severe
+            default:
+                return .analytic
+
+            }
         }
     }
 }

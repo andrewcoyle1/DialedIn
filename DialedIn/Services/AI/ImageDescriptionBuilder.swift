@@ -96,75 +96,137 @@ struct ImageDescriptionBuilder {
         return "Please generate an image of \(subjectLine) suitable for marketing purposes"
     }
 
-    // swiftlint:disable:next function_body_length
     private func buildDetailed() -> String {
         var sections: [String] = []
 
+        sections.append(contentsOf: buildBasicSections())
+        
+        sections.append(contentsOf: buildSubjectSpecificSections())
+        
+        sections.append(contentsOf: buildVisualDirectives())
+        
+        sections.append(contentsOf: buildNegativePrompts())
+
+        return sections.joined(separator: "\n")
+    }
+    
+    private func buildBasicSections() -> [String] {
+        var sections: [String] = []
+        
         sections.append("Generate a single illustrative image for a \(subject.rawValue). This will be included in a fitness and nutrition app.")
         sections.append("Name: \(name)")
-
+        
         if let description, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             sections.append("Description: \(description)")
         }
+        
         if let contextNotes, !contextNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             sections.append("Context: \(contextNotes)")
         }
-
-        // Subject-specific
+        
+        return sections
+    }
+    
+    private func buildSubjectSpecificSections() -> [String] {
         switch subject {
         case .exercise:
-            if let muscleGroups, !muscleGroups.isEmpty {
-                sections.append("Muscle groups: \(muscleGroups.joined(separator: ", "))")
-            }
-            if let equipment, !equipment.isEmpty {
-                sections.append("Equipment: \(equipment.joined(separator: ", "))")
-            }
+            return buildExerciseSections()
         case .ingredient:
-            if let ingredientForm, !ingredientForm.isEmpty {
-                sections.append("Form: \(ingredientForm)")
-            }
-            if let ingredientQuantity, !ingredientQuantity.isEmpty {
-                sections.append("Quantity: \(ingredientQuantity)")
-            }
+            return buildIngredientSections()
         case .recipe:
-            if let servingStyle, !servingStyle.isEmpty {
-                sections.append("Serving: \(servingStyle)")
-            }
-            if let garnishNotes, !garnishNotes.isEmpty {
-                sections.append("Garnish: \(garnishNotes)")
-            }
+            return buildRecipeSections()
         case .workout:
-            if let intensityNotes, !intensityNotes.isEmpty {
-                sections.append("Intensity: \(intensityNotes)")
-            }
-            if let environmentNotes, !environmentNotes.isEmpty {
-                sections.append("Environment: \(environmentNotes)")
-            }
+            return buildWorkoutSections()
         }
-
-        // Common visual directives
+    }
+    
+    private func buildExerciseSections() -> [String] {
+        var sections: [String] = []
+        
+        if let muscleGroups, !muscleGroups.isEmpty {
+            sections.append("Muscle groups: \(muscleGroups.joined(separator: ", "))")
+        }
+        
+        if let equipment, !equipment.isEmpty {
+            sections.append("Equipment: \(String(describing: equipment.joined))")
+        }
+        
+        return sections
+    }
+    
+    private func buildIngredientSections() -> [String] {
+        var sections: [String] = []
+        
+        if let ingredientForm, !ingredientForm.isEmpty {
+            sections.append("Form: \(ingredientForm)")
+        }
+        
+        if let ingredientQuantity, !ingredientQuantity.isEmpty {
+            sections.append("Quantity: \(ingredientQuantity)")
+        }
+        
+        return sections
+    }
+    
+    private func buildRecipeSections() -> [String] {
+        var sections: [String] = []
+        
+        if let servingStyle, !servingStyle.isEmpty {
+            sections.append("Serving: \(servingStyle)")
+        }
+        
+        if let garnishNotes, !garnishNotes.isEmpty {
+            sections.append("Garnish: \(garnishNotes)")
+        }
+        
+        return sections
+    }
+    
+    private func buildWorkoutSections() -> [String] {
+        var sections: [String] = []
+        
+        if let intensityNotes, !intensityNotes.isEmpty {
+            sections.append("Intensity: \(intensityNotes)")
+        }
+        
+        if let environmentNotes, !environmentNotes.isEmpty {
+            sections.append("Environment: \(environmentNotes)")
+        }
+        
+        return sections
+    }
+    
+    private func buildVisualDirectives() -> [String] {
+        var sections: [String] = []
+        
         if let desiredStyle, !desiredStyle.isEmpty {
             sections.append("Style: \(desiredStyle)")
         }
+        
         if let backgroundPreference, !backgroundPreference.isEmpty {
             sections.append("Background: \(backgroundPreference)")
         }
+        
         if let lightingPreference, !lightingPreference.isEmpty {
             sections.append("Lighting: \(lightingPreference)")
         }
+        
         if let framingNotes, !framingNotes.isEmpty {
             sections.append("Framing: \(framingNotes)")
         }
-
-        if !negativePrompts.isEmpty {
-            let negatives = negativePrompts
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
-            if !negatives.isEmpty {
-                sections.append("Avoid: \(negatives.joined(separator: ", "))")
-            }
-        }
-
-        return sections.joined(separator: "\n")
+        
+        return sections
+    }
+    
+    private func buildNegativePrompts() -> [String] {
+        guard !negativePrompts.isEmpty else { return [] }
+        
+        let negatives = negativePrompts
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        
+        guard !negatives.isEmpty else { return [] }
+        
+        return ["Avoid: \(negatives.joined(separator: ", "))"]
     }
 }

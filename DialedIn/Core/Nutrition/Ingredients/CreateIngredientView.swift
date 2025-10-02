@@ -26,7 +26,10 @@ struct CreateIngredientView: View {
     @State private var calories: Double?
     @State private var protein: Double?
     @State private var carbs: Double?
-    @State private var fat: Double?
+    @State private var fatTotal: Double?
+    @State private var fatSaturated: Double?
+    @State private var fatMonounsaturated: Double?
+    @State private var fatPolyunsaturated: Double?
     @State private var fiber: Double?
     @State private var sugar: Double?
     @State private var sodiumMg: Double?
@@ -37,6 +40,33 @@ struct CreateIngredientView: View {
     @State private var vitaminDMcg: Double?
     @State private var magnesiumMg: Double?
     @State private var zincMg: Double?
+    
+    // Additional minerals
+    @State private var chromiumMcg: Double?
+    @State private var seleniumMcg: Double?
+    @State private var manganeseMg: Double?
+    @State private var molybdenumMcg: Double?
+    @State private var phosphorusMg: Double?
+    @State private var copperMg: Double?
+    @State private var chlorideMg: Double?
+    @State private var iodineMcg: Double?
+    
+    // Vitamins
+    @State private var vitaminAMcg: Double?
+    @State private var vitaminB6Mg: Double?
+    @State private var vitaminB12Mcg: Double?
+    @State private var vitaminEMg: Double?
+    @State private var vitaminKMcg: Double?
+    @State private var thiaminMg: Double?
+    @State private var riboflavinMg: Double?
+    @State private var niacinMg: Double?
+    @State private var pantothenicAcidMg: Double?
+    @State private var folateMcg: Double?
+    @State private var biotinMcg: Double?
+    
+    // Other compounds
+    @State private var caffeineMg: Double?
+    @State private var cholesterolMg: Double?
 
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
@@ -57,7 +87,11 @@ struct CreateIngredientView: View {
                 imageSection
                 nameSection
                 macroNutrientSection
-                microNutrientSection
+                essentialMacroMineralsSection
+                essentialTraceMineralsSection
+                fatSolubleMineralsSection
+                waterSolubleVitaminsSection
+                bioactiveCompounts
             }
             .navigationBarTitle("New Custom Ingredient")
             .navigationSubtitle("Define ingredient details and nutrition")
@@ -197,126 +231,101 @@ struct CreateIngredientView: View {
     
     private var macroNutrientSection: some View {
         Section {
-            HStack {
-                Text("Calories")
-                TextField("0", value: $calories, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: .infinity)
-            }
-            HStack {
-                Text("Protein (g)")
-                TextField("0", value: $protein, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: .infinity)
-            }
-            HStack {
-                Text("Carbs (g)")
-                Spacer()
-                TextField("0", value: $carbs, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 80)
-            }
-            HStack {
-                Text("Fat (g)")
-                Spacer()
-                TextField("0", value: $fat, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 80)
-            }
-            HStack {
-                Text("Fiber (g)")
-                Spacer()
-                TextField("0", value: $fiber, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 80)
-            }
-            HStack {
-                Text("Sugar (g)")
-                Spacer()
-                TextField("0", value: $sugar, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 80)
-            }
+            inputRow(label: "Calories", value: $calories, unit: "kcal")
+            inputRow(label: "Protein", value: $protein, unit: "g")
+            inputRow(label: "Carbs", value: $carbs, unit: "g")
+            inputRow(label: "Total Fat", value: $fatTotal, unit: "g")
+            inputRow(label: "Saturated Fat", value: $fatSaturated, unit: "g")
+            inputRow(label: "Monounsaturated Fat", value: $fatMonounsaturated, unit: "g")
+            inputRow(label: "Polyunsaturated Fat", value: $fatPolyunsaturated, unit: "g")
+            inputRow(label: "Fiber", value: $fiber, unit: "g")
+            inputRow(label: "Sugar", value: $sugar, unit: "g")
         } header: {
             Text("Macronutrients")
         }
     }
-    
-    private var microNutrientSection: some View {
+
+    private var essentialMacroMineralsSection: some View {
         Section {
-            HStack {
-                Text("Sodium (mg)")
-                TextField("0", value: $calories, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: .infinity)
-            }
-            HStack {
-                Text("Potassium (mg)")
-                TextField("0", value: $protein, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: .infinity)
-            }
-            HStack {
-                Text("Calcium (mg)")
-                Spacer()
-                TextField("0", value: $carbs, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 80)
-            }
-            HStack {
-                Text("Iron (mg)")
-                Spacer()
-                TextField("0", value: $fat, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 80)
-            }
-            HStack {
-                Text("Vitamin C (mg)")
-                Spacer()
-                TextField("0", value: $fiber, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 80)
-            }
-            HStack {
-                Text("Vitamin D (mcg)")
-                Spacer()
-                TextField("0", value: $sugar, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 80)
-            }
-            HStack {
-                Text("Magnesium (mg)")
-                Spacer()
-                TextField("0", value: $sugar, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 80)
-            }
-            HStack {
-                Text("Zinc (mg)")
-                Spacer()
-                TextField("0", value: $sugar, format: .number)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 80)
-            }
+            // Essential Macrominerals - Required in larger amounts
+            inputRow(label: "Calcium", value: $calciumMg, unit: "mg")
+            inputRow(label: "Phosphorus", value: $phosphorusMg, unit: "mg")
+            inputRow(label: "Magnesium", value: $magnesiumMg, unit: "mg")
+            inputRow(label: "Sodium", value: $sodiumMg, unit: "mg")
+            inputRow(label: "Potassium", value: $potassiumMg, unit: "mg")
+            inputRow(label: "Chloride", value: $chlorideMg, unit: "mg")
         } header: {
-            Text("Micronutrients")
+            Text("Essential Macrominerals")
         }
     }
-    
+
+    private var essentialTraceMineralsSection: some View {
+        Section {
+            // Essential Trace Minerals - Required in smaller amounts
+            inputRow(label: "Iron", value: $ironMg, unit: "mg")
+            inputRow(label: "Zinc", value: $zincMg, unit: "mg")
+            inputRow(label: "Copper", value: $copperMg, unit: "mg")
+            inputRow(label: "Manganese", value: $manganeseMg, unit: "mg")
+            inputRow(label: "Iodine", value: $iodineMcg, unit: "μg")
+            inputRow(label: "Selenium", value: $seleniumMcg, unit: "μg")
+            inputRow(label: "Molybdenum", value: $molybdenumMcg, unit: "μg")
+            inputRow(label: "Chromium", value: $chromiumMcg, unit: "μg")
+        } header: {
+            Text("Essential Trace Minerals")
+        }
+    }
+
+    private var fatSolubleMineralsSection: some View {
+        Section {
+            // Fat-Soluble Vitamins - A, D, E, K
+            inputRow(label: "Vitamin A", value: $vitaminAMcg, unit: "μg RAE")
+            inputRow(label: "Vitamin D", value: $vitaminDMcg, unit: "μg")
+            inputRow(label: "Vitamin E", value: $vitaminEMg, unit: "mg α-tocopherol")
+            inputRow(label: "Vitamin K", value: $vitaminKMcg, unit: "μg")
+        } header: {
+            Text("Fat-Soluble Vitamins")
+        }
+    }
+
+    private var waterSolubleVitaminsSection: some View {
+        Section {
+            // Water-Soluble Vitamins - B-Complex & C
+            inputRow(label: "Thiamin - B1", value: $thiaminMg, unit: "mg")
+            inputRow(label: "Riboflavin - B2", value: $riboflavinMg, unit: "mg")
+            inputRow(label: "Niacin - B3", value: $niacinMg, unit: "mg NE")
+            inputRow(label: "Pantothenic Acid - B5", value: $pantothenicAcidMg, unit: "mg")
+            inputRow(label: "Vitamin B6", value: $vitaminB6Mg, unit: "mg")
+            inputRow(label: "Biotin - B7", value: $biotinMcg, unit: "μg")
+            inputRow(label: "Folate - B9", value: $folateMcg, unit: "μg DFE")
+            inputRow(label: "Vitamin B12", value: $vitaminB12Mcg, unit: "μg")
+            inputRow(label: "Vitamin C", value: $vitaminCMg, unit: "mg")
+        } header: {
+            Text("Water-Soluble Vitamins")
+        }
+    }
+    private var bioactiveCompounts: some View {
+        Section {
+            // Bioactive Compounds
+            inputRow(label: "Cholesterol", value: $cholesterolMg, unit: "mg")
+            inputRow(label: "Caffeine", value: $caffeineMg, unit: "mg")
+        } header: {
+            Text("Bioactive Compounds")
+        }
+    }
+
+    private func inputRow(label: String, value: Binding<Double?>, unit: String? = nil) -> some View {
+        HStack(alignment: .bottom, spacing: 0) {
+            Text(label)
+            Spacer()
+            TextField("0", value: value, format: .number)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+                .frame(width: 80)
+            Text(" " + (unit ?? ""))
+                .foregroundStyle(value.wrappedValue != nil ? .primary : .secondary)
+        }
+    }
+
     private func onImageSelectorPressed() {
         // Show the image picker sheet for selecting a profile image
         logManager.trackEvent(event: Event.imageSelectorStart)
@@ -352,25 +361,27 @@ struct CreateIngredientView: View {
             }
             
             let newIngredient = IngredientTemplateModel(
-                ingredientId: UUID().uuidString,
-                authorId: userId,
-                name: ingredientName,
-                description: description,
-                measurementMethod: measurementMethod,
-                calories: calories,
-                protein: protein,
-                carbs: carbs,
-                fat: fat,
-                fiber: fiber,
-                sugar: sugar,
-                sodiumMg: sodiumMg,
-                potassiumMg: potassiumMg,
-                calciumMg: calciumMg,
-                ironMg: ironMg,
-                vitaminCMg: vitaminCMg,
-                vitaminDMcg: vitaminDMcg,
-                magnesiumMg: magnesiumMg,
-                zincMg: zincMg,
+                ingredientId: UUID().uuidString, authorId: userId,
+                name: ingredientName, description: description,
+                measurementMethod: measurementMethod, calories: calories,
+                protein: protein, carbs: carbs, fatTotal: fatTotal, 
+                fatSaturated: fatSaturated, fatMonounsaturated: fatMonounsaturated, 
+                fatPolyunsaturated: fatPolyunsaturated, fiber: fiber,
+                sugar: sugar, sodiumMg: sodiumMg, potassiumMg: potassiumMg,
+                calciumMg: calciumMg, ironMg: ironMg,
+                vitaminAMcg: vitaminAMcg, vitaminB6Mg: vitaminB6Mg,
+                vitaminB12Mcg: vitaminB12Mcg, vitaminCMg: vitaminCMg,
+                vitaminDMcg: vitaminDMcg, vitaminEMg: vitaminEMg,
+                vitaminKMcg: vitaminKMcg, magnesiumMg: magnesiumMg,
+                zincMg: zincMg, biotinMcg: biotinMcg, copperMg: copperMg,
+                folateMcg: folateMcg, iodineMcg: iodineMcg,
+                niacinMg: niacinMg, thiaminMg: thiaminMg,
+                caffeineMg: caffeineMg, chlorideMg: chlorideMg,
+                chromiumMcg: chromiumMcg, seleniumMcg: seleniumMcg,
+                manganeseMg: manganeseMg, molybdenumMcg: molybdenumMcg,
+                phosphorusMg: phosphorusMg, riboflavinMg: riboflavinMg,
+                cholesterolMg: cholesterolMg,
+                pantothenicAcidMg: pantothenicAcidMg,
                 imageURL: nil,
                 dateCreated: Date(),
                 dateModified: Date(),
