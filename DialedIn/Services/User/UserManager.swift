@@ -341,9 +341,7 @@ class UserManager {
         
         Task {
             do {
-                for try await value in remote.streamUser(userId: userId, onListenerConfigured: { removal in
-                    self.currentUserListener = removal
-                }) {
+                for try await value in remote.streamUser(userId: userId) {
                     self.currentUser = value
                     logManager?.trackEvent(event: Event.remoteListenerSuccess(user: value))
                     logManager?.addUserProperties(dict: value.eventParameters, isHighPriority: true)

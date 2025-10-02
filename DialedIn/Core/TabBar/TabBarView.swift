@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct TabBarView: View {
-    
+
     private enum Section: String, CaseIterable, Identifiable {
         case dashboard
         case exercises
         case nutrition
         case profile
-        
+
         var id: Self { self }
-        
+
         var title: String {
             switch self {
             case .dashboard: return "Dashboard"
@@ -25,7 +25,7 @@ struct TabBarView: View {
             case .profile: return "Profile"
             }
         }
-        
+
         var systemImage: String {
             switch self {
             case .dashboard: return "house"
@@ -35,11 +35,11 @@ struct TabBarView: View {
             }
         }
     }
-    
+
     @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @State private var selectedSection: Section? = .dashboard
     @State private var presentTracker: Bool = false
-    
+
     var body: some View {
         TabView {
             DashboardView()
@@ -65,22 +65,9 @@ struct TabBarView: View {
         .tabViewStyle(.sidebarAdaptable)
         .defaultAdaptableTabBarPlacement(.sidebar)
         .tabBarMinimizeBehavior(.onScrollDown)
-        
         .tabViewBottomAccessory {
             if let active = workoutSessionManager.activeSession, !workoutSessionManager.isTrackerPresented {
-                Button {
-                    workoutSessionManager.reopenActiveSession()
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "figure.strengthtraining.traditional")
-                        Text(active.name)
-                            .lineLimit(1)
-                        Text("Resume")
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.horizontal, 12)
-                    .frame(height: 38)
-                }
+                tabViewAccessory(active)
             }
         }
         .fullScreenCover(isPresented: Binding(get: {
@@ -99,9 +86,121 @@ struct TabBarView: View {
             }
         }
     }
+
+    private func tabViewAccessory(_ active: WorkoutSessionModel) -> some View {
+        Button {
+            workoutSessionManager.reopenActiveSession()
+        } label: {
+            HStack(spacing: 12) {
+                iconSection
+
+                workoutInfoSection(active)
+                    .padding(.bottom, 6)
+            }
+            .padding()
+        }
+    }
+
+    private var iconSection: some View {
+        // Icon
+        Image(systemName: isRestActive ? "timer" : "figure.strengthtraining.traditional")
+            .font(.title2)
+            .foregroundStyle(isRestActive ? .orange : .accent)
+            .frame(width: 32)
+    }
+
+    private func workoutInfoSection(_ active: WorkoutSessionModel) -> some View {
+        // Workout info
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                Text(active.name)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .frame(minWidth: 150)
+                    .padding(.trailing)
+                Spacer()
+
+                Group {
+                    if isRestActive, let restEndTime = workoutSessionManager.restEndTime {
+                        // Rest timer
+                        HStack(alignment: .bottom, spacing: 4) {
+                            Text("Rest: ")
+                            Text(timerInterval: Date()...restEndTime)
+                                .monospacedDigit()
+                                .foregroundStyle(.orange)
+                        }
+                        .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                    } else {
+                        // Elapsed time
+                        HStack(spacing: 4) {
+                            Text("Elapsed: ")
+                            Text(active.dateCreated, style: .timer)
+                                .monospacedDigit()
+                        }
+                        .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                    }
+                }
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: true, vertical: true)
+            }
+
+            Gauge(value: progress) {
+                EmptyView()
+            } currentValueLabel: {
+                // Text("\(Int(progress * 100))%")
+                Text(progressLabel)
+                    .font(.subheadline)
+            }
+            .gaugeStyle(.accessoryLinear)
+            .tint(.accent)
+            .frame(width: 280)
+        }
+    }
+
+    // MARK: - Helper Methods
+
+    private var progress: Double {
+        guard let active = workoutSessionManager.activeSession else { return 0 }
+        return Double(completedSetsCount(active)) / Double(totalSetsCount(active))
+    }
+
+    private var progressLabel: String {
+        guard let active = workoutSessionManager.activeSession else { return "" }
+        return "\(completedSetsCount(active))/\(totalSetsCount(active)) sets"
+    }
+    private var isRestActive: Bool {
+        guard let end = workoutSessionManager.restEndTime else { return false }
+        return Date() < end
+    }
+
+    private func completedSetsCount(_ session: WorkoutSessionModel) -> Int {
+        session.exercises.flatMap(\.sets).filter { $0.completedAt != nil }.count
+    }
+
+    private func totalSetsCount(_ session: WorkoutSessionModel) -> Int {
+        session.exercises.flatMap(\.sets).count
+    }
+
+    private func totalVolume(_ session: WorkoutSessionModel) -> Double {
+        session.exercises.flatMap(\.sets)
+            .compactMap { set -> Double? in
+                guard let weight = set.weightKg, let reps = set.reps else { return nil }
+                return weight * Double(reps)
+            }
+            .reduce(0.0, +)
+    }
 }
 
-#Preview {
+#Preview("Has No Active Session") {
     TabBarView()
+        .environment(WorkoutSessionManager(services: MockWorkoutSessionServices(hasActiveSession: false)))
+        .previewEnvironment()
+}
+
+#Preview("Has Active Session") {
+    TabBarView()
+        .environment(WorkoutSessionManager(services: MockWorkoutSessionServices(hasActiveSession: true)))
         .previewEnvironment()
 }

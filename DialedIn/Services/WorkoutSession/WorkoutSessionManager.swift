@@ -21,6 +21,9 @@ class WorkoutSessionManager: LocalWorkoutSessionPersistence, RemoteWorkoutSessio
     // Controls presentation of the full screen tracker UI
     var isTrackerPresented: Bool = false
     
+    // Rest timer state for active session
+    var restEndTime: Date?
+    
     init(services: WorkoutSessionServices) {
         self.remote = services.remote
         self.local = services.local
@@ -49,6 +52,7 @@ class WorkoutSessionManager: LocalWorkoutSessionPersistence, RemoteWorkoutSessio
     func endActiveSession() {
         activeSession = nil
         isTrackerPresented = false
+        restEndTime = nil
         // Clear persisted active session
         try? local.setActiveLocalWorkoutSession(nil)
     }

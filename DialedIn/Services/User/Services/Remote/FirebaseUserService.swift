@@ -252,9 +252,12 @@ struct FirebaseUserService: RemoteUserService {
     
     // MARK: - User Streaming
     
-    func streamUser(userId: String, onListenerConfigured: @escaping (@escaping () -> Void) -> Void) -> AsyncThrowingStream<UserModel, Error> {
-        collection.streamDocument(id: userId, onListenerConfigured: { listener in
-            onListenerConfigured({ listener.remove() })
-        })
+//    func streamUser(userId: String, onListenerConfigured: @escaping (@escaping () -> Void) -> Void) -> AsyncThrowingStream<UserModel, Error> {
+        func streamUser(userId: String) -> AsyncThrowingStream<UserModel, Error> {
+//        collection.streamDocument(id: userId, onListenerConfigured: { listener in
+//            onListenerConfigured({ listener.remove() })
+//        })
+        collection.streamDocument(id: userId)
+
     }
 }

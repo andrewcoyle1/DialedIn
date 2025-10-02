@@ -96,6 +96,7 @@ struct ImageDescriptionBuilder {
         return "Please generate an image of \(subjectLine) suitable for marketing purposes"
     }
 
+    // swiftlint:disable:next function_body_length
     private func buildDetailed() -> String {
         var sections: [String] = []
 

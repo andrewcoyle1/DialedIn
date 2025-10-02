@@ -44,5 +44,5 @@ protocol RemoteUserService: Sendable {
     func blockUser(currentUserId: String, blockedUserId: String) async throws
     func unblockUser(currentUserId: String, blockedUserId: String) async throws
     func deleteUser(userId: String) async throws
-    func streamUser(userId: String, onListenerConfigured: @escaping (@escaping () -> Void) -> Void) -> AsyncThrowingStream<UserModel, Error>
+    func streamUser(userId: String) -> AsyncThrowingStream<UserModel, Error>
 }

@@ -204,8 +204,7 @@ struct MockUserService: RemoteUserService {
         try tryShowError()
     }
     
-    func streamUser(userId: String, onListenerConfigured: @escaping (@escaping () -> Void) -> Void) -> AsyncThrowingStream<UserModel, Error> {
-        onListenerConfigured({ /* no-op removal */ })
+    func streamUser(userId: String) -> AsyncThrowingStream<UserModel, Error> {
         return AsyncThrowingStream { continuation in
             if let currentUser {
                 continuation.yield(currentUser)

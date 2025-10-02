@@ -7,25 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D01431202E54B2150053AD15 /* SwiftfulFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D014311F2E54B2150053AD15 /* SwiftfulFirestore */; };
-		D05808942E89C3DC009B42C1 /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D05808932E89C3DC009B42C1 /* OpenAI */; };
-		D05808A32E8A200E009B42C1 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = D05808A22E8A200E009B42C1 /* FirebaseFunctions */; };
-		D05808A52E8A3548009B42C1 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = D05808A42E8A3548009B42C1 /* FirebaseAppCheck */; };
+		D0675C5B2E8DC1F7009FDCFD /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C5A2E8DC1F7009FDCFD /* SDWebImageSwiftUI */; };
+		D0675C5E2E8DC264009FDCFD /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C5D2E8DC264009FDCFD /* FirebaseAnalytics */; };
+		D0675C602E8DC264009FDCFD /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C5F2E8DC264009FDCFD /* FirebaseAppCheck */; };
+		D0675C622E8DC264009FDCFD /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C612E8DC264009FDCFD /* FirebaseAuth */; };
+		D0675C642E8DC264009FDCFD /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C632E8DC264009FDCFD /* FirebaseCore */; };
+		D0675C662E8DC264009FDCFD /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C652E8DC264009FDCFD /* FirebaseCrashlytics */; };
+		D0675C682E8DC264009FDCFD /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C672E8DC264009FDCFD /* FirebaseFirestore */; };
+		D0675C6A2E8DC264009FDCFD /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C692E8DC264009FDCFD /* FirebaseFunctions */; };
+		D0675C6C2E8DC264009FDCFD /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C6B2E8DC264009FDCFD /* FirebaseStorage */; };
+		D0675C6F2E8DC2C3009FDCFD /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C6E2E8DC2C3009FDCFD /* SwiftfulUtilities */; };
+		D0675C722E8DC2DF009FDCFD /* SwiftfulFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C712E8DC2DF009FDCFD /* SwiftfulFirestore */; };
+		D0675C752E8DC35E009FDCFD /* SignInAppleAsync in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C742E8DC35E009FDCFD /* SignInAppleAsync */; };
+		D0675C782E8DC3A2009FDCFD /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D0675C772E8DC3A2009FDCFD /* OpenAI */; };
+		D0675DBE2E8DC878009FDCFD /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D0675DBD2E8DC878009FDCFD /* Mixpanel */; };
 		D08F584A2E8BF61B001D3980 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F58492E8BF61B001D3980 /* WidgetKit.framework */; };
 		D08F584C2E8BF61B001D3980 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F584B2E8BF61B001D3980 /* SwiftUI.framework */; };
-        D08F58572E8BF61D001D3980 /* WorkoutSessionActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D08F58482E8BF61B001D3980 /* WorkoutSessionActivityExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D08F58572E8BF61D001D3980 /* WorkoutSessionActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D08F58482E8BF61B001D3980 /* WorkoutSessionActivityExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D08F58622E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
 		D08F58632E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
-		D0A29B6C2E54B03900DA64F7 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B6B2E54B03900DA64F7 /* FirebaseAnalytics */; };
-		D0A29B6E2E54B03900DA64F7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B6D2E54B03900DA64F7 /* FirebaseAuth */; };
-		D0A29B702E54B03900DA64F7 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B6F2E54B03900DA64F7 /* FirebaseCore */; };
-		D0A29B722E54B03900DA64F7 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B712E54B03900DA64F7 /* FirebaseFirestore */; };
-		D0A29B742E54B03900DA64F7 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B732E54B03900DA64F7 /* FirebaseStorage */; };
-		D0A29B772E54B05200DA64F7 /* SignInAppleAsync in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B762E54B05200DA64F7 /* SignInAppleAsync */; };
-		D0A29B7B2E54B07C00DA64F7 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B7A2E54B07C00DA64F7 /* FirebaseCrashlytics */; };
-		D0A29B7E2E54B0AE00DA64F7 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B7D2E54B0AE00DA64F7 /* Mixpanel */; };
-		D0A29B812E54B0E400DA64F7 /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B802E54B0E400DA64F7 /* SwiftfulUtilities */; };
-		D0A29B842E54B0FA00DA64F7 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D0A29B832E54B0FA00DA64F7 /* SDWebImageSwiftUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +71,9 @@
 		D08F58492E8BF61B001D3980 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D08F584B2E8BF61B001D3980 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutActivityAttributes.swift; sourceTree = "<group>"; };
+		D08F6B252E8C9759001D3980 /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
+		D08F6B262E8C98F6001D3980 /* ElapsedTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeView.swift; sourceTree = "<group>"; };
+		D08F6B292E8C98FD001D3980 /* MetricsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsModel.swift; sourceTree = "<group>"; };
 		D0A2993D2E54AEA700DA64F7 /* DialedIn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DialedIn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0A2994A2E54AEA800DA64F7 /* DialedInTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DialedInTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0A299542E54AEA800DA64F7 /* DialedInUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DialedInUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -136,20 +139,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D0A29B842E54B0FA00DA64F7 /* SDWebImageSwiftUI in Frameworks */,
-				D0A29B6C2E54B03900DA64F7 /* FirebaseAnalytics in Frameworks */,
-				D0A29B722E54B03900DA64F7 /* FirebaseFirestore in Frameworks */,
-				D0A29B812E54B0E400DA64F7 /* SwiftfulUtilities in Frameworks */,
-				D05808A52E8A3548009B42C1 /* FirebaseAppCheck in Frameworks */,
-				D0A29B772E54B05200DA64F7 /* SignInAppleAsync in Frameworks */,
-				D0A29B7B2E54B07C00DA64F7 /* FirebaseCrashlytics in Frameworks */,
-				D0A29B702E54B03900DA64F7 /* FirebaseCore in Frameworks */,
-				D0A29B742E54B03900DA64F7 /* FirebaseStorage in Frameworks */,
-				D01431202E54B2150053AD15 /* SwiftfulFirestore in Frameworks */,
-				D05808A32E8A200E009B42C1 /* FirebaseFunctions in Frameworks */,
-				D0A29B7E2E54B0AE00DA64F7 /* Mixpanel in Frameworks */,
-				D05808942E89C3DC009B42C1 /* OpenAI in Frameworks */,
-				D0A29B6E2E54B03900DA64F7 /* FirebaseAuth in Frameworks */,
+				D0675C782E8DC3A2009FDCFD /* OpenAI in Frameworks */,
+				D0675C5E2E8DC264009FDCFD /* FirebaseAnalytics in Frameworks */,
+				D0675DBE2E8DC878009FDCFD /* Mixpanel in Frameworks */,
+				D0675C642E8DC264009FDCFD /* FirebaseCore in Frameworks */,
+				D0675C6C2E8DC264009FDCFD /* FirebaseStorage in Frameworks */,
+				D0675C602E8DC264009FDCFD /* FirebaseAppCheck in Frameworks */,
+				D0675C6A2E8DC264009FDCFD /* FirebaseFunctions in Frameworks */,
+				D0675C6F2E8DC2C3009FDCFD /* SwiftfulUtilities in Frameworks */,
+				D0675C662E8DC264009FDCFD /* FirebaseCrashlytics in Frameworks */,
+				D0675C5B2E8DC1F7009FDCFD /* SDWebImageSwiftUI in Frameworks */,
+				D0675C752E8DC35E009FDCFD /* SignInAppleAsync in Frameworks */,
+				D0675C722E8DC2DF009FDCFD /* SwiftfulFirestore in Frameworks */,
+				D0675C622E8DC264009FDCFD /* FirebaseAuth in Frameworks */,
+				D0675C682E8DC264009FDCFD /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,14 +176,25 @@
 		D08F58602E8BF652001D3980 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				D08F6B292E8C98FD001D3980 /* MetricsModel.swift */,
+				D08F6B262E8C98F6001D3980 /* ElapsedTimeView.swift */,
 				D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
 		};
+		D08F6B232E8C9720001D3980 /* Intent */ = {
+			isa = PBXGroup;
+			children = (
+				D08F6B252E8C9759001D3980 /* IntentHandler.swift */,
+			);
+			path = Intent;
+			sourceTree = "<group>";
+		};
 		D0A299342E54AEA700DA64F7 = {
 			isa = PBXGroup;
 			children = (
+				D08F6B232E8C9720001D3980 /* Intent */,
 				D08F58602E8BF652001D3980 /* Shared */,
 				D0A2993F2E54AEA700DA64F7 /* DialedIn */,
 				D0A2994D2E54AEA800DA64F7 /* DialedInTests */,
@@ -257,20 +271,20 @@
 			);
 			name = DialedIn;
 			packageProductDependencies = (
-				D0A29B6B2E54B03900DA64F7 /* FirebaseAnalytics */,
-				D0A29B6D2E54B03900DA64F7 /* FirebaseAuth */,
-				D0A29B6F2E54B03900DA64F7 /* FirebaseCore */,
-				D0A29B712E54B03900DA64F7 /* FirebaseFirestore */,
-				D0A29B732E54B03900DA64F7 /* FirebaseStorage */,
-				D0A29B762E54B05200DA64F7 /* SignInAppleAsync */,
-				D0A29B7A2E54B07C00DA64F7 /* FirebaseCrashlytics */,
-				D0A29B7D2E54B0AE00DA64F7 /* Mixpanel */,
-				D0A29B802E54B0E400DA64F7 /* SwiftfulUtilities */,
-				D0A29B832E54B0FA00DA64F7 /* SDWebImageSwiftUI */,
-				D014311F2E54B2150053AD15 /* SwiftfulFirestore */,
-				D05808932E89C3DC009B42C1 /* OpenAI */,
-				D05808A22E8A200E009B42C1 /* FirebaseFunctions */,
-				D05808A42E8A3548009B42C1 /* FirebaseAppCheck */,
+				D0675C5A2E8DC1F7009FDCFD /* SDWebImageSwiftUI */,
+				D0675C5D2E8DC264009FDCFD /* FirebaseAnalytics */,
+				D0675C5F2E8DC264009FDCFD /* FirebaseAppCheck */,
+				D0675C612E8DC264009FDCFD /* FirebaseAuth */,
+				D0675C632E8DC264009FDCFD /* FirebaseCore */,
+				D0675C652E8DC264009FDCFD /* FirebaseCrashlytics */,
+				D0675C672E8DC264009FDCFD /* FirebaseFirestore */,
+				D0675C692E8DC264009FDCFD /* FirebaseFunctions */,
+				D0675C6B2E8DC264009FDCFD /* FirebaseStorage */,
+				D0675C6E2E8DC2C3009FDCFD /* SwiftfulUtilities */,
+				D0675C712E8DC2DF009FDCFD /* SwiftfulFirestore */,
+				D0675C742E8DC35E009FDCFD /* SignInAppleAsync */,
+				D0675C772E8DC3A2009FDCFD /* OpenAI */,
+				D0675DBD2E8DC878009FDCFD /* Mixpanel */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -358,13 +372,13 @@
 			mainGroup = D0A299342E54AEA700DA64F7;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				D0A29B752E54B05200DA64F7 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */,
-				D0A29B7C2E54B0AE00DA64F7 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
-				D0A29B7F2E54B0E400DA64F7 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */,
-				D0A29B822E54B0FA00DA64F7 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
-				D014311E2E54B2150053AD15 /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */,
-				D05808922E89C3DC009B42C1 /* XCRemoteSwiftPackageReference "OpenAI" */,
+				D0675C592E8DC1F7009FDCFD /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
+				D0675C5C2E8DC264009FDCFD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				D0675C6D2E8DC2C3009FDCFD /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */,
+				D0675C702E8DC2DF009FDCFD /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */,
+				D0675C732E8DC35E009FDCFD /* XCRemoteSwiftPackageReference "SignInAppleAsync" */,
+				D0675C762E8DC3A2009FDCFD /* XCRemoteSwiftPackageReference "OpenAI" */,
+				D0675DBC2E8DC878009FDCFD /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
@@ -559,7 +573,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-                SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG MOCK $(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG MOCK $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Mock;
@@ -580,10 +594,14 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DialedIn/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "DialedIn - Mock";
+				INFOPLIST_KEY_CFBundleDisplayName = "DialedIn - Dev";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We use your calendar to schedule workouts and reminders.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads your workout and heart data to track sessions and show metrics.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app writes workouts and active energy to your Health data.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "Your data will be used to deliver personalised ads and experiences";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -918,7 +936,11 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "DialedIn - Dev";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We use your calendar to schedule workouts and reminders.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads your workout and heart data to track sessions and show metrics.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app writes workouts and active energy to your Health data.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "Your data will be used to deliver personalised ads and experiences";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -969,10 +991,14 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DialedIn/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = DialedIn;
+				INFOPLIST_KEY_CFBundleDisplayName = "DialedIn - Dev";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We use your calendar to schedule workouts and reminders.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads your workout and heart data to track sessions and show metrics.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app writes workouts and active energy to your Health data.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "Your data will be used to deliver personalised ads and experiences";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -1165,15 +1191,47 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		D014311E2E54B2150053AD15 /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */ = {
+		D0675C592E8DC1F7009FDCFD /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulFirestore";
+			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 11.0.1;
+				kind = exactVersion;
+				version = 3.1.2;
 			};
 		};
-		D05808922E89C3DC009B42C1 /* XCRemoteSwiftPackageReference "OpenAI" */ = {
+		D0675C5C2E8DC264009FDCFD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = exactVersion;
+				version = 11.3.0;
+			};
+		};
+		D0675C6D2E8DC2C3009FDCFD /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulUtilities.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.1.0;
+			};
+		};
+		D0675C702E8DC2DF009FDCFD /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulFirestore.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.2;
+			};
+		};
+		D0675C732E8DC35E009FDCFD /* XCRemoteSwiftPackageReference "SignInAppleAsync" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SignInAppleAsync.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.0.0;
+			};
+		};
+		D0675C762E8DC3A2009FDCFD /* XCRemoteSwiftPackageReference "OpenAI" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/MacPaw/OpenAI.git";
 			requirement = {
@@ -1181,118 +1239,86 @@
 				version = 0.3.0;
 			};
 		};
-		D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 11.3.0;
-			};
-		};
-		D0A29B752E54B05200DA64F7 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SwiftfulThinking/SignInAppleAsync";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
-		D0A29B7C2E54B0AE00DA64F7 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
+		D0675DBC2E8DC878009FDCFD /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mixpanel/mixpanel-swift.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.0.0;
-			};
-		};
-		D0A29B7F2E54B0E400DA64F7 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulUtilities";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
-		D0A29B822E54B0FA00DA64F7 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.1.2;
+				branch = master;
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		D014311F2E54B2150053AD15 /* SwiftfulFirestore */ = {
+		D0675C5A2E8DC1F7009FDCFD /* SDWebImageSwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D014311E2E54B2150053AD15 /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */;
-			productName = SwiftfulFirestore;
+			package = D0675C592E8DC1F7009FDCFD /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
+			productName = SDWebImageSwiftUI;
 		};
-		D05808932E89C3DC009B42C1 /* OpenAI */ = {
+		D0675C5D2E8DC264009FDCFD /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D05808922E89C3DC009B42C1 /* XCRemoteSwiftPackageReference "OpenAI" */;
-			productName = OpenAI;
-		};
-		D05808A22E8A200E009B42C1 /* FirebaseFunctions */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFunctions;
-		};
-		D05808A42E8A3548009B42C1 /* FirebaseAppCheck */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAppCheck;
-		};
-		D0A29B6B2E54B03900DA64F7 /* FirebaseAnalytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = D0675C5C2E8DC264009FDCFD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
 		};
-		D0A29B6D2E54B03900DA64F7 /* FirebaseAuth */ = {
+		D0675C5F2E8DC264009FDCFD /* FirebaseAppCheck */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = D0675C5C2E8DC264009FDCFD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAppCheck;
+		};
+		D0675C612E8DC264009FDCFD /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0675C5C2E8DC264009FDCFD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
 		};
-		D0A29B6F2E54B03900DA64F7 /* FirebaseCore */ = {
+		D0675C632E8DC264009FDCFD /* FirebaseCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = D0675C5C2E8DC264009FDCFD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
 		};
-		D0A29B712E54B03900DA64F7 /* FirebaseFirestore */ = {
+		D0675C652E8DC264009FDCFD /* FirebaseCrashlytics */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFirestore;
-		};
-		D0A29B732E54B03900DA64F7 /* FirebaseStorage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseStorage;
-		};
-		D0A29B762E54B05200DA64F7 /* SignInAppleAsync */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D0A29B752E54B05200DA64F7 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */;
-			productName = SignInAppleAsync;
-		};
-		D0A29B7A2E54B07C00DA64F7 /* FirebaseCrashlytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D0A29B6A2E54B03900DA64F7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = D0675C5C2E8DC264009FDCFD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;
 		};
-		D0A29B7D2E54B0AE00DA64F7 /* Mixpanel */ = {
+		D0675C672E8DC264009FDCFD /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D0A29B7C2E54B0AE00DA64F7 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
-			productName = Mixpanel;
+			package = D0675C5C2E8DC264009FDCFD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
-		D0A29B802E54B0E400DA64F7 /* SwiftfulUtilities */ = {
+		D0675C692E8DC264009FDCFD /* FirebaseFunctions */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D0A29B7F2E54B0E400DA64F7 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
+			package = D0675C5C2E8DC264009FDCFD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
+		D0675C6B2E8DC264009FDCFD /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0675C5C2E8DC264009FDCFD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+		D0675C6E2E8DC2C3009FDCFD /* SwiftfulUtilities */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0675C6D2E8DC2C3009FDCFD /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
 			productName = SwiftfulUtilities;
 		};
-		D0A29B832E54B0FA00DA64F7 /* SDWebImageSwiftUI */ = {
+		D0675C712E8DC2DF009FDCFD /* SwiftfulFirestore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D0A29B822E54B0FA00DA64F7 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
-			productName = SDWebImageSwiftUI;
+			package = D0675C702E8DC2DF009FDCFD /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */;
+			productName = SwiftfulFirestore;
+		};
+		D0675C742E8DC35E009FDCFD /* SignInAppleAsync */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0675C732E8DC35E009FDCFD /* XCRemoteSwiftPackageReference "SignInAppleAsync" */;
+			productName = SignInAppleAsync;
+		};
+		D0675C772E8DC3A2009FDCFD /* OpenAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0675C762E8DC3A2009FDCFD /* XCRemoteSwiftPackageReference "OpenAI" */;
+			productName = OpenAI;
+		};
+		D0675DBD2E8DC878009FDCFD /* Mixpanel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0675DBC2E8DC878009FDCFD /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
+			productName = Mixpanel;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

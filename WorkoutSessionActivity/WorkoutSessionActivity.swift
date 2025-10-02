@@ -27,16 +27,23 @@ struct WorkoutSessionActivity: Widget {
                             .multilineTextAlignment(.leading)
                             .font(.headline)
                     }
+                    .frame(minWidth: 85)
                 }
 
                 DynamicIslandExpandedRegion(.trailing) {
                     VStack(alignment: .trailing) {
                         Spacer()
-                        Text(timeString(from: context.state.elapsedTime))
-                        Text("Sets: \(context.state.completedSetsCount)/\(context.state.totalSetsCount)")
+                        Text(context.attributes.startedAt, style: .timer)
+                            .monospacedDigit()
+                            .multilineTextAlignment(.trailing)
+                        Text("Exercise: \(context.state.currentExerciseIndex)/\(context.state.totalExercisesCount)")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                        Text("Set: \(context.state.completedSetsCount)/\(context.state.totalSetsCount)")
                             .font(.footnote)
                             .foregroundColor(.secondary)
                     }
+                    .frame(minWidth: 85)
                 }
 
                 DynamicIslandExpandedRegion(.center) {
@@ -44,13 +51,27 @@ struct WorkoutSessionActivity: Widget {
                         if let exerciseName = context.state.currentExerciseName {
                             Text(exerciseName)
                                 .font(.headline)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
                         }
-                        Text(statusText(from: context))
-                            .fixedSize(horizontal: true, vertical: true)
-                            .bold()
-                            .padding(.vertical)
+                        if let restEndsAt = context.state.restEndsAt, restEndsAt > Date() {
+                            HStack {
+                                Text("Rest: ")
+                                Text(timerInterval: Date()...restEndsAt)
+                                    .monospacedDigit()
+                                    .frame(maxWidth: 40)
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        } else {
+                            Text(statusText(from: context))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
                     }
+                    .frame(maxWidth: .infinity)
                 }
+
                 DynamicIslandExpandedRegion(.bottom) {
 
                     Gauge(value: context.state.progress) {
@@ -59,18 +80,30 @@ struct WorkoutSessionActivity: Widget {
                         Text("\(Int(context.state.progress * 100))%")
                     }
                     .gaugeStyle(.accessoryLinear)
+                    .tint(.accent)
                     .padding(.horizontal)
-                    .padding(.bottom)
                 }
 
             } compactLeading: {
                 Image(systemName: "figure.strengthtraining.traditional")
-
             } compactTrailing: {
+                
                 if let restEndsAt = context.state.restEndsAt, restEndsAt > Date() {
-                    Text(restCompact(until: restEndsAt))
+                    HStack {
+                        Text("Rest: ")
+                        Text(timerInterval: Date()...restEndsAt)
+                            .monospacedDigit()
+                            .frame(maxWidth: 40)
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
                 } else {
-                    Text(timeCompact(from: context.state.elapsedTime))
+                    Text("Sets: \(context.state.completedSetsCount)/\(context.state.totalSetsCount)")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+//                    Text(context.attributes.startedAt, style: .timer)
+//                        .frame(minWidth: 65)
+
                 }
 
             } minimal: {
@@ -116,68 +149,117 @@ struct WorkoutSessionActivity: Widget {
     }
 }
 
-struct LiveActivityView: View {
-    let context: ActivityViewContext<WorkoutActivityAttributes>
-
-    var body: some View {
-        VStack {
-            HStack {
-                Image(systemName: "figure.strengthtraining.traditional")
-                    .font(.title2)
-
-                VStack(alignment: .leading) {
-                    Text("Workout")
-                        .font(.headline)
-                    Text(context.attributes.workoutName)
-                        .font(.subheadline)
-                }
-
-                Spacer()
-
-                VStack(alignment: .trailing) {
-                    Text(timeString(from: context.state.elapsedTime))
-                    Text("Sets: \(context.state.completedSetsCount)/\(context.state.totalSetsCount)")
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                }
-            }
-
-            Gauge(value: context.state.progress) {
-                EmptyView()
-            } currentValueLabel: {
-                Text("\(Int(context.state.progress * 100))%")
-            }
-            .gaugeStyle(.accessoryLinear)
-            .tint(.green)
-
-            Text(statusText(from: context))
-                .font(.callout)
-                .multilineTextAlignment(.center)
-        }
-        .padding()
-        .background(Color.widgetBackground)
+extension WorkoutActivityAttributes {
+    static var preview: WorkoutActivityAttributes {
+        WorkoutActivityAttributes(
+            sessionId: UUID().uuidString,
+            workoutName: "Chest Workout",
+            startedAt: Date(),
+            workoutTemplateId: UUID().uuidString
+        )
     }
 
-    private func timeString(from seconds: TimeInterval) -> String {
-        let minutes = Int(seconds) / 60
-        let seconds = Int(seconds) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+    static var previewOld: WorkoutActivityAttributes {
+        WorkoutActivityAttributes(
+            sessionId: UUID().uuidString,
+            workoutName: "Chest Workout",
+            startedAt: Date().addingTimeInterval(-3600*1.5),
+            workoutTemplateId: UUID().uuidString
+        )
+    }
+}
+
+extension WorkoutActivityAttributes.ContentState {
+    static var live: WorkoutActivityAttributes.ContentState {
+        return WorkoutActivityAttributes.ContentState(
+            isActive: true,
+            completedSetsCount: 5,
+            totalSetsCount: 12,
+            currentExerciseName: "Bench Press",
+            currentExerciseIndex: 1,
+            totalExercisesCount: 4,
+            restEndsAt: Date().addingTimeInterval(45), // 45 seconds from now
+            statusMessage: "Resting",
+            totalVolumeKg: 3250,
+            progress: 0.42
+        )
     }
 
-    private func restRemainingString(until end: Date) -> String {
-        let remaining = max(0, Int(ceil(end.timeIntervalSinceNow)))
-        let minutes = remaining / 60
-        let seconds = remaining % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+    static var stale: WorkoutActivityAttributes.ContentState {
+        return WorkoutActivityAttributes.ContentState(
+            isActive: false,
+            completedSetsCount: 5,
+            totalSetsCount: 12,
+            currentExerciseName: "Bench Press",
+            currentExerciseIndex: 1,
+            totalExercisesCount: 4,
+            restEndsAt: nil,
+            statusMessage: "Paused",
+            totalVolumeKg: 3250,
+            progress: 1 // 0.42
+        )
     }
 
-    private func statusText(from context: ActivityViewContext<WorkoutActivityAttributes>) -> String {
-        if let restEndsAt = context.state.restEndsAt, restEndsAt > Date() {
-            return "Rest: \(restRemainingString(until: restEndsAt))"
-        }
-        if let status = context.state.statusMessage, !status.isEmpty {
-            return status
-        }
-        return context.state.isActive ? "In progress" : "Paused"
+    static var someMetrics: WorkoutActivityAttributes.ContentState {
+        return WorkoutActivityAttributes.ContentState(
+            isActive: true,
+            completedSetsCount: 10,
+            totalSetsCount: 12,
+            currentExerciseName: "Overhead Tricep Extension (Cable)",
+            currentExerciseIndex: 2,
+            totalExercisesCount: 4,
+            restEndsAt: nil,
+            statusMessage: "In progress",
+            totalVolumeKg: 4800,
+            progress: 0.83
+        )
     }
+}
+
+#Preview("Dynamic Island - Expanded", as: .dynamicIsland(.expanded), using: WorkoutActivityAttributes.preview) {
+   WorkoutSessionActivity()
+} contentStates: {
+    WorkoutActivityAttributes.ContentState.live
+    WorkoutActivityAttributes.ContentState.stale
+    WorkoutActivityAttributes.ContentState.someMetrics
+}
+
+#Preview("Dynamic Island - Expanded - Old", as: .dynamicIsland(.expanded), using: WorkoutActivityAttributes.previewOld) {
+   WorkoutSessionActivity()
+} contentStates: {
+    WorkoutActivityAttributes.ContentState.live
+    WorkoutActivityAttributes.ContentState.stale
+    WorkoutActivityAttributes.ContentState.someMetrics
+}
+
+#Preview("Dynamic Island - Compact", as: .dynamicIsland(.compact), using: WorkoutActivityAttributes.preview) {
+   WorkoutSessionActivity()
+} contentStates: {
+    WorkoutActivityAttributes.ContentState.live
+    WorkoutActivityAttributes.ContentState.stale
+    WorkoutActivityAttributes.ContentState.someMetrics
+}
+
+#Preview("Dynamic Island - Compact - Old", as: .dynamicIsland(.compact), using: WorkoutActivityAttributes.previewOld) {
+   WorkoutSessionActivity()
+} contentStates: {
+    WorkoutActivityAttributes.ContentState.live
+    WorkoutActivityAttributes.ContentState.stale
+    WorkoutActivityAttributes.ContentState.someMetrics
+}
+
+#Preview("Dynamic Island - Minimal", as: .dynamicIsland(.minimal), using: WorkoutActivityAttributes.preview) {
+   WorkoutSessionActivity()
+} contentStates: {
+    WorkoutActivityAttributes.ContentState.live
+    WorkoutActivityAttributes.ContentState.stale
+    WorkoutActivityAttributes.ContentState.someMetrics
+}
+
+#Preview("Dynamic Island - Minimal - Old", as: .dynamicIsland(.minimal), using: WorkoutActivityAttributes.previewOld) {
+   WorkoutSessionActivity()
+} contentStates: {
+    WorkoutActivityAttributes.ContentState.live
+    WorkoutActivityAttributes.ContentState.stale
+    WorkoutActivityAttributes.ContentState.someMetrics
 }

@@ -103,8 +103,10 @@ class WorkoutActivityViewModel {
 
 		Task {
 			await activity?.end(
-				ActivityContent(state: finalState, staleDate: nil),
-				dismissalPolicy: .default
+                ActivityContent(state: finalState, staleDate: nil),
+                dismissalPolicy: .default
+                // If the live activity should be dismissed/cleared immediately
+                // dismissalPolicy: .immediate
 			)
 		}
 	}
@@ -139,15 +141,7 @@ class WorkoutActivityViewModel {
 			.reduce(0.0, +)
 		let totalVolumeKg = totalVolumeKgOverride ?? (computedVolume > 0 ? computedVolume : nil)
 
-		let elapsedTime: TimeInterval
-		if let elapsedOverride = elapsedTimeOverride {
-			elapsedTime = max(0, elapsedOverride)
-		} else {
-			elapsedTime = max(0, Date().timeIntervalSince(session.dateCreated))
-		}
-
 		return WorkoutActivityAttributes.ContentState(
-			elapsedTime: elapsedTime,
 			isActive: isActive,
 			completedSetsCount: completedSetsCount,
 			totalSetsCount: totalSetsCount,

@@ -12,8 +12,6 @@ import ActivityKit
 struct WorkoutActivityAttributes: ActivityAttributes {
 
     public struct ContentState: Codable, Hashable {
-        // Total workout elapsed time in seconds since `startedAt`
-        var elapsedTime: TimeInterval
         // Whether the workout timer is actively running (not paused)
         var isActive: Bool
         // Overall set progress across all exercises

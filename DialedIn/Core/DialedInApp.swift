@@ -102,6 +102,7 @@ struct Dependencies {
     let workoutActivityViewModel: WorkoutActivityViewModel
     #endif
 
+    // swiftlint:disable:next function_body_length
     init(config: BuildConfiguration) {
         switch config {
         case .mock(isSignedIn: let isSignedIn):

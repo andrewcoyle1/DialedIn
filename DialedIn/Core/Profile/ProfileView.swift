@@ -19,7 +19,6 @@ struct ProfileView: View {
         NavigationStack {
             List {
                 profileSection
-                
                 exerciseTemplateSection
                 workoutTemplateSection
             }
