@@ -7,6 +7,8 @@
 
 import SwiftUI
 import AuthenticationServices
+import GoogleSignIn
+import GoogleSignInSwift
 
 struct OnboardingAuthView: View {
     @Environment(PushManager.self) private var pushManager
@@ -26,6 +28,12 @@ struct OnboardingAuthView: View {
         List {
             whySection
             whyNotSection
+            VStack(alignment: .center) {
+                appleSignInSection
+                googleSignInSection
+                    .padding(.horizontal)
+            }
+            tsAndCsSection
         }
         .navigationTitle("Authentication")
         .navigationBarTitleDisplayMode(.large)
@@ -55,12 +63,7 @@ struct OnboardingAuthView: View {
         }
         .safeAreaInset(edge: .bottom) {
             VStack {
-                SignInWithAppleButtonView(type: .signUp, style: .black, cornerRadius: 28)
-                    .frame(height: 56)
-                    .anyButton(.press) {
-                        onSignInApplePressed()
-                    }
-                    .padding(.horizontal)
+
                 NavigationLink {
                     if navigateToOnboardingNotifications {
                         OnboardingNotificationsView()
@@ -111,6 +114,26 @@ struct OnboardingAuthView: View {
         }
     }
 
+    private var appleSignInSection: some View {
+        SignInWithAppleButtonView(type: .signUp, style: .black, cornerRadius: 28)
+            .frame(height: 56)
+            .anyButton(.press) {
+                onSignInApplePressed()
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+    }
+
+    private var googleSignInSection: some View {
+        SignInWithGoogleButtonView(style: .light, scheme: .signUpWithGoogle) { onSignInGooglePressed() }
+        .removeListRowFormatting()
+    }
+
+    private var tsAndCsSection: some View {
+        Text("By continuing, you agree to our Terms of Service and Privacy Policy")
+            .removeListRowFormatting()
+    }
+
     private func handlePushNotificationsPermission() async {
         navigateToOnboardingNotifications = await pushManager.canRequestAuthorisation()
     }
@@ -159,6 +182,25 @@ struct OnboardingAuthView: View {
                     }
                 )
             })
+    }
+    
+    private func onSignInGooglePressed() {
+        Task {
+            do {
+                let result = try await authManager.signInGoogle()
+                logManager.trackEvent(eventName: "OnboardingAuth_GoogleAuth_Success")
+                
+                try await userManager.logIn(auth: result.user, isNewUser: result.isNewUser)
+                logManager.trackEvent(eventName: "OnboardingAuth_GoogleAuth_Login_Success")
+                
+                // Navigate to create profile on successful sign-in
+                navigateToCreateProfile = true
+            } catch {
+                logManager.trackEvent(eventName: "OnboardingAuth_GoogleAuth_Fail", parameters: error.eventParameters, type: .severe)
+                
+                showAlert = buildAlert()
+            }
+        }
     }
 }
 

@@ -7,6 +7,8 @@
 @preconcurrency import FirebaseAuth
 import SwiftUI
 import SignInAppleAsync
+import GoogleSignIn
+import Firebase
 
 struct FirebaseAuthService: AuthService {
     
@@ -43,7 +45,7 @@ struct FirebaseAuthService: AuthService {
         let response = try await helper.signIn()
         
         let credential = OAuthProvider.credential(
-            providerID: AuthProviderID.apple,
+            providerID: FirebaseAuth.AuthProviderID.apple,
             idToken: response.token,
             rawNonce: response.nonce
         )
@@ -72,7 +74,45 @@ struct FirebaseAuthService: AuthService {
         let result = try await Auth.auth().signIn(with: credential)
         return result.asAuthInfo
     }
-    
+
+    @MainActor
+    func signInGoogle() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        guard let presentingViewController = UIApplication.shared.windows.first?.rootViewController else {
+            throw AuthError.userNotFound
+        }
+        
+        let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingViewController)
+        let user = result.user
+        guard let idToken = user.idToken?.tokenString else {
+            throw AuthError.userNotFound
+        }
+        
+        let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: user.accessToken.tokenString)
+        
+        if let currentUser = Auth.auth().currentUser, currentUser.isAnonymous {
+            do {
+                // Try to link to existing anonymous account
+                let authResult = try await currentUser.link(with: credential)
+                return authResult.asAuthInfo
+            } catch let error as NSError {
+                let authError = AuthErrorCode(rawValue: error.code)
+                switch authError {
+                case .providerAlreadyLinked, .credentialAlreadyInUse:
+                    if let secondaryCredential = error.userInfo["FIRAuthErrorUserInfoUpdatedCredentialKey"] as? AuthCredential {
+                        let authResult = try await Auth.auth().signIn(with: secondaryCredential)
+                        return authResult.asAuthInfo
+                    }
+                default:
+                    break
+                }
+            }
+        }
+        
+        // Otherwise sign in to new account
+        let authResult = try await Auth.auth().signIn(with: credential)
+        return authResult.asAuthInfo
+    }
+
     func signOut() throws {
         try Auth.auth().signOut()
     }
@@ -85,7 +125,7 @@ struct FirebaseAuthService: AuthService {
         let helper = SignInWithAppleHelper()
         let response = try await helper.signIn()
         let credential = OAuthProvider.credential(
-            providerID: AuthProviderID.apple,
+            providerID: FirebaseAuth.AuthProviderID.apple,
             idToken: response.token,
             rawNonce: response.nonce
         )

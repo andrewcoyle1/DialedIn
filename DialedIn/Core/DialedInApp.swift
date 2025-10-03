@@ -10,6 +10,7 @@ import Firebase
 import FirebaseCore
 import FirebaseAnalytics
 import FirebaseAppCheck
+import GoogleSignIn
 
 @main
 struct DialedInApp: App {
@@ -58,6 +59,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         dependencies = Dependencies(config: config)
         return true
     }
+    
+    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        return GIDSignIn.sharedInstance.handle(url)
+    }
 }
 
 enum BuildConfiguration {
@@ -76,6 +81,10 @@ enum BuildConfiguration {
             AppCheck.setAppCheckProviderFactory(providerFactory)
             FirebaseApp.configure(options: options)
             Analytics.setAnalyticsCollectionEnabled(true)
+            
+            // Configure Google Sign-In
+            guard let clientId = options.clientID else { fatalError("No client ID found in Firebase options") }
+            GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
         case .prod:
             let plist = Bundle.main.path(forResource: "GoogleService-Info-Prod", ofType: "plist")!
             let options = FirebaseOptions(contentsOfFile: plist)!
@@ -83,6 +92,10 @@ enum BuildConfiguration {
             AppCheck.setAppCheckProviderFactory(providerFactory)
             FirebaseApp.configure(options: options)
             Analytics.setAnalyticsCollectionEnabled(true)
+            
+            // Configure Google Sign-In
+            guard let clientId = options.clientID else { fatalError("No client ID found in Firebase options") }
+            GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
         }
     }
 }

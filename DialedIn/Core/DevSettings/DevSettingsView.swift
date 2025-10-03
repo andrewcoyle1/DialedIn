@@ -71,7 +71,7 @@ struct DevSettingsView: View {
     
     private var deviceSection: some View {
         Section {
-            let array = Utilities.eventParameters.asAlphabeticalArray
+            let array = SwiftfulUtilities.Utilities.eventParameters.asAlphabeticalArray
             ForEach(array, id: \.key) { item in
                 itemRow(item: item)
             }

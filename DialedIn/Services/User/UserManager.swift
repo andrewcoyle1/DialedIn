@@ -55,7 +55,7 @@ class UserManager {
     // MARK: - User
     
     func logIn(auth: UserAuthInfo, image: PlatformImage? = nil, isNewUser: Bool) async throws {
-        let creationVersion = isNewUser ? Utilities.appVersion : nil
+        let creationVersion = isNewUser ? SwiftfulUtilities.Utilities.appVersion : nil
         let user = UserModel(auth: auth, creationVersion: creationVersion)
         logManager?.trackEvent(event: Event.logInStart(user: user))
         try await remote.saveUser(user: user, image: image)

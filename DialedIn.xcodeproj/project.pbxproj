@@ -21,6 +21,8 @@
 		D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BB82E8EA1710027C662 /* SDWebImageSwiftUI */; };
 		D05D0BBB2E8EA1C00027C662 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BBA2E8EA1C00027C662 /* FirebaseCrashlytics */; };
 		D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BBD2E8EA22E0027C662 /* SwiftfulUtilities */; };
+		D05D0BC92E8FDE0B0027C662 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BC82E8FDE0B0027C662 /* GoogleSignIn */; };
+		D05D0BCB2E8FDE0B0027C662 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BCA2E8FDE0B0027C662 /* GoogleSignInSwift */; };
 		D08F584A2E8BF61B001D3980 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F58492E8BF61B001D3980 /* WidgetKit.framework */; };
 		D08F584C2E8BF61B001D3980 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F584B2E8BF61B001D3980 /* SwiftUI.framework */; };
 		D08F58572E8BF61D001D3980 /* WorkoutSessionActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D08F58482E8BF61B001D3980 /* WorkoutSessionActivityExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -142,8 +144,10 @@
 				D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */,
 				D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */,
 				D05D0BA72E8EA13A0027C662 /* SwiftfulFirestore in Frameworks */,
+				D05D0BCB2E8FDE0B0027C662 /* GoogleSignInSwift in Frameworks */,
 				D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */,
 				D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */,
+				D05D0BC92E8FDE0B0027C662 /* GoogleSignIn in Frameworks */,
 				D05D0BAA2E8EA15E0027C662 /* FirebaseAnalytics in Frameworks */,
 				D05D0BAC2E8EA15E0027C662 /* FirebaseAppCheck in Frameworks */,
 				D05D0BB22E8EA15E0027C662 /* FirebaseFirestore in Frameworks */,
@@ -285,6 +289,8 @@
 				D05D0BB82E8EA1710027C662 /* SDWebImageSwiftUI */,
 				D05D0BBA2E8EA1C00027C662 /* FirebaseCrashlytics */,
 				D05D0BBD2E8EA22E0027C662 /* SwiftfulUtilities */,
+				D05D0BC82E8FDE0B0027C662 /* GoogleSignIn */,
+				D05D0BCA2E8FDE0B0027C662 /* GoogleSignInSwift */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -379,6 +385,7 @@
 				D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				D05D0BB72E8EA1710027C662 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */,
+				D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
@@ -1247,6 +1254,14 @@
 				minimumVersion = 1.1.6;
 			};
 		};
+		D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1319,6 +1334,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
 			productName = SwiftfulUtilities;
+		};
+		D05D0BC82E8FDE0B0027C662 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		D05D0BCA2E8FDE0B0027C662 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

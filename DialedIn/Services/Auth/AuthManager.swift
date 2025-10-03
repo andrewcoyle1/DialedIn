@@ -36,7 +36,7 @@ class AuthManager {
                     
                     logManager?.identifyUser(userId: value.uid, name: nil, email: value.email)
                     logManager?.addUserProperties(dict: value.eventParameters, isHighPriority: true)
-                    logManager?.addUserProperties(dict: Utilities.eventParameters, isHighPriority: false)
+                    logManager?.addUserProperties(dict: SwiftfulUtilities.Utilities.eventParameters, isHighPriority: false)
                 }
             }
         }
@@ -62,7 +62,14 @@ class AuthManager {
         self.auth = result.user
         return result
     }
-    
+
+    func signInGoogle() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        let result = try await service.signInGoogle()
+        // Immediately update auth state for UI responsiveness
+        self.auth = result.user
+        return result
+    }
+
     func signOut() throws {
         logManager?.trackEvent(event: Event.signOutStart)
         

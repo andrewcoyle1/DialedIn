@@ -105,14 +105,14 @@ struct SettingsView: View {
             HStack(spacing: 8) {
                 Text("Version")
                 Spacer(minLength: 0)
-                Text(Utilities.appVersion ?? "")
+                Text(SwiftfulUtilities.Utilities.appVersion ?? "")
                     .foregroundStyle(.secondary)
             }
             
             HStack(spacing: 8) {
                 Text("Build Number")
                 Spacer(minLength: 0)
-                Text(Utilities.buildNumber ?? "")
+                Text(SwiftfulUtilities.Utilities.buildNumber ?? "")
                     .foregroundStyle(.secondary)
             }
 

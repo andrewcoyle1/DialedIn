@@ -49,7 +49,15 @@ struct MockAuthService: AuthService {
         let user = UserAuthInfo.mock(isAnonymous: false)
         return (user, false)
     }
-    
+
+    func signInGoogle() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+        
+        let user = UserAuthInfo.mock(isAnonymous: false)
+        return (user, false)
+    }
+
     func reauthenticateWithApple() async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
