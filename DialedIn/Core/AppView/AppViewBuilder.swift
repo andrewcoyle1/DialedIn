@@ -21,9 +21,9 @@ struct AppViewBuilder<TabBarView: View, OnboardingView: View>: View {
             } else {
                 onboardingView
                     .transition(.move(edge: .leading))
-            }
+            } 
         }
-        .animation(.smooth, value: showTabBar)
+        .animation(.default, value: showTabBar)
     }
 }
 

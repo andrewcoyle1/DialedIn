@@ -61,9 +61,8 @@ struct AppView: View {
         if let user = authManager.auth {
             // User is authenticated
             logManager.trackEvent(event: Event.existingAuthStart)
-            
             do {
-                try await userManager.logIn(auth: user, isNewUser: false)
+                try await userManager.logIn(auth: user)
             } catch {
                 logManager.trackEvent(event: Event.existingAuthFail(error: error))
                 try? await Task.sleep(for: .seconds(5))
@@ -79,7 +78,7 @@ struct AppView: View {
                 logManager.trackEvent(event: Event.anonAuthSuccess)
 
                 // Log in
-                try await userManager.logIn(auth: result.user, isNewUser: result.isNewUser)
+                try await userManager.logIn(auth: result)
 
             } catch {
                 logManager.trackEvent(event: Event.anonAuthFail(error: error))

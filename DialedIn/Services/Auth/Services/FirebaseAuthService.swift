@@ -33,14 +33,53 @@ struct FirebaseAuthService: AuthService {
         }
         return nil
     }
-    
-    func signInAnonymously() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+
+    func createUser(email: String, password: String) async throws -> UserAuthInfo {
+        let result = try await Auth.auth().createUser(withEmail: email, password: password)
+        return result.asAuthInfo
+    }
+
+    func signInUser(email: String, password: String) async throws -> UserAuthInfo {
+        let result = try await Auth.auth().signIn(withEmail: email, password: password)
+        return result.asAuthInfo
+    }
+
+    func resetPassword(email: String) async throws {
+        try await Auth.auth().sendPasswordReset(withEmail: email)
+    }
+
+    func updateEmail(email: String) async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw AuthError.userNotFound
+        }
+
+        try await user.sendEmailVerification(beforeUpdatingEmail: email)
+    }
+
+    func updatePassword(password: String) async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw AuthError.userNotFound
+        }
+
+        try await user.updatePassword(to: password)
+    }
+
+    func reauthenticate(email: String, password: String) async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw AuthError.userNotFound
+        }
+
+        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+        try await user.reauthenticate(with: credential)
+    }
+
+    func signInAnonymously() async throws -> UserAuthInfo {
         let result = try await Auth.auth().signInAnonymously()
         return result.asAuthInfo
     }
     
     @MainActor
-    func signInApple() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+    func signInApple() async throws -> UserAuthInfo {
         let helper = SignInWithAppleHelper()
         let response = try await helper.signIn()
         
@@ -56,7 +95,6 @@ struct FirebaseAuthService: AuthService {
                 let result = try await user.link(with: credential)
                 return result.asAuthInfo
             } catch let error as NSError {
-                
                 let authError = AuthErrorCode(rawValue: error.code)
                 switch authError {
                 case .providerAlreadyLinked, .credentialAlreadyInUse:
@@ -76,7 +114,7 @@ struct FirebaseAuthService: AuthService {
     }
 
     @MainActor
-    func signInGoogle() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+    func signInGoogle() async throws -> UserAuthInfo {
         guard let presentingViewController = UIApplication.shared.windows.first?.rootViewController else {
             throw AuthError.userNotFound
         }
@@ -155,7 +193,7 @@ struct FirebaseAuthService: AuthService {
 
 extension AuthDataResult {
     
-    var asAuthInfo: (user: UserAuthInfo, isNewUser: Bool) {
+    var asAuthInfo: UserAuthInfo {
         let isNewUser = additionalUserInfo?.isNewUser ?? true
         let firebaseUser = user
         var resolvedEmail: String? = firebaseUser.email
@@ -169,9 +207,9 @@ extension AuthDataResult {
             email: resolvedEmail,
             isAnonymous: firebaseUser.isAnonymous,
             creationDate: firebaseUser.metadata.creationDate,
-            lastSignInDate: firebaseUser.metadata.lastSignInDate
+            lastSignInDate: firebaseUser.metadata.lastSignInDate,
+            isNewUser: isNewUser
         )
-        return (authInfo, isNewUser)
+        return authInfo
     }
-    
 }

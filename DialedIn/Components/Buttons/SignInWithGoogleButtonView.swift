@@ -14,27 +14,30 @@ struct SignInWithGoogleButtonView: View {
     let action: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 4) {
             Spacer()
             ZStack {
                 Image(style == .light ? "GoogleLogoLight" : "GoogleLogoDark")
                     .resizable()
                     .aspectRatio(1, contentMode: .fit)
-                    .frame(width: 40, height: 40)
-                    .clipShape(Rectangle().inset(by: 10))
+                    .frame(width: 30, height: 30)
+                    .clipShape(Rectangle().inset(by: 7.5))
             }
             .frame(width: 20, height: 20)
             Text(scheme.description)
                 .foregroundStyle(style.accentColour)
+                .fontWeight(.medium)
+                .font(.system(size: 21))
             Spacer()
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
+        .frame(height: 50)
         .background(style.backgroundColour)
-        .cornerRadius(22)
-        .frame(height: 44)
+        .cornerRadius(25)
         .frame(maxWidth: .infinity)
         .shadow(color: style.accentColour, radius: 1)
+        .padding(.horizontal)
         .anyButton(.press) {
             action()
         }
@@ -47,7 +50,7 @@ struct SignInWithGoogleButtonView: View {
         var backgroundColour: Color {
             switch self {
             case .light: return Color.white
-            case .dark: return Color.black
+            case .dark: return Color(red: 19/255, green: 19/255, blue: 20/255)
             }
         }
 

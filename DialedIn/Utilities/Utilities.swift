@@ -14,8 +14,6 @@ import AppKit
 public typealias PlatformImage = NSImage
 #endif
 
-// typealias Utilities = SwiftfulUtilities.Utilities
-
 final class Utilities {
     static let shared = Utilities()
 

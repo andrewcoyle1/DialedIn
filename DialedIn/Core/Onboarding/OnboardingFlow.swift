@@ -18,7 +18,7 @@ struct OnboardingFlow: View {
         case .welcome:
             OnboardingWelcomeView()
         case .auth:
-            OnboardingAuthView()
+            AuthOptionsSection()
         case .notifications:
             OnboardingNotificationsView()
         case .health:

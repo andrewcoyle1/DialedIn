@@ -48,25 +48,57 @@ class AuthManager {
         }
         return uid
     }
-    
-    func signInAnonymously() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
-        let result = try await service.signInAnonymously()
-        // Immediately update auth state for UI responsiveness
-        self.auth = result.user
-        return result
-    }
-    
-    func signInApple() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
-        let result = try await service.signInApple()
-        // Immediately update auth state for UI responsiveness
-        self.auth = result.user
+
+    @discardableResult
+    func createUser(email: String, password: String) async throws -> UserAuthInfo {
+        let result = try await service.createUser(email: email, password: password)
+        self.auth = result
         return result
     }
 
-    func signInGoogle() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+    @discardableResult
+    func signInUser(email: String, password: String) async throws -> UserAuthInfo {
+        let result = try await service.signInUser(email: email, password: password)
+        return result
+    }
+
+    func resetPassword(email: String) async throws {
+        try await service.resetPassword(email: email)
+    }
+
+    func updateEmail(email: String) async throws {
+        try await service.updateEmail(email: email)
+    }
+
+    func updatePassword(password: String) async throws {
+        try await service.updatePassword(password: password)
+    }
+
+    func reauthenticate(email: String, password: String) async throws {
+        try await service.reauthenticate(email: email, password: password)
+    }
+
+    @discardableResult
+    func signInAnonymously() async throws -> UserAuthInfo {
+        let result = try await service.signInAnonymously()
+        // Immediately update auth state for UI responsiveness
+        self.auth = result
+        return result
+    }
+
+    @discardableResult
+    func signInApple() async throws -> UserAuthInfo {
+        let result = try await service.signInApple()
+        // Immediately update auth state for UI responsiveness
+        self.auth = result
+        return result
+    }
+
+    @discardableResult
+    func signInGoogle() async throws -> UserAuthInfo {
         let result = try await service.signInGoogle()
         // Immediately update auth state for UI responsiveness
-        self.auth = result.user
+        self.auth = result
         return result
     }
 

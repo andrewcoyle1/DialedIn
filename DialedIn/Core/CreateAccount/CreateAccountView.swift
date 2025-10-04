@@ -57,12 +57,12 @@ struct CreateAccountView: View {
     
     enum Event: LoggableEvent {
         case appleAuthStart
-        case appleAuthSuccess(user: UserAuthInfo, isNewUser: Bool)
-        case appleAuthLoginSuccess(user: UserAuthInfo, isNewUser: Bool)
+        case appleAuthSuccess(user: UserAuthInfo)
+        case appleAuthLoginSuccess(user: UserAuthInfo)
         case appleAuthFail(error: Error)
         case googleAuthStart
-        case googleAuthSuccess(user: UserAuthInfo, isNewUser: Bool)
-        case googleAuthLoginSuccess(user: UserAuthInfo, isNewUser: Bool)
+        case googleAuthSuccess(user: UserAuthInfo)
+        case googleAuthLoginSuccess(user: UserAuthInfo)
         case googleAuthFail(error: Error)
 
         var eventName: String {
@@ -80,12 +80,12 @@ struct CreateAccountView: View {
         
         var parameters: [String: Any]? {
             switch self {
-            case .appleAuthSuccess(user: let user, isNewUser: let isNewUser),
-                    .appleAuthLoginSuccess(user: let user, isNewUser: let isNewUser),
-                    .googleAuthSuccess(user: let user, isNewUser: let isNewUser),
-                    .googleAuthLoginSuccess(user: let user, isNewUser: let isNewUser):
+            case .appleAuthSuccess(user: let user),
+                    .appleAuthLoginSuccess(user: let user),
+                    .googleAuthSuccess(user: let user),
+                    .googleAuthLoginSuccess(user: let user):
                 var dict = user.eventParameters
-                dict["is_new_user"] = isNewUser
+                dict["is_new_user"] = user.isNewUser
                 return dict
             case .appleAuthFail(error: let error), .googleAuthFail(error: let error):
                 return error.eventParameters
@@ -110,10 +110,10 @@ struct CreateAccountView: View {
         Task {
             do {
                 let result = try await authManager.signInApple()
-                logManager.trackEvent(event: Event.appleAuthSuccess(user: result.user, isNewUser: result.isNewUser))
+                logManager.trackEvent(event: Event.appleAuthSuccess(user: result))
 
-                try await userManager.logIn(auth: result.user, isNewUser: result.isNewUser)
-                logManager.trackEvent(event: Event.appleAuthLoginSuccess(user: result.user, isNewUser: result.isNewUser))
+                try await userManager.logIn(auth: result)
+                logManager.trackEvent(event: Event.appleAuthLoginSuccess(user: result))
 
                 onDidSignIn?(result.isNewUser)
                 dismiss()
@@ -128,10 +128,10 @@ struct CreateAccountView: View {
         Task {
             do {
                 let result = try await authManager.signInGoogle()
-                logManager.trackEvent(event: Event.googleAuthSuccess(user: result.user, isNewUser: result.isNewUser))
+                logManager.trackEvent(event: Event.googleAuthSuccess(user: result))
 
-                try await userManager.logIn(auth: result.user, isNewUser: result.isNewUser)
-                logManager.trackEvent(event: Event.googleAuthLoginSuccess(user: result.user, isNewUser: result.isNewUser))
+                try await userManager.logIn(auth: result)
+                logManager.trackEvent(event: Event.googleAuthLoginSuccess(user: result))
 
                 onDidSignIn?(result.isNewUser)
                 dismiss()

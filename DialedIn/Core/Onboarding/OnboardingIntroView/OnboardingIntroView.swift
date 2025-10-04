@@ -116,7 +116,7 @@ struct OnboardingIntroView: View {
     private var buttonSection: some View {
         VStack(spacing: 12) {
             NavigationLink {
-                OnboardingAuthView()
+                AuthOptionsSection()
             } label: {
                 Text("Continue")
                     .frame(maxWidth: .infinity)
