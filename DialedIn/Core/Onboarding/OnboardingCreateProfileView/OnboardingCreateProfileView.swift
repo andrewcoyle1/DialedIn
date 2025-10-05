@@ -15,7 +15,7 @@ struct OnboardingCreateProfileView: View {
     @State private var firstName: String = ""
     @State private var lastName: String = ""
     @State private var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
-    @State private var selectedGender: Gender = .unspecified
+    @State private var selectedGender: Gender?
     @State private var email: String = ""
     @State private var phoneNumber: String = ""
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -149,8 +149,6 @@ struct OnboardingCreateProfileView: View {
             Picker("Gender (optional)", selection: $selectedGender) {
                 Text("Male").tag(Gender.male)
                 Text("Female").tag(Gender.female)
-                Text("Other").tag(Gender.other)
-                Text("Prefer not to say").tag(Gender.unspecified)
             }
         }
     }

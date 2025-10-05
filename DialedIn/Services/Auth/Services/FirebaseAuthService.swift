@@ -38,7 +38,23 @@ struct FirebaseAuthService: AuthService {
         let result = try await Auth.auth().createUser(withEmail: email, password: password)
         return result.asAuthInfo
     }
-
+    
+    func sendVerificationEmail(user: UserAuthInfo) async throws {
+        guard let currentUser = Auth.auth().currentUser, currentUser.uid == user.uid else {
+            throw AuthError.userNotFound
+        }
+        try await currentUser.sendEmailVerification()
+    }
+    
+    func checkEmailVerification(user: UserAuthInfo) async throws -> Bool {
+        guard let currentUser = Auth.auth().currentUser, currentUser.uid == user.uid else {
+            throw AuthError.userNotFound
+        }
+        // Reload user to ensure latest verification status
+        try await currentUser.reload()
+        return currentUser.isEmailVerified
+    }
+    
     func signInUser(email: String, password: String) async throws -> UserAuthInfo {
         let result = try await Auth.auth().signIn(withEmail: email, password: password)
         return result.asAuthInfo

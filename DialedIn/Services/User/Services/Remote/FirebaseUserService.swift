@@ -84,6 +84,16 @@ struct FirebaseUserService: RemoteUserService {
         ])
     }
     
+    // MARK: - Goal Settings
+    func updateGoalSettings(userId: String, objective: String, targetWeightKilograms: Double, weeklyChangeKilograms: Double) async throws {
+        let data: [String: Any] = [
+            "goal_objective": objective,
+            "goal_target_weight_kg": targetWeightKilograms,
+            "goal_weekly_change_kg": weeklyChangeKilograms
+        ]
+        try await collection.document(userId).updateData(data)
+    }
+    
     // MARK: - Created/Bookmarked/Favourited Exercise Templates
     
     func addCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
@@ -259,5 +269,16 @@ struct FirebaseUserService: RemoteUserService {
 //        })
         collection.streamDocument(id: userId)
 
+    }
+
+    // MARK: - Consents
+    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
+        let data: [String: Any] = [
+            "accepted_health_disclaimer_version": disclaimerVersion,
+            "accepted_health_disclaimer_at": acceptedAt,
+            "accepted_health_privacy_version": privacyVersion,
+            "accepted_health_privacy_at": acceptedAt
+        ]
+        try await collection.document(userId).updateData(data)
     }
 }

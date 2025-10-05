@@ -11,11 +11,13 @@ struct MockAuthService: AuthService {
     let currentUser: UserAuthInfo?
     let delay: Double
     let showError: Bool
+    let isEmailVerified: Bool
     
-    init(user: UserAuthInfo? = nil, delay: Double = 0, showError: Bool = false) {
+    init(user: UserAuthInfo? = nil, delay: Double = 0, showError: Bool = false, isEmailVerified: Bool = true) {
         self.currentUser = user
         self.delay = delay
         self.showError = showError
+        self.isEmailVerified = isEmailVerified
     }
     
     private func tryShowError() throws {
@@ -37,81 +39,77 @@ struct MockAuthService: AuthService {
     func createUser(email: String, password: String) async throws -> UserAuthInfo {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
-        print("User created")
         return UserAuthInfo.mock(isAnonymous: false)
+    }
+
+    func sendVerificationEmail(user: UserAuthInfo) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
+    
+    func checkEmailVerification(user: UserAuthInfo) async throws -> Bool {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+        return isEmailVerified
     }
 
     @discardableResult
     func signInUser(email: String, password: String) async throws -> UserAuthInfo {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
-        print("User signed in")
         return UserAuthInfo.mock(isAnonymous: false)
     }
 
     func resetPassword(email: String) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
-        print("Password reset email sent")
     }
 
     func updateEmail(email: String) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
-        print("Email updated")
     }
 
     func updatePassword(password: String) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
-        print("Password updated")
     }
 
     func reauthenticate(email: String, password: String) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
-        print("Reauthenticated")
     }
 
     func signInAnonymously() async throws -> UserAuthInfo {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
-        print("Signed in anonymously")
         return UserAuthInfo.mock(isAnonymous: true)
     }
     
     func signInApple() async throws -> UserAuthInfo {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
-        print("Signed in with Apple")
         return UserAuthInfo.mock(isAnonymous: false)
     }
 
     func signInGoogle() async throws -> UserAuthInfo {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
-        print("Signed in with Google")
         return UserAuthInfo.mock(isAnonymous: false)
     }
 
     func reauthenticateWithApple() async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
-        print("Reauthenticated with Apple")
-
     }
     
     func signOut() throws {
         try tryShowError()
-        print("Signed out")
-
     }
     
     func deleteAccount() async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
-        print("Deleted Account")
-
     }
     
 }

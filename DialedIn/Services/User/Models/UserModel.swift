@@ -23,6 +23,15 @@ struct UserModel: Codable, Equatable {
     // Profile
     let dateOfBirth: Date?
     let gender: Gender?
+    // Mandatory onboarding profile metrics
+    let heightCentimeters: Double?
+    let weightKilograms: Double?
+    let exerciseFrequency: ProfileExerciseFrequency?
+    let dailyActivityLevel: ProfileDailyActivityLevel?
+    let cardioFitnessLevel: ProfileCardioFitnessLevel?
+    // Preferences
+    let lengthUnitPreference: LengthUnitPreference?
+    let weightUnitPreference: WeightUnitPreference?
     
     // Profile
     private(set) var profileImageUrl: String?
@@ -68,6 +77,13 @@ struct UserModel: Codable, Equatable {
         lastName: String? = nil,
         dateOfBirth: Date? = nil,
         gender: Gender? = nil,
+        heightCentimeters: Double? = nil,
+        weightKilograms: Double? = nil,
+        exerciseFrequency: ProfileExerciseFrequency? = nil,
+        dailyActivityLevel: ProfileDailyActivityLevel? = nil,
+        cardioFitnessLevel: ProfileCardioFitnessLevel? = nil,
+        lengthUnitPreference: LengthUnitPreference? = nil,
+        weightUnitPreference: WeightUnitPreference? = nil,
         profileImageUrl: String? = nil,
         creationDate: Date? = nil,
         creationVersion: String? = nil,
@@ -94,6 +110,13 @@ struct UserModel: Codable, Equatable {
         self.lastName = lastName
         self.dateOfBirth = dateOfBirth
         self.gender = gender
+        self.heightCentimeters = heightCentimeters
+        self.weightKilograms = weightKilograms
+        self.exerciseFrequency = exerciseFrequency
+        self.dailyActivityLevel = dailyActivityLevel
+        self.cardioFitnessLevel = cardioFitnessLevel
+        self.lengthUnitPreference = lengthUnitPreference
+        self.weightUnitPreference = weightUnitPreference
         self.profileImageUrl = profileImageUrl
         self.creationDate = creationDate
         self.creationVersion = creationVersion
@@ -137,6 +160,13 @@ struct UserModel: Codable, Equatable {
         case lastName = "last_name"
         case dateOfBirth = "date_of_birth"
         case gender
+        case heightCentimeters = "height_cm"
+        case weightKilograms = "weight_kg"
+        case exerciseFrequency = "exercise_frequency"
+        case dailyActivityLevel = "daily_activity_level"
+        case cardioFitnessLevel = "cardio_fitness_level"
+        case lengthUnitPreference = "length_unit_preference"
+        case weightUnitPreference = "weight_unit_preference"
         case profileImageUrl = "profile_image_url"
         case creationDate = "creation_date"
         case creationVersion = "creation_version"
@@ -165,6 +195,13 @@ struct UserModel: Codable, Equatable {
             "user_\(CodingKeys.lastName.rawValue)": lastName,
             "user_\(CodingKeys.dateOfBirth.rawValue)": dateOfBirth,
             "user_\(CodingKeys.gender.rawValue)": gender?.description,
+            "user_\(CodingKeys.heightCentimeters.rawValue)": heightCentimeters,
+            "user_\(CodingKeys.weightKilograms.rawValue)": weightKilograms,
+            "user_\(CodingKeys.exerciseFrequency.rawValue)": exerciseFrequency?.rawValue,
+            "user_\(CodingKeys.dailyActivityLevel.rawValue)": dailyActivityLevel?.rawValue,
+            "user_\(CodingKeys.cardioFitnessLevel.rawValue)": cardioFitnessLevel?.rawValue,
+            "user_\(CodingKeys.lengthUnitPreference.rawValue)": lengthUnitPreference?.rawValue,
+            "user_\(CodingKeys.weightUnitPreference.rawValue)": weightUnitPreference?.rawValue,
             "user_\(CodingKeys.isAnonymous.rawValue)": isAnonymous,
             "user_\(CodingKeys.creationDate.rawValue)": creationDate,
             "user_\(CodingKeys.creationVersion.rawValue)": creationVersion,
@@ -203,6 +240,11 @@ struct UserModel: Codable, Equatable {
                 lastName: "Cooper",
                 dateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
                 gender: .male,
+                heightCentimeters: 175.0,
+                weightKilograms: 70.0,
+                exerciseFrequency: .daily,
+                dailyActivityLevel: .active,
+                cardioFitnessLevel: .intermediate,
                 creationDate: now,
                 creationVersion: "1.0.0",
                 lastSignInDate: now,
@@ -297,15 +339,44 @@ struct UserModel: Codable, Equatable {
 enum Gender: String, Codable {
     case male
     case female
-    case other
-    case unspecified
-
     var description: String {
         switch self {
         case .male: return "Male"
         case .female: return "Female"
-        case .other: return "Other"
-        case .unspecified: return "Unspecified"
         }
     }
+}
+
+enum ProfileExerciseFrequency: String, Codable {
+    case never
+    case oneToTwo = "1-2"
+    case threeToFour = "3-4"
+    case fiveToSix = "5-6"
+    case daily
+}
+
+enum ProfileDailyActivityLevel: String, Codable {
+    case sedentary
+    case light
+    case moderate
+    case active
+    case veryActive = "very_active"
+}
+
+enum ProfileCardioFitnessLevel: String, Codable {
+    case beginner
+    case novice
+    case intermediate
+    case advanced
+    case elite
+}
+
+enum LengthUnitPreference: String, Codable {
+    case centimeters
+    case inches
+}
+
+enum WeightUnitPreference: String, Codable {
+    case kilograms
+    case pounds
 }

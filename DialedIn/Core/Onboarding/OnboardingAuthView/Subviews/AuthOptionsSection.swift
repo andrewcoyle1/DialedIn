@@ -14,10 +14,18 @@ struct AuthOptionsSection: View {
     @Environment(UserManager.self) private var userManager
     @State private var showAlert: AnyAppAlert?
 
-    @State private var navigateToSignIn: Bool = false
-    @State private var navigateToSignUp: Bool = false
-    @State private var navigateToSubscriptionView: Bool = false
+    @State private var navigationDestination: NavigationDestination?
     @State private var didTriggerLogin: Bool = false
+
+    @State private var isLoadingAuth: Bool = false
+    @State private var isLoadingUser: Bool = false
+    @State private var currentAuthTask: Task<Void, Never>?
+    
+    enum NavigationDestination {
+        case signIn
+        case signUp
+        case subscription
+    }
 
     var body: some View {
         VStack {
@@ -27,22 +35,25 @@ struct AuthOptionsSection: View {
             signUpButtonSection
             signInButtonSection
         }
-        .navigationDestination(isPresented: $navigateToSignIn) {
+        .navigationDestination(isPresented: Binding(
+            get: { navigationDestination == .signIn },
+            set: { if !$0 { navigationDestination = nil } }
+        )) {
             EmailAuthSection(mode: .signIn)
         }
-        .navigationDestination(isPresented: $navigateToSignUp) {
+        .navigationDestination(isPresented: Binding(
+            get: { navigationDestination == .signUp },
+            set: { if !$0 { navigationDestination = nil } }
+        )) {
             EmailAuthSection(mode: .signUp)
         }
-        .navigationDestination(isPresented: $navigateToSubscriptionView) {
+        .navigationDestination(isPresented: Binding(
+            get: { navigationDestination == .subscription },
+            set: { if !$0 { navigationDestination = nil } }
+        )) {
             OnboardingSubscriptionView()
         }
         .showCustomAlert(alert: $showAlert)
-        .task {
-            if let user = authManager.auth {
-                didTriggerLogin = true
-                handleOnAuthSuccess(user: user)
-            }
-        }
         .onChange(of: authManager.auth, { _, newValue in
             if let newValue = newValue {
                 didTriggerLogin = true
@@ -52,11 +63,23 @@ struct AuthOptionsSection: View {
         .safeAreaInset(edge: .bottom) {
             tsAndCsSection
         }
+        .showModal(showModal: $isLoadingUser) {
+            ProgressView()
+                .tint(.white)
+        }
+        .onDisappear {
+            // Clean up any ongoing tasks and reset loading states
+            currentAuthTask?.cancel()
+            currentAuthTask = nil
+            isLoadingAuth = false
+            isLoadingUser = false
+        }
     }
 
     private var appleSignInSection: some View {
-        SignInWithAppleButtonView(type: .continue, style: .black, cornerRadius: 28)
-            .frame(height: 56)
+        SignInWithAppleButtonView(type: .continue, style: .black, cornerRadius: AuthConstants.buttonCornerRadius)
+            .frame(height: AuthConstants.buttonHeight)
+            .allowsHitTesting(!isLoadingAuth && !isLoadingUser)
             .anyButton(.press) {
                 onSignInApplePressed()
             }
@@ -65,7 +88,8 @@ struct AuthOptionsSection: View {
 
     private var googleSignInSection: some View {
         SignInWithGoogleButtonView(style: .light, scheme: .continueWithGoogle) { onSignInGooglePressed() }
-            .frame(height: 56)
+            .frame(height: AuthConstants.buttonHeight)
+            .allowsHitTesting(!isLoadingAuth && !isLoadingUser)
     }
 
     private var signUpButtonSection: some View {
@@ -92,72 +116,182 @@ struct AuthOptionsSection: View {
     }
 
     private func onSignInApplePressed() {
-        Task {
+        // Cancel any existing auth task to prevent race conditions
+        currentAuthTask?.cancel()
+        
+        currentAuthTask = Task {
+            isLoadingAuth = true
+            defer {
+                isLoadingAuth = false
+                currentAuthTask = nil
+            }
+            
             logManager.trackEvent(event: Event.appleAuthStart)
             do {
-                try await authManager.signInApple()
+                try await performAuthWithTimeout {
+                    try await authManager.signInApple()
+                }
                 logManager.trackEvent(event: Event.appleAuthSuccess)
             } catch {
-                logManager.trackEvent(event: Event.appleAuthFail(error: error))
-                showAlert = AnyAppAlert(title: "Unable to continue with Apple", subtitle: "Please check your internet connection and try again.")
+                // Only show error if task wasn't cancelled
+                if !Task.isCancelled {
+                    handleAuthError(error, provider: "Apple") {
+                        Task { @MainActor in
+                            onSignInApplePressed()
+                        }
+                    }
+                }
             }
         }
     }
 
     private func onSignInGooglePressed() {
-        Task {
+        // Cancel any existing auth task to prevent race conditions
+        currentAuthTask?.cancel()
+        
+        currentAuthTask = Task {
+            isLoadingAuth = true
+            defer {
+                isLoadingAuth = false
+                currentAuthTask = nil
+            }
+            
             logManager.trackEvent(event: Event.googleAuthStart)
             do {
-                try await authManager.signInGoogle()
+                try await performAuthWithTimeout {
+                    try await authManager.signInGoogle()
+                }
                 logManager.trackEvent(event: Event.googleAuthSuccess)
             } catch {
-                logManager.trackEvent(event: Event.googleAuthFail(error: error))
-                showAlert = AnyAppAlert(title: "Unable to continue with Google", subtitle: "Please check your internet connection and try again.")
+                // Only show error if task wasn't cancelled
+                if !Task.isCancelled {
+                    handleAuthError(error, provider: "Google") {
+                        Task { @MainActor in
+                            onSignInGooglePressed()
+                        }
+                    }
+                }
             }
         }
     }
 
     private func onSignUpEmailPressed() {
-        navigateToSignUp = true
+        navigationDestination = .signUp
     }
 
     private func onSignInEmailPressed() {
-        navigateToSignIn = true
+        navigationDestination = .signIn
     }
     
     private func handleOnAuthSuccess(user: UserAuthInfo) {
-        logManager.trackEvent(event: Event.userLoginStart)
-        Task {
+        // Cancel any existing auth task to prevent conflicts
+        currentAuthTask?.cancel()
+        
+        currentAuthTask = Task {
+            isLoadingUser = true
+            defer {
+                isLoadingUser = false
+                currentAuthTask = nil
+            }
+            
+            logManager.trackEvent(event: Event.userLoginStart)
             do {
-                try await userManager.logIn(auth: user)
+                try await performAuthWithTimeout {
+                    try await userManager.logIn(auth: user)
+                }
                 logManager.trackEvent(event: Event.userLoginSuccess)
 
-                navigateToSubscriptionView = true
+                // Only navigate if task wasn't cancelled
+                if !Task.isCancelled {
+                    navigationDestination = .subscription
+                }
             } catch {
-                logManager.trackEvent(event: Event.userLoginFail(error: error))
-                showAlert = AnyAppAlert(
-                    title: "Unable to log in to your account",
-                    subtitle: "Please check your internet connection and try again.",
-                    buttons: {
-                        AnyView(
-                            HStack {
-                                Button {
-                                    didTriggerLogin = false
-                                } label: {
-                                    Text("Dismiss")
-                                }
-                                Button {
-                                    handleOnAuthSuccess(user: user)
-                                } label: {
-                                    Text("Try again")
-                                }
-                            }
-                        )
+                // Only show error if task wasn't cancelled
+                if !Task.isCancelled {
+                    handleUserLoginError(error) {
+                        Task { @MainActor in
+                            handleOnAuthSuccess(user: user)
+                        }
                     }
-                )
+                }
             }
         }
     }
+    
+    // MARK: - Helper Methods
+    
+    /// Performs auth operation with timeout handling
+    @discardableResult
+    private func performAuthWithTimeout<T: Sendable>(_ operation: @escaping @Sendable () async throws -> T) async throws -> T {
+        try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask {
+                try await operation()
+            }
+            
+            group.addTask {
+                try await Task.sleep(for: .seconds(AuthConstants.authTimeout))
+                throw AuthTimeoutError.operationTimeout
+            }
+            
+            guard let result = try await group.next() else {
+                throw AuthTimeoutError.operationTimeout
+            }
+            
+            group.cancelAll()
+            return result
+        }
+    }
+    
+    /// Standardized error handling for auth operations
+    private func handleAuthError(_ error: Error, provider: String, retryAction: @escaping @Sendable () -> Void) {
+        let errorInfo = AuthErrorHandler.handle(error, operation: "sign in", provider: provider, logManager: logManager)
+        
+        showAlert = AnyAppAlert(
+            title: errorInfo.title,
+            subtitle: errorInfo.message,
+            buttons: {
+                AnyView(
+                    HStack {
+                        Button("Cancel") { }
+                        if errorInfo.isRetryable {
+                            Button("Try Again") {
+                                retryAction()
+                            }
+                        }
+                    }
+                )
+            }
+        )
+    }
+    
+    /// Standardized error handling for user login operations
+    private func handleUserLoginError(_ error: Error, retryAction: @escaping @Sendable () -> Void) {
+        let errorInfo = AuthErrorHandler.handleUserLoginError(error, logManager: logManager)
+        
+        showAlert = AnyAppAlert(
+            title: errorInfo.title,
+            subtitle: errorInfo.message,
+            buttons: {
+                AnyView(
+                    HStack {
+                        Button {
+                            didTriggerLogin = false
+                        } label: {
+                            Text("Cancel")
+                        }
+                        if errorInfo.isRetryable {
+                            Button("Try Again") {
+                                retryAction()
+                            }
+                        }
+                    }
+                )
+            }
+        )
+    }
+    
+    // MARK: - Error Messages
+    // Note: Error message generation is now handled by AuthErrorHandler
 
     enum Event: LoggableEvent {
         case appleAuthStart
@@ -206,6 +340,9 @@ struct AuthOptionsSection: View {
     }
 }
 
+// MARK: - Constants and Error Types
+// Note: AuthConstants and AuthTimeoutError are now defined in AuthErrorHandler.swift
+
 #Preview("Functioning Auth") {
     @Previewable @State var userAuth: UserAuthInfo?
     @Previewable @State var isNewUser: Bool = false
@@ -229,5 +366,21 @@ struct AuthOptionsSection: View {
         AuthOptionsSection()
     }
     .environment(AuthManager(service: MockAuthService(user: nil, showError: true)))
+    .previewEnvironment()
+}
+
+#Preview("Slow Login") {
+    NavigationStack {
+        AuthOptionsSection()
+    }
+    .environment(UserManager(services: MockUserServices(user: nil, delay: 3)))
+    .previewEnvironment()
+}
+
+#Preview("Failing Login") {
+    NavigationStack {
+        AuthOptionsSection()
+    }
+    .environment(UserManager(services: MockUserServices(user: nil, showError: true)))
     .previewEnvironment()
 }

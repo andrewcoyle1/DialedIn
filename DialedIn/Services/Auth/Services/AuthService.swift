@@ -10,6 +10,8 @@ protocol AuthService: Sendable {
     func addAuthenticatedUserListener(onListenerAttached: (any NSObjectProtocol) -> Void) -> AsyncStream<UserAuthInfo?>
     func getAuthenticatedUser() -> UserAuthInfo?
     func createUser(email: String, password: String) async throws -> UserAuthInfo
+    func sendVerificationEmail(user: UserAuthInfo) async throws
+    func checkEmailVerification(user: UserAuthInfo) async throws -> Bool 
     func signInUser(email: String, password: String) async throws -> UserAuthInfo
     func resetPassword(email: String) async throws
     func updateEmail(email: String) async throws

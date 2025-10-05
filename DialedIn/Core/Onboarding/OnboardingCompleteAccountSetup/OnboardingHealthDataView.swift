@@ -10,13 +10,18 @@ import SwiftUI
 struct OnboardingHealthDataView: View {
     @Environment(HealthKitManager.self) private var healthKitManager
     @Environment(LogManager.self) private var logManager
-    @State private var navigateNext: Bool = false
 
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
 
     @State private var showAlert: AnyAppAlert?
+    
+    @State private var navigationDestination: NavigationDestination?
+
+    enum NavigationDestination {
+        case gender
+    }
 
     var body: some View {
         List {
@@ -82,8 +87,11 @@ struct OnboardingHealthDataView: View {
             DevSettingsView()
         }
         #endif
-        .navigationDestination(isPresented: $navigateNext) {
-            OnboardingCompletedView()
+        .navigationDestination(isPresented: Binding(
+            get: { navigationDestination == .gender },
+            set: { if !$0 { navigationDestination = nil } }
+        )) {
+            OnboardingGenderView()
         }
         .screenAppearAnalytics(name: "OnboardingHealthData")
         .safeAreaInset(edge: .bottom) {
@@ -118,7 +126,7 @@ struct OnboardingHealthDataView: View {
             do {
                 try await healthKitManager.requestAuthorization()
                 logManager.trackEvent(event: Event.enableHealthKitSuccess)
-                navigateNext = true
+                navigationDestination = .gender
             } catch {
                 logManager.trackEvent(event: Event.enableHealthKitFail(error: error))
                 showAlert = AnyAppAlert(error: error)
@@ -128,7 +136,7 @@ struct OnboardingHealthDataView: View {
 
     private func onSkipForNowPressed() {
         logManager.trackEvent(event: Event.skipForNow)
-        navigateNext = true
+        navigationDestination = .gender
     }
     enum Event: LoggableEvent {
         case enableHealthKitStart

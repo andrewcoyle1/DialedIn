@@ -17,6 +17,8 @@ protocol RemoteUserService: Sendable {
     func updateProfileImageUrl(userId: String, url: String?) async throws
     func updateLastSignInDate(userId: String) async throws
     func markOnboardingCompleted(userId: String) async throws
+    // MARK: - Goal Settings
+    func updateGoalSettings(userId: String, objective: String, targetWeightKilograms: Double, weeklyChangeKilograms: Double) async throws
     func addCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
     func removeCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
     func addBookmarkedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
@@ -45,4 +47,6 @@ protocol RemoteUserService: Sendable {
     func unblockUser(currentUserId: String, blockedUserId: String) async throws
     func deleteUser(userId: String) async throws
     func streamUser(userId: String) -> AsyncThrowingStream<UserModel, Error>
+    // MARK: - Consents
+    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws
 }

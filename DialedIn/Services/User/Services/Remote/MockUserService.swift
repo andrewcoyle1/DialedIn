@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct MockUserService: RemoteUserService {
+    
     let currentUser: UserModel?
     let delay: Double
     let showError: Bool
@@ -212,4 +213,14 @@ struct MockUserService: RemoteUserService {
         }
     }
     
+    func updateGoalSettings(userId: String, objective: String, targetWeightKilograms: Double, weeklyChangeKilograms: Double) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
+    
+    // MARK: - Consents
+    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
 }

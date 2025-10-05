@@ -192,11 +192,12 @@ struct Dependencies {
 
 extension View {
     func previewEnvironment(isSignedIn: Bool = true) -> some View {
-        self
+        let logManager = LogManager(services: [ConsoleService(printParameters: true)])
+        return self
             .environment(UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil)))
-            .environment(AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil)))
+            .environment(logManager)
+            .environment(AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil), logManager: logManager))
             .environment(AppState())
-            .environment(LogManager(services: []))
             .environment(ReportManager(service: MockReportService(), userManager: UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))))
             .environment(ExerciseTemplateManager(services: MockExerciseTemplateServices()))
             .environment(WorkoutTemplateManager(services: MockWorkoutTemplateServices()))

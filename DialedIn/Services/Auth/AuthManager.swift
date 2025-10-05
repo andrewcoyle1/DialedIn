@@ -56,6 +56,16 @@ class AuthManager {
         return result
     }
 
+    func sendVerificationEmail() async throws {
+        guard let auth else { throw AuthError.notSignedIn }
+        try await service.sendVerificationEmail(user: auth)
+    }
+
+    func checkEmailVerification() async throws -> Bool {
+        guard let auth else { return false }
+        return try await service.checkEmailVerification(user: auth)
+    }
+    
     @discardableResult
     func signInUser(email: String, password: String) async throws -> UserAuthInfo {
         let result = try await service.signInUser(email: email, password: password)
@@ -124,10 +134,6 @@ class AuthManager {
         
     }
     
-    enum AuthError: LocalizedError {
-        case notSignedIn
-    }
-        
     enum Event: LoggableEvent {
         case authListenerStart
         case authListenerSuccess(user: UserAuthInfo?)
@@ -164,4 +170,8 @@ class AuthManager {
             }
         }
     }
+}
+
+enum AuthError: LocalizedError {
+    case notSignedIn
 }

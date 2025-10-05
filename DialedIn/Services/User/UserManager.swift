@@ -125,6 +125,18 @@ class UserManager {
         try await remote.markOnboardingCompleted(userId: uid)
     }
     
+    // MARK: - Goal Settings
+    func updateGoalSettings(objective: String, targetWeightKilograms: Double, weeklyChangeKilograms: Double) async throws {
+        let uid = try currentUserId()
+        try await remote.updateGoalSettings(userId: uid, objective: objective, targetWeightKilograms: targetWeightKilograms, weeklyChangeKilograms: weeklyChangeKilograms)
+    }
+    
+    // MARK: - Consents
+    func updateHealthConsents(disclaimerVersion: String, privacyVersion: String, acceptedAt: Date = Date()) async throws {
+        let uid = try currentUserId()
+        try await remote.updateHealthConsents(userId: uid, disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: acceptedAt)
+    }
+    
     // MARK: - Created/Bookmarked/Favourited Exercise Templates
     
     func addCreatedExerciseTemplate(exerciseId: String) async throws {

@@ -5,14 +5,19 @@
 //  Created by Andrew Coyle on 10/23/24.
 //
 import SwiftUI
+import Foundation
 import OSLog
 
 actor LogSystem {
     
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "ConsoleLogger")
+    private let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
     
     func log(level: OSLogType, message: String) {
-        logger.log(level: level, "\(message)")
+        logger.log(level: level, "\(message, privacy: .public)")
+        if isPreview {
+            print(message)
+        }
     }
     
     nonisolated func log(level: LogType, message: String) {
