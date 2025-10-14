@@ -90,17 +90,17 @@ struct ContributionChartView: View {
             Text(dateRangeString)
                 .font(.caption2)
                 .foregroundColor(.secondary)
-                .padding(.top, 4)
+                .padding(.top, 2)
 
             legendSection
              
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.background)
-                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
-        )
+//        .padding()
+//        .background(
+//            RoundedRectangle(cornerRadius: 12)
+//                .fill(Color.background)
+//                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+//        )
         .animation(.easeInOut(duration: 0.3), value: data)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Study History Contribution Chart")
@@ -204,10 +204,6 @@ struct ContributionChartView: View {
                 }
             }
             .frame(width: geo.size.width, height: chartHeight, alignment: .leading)
-            .onAppear {
-                print(geo.size.width, geo.size.height)
-                printDateMapping()
-            }
         }
     }
     
@@ -241,7 +237,7 @@ struct ContributionChartView: View {
                     .foregroundColor(.secondary)
             }
         }
-        .padding(.top, 8)
+        .padding(.top, 4)
     }
     
     private func dayLabel(for rowIndex: Int) -> String {
@@ -363,6 +359,31 @@ struct ContributionChartView: View {
     }
 }
 
+#Preview("Contribution Chart") {
+    // Sample data: 7 rows x 16 columns
+    let rows = 7
+    let columns = 16
+    let sampleData: [Double] = (0..<(rows * columns)).map { _ in Double.random(in: 0...1.2) }
+    return List {
+        Section {
+            ContributionChartView(
+                data: sampleData,
+                rows: rows,
+                columns: columns,
+                targetValue: 1.0,
+                blockColor: .accent,
+                blockBackgroundColor: .secondaryBackground,
+                rectangleWidth: 16,
+                rectangleSpacing: 2,
+                rectangleRadius: 3
+            )
+            .frame(minHeight: 190)
+        } header: {
+            Text("Contribution Chart")
+        }
+    }
+}
+
 struct ContributionChartRowView: View {
     @Environment(\.colorScheme) var colorScheme
     
@@ -442,17 +463,17 @@ extension Color {
         }
         self.init(red: Double(red) / 255, green: Double(green) / 255, blue: Double(blue) / 255)
     }
-#if os(macOS)
+    #if os(macOS)
     static let background = Color(NSColor.windowBackgroundColor)
     static let secondaryBackground = Color(NSColor.underPageBackgroundColor)
     static let tertiaryBackground = Color(NSColor.controlBackgroundColor)
-#endif
-#if os(iOS)
+    #endif
+    #if os(iOS)
     static let background = Color(UIColor.systemBackground)
     static let secondaryBackground = Color(UIColor.secondarySystemBackground)
     static let tertiaryBackground = Color(UIColor.tertiarySystemBackground)
-#endif
-#if os(watchOS)
+    #endif
+    #if os(watchOS)
     static let background = Color.black
-#endif
+    #endif
 }

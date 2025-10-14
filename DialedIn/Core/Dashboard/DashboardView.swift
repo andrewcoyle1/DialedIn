@@ -69,8 +69,8 @@ struct DashboardView: View {
                 blockColor: .accent,
                 endDate: chartEndDate
             )
-            .removeListRowFormatting()
-            .frame(height: 240)
+//            .removeListRowFormatting()
+            .frame(height: 220)
         } header: {
             Text("Workout Consistency")
         }
