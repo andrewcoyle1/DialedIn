@@ -78,9 +78,10 @@ struct FirebaseUserService: RemoteUserService {
         ])
     }
     
-    func markOnboardingCompleted(userId: String) async throws {
+    // MARK: - Onboarding Step
+    func updateOnboardingStep(userId: String, step: OnboardingStep) async throws {
         try await collection.document(userId).updateData([
-            UserModel.CodingKeys.didCompleteOnboarding.rawValue: true
+            "onboarding_step": step.rawValue
         ])
     }
     

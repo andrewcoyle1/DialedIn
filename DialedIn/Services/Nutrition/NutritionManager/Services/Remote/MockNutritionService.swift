@@ -22,4 +22,9 @@ struct MockNutritionService: RemoteNutritionService {
             throw URLError(.unknown)
         }
     }
+    
+    func saveDietPlan(userId: String, plan: DietPlan) async throws {
+        try tryShowError()
+        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+    }
 }

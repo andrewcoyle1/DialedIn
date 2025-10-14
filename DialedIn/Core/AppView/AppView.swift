@@ -17,7 +17,7 @@ struct AppView: View {
     @Environment(PushManager.self) private var pushManager
     @Environment(HealthKitManager.self) private var healthKitManager
     @State var appState: AppState = AppState()
-
+        
     var body: some View {
         AppViewBuilder(
             showTabBar: appState.showTabBar,
@@ -25,7 +25,7 @@ struct AppView: View {
                 TabBarView()
             },
             onboardingView: {
-                OnboardingFlow()
+                OnboardingRouterView()
             }
         )
         .environment(appState)
@@ -47,7 +47,92 @@ struct AppView: View {
             }
         }
     }
+}
 
+// MARK: - Completed Onboarding Previews
+
+#Preview("✅ Completed - Tab Bar") {
+    AppView(appState: AppState(showTabBar: true))
+        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.complete))))
+        .environment(AuthManager(service: MockAuthService(user: .mock())))
+        .previewEnvironment()
+}
+
+// MARK: - Onboarding Step Previews
+
+#Preview("1️⃣ Not Authenticated") {
+    AppView(appState: AppState(showTabBar: false))
+        .environment(UserManager(services: MockUserServices(user: nil)))
+        .environment(AuthManager(service: MockAuthService(user: nil)))
+        .previewEnvironment()
+}
+
+#Preview("2️⃣ Loading User Data") {
+    AppView(appState: AppState(showTabBar: false))
+        .environment(UserManager(services: MockUserServices(user: nil, delay: 3)))
+        .environment(AuthManager(service: MockAuthService(user: .mock())))
+        .previewEnvironment()
+}
+
+#Preview("3️⃣ Subscription Step") {
+    AppView(appState: AppState(showTabBar: false))
+        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.subscription))))
+        .environment(AuthManager(service: MockAuthService(user: .mock())))
+        .previewEnvironment()
+}
+
+#Preview("4️⃣ Complete Account Setup") {
+    AppView(appState: AppState(showTabBar: false))
+        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.completeAccountSetup))))
+        .environment(AuthManager(service: MockAuthService(user: .mock())))
+        .previewEnvironment()
+}
+
+#Preview("5️⃣ Health Disclaimer") {
+    AppView(appState: AppState(showTabBar: false))
+        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.healthDisclaimer))))
+        .environment(AuthManager(service: MockAuthService(user: .mock())))
+        .previewEnvironment()
+}
+
+#Preview("6️⃣ Goal Setting") {
+    AppView(appState: AppState(showTabBar: false))
+        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.goalSetting))))
+        .environment(AuthManager(service: MockAuthService(user: .mock())))
+        .previewEnvironment()
+}
+
+#Preview("7️⃣ Customise Program") {
+    AppView(appState: AppState(showTabBar: false))
+        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.customiseProgram))))
+        .environment(AuthManager(service: MockAuthService(user: .mock())))
+        .previewEnvironment()
+}
+
+#Preview("8️⃣ Diet Plan") {
+    AppView(appState: AppState(showTabBar: false))
+        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.diet))))
+        .environment(AuthManager(service: MockAuthService(user: .mock())))
+        .previewEnvironment()
+}
+
+// MARK: - Error State Previews
+
+#Preview("❌ Auth Failure") {
+    AppView(appState: AppState(showTabBar: false))
+        .environment(UserManager(services: MockUserServices(user: nil, showError: true)))
+        .environment(AuthManager(service: MockAuthService(user: nil, showError: true)))
+        .previewEnvironment()
+}
+
+#Preview("❌ User Load Failure") {
+    AppView(appState: AppState(showTabBar: false))
+        .environment(UserManager(services: MockUserServices(user: nil, showError: true)))
+        .environment(AuthManager(service: MockAuthService(user: .mock(), showError: true)))
+        .previewEnvironment()
+}
+
+extension AppView {
     private func schedulePushNotifications() {
         pushManager.schedulePushNotificationsForNextWeek()
     }
@@ -61,6 +146,7 @@ struct AppView: View {
         if let user = authManager.auth {
             // User is authenticated
             logManager.trackEvent(event: Event.existingAuthStart)
+            
             do {
                 try await userManager.logIn(auth: user)
             } catch {
@@ -73,13 +159,13 @@ struct AppView: View {
             logManager.trackEvent(event: Event.anonAuthStart)
             do {
                 let result = try await authManager.signInAnonymously()
-                
-                // log in to app
+
+                // Log in to app
                 logManager.trackEvent(event: Event.anonAuthSuccess)
-
-                // Log in
-                try await userManager.logIn(auth: result)
-
+//                
+//                // Log in
+//                try await userManager.logIn(auth: result)
+                
             } catch {
                 logManager.trackEvent(event: Event.anonAuthFail(error: error))
                 try? await Task.sleep(for: .seconds(5))
@@ -90,6 +176,7 @@ struct AppView: View {
 
     enum Event: LoggableEvent {
         case existingAuthStart
+        case existingAuthSuccess
         case existingAuthFail(error: Error)
         case anonAuthStart
         case anonAuthSuccess
@@ -99,6 +186,7 @@ struct AppView: View {
         var eventName: String {
             switch self {
             case .existingAuthStart: return "AppView_ExistingAuth_Start"
+            case .existingAuthSuccess: return "AppView_ExistingAuth_Success"
             case .existingAuthFail:  return "AppView_ExistingAuth_Fail"
             case .anonAuthStart:     return "AppView_AnonAuth_Start"
             case .anonAuthSuccess:   return "AppView_AnonAuth_Success"
@@ -128,40 +216,4 @@ struct AppView: View {
             }
         }
     }
-}
-
-#Preview("Onboarding - Functioning") {
-    AppView(appState: AppState(showTabBar: false))
-        .environment(UserManager(services: MockUserServices(user: nil)))
-        .environment(AuthManager(service: MockAuthService(user: nil)))
-        .previewEnvironment()
-}
-
-#Preview("Onboarding Slow Loading") {
-    AppView(appState: AppState(showTabBar: false))
-        .environment(UserManager(services: MockUserServices(user: nil, delay: 3)))
-        .environment(AuthManager(service: MockAuthService(user: nil, delay: 3)))
-        .previewEnvironment()
-}
-
-#Preview("Onboarding Auth Failure") {
-    AppView(appState: AppState(showTabBar: false))
-        .environment(UserManager(services: MockUserServices(user: nil, showError: true)))
-        .environment(AuthManager(service: MockAuthService(user: nil, showError: true)))
-        .previewEnvironment()
-}
-
-#Preview("Onboarding User Failure") {
-    AppView(appState: AppState(showTabBar: false))
-        .environment(UserManager(services: MockUserServices(user: nil, showError: true)))
-        .environment(AuthManager(service: MockAuthService(user: .mock(), showError: true)))
-        .previewEnvironment()
-}
-
-#Preview("AppView - Tabbar") {
-    AppView(appState: AppState(showTabBar: true))
-        .environment(UserManager(services: MockUserServices(user: .mock)))
-        .environment(AuthManager(service: MockAuthService(user: .mock())))
-        .previewEnvironment()
-
 }

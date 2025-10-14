@@ -24,57 +24,68 @@ struct OnboardingActivityView: View {
         case cardioFitness(gender: Gender, dateOfBirth: Date, height: Double, weight: Double, exerciseFrequency: ExerciseFrequency, activityLevel: ActivityLevel, lengthUnitPreference: LengthUnitPreference, weightUnitPreference: WeightUnitPreference)
     }
     
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
+    
     var body: some View {
         List {
-            Section {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("What's your daily activity level outside of exercise?")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                        .padding(.bottom, 8)
-                    
-                    ForEach(ActivityLevel.allCases, id: \.self) { level in
-                        activityRow(level)
-                    }
-                }
-                .removeListRowFormatting()
-                .padding(.horizontal)
-            } header: {
-                Text("Daily Activity")
-            }
+            dailyActivitySection
         }
         .navigationTitle("Activity Level")
-        .safeAreaInset(edge: .bottom) {
-            Capsule()
-                .frame(height: AuthConstants.buttonHeight)
-                .frame(maxWidth: .infinity)
-                .foregroundStyle(canSubmit ? Color.accent : Color.gray.opacity(0.3))
-                .padding(.horizontal)
-                .overlay(alignment: .center) {
-                    Text("Continue")
-                        .foregroundStyle(Color.white)
-                        .padding(.horizontal, 32)
-                }
-                .allowsHitTesting(canSubmit)
-                .anyButton(.press) {
-                    onContinue()
-                }
+        .toolbar {
+            toolbarContent
         }
-        .navigationDestination(isPresented: Binding(
-            get: {
-                if case .cardioFitness = navigationDestination { return true }
-                return false
-            },
-            set: { if !$0 { navigationDestination = nil } }
-        )) {
-            if case let .cardioFitness(gender, dateOfBirth, height, weight, exerciseFrequency, activityLevel, lengthUnitPreference, weightUnitPreference) = navigationDestination {
-                OnboardingCardioFitnessView(gender: gender, dateOfBirth: dateOfBirth, height: height, weight: weight, exerciseFrequency: exerciseFrequency, activityLevel: activityLevel, lengthUnitPreference: lengthUnitPreference, weightUnitPreference: weightUnitPreference)
-            } else {
-                EmptyView()
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
+    }
+    
+    private var dailyActivitySection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("What's your daily activity level outside of exercise?")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 8)
+                
+                ForEach(ActivityLevel.allCases, id: \.self) { level in
+                    activityRow(level)
+                }
             }
+            .removeListRowFormatting()
+            .padding(.horizontal)
+        } header: {
+            Text("Daily Activity")
         }
     }
     
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        ToolbarItem(placement: .bottomBar) {
+            NavigationLink {
+                if let activityLevel = selectedActivityLevel {
+                    OnboardingCardioFitnessView(gender: gender, dateOfBirth: dateOfBirth, height: height, weight: weight, exerciseFrequency: exerciseFrequency, activityLevel: activityLevel, lengthUnitPreference: lengthUnitPreference, weightUnitPreference: weightUnitPreference)
+                }
+            } label: {
+                Image(systemName: "chevron.right")
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(!canSubmit)
+        }
+    }
     private var canSubmit: Bool {
         selectedActivityLevel != nil
     }
@@ -101,12 +112,6 @@ struct OnboardingActivityView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.secondarySystemBackground))
         )
-    }
-    
-    private func onContinue() {
-        guard let selectedActivityLevel = selectedActivityLevel else { return }
-        // Navigate to cardio fitness view with collected data
-        navigationDestination = .cardioFitness(gender: gender, dateOfBirth: dateOfBirth, height: height, weight: weight, exerciseFrequency: exerciseFrequency, activityLevel: selectedActivityLevel, lengthUnitPreference: lengthUnitPreference, weightUnitPreference: weightUnitPreference)
     }
 }
 

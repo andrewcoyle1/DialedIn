@@ -29,13 +29,19 @@ struct DialedInApp: App {
                 #endif
                 .environment(delegate.dependencies.ingredientTemplateManager)
                 .environment(delegate.dependencies.recipeTemplateManager)
+                .environment(delegate.dependencies.nutritionManager)
+                .environment(delegate.dependencies.mealLogManager)
                 .environment(delegate.dependencies.aiManager)
-                .environment(delegate.dependencies.pushManager)
-                .environment(delegate.dependencies.userManager)
-                .environment(delegate.dependencies.authManager)
                 .environment(delegate.dependencies.logManager)
                 .environment(delegate.dependencies.reportManager)
                 .environment(delegate.dependencies.healthKitManager)
+                .environment(delegate.dependencies.pushManager)
+                .environment(delegate.dependencies.purchaseManager)
+                .environment(delegate.dependencies.userManager)
+                .environment(delegate.dependencies.authManager)
+                .onOpenURL { url in
+                    _ = GIDSignIn.sharedInstance.handle(url)
+                }
         }
     }
 }
@@ -59,10 +65,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         dependencies = Dependencies(config: config)
         return true
     }
-    
-    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        return GIDSignIn.sharedInstance.handle(url)
-    }
 }
 
 enum BuildConfiguration {
@@ -76,7 +78,6 @@ enum BuildConfiguration {
         case .dev:
             let plist = Bundle.main.path(forResource: "GoogleService-Info-Dev", ofType: "plist")!
             let options = FirebaseOptions(contentsOfFile: plist)!
-//            let providerFactory = AppCheckDebugProviderFactory()
             let providerFactory = MyAppCheckProviderFactory()
             AppCheck.setAppCheckProviderFactory(providerFactory)
             FirebaseApp.configure(options: options)
@@ -104,12 +105,15 @@ enum BuildConfiguration {
 struct Dependencies {
     let authManager: AuthManager
     let userManager: UserManager
+    let purchaseManager: PurchaseManager
     let exerciseTemplateManager: ExerciseTemplateManager
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
     let exerciseHistoryManager: ExerciseHistoryManager
     let ingredientTemplateManager: IngredientTemplateManager
     let recipeTemplateManager: RecipeTemplateManager
+    let nutritionManager: NutritionManager
+    let mealLogManager: MealLogManager
     let pushManager: PushManager
     let aiManager: AIManager
     let logManager: LogManager
@@ -125,12 +129,15 @@ struct Dependencies {
         case .mock(isSignedIn: let isSignedIn):
             authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil))
             userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
+            purchaseManager = PurchaseManager(services: MockPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
             workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices())
             workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())
             ingredientTemplateManager = IngredientTemplateManager(services: MockIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: MockRecipeTemplateServices())
+            nutritionManager = NutritionManager(services: MockNutritionServices())
+            mealLogManager = MealLogManager(services: MockMealLogServices(mealsByDay: MealLogModel.mockWeekMealsByDay))
             aiManager = AIManager(service: MockAIService())
             logManager = LogManager(services: [
                 ConsoleService(printParameters: false)
@@ -144,18 +151,21 @@ struct Dependencies {
             let logs = LogManager(services: [
                 ConsoleService(),
                 FirebaseAnalyticsService(),
-                MixpanelService(token: Keys.mixpanelToken, loggingEnabled: true),
+                MixpanelService(token: Keys.mixpanelToken, loggingEnabled: false),
                 FirebaseCrashlyticsService()
             ])
             
             authManager = AuthManager(service: FirebaseAuthService(), logManager: logs)
             userManager = UserManager(services: ProductionUserServices(), logManager: logs)
+            purchaseManager = PurchaseManager(services: ProductionPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices())
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             ingredientTemplateManager = IngredientTemplateManager(services: ProductionIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: ProductionRecipeTemplateServices())
+            nutritionManager = NutritionManager(services: ProductionNutritionServices())
+            mealLogManager = MealLogManager(services: ProductionMealLogServices())
             aiManager = AIManager(service: GoogleAIService())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
@@ -172,12 +182,15 @@ struct Dependencies {
             ])
             authManager = AuthManager(service: FirebaseAuthService(), logManager: logs)
             userManager = UserManager(services: ProductionUserServices(), logManager: logs)
+            purchaseManager = PurchaseManager(services: ProductionPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices())
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             ingredientTemplateManager = IngredientTemplateManager(services: ProductionIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: ProductionRecipeTemplateServices())
+            nutritionManager = NutritionManager(services: ProductionNutritionServices())
+            mealLogManager = MealLogManager(services: ProductionMealLogServices())
             aiManager = AIManager(service: GoogleAIService())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
@@ -186,13 +199,13 @@ struct Dependencies {
             #endif
         }
         pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
-        healthKitManager = HealthKitManager()
+        healthKitManager = HealthKitManager(service: HealthKitService())
     }
 }
 
 extension View {
     func previewEnvironment(isSignedIn: Bool = true) -> some View {
-        let logManager = LogManager(services: [ConsoleService(printParameters: true)])
+        let logManager = LogManager(services: [ConsoleService(printParameters: false)])
         return self
             .environment(UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil)))
             .environment(logManager)
@@ -206,10 +219,13 @@ extension View {
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             .environment(WorkoutActivityViewModel())
             #endif
+            .environment(PurchaseManager(services: MockPurchaseServices()))
             .environment(IngredientTemplateManager(services: MockIngredientTemplateServices()))
             .environment(RecipeTemplateManager(services: MockRecipeTemplateServices()))
+            .environment(NutritionManager(services: MockNutritionServices()))
+            .environment(MealLogManager(services: MockMealLogServices(mealsByDay: MealLogModel.previewWeekMealsByDay)))
             .environment(AIManager(service: MockAIService()))
             .environment(PushManager(services: MockPushServices(), logManager: nil))
-            .environment(HealthKitManager())
+            .environment(HealthKitManager(service: MockHealthService()))
     }
 }

@@ -17,6 +17,11 @@ struct OnboardingDateOfBirthView: View {
     enum NavigationDestination {
         case height(gender: Gender, dateOfBirth: Date)
     }
+    
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
+    
     var body: some View {
         List {
             DatePicker(selection: $dateOfBirth, displayedComponents: .date) {
@@ -26,20 +31,8 @@ struct OnboardingDateOfBirthView: View {
             .removeListRowFormatting()
         }
         .navigationTitle("Date of birth")
-        .safeAreaInset(edge: .bottom) {
-            Capsule()
-                .frame(height: AuthConstants.buttonHeight)
-                .frame(maxWidth: .infinity)
-                .foregroundStyle(Color.accent)
-                .padding(.horizontal)
-                .overlay(alignment: .center) {
-                    Text("Continue")
-                        .foregroundStyle(Color.white)
-                        .padding(.horizontal, 32)
-                }
-                .anyButton(.press) {
-                    onContinue()
-                }
+        .toolbar {
+            toolbarContent
         }
         .navigationDestination(isPresented: Binding(
             get: {
@@ -54,10 +47,33 @@ struct OnboardingDateOfBirthView: View {
                 EmptyView()
             }
         }
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
     }
-
-    private func onContinue() {
-        navigationDestination = .height(gender: gender, dateOfBirth: dateOfBirth)
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        ToolbarItem(placement: .bottomBar) {
+            NavigationLink {
+                OnboardingHeightView(gender: gender, dateOfBirth: dateOfBirth)
+            } label: {
+                Image(systemName: "chevron.right")
+            }
+            .buttonStyle(.glassProminent)
+        }
     }
 }
 

@@ -15,11 +15,15 @@ struct OnboardingGenderView: View {
     @State private var selectedGender: Gender?
     
     @State private var navigationDestination: NavigationDestination?
-
+    
     enum NavigationDestination {
         case dateOfBirth(gender: Gender)
     }
-
+    
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
+    
     var body: some View {
         List {
             Section {
@@ -34,22 +38,8 @@ struct OnboardingGenderView: View {
             }
         }
         .navigationTitle("About You")
-        .safeAreaInset(edge: .bottom) {
-            Capsule()
-                .frame(height: AuthConstants.buttonHeight)
-                .frame(maxWidth: .infinity)
-                .foregroundStyle(canSubmit ? Color.accent : Color.gray.opacity(0.3))
-                .padding(.horizontal)
-                .overlay(alignment: .center) {
-                    Text("Continue")
-                        .foregroundStyle(Color.white)
-                        .padding(.horizontal, 32)
-                    
-                }
-                .allowsHitTesting(canSubmit)
-                .anyButton(.press) {
-                    onContinue()
-                }
+        .toolbar {
+            toolbarContent
         }
         .navigationDestination(isPresented: Binding(
             get: {
@@ -63,6 +53,36 @@ struct OnboardingGenderView: View {
             } else {
                 EmptyView()
             }
+        }
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        ToolbarItem(placement: .bottomBar) {
+            NavigationLink {
+                if let gender = selectedGender {
+                    OnboardingDateOfBirthView(gender: gender)
+                }
+            } label: {
+                Image(systemName: "chevron.right")
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(!canSubmit)
         }
     }
     
@@ -89,11 +109,6 @@ struct OnboardingGenderView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.secondarySystemBackground))
         )
-    }
-    
-    private func onContinue() {
-        guard let selectedGender = selectedGender else { return }
-        navigationDestination = .dateOfBirth(gender: selectedGender)
     }
 }
 

@@ -18,11 +18,9 @@ struct OnboardingTargetWeightView: View {
     @State private var selectedPounds: Int = 0
     @State private var didInitialize: Bool = false
     
-    @State private var navigationDestination: NavigationDestination?
-
-    enum NavigationDestination {
-        case weightRate
-    }
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
     
     var body: some View {
         List {
@@ -38,17 +36,36 @@ struct OnboardingTargetWeightView: View {
         .onFirstAppear {
             onAppear()
         }
-        .safeAreaInset(edge: .bottom) {
-            buttonSection
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
         }
-        .navigationDestination(isPresented: Binding(
-            get: {
-                if case .weightRate = navigationDestination { return true }
-                return false
-            },
-            set: { if !$0 { navigationDestination = nil } }
-        )) {
-            OnboardingWeightRateView(objective: objective, targetWeight: targetWeight)
+        #endif
+        .toolbar {
+            toolbarSection
+        }
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarSection: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        ToolbarItem(placement: .bottomBar) {
+            NavigationLink {
+                OnboardingWeightRateView(objective: objective, targetWeight: targetWeight)
+            } label: {
+                Image(systemName: "chevron.right")
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(!canContinue)
         }
     }
     
@@ -101,27 +118,6 @@ struct OnboardingTargetWeightView: View {
     
     private var canContinue: Bool { 
         targetWeight != 0 && targetWeight != currentWeight 
-    }
-    
-    private var buttonSection: some View {
-        Capsule()
-            .frame(height: AuthConstants.buttonHeight)
-            .frame(maxWidth: .infinity)
-            .foregroundStyle(canContinue ? Color.accent : Color.gray.opacity(0.3))
-            .padding(.horizontal)
-            .overlay(alignment: .center) {
-                Text("Continue")
-                    .foregroundStyle(Color.white)
-                    .padding(.horizontal, 32)
-            }
-            .allowsHitTesting(canContinue)
-            .anyButton(.press) {
-                onContinue()
-            }
-    }
-    
-    private func onContinue() {
-        navigationDestination = .weightRate
     }
 
     // MARK: - Ranges

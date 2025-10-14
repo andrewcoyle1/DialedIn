@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UserNotifications
 
 @MainActor
 @Observable
@@ -41,6 +42,18 @@ class PushManager {
 
     func schedulePushNotification(title: String, body: String, date: Date) async throws {
         try await local.scheduleNotification(title: title, subtitle: body, triggerDate: date)
+    }
+    
+    func getDeliveredNotifications() async -> [UNNotification] {
+        await local.getDeliveredNotifications()
+    }
+    
+    func removeDeliveredNotification(identifier: String) async {
+        await local.removeDeliveredNotification(identifier: identifier)
+    }
+    
+    func getAuthorizationStatus() async -> UNAuthorizationStatus {
+        await local.getNotificationAuthorizationStatus()
     }
 
     enum Event: LoggableEvent {

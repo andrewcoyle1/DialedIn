@@ -45,6 +45,7 @@ struct UserModel: Codable, Equatable {
     
     // Onboarding
     let didCompleteOnboarding: Bool?
+    let onboardingStep: OnboardingStep?
     
     // Exercise Templates
     let createdExerciseTemplateIds: [String]?
@@ -89,6 +90,7 @@ struct UserModel: Codable, Equatable {
         creationVersion: String? = nil,
         lastSignInDate: Date? = nil,
         didCompleteOnboarding: Bool? = nil,
+        onboardingStep: OnboardingStep? = nil,
         createdExerciseTemplateIds: [String]? = nil,
         bookmarkedExerciseTemplateIds: [String]? = nil,
         favouritedExerciseTemplateIds: [String]? = nil,
@@ -122,6 +124,7 @@ struct UserModel: Codable, Equatable {
         self.creationVersion = creationVersion
         self.lastSignInDate = lastSignInDate
         self.didCompleteOnboarding = didCompleteOnboarding
+        self.onboardingStep = onboardingStep
         self.createdExerciseTemplateIds = createdExerciseTemplateIds
         self.bookmarkedExerciseTemplateIds = bookmarkedExerciseTemplateIds
         self.favouritedExerciseTemplateIds = favouritedExerciseTemplateIds
@@ -172,6 +175,7 @@ struct UserModel: Codable, Equatable {
         case creationVersion = "creation_version"
         case lastSignInDate = "last_sign_in_date"
         case didCompleteOnboarding = "did_complete_onboarding"
+        case onboardingStep = "onboarding_step"
         case createdExerciseTemplateIds = "created_exercise_template_ids"
         case bookmarkedExerciseTemplateIds = "bookmarked_exercise_template_ids"
         case favouritedExerciseTemplateIds = "favourited_exercise_template_ids"
@@ -207,6 +211,7 @@ struct UserModel: Codable, Equatable {
             "user_\(CodingKeys.creationVersion.rawValue)": creationVersion,
             "user_\(CodingKeys.lastSignInDate.rawValue)": lastSignInDate,
             "user_\(CodingKeys.didCompleteOnboarding.rawValue)": didCompleteOnboarding,
+            "user_\(CodingKeys.onboardingStep.rawValue)": onboardingStep?.rawValue,
             "user_\(CodingKeys.profileImageUrl.rawValue)": profileImageUrl,
             "user_\(CodingKeys.createdExerciseTemplateIds.rawValue)": createdExerciseTemplateIds,
             "user_\(CodingKeys.bookmarkedExerciseTemplateIds.rawValue)": bookmarkedExerciseTemplateIds,
@@ -227,6 +232,29 @@ struct UserModel: Codable, Equatable {
     
     static var mock: Self {
         mocks[0]
+    }
+    
+    static func mockWithStep(_ step: OnboardingStep?) -> Self {
+        let now = Date()
+        return UserModel(
+            userId: "mockUser",
+            email: "mock@example.com",
+            isAnonymous: false,
+            firstName: "Mock",
+            lastName: "User",
+            dateOfBirth: Calendar.current.date(from: DateComponents(year: 1990, month: 1, day: 1)),
+            gender: .male,
+            heightCentimeters: 175.0,
+            weightKilograms: 70.0,
+            exerciseFrequency: .fiveToSix,
+            dailyActivityLevel: .active,
+            cardioFitnessLevel: .intermediate,
+            creationDate: now,
+            creationVersion: "1.0.0",
+            lastSignInDate: now,
+            didCompleteOnboarding: step == .complete,
+            onboardingStep: step
+        )
     }
 
     static var mocks: [Self] {
@@ -249,6 +277,7 @@ struct UserModel: Codable, Equatable {
                 creationVersion: "1.0.0",
                 lastSignInDate: now,
                 didCompleteOnboarding: true,
+                onboardingStep: .complete,
                 createdExerciseTemplateIds: ["exercise1", "exercise2"],
                 bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
                 favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
@@ -272,6 +301,7 @@ struct UserModel: Codable, Equatable {
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-3600),
                 didCompleteOnboarding: false,
+                onboardingStep: .subscription,
                 createdExerciseTemplateIds: ["exercise1", "exercise2"],
                 bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
                 favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
@@ -295,6 +325,7 @@ struct UserModel: Codable, Equatable {
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-2 * 3600),
                 didCompleteOnboarding: true,
+                onboardingStep: .completeAccountSetup,
                 createdExerciseTemplateIds: ["exercise1", "exercise2"],
                 bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
                 favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
@@ -310,14 +341,39 @@ struct UserModel: Codable, Equatable {
                 blockedUserIds: ["user1", "user2"]
             ),
             UserModel(
-                userId: "user4",
-                email: "user4@example.com",
+                userId: "user5",
+                email: "user5@example.com",
                 isAnonymous: true,
-                firstName: "Dana",
+                firstName: "Andrew",
                 creationDate: now.addingTimeInterval(-5 * 86400 - 4 * 3600),
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-4 * 3600),
                 didCompleteOnboarding: nil,
+                onboardingStep: .goalSetting,
+                createdExerciseTemplateIds: ["exercise1", "exercise2"],
+                bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
+                favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
+                createdWorkoutTemplateIds: ["workout1", "workout2"],
+                bookmarkedWorkoutTemplateIds: ["workout3", "workout4"],
+                favouritedWorkoutTemplateIds: ["workout5", "workout6"],
+                createdIngredientTemplateIds: ["ingredient1", "ingredient2"],
+                bookmarkedIngredientTemplateIds: ["ingredient3", "ingredient4"],
+                favouritedIngredientTemplateIds: ["ingredient5", "ingredient6"],
+                createdRecipeTemplateIds: ["recipe1", "recipe2"],
+                bookmarkedRecipeTemplateIds: ["recipe3", "recipe4"],
+                favouritedRecipeTemplateIds: ["recipe5", "recipe6"],
+                blockedUserIds: ["user1", "user2"]
+            ),
+            UserModel(
+                userId: "user6",
+                email: "user6@example.com",
+                isAnonymous: true,
+                firstName: "David",
+                creationDate: now.addingTimeInterval(-5 * 86400 - 4 * 3600),
+                creationVersion: "1.0.0",
+                lastSignInDate: now.addingTimeInterval(-4 * 3600),
+                didCompleteOnboarding: nil,
+                onboardingStep: .customiseProgram,
                 createdExerciseTemplateIds: ["exercise1", "exercise2"],
                 bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
                 favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
@@ -379,4 +435,15 @@ enum LengthUnitPreference: String, Codable {
 enum WeightUnitPreference: String, Codable {
     case kilograms
     case pounds
+}
+
+enum OnboardingStep: String, Codable {
+    case auth
+    case subscription
+    case completeAccountSetup
+    case healthDisclaimer
+    case goalSetting
+    case customiseProgram
+    case diet
+    case complete
 }

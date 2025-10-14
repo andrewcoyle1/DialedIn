@@ -23,75 +23,52 @@ struct OnboardingWeightView: View {
         case exerciseFrequency(gender: Gender, dateOfBirth: Date, height: Double, weight: Double, lengthUnitPreference: LengthUnitPreference, weightUnitPreference: WeightUnitPreference)
     }
     
+    private var weight: Double {
+        switch unit {
+        case .kilograms:
+            Double(selectedKilograms)
+        case .pounds:
+            Double(selectedPounds) * 0.453592
+        }
+    }
+    
+    private var preference: WeightUnitPreference {
+        switch unit {
+        case .kilograms:
+            return .kilograms
+        case .pounds:
+            return .pounds
+        }
+    }
+    
     enum UnitOfWeight {
         case kilograms
         case pounds
     }
+    
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
 
     var body: some View {
         List {
-            Section {
-                Picker("Units", selection: $unit) {
-                    Text("Metric").tag(UnitOfWeight.kilograms)
-                    Text("Imperial").tag(UnitOfWeight.pounds)
-                }
-                .pickerStyle(.segmented)
-            }
-            .removeListRowFormatting()
+            pickerSection
             
             if unit == .kilograms {
-                Section {
-                    Picker("Kilograms", selection: $selectedKilograms) {
-                        ForEach(30...200, id: \.self) { value in
-                            Text("\(value) kg").tag(value)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .frame(height: 150)
-                    .clipped()
-                    .onChange(of: selectedKilograms) { _, _ in
-                        updatePoundsFromKilograms()
-                    }
-                } header: {
-                    Text("Metric")
-                }
-                .removeListRowFormatting()
+                metricSection
             } else {
-                Section {
-                    Picker("Pounds", selection: $selectedPounds) {
-                        ForEach(66...440, id: \.self) { value in
-                            Text("\(value) lbs").tag(value)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .frame(height: 150)
-                    .clipped()
-                    .onChange(of: selectedPounds) { _, _ in
-                        updateKilogramsFromPounds()
-                    }
-                } header: {
-                    Text("Imperial")
-                }
-                .removeListRowFormatting()
+                imperialSection
             }
         }
         .navigationTitle("What's your weight?")
-        .safeAreaInset(edge: .bottom) {
-            Capsule()
-                .frame(height: AuthConstants.buttonHeight)
-                .frame(maxWidth: .infinity)
-                .foregroundStyle(canSubmit ? Color.accent : Color.gray.opacity(0.3))
-                .padding(.horizontal)
-                .overlay(alignment: .center) {
-                    Text("Continue")
-                        .foregroundStyle(Color.white)
-                        .padding(.horizontal, 32)
-                }
-                .allowsHitTesting(canSubmit)
-                .anyButton(.press) {
-                    onContinue()
-                }
+        .toolbar {
+            toolbarContent
         }
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
         .navigationDestination(isPresented: Binding(
             get: {
                 if case .exerciseFrequency = navigationDestination { return true }
@@ -104,6 +81,77 @@ struct OnboardingWeightView: View {
             } else {
                 EmptyView()
             }
+        }
+    }
+    
+    private var pickerSection: some View {
+        Section {
+            Picker("Units", selection: $unit) {
+                Text("Metric").tag(UnitOfWeight.kilograms)
+                Text("Imperial").tag(UnitOfWeight.pounds)
+            }
+            .pickerStyle(.segmented)
+        }
+        .removeListRowFormatting()
+    }
+    
+    private var metricSection: some View {
+        Section {
+            Picker("Kilograms", selection: $selectedKilograms) {
+                ForEach((30...200).reversed(), id: \.self) { value in
+                    Text("\(value) kg").tag(value)
+                }
+            }
+            .pickerStyle(.wheel)
+            .frame(height: 150)
+            .clipped()
+            .onChange(of: selectedKilograms) { _, _ in
+                updatePoundsFromKilograms()
+            }
+        } header: {
+            Text("Metric")
+        }
+        .removeListRowFormatting()
+    }
+    
+    private var imperialSection: some View {
+        Section {
+            Picker("Pounds", selection: $selectedPounds) {
+                ForEach((66...440).reversed(), id: \.self) { value in
+                    Text("\(value) lbs").tag(value)
+                }
+            }
+            .pickerStyle(.wheel)
+            .frame(height: 150)
+            .clipped()
+            .onChange(of: selectedPounds) { _, _ in
+                updateKilogramsFromPounds()
+            }
+        } header: {
+            Text("Imperial")
+        }
+        .removeListRowFormatting()
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        ToolbarItem(placement: .bottomBar) {
+            NavigationLink {
+                OnboardingExerciseFrequencyView(gender: gender, dateOfBirth: dateOfBirth, height: height, weight: weight, lengthUnitPreference: lengthUnitPreference, weightUnitPreference: preference)
+            } label: {
+                Image(systemName: "chevron.right")
+            }
+            .buttonStyle(.glassProminent)
         }
     }
     
@@ -122,21 +170,6 @@ struct OnboardingWeightView: View {
     
     private func updateKilogramsFromPounds() {
         selectedKilograms = Int(Double(selectedPounds) / 2.20462)
-    }
-    
-    private func onContinue() {
-        let weightInKg: Double
-        let weightPreference: WeightUnitPreference
-        switch unit {
-        case .kilograms:
-            weightInKg = Double(selectedKilograms)
-            weightPreference = .kilograms
-        case .pounds:
-            weightInKg = Double(selectedPounds) / 2.20462
-            weightPreference = .pounds
-        }
-        // Navigate to exercise frequency view with collected data
-        navigationDestination = .exerciseFrequency(gender: gender, dateOfBirth: dateOfBirth, height: height, weight: weightInKg, lengthUnitPreference: lengthUnitPreference, weightUnitPreference: weightPreference)
     }
 }
 

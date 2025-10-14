@@ -21,9 +21,14 @@ struct OnboardingWeightRateView: View {
     
     @State private var isLoading: Bool = false
     @State private var showAlert: AnyAppAlert?
+    
     enum NavigationDestination {
         case customisingProgram
     }
+    
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
     
     enum WeightRateCategory {
         case conservative, standard, aggressive
@@ -74,18 +79,36 @@ struct OnboardingWeightRateView: View {
         .onFirstAppear {
             onAppear()
         }
-        .safeAreaInset(edge: .bottom) {
-            buttonSection
+        .toolbar {
+            toolbarContent
         }
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
         .showCustomAlert(alert: $showAlert)
-        .navigationDestination(isPresented: Binding(
-            get: {
-                if case .customisingProgram = navigationDestination { return true }
-                return false
-            },
-            set: { if !$0 { navigationDestination = nil } }
-        )) {
-            OnboardingCustomisingProgramView()
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        ToolbarItem(placement: .bottomBar) {
+            NavigationLink {
+                OnboardingGoalSummaryView(objective: objective, targetWeight: targetWeight, weightRate: weightChangeRate)
+            } label: {
+                Image(systemName: "chevron.right")
+            }
+            .buttonStyle(.glassProminent)
         }
     }
     
@@ -180,28 +203,6 @@ struct OnboardingWeightRateView: View {
     
     private var canContinue: Bool { weightChangeRate > 0 }
     
-    private var buttonSection: some View {
-        Capsule()
-            .frame(height: AuthConstants.buttonHeight)
-            .frame(maxWidth: .infinity)
-            .foregroundStyle(canContinue ? Color.accent : Color.gray.opacity(0.3))
-            .padding(.horizontal)
-            .overlay(alignment: .center) {
-                if !isLoading {
-                    Text("Continue")
-                        .foregroundStyle(Color.white)
-                        .padding(.horizontal, 32)
-                } else {
-                    ProgressView()
-                        .tint(.white)
-                }
-            }
-            .allowsHitTesting(canContinue && !isLoading)
-            .anyButton(.press) {
-                onContinue()
-            }
-    }
-    
     // MARK: - Computed Properties
     
     private var weeklyWeightChangeText: String {
@@ -254,27 +255,6 @@ struct OnboardingWeightRateView: View {
     
     // MARK: - Helper Methods
     
-    private func onContinue() {
-        guard canContinue, !isLoading else { return }
-        isLoading = true
-        logManager.trackEvent(event: Event.goalSaveStart(objective: objective, targetKg: targetWeight, rateKgPerWeek: weightChangeRate))
-        Task { @MainActor in
-            defer { isLoading = false }
-            do {
-                try await userManager.updateGoalSettings(
-                    objective: objective.description,
-                    targetWeightKilograms: targetWeight,
-                    weeklyChangeKilograms: weightChangeRate
-                )
-                logManager.trackEvent(event: Event.goalSaveSuccess(objective: objective, targetKg: targetWeight, rateKgPerWeek: weightChangeRate))
-                navigationDestination = .customisingProgram
-            } catch {
-                logManager.trackEvent(event: Event.goalSaveFail(error: error, objective: objective, targetKg: targetWeight, rateKgPerWeek: weightChangeRate))
-                handleSaveError(error)
-            }
-        }
-    }
-    
     private func onAppear() {
         let user = userManager.currentUser
         currentWeight = user?.weightKilograms ?? 70
@@ -289,56 +269,6 @@ struct OnboardingWeightRateView: View {
         }
         
         didInitialize = true
-    }
-    
-    enum Event: LoggableEvent {
-        case goalSaveStart(objective: OverarchingObjective, targetKg: Double, rateKgPerWeek: Double)
-        case goalSaveSuccess(objective: OverarchingObjective, targetKg: Double, rateKgPerWeek: Double)
-        case goalSaveFail(error: Error, objective: OverarchingObjective, targetKg: Double, rateKgPerWeek: Double)
-        
-        var eventName: String {
-            switch self {
-            case .goalSaveStart: return "Onboarding_Goal_Save_Start"
-            case .goalSaveSuccess: return "Onboarding_Goal_Save_Success"
-            case .goalSaveFail: return "Onboarding_Goal_Save_Fail"
-            }
-        }
-        
-        var parameters: [String: Any]? {
-            switch self {
-            case let .goalSaveStart(objective, targetKg, rateKgPerWeek),
-                 let .goalSaveSuccess(objective, targetKg, rateKgPerWeek):
-                return [
-                    "objective": objective.description,
-                    "target_weight_kg": targetKg,
-                    "weekly_change_kg": rateKgPerWeek
-                ]
-            case let .goalSaveFail(error, objective, targetKg, rateKgPerWeek):
-                return [
-                    "objective": objective.description,
-                    "target_weight_kg": targetKg,
-                    "weekly_change_kg": rateKgPerWeek,
-                    "error": error.localizedDescription
-                ]
-            }
-        }
-        
-        var type: LogType {
-            switch self {
-            case .goalSaveFail:
-                return .severe
-            default:
-                return .analytic
-            }
-        }
-    }
-
-    private func handleSaveError(_ error: Error) {
-        let errorInfo = AuthErrorHandler.handle(error, operation: "save goal settings", logManager: logManager)
-        showAlert = AnyAppAlert(
-            title: errorInfo.title,
-            subtitle: errorInfo.message
-        )
     }
 }
 

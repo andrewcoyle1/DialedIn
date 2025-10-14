@@ -11,6 +11,7 @@ struct OnboardingHealthDisclaimerView: View {
     
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
+    
     @State private var acceptedTerms: Bool = false
     @State private var acceptedPrivacy: Bool = false
     @State private var showModal: Bool = false
@@ -25,6 +26,10 @@ struct OnboardingHealthDisclaimerView: View {
     
     private var canContinue: Bool { acceptedTerms && acceptedPrivacy }
     
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
+        
     var body: some View {
         List {
             disclaimerSection
@@ -34,17 +39,20 @@ struct OnboardingHealthDisclaimerView: View {
         .safeAreaInset(edge: .bottom) {
             buttonSection
         }
+        .task {
+            await updateOnboardingStep()
+        }
         .showModal(showModal: $showModal, content: {
             confirmationModal
         })
-        .showCustomAlert(alert: $showAlert)
-        .showModal(showModal: Binding(
-            get: { isLoading },
-            set: { _ in }
-        )) {
+        .showModal(showModal: $isLoading) {
             ProgressView()
                 .tint(.white)
         }
+        .toolbar {
+            toolbarContent
+        }
+        .showCustomAlert(alert: $showAlert)
         .navigationDestination(isPresented: Binding(
             get: {
                 if case .goalSetting = navigationDestination { return true }
@@ -54,15 +62,17 @@ struct OnboardingHealthDisclaimerView: View {
         )) {
             OnboardingGoalSettingView()
         }
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
     }
     
     private var disclaimerSection: some View {
         Section {
-            Text("""
-            DialedIn is not a medical device and does not provide medical advice. The information presented is for general educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment.
-
-            Always consult a qualified healthcare provider before starting any diet, exercise, or weight‑loss program, changing medications, or if you have questions about a medical condition. If you experience chest pain, shortness of breath, dizziness, or other concerning symptoms, stop activity and seek medical attention immediately. If you believe you may be experiencing a medical emergency, call your local emergency number right away.
-            """)
+            Text("DialedIn is not a medical device and does not provide medical advice. The information presented is for general educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment.")
+            Text("Always consult a qualified healthcare provider before starting any diet, exercise, or weight‑loss program, changing medications, or if you have questions about a medical condition. If you experience chest pain, shortness of breath, dizziness, or other concerning symptoms, stop activity and seek medical attention immediately. If you believe you may be experiencing a medical emergency, call your local emergency number right away.")
         } header: {
             Text("Health Disclaimer")
         }
@@ -78,22 +88,6 @@ struct OnboardingHealthDisclaimerView: View {
                 Text("I acknowledge and accept the Terms of the Consumer Health Privacy Notice")
                     .font(.callout)
             }
-            Capsule()
-                .frame(height: AuthConstants.buttonHeight)
-                .frame(maxWidth: .infinity)
-                .foregroundStyle(Color.accent)
-                .overlay(alignment: .center) {
-                    Text("Continue")
-                        .foregroundStyle(Color.white)
-                        .padding(.horizontal, 32)
-                }
-                .opacity(canContinue ? 1 : 0.5)
-                .allowsHitTesting(canContinue)
-                .animation(.easeInOut(duration: 0.2), value: canContinue)
-                .anyButton(.press) {
-                    onContinuePressed()
-                }
-                .padding(.top)
         }
         .padding()
         .background(.bar)
@@ -114,6 +108,32 @@ struct OnboardingHealthDisclaimerView: View {
             secondaryButtonTitle: "Go Back",
             secondaryButtonAction: { onCancelPressed() }
         )
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        if canContinue {
+            ToolbarItem(placement: .bottomBar) {
+                Button {
+                    onContinuePressed()
+                } label: {
+                    Text("Continue")
+                        .padding()
+                }
+                .buttonStyle(.glassProminent)
+                .disabled(!canContinue)
+            }
+        }
     }
     
     private func onContinuePressed() {
@@ -147,16 +167,58 @@ struct OnboardingHealthDisclaimerView: View {
         }
     }
     
+    private func updateOnboardingStep() async {
+        // Only update if not already at this step (to avoid redundant updates and loading flashes)
+        guard userManager.currentUser?.onboardingStep != .healthDisclaimer else {
+            return
+        }
+        
+        isLoading = true
+        logManager.trackEvent(event: Event.updateOnboardingStepStart)
+        do {
+            try await userManager.updateOnboardingStep(step: .healthDisclaimer)
+            logManager.trackEvent(event: Event.updateOnboardingStepSuccess)
+        } catch {
+            showAlert = AnyAppAlert(title: "Unable to update your progress", subtitle: "Please check your internet connection and try again.", buttons: {
+                AnyView(
+                    HStack {
+                        Button {
+                            
+                        } label: {
+                            Text("Dismiss")
+                        }
+                        
+                        Button {
+                            Task {
+                                await updateOnboardingStep()
+                            }
+                        } label: {
+                            Text("Try again")
+                        }
+                    }
+                )
+            })
+            logManager.trackEvent(event: Event.updateOnboardingStepFail(error: error))
+        }
+        isLoading = false
+    }
+    
     enum Event: LoggableEvent {
         case consentHealthConfirmStart(disclaimerVersion: String, privacyVersion: String)
         case consentHealthConfirmSuccess(disclaimerVersion: String, privacyVersion: String, acceptedAt: Date)
         case consentHealthConfirmFail(disclaimerVersion: String, privacyVersion: String, error: Error)
+        case updateOnboardingStepStart
+        case updateOnboardingStepSuccess
+        case updateOnboardingStepFail(error: Error)
         
         var eventName: String {
             switch self {
-            case .consentHealthConfirmStart: return "consent_health_confirm_start"
-            case .consentHealthConfirmSuccess: return "consent_health_confirm_success"
-            case .consentHealthConfirmFail: return "consent_health_confirm_fail"
+            case .consentHealthConfirmStart:    return "consent_health_confirm_start"
+            case .consentHealthConfirmSuccess:  return "consent_health_confirm_success"
+            case .consentHealthConfirmFail:     return "consent_health_confirm_fail"
+            case .updateOnboardingStepStart:    return "update_onboarding_step_start"
+            case .updateOnboardingStepSuccess:  return "update_onboarding_step_success"
+            case .updateOnboardingStepFail:     return "update_onboarding_step_fail"
             }
         }
         
@@ -181,12 +243,16 @@ struct OnboardingHealthDisclaimerView: View {
                 
                 for (key, value) in error.eventParameters { dict[key] = value }
                 return dict
+            case .updateOnboardingStepFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
             }
         }
         
         var type: LogType {
             switch self {
-            case .consentHealthConfirmFail:
+            case .consentHealthConfirmFail, .updateOnboardingStepFail:
                 return .severe
             default:
                 return .analytic
@@ -196,14 +262,14 @@ struct OnboardingHealthDisclaimerView: View {
     }
 }
 
-#Preview {
+#Preview("Health Disclaimer") {
     NavigationStack {
         OnboardingHealthDisclaimerView()
     }
     .previewEnvironment()
 }
 
-#Preview("Slow Loading - Success") {
+#Preview("Slow Loading") {
     NavigationStack {
         OnboardingHealthDisclaimerView()
     }
@@ -211,7 +277,7 @@ struct OnboardingHealthDisclaimerView: View {
     .previewEnvironment()
 }
 
-#Preview("Slow Loading - Failure") {
+#Preview("Slow Failure") {
     NavigationStack {
         OnboardingHealthDisclaimerView()
     }

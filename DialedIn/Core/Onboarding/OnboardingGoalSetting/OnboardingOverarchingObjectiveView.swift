@@ -8,44 +8,31 @@
 import SwiftUI
 
 struct OnboardingOverarchingObjectiveView: View {
+    @Environment(UserManager.self) private var userManager
     
     @State private var selectedObjective: OverarchingObjective?
-    @State private var navigationDestination: NavigationDestination?
-
-    enum NavigationDestination {
-        case targetWeight(OverarchingObjective)
-        case customisingProgramm
-    }
+    @State private var userWeight: Double?
+    
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
+        
     var body: some View {
         List {
             objectiveSection
         }
         .navigationTitle("What is your goal?")
-        .safeAreaInset(edge: .bottom) {
-            continueButton
+        .toolbar {
+            toolbarContent
         }
-        .navigationDestination(isPresented: Binding(
-            get: {
-                if case .targetWeight = navigationDestination { return true }
-                return false
-            },
-            set: { if !$0 { navigationDestination = nil } }
-        )) {
-            if case let .targetWeight(objective) = navigationDestination {
-                OnboardingTargetWeightView(objective: objective)
-            } else {
-                EmptyView()
-            }
+        .onAppear {
+            userWeight = userManager.currentUser?.weightKilograms
         }
-        .navigationDestination(isPresented: Binding(
-            get: {
-                if case .customisingProgramm = navigationDestination { return true }
-                return false
-            },
-            set: { if !$0 { navigationDestination = nil } }
-        )) {
-            OnboardingCustomisingProgramView()
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
         }
+        #endif
     }
     
     private var objectiveSection: some View {
@@ -59,25 +46,6 @@ struct OnboardingOverarchingObjectiveView: View {
         } header: {
             Text("Choose one")
         }
-    }
-
-    private var canContinue: Bool { selectedObjective != nil }
-
-    private var continueButton: some View {
-        Capsule()
-            .frame(height: AuthConstants.buttonHeight)
-            .frame(maxWidth: .infinity)
-            .foregroundStyle(canContinue ? Color.accent : Color.gray.opacity(0.3))
-            .padding(.horizontal)
-            .overlay(alignment: .center) {
-                Text("Continue")
-                    .foregroundStyle(Color.white)
-                    .padding(.horizontal, 32)
-            }
-            .allowsHitTesting(canContinue)
-            .anyButton(.press) {
-                onContinue()
-            }
     }
 
     private func objectiveRow(_ objective: OverarchingObjective) -> some View {
@@ -103,18 +71,39 @@ struct OnboardingOverarchingObjectiveView: View {
                 .fill(Color(.secondarySystemBackground))
         )
     }
-
-    private func onContinue() {
-        guard let selectedObjective else { return }
-        if selectedObjective == .maintain {
-            navigationDestination = .customisingProgramm
-        } else {
-            navigationDestination = .targetWeight(selectedObjective)
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        ToolbarItem(placement: .bottomBar) {
+            NavigationLink {
+                if let objective = selectedObjective, let weight = userWeight {
+                    if objective != .maintain {
+                        OnboardingTargetWeightView(objective: objective)
+                    } else {
+                        OnboardingGoalSummaryView(objective: objective, targetWeight: weight, weightRate: 0)
+                    }
+                }
+            } label: {
+                Image(systemName: "chevron.right")
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(!canContinue)
         }
     }
+
+    private var canContinue: Bool { selectedObjective != nil && userWeight != nil }
+
 }
-
-
 
 #Preview {
     NavigationStack {

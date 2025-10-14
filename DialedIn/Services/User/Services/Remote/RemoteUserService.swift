@@ -16,7 +16,8 @@ protocol RemoteUserService: Sendable {
     func updateGender(userId: String, gender: Gender) async throws
     func updateProfileImageUrl(userId: String, url: String?) async throws
     func updateLastSignInDate(userId: String) async throws
-    func markOnboardingCompleted(userId: String) async throws
+    // MARK: - Onboarding Step
+    func updateOnboardingStep(userId: String, step: OnboardingStep) async throws
     // MARK: - Goal Settings
     func updateGoalSettings(userId: String, objective: String, targetWeightKilograms: Double, weeklyChangeKilograms: Double) async throws
     func addCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws

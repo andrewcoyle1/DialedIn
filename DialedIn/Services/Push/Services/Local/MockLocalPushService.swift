@@ -6,15 +6,18 @@
 //
 
 import Foundation
+import UserNotifications
 
 struct MockLocalPushService: LocalPushService {
 
     let delay: Double
     let showError: Bool
+    let canRequestAuthorisationTest: Bool
 
-    init(delay: Double = 0.0, showError: Bool = false) {
+    init(canRequestAuthorisation: Bool = true, delay: Double = 0.0, showError: Bool = false) {
         self.delay = delay
         self.showError = showError
+        self.canRequestAuthorisationTest = canRequestAuthorisation
     }
 
     private func tryShowError() throws {
@@ -35,11 +38,7 @@ struct MockLocalPushService: LocalPushService {
 
     func canRequestAuthorisation() async -> Bool {
         try? await Task.sleep(for: .seconds(delay))
-        if !showError {
-            return true
-        } else {
-            return false
-        }
+        return self.canRequestAuthorisationTest
     }
 
     func schedulePushNotificationsForNextWeek() async throws {
@@ -50,5 +49,20 @@ struct MockLocalPushService: LocalPushService {
     func scheduleNotification(title: String, subtitle: String, triggerDate: Date) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
+    }
+    
+    func getDeliveredNotifications() async -> [UNNotification] {
+        try? await Task.sleep(for: .seconds(delay))
+        // Return mock notifications for preview
+        return []
+    }
+    
+    func removeDeliveredNotification(identifier: String) async {
+        try? await Task.sleep(for: .seconds(delay))
+    }
+    
+    func getNotificationAuthorizationStatus() async -> UNAuthorizationStatus {
+        try? await Task.sleep(for: .seconds(delay))
+        return canRequestAuthorisationTest ? .notDetermined : .authorized
     }
 }

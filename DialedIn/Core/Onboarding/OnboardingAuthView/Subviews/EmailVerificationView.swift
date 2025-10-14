@@ -9,7 +9,9 @@ import SwiftUI
 
 struct EmailVerificationView: View {
     @Environment(AuthManager.self) private var authManager
+    @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
+    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var isLoadingCheck: Bool = false
     @State private var isLoadingResend: Bool = false
@@ -24,7 +26,17 @@ struct EmailVerificationView: View {
     
     enum NavigationDestination {
         case subscription
+        case completeAccountSetup
+        case healthDisclaimer
+        case goalSetting
+        case customiseProgram
+        case diet
+        case completed
     }
+    
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
     
     var body: some View {
         List {
@@ -38,6 +50,17 @@ struct EmailVerificationView: View {
                 Text("Verify your email")
             }
         }
+        .toolbar {
+            #if DEBUG || MOCK
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showDebugView = true
+                } label: {
+                    Image(systemName: "info")
+                }
+            }
+            #endif
+        }
         .navigationTitle("Email Verification")
         .showCustomAlert(alert: $showAlert)
         .navigationDestination(isPresented: Binding(
@@ -45,6 +68,30 @@ struct EmailVerificationView: View {
             set: { if !$0 { navigationDestination = nil } }
         )) {
             OnboardingSubscriptionView()
+        }
+        .navigationDestination(isPresented: Binding(
+            get: { navigationDestination == .completeAccountSetup },
+            set: { if !$0 { navigationDestination = nil } }
+        )) {
+            OnboardingCompleteAccountSetupView()
+        }
+        .navigationDestination(isPresented: Binding(
+            get: { navigationDestination == .healthDisclaimer },
+            set: { if !$0 { navigationDestination = nil } }
+        )) {
+            OnboardingHealthDisclaimerView()
+        }
+        .navigationDestination(isPresented: Binding(
+            get: { navigationDestination == .goalSetting },
+            set: { if !$0 { navigationDestination = nil } }
+        )) {
+            OnboardingGoalSettingView()
+        }
+        .navigationDestination(isPresented: Binding(
+            get: { navigationDestination == .customiseProgram },
+            set: { if !$0 { navigationDestination = nil } }
+        )) {
+            OnboardingPreferredDietView()
         }
         .showModal(showModal: Binding(
             get: { isLoadingCheck || isLoadingResend },
@@ -99,6 +146,11 @@ struct EmailVerificationView: View {
                     }
             }
         }
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
         .onFirstTask {
             startSendVerificationEmail(isInitial: true)
             startPolling()
@@ -188,7 +240,15 @@ struct EmailVerificationView: View {
                 }
                 logManager.trackEvent(event: Event.checkEmailVerificationSuccess(isVerified: isVerified))
                 if isVerified && !Task.isCancelled {
-                    navigationDestination = .subscription
+                    // Navigate based on user's current onboarding step
+                    let step = userManager.currentUser?.onboardingStep
+                    let destination = getNavigationDestination(for: step)
+                    if destination == .completed {
+                        // User has completed onboarding, show main app
+                        appState.updateViewState(showTabBarView: true)
+                    } else {
+                        navigationDestination = destination
+                    }
                     // Stop polling on success
                     currentPollingTask?.cancel()
                     currentPollingTask = nil
@@ -297,7 +357,15 @@ struct EmailVerificationView: View {
                             try await authManager.checkEmailVerification()
                         }
                         if isVerified && !Task.isCancelled {
-                            navigationDestination = .subscription
+                            // Navigate based on user's current onboarding step
+                            let step = userManager.currentUser?.onboardingStep
+                            let destination = getNavigationDestination(for: step)
+                            if destination == .completed {
+                                // User has completed onboarding, show main app
+                                appState.updateViewState(showTabBarView: true)
+                            } else {
+                                navigationDestination = destination
+                            }
                             break
                         }
                     } catch {
@@ -328,6 +396,39 @@ struct EmailVerificationView: View {
                     }
                 }
             }
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    /// Maps UserManager.OnboardingStep to NavigationDestination
+    private func getNavigationDestination(for step: OnboardingStep?) -> NavigationDestination? {
+        switch step {
+        case nil:
+            return .subscription
+        case .auth:
+            // User hasn't progressed past auth, go to subscription
+            return .subscription
+        case .subscription:
+            // User is at subscription step, go there
+            return .subscription
+        case .completeAccountSetup:
+            // User is at complete account setup, go there
+            return .completeAccountSetup
+        case .healthDisclaimer:
+            // User is at health disclaimer, go there
+            return .healthDisclaimer
+        case .goalSetting:
+            // User is at goal setting, go there
+            return .goalSetting
+        case .customiseProgram:
+            // User is at customise program, go there
+            return .customiseProgram
+        case .diet:
+            return .diet
+        case .complete:
+            // User has completed onboarding, show main app
+            return .completed
         }
     }
     

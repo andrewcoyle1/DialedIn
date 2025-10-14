@@ -49,7 +49,7 @@ struct TabBarView: View {
 
             TrainingView()
                 .tabItem {
-                    Label("Exercises", systemImage: "dumbbell")
+                    Label("Training", systemImage: "dumbbell")
                 }
 
             NutritionView()

@@ -8,9 +8,10 @@
 import Foundation
 
 @MainActor
-struct MockNutritionPersistence: LocalNutritionPersistence {
+class MockNutritionPersistence: LocalNutritionPersistence {
     
     var showError: Bool
+    private var storedPlan: DietPlan?
 
     init(showError: Bool = false) {
         self.showError = showError
@@ -22,4 +23,12 @@ struct MockNutritionPersistence: LocalNutritionPersistence {
         }
     }
     
+    func getCurrentDietPlan() -> DietPlan? {
+        storedPlan
+    }
+    
+    func saveDietPlan(plan: DietPlan) throws {
+        try tryShowError()
+        storedPlan = plan
+    }
 }

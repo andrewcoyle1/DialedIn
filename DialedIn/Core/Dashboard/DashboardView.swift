@@ -10,21 +10,22 @@ import SwiftUI
 struct DashboardView: View {
 
     @Environment(LogManager.self) private var logManager
-
+    @Environment(NutritionManager.self) private var nutritionManager
     @State private var showNotifications: Bool = false
 
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
-
+    
+    @State private var contributionChartData: [Double] = []
+    @State private var chartEndDate: Date = Date()
+    
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    Text("Section content")
-                } header: {
-                    Text("Section Header")
-                }
+                carouselSection
+                nutritionTargetSection
+                contributionChartSection
             }
             .navigationTitle("Dashboard")
             .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
@@ -41,7 +42,74 @@ struct DashboardView: View {
             }
         }
     }
+    
+    private var carouselSection: some View {
+        Section {
+            
+        } header: {
+            
+        }
+    }
+    
+    private var nutritionTargetSection: some View {
+        Section {
+            NutritionTargetChartView()
+        } header: {
+            Text("Nutrition & Targets")
+        }
+    }
+    
+    private var contributionChartSection: some View {
+        Section {
+            ContributionChartView(
+                data: contributionChartData,
+                rows: 7,
+                columns: 16,
+                targetValue: 1.0,
+                blockColor: .accent,
+                endDate: chartEndDate
+            )
+            .removeListRowFormatting()
+            .frame(height: 240)
+        } header: {
+            Text("Workout Consistency")
+        }
+    }
 
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                onPushNotificationsPressed()
+            } label: {
+                Image(systemName: "bell")
+            }
+        }
+    }
+}
+
+#Preview {
+    DashboardView()
+        .previewEnvironment()
+}
+
+extension DashboardView {
+    
+    private func onPushNotificationsPressed() {
+        logManager.trackEvent(event: Event.onNotificationsPressed)
+        showNotifications = true
+    }
+    
     enum Event: LoggableEvent {
         case onNotificationsPressed
 
@@ -66,39 +134,4 @@ struct DashboardView: View {
             }
         }
     }
-
-    private func onPushNotificationsPressed() {
-        logManager.trackEvent(event: Event.onNotificationsPressed)
-        showNotifications = true
-    }
-
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                showDebugView = true
-            } label: {
-                Image(systemName: "info")
-            }
-        }
-        #endif
-
-        ToolbarItem(placement: .topBarTrailing) {
-            pushNotificationsButton
-        }
-    }
-
-    private var pushNotificationsButton: some View {
-        Button {
-            onPushNotificationsPressed()
-        } label: {
-            Image(systemName: "bell")
-        }
-    }
-}
-
-#Preview {
-    DashboardView()
-        .previewEnvironment()
 }

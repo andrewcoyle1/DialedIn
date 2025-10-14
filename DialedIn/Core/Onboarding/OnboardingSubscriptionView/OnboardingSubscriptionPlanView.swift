@@ -8,11 +8,152 @@
 import SwiftUI
 
 struct OnboardingSubscriptionPlanView: View {
-
+    @Environment(UserManager.self) private var userManager
+    @Environment(PurchaseManager.self) private var purchaseManager
+    
     @State private var navigateToCompleteAccountSetup: Bool = false
     @State private var selectedPlan: Plan = .annual
     @State private var isPurchasing: Bool = false
     @State private var showRestoreAlert: Bool = false
+    
+    @State private var showAlert: AnyAppAlert?
+        
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
+    
+    var body: some View {
+        List {
+            choosePlanSection
+            includedInAllPlansSection
+            tsAndCsSection
+        }
+        .onFirstTask {
+            do {
+                try await userManager.updateOnboardingStep(step: .subscription)
+            } catch {
+                // TODO: Add logging and tidy up
+            }
+        }
+        .navigationTitle("Subscription Plans")
+        .navigationBarTitleDisplayMode(.large)
+        .navigationDestination(isPresented: $navigateToCompleteAccountSetup) {
+            OnboardingCompleteAccountSetupView()
+        }
+        .showModal(showModal: $isPurchasing, content: {
+            ProgressView()
+                .tint(Color.white)
+        })
+        .showCustomAlert(alert: $showAlert)
+        .toolbar {
+            toolbarContent
+        }
+        .showCustomAlert(alert: Binding(
+            get: { showRestoreAlert ? AnyAppAlert(title: "Restore Purchases", subtitle: "Restoring purchases is not yet implemented.") : nil },
+            set: { _ in showRestoreAlert = false }
+        ))
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarItem(placement: .bottomBar) {
+            Button {
+                onPurchase()
+            } label: {
+                Text("Restore Purchases")
+            }
+        }
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        ToolbarItem(placement: .bottomBar) {
+            Button {
+                onPurchase()
+            } label: {
+                Image(systemName: "chevron.right")
+            }
+            .buttonStyle(.glassProminent)
+        }
+    }
+    
+    private var choosePlanSection: some View {
+        Section {
+            VStack(spacing: 12) {
+                ForEach(Plan.allCases) { plan in
+                    planRow(plan)
+                        .contentShape(Rectangle())
+                        .anyButton(.press) { selectedPlan = plan }
+                }
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text("Choose your plan")
+        }
+    }
+    
+    private var includedInAllPlansSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                featureRow("Full workout and nutrition features")
+                featureRow("AI coaching & weekly summaries")
+                featureRow("Unlimited history and cloud sync")
+                featureRow("Cancel anytime (non-lifetime)")
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text("Included in all plans")
+        }
+    }
+    
+    private var tsAndCsSection: some View {
+        Section {
+            Text("By subscribing, you agree to our [Terms of Service](Constants.termsofServiceURL) and [Privacy Policy](Constants.privacyPolicyURL)")
+                .font(.caption)
+                .foregroundStyle(Color.secondary)
+        }
+        .removeListRowFormatting()
+        .padding(.horizontal)
+    }
+}
+
+#Preview("Functioning") {
+    NavigationStack {
+        OnboardingSubscriptionPlanView()
+    }
+    .previewEnvironment()
+}
+
+#Preview("Slow Loading") {
+    NavigationStack {
+        OnboardingSubscriptionPlanView()
+    }
+    .environment(PurchaseManager(services: MockPurchaseServices(delay: 3)))
+    .previewEnvironment()
+}
+
+#Preview("Failure") {
+    NavigationStack {
+        OnboardingSubscriptionPlanView()
+    }
+    .environment(PurchaseManager(services: MockPurchaseServices(showError: true)))
+    .previewEnvironment()
+}
+
+// MARK: - Helpers
+
+private extension OnboardingSubscriptionPlanView {
     
     enum Plan: String, CaseIterable, Identifiable {
         case monthly
@@ -44,93 +185,8 @@ struct OnboardingSubscriptionPlanView: View {
             }
         }
     }
-    var body: some View {
-        List {
-            Section {
-                VStack(spacing: 12) {
-                    ForEach(Plan.allCases) { plan in
-                        planRow(plan)
-                            .contentShape(Rectangle())
-                            .anyButton(.press) { selectedPlan = plan }
-                    }
-                }
-                .padding(.vertical, 4)
-            } header: {
-                Text("Choose your plan")
-            }
-            
-            Section {
-                VStack(alignment: .leading, spacing: 12) {
-                    featureRow("Full workout and nutrition features")
-                    featureRow("AI coaching & weekly summaries")
-                    featureRow("Unlimited history and cloud sync")
-                    featureRow("Cancel anytime (non-lifetime)")
-                }
-                .padding(.vertical, 4)
-            } header: {
-                Text("Included in all plans")
-            }
-            
-            Section {
-                Text("By subscribing, you agree to our [Terms of Service](Constants.termsofServiceURL) and [Privacy Policy](Constants.privacyPolicyURL)")
-                    .font(.caption)
-                    .foregroundStyle(Color.secondary)
-            }
-            .removeListRowFormatting()
-            .padding(.horizontal)
-        }
-        .navigationDestination(isPresented: $navigateToCompleteAccountSetup) {
-            OnboardingCompleteAccountSetupView()
-        }
-        .safeAreaInset(edge: .bottom) {
-            HStack(spacing: 12) {
-                Capsule()
-                    .frame(height: 50)
-                    .foregroundStyle(Color.gray.opacity(0.2))
-                    .overlay {
-                        Text("Restore")
-                            .foregroundStyle(Color.primary)
-                    }
-                    .anyButton(.press) {
-                        showRestoreAlert = true
-                    }
-                Capsule()
-                    .frame(height: 50)
-                    .foregroundStyle(isPurchasing ? Color.gray.opacity(0.3) : Color.accent)
-                    .overlay(alignment: .center) {
-                        if isPurchasing {
-                            ProgressView().tint(.white)
-                        } else {
-                            Text("Continue")
-                                .foregroundStyle(Color.white)
-                                .padding(.horizontal, 32)
-                        }
-                    }
-                    .allowsHitTesting(!isPurchasing)
-                    .anyButton(.press) {
-                        onPurchase()
-                    }
-            }
-            .padding(.horizontal)
-        }
-        .showCustomAlert(alert: Binding(
-            get: { showRestoreAlert ? AnyAppAlert(title: "Restore Purchases", subtitle: "Restoring purchases is not yet implemented.") : nil },
-            set: { _ in showRestoreAlert = false }
-        ))
-    }
-}
-
-#Preview {
-    NavigationStack {
-        OnboardingSubscriptionPlanView()
-    }
-    .previewEnvironment()
-}
-
-// MARK: - Helpers
-
-private extension OnboardingSubscriptionPlanView {
-    func planRow(_ plan: Plan) -> some View {
+    
+    private func planRow(_ plan: Plan) -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
@@ -162,7 +218,7 @@ private extension OnboardingSubscriptionPlanView {
         )
     }
     
-    func featureRow(_ text: String) -> some View {
+    private func featureRow(_ text: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "checkmark.seal.fill")
                 .foregroundStyle(Color.accent)
@@ -171,13 +227,21 @@ private extension OnboardingSubscriptionPlanView {
         }
     }
     
-    func onPurchase() {
+    private func onRestorePressed() {
+        showRestoreAlert = true
+    }
+    
+    private func onPurchase() {
         // Placeholder flow to simulate purchase
         isPurchasing = true
         Task {
             defer { isPurchasing = false }
-            try? await Task.sleep(for: .seconds(1.0))
-            navigateToCompleteAccountSetup = true
+            do {
+                try await purchaseManager.purchase()
+                navigateToCompleteAccountSetup = true
+            } catch {
+                showAlert = AnyAppAlert(title: "Subscription Failed", subtitle: "We were unable to setup your subscription. Please try again.")
+            }
         }
     }
 }

@@ -7,5 +7,6 @@
 
 @MainActor
 protocol LocalNutritionPersistence {
-    
+    func getCurrentDietPlan() -> DietPlan?
+    func saveDietPlan(plan: DietPlan) throws
 }

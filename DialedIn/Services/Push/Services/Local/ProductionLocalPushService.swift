@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftfulUtilities
+import UserNotifications
 
 struct ProductionLocalPushService: LocalPushService {
     func requestAuthorisation() async throws -> Bool {
@@ -56,5 +57,18 @@ struct ProductionLocalPushService: LocalPushService {
         let content = AnyNotificationContent(title: title, body: subtitle)
         let trigger = NotificationTriggerOption.date(date: triggerDate, repeats: false)
         try await LocalNotifications.scheduleNotification(content: content, trigger: trigger)
+    }
+    
+    func getDeliveredNotifications() async -> [UNNotification] {
+        await UNUserNotificationCenter.current().deliveredNotifications()
+    }
+    
+    func removeDeliveredNotification(identifier: String) async {
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
+    }
+    
+    func getNotificationAuthorizationStatus() async -> UNAuthorizationStatus {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        return settings.authorizationStatus
     }
 }

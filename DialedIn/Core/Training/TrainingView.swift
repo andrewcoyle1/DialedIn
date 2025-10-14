@@ -12,11 +12,13 @@ import UIKit
 
 struct TrainingView: View {
 
-    @State private var presentationMode: TrainingPresentationMode = .workouts
+    @State private var presentationMode: TrainingPresentationMode = .program
 
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
+    
+    @State private var showNotificationsView: Bool = false
     
     @State private var searchExerciseTask: Task<Void, Never>?
     @State private var searchWorkoutTask: Task<Void, Never>?
@@ -29,6 +31,7 @@ struct TrainingView: View {
     @State private var selectedWorkoutTemplate: WorkoutTemplateModel?
 
     enum TrainingPresentationMode {
+        case program
         case workouts
         case exercises
     }
@@ -37,12 +40,7 @@ struct TrainingView: View {
         NavigationStack {
             List {
                 pickerSection
-                switch presentationMode {
-                case .workouts:
-                    WorkoutsView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate)
-                case .exercises:
-                    ExercisesView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate)
-                }
+                listContents
             }
             .navigationTitle("Training")
             .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
@@ -58,6 +56,9 @@ struct TrainingView: View {
                 DevSettingsView()
             }
             #endif
+            .sheet(isPresented: $showNotificationsView) {
+                NotificationsView()
+            }
         }
         .inspector(isPresented: $isShowingInspector) {
             Group {
@@ -82,6 +83,7 @@ struct TrainingView: View {
     private var pickerSection: some View {
         Section {
             Picker("Section", selection: $presentationMode) {
+                Text("Program").tag(TrainingPresentationMode.program)
                 Text("Workouts").tag(TrainingPresentationMode.workouts)
                 Text("Exercises").tag(TrainingPresentationMode.exercises)
             }
@@ -89,6 +91,19 @@ struct TrainingView: View {
         }
         .listSectionSpacing(0)
         .removeListRowFormatting()
+    }
+    
+    private var listContents: some View {
+        Group {
+            switch presentationMode {
+            case .program:
+                ProgramView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate)
+            case .workouts:
+                WorkoutsView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate)
+            case .exercises:
+                ExercisesView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate)
+            }
+        }
     }
 
     @ToolbarContentBuilder
@@ -122,6 +137,17 @@ struct TrainingView: View {
             }
         }
         #endif
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                onNotificationsPressed()
+            } label: {
+                Image(systemName: "bell")
+            }
+        }
+    }
+    
+    private func onNotificationsPressed() {
+        showNotificationsView = true
     }
 }
 

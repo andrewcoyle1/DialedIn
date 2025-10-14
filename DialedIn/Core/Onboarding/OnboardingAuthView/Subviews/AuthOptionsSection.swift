@@ -12,6 +12,7 @@ struct AuthOptionsSection: View {
     @Environment(AuthManager.self) private var authManager
     @Environment(LogManager.self) private var logManager
     @Environment(UserManager.self) private var userManager
+    @Environment(AppState.self) private var appState
     @State private var showAlert: AnyAppAlert?
 
     @State private var navigationDestination: NavigationDestination?
@@ -21,42 +22,75 @@ struct AuthOptionsSection: View {
     @State private var isLoadingUser: Bool = false
     @State private var currentAuthTask: Task<Void, Never>?
     
-    enum NavigationDestination {
-        case signIn
-        case signUp
-        case subscription
-    }
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
 
     var body: some View {
         VStack {
-            Spacer()
+            imageSection
             appleSignInSection
             googleSignInSection
             signUpButtonSection
             signInButtonSection
         }
-        .navigationDestination(isPresented: Binding(
-            get: { navigationDestination == .signIn },
-            set: { if !$0 { navigationDestination = nil } }
-        )) {
-            EmailAuthSection(mode: .signIn)
+        .toolbar {
+            #if DEBUG || MOCK
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showDebugView = true
+                } label: {
+                    Image(systemName: "info")
+                }
+            }
+            #endif
         }
-        .navigationDestination(isPresented: Binding(
-            get: { navigationDestination == .signUp },
-            set: { if !$0 { navigationDestination = nil } }
-        )) {
-            EmailAuthSection(mode: .signUp)
-        }
-        .navigationDestination(isPresented: Binding(
-            get: { navigationDestination == .subscription },
-            set: { if !$0 { navigationDestination = nil } }
-        )) {
-            OnboardingSubscriptionView()
-        }
+        .modifier(NavigationDestinationsModifier(navigationDestination: $navigationDestination))
+//        .navigationDestination(isPresented: Binding(
+//            get: { navigationDestination == .auth },
+//            set: { if !$0 { navigationDestination = nil } }
+//        )) {
+//            EmailVerificationView()
+//        }
+//        .navigationDestination(isPresented: Binding(
+//            get: { navigationDestination == .subscription },
+//            set: { if !$0 { navigationDestination = nil } }
+//        )) {
+//            OnboardingSubscriptionView()
+//        }
+//        .navigationDestination(isPresented: Binding(
+//            get: { navigationDestination == .completeAccountSetup },
+//            set: { if !$0 { navigationDestination = nil } }
+//        )) {
+//            OnboardingCompleteAccountSetupView()
+//        }
+//        .navigationDestination(isPresented: Binding(
+//            get: { navigationDestination == .healthDisclaimer },
+//            set: { if !$0 { navigationDestination = nil } }
+//        )) {
+//            OnboardingHealthDisclaimerView()
+//        }
+//        .navigationDestination(isPresented: Binding(
+//            get: { navigationDestination == .goalSetting },
+//            set: { if !$0 { navigationDestination = nil } }
+//        )) {
+//            OnboardingGoalSettingView()
+//        }
+//        .navigationDestination(isPresented: Binding(
+//            get: { navigationDestination == .customiseProgram },
+//            set: { if !$0 { navigationDestination = nil } }
+//        )) {
+//            OnboardingPreferredDietView()
+//        }
+//        .navigationDestination(isPresented: Binding(
+//            get: { navigationDestination == .diet },
+//            set: { if !$0 { navigationDestination = nil } }
+//        )) {
+//            OnboardingDietPlanView()
+//        }
         .showCustomAlert(alert: $showAlert)
         .onChange(of: authManager.auth, { _, newValue in
             if let newValue = newValue {
-                didTriggerLogin = true
                 handleOnAuthSuccess(user: newValue)
             }
         })
@@ -74,8 +108,27 @@ struct AuthOptionsSection: View {
             isLoadingAuth = false
             isLoadingUser = false
         }
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
     }
 
+    private var imageSection: some View {
+        ImageLoaderView()
+            .ignoresSafeArea()
+            .overlay(alignment: .topLeading) {
+                Text("DialedIn")
+                    .font(.system(size: 64))
+                    .fontDesign(.default)
+                    .fontWeight(.heavy)
+                    .foregroundStyle(Color.white)
+                    .opacity(0.8)
+                    .padding()
+                    
+            }
+    }
     private var appleSignInSection: some View {
         SignInWithAppleButtonView(type: .continue, style: .black, cornerRadius: AuthConstants.buttonCornerRadius)
             .frame(height: AuthConstants.buttonHeight)
@@ -93,18 +146,33 @@ struct AuthOptionsSection: View {
     }
 
     private var signUpButtonSection: some View {
-        SignUpWithEmailButton {
-            onSignUpEmailPressed()
+        NavigationLink {
+            SignUpView()
+        } label: {
+            HStack {
+                Text("Sign Up With Email")
+                    .font(.system(size: 21))
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: AuthConstants.buttonHeight/1.5)
         }
+        .buttonStyle(.borderedProminent)
+        .padding(.horizontal)
     }
 
     private var signInButtonSection: some View {
-        Text("Sign In")
-            .foregroundStyle(Color.secondary)
-            .padding(.top, 8)
-            .anyButton(.press) {
-                onSignInEmailPressed()
+        NavigationLink {
+            SignInView()
+        } label: {
+            HStack {
+                Text("Sign In With Email")
+                    .font(.system(size: 21))
             }
+            .frame(maxWidth: .infinity)
+            .frame(height: AuthConstants.buttonHeight/1.5)
+        }
+        .buttonStyle(.bordered)
+        .padding(.horizontal)
     }
 
     private var tsAndCsSection: some View {
@@ -128,10 +196,13 @@ struct AuthOptionsSection: View {
             
             logManager.trackEvent(event: Event.appleAuthStart)
             do {
-                try await performAuthWithTimeout {
-                    try await authManager.signInApple()
+                // Ensure we have an anonymous user to link to, avoiding new UID creation
+                if authManager.auth == nil {
+                    _ = try await authManager.signInAnonymously()
                 }
+                try await authManager.signInApple()
                 logManager.trackEvent(event: Event.appleAuthSuccess)
+                // Navigation will be handled by handleOnAuthSuccess via onChange
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
@@ -158,10 +229,13 @@ struct AuthOptionsSection: View {
             
             logManager.trackEvent(event: Event.googleAuthStart)
             do {
-                try await performAuthWithTimeout {
-                    try await authManager.signInGoogle()
+                // Ensure we have an anonymous user to link to, avoiding new UID creation
+                if authManager.auth == nil {
+                    _ = try await authManager.signInAnonymously()
                 }
+                try await authManager.signInGoogle()
                 logManager.trackEvent(event: Event.googleAuthSuccess)
+                // Navigation will be handled by handleOnAuthSuccess via onChange
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
@@ -174,20 +248,13 @@ struct AuthOptionsSection: View {
             }
         }
     }
-
-    private func onSignUpEmailPressed() {
-        navigationDestination = .signUp
-    }
-
-    private func onSignInEmailPressed() {
-        navigationDestination = .signIn
-    }
     
     private func handleOnAuthSuccess(user: UserAuthInfo) {
         // Cancel any existing auth task to prevent conflicts
         currentAuthTask?.cancel()
         
         currentAuthTask = Task {
+            didTriggerLogin = true
             isLoadingUser = true
             defer {
                 isLoadingUser = false
@@ -196,15 +263,9 @@ struct AuthOptionsSection: View {
             
             logManager.trackEvent(event: Event.userLoginStart)
             do {
-                try await performAuthWithTimeout {
-                    try await userManager.logIn(auth: user)
-                }
+                try await userManager.logIn(auth: user)
                 logManager.trackEvent(event: Event.userLoginSuccess)
-
-                // Only navigate if task wasn't cancelled
-                if !Task.isCancelled {
-                    navigationDestination = .subscription
-                }
+                handleNavigation()
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
@@ -218,27 +279,45 @@ struct AuthOptionsSection: View {
         }
     }
     
+    private func handleNavigation() {
+        // Navigate based on user's current onboarding step
+        let destination = getNavigationDestination(for: userManager.currentUser?.onboardingStep ?? .auth)
+        if destination == .completed {
+            // User has completed onboarding, show main app
+            appState.updateViewState(showTabBarView: true)
+        } else {
+            navigationDestination = destination
+        }
+    }
+    
     // MARK: - Helper Methods
     
-    /// Performs auth operation with timeout handling
-    @discardableResult
-    private func performAuthWithTimeout<T: Sendable>(_ operation: @escaping @Sendable () async throws -> T) async throws -> T {
-        try await withThrowingTaskGroup(of: T.self) { group in
-            group.addTask {
-                try await operation()
-            }
-            
-            group.addTask {
-                try await Task.sleep(for: .seconds(AuthConstants.authTimeout))
-                throw AuthTimeoutError.operationTimeout
-            }
-            
-            guard let result = try await group.next() else {
-                throw AuthTimeoutError.operationTimeout
-            }
-            
-            group.cancelAll()
-            return result
+    /// Maps UserManager.OnboardingStep to NavigationDestination
+    private func getNavigationDestination(for step: OnboardingStep) -> NavigationDestination? {
+        switch step {
+        case .auth:
+            // SSO users should skip email verification and go straight to subscription
+            return .subscription
+        case .subscription:
+            // User is at subscription step, go there
+            return .subscription
+        case .completeAccountSetup:
+            // User is at complete account setup, go there
+            return .completeAccountSetup
+        case .healthDisclaimer:
+            // User is at health disclaimer, go there
+            return .healthDisclaimer
+        case .goalSetting:
+            // User is at goal setting, go there
+            return .goalSetting
+        case .customiseProgram:
+            // User is at customise program, go there
+            return .customiseProgram
+        case .diet:
+            return .diet
+        case .complete:
+            // User has completed onboarding, navigate to TabBarView
+            return .completed
         }
     }
     
@@ -348,8 +427,9 @@ struct AuthOptionsSection: View {
     @Previewable @State var isNewUser: Bool = false
     NavigationStack {
         AuthOptionsSection()
-            .environment(AuthManager(service: MockAuthService(user: nil)))
     }
+    .environment(AuthManager(service: MockAuthService(user: nil)))
+    .environment(UserManager(services: MockUserServices(user: .mock)))
     .previewEnvironment()
 }
 
@@ -383,4 +463,19 @@ struct AuthOptionsSection: View {
     }
     .environment(UserManager(services: MockUserServices(user: nil, showError: true)))
     .previewEnvironment()
+}
+
+enum NavigationDestination {
+    
+    case emailVerification
+    case subscription
+    case completeAccountSetup
+    case healthData
+    case notifications
+    case gender
+    case healthDisclaimer
+    case goalSetting
+    case customiseProgram
+    case diet
+    case completed
 }

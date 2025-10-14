@@ -13,6 +13,8 @@ struct ProfileView: View {
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
+    @State private var showNotifications: Bool = false
+    
     @State private var showCreateProfileSheet: Bool = false
     
     var body: some View {
@@ -37,31 +39,66 @@ struct ProfileView: View {
                     ])
                 // OnboardingCreateProfileView()
             }
-            .toolbar {
-                #if DEBUG || MOCK
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        showDebugView = true
-                    } label: {
-                        Image(systemName: "info")
-                    }
-                }
-                #endif
-                
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink {
-                        SettingsView()
-                    } label: {
-                        Image(systemName: "gear")
-                    }
-                }
+            .sheet(isPresented: $showNotifications) {
+                NotificationsView()
             }
+            .toolbar {
+                toolbarContent
+            }
+        }
+    }
+}
+
+#Preview("User Has Image") {
+    ProfileView()
+        .previewEnvironment()
+}
+
+#Preview("User Has No Image") {
+    ProfileView()
+        .environment(
+            UserManager(
+                services: MockUserServices(
+                    user: UserModel(
+                        userId: UUID().uuidString,
+                        email: "alicecooper@gmail.com",
+                        isAnonymous: false,
+                        firstName: "",
+                        lastName: "Cooper",
+                        dateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
+                        gender: .male,
+                        profileImageUrl: nil,
+                        creationDate: Date(),
+                        creationVersion: nil,
+                        lastSignInDate: Date(),
+                        didCompleteOnboarding: true,
+                        blockedUserIds: [])
+                )
+            )
+        )
+        .previewEnvironment()
+}
+
+extension ProfileView {
+    
+    private var exerciseTemplateSection: some View {
+        Section {
+            Text("Coming soon")
+        } header: {
+            Text("Exercise Templates")
+        }
+    }
+    
+    private var workoutTemplateSection: some View {
+        Section {
+            Text("Coming soon")
+        } header: {
+            Text("Workout Templates")
         }
     }
     
     private var profileSection: some View {
         Section {
-            
             Group {
                 if let user = userManager.currentUser,
                    let firstName = user.firstName, !firstName.isEmpty {
@@ -103,49 +140,35 @@ struct ProfileView: View {
         }
     }
     
-    private var exerciseTemplateSection: some View {
-        Section {
-            Text("Coming soon")
-        } header: {
-            Text("Exercise Templates")
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                onNotificationsPressed()
+            } label: {
+                Image(systemName: "bell")
+            }
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            NavigationLink {
+                SettingsView()
+            } label: {
+                Image(systemName: "gear")
+            }
         }
     }
     
-    private var workoutTemplateSection: some View {
-        Section {
-            Text("Coming soon")
-        } header: {
-            Text("Workout Templates")
-        }
+    private func onNotificationsPressed() {
+        showNotifications = true
     }
-}
-
-#Preview("User Has Image") {
-    ProfileView()
-        .previewEnvironment()
-}
-
-#Preview("User Has No Image") {
-    ProfileView()
-        .environment(
-            UserManager(
-                services: MockUserServices(
-                    user: UserModel(
-                        userId: UUID().uuidString,
-                        email: "alicecooper@gmail.com",
-                        isAnonymous: false,
-                        firstName: "",
-                        lastName: "Cooper",
-                        dateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
-                        gender: .male,
-                        profileImageUrl: nil,
-                        creationDate: Date(),
-                        creationVersion: nil,
-                        lastSignInDate: Date(),
-                        didCompleteOnboarding: true,
-                        blockedUserIds: [])
-                )
-            )
-        )
-        .previewEnvironment()
+    
 }

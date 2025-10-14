@@ -8,62 +8,82 @@
 import SwiftUI
 
 struct OnboardingSubscriptionView: View {
-
-    @State private var navigateToSubscriptionPlans: Bool = false
+        
+    #if DEBUG || MOCK
+    @State private var showDebugView: Bool = false
+    #endif
+        
     var body: some View {
         List {
-            Section {
-                VStack(alignment: .leading, spacing: 14) {
-                    benefitRow(
-                        title: "Personalized plans",
-                        subtitle: "Training and nutrition tailored to your goals and schedule.",
-                        systemImage: "figure.run"
-                    )
-                    benefitRow(
-                        title: "Smart coaching",
-                        subtitle: "Daily guidance powered by your data and AI insights.",
-                        systemImage: "brain.head.profile"
-                    )
-                    benefitRow(
-                        title: "Progress tracking",
-                        subtitle: "See trends, weekly summaries, and PRs at a glance.",
-                        systemImage: "chart.line.uptrend.xyaxis"
-                    )
-                    benefitRow(
-                        title: "HealthKit sync",
-                        subtitle: "Automatically log workouts and recovery from Apple Health.",
-                        systemImage: "heart.circle"
-                    )
-                    benefitRow(
-                        title: "Accountability",
-                        subtitle: "Reminders and nudges to help you stay consistent.",
-                        systemImage: "bell.badge"
-                    )
-                }
-                .padding(.vertical, 4)
-            } header: {
-                Text("Why subscribe?")
-            }
+            whySubscribeSection
         }
         .navigationTitle("Subscription")
+        .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden()
-        .navigationDestination(isPresented: $navigateToSubscriptionPlans) {
-            OnboardingSubscriptionPlanView()
+        .toolbar {
+            toolbarContent
         }
-        .safeAreaInset(edge: .bottom) {
-            Capsule()
-                .frame(height: 50)
-                .frame(maxWidth: .infinity)
-                .foregroundStyle(Color.accent)
-                .padding(.horizontal)
-                .overlay(alignment: .center) {
-                    Text("Continue")
-                        .foregroundStyle(Color.white)
-                        .padding(.horizontal, 32)
-                }
-                .anyButton(.press) {
-                    navigateToSubscriptionPlans = true
-                }
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        ToolbarItem(placement: .bottomBar) {
+            NavigationLink {
+                OnboardingSubscriptionPlanView()
+            } label: {
+                Image(systemName: "chevron.right")
+            }
+            .buttonStyle(.glassProminent)
+        }
+    }
+    
+    private var whySubscribeSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 14) {
+                benefitRow(
+                    title: "Personalized plans",
+                    subtitle: "Training and nutrition tailored to your goals and schedule.",
+                    systemImage: "figure.run"
+                )
+                benefitRow(
+                    title: "Smart coaching",
+                    subtitle: "Daily guidance powered by your data and AI insights.",
+                    systemImage: "brain.head.profile"
+                )
+                benefitRow(
+                    title: "Progress tracking",
+                    subtitle: "See trends, weekly summaries, and PRs at a glance.",
+                    systemImage: "chart.line.uptrend.xyaxis"
+                )
+                benefitRow(
+                    title: "HealthKit sync",
+                    subtitle: "Automatically log workouts and recovery from Apple Health.",
+                    systemImage: "heart.circle"
+                )
+                benefitRow(
+                    title: "Accountability",
+                    subtitle: "Reminders and nudges to help you stay consistent.",
+                    systemImage: "bell.badge"
+                )
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text("Why subscribe?")
         }
     }
 }

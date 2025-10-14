@@ -56,17 +56,110 @@ class UserManager {
     
     func logIn(auth: UserAuthInfo, image: PlatformImage? = nil) async throws {
         let creationVersion = auth.isNewUser ? SwiftfulUtilities.Utilities.appVersion : nil
-        let user = UserModel(auth: auth, creationVersion: creationVersion)
+        var user = UserModel(auth: auth, creationVersion: creationVersion)
+        // Only initialize onboarding step for brand new users; otherwise preserve existing remote value
+        if auth.isNewUser {
+            user = UserModel(
+                userId: user.userId,
+                email: user.email,
+                isAnonymous: user.isAnonymous,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                dateOfBirth: user.dateOfBirth,
+                gender: user.gender,
+                heightCentimeters: user.heightCentimeters,
+                weightKilograms: user.weightKilograms,
+                exerciseFrequency: user.exerciseFrequency,
+                dailyActivityLevel: user.dailyActivityLevel,
+                cardioFitnessLevel: user.cardioFitnessLevel,
+                lengthUnitPreference: user.lengthUnitPreference,
+                weightUnitPreference: user.weightUnitPreference,
+                profileImageUrl: user.profileImageUrl,
+                creationDate: user.creationDate,
+                creationVersion: user.creationVersion,
+                lastSignInDate: user.lastSignInDate,
+                didCompleteOnboarding: false,
+                onboardingStep: .subscription,
+                createdExerciseTemplateIds: user.createdExerciseTemplateIds,
+                bookmarkedExerciseTemplateIds: user.bookmarkedExerciseTemplateIds,
+                favouritedExerciseTemplateIds: user.favouritedExerciseTemplateIds,
+                createdWorkoutTemplateIds: user.createdWorkoutTemplateIds,
+                bookmarkedWorkoutTemplateIds: user.bookmarkedWorkoutTemplateIds,
+                favouritedWorkoutTemplateIds: user.favouritedWorkoutTemplateIds,
+                createdIngredientTemplateIds: user.createdIngredientTemplateIds,
+                bookmarkedIngredientTemplateIds: user.bookmarkedIngredientTemplateIds,
+                favouritedIngredientTemplateIds: user.favouritedIngredientTemplateIds,
+                createdRecipeTemplateIds: user.createdRecipeTemplateIds,
+                bookmarkedRecipeTemplateIds: user.bookmarkedRecipeTemplateIds,
+                favouritedRecipeTemplateIds: user.favouritedRecipeTemplateIds,
+                blockedUserIds: user.blockedUserIds
+            )
+        }
         logManager?.trackEvent(event: Event.logInStart(user: user))
         try await remote.saveUser(user: user, image: image)
         logManager?.trackEvent(event: Event.logInSuccess(user: user))
         
         addCurrentUserListener(userId: auth.uid)
+        // Refresh onboarding step from persisted user if available
     }
     
     func saveUser(user: UserModel, image: PlatformImage?) async throws {
         try await remote.saveUser(user: user, image: image)
     
+    }
+    
+    // MARK: - Onboarding: Complete Account Setup
+    /// Saves the core profile fields collected during the Complete Account Setup step.
+    /// Returns the updated `UserModel` used for the save so callers can immediately consume it (e.g., to estimate TDEE)
+    // swiftlint:disable:next function_parameter_count
+    func saveCompleteAccountSetupProfile(
+        dateOfBirth: Date,
+        gender: Gender,
+        heightCentimeters: Double,
+        weightKilograms: Double,
+        exerciseFrequency: ProfileExerciseFrequency,
+        dailyActivityLevel: ProfileDailyActivityLevel,
+        cardioFitnessLevel: ProfileCardioFitnessLevel,
+        lengthUnitPreference: LengthUnitPreference,
+        weightUnitPreference: WeightUnitPreference
+    ) async throws -> UserModel {
+        guard let existing = currentUser else { throw UserManagerError.noUserId }
+        let updated = UserModel(
+            userId: existing.userId,
+            email: existing.email,
+            isAnonymous: existing.isAnonymous,
+            firstName: existing.firstName,
+            lastName: existing.lastName,
+            dateOfBirth: dateOfBirth,
+            gender: gender,
+            heightCentimeters: heightCentimeters,
+            weightKilograms: weightKilograms,
+            exerciseFrequency: exerciseFrequency,
+            dailyActivityLevel: dailyActivityLevel,
+            cardioFitnessLevel: cardioFitnessLevel,
+            lengthUnitPreference: lengthUnitPreference,
+            weightUnitPreference: weightUnitPreference,
+            profileImageUrl: existing.profileImageUrl,
+            creationDate: existing.creationDate,
+            creationVersion: existing.creationVersion,
+            lastSignInDate: existing.lastSignInDate,
+            didCompleteOnboarding: existing.didCompleteOnboarding,
+            createdExerciseTemplateIds: existing.createdExerciseTemplateIds,
+            bookmarkedExerciseTemplateIds: existing.bookmarkedExerciseTemplateIds,
+            favouritedExerciseTemplateIds: existing.favouritedExerciseTemplateIds,
+            createdWorkoutTemplateIds: existing.createdWorkoutTemplateIds,
+            bookmarkedWorkoutTemplateIds: existing.bookmarkedWorkoutTemplateIds,
+            favouritedWorkoutTemplateIds: existing.favouritedWorkoutTemplateIds,
+            createdIngredientTemplateIds: existing.createdIngredientTemplateIds,
+            bookmarkedIngredientTemplateIds: existing.bookmarkedIngredientTemplateIds,
+            favouritedIngredientTemplateIds: existing.favouritedIngredientTemplateIds,
+            createdRecipeTemplateIds: existing.createdRecipeTemplateIds,
+            bookmarkedRecipeTemplateIds: existing.bookmarkedRecipeTemplateIds,
+            favouritedRecipeTemplateIds: existing.favouritedRecipeTemplateIds,
+            blockedUserIds: existing.blockedUserIds
+        )
+        try await remote.saveUser(user: updated, image: nil)
+        return updated
     }
     
     func signOut() {
@@ -120,9 +213,49 @@ class UserManager {
         try await remote.updateLastSignInDate(userId: uid)
     }
     
-    func markOnboardingCompleteForCurrentUser() async throws {
+    func updateOnboardingStep(step: OnboardingStep) async throws {
         let uid = try currentUserId()
-        try await remote.markOnboardingCompleted(userId: uid)
+        try await remote.updateOnboardingStep(userId: uid, step: step)
+        // Optimistically update local cache so routing on app relaunch restores to the latest step
+        if var existing = currentUser {
+            let updated = UserModel(
+                userId: existing.userId,
+                email: existing.email,
+                isAnonymous: existing.isAnonymous,
+                firstName: existing.firstName,
+                lastName: existing.lastName,
+                dateOfBirth: existing.dateOfBirth,
+                gender: existing.gender,
+                heightCentimeters: existing.heightCentimeters,
+                weightKilograms: existing.weightKilograms,
+                exerciseFrequency: existing.exerciseFrequency,
+                dailyActivityLevel: existing.dailyActivityLevel,
+                cardioFitnessLevel: existing.cardioFitnessLevel,
+                lengthUnitPreference: existing.lengthUnitPreference,
+                weightUnitPreference: existing.weightUnitPreference,
+                profileImageUrl: existing.profileImageUrl,
+                creationDate: existing.creationDate,
+                creationVersion: existing.creationVersion,
+                lastSignInDate: existing.lastSignInDate,
+                didCompleteOnboarding: step == .complete ? true : existing.didCompleteOnboarding,
+                onboardingStep: step,
+                createdExerciseTemplateIds: existing.createdExerciseTemplateIds,
+                bookmarkedExerciseTemplateIds: existing.bookmarkedExerciseTemplateIds,
+                favouritedExerciseTemplateIds: existing.favouritedExerciseTemplateIds,
+                createdWorkoutTemplateIds: existing.createdWorkoutTemplateIds,
+                bookmarkedWorkoutTemplateIds: existing.bookmarkedWorkoutTemplateIds,
+                favouritedWorkoutTemplateIds: existing.favouritedWorkoutTemplateIds,
+                createdIngredientTemplateIds: existing.createdIngredientTemplateIds,
+                bookmarkedIngredientTemplateIds: existing.bookmarkedIngredientTemplateIds,
+                favouritedIngredientTemplateIds: existing.favouritedIngredientTemplateIds,
+                createdRecipeTemplateIds: existing.createdRecipeTemplateIds,
+                bookmarkedRecipeTemplateIds: existing.bookmarkedRecipeTemplateIds,
+                favouritedRecipeTemplateIds: existing.favouritedRecipeTemplateIds,
+                blockedUserIds: existing.blockedUserIds
+            )
+            self.currentUser = updated
+            self.saveCurrentUserLocally()
+        }
     }
     
     // MARK: - Goal Settings
@@ -358,6 +491,7 @@ class UserManager {
                     logManager?.trackEvent(event: Event.remoteListenerSuccess(user: value))
                     logManager?.addUserProperties(dict: value.eventParameters, isHighPriority: true)
                     self.saveCurrentUserLocally()
+                    // Keep local onboarding step coherent with user properties if needed
                 }
             } catch {
                 logManager?.trackEvent(event: Event.remoteListenerFail(error: error))

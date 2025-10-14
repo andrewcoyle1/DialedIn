@@ -12,8 +12,8 @@ protocol PushServices {
 struct MockPushServices: PushServices {
     let local: LocalPushService
 
-    init(delay: Double = 0, showError: Bool = false) {
-        self.local = MockLocalPushService(delay: delay, showError: showError)
+    init(canRequestAuthorisation: Bool = true, delay: Double = 0, showError: Bool = false) {
+        self.local = MockLocalPushService(canRequestAuthorisation: canRequestAuthorisation, delay: delay, showError: showError)
     }
 }
 

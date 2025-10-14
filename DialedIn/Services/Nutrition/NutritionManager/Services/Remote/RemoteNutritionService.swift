@@ -6,5 +6,5 @@
 //
 
 protocol RemoteNutritionService {
-    
+    func saveDietPlan(userId: String, plan: DietPlan) async throws
 }

@@ -65,7 +65,7 @@ struct MockUserService: RemoteUserService {
         try tryShowError()
     }
     
-    func markOnboardingCompleted(userId: String) async throws {
+    func updateOnboardingStep(userId: String, step: OnboardingStep) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
     }

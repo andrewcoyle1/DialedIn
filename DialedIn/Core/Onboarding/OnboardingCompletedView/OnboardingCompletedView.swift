@@ -94,9 +94,7 @@ struct OnboardingCompletedView: View {
             isCompletingProfileSetup = false
             // other logic to complete onboarding
             do {
-                // Save onboarding completed and daily goal. Using profile color from accent as a placeholder for now.
-                try await userManager.markOnboardingCompleteForCurrentUser()
-                
+                try await userManager.updateOnboardingStep(step: .complete)
             } catch {
                 // Proceed even if saving goal fails
             }

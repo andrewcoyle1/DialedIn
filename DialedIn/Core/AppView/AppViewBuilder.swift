@@ -27,32 +27,24 @@ struct AppViewBuilder<TabBarView: View, OnboardingView: View>: View {
     }
 }
 
-private struct PreviewView: View {
-    
-    @State private var showTabBar: Bool = false
-    
-    var body: some View {
-        AppViewBuilder(
-            showTabBar: showTabBar,
-            tabBarView: {
-                ZStack {
-                    Color.red.ignoresSafeArea()
-                    Text("Tab Bar View")
-                }
-            },
-            onboardingView: {
-                ZStack {
-                    Color.blue.ignoresSafeArea()
-                    Text("Onboarding View")
-                }
-            }
-        )
-        .onTapGesture {
-            showTabBar.toggle()
-        }
-    }
-}
-
 #Preview {
-    PreviewView()
+    @Previewable @State var showTabBar: Bool = false
+    AppViewBuilder(
+        showTabBar: showTabBar,
+        tabBarView: {
+            ZStack {
+                Color.red.ignoresSafeArea()
+                Text("Tab Bar View")
+            }
+        },
+        onboardingView: {
+            ZStack {
+                Color.blue.ignoresSafeArea()
+                Text("Onboarding View")
+            }
+        }
+    )
+    .onTapGesture {
+        showTabBar.toggle()
+    }
 }

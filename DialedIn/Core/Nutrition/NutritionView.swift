@@ -12,7 +12,7 @@ import UIKit
 
 struct NutritionView: View {
     
-    @State private var presentationMode: NutritionPresentationMode = .recipes
+    @State private var presentationMode: NutritionPresentationMode = .log
 
     @State private var isLoading: Bool = false
     @State private var searchText: String = ""
@@ -38,8 +38,10 @@ struct NutritionView: View {
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
+    @State private var showNotifications: Bool = false
     
     enum NutritionPresentationMode {
+        case log
         case recipes
         case ingredients
     }
@@ -48,21 +50,7 @@ struct NutritionView: View {
         NavigationStack {
             List {
                 pickerSection
-                switch presentationMode {
-                case .recipes:
-                    RecipesView(
-                        isShowingInspector: $isShowingInspector,
-                        selectedIngredientTemplate: $selectedIngredientTemplate,
-                        selectedRecipeTemplate: $selectedRecipeTemplate
-                    )
-                case .ingredients:
-                    // ingredientsSection
-                    IngredientsView(
-                        isShowingInspector: $isShowingInspector,
-                        selectedIngredientTemplate: $selectedIngredientTemplate,
-                        selectedRecipeTemplate: $selectedRecipeTemplate
-                    )
-                }
+                listContents
             }
             .navigationTitle("Nutrition")
             .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
@@ -78,31 +66,19 @@ struct NutritionView: View {
                 DevSettingsView()
             }
             #endif
-
+            .sheet(isPresented: $showNotifications) {
+                NotificationsView()
+            }
         }
         .inspector(isPresented: $isShowingInspector) {
-            Group {
-                if let ingredient = selectedIngredientTemplate {
-                    NavigationStack {
-                        IngredientDetailView(ingredientTemplate: ingredient)
-                    }
-                } else if let recipe = selectedRecipeTemplate {
-                    NavigationStack {
-                        RecipeDetailView(recipeTemplate: recipe)
-                    }
-                } else {
-                    Text("Select an item")
-                        .foregroundStyle(.secondary)
-                        .padding()
-                }
-            }
-            .inspectorColumnWidth(min: 300, ideal: 400, max: 600)
+            inspectorContent
         }
     }
 
     private var pickerSection: some View {
         Section {
             Picker("Section", selection: $presentationMode) {
+                Text("Meal Log").tag(NutritionPresentationMode.log)
                 Text("Recipes").tag(NutritionPresentationMode.recipes)
                 Text("Ingredients").tag(NutritionPresentationMode.ingredients)
             }
@@ -110,6 +86,49 @@ struct NutritionView: View {
         }
         .listSectionSpacing(0)
         .removeListRowFormatting()
+    }
+    
+    private var listContents: some View {
+        Group {
+            switch presentationMode {
+            case .log:
+                MealLogView(isShowingInspector: $isShowingInspector,
+                            selectedIngredientTemplate: $selectedIngredientTemplate,
+                            selectedRecipeTemplate: $selectedRecipeTemplate)
+            case .recipes:
+                RecipesView(
+                    isShowingInspector: $isShowingInspector,
+                    selectedIngredientTemplate: $selectedIngredientTemplate,
+                    selectedRecipeTemplate: $selectedRecipeTemplate
+                )
+            case .ingredients:
+                // ingredientsSection
+                IngredientsView(
+                    isShowingInspector: $isShowingInspector,
+                    selectedIngredientTemplate: $selectedIngredientTemplate,
+                    selectedRecipeTemplate: $selectedRecipeTemplate
+                )
+            }
+        }
+    }
+    
+    private var inspectorContent: some View {
+        Group {
+            if let ingredient = selectedIngredientTemplate {
+                NavigationStack {
+                    IngredientDetailView(ingredientTemplate: ingredient)
+                }
+            } else if let recipe = selectedRecipeTemplate {
+                NavigationStack {
+                    RecipeDetailView(recipeTemplate: recipe)
+                }
+            } else {
+                Text("Select an item")
+                    .foregroundStyle(.secondary)
+                    .padding()
+            }
+        }
+        .inspectorColumnWidth(min: 300, ideal: 400, max: 600)
     }
 
     @ToolbarContentBuilder
@@ -143,10 +162,25 @@ struct NutritionView: View {
             }
         }
         #endif
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                onNotificationsPressed()
+            } label: {
+                Image(systemName: "bell")
+            }
+        }
     }
 }
 
 #Preview {
     NutritionView()
         .previewEnvironment()
+}
+
+extension NutritionView {
+    
+    private func onNotificationsPressed() {
+        showNotifications = true
+    }
+    
 }
