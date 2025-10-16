@@ -10,42 +10,83 @@ import SwiftUI
 struct SetTrackerRow: View {
     @State private var set: WorkoutSetModel
     let trackingMode: TrackingMode
+    let restBeforeSec: Int?
+    let onRestBeforeChange: (Int?) -> Void
+    let onRequestRestPicker: (String, Int?) -> Void
     let onUpdate: (WorkoutSetModel) -> Void
     
     // Validation state
     @State private var showAlert: AnyAppAlert?
+    // Local rest UI is delegated upward; keep no local modal/sheet state
     
-    init(set: WorkoutSetModel, trackingMode: TrackingMode, onUpdate: @escaping (WorkoutSetModel) -> Void) {
+    init(set: WorkoutSetModel, trackingMode: TrackingMode, restBeforeSec: Int?, onRestBeforeChange: @escaping (Int?) -> Void, onRequestRestPicker: @escaping (String, Int?) -> Void = { _, _ in }, onUpdate: @escaping (WorkoutSetModel) -> Void) {
         self._set = State(initialValue: set)
         self.trackingMode = trackingMode
+        self.restBeforeSec = restBeforeSec
+        self.onRestBeforeChange = onRestBeforeChange
+        self.onRequestRestPicker = onRequestRestPicker
         self.onUpdate = onUpdate
     }
     
+    private var cellHeight: CGFloat = 35
+    
     var body: some View {
-        HStack(spacing: 12) {
-            // Set number
-            Text("\(set.index)")
-                .font(.caption.bold())
-                .foregroundColor(.secondary)
-                .frame(width: 20)
-            
-            Spacer()
-            // Input fields based on tracking mode
-            inputFields
-            
-            // RPE input (optional for all tracking modes)
-            rpeField
-            
-            // Complete button
-            completeButton
-            
-            // Delete button
-            // deleteButton
+        VStack {
+            HStack {
+                // Set number
+                setNumber
+                Spacer()
+                // Previous values placeholder
+                previousValues
+                Spacer()
+                // Inputs vary by tracking mode
+                inputFields
+                Spacer()
+                // RPE
+                rpeField
+                Spacer()
+                // Complete button
+                completeButton
+            }
+            .frame(maxWidth: .infinity)
+
+            // Rest selector (applies after completing this set)
+            restSelector
         }
+        .padding(.vertical, 4)
         .onChange(of: set) { _, newValue in
             onUpdate(newValue)
         }
         .showCustomAlert(alert: $showAlert)
+    }
+    
+    private var setNumber: some View {
+        VStack(alignment: .leading) {
+            if set.index == 1 {
+                Text("Set")
+                    .font(.caption2)
+            }
+            Text("\(set.index)")
+                .font(.subheadline)
+                .frame(height: cellHeight)
+        }
+        .foregroundColor(.secondary)
+        .frame(width: 28, alignment: .leading)
+    }
+
+    // MARK: Previous Values
+    private var previousValues: some View {
+        VStack {
+            if set.index == 1 {
+                Text("Prev")
+                    .font(.caption2)
+            }
+            Text("—")
+                .font(.caption)
+                .frame(height: cellHeight)
+        }
+        .foregroundColor(.secondary)
+        .frame(width: 60, alignment: .leading)
     }
     
     // MARK: - Input Fields
@@ -66,51 +107,56 @@ struct SetTrackerRow: View {
     
     private var weightRepsFields: some View {
         HStack(spacing: 8) {
-            // Weight input
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Weight")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                
+            VStack(alignment: .leading) {
+                if set.index == 1 {
+                    Text("Weight")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
                 TextField("0", value: $set.weightKg, format: .number)
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.decimalPad)
+                    .frame(height: cellHeight)
             }
             .frame(width: 60)
-
-            // Reps input
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Reps")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                
+            
+            VStack(alignment: .leading) {
+                if set.index == 1 {
+                    Text("Reps")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
                 TextField("0", value: $set.reps, format: .number)
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.numberPad)
+                    .frame(height: cellHeight)
             }
             .frame(width: 50)
         }
     }
     
     private var repsOnlyFields: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("Reps")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-            
-            TextField("0", value: $set.reps, format: .number)
+        VStack(alignment: .leading) {
+            if set.index == 1 {
+                Text("Reps")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+                TextField("0", value: $set.reps, format: .number)
                 .textFieldStyle(.roundedBorder)
                 .keyboardType(.numberPad)
+                .frame(height: cellHeight)
         }
         .frame(width: 60)
     }
     
     private var timeOnlyFields: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("Duration")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-            
+            if set.index == 1 {
+                Text("Duration")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
             HStack(spacing: 4) {
                 TextField("0", value: Binding(
                     get: { set.durationSec.map { $0 / 60 } },
@@ -142,7 +188,7 @@ struct SetTrackerRow: View {
                 .frame(width: 40)
             }
             .frame(width: 90)
-
+            .frame(height: cellHeight)
         }
     }
     
@@ -150,21 +196,25 @@ struct SetTrackerRow: View {
         HStack(spacing: 8) {
             // Distance input
             VStack(alignment: .leading, spacing: 2) {
-                Text("Distance")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                
+                if set.index == 1 {
+                    Text("Distance")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
                 TextField("0", value: $set.distanceMeters, format: .number)
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.decimalPad)
+                    .frame(height: cellHeight)
             }
-            .frame(width: 60)
+            .frame(width: 70)
 
             // Time input
             VStack(alignment: .leading, spacing: 2) {
-                Text("Time")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                if set.index == 1 {
+                    Text("Time")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
                 
                 HStack(spacing: 2) {
                     TextField("0", value: Binding(
@@ -196,28 +246,30 @@ struct SetTrackerRow: View {
                     .keyboardType(.numberPad)
                     .frame(width: 35)
                 }
+                .frame(height: cellHeight)
             }
             .frame(width: 80)
         }
     }
     
     // MARK: - RPE Field
-    
     private var rpeField: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("RPE")
-                .font(.caption2)
-                .foregroundColor(.secondary)
+        VStack(alignment: .leading) {
+            if set.index == 1 {
+                Text("RPE")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
             
             TextField("0", value: $set.rpe, format: .number)
                 .textFieldStyle(.roundedBorder)
                 .keyboardType(.decimalPad)
+                .frame(height: cellHeight)
         }
-        .frame(width: 45)
+        .frame(width: 45, alignment: .leading)
     }
     
     // MARK: - Action Buttons
-    
     private var completeButton: some View {
         Button {
             if set.completedAt == nil {
@@ -229,11 +281,39 @@ struct SetTrackerRow: View {
                 set.completedAt = nil
             }
         } label: {
-            Image(systemName: set.completedAt != nil ? "checkmark.circle.fill" : "circle")
-                .font(.title3)
-                .foregroundColor(buttonColor)
+            VStack(alignment: .trailing) {
+                if set.index == 1 {
+                    Text("Done")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                Image(systemName: set.completedAt != nil ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundColor(buttonColor)
+                    .frame(height: cellHeight)
+            }
         }
         .buttonStyle(PlainButtonStyle())
+        .frame(width: 32, alignment: .trailing)
+    }
+    
+    // MARK: - Rest Selector
+    private var restSelector: some View {
+        Button {
+            onRequestRestPicker(set.id, restBeforeSec)
+        } label: {
+            HStack {
+                Capsule()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 2)
+                Image(systemName: "timer")
+                Text(restBeforeSec.map { "\($0)s" } ?? "Rest")
+                    .fontWeight(.medium)
+                Capsule()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 2)
+            }
+        }
     }
     
     private var buttonColor: Color {
@@ -332,6 +412,7 @@ struct SetTrackerRow: View {
         
         return true
     }
+    
 }
 
 #Preview("Weight & Reps - Incomplete") {
@@ -350,8 +431,11 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .weightReps,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
+    .padding()
 }
 
 #Preview("Weight & Reps - Complete") {
@@ -370,6 +454,8 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .weightReps,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
 }
@@ -390,6 +476,8 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .timeOnly,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
 }
@@ -410,6 +498,8 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .timeOnly,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
 }
@@ -430,6 +520,8 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .distanceTime,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
 }
@@ -450,6 +542,8 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .distanceTime,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
 }
@@ -470,6 +564,8 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .weightReps,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
 }
@@ -490,6 +586,8 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .weightReps,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
 }
@@ -510,6 +608,8 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .weightReps,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
 }

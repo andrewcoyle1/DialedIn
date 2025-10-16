@@ -110,6 +110,7 @@ struct Dependencies {
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
     let exerciseHistoryManager: ExerciseHistoryManager
+    let trainingPlanManager: TrainingPlanManager
     let ingredientTemplateManager: IngredientTemplateManager
     let recipeTemplateManager: RecipeTemplateManager
     let nutritionManager: NutritionManager
@@ -134,6 +135,7 @@ struct Dependencies {
             workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices())
             workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())
+            trainingPlanManager = TrainingPlanManager(services: MockTrainingPlanServices())
             ingredientTemplateManager = IngredientTemplateManager(services: MockIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: MockRecipeTemplateServices())
             nutritionManager = NutritionManager(services: MockNutritionServices())
@@ -162,6 +164,7 @@ struct Dependencies {
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices())
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
+            trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices())
             ingredientTemplateManager = IngredientTemplateManager(services: ProductionIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: ProductionRecipeTemplateServices())
             nutritionManager = NutritionManager(services: ProductionNutritionServices())
@@ -187,6 +190,7 @@ struct Dependencies {
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices())
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
+            trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices())
             ingredientTemplateManager = IngredientTemplateManager(services: ProductionIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: ProductionRecipeTemplateServices())
             nutritionManager = NutritionManager(services: ProductionNutritionServices())
@@ -216,6 +220,7 @@ extension View {
             .environment(WorkoutTemplateManager(services: MockWorkoutTemplateServices()))
             .environment(WorkoutSessionManager(services: MockWorkoutSessionServices()))
             .environment(ExerciseHistoryManager(services: MockExerciseHistoryServices()))
+            .environment(TrainingPlanManager(services: MockTrainingPlanServices()))
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             .environment(WorkoutActivityViewModel())
             #endif

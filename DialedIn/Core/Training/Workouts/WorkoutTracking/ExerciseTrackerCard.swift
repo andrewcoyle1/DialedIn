@@ -15,12 +15,18 @@ struct ExerciseTrackerCard: View {
     let onAddSet: () -> Void
     let onDeleteSet: (String) -> Void
     let onHeaderLongPress: () -> Void
+    // Rest configuration for the next set (child set) keyed by set id
+    let restBeforeSecForSet: (String) -> Int?
+    let onRestBeforeChange: (String, Int?) -> Void
+    let onRequestRestPicker: (String, Int?) -> Void
     
     @Binding var isExpanded: Bool
     
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
             setsContent
+                .listRowInsets(.vertical, .zero)
+                .listRowInsets(.leading, .zero)
         } label: {
             exerciseHeader
         }
@@ -48,46 +54,50 @@ struct ExerciseTrackerCard: View {
         }
     }
     
+    @ViewBuilder
     private var setsContent: some View {
-        Group {
-            ForEach(exercise.sets) { set in
-                SetTrackerRow(
-                    set: set,
-                    trackingMode: exercise.trackingMode,
-                    onUpdate: onSetUpdate
-                )
-                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    Button(role: .destructive) {
-                        onDeleteSet(set.id)
-                    } label: {
-                        Label("Delete", systemImage: "trash")
-                    }
+        // Rows (each row is its own view to keep swipe actions per-row)
+        ForEach(exercise.sets) { set in
+            SetTrackerRow(
+                set: set,
+                trackingMode: exercise.trackingMode,
+                restBeforeSec: restBeforeSecForSet(set.id),
+                onRestBeforeChange: { onRestBeforeChange(set.id, $0) },
+                onRequestRestPicker: { _, _ in onRequestRestPicker(set.id, restBeforeSecForSet(set.id)) },
+                onUpdate: onSetUpdate
+            )
+            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                Button(role: .destructive) {
+                    onDeleteSet(set.id)
+                } label: {
+                    Label("Delete", systemImage: "trash")
                 }
-                .moveDisabled(true)
             }
-            
-            // Add set button
-            Button {
-                onAddSet()
-            } label: {
-                HStack {
-                    Image(systemName: "plus.circle.fill")
-                    Text("Add Set")
-                }
-                .font(.footnote.bold())
-                .foregroundColor(.blue)
-                .padding(.vertical, 8)
-            }
-            .buttonStyle(PlainButtonStyle())
+            .moveDisabled(true)
         }
+        .listRowSeparator(.hidden)
+        
+        // Add set button
+        Button {
+            onAddSet()
+        } label: {
+            HStack {
+                Image(systemName: "plus.circle.fill")
+                Text("Add Set")
+            }
+            .font(.footnote.bold())
+            .foregroundColor(.accent)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(Capsule().fill(Color.accent.opacity(0.1)))
+        }
+        .buttonStyle(PlainButtonStyle())
     }
     
     // MARK: - Computed Properties
-    
     private var completedSetsCount: Int {
         exercise.sets.filter { $0.completedAt != nil }.count
     }
-    
 }
 
 private struct ExerciseTrackerCardPreviewContainer: View {
@@ -141,6 +151,9 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                 onAddSet: handleAdd,
                 onDeleteSet: handleDelete,
                 onHeaderLongPress: {},
+                restBeforeSecForSet: { _ in nil },
+                onRestBeforeChange: { _, _ in },
+                onRequestRestPicker: { _, _ in },
                 isExpanded: $isExpandedCurrent
             )
 
@@ -153,6 +166,9 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                 onAddSet: handleAdd,
                 onDeleteSet: handleDelete,
                 onHeaderLongPress: {},
+                restBeforeSecForSet: { _ in nil },
+                onRestBeforeChange: { _, _ in },
+                onRequestRestPicker: { _, _ in },
                 isExpanded: $isExpandedOther
             )
         }

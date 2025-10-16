@@ -15,6 +15,8 @@ struct CustomModalView: View {
     var primaryButtonAction: () -> Void = { }
     var secondaryButtonTitle: String = "No"
     var secondaryButtonAction: () -> Void = { }
+    // Optional middle content area for custom views (e.g., pickers)
+    var middleContent: AnyView? = nil
 
     var body: some View {
         VStack(spacing: 24) {
@@ -30,6 +32,10 @@ struct CustomModalView: View {
 
             }
             .padding(12)
+
+            if let middleContent {
+                middleContent
+            }
 
             VStack(spacing: 8) {
                 Text(primaryButtonTitle)

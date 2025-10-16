@@ -14,6 +14,7 @@ struct WorkoutTrackerView: View {
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
 	@Environment(WorkoutActivityViewModel.self) private var workoutActivityViewModel
     #endif
+    @Environment(PushManager.self) private var pushManager
     @Environment(\.dismiss) private var dismiss
     
     // Session state
@@ -35,9 +36,20 @@ struct WorkoutTrackerView: View {
     // Rest timer state (independent from workout duration)
     @State private var restDurationSeconds: Int = 90
     @State private var restEndTime: Date?
+    // Per-set rest mapping used when the previous set completes
+    @State private var restBeforeSetIdToSec: [String: Int] = [:]
+    // Rest picker presentation state
+    @State private var isRestPickerOpen: Bool = false
+    @State private var restPickerTargetSetId: String?
+    @State private var restPickerSeconds: Int? = nil
+    @State private var restPickerMinutesSelection: Int = 0
+    @State private var restPickerSecondsSelection: Int = 0
     
     // Error handling
     @State private var showAlert: AnyAppAlert?
+    
+    // Notification identifier for rest timer
+    private let restTimerNotificationId = "workout-rest-timer"
 
     init(workoutSession: WorkoutSessionModel) {
         self._workoutSession = State(initialValue: workoutSession)
@@ -48,12 +60,14 @@ struct WorkoutTrackerView: View {
     var body: some View {
         TimelineView(.periodic(from: startTime, by: 1.0)) { _ in
             NavigationStack {
-                List {
+                ZStack {
+                    List {
                     // Workout Overview Section
                     workoutOverviewCard
                     
                     // Exercise Section
                     exerciseSection
+                    }
                 }
                 .navigationTitle(workoutSession.name)
                 .navigationBarTitleDisplayMode(.large)
@@ -73,6 +87,43 @@ struct WorkoutTrackerView: View {
                 buildView()
 
             }
+            .showModal(showModal: $isRestPickerOpen) {
+                CustomModalView(
+                    title: "Set Rest",
+                    subtitle: nil,
+                    primaryButtonTitle: "Save",
+                    primaryButtonAction: {
+                        let seconds = (restPickerMinutesSelection * 60) + restPickerSecondsSelection
+                        if let setId = restPickerTargetSetId {
+                            // Update mapping in-place (mirrors onRestBeforeChange behavior)
+                            restBeforeSetIdToSec[setId] = seconds
+                        }
+                        isRestPickerOpen = false
+                    },
+                    secondaryButtonTitle: "Cancel",
+                    secondaryButtonAction: { isRestPickerOpen = false },
+                    middleContent: AnyView(
+                        HStack(spacing: 16) {
+                            Picker("Minutes", selection: $restPickerMinutesSelection) {
+                                ForEach(0..<60, id: \.self) { minute in
+                                    Text("\(minute) m").tag(minute)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                            .frame(maxWidth: .infinity)
+                            
+                            Picker("Seconds", selection: $restPickerSecondsSelection) {
+                                ForEach(0..<60, id: \.self) { second in
+                                    Text("\(second) s").tag(second)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                            .frame(maxWidth: .infinity)
+                        }
+                        .frame(height: 180)
+                    )
+                )
+            }
             .sheet(isPresented: $showingWorkoutNotes) {
                 WorkoutNotesView(notes: $workoutNotes) {
                     updateWorkoutNotes()
@@ -80,9 +131,9 @@ struct WorkoutTrackerView: View {
             }
             .sheet(isPresented: $showingAddExercise, onDismiss: {
                 addSelectedExercises()
-            }) {
+            }, content: {
                 AddExerciseModal(selectedExercises: $pendingSelectedTemplates)
-            }
+            })
         }
     }
 
@@ -144,6 +195,17 @@ struct WorkoutTrackerView: View {
                     onAddSet: { addSet(to: exercise.id) },
                     onDeleteSet: { setId in deleteSet(setId, from: exercise.id) },
                     onHeaderLongPress: { /* no-op: reordering via drag on header */ },
+                    restBeforeSecForSet: { setId in restBeforeSetIdToSec[setId] },
+                    onRestBeforeChange: { setId, value in restBeforeSetIdToSec[setId] = value ?? 0; if value == nil { restBeforeSetIdToSec.removeValue(forKey: setId) } },
+                    onRequestRestPicker: { setId, current in
+                        restPickerTargetSetId = setId
+                        restPickerSeconds = current
+                        // Pre-seed pickers
+                        let total = current ?? restDurationSeconds
+                        restPickerMinutesSelection = max(0, total / 60)
+                        restPickerSecondsSelection = max(0, total % 60)
+                        isRestPickerOpen = true
+                    },
                     isExpanded: Binding(
                         get: { expandedExerciseIds.contains(exercise.id) },
                         set: { newValue in
@@ -168,10 +230,12 @@ struct WorkoutTrackerView: View {
                     return true
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    Button(role: .destructive) {
-                        deleteExercise(exercise.id)
-                    } label: {
-                        Label("Delete", systemImage: "trash")
+                    if !expandedExerciseIds.contains(exercise.id) {
+                        Button(role: .destructive) {
+                            deleteExercise(exercise.id)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
                     }
                 }
             }
@@ -336,6 +400,9 @@ extension WorkoutTrackerView {
     private func discardWorkout() {
         Task {
             do {
+                // Cancel any pending rest timer notifications
+                await pushManager.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
+                
                 try workoutSessionManager.deleteLocalWorkoutSession(id: workoutSession.id)
                 await MainActor.run {
                     workoutSessionManager.endActiveSession()
@@ -430,16 +497,35 @@ extension WorkoutTrackerView {
               let setIndex = workoutSession.exercises[exerciseIndex].sets.firstIndex(where: { $0.id == updatedSet.id }) else {
             return
         }
-        
+        // Track completion transition (exercise-level)
+        let exerciseBefore = workoutSession.exercises[exerciseIndex]
+        let wasExerciseCompleteBefore = !exerciseBefore.sets.isEmpty && exerciseBefore.sets.allSatisfy { $0.completedAt != nil }
+
         var updatedExercises = workoutSession.exercises
         let previousCompletedAt = updatedExercises[exerciseIndex].sets[setIndex].completedAt
         updatedExercises[exerciseIndex].sets[setIndex] = updatedSet
+        let isExerciseCompleteNow = !updatedExercises[exerciseIndex].sets.isEmpty && updatedExercises[exerciseIndex].sets.allSatisfy { $0.completedAt != nil }
         workoutSession.updateExercises(updatedExercises)
         saveWorkoutProgress()
         
         // Start a rest timer when a set transitions from incomplete -> complete
         if previousCompletedAt == nil, updatedSet.completedAt != nil {
-            startRestTimer()
+            // Use rest defined for this set (applies after this set)
+            let customForThisSet = restBeforeSetIdToSec[updatedSet.id]
+            startRestTimer(durationSeconds: customForThisSet ?? restDurationSeconds)
+        }
+        
+        // If this change completed the last set of the exercise, collapse it and expand the next
+        if !wasExerciseCompleteBefore && isExerciseCompleteNow {
+            let nextIndex = exerciseIndex + 1
+            if nextIndex < updatedExercises.count {
+                expandedExerciseIds.removeAll()
+                expandedExerciseIds.insert(updatedExercises[nextIndex].id)
+                currentExerciseIndex = nextIndex
+            } else {
+                // No next exercise; just collapse the completed one
+                expandedExerciseIds.remove(updatedExercises[exerciseIndex].id)
+            }
         }
         
         // Always align current exercise to top-most incomplete after updates
@@ -486,6 +572,10 @@ extension WorkoutTrackerView {
         )
         
         updatedExercises[exerciseIndex].sets.append(newSet)
+        // Seed new set's rest with last known value
+        if let last = lastKnownRestForExercise(exerciseIndex: exerciseIndex) {
+            restBeforeSetIdToSec[newSet.id] = last
+        }
         workoutSession.updateExercises(updatedExercises)
         saveWorkoutProgress()
         // Realign current exercise in case previously all-complete edge cases shift
@@ -511,6 +601,8 @@ extension WorkoutTrackerView {
         
         var updatedExercises = workoutSession.exercises
         updatedExercises[exerciseIndex].sets.removeAll { $0.id == setId }
+        // Remove any rest mapping for this set
+        restBeforeSetIdToSec.removeValue(forKey: setId)
         
         // Reindex remaining sets
         for index in updatedExercises[exerciseIndex].sets.indices {
@@ -560,6 +652,23 @@ extension WorkoutTrackerView {
         
         // Sync rest timer with manager for tab bar accessory
         workoutSessionManager.restEndTime = restEndTime
+        
+        // Schedule local notification for when rest is complete
+        if let endTime = restEndTime {
+            Task {
+                do {
+                    try await pushManager.schedulePushNotification(
+                        identifier: restTimerNotificationId,
+                        title: "Rest Complete",
+                        body: "Time to get back to your workout!",
+                        date: endTime
+                    )
+                } catch {
+                    // Silently fail - notification is nice to have but not critical
+                    print("Failed to schedule rest timer notification: \(error)")
+                }
+            }
+        }
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         workoutActivityViewModel.updateLiveActivity(
@@ -579,6 +688,11 @@ extension WorkoutTrackerView {
         
         // Sync rest timer with manager for tab bar accessory
         workoutSessionManager.restEndTime = nil
+        
+        // Cancel the pending rest timer notification
+        Task {
+            await pushManager.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
+        }
         
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         workoutActivityViewModel.updateLiveActivity(
@@ -628,6 +742,9 @@ extension WorkoutTrackerView {
         Task {
             do {
                 let endTime = Date()
+                
+                // Cancel any pending rest timer notifications
+                await pushManager.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
                 
                 // Update session end time
                 workoutSession.endSession(at: endTime)
@@ -859,5 +976,25 @@ extension WorkoutTrackerView {
         } else {
             currentExerciseIndex = max(0, exercises.isEmpty ? 0 : exercises.count - 1)
         }
+    }
+
+    // Determine next set's rest seconds from per-set map
+    private func nextSetRestSeconds(exerciseIndex: Int, setIndex: Int) -> Int? {
+        guard exerciseIndex < workoutSession.exercises.count else { return nil }
+        let sets = workoutSession.exercises[exerciseIndex].sets
+        let nextIndex = setIndex + 1
+        guard nextIndex < sets.count else { return nil }
+        let nextSet = sets[nextIndex]
+        return restBeforeSetIdToSec[nextSet.id]
+    }
+
+    private func lastKnownRestForExercise(exerciseIndex: Int) -> Int? {
+        guard exerciseIndex < workoutSession.exercises.count else { return nil }
+        let sets = workoutSession.exercises[exerciseIndex].sets
+        // Walk from last to first to find a mapping
+        for set in sets.reversed() {
+            if let val = restBeforeSetIdToSec[set.id] { return val }
+        }
+        return nil
     }
 }

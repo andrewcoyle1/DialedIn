@@ -13,7 +13,9 @@ protocol LocalPushService {
     func canRequestAuthorisation() async -> Bool
     func schedulePushNotificationsForNextWeek() async throws
     func scheduleNotification(title: String, subtitle: String, triggerDate: Date) async throws
+    func scheduleNotification(identifier: String, title: String, subtitle: String, triggerDate: Date) async throws
     func getDeliveredNotifications() async -> [UNNotification]
     func removeDeliveredNotification(identifier: String) async
+    func removePendingNotifications(withIdentifiers identifiers: [String]) async
     func getNotificationAuthorizationStatus() async -> UNAuthorizationStatus
 }

@@ -51,6 +51,11 @@ struct MockLocalPushService: LocalPushService {
         try tryShowError()
     }
     
+    func scheduleNotification(identifier: String, title: String, subtitle: String, triggerDate: Date) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
+    
     func getDeliveredNotifications() async -> [UNNotification] {
         try? await Task.sleep(for: .seconds(delay))
         // Return mock notifications for preview
@@ -58,6 +63,10 @@ struct MockLocalPushService: LocalPushService {
     }
     
     func removeDeliveredNotification(identifier: String) async {
+        try? await Task.sleep(for: .seconds(delay))
+    }
+    
+    func removePendingNotifications(withIdentifiers identifiers: [String]) async {
         try? await Task.sleep(for: .seconds(delay))
     }
     

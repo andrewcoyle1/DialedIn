@@ -44,12 +44,20 @@ class PushManager {
         try await local.scheduleNotification(title: title, subtitle: body, triggerDate: date)
     }
     
+    func schedulePushNotification(identifier: String, title: String, body: String, date: Date) async throws {
+        try await local.scheduleNotification(identifier: identifier, title: title, subtitle: body, triggerDate: date)
+    }
+    
     func getDeliveredNotifications() async -> [UNNotification] {
         await local.getDeliveredNotifications()
     }
     
     func removeDeliveredNotification(identifier: String) async {
         await local.removeDeliveredNotification(identifier: identifier)
+    }
+    
+    func removePendingNotifications(withIdentifiers identifiers: [String]) async {
+        await local.removePendingNotifications(withIdentifiers: identifiers)
     }
     
     func getAuthorizationStatus() async -> UNAuthorizationStatus {

@@ -59,12 +59,37 @@ struct ProductionLocalPushService: LocalPushService {
         try await LocalNotifications.scheduleNotification(content: content, trigger: trigger)
     }
     
+    func scheduleNotification(identifier: String, title: String, subtitle: String, triggerDate: Date) async throws {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = subtitle
+        content.sound = .default
+
+        let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: triggerDate)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+    }
+    
     func getDeliveredNotifications() async -> [UNNotification] {
         await UNUserNotificationCenter.current().deliveredNotifications()
     }
     
     func removeDeliveredNotification(identifier: String) async {
         UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
+    }
+    
+    func removePendingNotifications(withIdentifiers identifiers: [String]) async {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
     }
     
     func getNotificationAuthorizationStatus() async -> UNAuthorizationStatus {
