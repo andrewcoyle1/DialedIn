@@ -14,43 +14,38 @@ struct ExerciseTrackerCard: View {
     let onSetUpdate: (WorkoutSetModel) -> Void
     let onAddSet: () -> Void
     let onDeleteSet: (String) -> Void
+    let onHeaderLongPress: () -> Void
     
     @Binding var isExpanded: Bool
     
     var body: some View {
-        Section(isExpanded: $isExpanded) {
+        DisclosureGroup(isExpanded: $isExpanded) {
             setsContent
-        } header: {
+        } label: {
             exerciseHeader
         }
     }
     
     private var exerciseHeader: some View {
-        Button {
-            withAnimation(.easeInOut) {
-                isExpanded.toggle()
-            }
-        } label: {
-            HStack(alignment: .firstTextBaseline) {
-                Text("\(exerciseIndex + 1).")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                
-                Text(exercise.name)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                    .multilineTextAlignment(.leading)
-                
-                Text("\(completedSetsCount)/\(exercise.sets.count) sets")
-                    .font(.caption)
-                    .foregroundColor(completedSetsCount == exercise.sets.count ? .green : .secondary)
-                Spacer()
-                Image(systemName: "chevron.down")
-                    .rotationEffect(.degrees(isExpanded ? 0 : 90))
-            }
-            .tappableBackground()
+        HStack(alignment: .firstTextBaseline) {
+            Text("\(exerciseIndex + 1).")
+                .font(.headline)
+                .foregroundColor(.secondary)
+            
+            Text(exercise.name)
+                .font(.headline)
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.leading)
+            
+            Text("\(completedSetsCount)/\(exercise.sets.count) sets")
+                .font(.caption)
+                .foregroundColor(completedSetsCount == exercise.sets.count ? .green : .secondary)
+            Spacer()
         }
-        .buttonStyle(PlainButtonStyle())
+        .tappableBackground()
+        .onLongPressGesture(minimumDuration: 0.4) {
+            onHeaderLongPress()
+        }
     }
     
     private var setsContent: some View {
@@ -68,6 +63,7 @@ struct ExerciseTrackerCard: View {
                         Label("Delete", systemImage: "trash")
                     }
                 }
+                .moveDisabled(true)
             }
             
             // Add set button
@@ -94,7 +90,7 @@ struct ExerciseTrackerCard: View {
     
 }
 
-private struct NewExerciseTrackerCardPreviewContainer: View {
+private struct ExerciseTrackerCardPreviewContainer: View {
     @State private var exercise: WorkoutExerciseModel = {
         var exercise = WorkoutExerciseModel.mock
         // Ensure at least a couple sets exist for interactions
@@ -144,6 +140,7 @@ private struct NewExerciseTrackerCardPreviewContainer: View {
                 onSetUpdate: handleUpdate,
                 onAddSet: handleAdd,
                 onDeleteSet: handleDelete,
+                onHeaderLongPress: {},
                 isExpanded: $isExpandedCurrent
             )
 
@@ -155,6 +152,7 @@ private struct NewExerciseTrackerCardPreviewContainer: View {
                 onSetUpdate: handleUpdate,
                 onAddSet: handleAdd,
                 onDeleteSet: handleDelete,
+                onHeaderLongPress: {},
                 isExpanded: $isExpandedOther
             )
         }
@@ -212,6 +210,6 @@ private struct NewExerciseTrackerCardPreviewContainer: View {
 }
 
 #Preview {
-    NewExerciseTrackerCardPreviewContainer()
+    ExerciseTrackerCardPreviewContainer()
         .previewEnvironment()
 }

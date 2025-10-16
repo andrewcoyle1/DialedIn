@@ -40,9 +40,9 @@ class WorkoutSessionEntity {
             dateCreated: dateCreated,
             endedAt: endedAt,
             notes: notes,
-            // Load exercises sorted by index; sets also sorted by index
+            // Load exercises sorted by their own index; sets also sorted by index
             exercises: exercises
-                .sorted { ($0.sets.first?.index ?? 0) < ($1.sets.first?.index ?? 0) }
+                .sorted { $0.index < $1.index }
                 .map { entity in
                     var model = entity.toModel()
                     // Ensure sets are in index order

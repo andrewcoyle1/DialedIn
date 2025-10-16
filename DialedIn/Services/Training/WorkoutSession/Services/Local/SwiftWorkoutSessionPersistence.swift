@@ -87,7 +87,10 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
             entity.dateCreated = session.dateCreated
             entity.endedAt = session.endedAt
             entity.notes = session.notes
-            entity.exercises = session.exercises.map { WorkoutExerciseEntity(from: $0) }
+            // Persist exercises in a deterministic order based on their index
+            entity.exercises = session.exercises
+                .sorted { $0.index < $1.index }
+                .map { WorkoutExerciseEntity(from: $0) }
             try mainContext.save()
         } catch {
             if isSchemaMismatchError(error) {

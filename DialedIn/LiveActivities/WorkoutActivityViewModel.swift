@@ -57,7 +57,43 @@ class WorkoutActivityViewModel {
 		} catch {
 			print("Error starting workout live activity: \(error)")
 		}
+
 	}
+
+    /// Ensure a Workout Live Activity exists for this session; if found, reuse and update it, otherwise create it
+    func ensureLiveActivity(
+        session: WorkoutSessionModel,
+        isActive: Bool = true,
+        currentExerciseIndex: Int = 0,
+        restEndsAt: Date? = nil,
+        statusMessage: String? = nil
+    ) {
+        // Attempt to find an existing activity for this session
+        if let existing = Activity<WorkoutActivityAttributes>.activities.first(where: { activity in
+            activity.attributes.sessionId == session.id && activity.activityState == .active
+        }) {
+            self.activity = existing
+            updateLiveActivity(
+                session: session,
+                isActive: isActive,
+                currentExerciseIndex: currentExerciseIndex,
+                restEndsAt: restEndsAt,
+                statusMessage: statusMessage,
+                totalVolumeKg: nil,
+                elapsedTime: nil
+            )
+            return
+        }
+        
+        // Otherwise start a new live activity
+        startLiveActivity(
+            session: session,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: restEndsAt,
+            statusMessage: statusMessage
+        )
+    }
 
 	/// Update the Workout Live Activity with latest session progress
 	func updateLiveActivity(
@@ -179,6 +215,14 @@ class WorkoutActivityViewModel {
     func endLiveActivity(
         session: WorkoutSessionModel,
         success: Bool = true,
+        statusMessage: String? = nil
+    ) { }
+
+    func ensureLiveActivity(
+        session: WorkoutSessionModel,
+        isActive: Bool = true,
+        currentExerciseIndex: Int = 0,
+        restEndsAt: Date? = nil,
         statusMessage: String? = nil
     ) { }
 }

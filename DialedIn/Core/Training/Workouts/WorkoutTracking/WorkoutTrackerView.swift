@@ -25,9 +25,12 @@ struct WorkoutTrackerView: View {
     
     // UI state
     @State private var showingWorkoutNotes = false
+    @State private var showingAddExercise = false
     @State private var expandedExerciseIds: Set<String> = []
     @State private var workoutNotes = ""
     @State private var currentExerciseIndex = 0
+    @State private var editMode: EditMode = .inactive
+    @State private var pendingSelectedTemplates: [ExerciseTemplateModel] = []
     
     // Rest timer state (independent from workout duration)
     @State private var restDurationSeconds: Int = 90
@@ -48,23 +51,23 @@ struct WorkoutTrackerView: View {
                 List {
                     // Workout Overview Section
                     workoutOverviewCard
+                    
                     // Exercise Section
                     exerciseSection
                 }
-                // .animation(.easeInOut(duration: 0.3), value: expandedExerciseIds)
                 .navigationTitle(workoutSession.name)
                 .navigationBarTitleDisplayMode(.large)
                 .navigationSubtitle(elapsedTimeString)
                 .scrollIndicators(.hidden)
-                .safeAreaInset(edge: .bottom) {
-                    // Timer Header
-                    timerHeaderView
-                }
+                .environment(\.editMode, $editMode)
                 .toolbar {
                     toolbarContent
                 }
+                .safeAreaInset(edge: .bottom) {
+                    // Timer Header
+                    timerHeaderView()
+                }
                 .showCustomAlert(alert: $showAlert)
-
             }
             .onAppear {
                 buildView()
@@ -74,6 +77,11 @@ struct WorkoutTrackerView: View {
                 WorkoutNotesView(notes: $workoutNotes) {
                     updateWorkoutNotes()
                 }
+            }
+            .sheet(isPresented: $showingAddExercise, onDismiss: {
+                addSelectedExercises()
+            }) {
+                AddExerciseModal(selectedExercises: $pendingSelectedTemplates)
             }
         }
     }
@@ -125,68 +133,134 @@ struct WorkoutTrackerView: View {
 
     private var exerciseSection: some View {
         // Exercise List
-        ForEach(Array(workoutSession.exercises.enumerated()), id: \.element.id) { index, exercise in
-            ExerciseTrackerCard(
-                exercise: exercise,
-                exerciseIndex: index,
-                isCurrentExercise: index == currentExerciseIndex,
-                onSetUpdate: { updatedSet in updateSet(updatedSet, in: exercise.id) },
-                onAddSet: { addSet(to: exercise.id) },
-                onDeleteSet: { setId in deleteSet(setId, from: exercise.id) },
-                isExpanded: Binding(
-                    get: { expandedExerciseIds.contains(exercise.id) },
-                    set: { newValue in
-                        if newValue {
-                            expandedExerciseIds.insert(exercise.id)
-                        } else {
-                            expandedExerciseIds.remove(exercise.id)
+        Section {
+            ForEach(workoutSession.exercises, id: \.id) { exercise in
+                let index = workoutSession.exercises.firstIndex(where: { $0.id == exercise.id }) ?? 0
+                ExerciseTrackerCard(
+                    exercise: exercise,
+                    exerciseIndex: index,
+                    isCurrentExercise: index == currentExerciseIndex,
+                    onSetUpdate: { updatedSet in updateSet(updatedSet, in: exercise.id) },
+                    onAddSet: { addSet(to: exercise.id) },
+                    onDeleteSet: { setId in deleteSet(setId, from: exercise.id) },
+                    onHeaderLongPress: { /* no-op: reordering via drag on header */ },
+                    isExpanded: Binding(
+                        get: { expandedExerciseIds.contains(exercise.id) },
+                        set: { newValue in
+                            if newValue {
+                                // Allow only one expanded at a time: collapse current first
+                                expandedExerciseIds.removeAll()
+                                expandedExerciseIds.insert(exercise.id)
+                            } else {
+                                expandedExerciseIds.remove(exercise.id)
+                            }
                         }
-                    }
+                    )
                 )
-            )
-        }
-    }
-
-    // MARK: - Timer Header
-    private var timerHeaderView: some View {
-        Button {
-            if isRestActive {
-                cancelRestTimer()
-            } else {
-                startRestTimer()
-            }
-        } label: {
-            VStack {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(isRestActive ? "Rest Timer" : "Workout Time")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-
-                        if isRestActive, let restEndTime {
-                            Text(timerInterval: Date()...restEndTime)
-                                .font(.title2.bold())
-                                .foregroundColor(.primary)
-                        } else {
-                            Text(workoutSession.dateCreated, style: .timer)
-                                .font(.title2.bold())
-                                .foregroundColor(.primary)
-                        }
+                .draggable(exercise.id)
+                .dropDestination(for: String.self) { items, _ in
+                    guard let sourceId = items.first, sourceId != exercise.id,
+                          let sourceIndex = workoutSession.exercises.firstIndex(where: { $0.id == sourceId }),
+                          let targetIndex = workoutSession.exercises.firstIndex(where: { $0.id == exercise.id }) else {
+                        return false
                     }
-
-                    Spacer()
-
-                    Image(systemName: isRestActive ? "stop.circle.fill" : "timer")
-                        .font(.title2)
-                        .foregroundColor(isRestActive ? .red : .blue)
+                    reorderExercises(from: sourceIndex, to: targetIndex)
+                    return true
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        deleteExercise(exercise.id)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
                 }
             }
-            .padding(.horizontal)
+            .onMove(perform: moveExercises)
+        } header: {
+            Text("Exercises")
         }
-        .buttonStyle(.glass)
-        .padding(.horizontal)
     }
+    
+    // MARK: - Timer Header
+    @ViewBuilder
+    private func timerHeaderView() -> some View {
+        if isRestActive {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(isRestActive ? "Rest Timer" : "Workout Time")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    if isRestActive, let restEndTime {
+                        Text(timerInterval: Date()...restEndTime)
+                            .font(.title2.bold())
+                            .foregroundColor(.primary)
+                    } else {
+                        Text(workoutSession.dateCreated, style: .timer)
+                            .font(.title2.bold())
+                            .foregroundColor(.primary)
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .background(.bar)
+        }
+    }
+}
 
+// MARK: - Workout Notes View
+
+struct WorkoutNotesView: View {
+    @Binding var notes: String
+    @Environment(\.dismiss) private var dismiss
+    let onSave: () -> Void
+    
+    var body: some View {
+        NavigationStack {
+            VStack {
+                TextEditor(text: $notes)
+                    .padding()
+                
+                Spacer()
+            }
+            .navigationTitle("Workout Notes")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Save") {
+                        onSave()
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+#Preview("Tracker View") {
+    WorkoutTrackerView(workoutSession: WorkoutSessionModel.mock)
+        .previewEnvironment()
+}
+
+#Preview("Workout Notes View") {
+
+    Text("Hello")
+        .sheet(isPresented: Binding.constant(true)) {
+            WorkoutNotesView(notes: Binding.constant("")) {
+            // Implement save action for preview if needed
+        }
+    }
+}
+
+extension WorkoutTrackerView {
     // MARK: - Computed Properties
     
     private var elapsedTimeString: String {
@@ -237,10 +311,12 @@ struct WorkoutTrackerView: View {
         }
         // Ensure start time comes from the session creation time
         startTime = workoutSession.dateCreated
+        // Ensure current exercise points to the first incomplete item
+        syncCurrentExerciseIndexToFirstIncomplete(in: workoutSession.exercises)
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        // Start Live Activity if not already started
-        workoutActivityViewModel.startLiveActivity(
+        // Ensure an existing Live Activity is reused, otherwise start one
+        workoutActivityViewModel.ensureLiveActivity(
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
@@ -249,8 +325,10 @@ struct WorkoutTrackerView: View {
         )
         #endif
 
-        // Expand first exercise by default
-        if let firstExercise = workoutSession.exercises.first {
+        // Expand first incomplete exercise by default (fallback to first if all complete)
+        if let idx = firstIncompleteExerciseIndex(in: workoutSession.exercises) {
+            expandedExerciseIds.insert(workoutSession.exercises[idx].id)
+        } else if let firstExercise = workoutSession.exercises.first {
             expandedExerciseIds.insert(firstExercise.id)
         }
     }
@@ -364,10 +442,8 @@ struct WorkoutTrackerView: View {
             startRestTimer()
         }
         
-        // Check if all sets in current exercise are completed and move to next exercise
-        if exerciseIndex == currentExerciseIndex && areAllSetsCompleted(in: exerciseId) {
-            moveToNextExercise()
-        }
+        // Always align current exercise to top-most incomplete after updates
+        syncCurrentExerciseIndexToFirstIncomplete(in: workoutSession.exercises)
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Update activity to reflect set/volume/progress changes
@@ -412,6 +488,8 @@ struct WorkoutTrackerView: View {
         updatedExercises[exerciseIndex].sets.append(newSet)
         workoutSession.updateExercises(updatedExercises)
         saveWorkoutProgress()
+        // Realign current exercise in case previously all-complete edge cases shift
+        syncCurrentExerciseIndexToFirstIncomplete(in: workoutSession.exercises)
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         workoutActivityViewModel.updateLiveActivity(
@@ -441,6 +519,8 @@ struct WorkoutTrackerView: View {
         
         workoutSession.updateExercises(updatedExercises)
         saveWorkoutProgress()
+        // Realign current exercise after deletion
+        syncCurrentExerciseIndexToFirstIncomplete(in: workoutSession.exercises)
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         workoutActivityViewModel.updateLiveActivity(
@@ -586,6 +666,49 @@ struct WorkoutTrackerView: View {
         }
     }
 
+    private func addSelectedExercises() {
+        guard !pendingSelectedTemplates.isEmpty, let userId = userManager.currentUser?.userId else { return }
+        var updated = workoutSession.exercises
+        let startIndex = updated.count
+        for (offset, template) in pendingSelectedTemplates.enumerated() {
+            let index = startIndex + offset + 1
+            let mode = WorkoutSessionModel.trackingMode(for: template.type)
+            let defaultSets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: userId)
+            let newExercise = WorkoutExerciseModel(
+                id: UUID().uuidString,
+                authorId: userId,
+                templateId: template.id,
+                name: template.name,
+                trackingMode: mode,
+                index: index,
+                notes: nil,
+                sets: defaultSets
+            )
+            updated.append(newExercise)
+        }
+        workoutSession.updateExercises(updated)
+        // Focus to first incomplete (likely the first newly added)
+        syncCurrentExerciseIndexToFirstIncomplete(in: updated)
+        // Expand the current exercise
+        if currentExerciseIndex < updated.count {
+            expandedExerciseIds.removeAll()
+            expandedExerciseIds.insert(updated[currentExerciseIndex].id)
+        }
+        saveWorkoutProgress()
+
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        workoutActivityViewModel.updateLiveActivity(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: restEndTime,
+            statusMessage: isRestActive ? "Resting" : nil,
+            totalVolumeKg: computeTotalVolumeKg(),
+            elapsedTime: elapsedTime
+        )
+        #endif
+    }
+
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
@@ -615,7 +738,7 @@ struct WorkoutTrackerView: View {
                 }
             }
         }
-
+        
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 onNotesPressed()
@@ -632,55 +755,109 @@ struct WorkoutTrackerView: View {
             }
             .buttonStyle(.glassProminent)
         }
-    }
-}
-
-// MARK: - Workout Notes View
-
-struct WorkoutNotesView: View {
-    @Binding var notes: String
-    @Environment(\.dismiss) private var dismiss
-    let onSave: () -> Void
-    
-    var body: some View {
-        NavigationStack {
-            VStack {
-                TextEditor(text: $notes)
-                    .padding()
-                
-                Spacer()
-            }
-            .navigationTitle("Workout Notes")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+        
+        ToolbarItem(placement: .bottomBar) {
+            Button {
+                if isRestActive {
+                    cancelRestTimer()
+                } else {
+                    startRestTimer()
                 }
-                
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Save") {
-                        onSave()
-                        dismiss()
-                    }
-                }
+            } label: {
+                Image(systemName: isRestActive ? "stop" : "timer")
+                    .foregroundColor(isRestActive ? .red : .accent)
             }
         }
+        
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        
+        ToolbarItem(placement: .bottomBar) {
+            Button {
+                pendingSelectedTemplates = []
+                showingAddExercise = true
+            } label: {
+                Image(systemName: "plus")
+            }
+        }
+        
     }
-}
 
-#Preview("Tracker View") {
-    WorkoutTrackerView(workoutSession: WorkoutSessionModel.mock)
-        .previewEnvironment()
-}
+    private func moveExercises(from source: IndexSet, to destination: Int) {
+        var updated = workoutSession.exercises
+        updated.move(fromOffsets: source, toOffset: destination)
 
-#Preview("Workout Notes View") {
+        applyReorderedExercises(updated, movedFrom: source.first, movedTo: destination)
 
-    Text("Hello")
-        .sheet(isPresented: Binding.constant(true)) {
-            WorkoutNotesView(notes: Binding.constant("")) {
-            // Implement save action for preview if needed
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        workoutActivityViewModel.updateLiveActivity(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: restEndTime,
+            statusMessage: isRestActive ? "Resting" : nil,
+            totalVolumeKg: computeTotalVolumeKg(),
+            elapsedTime: elapsedTime
+        )
+        #endif
+    }
+
+    private func reorderExercises(from sourceIndex: Int, to targetIndex: Int) {
+        guard sourceIndex != targetIndex else { return }
+        var updated = workoutSession.exercises
+        let element = updated.remove(at: sourceIndex)
+        updated.insert(element, at: targetIndex)
+        applyReorderedExercises(updated, movedFrom: sourceIndex, movedTo: targetIndex)
+    }
+
+    private func applyReorderedExercises(_ updated: [WorkoutExerciseModel], movedFrom: Int?, movedTo: Int) {
+        var updated = updated
+        // Reindex exercises only (do not touch set indices)
+        for (idx, _) in updated.enumerated() {
+            updated[idx].index = idx + 1
+        }
+
+        // Always align current exercise to top-most incomplete after reorders
+        workoutSession.updateExercises(updated)
+        syncCurrentExerciseIndexToFirstIncomplete(in: updated)
+
+        saveWorkoutProgress()
+    }
+
+    private func deleteExercise(_ exerciseId: String) {
+        var updated = workoutSession.exercises
+        guard let idx = updated.firstIndex(where: { $0.id == exerciseId }) else { return }
+        updated.remove(at: idx)
+        // Reindex remaining exercises
+        for index in updated.indices { updated[index].index = index + 1 }
+        workoutSession.updateExercises(updated)
+        // Keep expansion state tidy
+        expandedExerciseIds.remove(exerciseId)
+        // Realign current exercise
+        syncCurrentExerciseIndexToFirstIncomplete(in: updated)
+        saveWorkoutProgress()
+
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        workoutActivityViewModel.updateLiveActivity(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: restEndTime,
+            statusMessage: isRestActive ? "Resting" : nil,
+            totalVolumeKg: computeTotalVolumeKg(),
+            elapsedTime: elapsedTime
+        )
+        #endif
+    }
+
+    private func firstIncompleteExerciseIndex(in exercises: [WorkoutExerciseModel]) -> Int? {
+        exercises.firstIndex(where: { !$0.sets.isEmpty && !$0.sets.allSatisfy { $0.completedAt != nil } })
+    }
+
+    private func syncCurrentExerciseIndexToFirstIncomplete(in exercises: [WorkoutExerciseModel]) {
+        if let idx = firstIncompleteExerciseIndex(in: exercises) {
+            currentExerciseIndex = idx
+        } else {
+            currentExerciseIndex = max(0, exercises.isEmpty ? 0 : exercises.count - 1)
         }
     }
 }

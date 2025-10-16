@@ -78,7 +78,7 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
         }
     }
 
-    private static func trackingMode(for category: ExerciseCategory) -> TrackingMode {
+    static func trackingMode(for category: ExerciseCategory) -> TrackingMode {
         switch category {
         case .repsOnly:
             return .repsOnly
@@ -104,7 +104,7 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
         self.dateModified = date
     }
     
-    private static func defaultSets(trackingMode: TrackingMode, authorId: String) -> [WorkoutSetModel] {
+    static func defaultSets(trackingMode: TrackingMode, authorId: String) -> [WorkoutSetModel] {
         switch trackingMode {
         case .weightReps:
             return [0, 1, 2].map { index in
