@@ -126,21 +126,24 @@ struct WorkoutTrackerView: View {
     private var exerciseSection: some View {
         // Exercise List
         ForEach(Array(workoutSession.exercises.enumerated()), id: \.element.id) { index, exercise in
-            Section {
-                ExerciseTrackerCard(
-                    exercise: exercise,
-                    exerciseIndex: index,
-                    isCurrentExercise: index == currentExerciseIndex,
-                    isExpanded: expandedExerciseIds.contains(exercise.id),
-                    onToggleExpansion: { toggleExerciseExpansion(exercise.id) },
-                    onSetUpdate: { updatedSet in updateSet(updatedSet, in: exercise.id) },
-                    onAddSet: { addSet(to: exercise.id) },
-                    onDeleteSet: { setId in deleteSet(setId, from: exercise.id) }
+            ExerciseTrackerCard(
+                exercise: exercise,
+                exerciseIndex: index,
+                isCurrentExercise: index == currentExerciseIndex,
+                onSetUpdate: { updatedSet in updateSet(updatedSet, in: exercise.id) },
+                onAddSet: { addSet(to: exercise.id) },
+                onDeleteSet: { setId in deleteSet(setId, from: exercise.id) },
+                isExpanded: Binding(
+                    get: { expandedExerciseIds.contains(exercise.id) },
+                    set: { newValue in
+                        if newValue {
+                            expandedExerciseIds.insert(exercise.id)
+                        } else {
+                            expandedExerciseIds.remove(exercise.id)
+                        }
+                    }
                 )
-            } header: {
-                Text(exercise.name)
-            }
-            .removeListRowFormatting()
+            )
         }
     }
 

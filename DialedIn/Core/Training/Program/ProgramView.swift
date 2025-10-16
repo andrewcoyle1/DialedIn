@@ -13,18 +13,29 @@ struct ProgramView: View {
     @Binding var selectedWorkoutTemplate: WorkoutTemplateModel?
     @Binding var selectedExerciseTemplate: ExerciseTemplateModel?
 
+    @State private var isShowingCalendar: Bool = true
+    @State private var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
+    
     var body: some View {
-        Group {
-            listContents
-            
-        }
+        listContents
     }
     
     private var listContents: some View {
+        Group {
+            calendarSection
+            chartSection
+        }
+    }
+    
+    private var calendarSection: some View {
+        WorkoutCalendarView()
+    }
+    
+    private var chartSection: some View {
         Section {
             HistoryChart(series: TimeSeriesData.last30Days)
         } header: {
-            Text("Header")
+            Text("Chart")
         }
     }
 }

@@ -11,16 +11,14 @@ struct SetTrackerRow: View {
     @State private var set: WorkoutSetModel
     let trackingMode: TrackingMode
     let onUpdate: (WorkoutSetModel) -> Void
-    let onDelete: () -> Void
     
     // Validation state
     @State private var showAlert: AnyAppAlert?
     
-    init(set: WorkoutSetModel, trackingMode: TrackingMode, onUpdate: @escaping (WorkoutSetModel) -> Void, onDelete: @escaping () -> Void) {
+    init(set: WorkoutSetModel, trackingMode: TrackingMode, onUpdate: @escaping (WorkoutSetModel) -> Void) {
         self._set = State(initialValue: set)
         self.trackingMode = trackingMode
         self.onUpdate = onUpdate
-        self.onDelete = onDelete
     }
     
     var body: some View {
@@ -42,9 +40,8 @@ struct SetTrackerRow: View {
             completeButton
             
             // Delete button
-            deleteButton
+            // deleteButton
         }
-        .padding(.horizontal)
         .onChange(of: set) { _, newValue in
             onUpdate(newValue)
         }
@@ -269,17 +266,6 @@ struct SetTrackerRow: View {
         }
     }
     
-    private var deleteButton: some View {
-        Button {
-            onDelete()
-        } label: {
-            Image(systemName: "minus.circle.fill")
-                .font(.title3)
-                .foregroundColor(.red)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-    
     // MARK: - Validation
     
     private func validateSetData() -> Bool {
@@ -364,8 +350,7 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .weightReps,
-        onUpdate: { _ in },
-        onDelete: {}
+        onUpdate: { _ in }
     )
 }
 
@@ -385,8 +370,7 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .weightReps,
-        onUpdate: { _ in },
-        onDelete: {}
+        onUpdate: { _ in }
     )
 }
 
@@ -406,8 +390,7 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .timeOnly,
-        onUpdate: { _ in },
-        onDelete: {}
+        onUpdate: { _ in }
     )
 }
 
@@ -427,8 +410,7 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .timeOnly,
-        onUpdate: { _ in },
-        onDelete: {}
+        onUpdate: { _ in }
     )
 }
 
@@ -448,8 +430,7 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .distanceTime,
-        onUpdate: { _ in },
-        onDelete: {}
+        onUpdate: { _ in }
     )
 }
 
@@ -469,8 +450,7 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .distanceTime,
-        onUpdate: { _ in },
-        onDelete: {}
+        onUpdate: { _ in }
     )
 }
 
@@ -490,8 +470,7 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .weightReps,
-        onUpdate: { _ in },
-        onDelete: {}
+        onUpdate: { _ in }
     )
 }
 
@@ -511,8 +490,7 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .weightReps,
-        onUpdate: { _ in },
-        onDelete: {}
+        onUpdate: { _ in }
     )
 }
 
@@ -532,7 +510,6 @@ struct SetTrackerRow: View {
             dateCreated: Date()
         ),
         trackingMode: .weightReps,
-        onUpdate: { _ in },
-        onDelete: {}
+        onUpdate: { _ in }
     )
 }

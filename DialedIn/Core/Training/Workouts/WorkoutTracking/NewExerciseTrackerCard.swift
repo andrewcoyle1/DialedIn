@@ -1,5 +1,5 @@
 //
-//  ExerciseTrackerCard.swift
+//  NewExerciseTrackerCard.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 16/10/2025.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ExerciseTrackerCard: View {
+struct NewExerciseTrackerCard: View {
     let exercise: WorkoutExerciseModel
     let exerciseIndex: Int
     let isCurrentExercise: Bool
@@ -137,7 +137,7 @@ private struct NewExerciseTrackerCardPreviewContainer: View {
     var body: some View {
         List {
             // Current exercise styled card
-            ExerciseTrackerCard(
+            NewExerciseTrackerCard(
                 exercise: exercise,
                 exerciseIndex: 0,
                 isCurrentExercise: true,
@@ -148,7 +148,7 @@ private struct NewExerciseTrackerCardPreviewContainer: View {
             )
 
             // Non-current exercise styled card
-            ExerciseTrackerCard(
+            NewExerciseTrackerCard(
                 exercise: exercise,
                 exerciseIndex: 1,
                 isCurrentExercise: false,
