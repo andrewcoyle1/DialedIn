@@ -475,8 +475,20 @@ extension ExerciseDetailView {
     
     private func imageSection(url: String) -> some View {
         Section {
-            ImageLoaderView(urlString: url, resizingMode: .fill)
-                .frame(maxWidth: .infinity, minHeight: 180)
+            if url.starts(with: "http://") || url.starts(with: "https://") {
+                ImageLoaderView(urlString: url, resizingMode: .fit)
+                    .frame(maxWidth: .infinity, minHeight: 180, maxHeight: 250)
+
+            } else {
+                // Treat as bundled asset name
+                Image(url)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity, minHeight: 180, maxHeight: 250)
+
+            }
+            
+            // ImageLoaderView(urlString: url, resizingMode: .fill)
         }
         .removeListRowFormatting()
     }

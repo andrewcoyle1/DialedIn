@@ -21,6 +21,7 @@ struct ExerciseTemplateModel: Identifiable, Codable, StringIdentifiable, Hashabl
     let type: ExerciseCategory
     let muscleGroups: [MuscleGroup]
     private(set) var imageURL: String?
+    let isSystemExercise: Bool
     let dateCreated: Date
     let dateModified: Date
     let clickCount: Int?
@@ -36,6 +37,7 @@ struct ExerciseTemplateModel: Identifiable, Codable, StringIdentifiable, Hashabl
         type: ExerciseCategory = .none,
         muscleGroups: [MuscleGroup] = [],
         imageURL: String? = nil,
+        isSystemExercise: Bool = false,
         dateCreated: Date,
         dateModified: Date,
         clickCount: Int? = nil,
@@ -50,6 +52,7 @@ struct ExerciseTemplateModel: Identifiable, Codable, StringIdentifiable, Hashabl
         self.type = type
         self.muscleGroups = muscleGroups
         self.imageURL = imageURL
+        self.isSystemExercise = isSystemExercise
         self.dateCreated = dateCreated
         self.dateModified = dateModified
         self.clickCount = clickCount
@@ -70,11 +73,31 @@ struct ExerciseTemplateModel: Identifiable, Codable, StringIdentifiable, Hashabl
         case type
         case muscleGroups = "muscle_groups"
         case imageURL = "image_url"
+        case isSystemExercise = "is_system_exercise"
         case dateCreated = "date_created"
         case dateModified = "date_modified"
         case clickCount = "click_count"
         case bookmarkCount = "bookmark_count"
         case favouriteCount = "favourite_count"
+    }
+
+    // Make decoding tolerant for legacy documents missing some fields
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.exerciseId = try container.decodeIfPresent(String.self, forKey: .exerciseId) ?? UUID().uuidString
+        self.authorId = try container.decodeIfPresent(String.self, forKey: .authorId)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.description = try container.decodeIfPresent(String.self, forKey: .description)
+        self.instructions = try container.decodeIfPresent([String].self, forKey: .instructions) ?? []
+        self.type = try container.decodeIfPresent(ExerciseCategory.self, forKey: .type) ?? .none
+        self.muscleGroups = try container.decodeIfPresent([MuscleGroup].self, forKey: .muscleGroups) ?? []
+        self.imageURL = try container.decodeIfPresent(String.self, forKey: .imageURL)
+        self.isSystemExercise = try container.decodeIfPresent(Bool.self, forKey: .isSystemExercise) ?? false
+        self.dateCreated = try container.decodeIfPresent(Date.self, forKey: .dateCreated) ?? Date()
+        self.dateModified = try container.decodeIfPresent(Date.self, forKey: .dateModified) ?? Date()
+        self.clickCount = try container.decodeIfPresent(Int.self, forKey: .clickCount) ?? 0
+        self.bookmarkCount = try container.decodeIfPresent(Int.self, forKey: .bookmarkCount) ?? 0
+        self.favouriteCount = try container.decodeIfPresent(Int.self, forKey: .favouriteCount) ?? 0
     }
     
     var eventParameters: [String: Any] {

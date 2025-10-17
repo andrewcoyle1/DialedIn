@@ -63,6 +63,7 @@ class WorkoutExerciseEntity {
     var trackingMode: TrackingMode
     var index: Int
     var notes: String?
+    var imageName: String?
     @Relationship(deleteRule: .cascade, inverse: \WorkoutSetEntity.exercise) var sets: [WorkoutSetEntity]
     @Relationship var session: WorkoutSessionEntity?
 
@@ -74,6 +75,7 @@ class WorkoutExerciseEntity {
         self.trackingMode = model.trackingMode
         self.index = model.index
         self.notes = model.notes
+        self.imageName = model.imageName
         // Persist sets in index order
         self.sets = model.sets.sorted(by: { $0.index < $1.index }).map { WorkoutSetEntity(from: $0) }
     }
@@ -88,6 +90,7 @@ class WorkoutExerciseEntity {
             trackingMode: trackingMode,
             index: index,
             notes: notes,
+            imageName: imageName,
             sets: sets.map { $0.toModel() }
         )
     }

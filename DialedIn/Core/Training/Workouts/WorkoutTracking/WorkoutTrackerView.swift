@@ -214,6 +214,7 @@ struct WorkoutTrackerView: View {
                     onAddSet: { addSet(to: exercise.id) },
                     onDeleteSet: { setId in deleteSet(setId, from: exercise.id) },
                     onHeaderLongPress: { /* no-op: reordering via drag on header */ },
+                    onNotesChange: { notes in updateExerciseNotes(notes, for: exercise.id) },
                     restBeforeSecForSet: { setId in restBeforeSetIdToSec[setId] },
                     onRestBeforeChange: { setId, value in restBeforeSetIdToSec[setId] = value ?? 0; if value == nil { restBeforeSetIdToSec.removeValue(forKey: setId) } },
                     onRequestRestPicker: { setId, current in

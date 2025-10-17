@@ -44,7 +44,8 @@ class HKWorkoutManager: NSObject {
     
     var isLiveActivityActive: Bool = false
     var timer: Timer?
-    // Rest state tracking for background-safe updates (staleDate-driven)
+    // Rest timer management for background-safe updates
+    var restTimer: DispatchSourceTimer?
     var restEndTime: Date?
     private var isUpdatingActivity: Bool = false
     private var restStateChangedAt: Date?
@@ -262,26 +263,29 @@ class HKWorkoutManager: NSObject {
             Task {
                 await MainActor.run {
                     self.metrics.elapsedTime = self.builder?.elapsedTime ?? 0
-                    // If a rest is active and has passed, end it (no background timer needed)
-                    if let end = self.restEndTime, Date() >= end {
-                        self.endRest()
-                        return
-                    }
-                    // For frequent ticks, avoid recomputing counts/volume from session model
-                    // Preserve counts by updating only active/rest fields
-                    // Debounce immediately after a rest state change to ensure that
-                    // the explicit rest update reaches the Live Activity first.
-                    if let changedAt = self.restStateChangedAt, Date().timeIntervalSince(changedAt) < 0.5 {
-                        return
-                    }
-                    if !self.isUpdatingActivity {
-                        self.isUpdatingActivity = true
-                        self.workoutActivityViewModel?.updateRestAndActive(
-                            isActive: self.state == .running,
-                            restEndsAt: self.restEndTime,
-                            statusMessage: nil
-                        )
-                        self.isUpdatingActivity = false
+                    
+                    // Sync rest end time from shared storage (in case widget updated it)
+                    self.syncRestEndTimeFromSharedStorage()
+                    
+                    if let sessionModel = self.activeSessionModel {
+                        // Debounce immediately after a rest state change to ensure that
+                        // the explicit rest update reaches the Live Activity first.
+                        if let changedAt = self.restStateChangedAt, Date().timeIntervalSince(changedAt) < 0.5 {
+                            return
+                        }
+                        if !self.isUpdatingActivity {
+                            self.isUpdatingActivity = true
+                            self.workoutActivityViewModel?.updateLiveActivity(
+                                session: sessionModel,
+                                isActive: self.state == .running,
+                                currentExerciseIndex: 0,
+                                restEndsAt: self.restEndTime,
+                                statusMessage: nil,
+                                totalVolumeKg: nil,
+                                elapsedTime: self.metrics.elapsedTime
+                            )
+                            self.isUpdatingActivity = false
+                        }
                     }
                 }
             }
@@ -356,6 +360,49 @@ extension HKWorkoutManager: HKLiveWorkoutBuilderDelegate {
 
 // MARK: - Rest Timer Management
 extension HKWorkoutManager {
+    /// Sync rest end time from shared storage (called by timer to pick up widget changes)
+    @MainActor
+    func syncRestEndTimeFromSharedStorage() {
+        let sharedRestEndTime = SharedWorkoutStorage.restEndTime
+        
+        // Only update if there's a meaningful difference (more than 0.5 seconds)
+        if let sharedTime = sharedRestEndTime, let currentTime = restEndTime {
+            let difference = abs(sharedTime.timeIntervalSince(currentTime))
+            if difference > 0.5 {
+                restEndTime = sharedTime
+                // Mark a recent change to debounce periodic refresh and push an immediate update
+                restStateChangedAt = Date()
+                // Reschedule the timer with new end time
+                if let endTime = restEndTime {
+                    scheduleRestEndTimer(endTime: endTime)
+                }
+                // Push an immediate Live Activity update so UI reflects changes without 1s delay
+                if activeSessionModel != nil {
+                    workoutActivityViewModel?.updateRestAndActive(
+                        isActive: state == .running,
+                        restEndsAt: restEndTime,
+                        statusMessage: "Resting"
+                    )
+                }
+            }
+        } else if sharedRestEndTime == nil && restEndTime != nil {
+            // Rest was cleared by widget
+            restEndTime = nil
+            restStateChangedAt = Date()
+            // Cancel any scheduled timer
+            restTimer?.cancel()
+            restTimer = nil
+            // Push an immediate Live Activity update to clear UI
+            if activeSessionModel != nil {
+                workoutActivityViewModel?.updateRestAndActive(
+                    isActive: state == .running,
+                    restEndsAt: nil,
+                    statusMessage: nil
+                )
+            }
+        }
+    }
+    
     /// Begin a rest period and schedule a background-safe update at rest end.
     @MainActor
     func startRest(durationSeconds: Int, session: WorkoutSessionModel, currentExerciseIndex: Int = 0) {
@@ -365,6 +412,9 @@ extension HKWorkoutManager {
         let duration = max(0, durationSeconds)
         restEndTime = Date().addingTimeInterval(TimeInterval(duration))
         restStateChangedAt = Date()
+        
+        // Write to shared storage so widget can read it
+        SharedWorkoutStorage.restEndTime = restEndTime
 
         // Update Live Activity immediately to show Resting countdown
         workoutActivityViewModel?.updateLiveActivity(
@@ -377,15 +427,22 @@ extension HKWorkoutManager {
             elapsedTime: metrics.elapsedTime
         )
 
-        // Do not schedule a background timer. We rely on Live Activity staleDate and
-        // clear rest on the next foreground tick when the end time passes.
+        // Schedule timer to fire exactly at rest end, even when app is backgrounded
+        if let endTime = restEndTime {
+            scheduleRestEndTimer(endTime: endTime)
+        }
     }
 
     /// Cancel any pending rest and clear countdown from Live Activity.
     @MainActor
     func cancelRest() {
+        restTimer?.cancel()
+        restTimer = nil
         restEndTime = nil
         restStateChangedAt = Date()
+        
+        // Clear from shared storage
+        SharedWorkoutStorage.clearRestEndTime()
 
         guard let sessionModel = activeSessionModel else { return }
         workoutActivityViewModel?.updateLiveActivity(
@@ -402,10 +459,24 @@ extension HKWorkoutManager {
     /// Called automatically when the scheduled rest end time is reached.
     @MainActor
     func endRest() {
+        restTimer?.cancel()
+        restTimer = nil
         restEndTime = nil
         restStateChangedAt = Date()
+        
+        // Clear from shared storage
+        SharedWorkoutStorage.clearRestEndTime()
 
-        guard let sessionModel = activeSessionModel else { return }
+        guard let sessionModel = activeSessionModel else {
+            print("⚠️ endRest called but activeSessionModel is nil")
+            return
+        }
+        
+        guard workoutActivityViewModel != nil else {
+            print("⚠️ endRest called but workoutActivityViewModel is nil")
+            return
+        }
+        
         workoutActivityViewModel?.updateLiveActivity(
             session: sessionModel,
             isActive: state == .running,
@@ -415,6 +486,24 @@ extension HKWorkoutManager {
             totalVolumeKg: nil,
             elapsedTime: metrics.elapsedTime
         )
+    }
+
+    nonisolated private func scheduleRestEndTimer(endTime: Date) {
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .utility))
+        let delta = max(0, endTime.timeIntervalSinceNow)
+        timer.schedule(deadline: .now() + delta)
+        timer.setEventHandler { [weak self] in
+            // Use Task to safely call MainActor-isolated method from background queue
+            Task { @MainActor [weak self] in
+                self?.endRest()
+            }
+        }
+        timer.resume()
+        
+        // Store the timer reference back on MainActor
+        Task { @MainActor [weak self] in
+            self?.restTimer = timer
+        }
     }
 }
 #endif

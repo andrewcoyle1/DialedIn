@@ -65,6 +65,7 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
         self.exercises = template.exercises.enumerated().map { (idx, exerciseTemplate) in
             let mode = WorkoutSessionModel.trackingMode(for: exerciseTemplate.type)
             let sets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: authorId)
+            let imageName = Constants.exerciseImageName(for: exerciseTemplate.name)
             return WorkoutExerciseModel(
                 id: UUID().uuidString,
                 authorId: authorId,
@@ -73,6 +74,7 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
                 trackingMode: mode,
                 index: idx + 1,
                 notes: nil,
+                imageName: imageName,
                 sets: sets
             )
         }

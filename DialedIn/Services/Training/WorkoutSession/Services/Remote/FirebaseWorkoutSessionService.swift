@@ -47,6 +47,7 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
                 trackingMode: exercise.trackingMode,
                 index: exercise.index,
                 notes: exercise.notes,
+                imageName: exercise.imageName,
                 order: exerciseOrder
             )
             let exerciseData = try Firestore.Encoder().encode(exerciseRecord)
@@ -132,6 +133,7 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
                 trackingMode: record.trackingMode,
                 index: record.index,
                 notes: record.notes,
+                imageName: record.imageName,
                 sets: sets
             )
             exercises.append(exercise)
@@ -222,6 +224,7 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
                 trackingMode: exercise.trackingMode,
                 index: exercise.index,
                 notes: exercise.notes,
+                imageName: exercise.imageName,
                 order: exerciseOrder
             )
             let exerciseData = try Firestore.Encoder().encode(exerciseRecord)
@@ -423,7 +426,8 @@ extension WorkoutExerciseModel {
             name: name,
             trackingMode: trackingMode,
             index: index,
-            notes: notes
+            notes: notes,
+            imageName: imageName
         )
     }
     
@@ -437,6 +441,7 @@ extension WorkoutExerciseModel {
             trackingMode: trackingMode,
             index: index,
             notes: notes,
+            imageName: imageName,
             sets: sets
         )
     }
@@ -474,6 +479,7 @@ struct WorkoutExerciseForFirebase: Codable {
     let trackingMode: TrackingMode
     let index: Int
     let notes: String?
+    let imageName: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -483,5 +489,6 @@ struct WorkoutExerciseForFirebase: Codable {
         case trackingMode = "tracking_mode"
         case index
         case notes
+        case imageName = "image_name"
     }
 }

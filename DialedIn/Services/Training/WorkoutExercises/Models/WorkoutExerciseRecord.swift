@@ -16,6 +16,7 @@ struct WorkoutExerciseRecord: Codable {
     let trackingMode: TrackingMode
     let index: Int
     let notes: String?
+    let imageName: String?
     let order: Int
     
     enum CodingKeys: String, CodingKey {
@@ -27,6 +28,7 @@ struct WorkoutExerciseRecord: Codable {
         case trackingMode = "tracking_mode"
         case index
         case notes
+        case imageName = "image_name"
         case order
     }
 }

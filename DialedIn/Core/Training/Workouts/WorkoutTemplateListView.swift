@@ -9,27 +9,47 @@ import SwiftUI
 
 struct WorkoutTemplateListView: View {
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
-    @State private var templates: [WorkoutTemplateModel] = []
     @Environment(\.dismiss) private var dismiss
+    
+    let templateIds: [String]?
+    @State private var templates: [WorkoutTemplateModel] = []
     @State private var path: [NavigationPathOption] = []
     @State private var isLoading: Bool = false
     @State private var showAlert: AnyAppAlert?
     
+    init(templateIds: [String]? = nil) {
+        self.templateIds = templateIds
+    }
+    
     var body: some View {
         NavigationStack(path: $path) {
-            List {
-                ForEach(templates) { template in
-                    CustomListCellView(
-                        imageName: nil,
-                        title: template.name
+            Group {
+                if isLoading {
+                    ProgressView()
+                } else if templates.isEmpty {
+                    ContentUnavailableView(
+                        "No Workouts",
+                        systemImage: "figure.run",
+                        description: Text(templateIds != nil ? "You haven't created any workout templates yet." : "No workout templates available.")
                     )
-                    .anyButton(.highlight) {
-                        path.append(.workoutTemplateDetail(template: template))
+                } else {
+                    List {
+                        ForEach(templates) { template in
+                            CustomListCellView(
+                                imageName: template.imageURL,
+                                title: template.name,
+                                subtitle: template.description
+                            )
+                            .anyButton(.highlight) {
+                                path.append(.workoutTemplateDetail(template: template))
+                            }
+                            .removeListRowFormatting()
+                        }
                     }
-                    .removeListRowFormatting()
                 }
             }
-            .navigationTitle("Workout Templates")
+            .navigationTitle(templateIds != nil ? "My Workouts" : "Workout Templates")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { dismiss() } label: { Image(systemName: "chevron.left") }
@@ -50,17 +70,25 @@ struct WorkoutTemplateListView: View {
 extension WorkoutTemplateListView {
     private func loadTemplates() async {
         isLoading = true
+        
         do {
-            let top = try await workoutTemplateManager.getTopWorkoutTemplatesByClicks(limitTo: 20)
-            await MainActor.run {
+            if let templateIds = templateIds {
+                // Load user's specific templates
+                guard !templateIds.isEmpty else {
+                    isLoading = false
+                    return
+                }
+                let fetchedTemplates = try await workoutTemplateManager.getWorkoutTemplates(ids: templateIds, limitTo: templateIds.count)
+                templates = fetchedTemplates.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            } else {
+                // Load top templates
+                let top = try await workoutTemplateManager.getTopWorkoutTemplatesByClicks(limitTo: 20)
                 templates = top
-                isLoading = false
             }
         } catch {
-            await MainActor.run {
-                isLoading = false
-                showAlert = AnyAppAlert(title: "Unable to Load Workouts", subtitle: "Please try again later.")
-            }
+            showAlert = AnyAppAlert(title: "Unable to Load Workouts", subtitle: "Please try again later.")
         }
+        
+        isLoading = false
     }
 }

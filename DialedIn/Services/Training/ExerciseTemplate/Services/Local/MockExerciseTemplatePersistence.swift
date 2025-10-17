@@ -48,6 +48,12 @@ struct MockExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
         return exerciseTemplates
     }
     
+    func getSystemExerciseTemplates() throws -> [ExerciseTemplateModel] {
+        try tryShowError()
+
+        return exerciseTemplates.filter { $0.isSystemExercise }
+    }
+    
     func bookmarkExerciseTemplate(id: String, isBookmarked: Bool) throws {
         try tryShowError()
         // No-op in mock; in a real implementation, this would update the bookmark status in persistent storage.

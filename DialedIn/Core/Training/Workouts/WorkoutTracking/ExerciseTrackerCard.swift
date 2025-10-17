@@ -15,18 +15,48 @@ struct ExerciseTrackerCard: View {
     let onAddSet: () -> Void
     let onDeleteSet: (String) -> Void
     let onHeaderLongPress: () -> Void
+    let onNotesChange: (String) -> Void
     // Rest configuration for the next set (child set) keyed by set id
     let restBeforeSecForSet: (String) -> Int?
     let onRestBeforeChange: (String, Int?) -> Void
     let onRequestRestPicker: (String, Int?) -> Void
     
     @Binding var isExpanded: Bool
+    @State private var notesDraft: String = ""
+
+    init(
+        exercise: WorkoutExerciseModel,
+        exerciseIndex: Int,
+        isCurrentExercise: Bool,
+        onSetUpdate: @escaping (WorkoutSetModel) -> Void,
+        onAddSet: @escaping () -> Void,
+        onDeleteSet: @escaping (String) -> Void,
+        onHeaderLongPress: @escaping () -> Void,
+        onNotesChange: @escaping (String) -> Void,
+        restBeforeSecForSet: @escaping (String) -> Int?,
+        onRestBeforeChange: @escaping (String, Int?) -> Void,
+        onRequestRestPicker: @escaping (String, Int?) -> Void,
+        isExpanded: Binding<Bool>
+    ) {
+        self.exercise = exercise
+        self.exerciseIndex = exerciseIndex
+        self.isCurrentExercise = isCurrentExercise
+        self.onSetUpdate = onSetUpdate
+        self.onAddSet = onAddSet
+        self.onDeleteSet = onDeleteSet
+        self.onHeaderLongPress = onHeaderLongPress
+        self.onNotesChange = onNotesChange
+        self.restBeforeSecForSet = restBeforeSecForSet
+        self.onRestBeforeChange = onRestBeforeChange
+        self.onRequestRestPicker = onRequestRestPicker
+        self._isExpanded = isExpanded
+        // Initialize local draft from model notes if available
+        self._notesDraft = State(initialValue: exercise.notes ?? "")
+    }
     
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
             setsContent
-                .listRowInsets(.vertical, .zero)
-                .listRowInsets(.leading, .zero)
         } label: {
             exerciseHeader
         }
@@ -52,46 +82,71 @@ struct ExerciseTrackerCard: View {
         .onLongPressGesture(minimumDuration: 0.4) {
             onHeaderLongPress()
         }
+        .listRowInsets(.vertical, .zero)
     }
     
     @ViewBuilder
     private var setsContent: some View {
         // Rows (each row is its own view to keep swipe actions per-row)
-        ForEach(exercise.sets) { set in
-            SetTrackerRow(
-                set: set,
-                trackingMode: exercise.trackingMode,
-                restBeforeSec: restBeforeSecForSet(set.id),
-                onRestBeforeChange: { onRestBeforeChange(set.id, $0) },
-                onRequestRestPicker: { _, _ in onRequestRestPicker(set.id, restBeforeSecForSet(set.id)) },
-                onUpdate: onSetUpdate
-            )
-            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                Button(role: .destructive) {
-                    onDeleteSet(set.id)
-                } label: {
-                    Label("Delete", systemImage: "trash")
+        Group {
+            ZStack(alignment: .topLeading) {
+                if notesDraft.isEmpty {
+                        Text("Add notes here...")
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 8)
+                            .padding(.leading, 6)
                 }
+                TextEditor(text: $notesDraft)
+                    .scrollContentBackground(.hidden)
+                    .textInputAutocapitalization(.sentences)
+                    .onChange(of: notesDraft) { _, newValue in
+                        onNotesChange(newValue)
+                    }
             }
-            .moveDisabled(true)
-        }
-        .listRowSeparator(.hidden)
-        
-        // Add set button
-        Button {
-            onAddSet()
-        } label: {
-            HStack {
-                Image(systemName: "plus.circle.fill")
-                Text("Add Set")
+
+            ForEach(exercise.sets) { set in
+                SetTrackerRow(
+                    set: set,
+                    trackingMode: exercise.trackingMode,
+                    restBeforeSec: restBeforeSecForSet(set.id),
+                    onRestBeforeChange: { onRestBeforeChange(set.id, $0) },
+                    onRequestRestPicker: { _, _ in onRequestRestPicker(set.id, restBeforeSecForSet(set.id)) },
+                    onUpdate: onSetUpdate
+                )
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        onDeleteSet(set.id)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+                .moveDisabled(true)
             }
-            .font(.footnote.bold())
-            .foregroundColor(.accent)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            .background(Capsule().fill(Color.accent.opacity(0.1)))
+            .listRowSeparator(.hidden)
+
+            // Add set button
+            Button {
+                onAddSet()
+            } label: {
+                HStack {
+                    Image(systemName: "plus.circle.fill")
+                    Text("Add Set")
+                }
+                .font(.footnote.bold())
+                .foregroundColor(.accent)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(Color.accent.opacity(0.1))
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowSeparator(.hidden)
+
         }
-        .buttonStyle(PlainButtonStyle())
+        .listRowInsets(.vertical, .zero)
+        .listRowInsets(.leading, .zero)
     }
     
     // MARK: - Computed Properties
@@ -103,6 +158,7 @@ struct ExerciseTrackerCard: View {
 private struct ExerciseTrackerCardPreviewContainer: View {
     @State private var exercise: WorkoutExerciseModel = {
         var exercise = WorkoutExerciseModel.mock
+        exercise.notes = exercise.notes ?? ""
         // Ensure at least a couple sets exist for interactions
         if exercise.sets.isEmpty {
             exercise.sets = [
@@ -151,6 +207,7 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                 onAddSet: handleAdd,
                 onDeleteSet: handleDelete,
                 onHeaderLongPress: {},
+                onNotesChange: { exercise.notes = $0 },
                 restBeforeSecForSet: { _ in nil },
                 onRestBeforeChange: { _, _ in },
                 onRequestRestPicker: { _, _ in },
@@ -166,6 +223,7 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                 onAddSet: handleAdd,
                 onDeleteSet: handleDelete,
                 onHeaderLongPress: {},
+                onNotesChange: { exercise.notes = $0 },
                 restBeforeSecForSet: { _ in nil },
                 onRestBeforeChange: { _, _ in },
                 onRequestRestPicker: { _, _ in },

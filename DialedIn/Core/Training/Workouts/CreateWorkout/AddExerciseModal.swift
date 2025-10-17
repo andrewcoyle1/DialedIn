@@ -111,15 +111,24 @@ struct AddExerciseModal: View {
         isLoading = true
         errorMessage = nil
         
+        // Always load system exercises from local storage
+        let systemExercises = (try? exerciseTemplateManager.getSystemExerciseTemplates()) ?? []
+        
         do {
-            // Load top exercises when not searching
-            let loadedExercises = try await exerciseTemplateManager.getTopExerciseTemplatesByClicks(limitTo: 50)
+            // Load top exercises from remote
+            let trendingExercises = try await exerciseTemplateManager.getTopExerciseTemplatesByClicks(limitTo: 50)
+            
+            // Combine system exercises and trending exercises
+            // System exercises first, then trending (deduplicated)
+            let systemIds = Set(systemExercises.map { $0.id })
+            let uniqueTrending = trendingExercises.filter { !systemIds.contains($0.id) }
+            
             await MainActor.run {
-                exercises = loadedExercises
+                exercises = systemExercises + uniqueTrending
                 isLoading = false
             }
         } catch {
-            // Fallback to local exercises if remote fails
+            // Fallback to all local exercises if remote fails
             do {
                 let localExercises = try exerciseTemplateManager.getAllLocalExerciseTemplates()
                 await MainActor.run {
@@ -127,9 +136,13 @@ struct AddExerciseModal: View {
                     isLoading = false
                 }
             } catch {
+                // At minimum, show system exercises even if everything else fails
                 await MainActor.run {
+                    exercises = systemExercises
                     isLoading = false
-                    errorMessage = "Failed to load exercises. Please check your connection and try again."
+                    if systemExercises.isEmpty {
+                        errorMessage = "Failed to load exercises. Please check your connection and try again."
+                    }
                 }
             }
         }
@@ -147,13 +160,25 @@ struct AddExerciseModal: View {
         // Don't search for very short queries to avoid too many API calls
         guard query.count >= 2 else { return }
         
+        // Always include system exercises in search
+        let systemExercises = (try? exerciseTemplateManager.getSystemExerciseTemplates()) ?? []
+        
         do {
-            let searchResults = try await exerciseTemplateManager.getExerciseTemplatesByName(name: query)
+            // Search remote exercises
+            let remoteResults = try await exerciseTemplateManager.getExerciseTemplatesByName(name: query)
+            
+            // Combine system exercises and remote results (deduplicated)
+            let systemIds = Set(systemExercises.map { $0.id })
+            let uniqueRemote = remoteResults.filter { !systemIds.contains($0.id) }
+            
             await MainActor.run {
-                exercises = searchResults
+                exercises = systemExercises + uniqueRemote
             }
         } catch {
-            // Don't show error for search failures, just keep current results
+            // If remote search fails, just show system exercises
+            await MainActor.run {
+                exercises = systemExercises
+            }
         }
     }
 }

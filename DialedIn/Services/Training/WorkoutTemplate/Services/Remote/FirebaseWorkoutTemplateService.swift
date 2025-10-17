@@ -41,8 +41,21 @@ struct FirebaseWorkoutTemplateService: RemoteWorkoutTemplateService {
     }
     
     func getWorkoutTemplates(ids: [String], limitTo: Int = 20) async throws -> [WorkoutTemplateModel] {
-        try await collection
-            .getDocuments(ids: ids)
+        // Fetch documents individually to handle missing/null documents gracefully
+        var workouts: [WorkoutTemplateModel] = []
+        
+        for id in ids {
+            do {
+                let workout = try await collection.getDocument(id: id) as WorkoutTemplateModel
+                workouts.append(workout)
+            } catch {
+                // Skip documents that don't exist or fail to decode
+                // This prevents errors when user has bookmarked/favorited items that were deleted
+                print("⚠️ Skipping workout template \(id): \(error.localizedDescription)")
+            }
+        }
+        
+        return workouts
             .shuffled()
             .first(upTo: limitTo) ?? []
     }

@@ -7,6 +7,7 @@
 
 import SwiftData
 import SwiftUI
+import Foundation
 
 @MainActor
 struct SwiftExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
@@ -16,9 +17,31 @@ struct SwiftExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
         container.mainContext
     }
     
+    /// Expose model context for seeding operations
+    var modelContext: ModelContext {
+        mainContext
+    }
+    
     init() {
+        // Prefer storing in the App Group's Application Support so extensions can read it if needed
+        let storeURL: URL = {
+            if let groupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: Constants.appGroupIdentifier) {
+                let libraryURL = groupURL.appendingPathComponent("Library", isDirectory: true)
+                let appSupportURL = libraryURL.appendingPathComponent("Application Support", isDirectory: true)
+                let directory = appSupportURL.appendingPathComponent("DialedIn.ExerciseTemplatesStore", isDirectory: true)
+                try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                return directory.appendingPathComponent("ExerciseTemplates.store")
+            } else {
+                // Fallback to app's Application Support
+                let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+                let directory = appSupport.appendingPathComponent("DialedIn.ExerciseTemplatesStore", isDirectory: true)
+                try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                return directory.appendingPathComponent("ExerciseTemplates.store")
+            }
+        }()
+        let configuration = ModelConfiguration(url: storeURL)
         // swiftlint:disable:next force_try
-        self.container = try! ModelContainer(for: ExerciseTemplateEntity.self)
+        self.container = try! ModelContainer(for: ExerciseTemplateEntity.self, configurations: configuration)
     }
     
     func addLocalExerciseTemplate(exercise: ExerciseTemplateModel) throws {
@@ -46,6 +69,14 @@ struct SwiftExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
     
     func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel] {
         let descriptor = FetchDescriptor<ExerciseTemplateEntity>(sortBy: [SortDescriptor(\.name, order: .forward)])
+        
+        let entities = try mainContext.fetch(descriptor)
+        return entities.map { $0.toModel() }
+    }
+    
+    func getSystemExerciseTemplates() throws -> [ExerciseTemplateModel] {
+        let predicate = #Predicate<ExerciseTemplateEntity> { $0.isSystemExercise == true }
+        let descriptor = FetchDescriptor<ExerciseTemplateEntity>(predicate: predicate, sortBy: [SortDescriptor(\.name, order: .forward)])
         
         let entities = try mainContext.fetch(descriptor)
         return entities.map { $0.toModel() }

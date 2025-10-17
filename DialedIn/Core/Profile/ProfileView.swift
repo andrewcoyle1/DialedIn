@@ -10,6 +10,10 @@ import SwiftUI
 struct ProfileView: View {
     
     @Environment(UserManager.self) private var userManager: UserManager
+    @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
+    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
+    @Environment(RecipeTemplateManager.self) private var recipeTemplateManager
+    @Environment(IngredientTemplateManager.self) private var ingredientTemplateManager
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
@@ -21,8 +25,7 @@ struct ProfileView: View {
         NavigationStack {
             List {
                 profileSection
-                exerciseTemplateSection
-                workoutTemplateSection
+                myTemplatesSection
             }
             .navigationTitle("Profile")
             .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
@@ -81,19 +84,94 @@ struct ProfileView: View {
 
 extension ProfileView {
     
-    private var exerciseTemplateSection: some View {
+    private var myTemplatesSection: some View {
         Section {
-            Text("Coming soon")
+            exerciseTemplateSection
+            workoutTemplateSection
+            recipeTemplateSection
+            ingredientTemplateSection
         } header: {
-            Text("Exercise Templates")
+            Text("My Templates")
+        }
+    }
+    
+    private var exerciseTemplateSection: some View {
+        Group {
+            let templateIds = userManager.currentUser?.createdExerciseTemplateIds ?? []
+            let count = templateIds.count
+            
+            NavigationLink {
+                ExerciseTemplateListView(templateIds: templateIds)
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Exercise Templates")
+                        .font(.headline)
+                    
+                    Text("\(count) templates")
+                        .font(.subheadline)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
     }
     
     private var workoutTemplateSection: some View {
-        Section {
-            Text("Coming soon")
-        } header: {
-            Text("Workout Templates")
+        Group {
+            let templateIds = userManager.currentUser?.createdWorkoutTemplateIds ?? []
+            let count = templateIds.count
+            
+            NavigationLink {
+                WorkoutTemplateListView(templateIds: templateIds)
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Workout Templates")
+                        .font(.headline)
+                    
+                    Text("\(count) templates")
+                        .font(.subheadline)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+    
+    private var recipeTemplateSection: some View {
+        Group {
+            let templateIds = userManager.currentUser?.createdRecipeTemplateIds ?? []
+            let count = templateIds.count
+            
+            NavigationLink {
+                RecipeTemplateListView(templateIds: templateIds)
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Recipe Templates")
+                        .font(.headline)
+                    
+                    Text("\(count) templates")
+                        .font(.subheadline)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+    
+    private var ingredientTemplateSection: some View {
+        Group {
+            let templateIds = userManager.currentUser?.createdIngredientTemplateIds ?? []
+            let count = templateIds.count
+            
+            NavigationLink {
+                IngredientTemplateListView(templateIds: templateIds)
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Ingredient Templates")
+                        .font(.headline)
+                    
+                    Text("\(count) templates")
+                        .font(.subheadline)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
     }
     

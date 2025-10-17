@@ -18,11 +18,22 @@ struct ImageLoaderView: View {
         Rectangle()
             .opacity(0.5)
             .overlay(
-                WebImage(url: URL(string: urlString))
-                    .resizable()
-                    .indicator(.activity)
-                    .aspectRatio(contentMode: resizingMode)
-                    .allowsHitTesting(false)
+                Group {
+                    if urlString.starts(with: "http://") || urlString.starts(with: "https://") {
+                        // Remote URL - use WebImage
+                        WebImage(url: URL(string: urlString))
+                            .resizable()
+                            .indicator(.activity)
+                            .aspectRatio(contentMode: resizingMode)
+                            .allowsHitTesting(false)
+                    } else {
+                        // Bundled asset - use SwiftUI Image
+                        Image(urlString)
+                            .resizable()
+                            .aspectRatio(contentMode: resizingMode)
+                            .allowsHitTesting(false)
+                    }
+                }
             )
             .clipped()
             .ifSatisfiedCondition(forceTransitionAnimation) { content in

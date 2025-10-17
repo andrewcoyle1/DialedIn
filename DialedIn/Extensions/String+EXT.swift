@@ -5,6 +5,8 @@
 //  Created by Andrew Coyle on 10/25/24.
 //
 import Foundation
+import UIKit
+import SwiftUI
 
 extension String {
     
@@ -48,5 +50,36 @@ extension String {
     var stableHashValue: Int {
         let unicodeScalars = self.unicodeScalars.map { $0.value }
         return unicodeScalars.reduce(5381) { ($0 << 5) &+ $0 &+ Int($1) }
+    }
+}
+
+extension String {
+    func sizeUsingFont(fontSize: CGFloat, weight: Font.Weight) -> CGSize {
+        var uiFontWeight = UIFont.Weight.regular
+        
+        switch weight {
+        case Font.Weight.heavy:
+            uiFontWeight = UIFont.Weight.heavy
+        case Font.Weight.bold:
+            uiFontWeight = UIFont.Weight.bold
+        case Font.Weight.light:
+            uiFontWeight = UIFont.Weight.light
+        case Font.Weight.medium:
+            uiFontWeight = UIFont.Weight.medium
+        case Font.Weight.semibold:
+            uiFontWeight = UIFont.Weight.semibold
+        case Font.Weight.thin:
+            uiFontWeight = UIFont.Weight.thin
+        case Font.Weight.ultraLight:
+            uiFontWeight = UIFont.Weight.ultraLight
+        case Font.Weight.black:
+            uiFontWeight = UIFont.Weight.black
+        default:
+            uiFontWeight = UIFont.Weight.regular
+        }
+        
+        let font = UIFont.systemFont(ofSize: fontSize, weight: uiFontWeight)
+        let fontAttributes = [NSAttributedString.Key.font: font]
+        return self.size(withAttributes: fontAttributes)
     }
 }

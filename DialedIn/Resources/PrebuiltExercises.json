@@ -1,0 +1,370 @@
+{
+  "exercises": [
+    {
+      "exerciseId": "system-barbell-bench-press",
+      "name": "Barbell Bench Press",
+      "description": "A compound exercise that primarily targets the chest, shoulders, and triceps. Performed lying flat on a bench.",
+      "type": "barbell",
+      "muscleGroups": ["chest", "shoulders", "arms"],
+      "instructions": [
+        "Lie flat on a bench with feet firmly on the ground",
+        "Grip the bar slightly wider than shoulder width",
+        "Unrack the bar and lower it to mid-chest",
+        "Press the bar back up to starting position",
+        "Keep your shoulder blades retracted throughout"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-barbell-incline-bench-press",
+      "name": "Barbell Incline Bench Press",
+      "description": "An incline pressing movement that emphasizes the upper chest and front deltoids.",
+      "type": "barbell",
+      "muscleGroups": ["chest", "shoulders", "arms"],
+      "instructions": [
+        "Set bench to 30-45 degree incline",
+        "Lie back with feet flat on floor",
+        "Grip bar slightly wider than shoulders",
+        "Lower bar to upper chest",
+        "Press back to starting position"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-barbell-romanian-deadlift",
+      "name": "Barbell Romanian Deadlift",
+      "description": "A hip-hinge movement that targets the posterior chain, primarily hamstrings and glutes.",
+      "type": "barbell",
+      "muscleGroups": ["legs", "back"],
+      "instructions": [
+        "Stand with feet hip-width apart holding barbell",
+        "Keep slight bend in knees",
+        "Hinge at hips, pushing them back",
+        "Lower bar along shins until you feel hamstring stretch",
+        "Drive hips forward to return to standing"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-barbell-sumo-deadlift",
+      "name": "Barbell Sumo Deadlift",
+      "description": "A deadlift variation with wide stance that emphasizes glutes, quads, and adductors.",
+      "type": "barbell",
+      "muscleGroups": ["legs", "back"],
+      "instructions": [
+        "Stand with feet wider than shoulder width, toes pointed out",
+        "Grip bar with hands inside knees",
+        "Keep chest up and back flat",
+        "Drive through heels to stand up",
+        "Lower bar back down with control"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-cable-bicep-curl-straight-bar",
+      "name": "Cable Bicep Curl (Straight Bar)",
+      "description": "An isolation exercise for the biceps using constant tension from cable resistance.",
+      "type": "cable",
+      "muscleGroups": ["arms"],
+      "instructions": [
+        "Attach straight bar to low pulley",
+        "Stand facing cable with feet shoulder-width apart",
+        "Grip bar with underhand grip",
+        "Curl bar up toward shoulders",
+        "Lower with control to starting position"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-cable-pushdown-straight-bar",
+      "name": "Cable Pushdown (Straight Bar)",
+      "description": "A triceps isolation exercise using a cable machine with constant tension.",
+      "type": "cable",
+      "muscleGroups": ["arms"],
+      "instructions": [
+        "Attach straight bar to high pulley",
+        "Stand facing cable, grip bar with overhand grip",
+        "Keep elbows tucked to sides",
+        "Push bar down until arms are fully extended",
+        "Return to starting position with control"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-calf-press-leg-press",
+      "name": "Calf Press on Leg Press",
+      "description": "An isolation exercise for the calves using the leg press machine.",
+      "type": "machine",
+      "muscleGroups": ["legs"],
+      "instructions": [
+        "Sit in leg press machine",
+        "Place balls of feet on lower edge of platform",
+        "Extend legs to unlock sled",
+        "Lower heels by flexing ankles",
+        "Press up through balls of feet to full calf extension"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-chest-dip",
+      "name": "Chest Dip",
+      "description": "A bodyweight exercise that targets the chest and triceps with forward lean.",
+      "type": "weightedBodyweight",
+      "muscleGroups": ["chest", "arms"],
+      "instructions": [
+        "Grip parallel bars and support body weight",
+        "Lean torso forward slightly",
+        "Lower body by bending elbows",
+        "Descend until shoulders are below elbows",
+        "Push back up to starting position"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-dumbbell-incline-fly",
+      "name": "Dumbbell Incline Fly",
+      "description": "An isolation exercise for the chest performed on an incline bench.",
+      "type": "dumbbell",
+      "muscleGroups": ["chest"],
+      "instructions": [
+        "Set bench to 30-45 degree incline",
+        "Lie back holding dumbbells above chest",
+        "Keep slight bend in elbows",
+        "Lower dumbbells out to sides in arc motion",
+        "Bring dumbbells back together above chest"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-dumbbell-bench-press",
+      "name": "Dumbbell Bench Press",
+      "description": "A chest pressing exercise using dumbbells for greater range of motion.",
+      "type": "dumbbell",
+      "muscleGroups": ["chest", "shoulders", "arms"],
+      "instructions": [
+        "Lie flat on bench holding dumbbells",
+        "Start with dumbbells at chest level",
+        "Press dumbbells up until arms are extended",
+        "Lower dumbbells back to chest level",
+        "Keep control throughout movement"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-dumbbell-seated-shoulder-press",
+      "name": "Dumbbell Seated Shoulder Press",
+      "description": "A shoulder pressing exercise performed seated for stability and isolation.",
+      "type": "dumbbell",
+      "muscleGroups": ["shoulders", "arms"],
+      "instructions": [
+        "Sit on bench with back support",
+        "Hold dumbbells at shoulder height",
+        "Press dumbbells overhead until arms are extended",
+        "Lower dumbbells back to shoulder height",
+        "Keep core engaged throughout"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-ez-barbell-preacher-curl",
+      "name": "EZ Barbell Preacher Curl",
+      "description": "An isolation exercise for biceps using a preacher bench to prevent momentum.",
+      "type": "barbell",
+      "muscleGroups": ["arms"],
+      "instructions": [
+        "Sit at preacher bench with arms over pad",
+        "Grip EZ bar with underhand grip",
+        "Curl bar up toward shoulders",
+        "Squeeze biceps at top",
+        "Lower bar with control to full extension"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-hack-squat",
+      "name": "Hack Squat",
+      "description": "A machine-based squat variation that targets quads with back support.",
+      "type": "machine",
+      "muscleGroups": ["legs"],
+      "instructions": [
+        "Position shoulders under pads",
+        "Place feet shoulder-width on platform",
+        "Release safety handles",
+        "Lower body by bending knees",
+        "Push through heels to return to starting position"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-lat-prayer-straight-bar",
+      "name": "Lat Prayer (Straight Bar)",
+      "description": "A lat pulldown variation that targets the lats and upper back.",
+      "type": "cable",
+      "muscleGroups": ["back"],
+      "instructions": [
+        "Attach straight bar to high pulley",
+        "Kneel facing cable machine",
+        "Grip bar with overhand grip",
+        "Pull bar down toward upper chest",
+        "Return to starting position with control"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-overhead-extension-straight-bar",
+      "name": "Overhead Extension (Straight Bar)",
+      "description": "A triceps isolation exercise using overhead cable extension.",
+      "type": "cable",
+      "muscleGroups": ["arms"],
+      "instructions": [
+        "Attach straight bar to high pulley",
+        "Turn away from cable, grip bar overhead",
+        "Keep elbows pointed forward",
+        "Extend arms forward and up",
+        "Return to starting position behind head"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-reverse-fly",
+      "name": "Reverse Fly",
+      "description": "An isolation exercise for rear deltoids and upper back.",
+      "type": "machine",
+      "muscleGroups": ["shoulders", "back"],
+      "instructions": [
+        "Sit facing pec deck machine",
+        "Grip handles with arms extended forward",
+        "Pull handles back in arc motion",
+        "Squeeze shoulder blades together",
+        "Return to starting position with control"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-seated-leg-extension",
+      "name": "Seated Leg Extension",
+      "description": "An isolation exercise for the quadriceps using a leg extension machine.",
+      "type": "machine",
+      "muscleGroups": ["legs"],
+      "instructions": [
+        "Sit in leg extension machine",
+        "Position ankles under padded bar",
+        "Grip handles for support",
+        "Extend legs until fully straight",
+        "Lower weight back to starting position"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-standing-lateral-raise-cable",
+      "name": "Standing Lateral Raise (Cable)",
+      "description": "A shoulder isolation exercise for the lateral deltoids using cable resistance.",
+      "type": "cable",
+      "muscleGroups": ["shoulders"],
+      "instructions": [
+        "Stand sideways to cable machine",
+        "Grip handle with far hand at side",
+        "Keep slight bend in elbow",
+        "Raise arm out to side to shoulder height",
+        "Lower with control to starting position"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-barbell-squat",
+      "name": "Barbell Squat",
+      "description": "A fundamental compound exercise that targets the entire lower body, primarily quads, glutes, and hamstrings.",
+      "type": "barbell",
+      "muscleGroups": ["legs", "back"],
+      "instructions": [
+        "Position barbell across upper back/traps",
+        "Stand with feet shoulder-width apart",
+        "Keep chest up and core engaged",
+        "Lower by bending knees and hips",
+        "Descend until thighs are parallel to ground",
+        "Drive through heels to return to standing"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-bulgarian-split-squat",
+      "name": "Bulgarian Split Squat",
+      "description": "A unilateral leg exercise that targets quads, glutes, and balance with rear foot elevated.",
+      "type": "dumbbell",
+      "muscleGroups": ["legs"],
+      "instructions": [
+        "Stand facing away from bench",
+        "Place rear foot on bench behind you",
+        "Hold dumbbells at sides",
+        "Lower by bending front knee",
+        "Descend until front thigh is parallel to ground",
+        "Push through front heel to return to start"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-lying-leg-curl",
+      "name": "Lying Leg Curl",
+      "description": "An isolation exercise for the hamstrings performed lying face down on a leg curl machine.",
+      "type": "machine",
+      "muscleGroups": ["legs"],
+      "instructions": [
+        "Lie face down on leg curl machine",
+        "Position ankles under padded lever",
+        "Grip handles for support",
+        "Curl legs up toward glutes",
+        "Squeeze hamstrings at top",
+        "Lower weight back to starting position with control"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-seated-row",
+      "name": "Seated Row",
+      "description": "A compound pulling exercise that targets the middle back, lats, and biceps.",
+      "type": "cable",
+      "muscleGroups": ["back", "arms"],
+      "instructions": [
+        "Sit at cable row machine with feet on platform",
+        "Grip handle with both hands",
+        "Keep back straight and chest up",
+        "Pull handle to torso, squeezing shoulder blades",
+        "Return to starting position with control"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-single-arm-row",
+      "name": "Single Arm Row",
+      "description": "A unilateral back exercise that targets the lats, rhomboids, and biceps with dumbbells.",
+      "type": "dumbbell",
+      "muscleGroups": ["back", "arms"],
+      "instructions": [
+        "Place one knee and hand on bench for support",
+        "Hold dumbbell in opposite hand",
+        "Keep back flat and parallel to ground",
+        "Pull dumbbell up to hip, leading with elbow",
+        "Squeeze back at top",
+        "Lower with control to starting position"
+      ],
+      "isSystemExercise": true
+    },
+    {
+      "exerciseId": "system-t-bar-row",
+      "name": "T-Bar Row",
+      "description": "A compound pulling exercise that targets the entire back with emphasis on thickness and mass.",
+      "type": "barbell",
+      "muscleGroups": ["back"],
+      "instructions": [
+        "Straddle T-bar with feet shoulder-width apart",
+        "Bend at hips with slight knee bend",
+        "Grip handles with both hands",
+        "Pull weight toward chest, squeezing shoulder blades",
+        "Keep back flat throughout movement",
+        "Lower weight with control to starting position"
+      ],
+      "isSystemExercise": true
+    }
+  ]
+}
+

@@ -15,12 +15,20 @@ struct CustomListCellView: View {
     var isSelected: Bool = false
     var iconName: String = "checkmark.circle.fill"
     var iconSize: CGFloat = 24
+    var resizingMode: ContentMode = .fill
     
     var body: some View {
         HStack(spacing: 8) {
             ZStack {
                 if let imageName {
-                    ImageLoaderView(urlString: imageName)
+                    if imageName.starts(with: "http://") || imageName.starts(with: "https://") {
+                        ImageLoaderView(urlString: imageName, resizingMode: resizingMode)
+                    } else {
+                        // Treat as bundled asset name
+                        Image(imageName)
+                            .resizable()
+                            .aspectRatio(contentMode: resizingMode)
+                    }
                 } else {
                     Rectangle()
                         .fill(.secondary.opacity(0.5))

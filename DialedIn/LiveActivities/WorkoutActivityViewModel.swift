@@ -67,6 +67,9 @@ class WorkoutActivityViewModel {
     
 	// The currently active Workout Live Activity
 	private var currentActivity: Activity<WorkoutActivityAttributes>?
+	
+	// Cache the last content state to avoid unnecessary updates
+	private var lastContentState: WorkoutActivityAttributes.ContentState?
 
 	// MARK: - Public API
 
@@ -109,6 +112,8 @@ class WorkoutActivityViewModel {
                     totalVolumeKgOverride: nil,
                     elapsedTimeOverride: nil
                 )
+                
+                lastContentState = initialState
                 
                 let activity = try Activity.request(
                     attributes: attributes,
@@ -181,6 +186,17 @@ class WorkoutActivityViewModel {
 			totalVolumeKgOverride: totalVolumeKg,
 			elapsedTimeOverride: elapsedTime
 		)
+		
+		// Only update if meaningful changes occurred
+		let shouldUpdate = lastContentState == nil ||
+			lastContentState?.currentExerciseIndex != updatedState.currentExerciseIndex ||
+			lastContentState?.completedSetsCount != updatedState.completedSetsCount ||
+			lastContentState?.isActive != updatedState.isActive ||
+			lastContentState?.restEndsAt != updatedState.restEndsAt
+		
+		guard shouldUpdate else { return }
+		
+		lastContentState = updatedState
 
         Task { @MainActor in
             defer {
@@ -190,7 +206,15 @@ class WorkoutActivityViewModel {
             // Guard activity existence and acceptable state to avoid runtime errors
             if let activity = self.currentActivity,
                activity.activityState == .active || activity.activityState == .stale {
-                try await self.updateWorkoutActivity(with: updatedState)
+                do {
+                    try await self.updateWorkoutActivity(with: updatedState)
+                } catch {
+                    print("⚠️ Failed to update Live Activity: \(error)")
+                    // Clean up if the activity is in an invalid state
+                    if activity.activityState == .dismissed || activity.activityState == .ended {
+                        self.cleanupDismissedActivity()
+                    }
+                }
             } else {
                 // No-op if activity is missing or ended/dismissed
                 self.activityViewState?.updateControlDisabled = false
@@ -214,6 +238,8 @@ class WorkoutActivityViewModel {
 			totalVolumeKgOverride: nil,
 			elapsedTimeOverride: Date().timeIntervalSince(session.dateCreated)
 		)
+		
+		lastContentState = finalState
 
         Task { @MainActor in
             await self.endActivity(with: finalState)
@@ -293,6 +319,7 @@ extension WorkoutActivityViewModel {
     func cleanupDismissedActivity() {
         self.currentActivity = nil
         self.activityViewState = nil
+        self.lastContentState = nil
     }
     
     // MARK: - Helpers
@@ -307,10 +334,22 @@ extension WorkoutActivityViewModel {
         elapsedTimeOverride: TimeInterval?
     ) -> WorkoutActivityAttributes.ContentState {
         let totalExercisesCount = session.exercises.count
-        let currentExerciseName: String? =
+        let currentExercise: WorkoutExerciseModel? =
             (0..<totalExercisesCount).contains(currentExerciseIndex)
-            ? session.exercises[currentExerciseIndex].name
+            ? session.exercises[currentExerciseIndex]
             : nil
+        
+        let currentExerciseName = currentExercise?.name
+        let currentExerciseImageName = currentExercise?.imageName
+        
+        // Only log when image changes
+        if currentExerciseImageName != lastContentState?.currentExerciseImageName {
+            if let imageName = currentExerciseImageName {
+                print("📸 Live Activity: Exercise image changed to '\(imageName)'")
+            } else {
+                print("⚠️ Live Activity: No image for current exercise")
+            }
+        }
 
         let allSets = session.exercises.flatMap { $0.sets }
         let totalSetsCount = allSets.count
@@ -330,6 +369,7 @@ extension WorkoutActivityViewModel {
             completedSetsCount: completedSetsCount,
             totalSetsCount: totalSetsCount,
             currentExerciseName: currentExerciseName,
+            currentExerciseImageName: currentExerciseImageName,
             currentExerciseIndex: currentExerciseIndex,
             totalExercisesCount: totalExercisesCount,
             restEndsAt: restEndsAt,
@@ -354,6 +394,7 @@ extension WorkoutActivityViewModel {
                 completedSetsCount: previous?.completedSetsCount ?? 0,
                 totalSetsCount: previous?.totalSetsCount ?? 0,
                 currentExerciseName: previous?.currentExerciseName,
+                currentExerciseImageName: previous?.currentExerciseImageName,
                 currentExerciseIndex: previous?.currentExerciseIndex ?? 0,
                 totalExercisesCount: previous?.totalExercisesCount ?? 0,
                 restEndsAt: restEndsAt,

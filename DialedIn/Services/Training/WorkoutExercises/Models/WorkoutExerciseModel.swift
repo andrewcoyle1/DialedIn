@@ -16,9 +16,10 @@ struct WorkoutExerciseModel: Identifiable, Codable, StringIdentifiable, Hashable
     let trackingMode: TrackingMode
     var index: Int
     var notes: String?
+    var imageName: String?
     var sets: [WorkoutSetModel]
     
-    init(id: String, authorId: String, templateId: String, name: String, trackingMode: TrackingMode, index: Int, notes: String? = nil, sets: [WorkoutSetModel]) {
+    init(id: String, authorId: String, templateId: String, name: String, trackingMode: TrackingMode, index: Int, notes: String? = nil, imageName: String? = nil, sets: [WorkoutSetModel]) {
         self.id = id
         self.authorId = authorId
         self.templateId = templateId
@@ -26,6 +27,7 @@ struct WorkoutExerciseModel: Identifiable, Codable, StringIdentifiable, Hashable
         self.trackingMode = trackingMode
         self.index = index
         self.notes = notes
+        self.imageName = imageName
         self.sets = sets
     }
 
@@ -37,6 +39,7 @@ struct WorkoutExerciseModel: Identifiable, Codable, StringIdentifiable, Hashable
         case trackingMode = "tracking_mode"
         case index
         case notes
+        case imageName = "image_name"
         case sets
     }
     

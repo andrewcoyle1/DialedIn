@@ -81,7 +81,7 @@ extension WorkoutTrackerView {
         }
     }
 
-    private func discardWorkout() {
+    func discardWorkout() {
         Task {
             do {
                 // Cancel any pending rest timer notifications
@@ -373,6 +373,17 @@ extension WorkoutTrackerView {
         saveWorkoutProgress()
     }
     
+    internal func updateExerciseNotes(_ notes: String, for exerciseId: String) {
+        guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) else {
+            return
+        }
+        
+        var updatedExercises = workoutSession.exercises
+        updatedExercises[exerciseIndex].notes = notes.isEmpty ? nil : notes
+        workoutSession.updateExercises(updatedExercises)
+        saveWorkoutProgress()
+    }
+    
     private func createExerciseHistoryEntries(performedAt: Date) async throws {
         guard let userId = userManager.currentUser?.userId else {
             throw NSError(domain: "WorkoutTrackerView", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
@@ -454,6 +465,7 @@ extension WorkoutTrackerView {
             let index = startIndex + offset + 1
             let mode = WorkoutSessionModel.trackingMode(for: template.type)
             let defaultSets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: userId)
+            let imageName = Constants.exerciseImageName(for: template.name)
             let newExercise = WorkoutExerciseModel(
                 id: UUID().uuidString,
                 authorId: userId,
@@ -462,6 +474,7 @@ extension WorkoutTrackerView {
                 trackingMode: mode,
                 index: index,
                 notes: nil,
+                imageName: imageName,
                 sets: defaultSets
             )
             updated.append(newExercise)

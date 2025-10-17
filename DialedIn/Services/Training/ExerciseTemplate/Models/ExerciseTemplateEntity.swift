@@ -18,6 +18,7 @@ class ExerciseTemplateEntity {
     var type: ExerciseCategory
     var muscleGroups: [MuscleGroup]
     var imageURL: String?
+    var isSystemExercise: Bool
     var dateCreated: Date
     var dateModified: Date
     var clickCount: Int?
@@ -33,6 +34,7 @@ class ExerciseTemplateEntity {
         self.type = model.type
         self.muscleGroups = model.muscleGroups
         self.imageURL = model.imageURL
+        self.isSystemExercise = model.isSystemExercise
         self.dateCreated = model.dateCreated
         self.dateModified = model.dateModified
         self.clickCount = model.clickCount
@@ -51,6 +53,7 @@ class ExerciseTemplateEntity {
             type: type,
             muscleGroups: muscleGroups,
             imageURL: imageURL,
+            isSystemExercise: isSystemExercise,
             dateCreated: dateCreated,
             dateModified: dateModified,
             clickCount: clickCount,

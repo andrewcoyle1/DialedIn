@@ -20,6 +20,7 @@ struct ExercisesView: View {
     @State private var myExercises: [ExerciseTemplateModel] = []
     @State private var favouriteExercises: [ExerciseTemplateModel] = []
     @State private var bookmarkedExercises: [ExerciseTemplateModel] = []
+    @State private var officialExercises: [ExerciseTemplateModel] = []
     @State private var exercises: [ExerciseTemplateModel] = []
     @State private var showAddExerciseModal: Bool = false
 
@@ -44,13 +45,21 @@ struct ExercisesView: View {
     private var bookmarkedOnlyExercises: [ExerciseTemplateModel] {
         bookmarkedExercises.filter { !favouriteExerciseIds.contains($0.id) && !myExerciseIds.contains($0.id) }
     }
+    
+    private var officialExerciseIds: Set<String> {
+        Set(officialExercises.map { $0.id })
+    }
 
     private var savedExerciseIds: Set<String> {
         favouriteExerciseIds.union(Set(bookmarkedOnlyExercises.map { $0.id }))
     }
+    
+    private var officialExercisesVisible: [ExerciseTemplateModel] {
+        officialExercises.filter { !favouriteExerciseIds.contains($0.id) && !myExerciseIds.contains($0.id) && !savedExerciseIds.contains($0.id) }
+    }
 
     private var trendingExercisesDeduped: [ExerciseTemplateModel] {
-        exercises.filter { !myExerciseIds.contains($0.id) && !savedExerciseIds.contains($0.id) }
+        exercises.filter { !myExerciseIds.contains($0.id) && !savedExerciseIds.contains($0.id) && !officialExerciseIds.contains($0.id) }
     }
 
     private var visibleExerciseTemplates: [ExerciseTemplateModel] {
@@ -67,6 +76,10 @@ struct ExercisesView: View {
                 }
 
                 myExercisesSection
+                
+                if !officialExercisesVisible.isEmpty {
+                    officialExercisesSection
+                }
 
                 if !bookmarkedOnlyExercises.isEmpty {
                     bookmarkedExerciseTemplatesSection
@@ -86,6 +99,7 @@ struct ExercisesView: View {
         }
         .task {
             await loadMyExercisesIfNeeded()
+            await loadOfficialExercises()
             await loadTopExercisesIfNeeded()
             await syncSavedExercisesFromUser()
         }
@@ -150,11 +164,38 @@ struct ExercisesView: View {
                 .removeListRowFormatting()
             }
             ForEach(visibleExerciseTemplates) { exercise in
-                CustomListCellView(
-                    imageName: exercise.imageURL,
-                    title: exercise.name,
-                    subtitle: exercise.description
-                )
+                HStack(spacing: 8) {
+                    ZStack {
+                        if let imageName = exercise.imageURL {
+                            if imageName.starts(with: "http://") || imageName.starts(with: "https://") {
+                                ImageLoaderView(urlString: imageName, resizingMode: .fit)
+                            } else {
+                                // Treat as bundled asset name
+                                Image(imageName)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                            }
+                        } else {
+                            Rectangle()
+                                .fill(.secondary.opacity(0.5))
+                        }
+                    }
+                    .aspectRatio(1, contentMode: .fit)
+                    .frame(height: 60)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(exercise.name)
+                            .font(.headline)
+                        if let subtitle = exercise.description {
+                            Text(subtitle)
+                                .font(.subheadline)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(12)
+                .padding(.vertical, 4)
+                .background(Color(uiColor: .systemBackground))
                 .anyButton(.highlight) {
                     onExercisePressed(exercise: exercise)
                 }
@@ -213,6 +254,59 @@ struct ExercisesView: View {
             logManager.trackEvent(event: Event.myTemplatesSectionViewed(count: myExercisesVisible.count))
         }
     }
+    
+    private var officialExercisesSection: some View {
+        Section {
+            ForEach(officialExercisesVisible) { exercise in
+                HStack(spacing: 8) {
+                    ZStack {
+                        if let imageName = exercise.imageURL {
+                            if imageName.starts(with: "http://") || imageName.starts(with: "https://") {
+                                ImageLoaderView(urlString: imageName, resizingMode: .fit)
+                            } else {
+                                // Treat as bundled asset name
+                                Image(imageName)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                            }
+                        } else {
+                            Rectangle()
+                                .fill(.secondary.opacity(0.5))
+                        }
+                    }
+                    .aspectRatio(1, contentMode: .fit)
+                    .frame(width: 60, height: 60)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(exercise.name)
+                            .font(.headline)
+                        if let subtitle = exercise.description {
+                            Text(subtitle)
+                                .font(.subheadline)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(12)
+                .padding(.vertical, 4)
+                .background(Color(uiColor: .systemBackground))
+//                CustomListCellView(
+//                    imageName: exercise.imageURL,
+//                    title: exercise.name,
+//                    subtitle: exercise.description
+//                )
+                .anyButton(.highlight) {
+                    onExercisePressed(exercise: exercise)
+                }
+                .removeListRowFormatting()
+            }
+        } header: {
+            Text("Official Exercises")
+        }
+        .onAppear {
+            logManager.trackEvent(event: Event.officialSectionViewed(count: officialExercisesVisible.count))
+        }
+    }
 
     // MARK: Business Logic
 
@@ -222,13 +316,17 @@ struct ExercisesView: View {
     }
 
     private func onExercisePressed(exercise: ExerciseTemplateModel) {
-        Task {
-            logManager.trackEvent(event: Event.incrementExerciseStart)
-            do {
-                try await exerciseTemplateManager.incrementExerciseTemplateInteraction(id: exercise.id)
-                logManager.trackEvent(event: Event.incrementExerciseSuccess)
-            } catch {
-                logManager.trackEvent(event: Event.incrementExerciseFail(error: error))
+        // Only increment click count for non-system exercises
+        // System exercises (IDs starting with "system-") are read-only
+        if !exercise.id.hasPrefix("system-") {
+            Task {
+                logManager.trackEvent(event: Event.incrementExerciseStart)
+                do {
+                    try await exerciseTemplateManager.incrementExerciseTemplateInteraction(id: exercise.id)
+                    logManager.trackEvent(event: Event.incrementExerciseSuccess)
+                } catch {
+                    logManager.trackEvent(event: Event.incrementExerciseFail(error: error))
+                }
             }
         }
         selectedWorkoutTemplate = nil
@@ -338,6 +436,18 @@ struct ExercisesView: View {
             )
         }
     }
+    
+    private func loadOfficialExercises() async {
+        logManager.trackEvent(event: Event.loadOfficialExercisesStart)
+        do {
+            let official = try exerciseTemplateManager.getSystemExerciseTemplates()
+            officialExercises = official
+            logManager.trackEvent(event: Event.loadOfficialExercisesSuccess(count: official.count))
+        } catch {
+            logManager.trackEvent(event: Event.loadOfficialExercisesFail(error: error))
+            // Don't show alert for official exercises - it's not critical
+        }
+    }
 
     private func loadTopExercisesIfNeeded() async {
         guard searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
@@ -405,6 +515,9 @@ struct ExercisesView: View {
         case loadMyExercisesStart
         case loadMyExercisesSuccess(count: Int)
         case loadMyExercisesFail(error: Error)
+        case loadOfficialExercisesStart
+        case loadOfficialExercisesSuccess(count: Int)
+        case loadOfficialExercisesFail(error: Error)
         case loadTopExercisesStart
         case loadTopExercisesSuccess(count: Int)
         case loadTopExercisesFail(error: Error)
@@ -418,6 +531,7 @@ struct ExercisesView: View {
         case onAddExercisePressed
         case favouritesSectionViewed(count: Int)
         case bookmarkedSectionViewed(count: Int)
+        case officialSectionViewed(count: Int)
         case trendingSectionViewed(count: Int)
         case myTemplatesSectionViewed(count: Int)
         case emptyStateShown
@@ -436,6 +550,9 @@ struct ExercisesView: View {
             case .loadMyExercisesStart:                return "ExercisesView_LoadMyExercises_Start"
             case .loadMyExercisesSuccess:              return "ExercisesView_LoadMyExercises_Success"
             case .loadMyExercisesFail:                 return "ExercisesView_LoadMyExercises_Fail"
+            case .loadOfficialExercisesStart:          return "ExercisesView_LoadOfficialExercises_Start"
+            case .loadOfficialExercisesSuccess:        return "ExercisesView_LoadOfficialExercises_Success"
+            case .loadOfficialExercisesFail:           return "ExercisesView_LoadOfficialExercises_Fail"
             case .loadTopExercisesStart:               return "ExercisesView_LoadTopExercises_Start"
             case .loadTopExercisesSuccess:             return "ExercisesView_LoadTopExercises_Success"
             case .loadTopExercisesFail:                return "ExercisesView_LoadTopExercises_Fail"
@@ -449,6 +566,7 @@ struct ExercisesView: View {
             case .onAddExercisePressed:                return "ExercisesView_AddExercisePressed"
             case .favouritesSectionViewed:               return "ExercisesView_Favourites_SectionViewed"
             case .bookmarkedSectionViewed:               return "ExercisesView_Bookmarked_SectionViewed"
+            case .officialSectionViewed:                 return "ExercisesView_Official_SectionViewed"
             case .trendingSectionViewed:                 return "ExercisesView_Trending_SectionViewed"
             case .myTemplatesSectionViewed:              return "ExercisesView_MyTemplates_SectionViewed"
             case .emptyStateShown:                       return "ExercisesView_EmptyState_Shown"
@@ -467,6 +585,8 @@ struct ExercisesView: View {
                 return ["query": query]
             case .loadMyExercisesSuccess(count: let count):
                 return ["count": count]
+            case .loadOfficialExercisesSuccess(count: let count):
+                return ["count": count]
             case .loadTopExercisesSuccess(count: let count):
                 return ["count": count]
             case .syncExercisesFromCurrentUserSuccess(favouriteCount: let favCount, bookmarkedCount: let bookCount):
@@ -475,11 +595,13 @@ struct ExercisesView: View {
                 return ["count": count]
             case .bookmarkedSectionViewed(count: let count):
                 return ["count": count]
+            case .officialSectionViewed(count: let count):
+                return ["count": count]
             case .trendingSectionViewed(count: let count):
                 return ["count": count]
             case .myTemplatesSectionViewed(count: let count):
                 return ["count": count]
-            case .loadMyExercisesFail(error: let error), .loadTopExercisesFail(error: let error), .performExerciseSearchFail(error: let error), .incrementExerciseFail(error: let error), .syncExercisesFromCurrentUserFail(error: let error):
+            case .loadMyExercisesFail(error: let error), .loadOfficialExercisesFail(error: let error), .loadTopExercisesFail(error: let error), .performExerciseSearchFail(error: let error), .incrementExerciseFail(error: let error), .syncExercisesFromCurrentUserFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -488,7 +610,7 @@ struct ExercisesView: View {
 
         var type: LogType {
             switch self {
-            case .loadMyExercisesFail, .loadTopExercisesFail, .performExerciseSearchFail, .incrementExerciseFail, .syncExercisesFromCurrentUserFail:
+            case .loadMyExercisesFail, .loadOfficialExercisesFail, .loadTopExercisesFail, .performExerciseSearchFail, .incrementExerciseFail, .syncExercisesFromCurrentUserFail:
                 return .severe
             case .syncExercisesFromCurrentUserNoUid:
                 return .warning

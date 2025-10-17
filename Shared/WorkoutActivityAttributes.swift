@@ -19,6 +19,7 @@ struct WorkoutActivityAttributes: ActivityAttributes {
         var totalSetsCount: Int
         // Current exercise context
         var currentExerciseName: String?
+        var currentExerciseImageName: String?
         var currentExerciseIndex: Int
         var totalExercisesCount: Int
         // If resting, the time when the rest period ends

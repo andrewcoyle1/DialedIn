@@ -222,13 +222,17 @@ struct WorkoutsView: View {
     }
 
     private func onWorkoutPressed(workout: WorkoutTemplateModel) {
-        Task {
-            logManager.trackEvent(event: Event.incrementWorkoutStart)
-            do {
-                try await workoutTemplateManager.incrementWorkoutTemplateInteraction(id: workout.id)
-                logManager.trackEvent(event: Event.incrementWorkoutSuccess)
-            } catch {
-                logManager.trackEvent(event: Event.incrementWorkoutFail(error: error))
+        // Only increment click count for non-system workouts
+        // System workouts (IDs starting with "system-") are read-only
+        if !workout.id.hasPrefix("system-") {
+            Task {
+                logManager.trackEvent(event: Event.incrementWorkoutStart)
+                do {
+                    try await workoutTemplateManager.incrementWorkoutTemplateInteraction(id: workout.id)
+                    logManager.trackEvent(event: Event.incrementWorkoutSuccess)
+                } catch {
+                    logManager.trackEvent(event: Event.incrementWorkoutFail(error: error))
+                }
             }
         }
         selectedExerciseTemplate = nil

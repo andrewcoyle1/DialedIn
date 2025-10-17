@@ -13,10 +13,21 @@ class ExerciseTemplateManager {
     
     private let local: LocalExerciseTemplatePersistence
     private let remote: RemoteExerciseTemplateService
+    private var seedingManager: ExerciseSeedingManager?
     
     init(services: ExerciseTemplateServices) {
         self.remote = services.remote
         self.local = services.local
+        
+        // Initialize seeding manager if using production services
+        if let swiftPersistence = services.local as? SwiftExerciseTemplatePersistence {
+            self.seedingManager = ExerciseSeedingManager(modelContext: swiftPersistence.modelContext)
+            
+            // Seed exercises on initialization
+            Task {
+                try? await self.seedingManager?.seedExercisesIfNeeded()
+            }
+        }
     }
     
     func addLocalExerciseTemplate(exercise: ExerciseTemplateModel) async throws {
@@ -34,6 +45,10 @@ class ExerciseTemplateManager {
     
     func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel] {
         try local.getAllLocalExerciseTemplates()
+    }
+    
+    func getSystemExerciseTemplates() throws -> [ExerciseTemplateModel] {
+        try local.getSystemExerciseTemplates()
     }
     
     func createExerciseTemplate(exercise: ExerciseTemplateModel, image: PlatformImage?) async throws {
