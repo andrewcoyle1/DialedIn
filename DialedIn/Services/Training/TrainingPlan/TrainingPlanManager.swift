@@ -20,5 +20,4 @@ class TrainingPlanManager {
         self.currentTrainingPlan = local.getCurrentTrainingPlan()
     }
     
-    
 }

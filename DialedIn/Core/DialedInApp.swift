@@ -24,6 +24,7 @@ struct DialedInApp: App {
                 .environment(delegate.dependencies.workoutTemplateManager)
                 .environment(delegate.dependencies.workoutSessionManager)
                 .environment(delegate.dependencies.exerciseHistoryManager)
+                .environment(delegate.dependencies.hkWorkoutManager)
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 .environment(delegate.dependencies.workoutActivityViewModel)
                 #endif
@@ -110,6 +111,7 @@ struct Dependencies {
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
     let exerciseHistoryManager: ExerciseHistoryManager
+    let hkWorkoutManager: HKWorkoutManager
     let trainingPlanManager: TrainingPlanManager
     let ingredientTemplateManager: IngredientTemplateManager
     let recipeTemplateManager: RecipeTemplateManager
@@ -145,8 +147,9 @@ struct Dependencies {
                 ConsoleService(printParameters: false)
             ])
             reportManager = ReportManager(service: MockReportService(), userManager: userManager, logManager: logManager)
+            hkWorkoutManager = HKWorkoutManager()
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            workoutActivityViewModel = WorkoutActivityViewModel()
+            workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
             #endif
 
         case .dev:
@@ -172,8 +175,9 @@ struct Dependencies {
             aiManager = AIManager(service: GoogleAIService())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
+            hkWorkoutManager = HKWorkoutManager()
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            workoutActivityViewModel = WorkoutActivityViewModel()
+            workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
             #endif
 
         case .prod:
@@ -198,8 +202,9 @@ struct Dependencies {
             aiManager = AIManager(service: GoogleAIService())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
+            hkWorkoutManager = HKWorkoutManager()
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            workoutActivityViewModel = WorkoutActivityViewModel()
+            workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
             #endif
         }
         pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
@@ -210,6 +215,8 @@ struct Dependencies {
 extension View {
     func previewEnvironment(isSignedIn: Bool = true) -> some View {
         let logManager = LogManager(services: [ConsoleService(printParameters: false)])
+        let hkWorkoutManager = HKWorkoutManager()
+
         return self
             .environment(UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil)))
             .environment(logManager)
@@ -221,8 +228,9 @@ extension View {
             .environment(WorkoutSessionManager(services: MockWorkoutSessionServices()))
             .environment(ExerciseHistoryManager(services: MockExerciseHistoryServices()))
             .environment(TrainingPlanManager(services: MockTrainingPlanServices()))
+            .environment(hkWorkoutManager)
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            .environment(WorkoutActivityViewModel())
+            .environment(WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager))
             #endif
             .environment(PurchaseManager(services: MockPurchaseServices()))
             .environment(IngredientTemplateManager(services: MockIngredientTemplateServices()))

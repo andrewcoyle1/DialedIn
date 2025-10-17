@@ -131,7 +131,31 @@ struct FirebaseAuthService: AuthService {
 
     @MainActor
     func signInGoogle() async throws -> UserAuthInfo {
-        guard let presentingViewController = UIApplication.shared.windows.first?.rootViewController else {
+        // Find a presenting view controller using a scene-aware approach (iOS 15+)
+        let presentingViewController: UIViewController? = {
+            // Prefer the active foreground scene
+            let scenes = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .filter { $0.activationState == .foregroundActive || $0.activationState == .foregroundInactive }
+
+            // Look for a key window in the first suitable scene
+            if let window = scenes
+                .flatMap({ $0.windows })
+                .first(where: { $0.isKeyWindow }) {
+                return window.rootViewController
+            }
+
+            // Fallback: any window's rootViewController in any scene
+            if let anyRoot = scenes
+                .flatMap({ $0.windows })
+                .first?.rootViewController {
+                return anyRoot
+            }
+
+            return nil
+        }()
+
+        guard let presentingViewController else {
             throw AuthError.userNotFound
         }
         

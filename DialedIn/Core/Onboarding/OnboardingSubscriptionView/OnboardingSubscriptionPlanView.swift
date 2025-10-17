@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingSubscriptionPlanView: View {
     @Environment(UserManager.self) private var userManager
     @Environment(PurchaseManager.self) private var purchaseManager
+    @Environment(LogManager.self) private var logManager
     
     @State private var navigateToCompleteAccountSetup: Bool = false
     @State private var selectedPlan: Plan = .annual
@@ -29,10 +30,12 @@ struct OnboardingSubscriptionPlanView: View {
             tsAndCsSection
         }
         .onFirstTask {
+            logManager.trackEvent(event: Event.updateOnboardingStart)
             do {
                 try await userManager.updateOnboardingStep(step: .subscription)
+                logManager.trackEvent(event: Event.updateOnboardingSuccess)
             } catch {
-                // TODO: Add logging and tidy up
+                logManager.trackEvent(event: Event.updateOnboardingFail(error: error))
             }
         }
         .navigationTitle("Subscription Plans")
@@ -125,6 +128,38 @@ struct OnboardingSubscriptionPlanView: View {
         }
         .removeListRowFormatting()
         .padding(.horizontal)
+    }
+    enum Event: LoggableEvent {
+        case updateOnboardingStart
+        case updateOnboardingSuccess
+        case updateOnboardingFail(error: Error)
+        
+        var eventName: String {
+            switch self {
+            case .updateOnboardingStart:    return "OnboardingSubscription_OnboardingStepUpdate_Start"
+            case .updateOnboardingSuccess:  return "OnboardingSubscription_OnboardingStepUpdate_Success"
+            case .updateOnboardingFail:     return "OnboardingSubscription_OnboardingStepUpdate_Fail"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            case .updateOnboardingFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            case .updateOnboardingFail:
+                return .severe
+            default:
+                return .analytic
+                
+            }
+        }
     }
 }
 

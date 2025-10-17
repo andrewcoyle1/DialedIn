@@ -13,5 +13,4 @@ struct TrainingPlan: Codable, Equatable {
     let userId: String?
     let createdAt: Date
     
-    
 }

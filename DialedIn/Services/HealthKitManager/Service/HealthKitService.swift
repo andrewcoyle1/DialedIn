@@ -11,8 +11,12 @@ import HealthKit
 struct HealthKitService: HealthService {
     
     let healthStore: HKHealthStore = HKHealthStore()
-    // The quantity type to write to the HealthKit store.
+    // The sample types to write to the HealthKit store.
     let typesToShare: Set<HKSampleType> = [
+        
+        // MARK: Workout
+        HKObjectType.workoutType(),
+        
         // MARK: Nutrition Data
         HKQuantityType(.dietaryEnergyConsumed),
         HKQuantityType(.dietaryCarbohydrates),
@@ -64,8 +68,15 @@ struct HealthKitService: HealthService {
 
     ]
 
-    // The quantity types to read from the HealthKit store.
+    // The object types to read from the HealthKit store.
     let typesToRead: Set<HKObjectType> = [
+        
+        // MARK: Workout
+        HKObjectType.activitySummaryType(),
+        HKObjectType.workoutType(),
+        HKQuantityType(.activeEnergyBurned),
+        HKQuantityType(.basalEnergyBurned),
+        HKQuantityType(.heartRate),
 
         // MARK: Nutrition Data
         HKQuantityType(.dietaryEnergyConsumed),
@@ -132,8 +143,9 @@ struct HealthKitService: HealthService {
     func needsAuthorisationForRequiredTypes() -> Bool {
         guard canRequestAuthorisation() else { return false }
 
-        let bodyMassType = HKQuantityType(.bodyMass)
-        let status = healthStore.authorizationStatus(for: bodyMassType)
+        // Require workout sharing authorization to start HKWorkoutSession
+        let workoutType = HKObjectType.workoutType()
+        let status = healthStore.authorizationStatus(for: workoutType)
         switch status {
         case .sharingAuthorized:
             return false

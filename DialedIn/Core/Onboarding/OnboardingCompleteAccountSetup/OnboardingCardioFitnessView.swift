@@ -100,7 +100,17 @@ struct OnboardingCardioFitnessView: View {
         ToolbarItem(placement: .bottomBar) {
             NavigationLink {
                 if let cardioFitnessLevel = selectedCardioFitness {
-                    OnboardingExpenditureView(gender: gender, dateOfBirth: dateOfBirth, height: height, weight: weight, exerciseFrequency: exerciseFrequency, activityLevel: activityLevel, lengthUnitPreference: lengthUnitPreference, weightUnitPreference: weightUnitPreference, selectedCardioFitness: cardioFitnessLevel)
+                    OnboardingExpenditureView(
+                        gender: gender,
+                        dateOfBirth: dateOfBirth,
+                        height: height,
+                        weight: weight,
+                        exerciseFrequency: exerciseFrequency,
+                        activityLevel: activityLevel,
+                        lengthUnitPreference: lengthUnitPreference,
+                        weightUnitPreference: weightUnitPreference,
+                        selectedCardioFitness: cardioFitnessLevel
+                    )
                 }
             } label: {
                 Image(systemName: "chevron.right")

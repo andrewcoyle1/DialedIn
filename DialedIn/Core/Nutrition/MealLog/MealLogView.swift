@@ -26,6 +26,9 @@ struct MealLogView: View {
     @State private var selectedMealType: MealType = .breakfast
     @State private var showAlert: AnyAppAlert?
     
+    @State private var navigateToMealDetailView: Bool = false
+    @State private var selectedMeal: MealLogModel?
+    
     private var dayKey: String {
         selectedDate.dayKey
     }
@@ -45,6 +48,13 @@ struct MealLogView: View {
                 mealsSection
                 
                 addMealSection
+            }
+        }
+        .navigationDestination(isPresented: $navigateToMealDetailView) {
+            if let selectedMeal {
+                MealDetailView(meal: selectedMeal)
+            } else {
+                EmptyView()
             }
         }
         .task {
@@ -159,10 +169,10 @@ struct MealLogView: View {
             
             Section {
                 if mealsForType.isEmpty {
-                    Button(action: {
+                    Button {
                         selectedMealType = mealType
                         showAddMealSheet = true
-                    }) {
+                    } label: {
                         HStack {
                             Text("Add \(mealType.rawValue.capitalized)")
                                 .foregroundStyle(.secondary)
@@ -176,7 +186,8 @@ struct MealLogView: View {
                         MealLogRowView(meal: meal)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                // TODO: Navigate to meal detail
+                                selectedMeal = meal
+                                navigateToMealDetailView = true
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
@@ -201,10 +212,10 @@ struct MealLogView: View {
         Section {
             Menu {
                 ForEach(MealType.allCases, id: \.self) { mealType in
-                    Button(action: {
+                    Button {
                         selectedMealType = mealType
                         showAddMealSheet = true
-                    }) {
+                    } label: {
                         Label(mealType.rawValue.capitalized, systemImage: mealTypeIcon(mealType))
                     }
                 }

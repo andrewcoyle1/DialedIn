@@ -109,8 +109,6 @@ class UserManager {
     }
     
     // MARK: - Onboarding: Complete Account Setup
-    /// Saves the core profile fields collected during the Complete Account Setup step.
-    /// Returns the updated `UserModel` used for the save so callers can immediately consume it (e.g., to estimate TDEE)
     // swiftlint:disable:next function_parameter_count
     func saveCompleteAccountSetupProfile(
         dateOfBirth: Date,
@@ -217,7 +215,7 @@ class UserManager {
         let uid = try currentUserId()
         try await remote.updateOnboardingStep(userId: uid, step: step)
         // Optimistically update local cache so routing on app relaunch restores to the latest step
-        if var existing = currentUser {
+        if let existing = currentUser {
             let updated = UserModel(
                 userId: existing.userId,
                 email: existing.email,

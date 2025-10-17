@@ -16,7 +16,7 @@ struct CustomModalView: View {
     var secondaryButtonTitle: String = "No"
     var secondaryButtonAction: () -> Void = { }
     // Optional middle content area for custom views (e.g., pickers)
-    var middleContent: AnyView? = nil
+    var middleContent: AnyView?
 
     var body: some View {
         VStack(spacing: 24) {

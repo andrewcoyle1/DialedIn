@@ -158,7 +158,7 @@ extension AppView {
             // User is not authenticated
             logManager.trackEvent(event: Event.anonAuthStart)
             do {
-                let result = try await authManager.signInAnonymously()
+                _ = try await authManager.signInAnonymously()
 
                 // Log in to app
                 logManager.trackEvent(event: Event.anonAuthSuccess)

@@ -13,26 +13,26 @@ import HealthKit
 
 @Observable
 @MainActor
-class HealthKitManager {
-
+class HealthKitManager: NSObject {
+    
+    private let service: HealthService
     let healthStore: HKHealthStore
     var isAuthorized: Bool
-    private let service: HealthService
-
+    
     init(service: HealthService = HealthKitService()) {
         self.service = service
         self.healthStore = service.getHealthStore()
         self.isAuthorized = false
     }
-
+    
     func canRequestAuthorisation() -> Bool {
         service.canRequestAuthorisation()
     }
-
+    
     func requestAuthorization() async throws {
         try await service.requestAuthorisation()
     }
-
+    
     /// Returns true when we should present the HealthKit permissions screen
     /// for our required types (represents whether user has not yet granted or has denied access).
     /// Uses `HKQuantityType(.bodyMass)` as the representative write-permission type
@@ -40,8 +40,8 @@ class HealthKitManager {
     func needsAuthorisationForRequiredTypes() -> Bool {
         service.needsAuthorisationForRequiredTypes()
     }
-
-    func getHealthStore() -> HKHealthStore { 
+    
+    func getHealthStore() -> HKHealthStore {
         service.getHealthStore()
     }
 }

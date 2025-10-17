@@ -29,7 +29,7 @@ struct ScheduleView: View {
                                 onDateSelected(combinedDate)
             }
             
-            // HStack {
+            //  HStack {
             //  Spacer()
             //  Button {
             //      let combinedDate = Calendar.current.date(
@@ -53,7 +53,7 @@ struct ScheduleView: View {
             //                  .fill(.blue.opacity(0.1))
             //          )
             //  }
-            //}
+            // }
         }
     }
 }

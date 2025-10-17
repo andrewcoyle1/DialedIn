@@ -239,39 +239,7 @@ struct EmailVerificationView: View {
                     return try await authManager.checkEmailVerification()
                 }
                 logManager.trackEvent(event: Event.checkEmailVerificationSuccess(isVerified: isVerified))
-                if isVerified && !Task.isCancelled {
-                    // Navigate based on user's current onboarding step
-                    let step = userManager.currentUser?.onboardingStep
-                    let destination = getNavigationDestination(for: step)
-                    if destination == .completed {
-                        // User has completed onboarding, show main app
-                        appState.updateViewState(showTabBarView: true)
-                    } else {
-                        navigationDestination = destination
-                    }
-                    // Stop polling on success
-                    currentPollingTask?.cancel()
-                    currentPollingTask = nil
-                } else if !Task.isCancelled {
-                    // Show alert if not verified
-                    showAlert = AnyAppAlert(
-                        title: "Email not verified yet",
-                        subtitle: "Please click the verification link we sent to your email. You can resend the email or try checking again.",
-                        buttons: {
-                            AnyView(
-                                VStack {
-                                    Button("Resend Email") {
-                                        onResendPressed()
-                                    }
-                                    Button("Check Again") {
-                                        onDonePressed()
-                                    }
-                                    Button("Cancel") { }
-                                }
-                            )
-                        }
-                    )
-                }
+                handleDidCheckEmailVerification(isVerified: isVerified)
             } catch {
                 if !Task.isCancelled {
                     logManager.trackEvent(event: Event.checkEmailVerificationFail(error: error))
@@ -294,6 +262,42 @@ struct EmailVerificationView: View {
                     )
                 }
             }
+        }
+    }
+    
+    private func handleDidCheckEmailVerification(isVerified: Bool) {
+        if isVerified && !Task.isCancelled {
+            // Navigate based on user's current onboarding step
+            let step = userManager.currentUser?.onboardingStep
+            let destination = getNavigationDestination(for: step)
+            if destination == .completed {
+                // User has completed onboarding, show main app
+                appState.updateViewState(showTabBarView: true)
+            } else {
+                navigationDestination = destination
+            }
+            // Stop polling on success
+            currentPollingTask?.cancel()
+            currentPollingTask = nil
+        } else if !Task.isCancelled {
+            // Show alert if not verified
+            showAlert = AnyAppAlert(
+                title: "Email not verified yet",
+                subtitle: "Please click the verification link we sent to your email. You can resend the email or try checking again.",
+                buttons: {
+                    AnyView(
+                        VStack {
+                            Button("Resend Email") {
+                                onResendPressed()
+                            }
+                            Button("Check Again") {
+                                onDonePressed()
+                            }
+                            Button("Cancel") { }
+                        }
+                    )
+                }
+            )
         }
     }
     

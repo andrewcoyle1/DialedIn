@@ -7,6 +7,23 @@
 
 import SwiftUI
 
+struct DietPlanConfiguration {
+    let preferredDiet: PreferredDiet
+    let calorieFloor: CalorieFloor
+    let trainingType: TrainingType
+    let calorieDistribution: CalorieDistribution
+    let proteinIntake: ProteinIntake
+}
+
+extension CalorieFloor {
+    var minimumValue: Double {
+        switch self {
+        case .standard: return 1200
+        case .low: return 800
+        }
+    }
+}
+
 @MainActor
 @Observable
 class NutritionManager {
@@ -22,22 +39,8 @@ class NutritionManager {
     }
 
     // MARK: - Public API
-    func createAndSaveDietPlan(
-        user: UserModel?,
-        preferredDiet: PreferredDiet,
-        calorieFloor: CalorieFloor,
-        trainingType: TrainingType,
-        calorieDistribution: CalorieDistribution,
-        proteinIntake: ProteinIntake
-    ) async throws {
-        let plan = try await computeDietPlan(
-            user: user,
-            preferredDiet: preferredDiet,
-            calorieFloor: calorieFloor,
-            trainingType: trainingType,
-            calorieDistribution: calorieDistribution,
-            proteinIntake: proteinIntake
-        )
+    func createAndSaveDietPlan(user: UserModel?, configuration: DietPlanConfiguration) async throws {
+        let plan = try await computeDietPlan(user: user, configuration: configuration)
         try local.saveDietPlan(plan: plan)
         currentDietPlan = plan
         if let userId = plan.userId {
@@ -65,28 +68,48 @@ class NutritionManager {
     }
 
     // MARK: - Core logic
-    private func computeDietPlan(
-        user: UserModel?,
-        preferredDiet: PreferredDiet,
-        calorieFloor: CalorieFloor,
-        trainingType: TrainingType,
-        calorieDistribution: CalorieDistribution,
-        proteinIntake: ProteinIntake
-    ) async throws -> DietPlan {
+    private func computeDietPlan(user: UserModel?, configuration: DietPlanConfiguration) async throws -> DietPlan {
         let now = Date()
         let userId = user?.userId
         let tdee = estimateTDEE(user: user)
-
-        // For v1, assume maintenance calories (objective not yet locally available)
-        let minimumCalories: Double = {
-            switch calorieFloor {
-            case .standard: return 1200
-            case .low: return 800
-            }
-        }()
+        let minimumCalories = configuration.calorieFloor.minimumValue
         let targetCalories = max(tdee, minimumCalories)
-
-        // Protein grams per kg based on selection
+        
+        let proteinGrams = calculateProteinGrams(user: user, proteinIntake: configuration.proteinIntake)
+        let macroPercentages = calculateMacroPercentages(
+            preferredDiet: configuration.preferredDiet,
+            targetCalories: targetCalories,
+            proteinGrams: proteinGrams
+        )
+        
+        let dailyCalories = calculateDailyCalories(
+            targetCalories: targetCalories,
+            minimumCalories: minimumCalories,
+            calorieDistribution: configuration.calorieDistribution,
+            trainingType: configuration.trainingType
+        )
+        
+        let dailyMacros = computeDailyMacros(
+            dailyCalories: dailyCalories,
+            proteinGrams: proteinGrams,
+            macroPercentages: macroPercentages
+        )
+        
+        return DietPlan(
+            planId: UUID().uuidString,
+            userId: userId,
+            createdAt: now,
+            tdeeEstimate: round(tdee),
+            preferredDiet: configuration.preferredDiet.rawValue,
+            calorieFloor: configuration.calorieFloor.rawValue,
+            trainingType: configuration.trainingType.rawValue,
+            calorieDistribution: configuration.calorieDistribution.rawValue,
+            proteinIntake: configuration.proteinIntake.rawValue,
+            days: dailyMacros
+        )
+    }
+    
+    private func calculateProteinGrams(user: UserModel?, proteinIntake: ProteinIntake) -> Double {
         let userKg = max(user?.weightKilograms ?? 70, 30)
         let proteinPerKg: Double
         switch proteinIntake {
@@ -95,93 +118,120 @@ class NutritionManager {
         case .high: proteinPerKg = 2.2
         case .veryHigh: proteinPerKg = 2.6
         }
-        let proteinGrams = proteinPerKg * userKg
+        return proteinPerKg * userKg
+    }
+    
+    private func calculateMacroPercentages(
+        preferredDiet: PreferredDiet,
+        targetCalories: Double,
+        proteinGrams: Double
+    ) -> (fatPercent: Double, carbPercent: Double) {
         let proteinCalories = proteinGrams * 4
-
-        // Set fat and carb percentages based on preferred diet
         let fatPercent: Double
         let carbPercent: Double
+        
         switch preferredDiet {
         case .balanced:
-            fatPercent = 0.30; carbPercent = 1.0 - fatPercent - (proteinCalories / max(targetCalories, 1))
+            fatPercent = 0.30
+            carbPercent = 1.0 - fatPercent - (proteinCalories / max(targetCalories, 1))
         case .lowFat:
-            fatPercent = 0.20; carbPercent = 1.0 - fatPercent - (proteinCalories / max(targetCalories, 1))
+            fatPercent = 0.20
+            carbPercent = 1.0 - fatPercent - (proteinCalories / max(targetCalories, 1))
         case .lowCarb:
-            carbPercent = 0.20; fatPercent = 1.0 - carbPercent - (proteinCalories / max(targetCalories, 1))
+            carbPercent = 0.20
+            fatPercent = 1.0 - carbPercent - (proteinCalories / max(targetCalories, 1))
         case .keto:
-            carbPercent = 0.05; fatPercent = 1.0 - carbPercent - (proteinCalories / max(targetCalories, 1))
+            carbPercent = 0.05
+            fatPercent = 1.0 - carbPercent - (proteinCalories / max(targetCalories, 1))
         }
-
-        // Distribute calories by day if varied and training is present
-        let dailyCalories: [Double]
-        if calorieDistribution == .varied && trainingType != .noneOrRelaxedActivity {
-            // Simple pattern: higher calories on 3 training days (+10%), lower on 4 rest days (-7.5%) to keep weekly avg ~target
-            let high = targetCalories * 1.10
-            let low = targetCalories * 0.925
-            dailyCalories = [high, low, high, low, high, low, low].map { max($0, minimumCalories) }
-        } else {
-            dailyCalories = Array(repeating: max(targetCalories, minimumCalories), count: 7)
+        
+        return (fatPercent, carbPercent)
+    }
+    
+    private func calculateDailyCalories(
+        targetCalories: Double,
+        minimumCalories: Double,
+        calorieDistribution: CalorieDistribution,
+        trainingType: TrainingType
+    ) -> [Double] {
+        guard calorieDistribution == .varied && trainingType != .noneOrRelaxedActivity else {
+            return Array(repeating: max(targetCalories, minimumCalories), count: 7)
         }
-
-        // Compute daily macros
-        let dailyMacros: [DailyMacroTarget] = dailyCalories.map { cals in
+        
+        let high = targetCalories * 1.10
+        let low = targetCalories * 0.925
+        return [high, low, high, low, high, low, low].map { max($0, minimumCalories) }
+    }
+    
+    private func computeDailyMacros(
+        dailyCalories: [Double],
+        proteinGrams: Double,
+        macroPercentages: (fatPercent: Double, carbPercent: Double)
+    ) -> [DailyMacroTarget] {
+        let proteinCalories = proteinGrams * 4
+        
+        return dailyCalories.map { cals in
             let remainingCalories = max(cals - proteinCalories, 0)
-            let fatCalories = max(remainingCalories * fatPercent, 0)
+            let fatCalories = max(remainingCalories * macroPercentages.fatPercent, 0)
             let carbCalories = max(remainingCalories - fatCalories, 0)
             let fatGrams = fatCalories / 9
             let carbGrams = carbCalories / 4
-            return DailyMacroTarget(calories: round(cals), proteinGrams: round(proteinGrams), carbGrams: round(carbGrams), fatGrams: round(fatGrams))
+            return DailyMacroTarget(
+                calories: round(cals),
+                proteinGrams: round(proteinGrams),
+                carbGrams: round(carbGrams),
+                fatGrams: round(fatGrams)
+            )
         }
-
-        return DietPlan(
-            planId: UUID().uuidString,
-            userId: userId,
-            createdAt: now,
-            tdeeEstimate: round(tdee),
-            preferredDiet: preferredDiet.rawValue,
-            calorieFloor: calorieFloor.rawValue,
-            trainingType: trainingType.rawValue,
-            calorieDistribution: calorieDistribution.rawValue,
-            proteinIntake: proteinIntake.rawValue,
-            days: dailyMacros
-        )
     }
 
     // MARK: - Estimation
     func estimateTDEE(user: UserModel?) -> Double {
-        // Defaults if user data missing
         let gender = user?.gender ?? .male
         let weightKg = max(user?.weightKilograms ?? 70, 30)
         let heightCm = max(user?.heightCentimeters ?? 175, 120)
-        let ageYears: Int = {
-            guard let dob = user?.dateOfBirth else { return 30 }
-            let years = Calendar.current.dateComponents([.year], from: dob, to: Date()).year ?? 30
-            return max(14, years)
-        }()
-        // Mifflin-St Jeor BMR
+        let ageYears = calculateAge(from: user?.dateOfBirth)
+        
         let mifflinGenderCoefficient: Double = (gender == .male) ? 5 : -161
         let bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * Double(ageYears)) + mifflinGenderCoefficient
-
-        // Activity multiplier
-        let activity = user?.dailyActivityLevel ?? .moderate
-        let exercise = user?.exerciseFrequency ?? .threeToFour
+        
+        let activityMultiplier = calculateActivityMultiplier(
+            dailyActivity: user?.dailyActivityLevel ?? .moderate,
+            exerciseFrequency: user?.exerciseFrequency ?? .threeToFour
+        )
+        
+        let tdee = bmr * activityMultiplier
+        return max(1000, tdee)
+    }
+    
+    private func calculateAge(from dateOfBirth: Date?) -> Int {
+        guard let dob = dateOfBirth else { return 30 }
+        let years = Calendar.current.dateComponents([.year], from: dob, to: Date()).year ?? 30
+        return max(14, years)
+    }
+    
+    private func calculateActivityMultiplier(
+        dailyActivity: ProfileDailyActivityLevel,
+        exerciseFrequency: ProfileExerciseFrequency
+    ) -> Double {
         let baseMultiplier: Double
-        switch activity {
+        switch dailyActivity {
         case .sedentary: baseMultiplier = 1.2
         case .light: baseMultiplier = 1.35
         case .moderate: baseMultiplier = 1.5
         case .active: baseMultiplier = 1.7
         case .veryActive: baseMultiplier = 1.9
         }
+        
         let exerciseAdj: Double
-        switch exercise {
+        switch exerciseFrequency {
         case .never: exerciseAdj = 0.0
         case .oneToTwo: exerciseAdj = 0.05
         case .threeToFour: exerciseAdj = 0.10
         case .fiveToSix: exerciseAdj = 0.15
         case .daily: exerciseAdj = 0.20
         }
-        let tdee = bmr * (baseMultiplier + exerciseAdj)
-        return max(1000, tdee)
+        
+        return baseMultiplier + exerciseAdj
     }
 }

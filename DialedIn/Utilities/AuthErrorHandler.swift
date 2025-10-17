@@ -221,43 +221,53 @@ public struct AuthErrorHandler {
         }
     }
     
+    // MARK: - Retryability Helpers
+    
+    private static let authRetryabilityMap: [AuthErrorCode: Bool] = [
+        .userNotFound: false,
+        .emailAlreadyInUse: false,
+        .invalidEmail: false,
+        .weakPassword: false,
+        .wrongPassword: false,
+        .invalidCredential: false,
+        .userDisabled: false,
+        .tooManyRequests: true,
+        .networkError: true,
+        .invalidUserToken: true,
+        .userTokenExpired: true,
+        .requiresRecentLogin: true,
+        .providerAlreadyLinked: false,
+        .credentialAlreadyInUse: false
+    ]
+    
+    private static func isRetryableAuthError(_ code: AuthErrorCode, operation: String) -> Bool {
+        if let retryable = authRetryabilityMap[code] {
+            return retryable
+        }
+        logUnhandledAuthError(code, operation: operation)
+        return true // Default to retryable for unhandled cases
+    }
+    
+    private static func isRetryableURLError(_ code: URLError.Code) -> Bool {
+        // Network errors are generally retryable
+        switch code {
+        case .notConnectedToInternet, .networkConnectionLost, .timedOut, .cannotConnectToHost:
+            return true
+        default:
+            return true
+        }
+    }
+    
     private static func determineRetryability(for error: Error, operation: String) -> Bool {
-        
         // Firebase-specific retry logic
         if let nsError = error as NSError?,
            let authErrorCode = AuthErrorCode(rawValue: nsError.code) {
-            
-            switch authErrorCode {
-            case .userNotFound, .emailAlreadyInUse, .invalidEmail, .weakPassword:
-                return false // User action required, not retryable
-            case .wrongPassword, .invalidCredential:
-                return false // User needs to fix credentials
-            case .userDisabled:
-                return false // Account disabled, not user-fixable
-            case .tooManyRequests:
-                return true // Can retry after waiting
-            case .networkError, .invalidUserToken, .userTokenExpired:
-                return true // Network/token issues are retryable
-            case .requiresRecentLogin:
-                return true // Can retry after re-authentication
-            case .providerAlreadyLinked:
-                return false // Account linking conflict, not retryable
-            case .credentialAlreadyInUse:
-                return false // Credential conflict, not retryable
-            default:
-                logUnhandledAuthError(authErrorCode, operation: operation)
-                return true // Default to retryable
-            }
+            return isRetryableAuthError(authErrorCode, operation: operation)
         }
         
         // Network errors are generally retryable
         if let urlError = error as? URLError {
-            switch urlError.code {
-            case .notConnectedToInternet, .networkConnectionLost, .timedOut, .cannotConnectToHost:
-                return true
-            default:
-                return true
-            }
+            return isRetryableURLError(urlError.code)
         }
         
         // Timeout errors are retryable

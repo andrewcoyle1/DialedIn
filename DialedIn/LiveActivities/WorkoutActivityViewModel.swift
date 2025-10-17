@@ -11,10 +11,62 @@ import ActivityKit
 // Models used to populate attributes live within the same target
 
 @Observable
+@MainActor
 class WorkoutActivityViewModel {
-
+    
+    private let hkWorkoutManager: HKWorkoutManager
+    
+    init(hkWorkoutManager: HKWorkoutManager) {
+        self.hkWorkoutManager = hkWorkoutManager
+        // Set up the circular reference
+        hkWorkoutManager.workoutActivityViewModel = self
+    }
+    
+    // The state model for keeping track of the widget's current state
+    struct ActivityViewState: Sendable {
+        var activityState: ActivityState
+        var contentState: WorkoutActivityAttributes.ContentState
+        var pushToken: String?
+        
+        // End the widget state controls.
+        var shouldShowEndControls: Bool {
+            switch activityState {
+            case .active, .stale:
+                return true
+            case .ended, .dismissed:
+                return false
+            case .pending:
+                return false
+            @unknown default:
+                return false
+            }
+        }
+        
+        var updateControlDisabled: Bool = false
+        
+        // Update the widget state controls
+        var shouldShowUpdateControls: Bool {
+            switch activityState {
+            case .active, .stale:
+                return true
+            case .ended, .pending:
+                return false
+            case .dismissed:
+                return false
+            @unknown default:
+                return false
+            }
+        }
+        
+        var isStale: Bool {
+            return activityState == .stale
+        }
+    }
+    
+    var activityViewState: ActivityViewState?
+    
 	// The currently active Workout Live Activity
-	var activity: Activity<WorkoutActivityAttributes>?
+	private var currentActivity: Activity<WorkoutActivityAttributes>?
 
 	// MARK: - Public API
 
@@ -32,32 +84,47 @@ class WorkoutActivityViewModel {
 		restEndsAt: Date? = nil,
 		statusMessage: String? = nil
 	) {
-		let attributes = WorkoutActivityAttributes(
-			sessionId: session.id,
-			workoutName: session.name,
-			startedAt: session.dateCreated,
-			workoutTemplateId: session.workoutTemplateId
-		)
+        if ActivityAuthorizationInfo().areActivitiesEnabled {
+            // Reuse an existing activity if present (e.g. after app launch)
+            if let existing = Activity<WorkoutActivityAttributes>.activities.first {
+                self.currentActivity = existing
+                self.setup(withActivity: existing)
+                hkWorkoutManager.isLiveActivityActive = true
+                return
+            }
+            do {
+                let attributes = WorkoutActivityAttributes(
+                    sessionId: session.id,
+                    workoutName: session.name,
+                    startedAt: session.dateCreated,
+                    workoutTemplateId: session.workoutTemplateId
+                )
+                
+                let initialState = makeContentState(
+                    for: session,
+                    isActive: isActive,
+                    currentExerciseIndex: currentExerciseIndex,
+                    restEndsAt: restEndsAt,
+                    statusMessage: statusMessage,
+                    totalVolumeKgOverride: nil,
+                    elapsedTimeOverride: nil
+                )
+                
+                let activity = try Activity.request(
+                    attributes: attributes,
+                    content: ActivityContent(state: initialState, staleDate: nil),
+                    pushType: .token
+                )
+                
+                self.currentActivity = activity
+                self.setup(withActivity: activity)
+                hkWorkoutManager.isLiveActivityActive = true
+            } catch {
+                print("Error starting workout live activity: \(error)")
+                hkWorkoutManager.isLiveActivityActive = false
 
-		let initialState = makeContentState(
-			for: session,
-			isActive: isActive,
-			currentExerciseIndex: currentExerciseIndex,
-			restEndsAt: restEndsAt,
-			statusMessage: statusMessage,
-			totalVolumeKgOverride: nil,
-			elapsedTimeOverride: nil
-		)
-
-		do {
-			activity = try Activity.request(
-				attributes: attributes,
-				content: ActivityContent(state: initialState, staleDate: nil)
-			)
-		} catch {
-			print("Error starting workout live activity: \(error)")
-		}
-
+            }
+        }
 	}
 
     /// Ensure a Workout Live Activity exists for this session; if found, reuse and update it, otherwise create it
@@ -72,7 +139,7 @@ class WorkoutActivityViewModel {
         if let existing = Activity<WorkoutActivityAttributes>.activities.first(where: { activity in
             activity.attributes.sessionId == session.id && activity.activityState == .active
         }) {
-            self.activity = existing
+            currentActivity = existing
             updateLiveActivity(
                 session: session,
                 isActive: isActive,
@@ -105,7 +172,7 @@ class WorkoutActivityViewModel {
 		totalVolumeKg: Double? = nil,
 		elapsedTime: TimeInterval? = nil
 	) {
-		let updatedState = makeContentState(
+        let updatedState = makeContentState(
 			for: session,
 			isActive: isActive,
 			currentExerciseIndex: currentExerciseIndex,
@@ -115,9 +182,20 @@ class WorkoutActivityViewModel {
 			elapsedTimeOverride: elapsedTime
 		)
 
-		Task {
-            await activity?.update(ActivityContent<Activity<WorkoutActivityAttributes>.ContentState>(state: updatedState, staleDate: nil))
-		}
+        Task { @MainActor in
+            defer {
+                self.activityViewState?.updateControlDisabled = false
+            }
+            self.activityViewState?.updateControlDisabled = true
+            // Guard activity existence and acceptable state to avoid runtime errors
+            if let activity = self.currentActivity,
+               activity.activityState == .active || activity.activityState == .stale {
+                try await self.updateWorkoutActivity(with: updatedState)
+            } else {
+                // No-op if activity is missing or ended/dismissed
+                self.activityViewState?.updateControlDisabled = false
+            }
+        }
 	}
 
 	/// End the Workout Live Activity
@@ -137,60 +215,165 @@ class WorkoutActivityViewModel {
 			elapsedTimeOverride: Date().timeIntervalSince(session.dateCreated)
 		)
 
-		Task {
-			await activity?.end(
-                ActivityContent(state: finalState, staleDate: nil),
-                dismissalPolicy: .default
-                // If the live activity should be dismissed/cleared immediately
-                // dismissalPolicy: .immediate
-			)
-		}
-	}
-
-	// MARK: - Helpers
-    // swiftlint:disable:next function_parameter_count
-	private func makeContentState(
-		for session: WorkoutSessionModel,
-		isActive: Bool,
-		currentExerciseIndex: Int,
-		restEndsAt: Date?,
-		statusMessage: String?,
-		totalVolumeKgOverride: Double?,
-		elapsedTimeOverride: TimeInterval?
-	) -> WorkoutActivityAttributes.ContentState {
-		let totalExercisesCount = session.exercises.count
-		let currentExerciseName: String? =
-			(0..<totalExercisesCount).contains(currentExerciseIndex)
-			? session.exercises[currentExerciseIndex].name
-			: nil
-
-		let allSets = session.exercises.flatMap { $0.sets }
-		let totalSetsCount = allSets.count
-		let completedSetsCount = allSets.filter { $0.completedAt != nil }.count
-		let progress = totalSetsCount > 0 ? Double(completedSetsCount) / Double(totalSetsCount) : 0
-
-		let computedVolume = allSets
-			.compactMap { set -> Double? in
-				guard let weight = set.weightKg, let reps = set.reps else { return nil }
-				return weight * Double(reps)
-			}
-			.reduce(0.0, +)
-		let totalVolumeKg = totalVolumeKgOverride ?? (computedVolume > 0 ? computedVolume : nil)
-
-		return WorkoutActivityAttributes.ContentState(
-			isActive: isActive,
-			completedSetsCount: completedSetsCount,
-			totalSetsCount: totalSetsCount,
-			currentExerciseName: currentExerciseName,
-			currentExerciseIndex: currentExerciseIndex,
-			totalExercisesCount: totalExercisesCount,
-			restEndsAt: restEndsAt,
-			statusMessage: statusMessage,
-			totalVolumeKg: totalVolumeKg,
-			progress: progress
-		)
+        Task { @MainActor in
+            await self.endActivity(with: finalState)
+        }
 	}
 }
+
+extension WorkoutActivityViewModel {
+    
+    func endActivity(with finalState: WorkoutActivityAttributes.ContentState) async {
+        guard let activity = currentActivity else {
+            return
+        }
+        
+        let dismissalPolicy: ActivityUIDismissalPolicy = .default
+        
+        hkWorkoutManager.isLiveActivityActive = false
+        Task {
+            await activity.end(
+                ActivityContent(
+                    state: finalState,
+                    staleDate: nil
+                ),
+                dismissalPolicy: dismissalPolicy
+            )
+        }
+    }
+    
+    func setup(withActivity activity: Activity<WorkoutActivityAttributes>) {
+        self.activityViewState = .init(
+            activityState: activity.activityState,
+            contentState: activity.content.state,
+            pushToken: activity.pushToken?.hexadecimalString
+        )
+        observeActivity(activity: activity)
+    }
+    
+    func observeActivity(activity: Activity<WorkoutActivityAttributes>) {
+        Task {
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask { @MainActor @Sendable in
+                    for await activityState in activity.activityStateUpdates {
+                        if activityState == .dismissed {
+                            self.cleanupDismissedActivity()
+                        } else {
+                            self.activityViewState?.activityState = activityState
+                        }
+                    }
+                }
+                
+                group.addTask { @MainActor @Sendable in
+                    for await contentState in activity.contentUpdates {
+                        self.activityViewState?.contentState = contentState.state
+                    }
+                }
+            }
+        }
+    }
+    
+    func updateWorkoutActivity(with updatedState: WorkoutActivityAttributes.ContentState) async throws {
+        guard let activity = currentActivity else {
+            return
+        }
+        
+        let contentState: WorkoutActivityAttributes.ContentState
+        
+        contentState = updatedState
+        await activity.update(
+            ActivityContent(
+                state: contentState,
+                staleDate: contentState.restEndsAt,
+                relevanceScore: 100
+            )
+        )
+    }
+    
+    func cleanupDismissedActivity() {
+        self.currentActivity = nil
+        self.activityViewState = nil
+    }
+    
+    // MARK: - Helpers
+    // swiftlint:disable:next function_parameter_count
+    private func makeContentState(
+        for session: WorkoutSessionModel,
+        isActive: Bool,
+        currentExerciseIndex: Int,
+        restEndsAt: Date?,
+        statusMessage: String?,
+        totalVolumeKgOverride: Double?,
+        elapsedTimeOverride: TimeInterval?
+    ) -> WorkoutActivityAttributes.ContentState {
+        let totalExercisesCount = session.exercises.count
+        let currentExerciseName: String? =
+            (0..<totalExercisesCount).contains(currentExerciseIndex)
+            ? session.exercises[currentExerciseIndex].name
+            : nil
+
+        let allSets = session.exercises.flatMap { $0.sets }
+        let totalSetsCount = allSets.count
+        let completedSetsCount = allSets.filter { $0.completedAt != nil }.count
+        let progress = totalSetsCount > 0 ? Double(completedSetsCount) / Double(totalSetsCount) : 0
+
+        let computedVolume = allSets
+            .compactMap { set -> Double? in
+                guard let weight = set.weightKg, let reps = set.reps else { return nil }
+                return weight * Double(reps)
+            }
+            .reduce(0.0, +)
+        let totalVolumeKg = totalVolumeKgOverride ?? (computedVolume > 0 ? computedVolume : nil)
+
+        return WorkoutActivityAttributes.ContentState(
+            isActive: isActive,
+            completedSetsCount: completedSetsCount,
+            totalSetsCount: totalSetsCount,
+            currentExerciseName: currentExerciseName,
+            currentExerciseIndex: currentExerciseIndex,
+            totalExercisesCount: totalExercisesCount,
+            restEndsAt: restEndsAt,
+            statusMessage: statusMessage,
+            totalVolumeKg: totalVolumeKg,
+            progress: progress
+        )
+    }
+
+    /// Update only isActive/rest/status from current content state to avoid recomputing set counts
+    func updateRestAndActive(
+        isActive: Bool,
+        restEndsAt: Date?,
+        statusMessage: String? = nil
+    ) {
+        Task { @MainActor in
+            guard let activity = self.currentActivity else { return }
+            // Start from existing content state to preserve counts and progress
+            let previous = self.activityViewState?.contentState
+            let newState = WorkoutActivityAttributes.ContentState(
+                isActive: isActive,
+                completedSetsCount: previous?.completedSetsCount ?? 0,
+                totalSetsCount: previous?.totalSetsCount ?? 0,
+                currentExerciseName: previous?.currentExerciseName,
+                currentExerciseIndex: previous?.currentExerciseIndex ?? 0,
+                totalExercisesCount: previous?.totalExercisesCount ?? 0,
+                restEndsAt: restEndsAt,
+                statusMessage: statusMessage ?? previous?.statusMessage,
+                totalVolumeKg: previous?.totalVolumeKg,
+                progress: previous?.progress ?? 0
+            )
+            // Reflect locally and push update with staleDate aligned to rest end
+            self.activityViewState?.contentState = newState
+            await activity.update(
+                ActivityContent(
+                    state: newState,
+                    staleDate: restEndsAt,
+                    relevanceScore: 100
+                )
+            )
+        }
+    }
+}
+
 #else
 @Observable
 class WorkoutActivityViewModel {
@@ -227,3 +410,11 @@ class WorkoutActivityViewModel {
     ) { }
 }
 #endif
+
+private extension Data {
+    var hexadecimalString: String {
+        self.reduce("") {
+            $0 + String(format: "%02x", $1)
+        }
+    }
+}

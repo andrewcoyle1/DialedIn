@@ -54,13 +54,16 @@ struct OnboardingProteinIntakeView: View {
         Task {
             do {
                 if let proteinIntake = selectedProteinIntake {
-                    try await nutritionManager.createAndSaveDietPlan(
-                        user: userManager.currentUser,
+                    let configuration = DietPlanConfiguration(
                         preferredDiet: preferredDiet,
                         calorieFloor: calorieFloor,
                         trainingType: trainingType,
                         calorieDistribution: calorieDistribution,
                         proteinIntake: proteinIntake
+                    )
+                    try await nutritionManager.createAndSaveDietPlan(
+                        user: userManager.currentUser,
+                        configuration: configuration
                     )
                     logManager.trackEvent(event: Event.createPlanSuccess)
                     navigateToNextStep = true

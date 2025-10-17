@@ -290,17 +290,17 @@ private struct RecipeAmountView: View {
     private func aggregate(_ keyPath: (IngredientTemplateModel) -> Double?) -> Double? {
         var total: Double = 0
         var hasValue = false
-        for ri in recipe.ingredients {
-            guard let per100 = keyPath(ri.ingredient) else { continue }
+        for recipeIngredient in recipe.ingredients {
+            guard let per100 = keyPath(recipeIngredient.ingredient) else { continue }
             hasValue = true
             let grams: Double
-            switch ri.unit {
+            switch recipeIngredient.unit {
             case .grams:
-                grams = ri.amount
+                grams = recipeIngredient.amount
             case .milliliters:
-                grams = ri.amount // approximation
+                grams = recipeIngredient.amount // approximation
             case .units:
-                grams = ri.amount * 100 // rough fallback
+                grams = recipeIngredient.amount * 100 // rough fallback
             }
             total += per100 * (grams / 100.0)
         }

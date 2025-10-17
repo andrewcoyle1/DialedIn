@@ -19,7 +19,18 @@ final class Utilities {
 
     private init() {}
 
-    func topViewController(controller: UIViewController? = UIApplication.shared.keyWindow?.rootViewController) -> UIViewController? {
+    // Scene-aware key window fetch to avoid deprecated `keyWindow`
+    private static func activeKeyWindow() -> UIWindow? {
+        // Get the foreground active scene
+        let scenes = UIApplication.shared.connectedScenes
+            .filter { $0.activationState == .foregroundActive }
+        // Prefer a window scene
+        let windowScene = scenes.compactMap { $0 as? UIWindowScene }.first
+        // Return the key window if available, otherwise the first window
+        return windowScene?.windows.first(where: { $0.isKeyWindow }) ?? windowScene?.windows.first
+    }
+
+    func topViewController(controller: UIViewController? = Utilities.activeKeyWindow()?.rootViewController) -> UIViewController? {
         if let navigationController = controller as? UINavigationController {
             return topViewController(controller: navigationController.visibleViewController)
         }

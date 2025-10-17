@@ -28,6 +28,10 @@
 		D08F58572E8BF61D001D3980 /* WorkoutSessionActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D08F58482E8BF61B001D3980 /* WorkoutSessionActivityExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D08F58622E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
 		D08F58632E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
+		D0DB1C932EA1901D00682653 /* MetricsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C922EA1901800682653 /* MetricsModel.swift */; };
+		D0DB1C942EA1901D00682653 /* MetricsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C922EA1901800682653 /* MetricsModel.swift */; };
+		D0DB1C962EA1906000682653 /* ElapsedTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */; };
+		D0DB1C972EA1906000682653 /* ElapsedTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,11 +78,11 @@
 		D08F584B2E8BF61B001D3980 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutActivityAttributes.swift; sourceTree = "<group>"; };
 		D08F6B252E8C9759001D3980 /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
-		D08F6B262E8C98F6001D3980 /* ElapsedTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeView.swift; sourceTree = "<group>"; };
-		D08F6B292E8C98FD001D3980 /* MetricsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsModel.swift; sourceTree = "<group>"; };
 		D0A2993D2E54AEA700DA64F7 /* DialedIn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DialedIn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0A2994A2E54AEA800DA64F7 /* DialedInTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DialedInTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0A299542E54AEA800DA64F7 /* DialedInUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DialedInUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D0DB1C922EA1901800682653 /* MetricsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsModel.swift; sourceTree = "<group>"; };
+		D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -180,8 +184,8 @@
 		D08F58602E8BF652001D3980 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				D08F6B292E8C98FD001D3980 /* MetricsModel.swift */,
-				D08F6B262E8C98F6001D3980 /* ElapsedTimeView.swift */,
+				D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */,
+				D0DB1C922EA1901800682653 /* MetricsModel.swift */,
 				D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */,
 			);
 			path = Shared;
@@ -477,6 +481,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				D08F58632E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */,
+				D0DB1C932EA1901D00682653 /* MetricsModel.swift in Sources */,
+				D0DB1C972EA1906000682653 /* ElapsedTimeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -484,6 +490,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0DB1C942EA1901D00682653 /* MetricsModel.swift in Sources */,
+				D0DB1C962EA1906000682653 /* ElapsedTimeView.swift in Sources */,
 				D08F58622E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

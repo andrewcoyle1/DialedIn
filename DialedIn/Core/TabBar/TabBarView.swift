@@ -120,30 +120,7 @@ struct TabBarView: View {
                     .padding(.trailing)
                 Spacer()
 
-                Group {
-                    if isRestActive, let restEndTime = workoutSessionManager.restEndTime {
-                        // Rest timer
-                        HStack(alignment: .bottom, spacing: 4) {
-                            Text("Rest: ")
-                            Text(timerInterval: Date()...restEndTime)
-                                .monospacedDigit()
-                                .foregroundStyle(.orange)
-                        }
-                        .foregroundStyle(.secondary)
-                        .font(.subheadline)
-                    } else {
-                        // Elapsed time
-                        HStack(spacing: 4) {
-                            Text("Elapsed: ")
-                            Text(active.dateCreated, style: .timer)
-                                .monospacedDigit()
-                        }
-                        .foregroundStyle(.secondary)
-                        .font(.subheadline)
-                    }
-                }
-                .multilineTextAlignment(.trailing)
-                .fixedSize(horizontal: true, vertical: true)
+                timeSection(workoutSession: active)
             }
 
             Gauge(value: progress) {
@@ -159,6 +136,45 @@ struct TabBarView: View {
         }
     }
 
+    private func timeSection(workoutSession active: WorkoutSessionModel) -> some View {
+        Group {
+            if let restEndTime = workoutSessionManager.restEndTime {
+                let now = Date()
+                if now < restEndTime {
+                    // Rest timer
+                    HStack(alignment: .bottom, spacing: 4) {
+                        Text("Rest: ")
+                        Text(timerInterval: now...restEndTime)
+                            .monospacedDigit()
+                            .foregroundStyle(.orange)
+                    }
+                    .foregroundStyle(.secondary)
+                    .font(.subheadline)
+                } else {
+                    HStack(alignment: .bottom, spacing: 4) {
+                        Text("Rest: ")
+                        Text("00:00")
+                            .monospacedDigit()
+                            .foregroundStyle(.orange)
+                    }
+                    .foregroundStyle(.secondary)
+                    .font(.subheadline)
+                }
+            } else {
+                // Elapsed time
+                HStack(spacing: 4) {
+                    Text("Elapsed: ")
+                    Text(active.dateCreated, style: .timer)
+                        .monospacedDigit()
+                }
+                .foregroundStyle(.secondary)
+                .font(.subheadline)
+            }
+        }
+        .multilineTextAlignment(.trailing)
+        .fixedSize(horizontal: true, vertical: true)
+    }
+    
     // MARK: - Helper Methods
 
     private var progress: Double {
