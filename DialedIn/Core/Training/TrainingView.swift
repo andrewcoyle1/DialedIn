@@ -116,9 +116,17 @@ struct TrainingView: View {
             }
         }
         #endif
-
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                onNotificationsPressed()
+            } label: {
+                Image(systemName: "bell")
+            }
+        }
         #if os(iOS)
         if UIDevice.current.userInterfaceIdiom != .phone {
+            ToolbarSpacer(placement: .topBarTrailing)
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     isShowingInspector.toggle()
@@ -128,6 +136,7 @@ struct TrainingView: View {
             }
         }
         #else
+        ToolbarSpacer(placement: .topBarTrailing)
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 isShowingInspector.toggle()
@@ -136,13 +145,6 @@ struct TrainingView: View {
             }
         }
         #endif
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                onNotificationsPressed()
-            } label: {
-                Image(systemName: "bell")
-            }
-        }
     }
     
     private func onNotificationsPressed() {

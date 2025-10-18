@@ -29,26 +29,25 @@ struct CreateAccountView: View {
                     .font(.body)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            
+            Spacer()
+
             SignInWithAppleButtonView(
                 type: .signIn,
                 style: .black,
                 cornerRadius: 28
             )
-            .frame(height: 56)
             .anyButton(.press) {
                 onSignInApplePressed()
             }
+            .frame(height: 56)
+            .frame(maxWidth: 320)
             
-            Image("GoogleContinueButtonLight")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(height: 56)
-                .anyButton(.press) {
-                    onSignInGooglePressed()
-                }
-            
-            Spacer()
+            SignInWithGoogleButtonView(style: .light, scheme: .signUpWithGoogle) {
+                onSignInGooglePressed()
+            }
+            .frame(height: 56)
+            .frame(maxWidth: 350)
+
         }
         .padding(16)
         .padding(.top, 40)
@@ -143,6 +142,12 @@ struct CreateAccountView: View {
 }
 
 #Preview {
-    CreateAccountView()
-        .previewEnvironment()
+    NavigationStack {
+        Text("Hello")
+            .sheet(isPresented: Binding.constant(true)) {
+                CreateAccountView()
+            }
+            .presentationDetents([.fraction(0.25)])
+    }
+    .previewEnvironment()
 }

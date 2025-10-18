@@ -50,7 +50,7 @@ struct WorkoutStartView: View {
                 }
             }
         }
-        .fullScreenCover(isPresented: $showingTracker, onDismiss: {
+        .adaptiveFullScreenCover(isPresented: $showingTracker, onDismiss: {
             // Start screen dismisses itself when tracker is dismissed if no active session
             if workoutSessionManager.activeSession == nil {
                 dismiss()

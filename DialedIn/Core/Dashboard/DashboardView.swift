@@ -12,6 +12,7 @@ struct DashboardView: View {
     @Environment(LogManager.self) private var logManager
     @Environment(NutritionManager.self) private var nutritionManager
     @State private var showNotifications: Bool = false
+    @State private var isShowingInspector: Bool = false
 
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
@@ -61,6 +62,15 @@ struct DashboardView: View {
         
     }
     
+    private var inspectorContent: some View {
+        Group {
+            Text("Select an item")
+                .foregroundStyle(.secondary)
+                .padding()
+        }
+        .inspectorColumnWidth(min: 300, ideal: 400, max: 600)
+    }
+    
     private var carouselSection: some View {
         Section {
             
@@ -87,7 +97,6 @@ struct DashboardView: View {
                 blockColor: .accent,
                 endDate: chartEndDate
             )
-//            .removeListRowFormatting()
             .frame(height: 220)
         } header: {
             Text("Workout Consistency")
@@ -113,6 +122,28 @@ struct DashboardView: View {
                 Image(systemName: "bell")
             }
         }
+        
+        #if os(iOS)
+        if UIDevice.current.userInterfaceIdiom != .phone {
+            ToolbarSpacer(placement: .topBarTrailing)
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    isShowingInspector.toggle()
+                } label: {
+                    Image(systemName: "info")
+                }
+            }
+        }
+        #else
+        ToolbarSpacer(placement: .topBarTrailing)
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                isShowingInspector.toggle()
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
     }
 }
 
