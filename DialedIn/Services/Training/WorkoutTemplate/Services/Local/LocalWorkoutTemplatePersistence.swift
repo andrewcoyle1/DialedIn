@@ -12,4 +12,5 @@ protocol LocalWorkoutTemplatePersistence {
     func getLocalWorkoutTemplates(ids: [String]) throws -> [WorkoutTemplateModel]
     func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel]
     func bookmarkWorkoutTemplate(id: String, isBookmarked: Bool) throws
+    func deleteLocalWorkoutTemplate(id: String) throws
 }

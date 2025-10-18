@@ -24,8 +24,8 @@ struct DialedInApp: App {
                 .environment(delegate.dependencies.workoutTemplateManager)
                 .environment(delegate.dependencies.workoutSessionManager)
                 .environment(delegate.dependencies.exerciseHistoryManager)
-                .environment(delegate.dependencies.hkWorkoutManager)
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+                .environment(delegate.dependencies.hkWorkoutManager)
                 .environment(delegate.dependencies.workoutActivityViewModel)
                 #endif
                 .environment(delegate.dependencies.ingredientTemplateManager)
@@ -111,7 +111,6 @@ struct Dependencies {
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
     let exerciseHistoryManager: ExerciseHistoryManager
-    let hkWorkoutManager: HKWorkoutManager
     let trainingPlanManager: TrainingPlanManager
     let ingredientTemplateManager: IngredientTemplateManager
     let recipeTemplateManager: RecipeTemplateManager
@@ -123,6 +122,7 @@ struct Dependencies {
     let reportManager: ReportManager
     let healthKitManager: HealthKitManager
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+    let hkWorkoutManager: HKWorkoutManager
     let workoutActivityViewModel: WorkoutActivityViewModel
     #endif
 
@@ -147,8 +147,8 @@ struct Dependencies {
                 ConsoleService(printParameters: false)
             ])
             reportManager = ReportManager(service: MockReportService(), userManager: userManager, logManager: logManager)
-            hkWorkoutManager = HKWorkoutManager()
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+            hkWorkoutManager = HKWorkoutManager()
             workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
             #endif
 
@@ -175,8 +175,8 @@ struct Dependencies {
             aiManager = AIManager(service: GoogleAIService())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
-            hkWorkoutManager = HKWorkoutManager()
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+            hkWorkoutManager = HKWorkoutManager()
             workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
             #endif
 
@@ -202,8 +202,8 @@ struct Dependencies {
             aiManager = AIManager(service: GoogleAIService())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
-            hkWorkoutManager = HKWorkoutManager()
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+            hkWorkoutManager = HKWorkoutManager()
             workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
             #endif
         }
@@ -215,8 +215,10 @@ struct Dependencies {
 extension View {
     func previewEnvironment(isSignedIn: Bool = true) -> some View {
         let logManager = LogManager(services: [ConsoleService(printParameters: false)])
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         let hkWorkoutManager = HKWorkoutManager()
-
+        #endif
+        
         return self
             .environment(UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil)))
             .environment(logManager)
@@ -228,8 +230,8 @@ extension View {
             .environment(WorkoutSessionManager(services: MockWorkoutSessionServices()))
             .environment(ExerciseHistoryManager(services: MockExerciseHistoryServices()))
             .environment(TrainingPlanManager(services: MockTrainingPlanServices()))
-            .environment(hkWorkoutManager)
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+            .environment(hkWorkoutManager)
             .environment(WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager))
             #endif
             .environment(PurchaseManager(services: MockPurchaseServices()))

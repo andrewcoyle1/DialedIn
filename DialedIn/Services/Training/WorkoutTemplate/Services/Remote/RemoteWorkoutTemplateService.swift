@@ -9,6 +9,8 @@ import SwiftUI
 
 protocol RemoteWorkoutTemplateService {
     func createWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws
+    func updateWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws
+    func deleteWorkoutTemplate(id: String) async throws
     func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel
     func getWorkoutTemplates(ids: [String], limitTo: Int) async throws -> [WorkoutTemplateModel]
     func getWorkoutTemplatesByName(name: String) async throws -> [WorkoutTemplateModel]

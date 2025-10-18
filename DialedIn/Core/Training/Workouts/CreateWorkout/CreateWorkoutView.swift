@@ -16,6 +16,9 @@ struct CreateWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AIManager.self) private var aiManager
     
+    // Optional template for edit mode
+    var workoutTemplate: WorkoutTemplateModel?
+    
     @State private var workoutName: String = ""
     @State private var workoutTemplateDescription: String?
     
@@ -40,6 +43,10 @@ struct CreateWorkoutView: View {
     @State private var generatedImage: UIImage?
     @State private var alert: AnyAppAlert?
     
+    private var isEditMode: Bool {
+        workoutTemplate != nil
+    }
+    
     var body: some View {
         NavigationStack {
             List {
@@ -47,7 +54,8 @@ struct CreateWorkoutView: View {
                 nameSection
                 exerciseTemplatesSection
             }
-            .navigationTitle("Create Workout")
+            .navigationTitle(isEditMode ? "Edit Workout" : "Create Workout")
+            .onAppear { loadInitialState() }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -235,6 +243,14 @@ struct CreateWorkoutView: View {
         dismiss()
     }
     
+    private func loadInitialState() {
+        guard let template = workoutTemplate else { return }
+        // Pre-populate fields for edit mode
+        workoutName = template.name
+        workoutTemplateDescription = template.description
+        exercises = template.exercises
+    }
+    
     private func onSavePressed() async throws {
         guard !isSaving, canSave else { return }
         isSaving = true
@@ -245,30 +261,56 @@ struct CreateWorkoutView: View {
                 return
             }
             
-            let newWorkout = WorkoutTemplateModel(
-                id: UUID().uuidString,
-                authorId: userId,
-                name: workoutName,
-                description: workoutTemplateDescription,
-                imageURL: nil,
-                dateCreated: Date(),
-                dateModified: Date(),
-                exercises: exercises
-            )
-            
-            #if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
-            try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: uiImage)
-            #elseif canImport(AppKit)
-            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: nsImage)
-            #endif
-            
-            // Track created template on the user document
-            try await userManager.addCreatedWorkoutTemplate(workoutId: newWorkout.id)
-            // Auto-bookmark authored templates
-            try await userManager.addBookmarkedWorkoutTemplate(workoutId: newWorkout.id)
-            try await workoutTemplateManager.bookmarkWorkoutTemplate(id: newWorkout.id, isBookmarked: true)
+            if let existingTemplate = workoutTemplate {
+                // Edit mode: update existing workout
+                let updatedWorkout = WorkoutTemplateModel(
+                    id: existingTemplate.workoutId,
+                    authorId: existingTemplate.authorId ?? userId,
+                    name: workoutName,
+                    description: workoutTemplateDescription,
+                    imageURL: existingTemplate.imageURL,
+                    dateCreated: existingTemplate.dateCreated,
+                    dateModified: Date(),
+                    exercises: exercises,
+                    clickCount: existingTemplate.clickCount,
+                    bookmarkCount: existingTemplate.bookmarkCount,
+                    favouriteCount: existingTemplate.favouriteCount
+                )
+                
+                #if canImport(UIKit)
+                let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
+                try await workoutTemplateManager.updateWorkoutTemplate(workout: updatedWorkout, image: uiImage)
+                #elseif canImport(AppKit)
+                let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
+                try await workoutTemplateManager.updateWorkoutTemplate(workout: updatedWorkout, image: nsImage)
+                #endif
+            } else {
+                // Create mode: create new workout
+                let newWorkout = WorkoutTemplateModel(
+                    id: UUID().uuidString,
+                    authorId: userId,
+                    name: workoutName,
+                    description: workoutTemplateDescription,
+                    imageURL: nil,
+                    dateCreated: Date(),
+                    dateModified: Date(),
+                    exercises: exercises
+                )
+                
+                #if canImport(UIKit)
+                let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
+                try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: uiImage)
+                #elseif canImport(AppKit)
+                let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
+                try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: nsImage)
+                #endif
+                
+                // Track created template on the user document
+                try await userManager.addCreatedWorkoutTemplate(workoutId: newWorkout.id)
+                // Auto-bookmark authored templates
+                try await userManager.addBookmarkedWorkoutTemplate(workoutId: newWorkout.id)
+                try await workoutTemplateManager.bookmarkWorkoutTemplate(id: newWorkout.id, isBookmarked: true)
+            }
              
         } catch {
             

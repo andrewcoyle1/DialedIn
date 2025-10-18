@@ -10,6 +10,7 @@ import WidgetKit
 import ActivityKit
 import AppIntents
 
+#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
 struct WorkoutSessionActivity: Widget {
     var body: some WidgetConfiguration {
         
@@ -318,3 +319,4 @@ extension WorkoutActivityAttributes.ContentState {
     WorkoutActivityAttributes.ContentState.stale
     WorkoutActivityAttributes.ContentState.someMetrics
 }
+#endif

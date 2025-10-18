@@ -9,6 +9,7 @@ import SwiftUI
 import WidgetKit
 import AppIntents
 
+#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
 struct LiveActivityView: View {
     let context: ActivityViewContext<WorkoutActivityAttributes>
     
@@ -160,6 +161,7 @@ struct LiveActivityView: View {
     WorkoutActivityAttributes.ContentState.stale
     WorkoutActivityAttributes.ContentState.someMetrics
 }
+#endif
 
 //            HStack {
 //                VStack(alignment: .leading, spacing: 0) {

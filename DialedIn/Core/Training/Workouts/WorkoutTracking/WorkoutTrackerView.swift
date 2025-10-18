@@ -12,8 +12,9 @@ struct WorkoutTrackerView: View {
     @Environment(UserManager.self) var userManager
     @Environment(WorkoutSessionManager.self) var workoutSessionManager
     @Environment(ExerciseHistoryManager.self) var exerciseHistoryManager
-    @Environment(HKWorkoutManager.self) var hkWorkoutManager
+    
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+    @Environment(HKWorkoutManager.self) var hkWorkoutManager
     @Environment(WorkoutActivityViewModel.self) var workoutActivityViewModel
     #endif
     @Environment(PushManager.self) var pushManager
@@ -101,9 +102,11 @@ struct WorkoutTrackerView: View {
                         print("Skipping HKWorkoutSession start: missing HealthKit authorization")
                         return
                     }
+                    #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                     // Configure and start HK session for strength training
                     hkWorkoutManager.setWorkoutConfiguration(activityType: .traditionalStrengthTraining, location: .indoor)
                     hkWorkoutManager.startWorkout(workout: workoutSession)
+                    #endif
                 }
             }
             .showModal(showModal: $isRestPickerOpen) {
@@ -274,7 +277,7 @@ struct WorkoutTrackerView: View {
                     Text(isRestActive ? "Rest Timer" : "Workout Time")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+                    #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                     if let end = hkWorkoutManager.restEndTime {
                         let now = Date()
                         if now < end {
@@ -291,6 +294,7 @@ struct WorkoutTrackerView: View {
                             .font(.title2.bold())
                             .foregroundColor(.primary)
                     }
+                    #endif
                 }
                 
                 Spacer()

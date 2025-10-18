@@ -28,6 +28,16 @@ struct MockWorkoutTemplateService: RemoteWorkoutTemplateService {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
     }
+    
+    func updateWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
+    
+    func deleteWorkoutTemplate(id: String) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
     func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()

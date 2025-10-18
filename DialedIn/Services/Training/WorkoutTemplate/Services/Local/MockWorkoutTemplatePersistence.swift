@@ -57,4 +57,9 @@ struct MockWorkoutTemplatePersistence: LocalWorkoutTemplatePersistence {
         try tryShowError()
         // No-op in mock; in a real implementation, this would update the favourite status in persistent storage.
     }
+    
+    func deleteLocalWorkoutTemplate(id: String) throws {
+        try tryShowError()
+        // No-op in mock; in a real implementation, this would delete the template from persistent storage.
+    }
 }

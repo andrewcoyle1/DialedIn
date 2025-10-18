@@ -25,8 +25,12 @@ extension WorkoutTrackerView {
     }
     
     var isRestActive: Bool {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         guard let end = hkWorkoutManager.restEndTime else { return false }
         return Date() < end
+        #else
+        return false
+        #endif
     }
     
     var completedSetsCount: Int {
@@ -126,8 +130,8 @@ extension WorkoutTrackerView {
     
     private func pauseResumeWorkout() {
         isActive.toggle()
-        hkWorkoutManager.togglePause()
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        hkWorkoutManager.togglePause()
         // Update activity immediately when toggling pause/resume
         workoutActivityViewModel.updateLiveActivity(
             session: workoutSession,
@@ -333,6 +337,7 @@ extension WorkoutTrackerView {
     
     private func startRestTimer(durationSeconds: Int = 0) {
         let duration = durationSeconds > 0 ? durationSeconds : restDurationSeconds
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         hkWorkoutManager.startRest(durationSeconds: duration, session: workoutSession, currentExerciseIndex: currentExerciseIndex)
         // Sync rest timer with manager for tab bar accessory
         workoutSessionManager.restEndTime = hkWorkoutManager.restEndTime
@@ -353,11 +358,14 @@ extension WorkoutTrackerView {
                 }
             }
         }
+        #endif
     }
     
     private func cancelRestTimer() {
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Cancel in manager (will also update Live Activity)
         hkWorkoutManager.cancelRest()
+        #endif
         
         // Sync rest timer with manager for tab bar accessory
         workoutSessionManager.restEndTime = nil
@@ -413,8 +421,11 @@ extension WorkoutTrackerView {
     internal func finishWorkout() {
         Task {
             do {
+                #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 // End HK session first
                 hkWorkoutManager.endWorkout()
+                #endif
+                
                 let endTime = Date()
                 
                 // Cancel any pending rest timer notifications

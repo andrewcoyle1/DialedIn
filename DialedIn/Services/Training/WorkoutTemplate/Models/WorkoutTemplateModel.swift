@@ -55,6 +55,22 @@ struct WorkoutTemplateModel: Identifiable, Codable, StringIdentifiable, Hashable
         self.imageURL = imageUrl
     }
     
+    mutating func updateDateModified(dateModified: Date) {
+        self = WorkoutTemplateModel(
+            id: workoutId,
+            authorId: authorId ?? "",
+            name: name,
+            description: description,
+            imageURL: imageURL,
+            dateCreated: dateCreated,
+            dateModified: dateModified,
+            exercises: exercises,
+            clickCount: clickCount,
+            bookmarkCount: bookmarkCount,
+            favouriteCount: favouriteCount
+        )
+    }
+    
     enum CodingKeys: String, CodingKey {
         case workoutId = "workout_id"
         case authorId = "author_id"

@@ -62,6 +62,7 @@ struct TabBarView: View {
                     Label("Profile", systemImage: "person.fill")
                 }
         }
+        .tabViewStyle(.sidebarAdaptable)
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory {
             if let active = workoutSessionManager.activeSession, !workoutSessionManager.isTrackerPresented {

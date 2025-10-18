@@ -72,4 +72,15 @@ struct SwiftWorkoutTemplatePersistence: LocalWorkoutTemplatePersistence {
         entity.favouriteCount = isFavourited ? (entity.favouriteCount ?? 0) + 1 : (entity.favouriteCount ?? 0) - 1
         try mainContext.save()
     }
+    
+    func deleteLocalWorkoutTemplate(id: String) throws {
+        let predicate = #Predicate<WorkoutTemplateEntity> { $0.workoutTemplateId == id }
+        let descriptor = FetchDescriptor<WorkoutTemplateEntity>(predicate: predicate)
+        let entities = try mainContext.fetch(descriptor)
+        guard let entity = entities.first else {
+            throw NSError(domain: "SwiftWorkoutTemplatePersistence", code: 404, userInfo: [NSLocalizedDescriptionKey: "WorkoutTemplate with id \(id) not found"])
+        }
+        mainContext.delete(entity)
+        try mainContext.save()
+    }
 }

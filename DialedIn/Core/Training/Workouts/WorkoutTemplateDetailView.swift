@@ -12,6 +12,7 @@ struct WorkoutTemplateDetailView: View {
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.editMode) private var editMode
     let workoutTemplate: WorkoutTemplateModel
     @State private var showStartSessionSheet: Bool = false
     
@@ -19,10 +20,17 @@ struct WorkoutTemplateDetailView: View {
     @State private var isFavourited: Bool = false
     
     @State private var showAlert: AnyAppAlert?
+    @State private var showEditSheet: Bool = false
+    @State private var showDeleteConfirmation: Bool = false
+    @State private var isDeleting: Bool = false
     
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
+    
+    private var isAuthor: Bool {
+        userManager.currentUser?.userId == workoutTemplate.authorId
+    }
     
     var body: some View {
         List {
@@ -56,6 +64,13 @@ struct WorkoutTemplateDetailView: View {
             }
             #endif
             
+            // Show edit button for authors
+            if isAuthor {
+                ToolbarItem(placement: .topBarLeading) {
+                    EditButton()
+                }
+            }
+            
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
@@ -79,13 +94,43 @@ struct WorkoutTemplateDetailView: View {
                 }
             }
             
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showStartSessionSheet = true
-                } label: {
-                    Label("Start", systemImage: "play.fill")
+            // Show edit button when not in edit mode
+            if isAuthor && editMode?.wrappedValue != .active {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showEditSheet = true
+                    } label: {
+                        Image(systemName: "pencil")
+                    }
                 }
-                .buttonStyle(.glassProminent)
+            }
+            
+            // Show delete button only in edit mode
+            if isAuthor && editMode?.wrappedValue == .active {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        if isDeleting {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "trash")
+                        }
+                    }
+                    .disabled(isDeleting)
+                }
+            }
+            
+            // Hide start button in edit mode
+            if editMode?.wrappedValue != .active {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showStartSessionSheet = true
+                    } label: {
+                        Label("Start", systemImage: "play.fill")
+                    }
+                    .buttonStyle(.glassProminent)
+                }
             }
             
         }
@@ -99,6 +144,19 @@ struct WorkoutTemplateDetailView: View {
         .sheet(isPresented: $showStartSessionSheet) {
             WorkoutStartView(template: workoutTemplate)
                 .environment(userManager)
+        }
+        .sheet(isPresented: $showEditSheet) {
+            CreateWorkoutView(workoutTemplate: workoutTemplate)
+        }
+        .confirmationDialog("Delete Workout", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                Task {
+                    await deleteWorkout()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to delete '\(workoutTemplate.name)'? This action cannot be undone.")
         }
     }
     
@@ -176,6 +234,33 @@ struct WorkoutTemplateDetailView: View {
             isFavourited = newState
         } catch {
             showAlert = AnyAppAlert(title: "Failed to update favourite status", subtitle: "Please try again later")
+        }
+    }
+    
+    private func deleteWorkout() async {
+        isDeleting = true
+        do {
+            // Remove from user's created templates list
+            try await userManager.removeCreatedWorkoutTemplate(workoutId: workoutTemplate.id)
+            
+            // Remove from bookmarked if bookmarked
+            if isBookmarked {
+                try await userManager.removeBookmarkedWorkoutTemplate(workoutId: workoutTemplate.id)
+            }
+            
+            // Remove from favourited if favourited
+            if isFavourited {
+                try await userManager.removeFavouritedWorkoutTemplate(workoutId: workoutTemplate.id)
+            }
+            
+            // Delete the workout template
+            try await workoutTemplateManager.deleteWorkoutTemplate(id: workoutTemplate.id)
+            
+            // Dismiss the view after successful deletion
+            dismiss()
+        } catch {
+            isDeleting = false
+            showAlert = AnyAppAlert(title: "Failed to delete workout", subtitle: "Please try again later")
         }
     }
 }

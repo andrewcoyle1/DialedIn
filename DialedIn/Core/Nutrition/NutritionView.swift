@@ -55,7 +55,6 @@ struct NutritionView: View {
             .navigationTitle("Nutrition")
             .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
             .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
             .scrollIndicators(.hidden)
             .showCustomAlert(alert: $showAlert)
             .toolbar {

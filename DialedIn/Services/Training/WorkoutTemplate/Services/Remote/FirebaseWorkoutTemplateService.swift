@@ -36,6 +36,44 @@ struct FirebaseWorkoutTemplateService: RemoteWorkoutTemplateService {
         ], merge: true)
     }
     
+    func updateWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws {
+        // Work on a mutable copy so any image URL updates are persisted
+        var workoutToUpdate = workout
+        
+        if let image {
+            // Upload the image
+            let path = "workout_templates/\(workout.id)/image.jpg"
+            let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
+            
+            // Persist the download URL on the workout that will be saved
+            workoutToUpdate.updateImageURL(imageUrl: url.absoluteString)
+        }
+        
+        // Update dateModified
+        workoutToUpdate.updateDateModified(dateModified: Date())
+        
+        // Upload the (possibly updated) workout
+        try collection.document(workoutToUpdate.id).setData(from: workoutToUpdate, merge: true)
+        // Also persist lowercased name for case-insensitive prefix search
+        try await collection.document(
+            workoutToUpdate.id).setData([
+            "name_lower": workoutToUpdate.name.lowercased()
+        ], merge: true)
+    }
+    
+    func deleteWorkoutTemplate(id: String) async throws {
+        // Delete the image if it exists
+        do {
+            try await FirebaseImageUploadService().deleteImage(path: "workout_templates/\(id)/image.jpg")
+        } catch {
+            // Ignore if image doesn't exist
+            print("⚠️ No image to delete for workout template \(id)")
+        }
+        
+        // Delete the document
+        try await collection.document(id).delete()
+    }
+    
     func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel {
         try await collection.getDocument(id: id)
     }

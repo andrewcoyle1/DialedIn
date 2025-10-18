@@ -8,9 +8,11 @@
 import WidgetKit
 import SwiftUI
 
+#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
 @main
 struct WorkoutSessionActivityBundle: WidgetBundle {
     var body: some Widget {
         WorkoutSessionActivity()
     }
 }
+#endif

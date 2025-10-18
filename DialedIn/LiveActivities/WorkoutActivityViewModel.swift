@@ -449,6 +449,12 @@ class WorkoutActivityViewModel {
         restEndsAt: Date? = nil,
         statusMessage: String? = nil
     ) { }
+
+    func updateRestAndActive(
+        isActive: Bool,
+        restEndsAt: Date?,
+        statusMessage: String? = nil
+    ) { }
 }
 #endif
 

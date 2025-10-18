@@ -40,6 +40,21 @@ class WorkoutTemplateManager {
         try await remote.createWorkoutTemplate(workout: workout, image: image)
     }
     
+    func updateWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws {
+        try await remote.updateWorkoutTemplate(workout: workout, image: image)
+    }
+    
+    func deleteWorkoutTemplate(id: String) async throws {
+        try await remote.deleteWorkoutTemplate(id: id)
+        // Also delete local copy if it exists
+        do {
+            try local.deleteLocalWorkoutTemplate(id: id)
+        } catch {
+            // Ignore if local copy doesn't exist
+            print("⚠️ No local workout template to delete for \(id)")
+        }
+    }
+    
     func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel {
         try await remote.getWorkoutTemplate(id: id)
     }

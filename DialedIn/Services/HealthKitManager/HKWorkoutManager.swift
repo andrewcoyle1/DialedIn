@@ -6,7 +6,7 @@
 //
 
 import Foundation
-#if canImport(HealthKit)
+#if canImport(HealthKit) && !targetEnvironment(macCatalyst)
 import HealthKit
 
 @Observable
@@ -97,7 +97,7 @@ class HKWorkoutManager: NSObject {
         guard let configuration = workoutConfiguration else { return }
 
         state = .prepared
-
+        
         session = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
         builder = session?.associatedWorkoutBuilder()
         session?.delegate = self
