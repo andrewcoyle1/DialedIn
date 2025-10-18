@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ProgramView: View {
     
+    @Environment(TrainingPlanManager.self) private var trainingPlanManager
+    
     @Binding var isShowingInspector: Bool
     @Binding var selectedWorkoutTemplate: WorkoutTemplateModel?
     @Binding var selectedExerciseTemplate: ExerciseTemplateModel?

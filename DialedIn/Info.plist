@@ -24,6 +24,16 @@
 				<string>com.googleusercontent.apps.94958324260-bj1v2mbkjr92u8emp7li2i2157osija7</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>basic_deep_link</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>dialedIn</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

@@ -262,63 +262,68 @@ struct CreateWorkoutView: View {
             }
             
             if let existingTemplate = workoutTemplate {
-                // Edit mode: update existing workout
-                let updatedWorkout = WorkoutTemplateModel(
-                    id: existingTemplate.workoutId,
-                    authorId: existingTemplate.authorId ?? userId,
-                    name: workoutName,
-                    description: workoutTemplateDescription,
-                    imageURL: existingTemplate.imageURL,
-                    dateCreated: existingTemplate.dateCreated,
-                    dateModified: Date(),
-                    exercises: exercises,
-                    clickCount: existingTemplate.clickCount,
-                    bookmarkCount: existingTemplate.bookmarkCount,
-                    favouriteCount: existingTemplate.favouriteCount
-                )
-                
-                #if canImport(UIKit)
-                let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
-                try await workoutTemplateManager.updateWorkoutTemplate(workout: updatedWorkout, image: uiImage)
-                #elseif canImport(AppKit)
-                let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-                try await workoutTemplateManager.updateWorkoutTemplate(workout: updatedWorkout, image: nsImage)
-                #endif
+                try await updateExistingWorkout(existingTemplate: existingTemplate, userId: userId)
             } else {
-                // Create mode: create new workout
-                let newWorkout = WorkoutTemplateModel(
-                    id: UUID().uuidString,
-                    authorId: userId,
-                    name: workoutName,
-                    description: workoutTemplateDescription,
-                    imageURL: nil,
-                    dateCreated: Date(),
-                    dateModified: Date(),
-                    exercises: exercises
-                )
-                
-                #if canImport(UIKit)
-                let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
-                try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: uiImage)
-                #elseif canImport(AppKit)
-                let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-                try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: nsImage)
-                #endif
-                
-                // Track created template on the user document
-                try await userManager.addCreatedWorkoutTemplate(workoutId: newWorkout.id)
-                // Auto-bookmark authored templates
-                try await userManager.addBookmarkedWorkoutTemplate(workoutId: newWorkout.id)
-                try await workoutTemplateManager.bookmarkWorkoutTemplate(id: newWorkout.id, isBookmarked: true)
+                try await createNewWorkout(userId: userId)
             }
              
         } catch {
-            
             isSaving = false
             throw error // Re-throw to allow caller to handle the error
         }
         isSaving = false
         dismiss()
+    }
+    
+    private func updateExistingWorkout(existingTemplate: WorkoutTemplateModel, userId: String) async throws {
+        let updatedWorkout = WorkoutTemplateModel(
+            id: existingTemplate.workoutId,
+            authorId: existingTemplate.authorId ?? userId,
+            name: workoutName,
+            description: workoutTemplateDescription,
+            imageURL: existingTemplate.imageURL,
+            dateCreated: existingTemplate.dateCreated,
+            dateModified: Date(),
+            exercises: exercises,
+            clickCount: existingTemplate.clickCount,
+            bookmarkCount: existingTemplate.bookmarkCount,
+            favouriteCount: existingTemplate.favouriteCount
+        )
+        
+        #if canImport(UIKit)
+        let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
+        try await workoutTemplateManager.updateWorkoutTemplate(workout: updatedWorkout, image: uiImage)
+        #elseif canImport(AppKit)
+        let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
+        try await workoutTemplateManager.updateWorkoutTemplate(workout: updatedWorkout, image: nsImage)
+        #endif
+    }
+    
+    private func createNewWorkout(userId: String) async throws {
+        let newWorkout = WorkoutTemplateModel(
+            id: UUID().uuidString,
+            authorId: userId,
+            name: workoutName,
+            description: workoutTemplateDescription,
+            imageURL: nil,
+            dateCreated: Date(),
+            dateModified: Date(),
+            exercises: exercises
+        )
+        
+        #if canImport(UIKit)
+        let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
+        try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: uiImage)
+        #elseif canImport(AppKit)
+        let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
+        try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: nsImage)
+        #endif
+        
+        // Track created template on the user document
+        try await userManager.addCreatedWorkoutTemplate(workoutId: newWorkout.id)
+        // Auto-bookmark authored templates
+        try await userManager.addBookmarkedWorkoutTemplate(workoutId: newWorkout.id)
+        try await workoutTemplateManager.bookmarkWorkoutTemplate(id: newWorkout.id, isBookmarked: true)
     }
     
     private func onAddExercisePressed() {

@@ -24,6 +24,7 @@ struct DialedInApp: App {
                 .environment(delegate.dependencies.workoutTemplateManager)
                 .environment(delegate.dependencies.workoutSessionManager)
                 .environment(delegate.dependencies.exerciseHistoryManager)
+                .environment(delegate.dependencies.trainingPlanManager)
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 .environment(delegate.dependencies.hkWorkoutManager)
                 .environment(delegate.dependencies.workoutActivityViewModel)
@@ -66,6 +67,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         dependencies = Dependencies(config: config)
         return true
     }
+    
 }
 
 enum BuildConfiguration {

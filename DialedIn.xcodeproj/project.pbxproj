@@ -624,7 +624,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DialedIn/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "DialedIn - Mock";
+				INFOPLIST_KEY_CFBundleDisplayName = "DialedIn - Dev";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We use your calendar to schedule workouts and reminders.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads your nutrition and body measurement data to help you with your fitness goals";
@@ -1024,7 +1024,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DialedIn/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = DialedIn;
+				INFOPLIST_KEY_CFBundleDisplayName = "DialedIn - Dev";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We use your calendar to schedule workouts and reminders.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads your nutrition and body measurement data to help you with your fitness goals";

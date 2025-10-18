@@ -128,7 +128,7 @@ struct ExercisesView: View {
             Text("Favourites")
         }
         .onAppear {
-            logManager.trackEvent(event: Event.favouritesSectionViewed(count: favouriteExercises.count))
+            logManager.trackEvent(event: ExercisesViewEvents.favouritesSectionViewed(count: favouriteExercises.count))
         }
     }
 
@@ -149,7 +149,7 @@ struct ExercisesView: View {
             Text("Bookmarked")
         }
         .onAppear {
-            logManager.trackEvent(event: Event.bookmarkedSectionViewed(count: bookmarkedOnlyExercises.count))
+            logManager.trackEvent(event: ExercisesViewEvents.bookmarkedSectionViewed(count: bookmarkedOnlyExercises.count))
         }
     }
 
@@ -205,7 +205,7 @@ struct ExercisesView: View {
             Text(searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
         }
         .onAppear {
-            logManager.trackEvent(event: Event.trendingSectionViewed(count: visibleExerciseTemplates.count))
+            logManager.trackEvent(event: ExercisesViewEvents.trendingSectionViewed(count: visibleExerciseTemplates.count))
         }
     }
 
@@ -223,7 +223,7 @@ struct ExercisesView: View {
                 .padding(.vertical, 12)
                 .removeListRowFormatting()
                 .onAppear {
-                    logManager.trackEvent(event: Event.emptyStateShown)
+                    logManager.trackEvent(event: ExercisesViewEvents.emptyStateShown)
                 }
             } else {
                 ForEach(myExercisesVisible) { exercise in
@@ -251,7 +251,7 @@ struct ExercisesView: View {
             }
         }
         .onAppear {
-            logManager.trackEvent(event: Event.myTemplatesSectionViewed(count: myExercisesVisible.count))
+            logManager.trackEvent(event: ExercisesViewEvents.myTemplatesSectionViewed(count: myExercisesVisible.count))
         }
     }
     
@@ -304,14 +304,14 @@ struct ExercisesView: View {
             Text("Official Exercises")
         }
         .onAppear {
-            logManager.trackEvent(event: Event.officialSectionViewed(count: officialExercisesVisible.count))
+            logManager.trackEvent(event: ExercisesViewEvents.officialSectionViewed(count: officialExercisesVisible.count))
         }
     }
 
     // MARK: Business Logic
 
     private func onAddExercisePressed() {
-        logManager.trackEvent(event: Event.onAddExercisePressed)
+        logManager.trackEvent(event: ExercisesViewEvents.onAddExercisePressed)
         showAddExerciseModal = true
     }
 
@@ -320,12 +320,12 @@ struct ExercisesView: View {
         // System exercises (IDs starting with "system-") are read-only
         if !exercise.id.hasPrefix("system-") {
             Task {
-                logManager.trackEvent(event: Event.incrementExerciseStart)
+                logManager.trackEvent(event: ExercisesViewEvents.incrementExerciseStart)
                 do {
                     try await exerciseTemplateManager.incrementExerciseTemplateInteraction(id: exercise.id)
-                    logManager.trackEvent(event: Event.incrementExerciseSuccess)
+                    logManager.trackEvent(event: ExercisesViewEvents.incrementExerciseSuccess)
                 } catch {
-                    logManager.trackEvent(event: Event.incrementExerciseFail(error: error))
+                    logManager.trackEvent(event: ExercisesViewEvents.incrementExerciseFail(error: error))
                 }
             }
         }
@@ -335,22 +335,22 @@ struct ExercisesView: View {
     }
 
     private func onExercisePressedFromFavourites(exercise: ExerciseTemplateModel) {
-        logManager.trackEvent(event: Event.onExercisePressedFromFavourites)
+        logManager.trackEvent(event: ExercisesViewEvents.onExercisePressedFromFavourites)
         onExercisePressed(exercise: exercise)
     }
 
     private func onExercisePressedFromBookmarked(exercise: ExerciseTemplateModel) {
-        logManager.trackEvent(event: Event.onExercisePressedFromBookmarked)
+        logManager.trackEvent(event: ExercisesViewEvents.onExercisePressedFromBookmarked)
         onExercisePressed(exercise: exercise)
     }
 
     private func onExercisePressedFromTrending(exercise: ExerciseTemplateModel) {
-        logManager.trackEvent(event: Event.onExercisePressedFromTrending)
+        logManager.trackEvent(event: ExercisesViewEvents.onExercisePressedFromTrending)
         onExercisePressed(exercise: exercise)
     }
 
     private func onExercisePressedFromMyTemplates(exercise: ExerciseTemplateModel) {
-        logManager.trackEvent(event: Event.onExercisePressedFromMyTemplates)
+        logManager.trackEvent(event: ExercisesViewEvents.onExercisePressedFromMyTemplates)
         onExercisePressed(exercise: exercise)
     }
 
@@ -369,13 +369,13 @@ struct ExercisesView: View {
     }
 
     private func handleSearchCleared() {
-        logManager.trackEvent(event: Event.searchCleared)
+        logManager.trackEvent(event: ExercisesViewEvents.searchCleared)
         Task { await loadTopExercisesIfNeeded() }
     }
 
     private func startFreshSearch(for query: String) {
         isLoading = true
-        logManager.trackEvent(event: Event.performExerciseSearchStart)
+        logManager.trackEvent(event: ExercisesViewEvents.performExerciseSearchStart)
 
         searchExerciseTask = Task { [exerciseTemplateManager] in
             do {
@@ -404,14 +404,14 @@ struct ExercisesView: View {
         isLoading = false
 
         if results.isEmpty {
-            logManager.trackEvent(event: Event.performExerciseSearchEmptyResults(query: query))
+            logManager.trackEvent(event: ExercisesViewEvents.performExerciseSearchEmptyResults(query: query))
         } else {
-            logManager.trackEvent(event: Event.performExerciseSearchSuccess(query: query, resultCount: results.count))
+            logManager.trackEvent(event: ExercisesViewEvents.performExerciseSearchSuccess(query: query, resultCount: results.count))
         }
     }
 
     private func handleSearchError(_ error: Error) {
-        logManager.trackEvent(event: Event.performExerciseSearchFail(error: error))
+        logManager.trackEvent(event: ExercisesViewEvents.performExerciseSearchFail(error: error))
         isLoading = false
         exercises = []
 
@@ -423,13 +423,13 @@ struct ExercisesView: View {
 
     private func loadMyExercisesIfNeeded() async {
         guard let userId = userManager.currentUser?.userId else { return }
-        logManager.trackEvent(event: Event.loadMyExercisesStart)
+        logManager.trackEvent(event: ExercisesViewEvents.loadMyExercisesStart)
         do {
             let mine = try await exerciseTemplateManager.getExerciseTemplatesForAuthor(authorId: userId)
             myExercises = mine
-            logManager.trackEvent(event: Event.loadMyExercisesSuccess(count: mine.count))
+            logManager.trackEvent(event: ExercisesViewEvents.loadMyExercisesSuccess(count: mine.count))
         } catch {
-            logManager.trackEvent(event: Event.loadMyExercisesFail(error: error))
+            logManager.trackEvent(event: ExercisesViewEvents.loadMyExercisesFail(error: error))
             showAlert = AnyAppAlert(
                 title: "Unable to Load Your Exercises",
                 subtitle: "We couldn't retrieve your custom exercise templates. Please check your connection or try again later."
@@ -438,13 +438,13 @@ struct ExercisesView: View {
     }
     
     private func loadOfficialExercises() async {
-        logManager.trackEvent(event: Event.loadOfficialExercisesStart)
+        logManager.trackEvent(event: ExercisesViewEvents.loadOfficialExercisesStart)
         do {
             let official = try exerciseTemplateManager.getSystemExerciseTemplates()
             officialExercises = official
-            logManager.trackEvent(event: Event.loadOfficialExercisesSuccess(count: official.count))
+            logManager.trackEvent(event: ExercisesViewEvents.loadOfficialExercisesSuccess(count: official.count))
         } catch {
-            logManager.trackEvent(event: Event.loadOfficialExercisesFail(error: error))
+            logManager.trackEvent(event: ExercisesViewEvents.loadOfficialExercisesFail(error: error))
             // Don't show alert for official exercises - it's not critical
         }
     }
@@ -452,15 +452,15 @@ struct ExercisesView: View {
     private func loadTopExercisesIfNeeded() async {
         guard searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         isLoading = true
-        logManager.trackEvent(event: Event.loadTopExercisesStart)
+        logManager.trackEvent(event: ExercisesViewEvents.loadTopExercisesStart)
         do {
             let top = try await exerciseTemplateManager.getTopExerciseTemplatesByClicks(limitTo: 10)
             exercises = top
             isLoading = false
-            logManager.trackEvent(event: Event.loadTopExercisesSuccess(count: top.count))
+            logManager.trackEvent(event: ExercisesViewEvents.loadTopExercisesSuccess(count: top.count))
         } catch {
             isLoading = false
-            logManager.trackEvent(event: Event.loadTopExercisesFail(error: error))
+            logManager.trackEvent(event: ExercisesViewEvents.loadTopExercisesFail(error: error))
             showAlert = AnyAppAlert(
                 title: "Unable to Load Trending Templates",
                 subtitle: "We couldn't load top exercise templates. Please try again later."
@@ -469,9 +469,9 @@ struct ExercisesView: View {
     }
 
     private func syncSavedExercisesFromUser() async {
-        logManager.trackEvent(event: Event.syncExercisesFromCurrentUserStart)
+        logManager.trackEvent(event: ExercisesViewEvents.syncExercisesFromCurrentUserStart)
         guard let user = userManager.currentUser else {
-            logManager.trackEvent(event: Event.syncExercisesFromCurrentUserNoUid)
+            logManager.trackEvent(event: ExercisesViewEvents.syncExercisesFromCurrentUserNoUid)
             favouriteExercises = []
             bookmarkedExercises = []
             return
@@ -494,130 +494,13 @@ struct ExercisesView: View {
             }
             favouriteExercises = favs
             bookmarkedExercises = bookmarks
-            logManager.trackEvent(event: Event.syncExercisesFromCurrentUserSuccess(favouriteCount: favs.count, bookmarkedCount: bookmarks.count))
+            logManager.trackEvent(event: ExercisesViewEvents.syncExercisesFromCurrentUserSuccess(favouriteCount: favs.count, bookmarkedCount: bookmarks.count))
         } catch {
-            logManager.trackEvent(event: Event.syncExercisesFromCurrentUserFail(error: error))
+            logManager.trackEvent(event: ExercisesViewEvents.syncExercisesFromCurrentUserFail(error: error))
             showAlert = AnyAppAlert(
                 title: "Unable to Load Saved Exercises",
                 subtitle: "We couldn't retrieve your saved exercises. Please try again later."
             )
-        }
-    }
-
-    // MARK: Analytics Events
-
-    enum Event: LoggableEvent {
-        case performExerciseSearchStart
-        case performExerciseSearchSuccess(query: String, resultCount: Int)
-        case performExerciseSearchFail(error: Error)
-        case performExerciseSearchEmptyResults(query: String)
-        case searchCleared
-        case loadMyExercisesStart
-        case loadMyExercisesSuccess(count: Int)
-        case loadMyExercisesFail(error: Error)
-        case loadOfficialExercisesStart
-        case loadOfficialExercisesSuccess(count: Int)
-        case loadOfficialExercisesFail(error: Error)
-        case loadTopExercisesStart
-        case loadTopExercisesSuccess(count: Int)
-        case loadTopExercisesFail(error: Error)
-        case incrementExerciseStart
-        case incrementExerciseSuccess
-        case incrementExerciseFail(error: Error)
-        case syncExercisesFromCurrentUserStart
-        case syncExercisesFromCurrentUserNoUid
-        case syncExercisesFromCurrentUserSuccess(favouriteCount: Int, bookmarkedCount: Int)
-        case syncExercisesFromCurrentUserFail(error: Error)
-        case onAddExercisePressed
-        case favouritesSectionViewed(count: Int)
-        case bookmarkedSectionViewed(count: Int)
-        case officialSectionViewed(count: Int)
-        case trendingSectionViewed(count: Int)
-        case myTemplatesSectionViewed(count: Int)
-        case emptyStateShown
-        case onExercisePressedFromFavourites
-        case onExercisePressedFromBookmarked
-        case onExercisePressedFromTrending
-        case onExercisePressedFromMyTemplates
-
-        var eventName: String {
-            switch self {
-            case .performExerciseSearchStart:          return "ExercisesView_Search_Start"
-            case .performExerciseSearchSuccess:        return "ExercisesView_Search_Success"
-            case .performExerciseSearchFail:           return "ExercisesView_Search_Fail"
-            case .performExerciseSearchEmptyResults:   return "ExercisesView_Search_EmptyResults"
-            case .searchCleared:                         return "ExercisesView_Search_Cleared"
-            case .loadMyExercisesStart:                return "ExercisesView_LoadMyExercises_Start"
-            case .loadMyExercisesSuccess:              return "ExercisesView_LoadMyExercises_Success"
-            case .loadMyExercisesFail:                 return "ExercisesView_LoadMyExercises_Fail"
-            case .loadOfficialExercisesStart:          return "ExercisesView_LoadOfficialExercises_Start"
-            case .loadOfficialExercisesSuccess:        return "ExercisesView_LoadOfficialExercises_Success"
-            case .loadOfficialExercisesFail:           return "ExercisesView_LoadOfficialExercises_Fail"
-            case .loadTopExercisesStart:               return "ExercisesView_LoadTopExercises_Start"
-            case .loadTopExercisesSuccess:             return "ExercisesView_LoadTopExercises_Success"
-            case .loadTopExercisesFail:                return "ExercisesView_LoadTopExercises_Fail"
-            case .incrementExerciseStart:              return "ExercisesView_IncrementExercise_Start"
-            case .incrementExerciseSuccess:            return "ExercisesView_IncrementExercise_Success"
-            case .incrementExerciseFail:               return "ExercisesView_IncrementExercise_Fail"
-            case .syncExercisesFromCurrentUserStart:   return "ExercisesView_UserSync_Start"
-            case .syncExercisesFromCurrentUserNoUid:   return "ExercisesView_UserSync_NoUID"
-            case .syncExercisesFromCurrentUserSuccess: return "ExercisesView_UserSync_Success"
-            case .syncExercisesFromCurrentUserFail:    return "ExercisesView_UserSync_Fail"
-            case .onAddExercisePressed:                return "ExercisesView_AddExercisePressed"
-            case .favouritesSectionViewed:               return "ExercisesView_Favourites_SectionViewed"
-            case .bookmarkedSectionViewed:               return "ExercisesView_Bookmarked_SectionViewed"
-            case .officialSectionViewed:                 return "ExercisesView_Official_SectionViewed"
-            case .trendingSectionViewed:                 return "ExercisesView_Trending_SectionViewed"
-            case .myTemplatesSectionViewed:              return "ExercisesView_MyTemplates_SectionViewed"
-            case .emptyStateShown:                       return "ExercisesView_EmptyState_Shown"
-            case .onExercisePressedFromFavourites:     return "ExercisesView_ExercisePressed_Favourites"
-            case .onExercisePressedFromBookmarked:     return "ExercisesView_ExercisePressed_Bookmarked"
-            case .onExercisePressedFromTrending:       return "ExercisesView_ExercisePressed_Trending"
-            case .onExercisePressedFromMyTemplates:    return "ExercisesView_ExercisePressed_MyTemplates"
-            }
-        }
-
-        var parameters: [String: Any]? {
-            switch self {
-            case .performExerciseSearchSuccess(query: let query, resultCount: let count):
-                return ["query": query, "resultCount": count]
-            case .performExerciseSearchEmptyResults(query: let query):
-                return ["query": query]
-            case .loadMyExercisesSuccess(count: let count):
-                return ["count": count]
-            case .loadOfficialExercisesSuccess(count: let count):
-                return ["count": count]
-            case .loadTopExercisesSuccess(count: let count):
-                return ["count": count]
-            case .syncExercisesFromCurrentUserSuccess(favouriteCount: let favCount, bookmarkedCount: let bookCount):
-                return ["favouriteCount": favCount, "bookmarkedCount": bookCount]
-            case .favouritesSectionViewed(count: let count):
-                return ["count": count]
-            case .bookmarkedSectionViewed(count: let count):
-                return ["count": count]
-            case .officialSectionViewed(count: let count):
-                return ["count": count]
-            case .trendingSectionViewed(count: let count):
-                return ["count": count]
-            case .myTemplatesSectionViewed(count: let count):
-                return ["count": count]
-            case .loadMyExercisesFail(error: let error), .loadOfficialExercisesFail(error: let error), .loadTopExercisesFail(error: let error), .performExerciseSearchFail(error: let error), .incrementExerciseFail(error: let error), .syncExercisesFromCurrentUserFail(error: let error):
-                return error.eventParameters
-            default:
-                return nil
-            }
-        }
-
-        var type: LogType {
-            switch self {
-            case .loadMyExercisesFail, .loadOfficialExercisesFail, .loadTopExercisesFail, .performExerciseSearchFail, .incrementExerciseFail, .syncExercisesFromCurrentUserFail:
-                return .severe
-            case .syncExercisesFromCurrentUserNoUid:
-                return .warning
-            default:
-                return .analytic
-
-            }
         }
     }
 }

@@ -40,7 +40,25 @@ struct DashboardView: View {
             .sheet(isPresented: $showNotifications) {
                 NotificationsView()
             }
+            .onOpenURL { url in
+                handleDeepLink(url: url)
+            }
         }
+    }
+    
+    private func handleDeepLink(url: URL) {
+        
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let queryItems = components.queryItems else {
+            // no query items
+            print("NO QUERY ITEMS!")
+            return
+        }
+        
+        for queryItem in queryItems {
+            print(queryItem.name)
+        }
+        
     }
     
     private var carouselSection: some View {
