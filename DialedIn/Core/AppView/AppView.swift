@@ -35,7 +35,7 @@ struct AppView: View {
                 AppViewBuilder(
                     showTabBar: appState.showTabBar,
                     tabBarView: {
-                        TabBarView()
+                        AdaptiveMainView()
                     },
                     onboardingView: {
                         OnboardingRouterView()
