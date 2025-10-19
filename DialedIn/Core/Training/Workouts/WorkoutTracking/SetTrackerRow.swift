@@ -10,6 +10,8 @@ import SwiftUI
 struct SetTrackerRow: View {
     @State private var set: WorkoutSetModel
     let trackingMode: TrackingMode
+    let weightUnit: ExerciseWeightUnit
+    let distanceUnit: ExerciseDistanceUnit
     let restBeforeSec: Int?
     let onRestBeforeChange: (Int?) -> Void
     let onRequestRestPicker: (String, Int?) -> Void
@@ -19,9 +21,20 @@ struct SetTrackerRow: View {
     @State private var showAlert: AnyAppAlert?
     // Local rest UI is delegated upward; keep no local modal/sheet state
     
-    init(set: WorkoutSetModel, trackingMode: TrackingMode, restBeforeSec: Int?, onRestBeforeChange: @escaping (Int?) -> Void, onRequestRestPicker: @escaping (String, Int?) -> Void = { _, _ in }, onUpdate: @escaping (WorkoutSetModel) -> Void) {
+    init(
+        set: WorkoutSetModel,
+        trackingMode: TrackingMode,
+        weightUnit: ExerciseWeightUnit = .kilograms,
+        distanceUnit: ExerciseDistanceUnit = .meters,
+        restBeforeSec: Int?,
+        onRestBeforeChange: @escaping (Int?) -> Void,
+        onRequestRestPicker: @escaping (String, Int?) -> Void = { _, _ in },
+        onUpdate: @escaping (WorkoutSetModel) -> Void
+    ) {
         self._set = State(initialValue: set)
         self.trackingMode = trackingMode
+        self.weightUnit = weightUnit
+        self.distanceUnit = distanceUnit
         self.restBeforeSec = restBeforeSec
         self.onRestBeforeChange = onRestBeforeChange
         self.onRequestRestPicker = onRequestRestPicker
@@ -109,11 +122,23 @@ struct SetTrackerRow: View {
         HStack(spacing: 8) {
             VStack(alignment: .leading) {
                 if set.index == 1 {
-                    Text("Weight")
+                    Text("Weight (\(weightUnit.abbreviation))")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
-                TextField("0", value: $set.weightKg, format: .number)
+                TextField("0", value: Binding(
+                    get: {
+                        guard let kilograms = set.weightKg else { return nil }
+                        return UnitConversion.convertWeight(kilograms, to: weightUnit)
+                    },
+                    set: { newValue in
+                        guard let value = newValue else {
+                            set.weightKg = nil
+                            return
+                        }
+                        set.weightKg = UnitConversion.convertWeightToKg(value, from: weightUnit)
+                    }
+                ), format: .number)
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.decimalPad)
                     .frame(height: cellHeight)
@@ -197,11 +222,23 @@ struct SetTrackerRow: View {
             // Distance input
             VStack(alignment: .leading, spacing: 2) {
                 if set.index == 1 {
-                    Text("Distance")
+                    Text("Distance (\(distanceUnit.abbreviation))")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
-                TextField("0", value: $set.distanceMeters, format: .number)
+                TextField("0", value: Binding(
+                    get: {
+                        guard let meters = set.distanceMeters else { return nil }
+                        return UnitConversion.convertDistance(meters, to: distanceUnit)
+                    },
+                    set: { newValue in
+                        guard let value = newValue else {
+                            set.distanceMeters = nil
+                            return
+                        }
+                        set.distanceMeters = UnitConversion.convertDistanceToMeters(value, from: distanceUnit)
+                    }
+                ), format: .number)
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.decimalPad)
                     .frame(height: cellHeight)

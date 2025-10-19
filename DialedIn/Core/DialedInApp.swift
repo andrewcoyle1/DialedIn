@@ -21,6 +21,7 @@ struct DialedInApp: App {
         WindowGroup {
             AppView()
                 .environment(delegate.dependencies.exerciseTemplateManager)
+                .environment(delegate.dependencies.exerciseUnitPreferenceManager)
                 .environment(delegate.dependencies.workoutTemplateManager)
                 .environment(delegate.dependencies.workoutSessionManager)
                 .environment(delegate.dependencies.exerciseHistoryManager)
@@ -113,6 +114,7 @@ struct Dependencies {
     let userManager: UserManager
     let purchaseManager: PurchaseManager
     let exerciseTemplateManager: ExerciseTemplateManager
+    let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
     let exerciseHistoryManager: ExerciseHistoryManager
@@ -142,6 +144,7 @@ struct Dependencies {
             userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
             purchaseManager = PurchaseManager(services: MockPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
+            exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())
@@ -178,6 +181,7 @@ struct Dependencies {
             userManager = UserManager(services: ProductionUserServices(), logManager: logs)
             purchaseManager = PurchaseManager(services: ProductionPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
+            exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
@@ -211,6 +215,7 @@ struct Dependencies {
             userManager = UserManager(services: ProductionUserServices(), logManager: logs)
             purchaseManager = PurchaseManager(services: ProductionPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
+            exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
@@ -242,17 +247,19 @@ struct Dependencies {
 extension View {
     func previewEnvironment(isSignedIn: Bool = true) -> some View {
         let logManager = LogManager(services: [ConsoleService(printParameters: false)])
+        let userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         let hkWorkoutManager = HKWorkoutManager()
         #endif
         
         return self
-            .environment(UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil)))
+            .environment(userManager)
             .environment(logManager)
             .environment(AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil), logManager: logManager))
             .environment(AppState())
-            .environment(ReportManager(service: MockReportService(), userManager: UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))))
+            .environment(ReportManager(service: MockReportService(), userManager: userManager))
             .environment(ExerciseTemplateManager(services: MockExerciseTemplateServices()))
+            .environment(ExerciseUnitPreferenceManager(userManager: userManager))
             .environment(WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: ExerciseTemplateManager(services: MockExerciseTemplateServices())))
             .environment(WorkoutSessionManager(services: MockWorkoutSessionServices()))
             .environment(ExerciseHistoryManager(services: MockExerciseHistoryServices()))

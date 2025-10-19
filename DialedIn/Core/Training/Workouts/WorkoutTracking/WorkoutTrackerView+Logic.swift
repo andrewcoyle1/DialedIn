@@ -84,6 +84,38 @@ extension WorkoutTrackerView {
             expandedExerciseIds.insert(firstExercise.id)
         }
     }
+    
+    // MARK: - Unit Preference Management
+    
+    func loadUnitPreferences() {
+        // Load unit preferences for all exercises in the workout
+        for exercise in workoutSession.exercises {
+            let preference = unitPreferenceManager.getPreference(for: exercise.templateId)
+            exerciseUnitPreferences[exercise.templateId] = preference
+        }
+    }
+    
+    func updateWeightUnit(_ unit: ExerciseWeightUnit, for templateId: String) {
+        unitPreferenceManager.setWeightUnit(unit, for: templateId)
+        // Update local cache
+        if var preference = exerciseUnitPreferences[templateId] {
+            preference.weightUnit = unit
+            exerciseUnitPreferences[templateId] = preference
+        } else {
+            exerciseUnitPreferences[templateId] = unitPreferenceManager.getPreference(for: templateId)
+        }
+    }
+    
+    func updateDistanceUnit(_ unit: ExerciseDistanceUnit, for templateId: String) {
+        unitPreferenceManager.setDistanceUnit(unit, for: templateId)
+        // Update local cache
+        if var preference = exerciseUnitPreferences[templateId] {
+            preference.distanceUnit = unit
+            exerciseUnitPreferences[templateId] = preference
+        } else {
+            exerciseUnitPreferences[templateId] = unitPreferenceManager.getPreference(for: templateId)
+        }
+    }
 
     func discardWorkout() {
         Task {

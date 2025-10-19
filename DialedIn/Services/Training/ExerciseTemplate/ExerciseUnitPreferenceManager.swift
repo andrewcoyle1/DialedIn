@@ -1,0 +1,122 @@
+//
+//  ExerciseUnitPreferenceManager.swift
+//  DialedIn
+//
+//  Created by AI Assistant on 19/10/2025.
+//
+
+import Foundation
+import SwiftUI
+
+@Observable
+class ExerciseUnitPreferenceManager {
+    
+    private let userDefaults: UserDefaults
+    private let userManager: UserManager
+    
+    // Cache for preferences to avoid repeated UserDefaults reads
+    private var preferencesCache: [String: ExerciseUnitPreference] = [:]
+    
+    init(userDefaults: UserDefaults = .standard, userManager: UserManager) {
+        self.userDefaults = userDefaults
+        self.userManager = userManager
+    }
+    
+    // MARK: - Public Methods
+    
+    /// Get the unit preference for a specific exercise template
+    func getPreference(for templateId: String) -> ExerciseUnitPreference {
+        // Check cache first
+        if let cached = preferencesCache[templateId] {
+            return cached
+        }
+        
+        // Try to load from UserDefaults
+        if let userId = userManager.currentUser?.userId,
+           let key = preferenceKey(userId: userId, templateId: templateId),
+           let data = userDefaults.data(forKey: key),
+           let preference = try? JSONDecoder().decode(ExerciseUnitPreference.self, from: data) {
+            preferencesCache[templateId] = preference
+            return preference
+        }
+        
+        // Return default based on user's global preferences
+        let defaultPreference = createDefaultPreference(for: templateId)
+        preferencesCache[templateId] = defaultPreference
+        return defaultPreference
+    }
+    
+    /// Set the weight unit preference for a specific exercise template
+    func setWeightUnit(_ unit: ExerciseWeightUnit, for templateId: String) {
+        var preference = getPreference(for: templateId)
+        preference.weightUnit = unit
+        savePreference(preference)
+    }
+    
+    /// Set the distance unit preference for a specific exercise template
+    func setDistanceUnit(_ unit: ExerciseDistanceUnit, for templateId: String) {
+        var preference = getPreference(for: templateId)
+        preference.distanceUnit = unit
+        savePreference(preference)
+    }
+    
+    /// Set both unit preferences for a specific exercise template
+    func setPreference(weightUnit: ExerciseWeightUnit? = nil, distanceUnit: ExerciseDistanceUnit? = nil, for templateId: String) {
+        var preference = getPreference(for: templateId)
+        if let weightUnit = weightUnit {
+            preference.weightUnit = weightUnit
+        }
+        if let distanceUnit = distanceUnit {
+            preference.distanceUnit = distanceUnit
+        }
+        savePreference(preference)
+    }
+    
+    /// Clear all cached preferences (useful when user signs out)
+    func clearCache() {
+        preferencesCache.removeAll()
+    }
+    
+    // MARK: - Private Methods
+    
+    private func savePreference(_ preference: ExerciseUnitPreference) {
+        guard let userId = userManager.currentUser?.userId,
+              let key = preferenceKey(userId: userId, templateId: preference.exerciseTemplateId),
+              let data = try? JSONEncoder().encode(preference) else {
+            return
+        }
+        
+        userDefaults.set(data, forKey: key)
+        preferencesCache[preference.exerciseTemplateId] = preference
+    }
+    
+    private func preferenceKey(userId: String, templateId: String) -> String? {
+        return "exercise_unit_preference_\(userId)_\(templateId)"
+    }
+    
+    private func createDefaultPreference(for templateId: String) -> ExerciseUnitPreference {
+        // Try to use user's global preferences as defaults
+        let user = userManager.currentUser
+        
+        let defaultWeightUnit: ExerciseWeightUnit
+        if let userWeightPref = user?.weightUnitPreference {
+            defaultWeightUnit = userWeightPref == .kilograms ? .kilograms : .pounds
+        } else {
+            defaultWeightUnit = .kilograms
+        }
+        
+        let defaultDistanceUnit: ExerciseDistanceUnit
+        if let userLengthPref = user?.lengthUnitPreference {
+            // Map length preference to distance (centimeters -> meters, inches -> miles)
+            defaultDistanceUnit = userLengthPref == .centimeters ? .meters : .miles
+        } else {
+            defaultDistanceUnit = .meters
+        }
+        
+        return ExerciseUnitPreference(
+            exerciseTemplateId: templateId,
+            weightUnit: defaultWeightUnit,
+            distanceUnit: defaultDistanceUnit
+        )
+    }
+}

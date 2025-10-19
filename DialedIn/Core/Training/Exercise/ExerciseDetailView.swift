@@ -12,6 +12,7 @@ struct ExerciseDetailView: View {
     @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
     @Environment(ExerciseHistoryManager.self) private var exerciseHistoryManager
     @Environment(UserManager.self) private var userManager
+    @Environment(ExerciseUnitPreferenceManager.self) private var unitPreferenceManager
     
     var exerciseTemplate: ExerciseTemplateModel
     @State private var history: [ExerciseHistoryEntryModel] = []
@@ -20,6 +21,7 @@ struct ExerciseDetailView: View {
     @State var section: CustomSection = .description
     @State private var isBookmarked: Bool = false
     @State private var isFavourited: Bool = false
+    @State private var unitPreference: ExerciseUnitPreference?
     
     @State private var showAlert: AnyAppAlert?
     
@@ -110,6 +112,8 @@ struct ExerciseDetailView: View {
         let isAuthor = user?.userId == exerciseTemplate.authorId
         isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false)
         isFavourited = user?.favouritedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false
+        // Load unit preferences for this exercise
+        unitPreference = unitPreferenceManager.getPreference(for: exerciseTemplate.id)
         await loadHistory()
     }
 
@@ -297,7 +301,10 @@ extension ExerciseDetailView {
                                 Spacer()
                                 if let first = entry.sets.first {
                                     if let reps = first.reps { Text("\(reps) reps").font(.caption).foregroundColor(.secondary) }
-                                    if let weightKg = first.weightKg { Text(String(format: "%.1f kg", weightKg)).font(.caption).foregroundColor(.secondary) }
+                                    if let weightKg = first.weightKg, let pref = unitPreference {
+                                        let displayWeight = UnitConversion.formatWeight(weightKg, unit: pref.weightUnit)
+                                        Text("\(displayWeight) \(pref.weightUnit.abbreviation)").font(.caption).foregroundColor(.secondary)
+                                    }
                                 }
                             }
                             if let notes = entry.notes, !notes.isEmpty {
@@ -334,9 +341,15 @@ extension ExerciseDetailView {
                     }
                 }
                 .padding(.vertical, 8)
-                Text(weights.map { String(format: "%.1fkg", $0) }.joined(separator: ", "))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if let pref = unitPreference {
+                    Text(weights.map { UnitConversion.formatWeight($0, unit: pref.weightUnit) + pref.weightUnit.abbreviation }.joined(separator: ", "))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                } else {
+                    Text(weights.map { String(format: "%.1fkg", $0) }.joined(separator: ", "))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
             .padding(.vertical, 8)
         }

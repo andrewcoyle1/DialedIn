@@ -12,6 +12,7 @@ struct WorkoutTrackerView: View {
     @Environment(UserManager.self) var userManager
     @Environment(WorkoutSessionManager.self) var workoutSessionManager
     @Environment(ExerciseHistoryManager.self) var exerciseHistoryManager
+    @Environment(ExerciseUnitPreferenceManager.self) var unitPreferenceManager
     
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     @Environment(HKWorkoutManager.self) var hkWorkoutManager
@@ -35,6 +36,9 @@ struct WorkoutTrackerView: View {
     @State var currentExerciseIndex = 0
     @State var editMode: EditMode = .inactive
     @State var pendingSelectedTemplates: [ExerciseTemplateModel] = []
+    
+    // Unit preferences per exercise (keyed by template ID)
+    @State var exerciseUnitPreferences: [String: ExerciseUnitPreference] = [:]
     
     // Rest timer state (independent from workout duration)
     @State var restDurationSeconds: Int = 90
@@ -87,6 +91,7 @@ struct WorkoutTrackerView: View {
             }
             .onAppear {
                 buildView()
+                loadUnitPreferences()
                 Task {
                     // Ensure HealthKit authorization before starting HK session
                     let healthKitManager = HealthKitManager()
@@ -209,15 +214,20 @@ struct WorkoutTrackerView: View {
         Section {
             ForEach(workoutSession.exercises, id: \.id) { exercise in
                 let index = workoutSession.exercises.firstIndex(where: { $0.id == exercise.id }) ?? 0
+                let preference = exerciseUnitPreferences[exercise.templateId] ?? unitPreferenceManager.getPreference(for: exercise.templateId)
                 ExerciseTrackerCard(
                     exercise: exercise,
                     exerciseIndex: index,
                     isCurrentExercise: index == currentExerciseIndex,
+                    weightUnit: preference.weightUnit,
+                    distanceUnit: preference.distanceUnit,
                     onSetUpdate: { updatedSet in updateSet(updatedSet, in: exercise.id) },
                     onAddSet: { addSet(to: exercise.id) },
                     onDeleteSet: { setId in deleteSet(setId, from: exercise.id) },
                     onHeaderLongPress: { /* no-op: reordering via drag on header */ },
                     onNotesChange: { notes in updateExerciseNotes(notes, for: exercise.id) },
+                    onWeightUnitChange: { unit in updateWeightUnit(unit, for: exercise.templateId) },
+                    onDistanceUnitChange: { unit in updateDistanceUnit(unit, for: exercise.templateId) },
                     restBeforeSecForSet: { setId in restBeforeSetIdToSec[setId] },
                     onRestBeforeChange: { setId, value in restBeforeSetIdToSec[setId] = value ?? 0; if value == nil { restBeforeSetIdToSec.removeValue(forKey: setId) } },
                     onRequestRestPicker: { setId, current in

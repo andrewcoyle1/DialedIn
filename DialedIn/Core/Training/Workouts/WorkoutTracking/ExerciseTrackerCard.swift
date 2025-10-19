@@ -11,11 +11,15 @@ struct ExerciseTrackerCard: View {
     let exercise: WorkoutExerciseModel
     let exerciseIndex: Int
     let isCurrentExercise: Bool
+    let weightUnit: ExerciseWeightUnit
+    let distanceUnit: ExerciseDistanceUnit
     let onSetUpdate: (WorkoutSetModel) -> Void
     let onAddSet: () -> Void
     let onDeleteSet: (String) -> Void
     let onHeaderLongPress: () -> Void
     let onNotesChange: (String) -> Void
+    let onWeightUnitChange: (ExerciseWeightUnit) -> Void
+    let onDistanceUnitChange: (ExerciseDistanceUnit) -> Void
     // Rest configuration for the next set (child set) keyed by set id
     let restBeforeSecForSet: (String) -> Int?
     let onRestBeforeChange: (String, Int?) -> Void
@@ -28,11 +32,15 @@ struct ExerciseTrackerCard: View {
         exercise: WorkoutExerciseModel,
         exerciseIndex: Int,
         isCurrentExercise: Bool,
+        weightUnit: ExerciseWeightUnit = .kilograms,
+        distanceUnit: ExerciseDistanceUnit = .meters,
         onSetUpdate: @escaping (WorkoutSetModel) -> Void,
         onAddSet: @escaping () -> Void,
         onDeleteSet: @escaping (String) -> Void,
         onHeaderLongPress: @escaping () -> Void,
         onNotesChange: @escaping (String) -> Void,
+        onWeightUnitChange: @escaping (ExerciseWeightUnit) -> Void = { _ in },
+        onDistanceUnitChange: @escaping (ExerciseDistanceUnit) -> Void = { _ in },
         restBeforeSecForSet: @escaping (String) -> Int?,
         onRestBeforeChange: @escaping (String, Int?) -> Void,
         onRequestRestPicker: @escaping (String, Int?) -> Void,
@@ -41,11 +49,15 @@ struct ExerciseTrackerCard: View {
         self.exercise = exercise
         self.exerciseIndex = exerciseIndex
         self.isCurrentExercise = isCurrentExercise
+        self.weightUnit = weightUnit
+        self.distanceUnit = distanceUnit
         self.onSetUpdate = onSetUpdate
         self.onAddSet = onAddSet
         self.onDeleteSet = onDeleteSet
         self.onHeaderLongPress = onHeaderLongPress
         self.onNotesChange = onNotesChange
+        self.onWeightUnitChange = onWeightUnitChange
+        self.onDistanceUnitChange = onDistanceUnitChange
         self.restBeforeSecForSet = restBeforeSecForSet
         self.onRestBeforeChange = onRestBeforeChange
         self.onRequestRestPicker = onRequestRestPicker
@@ -76,13 +88,67 @@ struct ExerciseTrackerCard: View {
             Text("\(completedSetsCount)/\(exercise.sets.count) sets")
                 .font(.caption)
                 .foregroundColor(completedSetsCount == exercise.sets.count ? .green : .secondary)
+            
             Spacer()
+            
+            // Unit preference menu
+            unitPreferenceMenu
         }
         .tappableBackground()
         .onLongPressGesture(minimumDuration: 0.4) {
             onHeaderLongPress()
         }
         .listRowInsets(.vertical, .zero)
+    }
+    
+    @ViewBuilder
+    private var unitPreferenceMenu: some View {
+        Menu {
+            // Show weight options for exercises that track weight
+            if exercise.trackingMode == .weightReps {
+                Menu {
+                    ForEach(ExerciseWeightUnit.allCases, id: \.self) { unit in
+                        Button {
+                            onWeightUnitChange(unit)
+                        } label: {
+                            HStack {
+                                Text(unit.displayName)
+                                if unit == weightUnit {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    Label("Weight Unit", systemImage: "scalemass")
+                }
+            }
+            
+            // Show distance options for exercises that track distance
+            if exercise.trackingMode == .distanceTime {
+                Menu {
+                    ForEach(ExerciseDistanceUnit.allCases, id: \.self) { unit in
+                        Button {
+                            onDistanceUnitChange(unit)
+                        } label: {
+                            HStack {
+                                Text(unit.displayName)
+                                if unit == distanceUnit {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    Label("Distance Unit", systemImage: "ruler")
+                }
+            }
+        } label: {
+            Image(systemName: "slider.horizontal.3")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 4)
+        }
     }
     
     @ViewBuilder
@@ -108,6 +174,8 @@ struct ExerciseTrackerCard: View {
                 SetTrackerRow(
                     set: set,
                     trackingMode: exercise.trackingMode,
+                    weightUnit: weightUnit,
+                    distanceUnit: distanceUnit,
                     restBeforeSec: restBeforeSecForSet(set.id),
                     onRestBeforeChange: { onRestBeforeChange(set.id, $0) },
                     onRequestRestPicker: { _, _ in onRequestRestPicker(set.id, restBeforeSecForSet(set.id)) },
