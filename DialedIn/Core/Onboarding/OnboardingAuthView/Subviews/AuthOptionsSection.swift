@@ -90,6 +90,8 @@ struct AuthOptionsSection: View {
 //        }
         .showCustomAlert(alert: $showAlert)
         .onChange(of: authManager.auth, { _, newValue in
+            // If we've already triggered login manually (e.g., after SSO), avoid double handling
+            guard !didTriggerLogin else { return }
             if let newValue = newValue {
                 handleOnAuthSuccess(user: newValue)
             }
@@ -200,9 +202,10 @@ struct AuthOptionsSection: View {
                 if authManager.auth == nil {
                     _ = try await authManager.signInAnonymously()
                 }
-                try await authManager.signInApple()
+                let result = try await authManager.signInApple()
                 logManager.trackEvent(event: Event.appleAuthSuccess)
-                // Navigation will be handled by handleOnAuthSuccess via onChange
+                // Proceed immediately on success (do not rely solely on onChange)
+                handleOnAuthSuccess(user: result)
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
@@ -233,9 +236,10 @@ struct AuthOptionsSection: View {
                 if authManager.auth == nil {
                     _ = try await authManager.signInAnonymously()
                 }
-                try await authManager.signInGoogle()
+                let result = try await authManager.signInGoogle()
                 logManager.trackEvent(event: Event.googleAuthSuccess)
-                // Navigation will be handled by handleOnAuthSuccess via onChange
+                // Proceed immediately on success (do not rely solely on onChange)
+                handleOnAuthSuccess(user: result)
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {

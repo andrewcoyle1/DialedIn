@@ -17,6 +17,7 @@ struct TrainingView: View {
     @Environment(TrainingPlanManager.self) private var trainingPlanManager
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     @Environment(WorkoutSessionManager.self) private var workoutSessionManager
+    @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
     @Environment(AuthManager.self) private var authManager
     @State private var presentationMode: TrainingPresentationMode = .program
 
@@ -39,6 +40,8 @@ struct TrainingView: View {
     @State private var scheduledWorkoutToStart: ScheduledWorkout?
     @State private var showCreateExercise: Bool = false
     @State private var showCreateWorkout: Bool = false
+    // Centralized sheet coordination for ProgramView
+    @State private var programActiveSheet: ProgramView.ActiveSheet?
 
     enum TrainingPresentationMode {
         case program
@@ -100,6 +103,23 @@ struct TrainingView: View {
                     scheduledWorkout: scheduledWorkoutToStart
                 )
             }
+            .sheet(item: $programActiveSheet) { sheet in
+                switch sheet {
+                case .programPicker:
+                    ProgramPickerSheetView()
+                case .progressDashboard:
+                    ProgressDashboardView()
+                case .strengthProgress:
+                    StrengthProgressView()
+                case .workoutHeatmap:
+                    WorkoutHeatmapView(
+                        progressAnalytics: ProgressAnalyticsService(
+                            workoutSessionManager: workoutSessionManager,
+                            exerciseTemplateManager: exerciseTemplateManager
+                        )
+                    )
+                }
+            }
             .sheet(isPresented: $showCreateExercise) {
                 CreateExerciseView()
             }
@@ -132,7 +152,14 @@ struct TrainingView: View {
         Group {
             switch presentationMode {
             case .program:
-                ProgramView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate)
+                ProgramView(
+                    isShowingInspector: $isShowingInspector,
+                    selectedWorkoutTemplate: $selectedWorkoutTemplate,
+                    selectedExerciseTemplate: $selectedExerciseTemplate,
+                    activeSheet: $programActiveSheet,
+                    workoutToStart: $workoutToStart,
+                    scheduledWorkoutToStart: $scheduledWorkoutToStart
+                )
             case .workouts:
                 WorkoutsView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate, showCreateWorkout: $showCreateWorkout)
             case .exercises:

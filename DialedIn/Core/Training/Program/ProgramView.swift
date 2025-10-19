@@ -19,6 +19,10 @@ struct ProgramView: View {
     @Binding var isShowingInspector: Bool
     @Binding var selectedWorkoutTemplate: WorkoutTemplateModel?
     @Binding var selectedExerciseTemplate: ExerciseTemplateModel?
+    // Sheet coordination is hoisted to TrainingView
+    @Binding var activeSheet: ActiveSheet?
+    @Binding var workoutToStart: WorkoutTemplateModel?
+    @Binding var scheduledWorkoutToStart: ScheduledWorkout?
 
     @State private var isShowingCalendar: Bool = true
     enum ActiveSheet: Identifiable {
@@ -26,46 +30,20 @@ struct ProgramView: View {
         case progressDashboard
         case strengthProgress
         case workoutHeatmap
-        case workoutStart(WorkoutTemplateModel)
         var id: String {
             switch self {
             case .programPicker: return "programPicker"
             case .progressDashboard: return "progressDashboard"
             case .strengthProgress: return "strengthProgress"
             case .workoutHeatmap: return "workoutHeatmap"
-            case .workoutStart: return "workoutStart"
             }
         }
     }
-    @State private var activeSheet: ActiveSheet?
     @State private var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
     @State private var showAlert: AnyAppAlert?
-    @State private var scheduledWorkoutToStart: ScheduledWorkout?
     
     var body: some View {
         listContents
-            .sheet(item: $activeSheet) { sheet in
-                switch sheet {
-                case .programPicker:
-                    ProgramPickerSheetView()
-                case .progressDashboard:
-                    ProgressDashboardView()
-                case .strengthProgress:
-                    StrengthProgressView()
-                case .workoutHeatmap:
-                    WorkoutHeatmapView(
-                        progressAnalytics: ProgressAnalyticsService(
-                            workoutSessionManager: workoutSessionManager,
-                            exerciseTemplateManager: exerciseTemplateManager
-                        )
-                    )
-                case .workoutStart(let template):
-                    WorkoutStartView(
-                        template: template,
-                        scheduledWorkout: scheduledWorkoutToStart
-                    )
-                }
-            }
             .showCustomAlert(alert: $showAlert)
     }
     
@@ -108,25 +86,33 @@ struct ProgramView: View {
                         Spacer()
                         Menu {
                             Button {
-                                activeSheet = .programPicker
+                                DispatchQueue.main.async {
+                                    activeSheet = .programPicker
+                                }
                             } label: {
                                 Label("Manage Programs", systemImage: "list.bullet")
                             }
                             
                             Button {
-                                activeSheet = .progressDashboard
+                                DispatchQueue.main.async {
+                                    activeSheet = .progressDashboard
+                                }
                             } label: {
                                 Label("View Analytics", systemImage: "chart.xyaxis.line")
                             }
 
                             Button {
-                                activeSheet = .strengthProgress
+                                DispatchQueue.main.async {
+                                    activeSheet = .strengthProgress
+                                }
                             } label: {
                                 Label("Strength Progress", systemImage: "chart.line.uptrend.xyaxis")
                             }
 
                             Button {
-                                activeSheet = .workoutHeatmap
+                                DispatchQueue.main.async {
+                                    activeSheet = .workoutHeatmap
+                                }
                             } label: {
                                 Label("Training Frequency", systemImage: "square.grid.3x3.fill.square")
                             }
@@ -266,7 +252,9 @@ struct ProgramView: View {
     private var chartSection: some View {
         Section {
             Button {
-                activeSheet = .progressDashboard
+                DispatchQueue.main.async {
+                    activeSheet = .progressDashboard
+                }
             } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
@@ -308,7 +296,9 @@ struct ProgramView: View {
                     .multilineTextAlignment(.center)
                 
                 Button {
-                    activeSheet = .programPicker
+                    DispatchQueue.main.async {
+                        activeSheet = .programPicker
+                    }
                 } label: {
                     Label("Choose Program", systemImage: "plus.circle.fill")
                 }
@@ -365,7 +355,7 @@ struct ProgramView: View {
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
         
         // Show WorkoutStartView (preview, notes, etc.)
-        activeSheet = .workoutStart(template)
+        workoutToStart = template
     }
 }
 
@@ -590,7 +580,10 @@ struct ProgramPickerSheetView: View {
     List {
         ProgramView(isShowingInspector: Binding.constant(true),
                     selectedWorkoutTemplate: Binding.constant(nil),
-                    selectedExerciseTemplate: Binding.constant(nil))
+                    selectedExerciseTemplate: Binding.constant(nil),
+                    activeSheet: Binding.constant(nil),
+                    workoutToStart: Binding.constant(nil),
+                    scheduledWorkoutToStart: Binding.constant(nil))
     }
     .previewEnvironment()
 }

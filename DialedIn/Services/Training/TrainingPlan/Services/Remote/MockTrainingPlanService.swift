@@ -28,16 +28,18 @@ struct MockTrainingPlanService: RemoteTrainingPlanService {
         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
     }
     
-    func fetchAllPlans() async throws -> [TrainingPlan] {
+    func fetchAllPlans(userId: String) async throws -> [TrainingPlan] {
         try tryShowError()
         try await simulateDelay()
-        return Array(storedPlans.values).sorted { $0.createdAt > $1.createdAt }
+        return Array(storedPlans.values)
+            .filter { $0.userId == userId }
+            .sorted { $0.createdAt > $1.createdAt }
     }
     
-    func fetchPlan(id: String) async throws -> TrainingPlan {
+    func fetchPlan(id: String, userId: String) async throws -> TrainingPlan {
         try tryShowError()
         try await simulateDelay()
-        guard let plan = storedPlans[id] else {
+        guard let plan = storedPlans[id], plan.userId == userId else {
             throw TrainingPlanError.invalidData
         }
         return plan
@@ -58,6 +60,11 @@ struct MockTrainingPlanService: RemoteTrainingPlanService {
     func deletePlan(id: String) async throws {
         try tryShowError()
         try await simulateDelay()
+    }
+    
+    func addPlansListener(userId: String, onChange: @escaping ([TrainingPlan]) -> Void) -> (() -> Void) {
+        // Mock implementation - return empty cleanup function
+        return {}
     }
     
     // Legacy method

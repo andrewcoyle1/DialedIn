@@ -12,16 +12,102 @@ class TrainingPlanManager {
     
     private let local: LocalTrainingPlanPersistence
     private let remote: RemoteTrainingPlanService
+    private var userId: String?
+    nonisolated(unsafe) private var plansListener: (() -> Void)?
+    
     private(set) var currentTrainingPlan: TrainingPlan?
     private(set) var allPlans: [TrainingPlan] = []
     private(set) var isLoading: Bool = false
     private(set) var error: Error?
     
-    init(services: TrainingPlanServices) {
+    init(services: TrainingPlanServices, userId: String? = nil) {
         self.remote = services.remote
         self.local = services.local
+        self.userId = userId
         self.currentTrainingPlan = local.getCurrentTrainingPlan()
         self.allPlans = local.getAllPlans()
+        
+        // Start listening to remote changes if userId is available
+        if userId != nil {
+            startSyncListener()
+        }
+    }
+    
+    deinit {
+        stopSyncListener()
+    }
+    
+    // MARK: - User Management
+    
+    func setUserId(_ userId: String) {
+        guard self.userId != userId else { return }
+        
+        // Stop existing listener
+        stopSyncListener()
+        
+        // Set new userId
+        self.userId = userId
+        
+        // Start new listener
+        startSyncListener()
+        
+        // Sync from remote
+        Task {
+            try? await syncFromRemote()
+        }
+    }
+    
+    // MARK: - Sync Listener
+    
+    private func startSyncListener() {
+        guard let userId = userId else { return }
+        
+        plansListener = remote.addPlansListener(userId: userId) { [weak self] remotePlans in
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.mergeRemotePlans(remotePlans)
+            }
+        }
+    }
+    
+    nonisolated private func stopSyncListener() {
+        plansListener?()
+        plansListener = nil
+    }
+    
+    @MainActor
+    private func mergeRemotePlans(_ remotePlans: [TrainingPlan]) {
+        // Get local plans
+        let localPlans = local.getAllPlans()
+        
+        // Create a dictionary of local plans by ID for quick lookup
+        var localPlanDict = Dictionary(uniqueKeysWithValues: localPlans.map { ($0.planId, $0) })
+        
+        // Merge logic: last-write-wins based on modifiedAt
+        for remotePlan in remotePlans {
+            if let localPlan = localPlanDict[remotePlan.planId] {
+                // Compare timestamps and keep the newer one
+                if remotePlan.modifiedAt > localPlan.modifiedAt {
+                    try? local.savePlan(remotePlan)
+                    localPlanDict[remotePlan.planId] = remotePlan
+                }
+            } else {
+                // New plan from remote - save it locally
+                try? local.savePlan(remotePlan)
+                localPlanDict[remotePlan.planId] = remotePlan
+            }
+        }
+        
+        // Check for deletions (plans in local but not in remote)
+        let remotePlanIds = Set(remotePlans.map { $0.planId })
+        for localPlanId in localPlanDict.keys where !remotePlanIds.contains(localPlanId) {
+            try? local.deletePlan(id: localPlanId)
+            localPlanDict.removeValue(forKey: localPlanId)
+        }
+        
+        // Update UI state
+        allPlans = local.getAllPlans()
+        currentTrainingPlan = local.getCurrentTrainingPlan()
     }
     
     // MARK: - Plan Management
@@ -469,11 +555,15 @@ class TrainingPlanManager {
     // MARK: - Sync Operations
     
     func syncFromRemote() async throws {
+        guard let userId = userId else {
+            throw TrainingPlanError.noUserId
+        }
+        
         isLoading = true
         error = nil
         
         do {
-            let remotePlans = try await remote.fetchAllPlans()
+            let remotePlans = try await remote.fetchAllPlans(userId: userId)
             
             // Save all remote plans locally
             for plan in remotePlans {
@@ -495,6 +585,7 @@ enum TrainingPlanError: Error, LocalizedError {
     case noActivePlan
     case workoutNotFound
     case invalidData
+    case noUserId
     
     var errorDescription: String? {
         switch self {
@@ -504,6 +595,8 @@ enum TrainingPlanError: Error, LocalizedError {
             return "Scheduled workout not found"
         case .invalidData:
             return "Invalid data"
+        case .noUserId:
+            return "User ID not available"
         }
     }
 }

@@ -13,18 +13,26 @@ struct FirebaseTrainingPlanService: RemoteTrainingPlanService {
         Firestore.firestore().collection("training_plans")
     }
     
-    func fetchAllPlans() async throws -> [TrainingPlan] {
-        let snapshot = try await collection.getDocuments()
+    func fetchAllPlans(userId: String) async throws -> [TrainingPlan] {
+        let snapshot = try await collection
+            .whereField("user_id", isEqualTo: userId)
+            .getDocuments()
         return snapshot.documents.compactMap { doc in
             try? doc.data(as: TrainingPlan.self)
         }
     }
     
-    func fetchPlan(id: String) async throws -> TrainingPlan {
+    func fetchPlan(id: String, userId: String) async throws -> TrainingPlan {
         let document = try await collection.document(id).getDocument()
         guard let plan = try? document.data(as: TrainingPlan.self) else {
             throw TrainingPlanError.invalidData
         }
+        
+        // Verify the plan belongs to the user
+        guard plan.userId == userId else {
+            throw TrainingPlanError.invalidData
+        }
+        
         return plan
     }
     
@@ -38,6 +46,27 @@ struct FirebaseTrainingPlanService: RemoteTrainingPlanService {
     
     func deletePlan(id: String) async throws {
         try await collection.document(id).delete()
+    }
+    
+    func addPlansListener(userId: String, onChange: @escaping ([TrainingPlan]) -> Void) -> (() -> Void) {
+        let listener = collection
+            .whereField("user_id", isEqualTo: userId)
+            .addSnapshotListener { snapshot, error in
+                guard let snapshot = snapshot, error == nil else {
+                    print("Error listening to training plans: \(error?.localizedDescription ?? "unknown")")
+                    return
+                }
+                
+                let plans = snapshot.documents.compactMap { doc in
+                    try? doc.data(as: TrainingPlan.self)
+                }
+                
+                onChange(plans)
+            }
+        
+        return {
+            listener.remove()
+        }
     }
     
     // Legacy method

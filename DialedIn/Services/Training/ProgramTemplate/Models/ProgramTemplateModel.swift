@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ProgramTemplateModel: Sendable, Codable, Identifiable, Equatable {
+struct ProgramTemplateModel: Sendable, Codable, Identifiable, Equatable, Hashable {
     let id: String
     let name: String
     let description: String
@@ -135,7 +135,7 @@ struct ProgramTemplateModel: Sendable, Codable, Identifiable, Equatable {
     }
 }
 
-struct WeekTemplate: Sendable, Codable, Equatable, Identifiable {
+struct WeekTemplate: Sendable, Codable, Equatable, Identifiable, Hashable {
     var id: Int { weekNumber }
     
     let weekNumber: Int
@@ -220,7 +220,7 @@ struct WeekTemplate: Sendable, Codable, Equatable, Identifiable {
     }
 }
 
-struct DayWorkoutMapping: Sendable, Codable, Equatable, Identifiable {
+struct DayWorkoutMapping: Sendable, Codable, Equatable, Identifiable, Hashable {
     var id: String { "\(dayOfWeek)-\(workoutTemplateId)" }
     
     let dayOfWeek: Int // 1 = Sunday, 2 = Monday, ..., 7 = Saturday

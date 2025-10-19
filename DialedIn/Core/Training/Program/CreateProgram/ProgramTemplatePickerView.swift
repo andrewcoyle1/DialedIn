@@ -33,7 +33,7 @@ struct ProgramTemplatePickerView: View {
             .toolbar {
                 toolbarContent
             }
-            .sheet(item: $selectedTemplate) { template in
+            .navigationDestination(item: $selectedTemplate) { template in
                 ProgramStartConfigView(
                     template: template,
                     onStart: { startDate, customName in
@@ -55,7 +55,12 @@ struct ProgramTemplatePickerView: View {
     private var userTemplatesSection: some View {
         Section {
             if let userId = authManager.auth?.uid {
-                let userTemplates = programTemplateManager.getUserTemplates(userId: userId)
+                // Access templates directly to trigger observation
+                let allTemplates = programTemplateManager.templates
+                let userTemplates = allTemplates
+                    .filter { $0.authorId == userId && !programTemplateManager.isBuiltIn($0) }
+                    .sorted { $0.modifiedAt > $1.modifiedAt }
+                
                 if userTemplates.isEmpty {
                     Text("No saved custom programs yet")
                         .foregroundStyle(.secondary)

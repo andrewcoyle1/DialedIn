@@ -16,6 +16,7 @@ struct AppView: View {
     @Environment(LogManager.self) private var logManager
     @Environment(PushManager.self) private var pushManager
     @Environment(HealthKitManager.self) private var healthKitManager
+    @Environment(TrainingPlanManager.self) private var trainingPlanManager
     @State var appState: AppState = AppState()
         
     var body: some View {
@@ -57,6 +58,11 @@ struct AppView: View {
                         Task {
                             await checkUserStatus()
                         }
+                    }
+                }
+                .onChange(of: userManager.currentUser?.userId) { _, newUserId in
+                    if let userId = newUserId {
+                        trainingPlanManager.setUserId(userId)
                     }
                 }
             })
