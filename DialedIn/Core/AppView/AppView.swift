@@ -34,7 +34,13 @@ struct AppView: View {
                 onApplicationWillTerminate: nil
             ), content: {
                 AppViewBuilder(
-                    showTabBar: appState.showTabBar,
+                    showTabBar: {
+                        if let auth = authManager.auth, !auth.isAnonymous,
+                           userManager.currentUser?.onboardingStep == .complete {
+                            return true
+                        }
+                        return false
+                    }(),
                     tabBarView: {
                         AdaptiveMainView()
                     },
@@ -52,13 +58,6 @@ struct AppView: View {
                 }
                 .onFirstAppear {
                     schedulePushNotifications()
-                }
-                .onChange(of: appState.showTabBar) { _, showTabBar in
-                    if !showTabBar {
-                        Task {
-                            await checkUserStatus()
-                        }
-                    }
                 }
                 .onChange(of: userManager.currentUser?.userId) { _, newUserId in
                     if let userId = newUserId {
@@ -175,22 +174,7 @@ extension AppView {
                 await checkUserStatus()
             }
         } else {
-            // User is not authenticated
-            logManager.trackEvent(event: Event.anonAuthStart)
-            do {
-                _ = try await authManager.signInAnonymously()
-
-                // Log in to app
-                logManager.trackEvent(event: Event.anonAuthSuccess)
-//                
-//                // Log in
-//                try await userManager.logIn(auth: result)
-                
-            } catch {
-                logManager.trackEvent(event: Event.anonAuthFail(error: error))
-                try? await Task.sleep(for: .seconds(5))
-                await checkUserStatus()
-            }
+            // User is not authenticated – no-op; onboarding will be shown
         }
     }
 

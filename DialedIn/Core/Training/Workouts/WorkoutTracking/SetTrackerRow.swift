@@ -20,6 +20,7 @@ struct SetTrackerRow: View {
     
     // Validation state
     @State private var showAlert: AnyAppAlert?
+    @State private var showWarmupHelp = false
     // Local rest UI is delegated upward; keep no local modal/sheet state
     
     init(
@@ -65,7 +66,7 @@ struct SetTrackerRow: View {
                 completeButton
             }
             .frame(maxWidth: .infinity)
-
+            
             // Rest selector (applies after completing this set)
             restSelector
         }
@@ -74,6 +75,19 @@ struct SetTrackerRow: View {
             onUpdate(newValue)
         }
         .showCustomAlert(alert: $showAlert)
+        .sheet(isPresented: $showWarmupHelp) {
+            CustomModalView(
+                title: "Warmup Sets",
+                subtitle: "Warmup sets are lighter weight sets performed before your working sets to prepare your muscles and joints. They don't count toward your total volume or personal records.",
+                primaryButtonTitle: "Got it",
+                primaryButtonAction: {
+                    showWarmupHelp = false
+                },
+                secondaryButtonTitle: "",
+                secondaryButtonAction: {}
+            )
+            .presentationDetents([.medium])
+        }
     }
     
     private var setNumber: some View {
@@ -82,17 +96,36 @@ struct SetTrackerRow: View {
                 Text("Set")
                     .font(.caption2)
             }
-            Text("\(set.index)")
-                .font(.subheadline)
-                .frame(height: cellHeight)
+            Menu {
+                
+                Button {
+                    set.isWarmup.toggle()
+                } label: {
+                    Label("Warmup Set", systemImage: set.isWarmup ? "checkmark" : "")
+                }
+                
+                Button {
+                    showWarmupHelp = true
+                } label: {
+                    Label("What's a warmup set?", systemImage: "info.circle")
+                }
+            } label: {
+                Text("\(set.index)")
+                    .font(.subheadline)
+                    .frame(height: cellHeight)
+                    .frame(width: 28, alignment: .center)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(set.isWarmup ? Color.orange.opacity(0.2) : .secondary.opacity(0.05))
+                    )
+            }
         }
         .foregroundColor(.secondary)
-        .frame(width: 28, alignment: .leading)
     }
-
+    
     // MARK: Previous Values
     private var previousValues: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading) {
             if set.index == 1 {
                 Text("Prev")
                     .font(.caption2)
@@ -207,9 +240,9 @@ struct SetTrackerRow: View {
                         set.weightKg = UnitConversion.convertWeightToKg(value, from: weightUnit)
                     }
                 ), format: .number)
-                    .textFieldStyle(.roundedBorder)
-                    .keyboardType(.decimalPad)
-                    .frame(height: cellHeight)
+                .textFieldStyle(.roundedBorder)
+                .keyboardType(.decimalPad)
+                .frame(height: cellHeight)
             }
             .frame(width: 70)
             
@@ -235,7 +268,7 @@ struct SetTrackerRow: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
-                TextField("0", value: $set.reps, format: .number)
+            TextField("0", value: $set.reps, format: .number)
                 .textFieldStyle(.roundedBorder)
                 .keyboardType(.numberPad)
                 .frame(height: cellHeight)
@@ -307,12 +340,12 @@ struct SetTrackerRow: View {
                         set.distanceMeters = UnitConversion.convertDistanceToMeters(value, from: distanceUnit)
                     }
                 ), format: .number)
-                    .textFieldStyle(.roundedBorder)
-                    .keyboardType(.decimalPad)
-                    .frame(height: cellHeight)
+                .textFieldStyle(.roundedBorder)
+                .keyboardType(.decimalPad)
+                .frame(height: cellHeight)
             }
             .frame(width: 70)
-
+            
             // Time input
             VStack(alignment: .leading, spacing: 2) {
                 if set.index == 1 {

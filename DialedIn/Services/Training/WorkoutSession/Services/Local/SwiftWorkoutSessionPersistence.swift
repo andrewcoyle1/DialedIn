@@ -102,6 +102,31 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         }
     }
     
+    func upsertLocalWorkoutSession(session: WorkoutSessionModel) throws {
+        // Check if session exists locally
+        let id = session.id
+        do {
+            let predicate = #Predicate<WorkoutSessionEntity> { $0.workoutSessionId == id }
+            let descriptor = FetchDescriptor<WorkoutSessionEntity>(predicate: predicate)
+            let entities = try mainContext.fetch(descriptor)
+            
+            if entities.first != nil {
+                // Session exists, update it
+                try updateLocalWorkoutSession(session: session)
+            } else {
+                // Session doesn't exist, create it
+                try addLocalWorkoutSession(session: session)
+            }
+        } catch {
+            if isSchemaMismatchError(error) {
+                rebuildContainer()
+                try upsertLocalWorkoutSession(session: session)
+            } else {
+                throw error
+            }
+        }
+    }
+    
     func endLocalWorkoutSession(id: String, at endedAt: Date) throws {
         do {
             let predicate = #Predicate<WorkoutSessionEntity> { $0.workoutSessionId == id }

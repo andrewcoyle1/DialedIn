@@ -12,6 +12,7 @@ protocol LocalWorkoutSessionPersistence {
     // Create / Update
     func addLocalWorkoutSession(session: WorkoutSessionModel) throws
     func updateLocalWorkoutSession(session: WorkoutSessionModel) throws
+    func upsertLocalWorkoutSession(session: WorkoutSessionModel) throws
     func endLocalWorkoutSession(id: String, at endedAt: Date) throws
 
     // Read

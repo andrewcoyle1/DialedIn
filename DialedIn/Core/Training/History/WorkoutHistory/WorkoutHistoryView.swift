@@ -10,78 +10,84 @@ import SwiftUI
 struct WorkoutHistoryView: View {
     @Environment(WorkoutSessionManager.self) private var sessionManager
     @Environment(AuthManager.self) private var authManager
+    @Environment(LogManager.self) private var logManager
     @Environment(\.layoutMode) private var layoutMode
     
     @State private var sessions: [WorkoutSessionModel] = []
     @State private var isLoading = false
-    @State private var hasMorePages = true
-    @State private var currentLimit = 20
     @Binding var alert: AnyAppAlert?
     @Binding var selectedSession: WorkoutSessionModel?
     @Binding var isShowingInspector: Bool
     
     var body: some View {
-        Section {
-            if isLoading {
-                VStack {
-                    Spacer()
-                    HStack {
+        List {
+            Section {
+                if isLoading {
+                    VStack {
                         Spacer()
-                        ProgressView()
-                            .tint(Color.white)
-                        Spacer()
-                    }
-                    Spacer()
-                }
-                .removeListRowFormatting()
-            } else if sessions.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 48))
-                        .foregroundStyle(.secondary)
-                    
-                    Text("No Workout History")
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                    
-                    Text("Complete your first workout to see it here")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 32)
-            } else {
-                ForEach(sessions) { session in
-                    WorkoutHistoryRow(session: session)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            selectedSession = session
-                            // In compact/tabBar mode, open inspector; split view will route via onChange in parent
-                            if layoutMode != .splitView { isShowingInspector = true }
-                        }
-                }
-                if hasMorePages && !isLoading {
-                    Button {
-                        Task { await loadMoreSessions() }
-                    } label: {
                         HStack {
                             Spacer()
-                            Text("Load More")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
+                            ProgressView()
+                                .tint(Color.white)
                             Spacer()
                         }
-                        .padding(.vertical, 8)
+                        Spacer()
+                    }
+                    .removeListRowFormatting()
+                } else if sessions.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.secondary)
+                        
+                        Text("No Workout History")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                        
+                        Text("Complete your first workout to see it here")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 32)
+                } else {
+                    ForEach(sessions) { session in
+                        WorkoutHistoryRow(session: session)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                selectedSession = session
+                                // In compact/tabBar mode, open inspector; split view will route via onChange in parent
+                                if layoutMode != .splitView { isShowingInspector = true }
+                            }
                     }
                 }
+            } header: {
+                Text(sectionHeaderTitle)
             }
-        } header: {
-            Text(sectionHeaderTitle)
+        }
+        .refreshable {
+            await syncSessions()
         }
         .screenAppearAnalytics(name: "WorkoutHistoryView")
         .task(id: authManager.auth?.uid) {
             await loadInitialSessions()
+        }
+        .onChange(of: sessionManager.sessionsLastModified) { _, _ in
+            // Reload when any session is deleted/edited (works for both inspector and split view)
+            Task { await loadInitialSessions() }
+        }
+        .onChange(of: isShowingInspector) { oldValue, newValue in
+            // Reload sessions when inspector is dismissed (to reflect any deletions/edits)
+            if oldValue && !newValue {
+                Task { await loadInitialSessions() }
+            }
+        }
+        .onChange(of: selectedSession) { oldValue, newValue in
+            // Reload sessions when returning from detail view in split view (session cleared after deletion)
+            if oldValue != nil && newValue == nil {
+                Task { await loadInitialSessions() }
+            }
         }
         // Navigation and alert handled by parent to preserve Section semantics inside List
     }
@@ -95,98 +101,81 @@ struct WorkoutHistoryView: View {
     private func loadInitialSessions() async {
         guard !isLoading else { return }
         isLoading = true
+        logManager.trackEvent(event: Event.loadInitialSessionsStart)
         defer { isLoading = false }
         
         do {
             guard let userId = authManager.auth?.uid else { return }
             
-            let fetchedSessions = try await sessionManager.getWorkoutSessionsForAuthor(
+            // Load from local storage (limitTo: 0 means no limit)
+            let fetchedSessions = try sessionManager.getLocalWorkoutSessionsForAuthor(
                 authorId: userId,
-                limitTo: currentLimit
+                limitTo: 0
             )
-            
+            logManager.trackEvent(event: Event.loadInitialSessionsSuccess)
             // Filter to only completed sessions (with endedAt)
             sessions = fetchedSessions.filter { $0.endedAt != nil }
                 .sorted { ($0.dateCreated) > ($1.dateCreated) }
-            
-            // Check if there might be more
-            hasMorePages = fetchedSessions.count >= currentLimit
         } catch {
+            logManager.trackEvent(event: Event.loadInitialSessionsFail(error: error))
             alert = AnyAppAlert(error: error)
         }
     }
     
-    private func loadMoreSessions() async {
-        guard !isLoading && hasMorePages else { return }
-        isLoading = true
-        defer { isLoading = false }
-        
+    private func syncSessions() async {
+        guard let userId = authManager.auth?.uid else { return }
+        logManager.trackEvent(event: Event.syncSessionsStart)
         do {
-            guard let userId = authManager.auth?.uid else { return }
-            
-            let previousCount = sessions.count
-            currentLimit += 20
-            
-            let fetchedSessions = try await sessionManager.getWorkoutSessionsForAuthor(
-                authorId: userId,
-                limitTo: currentLimit
-            )
-            
-            // Filter to only completed sessions (with endedAt)
-            let completedSessions = fetchedSessions.filter { $0.endedAt != nil }
-                .sorted { ($0.dateCreated) > ($1.dateCreated) }
-            
-            sessions = completedSessions
-            
-            // Check if we got more sessions than before
-            hasMorePages = completedSessions.count > previousCount && fetchedSessions.count >= currentLimit
+            // Fetch from remote and merge into local
+            try await sessionManager.syncWorkoutSessionsFromRemote(authorId: userId)
+            logManager.trackEvent(event: Event.syncSessionsSuccess)
+
+            // Reload from local
+            await loadInitialSessions()
+
         } catch {
+            logManager.trackEvent(event: Event.syncSessionsFail(error: error))
             alert = AnyAppAlert(error: error)
         }
     }
-}
-
-struct WorkoutHistoryRow: View {
-    let session: WorkoutSessionModel
     
-    var body: some View {
-        HStack(spacing: 16) {
-            // Icon
-            Image(systemName: "figure.strengthtraining.traditional")
-                .font(.title2)
-                .foregroundStyle(.blue)
-                .frame(width: 40)
-            
-            // Workout info
-            VStack(alignment: .leading, spacing: 4) {
-                Text(session.name)
-                    .font(.headline)
-                
-                HStack(spacing: 8) {
-                    if let endedAt = session.endedAt {
-                        Text(session.dateCreated.formatted(date: .abbreviated, time: .shortened))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        
-                        Text("•")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        
-                        let duration = endedAt.timeIntervalSince(session.dateCreated)
-                        Text(Date.formatDuration(duration))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+    enum Event: LoggableEvent {
+        case syncSessionsStart
+        case syncSessionsSuccess
+        case syncSessionsFail(error: Error)
+        case loadInitialSessionsStart
+        case loadInitialSessionsSuccess
+        case loadInitialSessionsFail(error: Error)
+        
+        var eventName: String {
+            switch self {
+            case .syncSessionsStart:            return "WorkoutHistory_SyncSessions_Start"
+            case .syncSessionsSuccess:          return "WorkoutHistory_SyncSessions_Success"
+            case .syncSessionsFail:             return "WorkoutHistory_SyncSessions_Fail"
+            case .loadInitialSessionsStart:     return "WorkoutHistory_LoadInitialSessions_Start"
+            case .loadInitialSessionsSuccess:   return "WorkoutHistory_LoadInitialSessions_Success"
+            case .loadInitialSessionsFail:      return "WorkoutHistory_LoadInitialSessions_Fail"
             }
-            
-            Spacer()
-            
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
         }
-        .padding(.vertical, 4)
+        
+        var parameters: [String: Any]? {
+            switch self {
+            case .syncSessionsFail(error: let error), .loadInitialSessionsFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            case .syncSessionsFail, .loadInitialSessionsFail:
+                return .severe
+            default:
+                return .analytic
+                
+            }
+        }
     }
 }
 

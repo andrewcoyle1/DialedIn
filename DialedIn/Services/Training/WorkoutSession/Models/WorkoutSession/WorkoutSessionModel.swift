@@ -148,12 +148,12 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
     static var mocks: [WorkoutSessionModel] {
         // Ensure mock sessions belong to the preview/mock user and are completed so they appear in history
         let uid = UserAuthInfo.mock().uid
-        var s1 = WorkoutSessionModel(authorId: uid, template: WorkoutTemplateModel.mocks[0])
-        s1.endSession(at: s1.dateCreated.addingTimeInterval(45 * 60))
-        var s2 = WorkoutSessionModel(authorId: uid, template: WorkoutTemplateModel.mocks[1])
-        s2.endSession(at: s2.dateCreated.addingTimeInterval(30 * 60))
-        var s3 = WorkoutSessionModel(authorId: uid, template: WorkoutTemplateModel.mocks[2])
-        s3.endSession(at: s3.dateCreated.addingTimeInterval(60 * 60))
-        return [s1, s2, s3]
+        var session1 = WorkoutSessionModel(authorId: uid, template: WorkoutTemplateModel.mocks[0])
+        session1.endSession(at: session1.dateCreated.addingTimeInterval(45 * 60))
+        var session2 = WorkoutSessionModel(authorId: uid, template: WorkoutTemplateModel.mocks[1])
+        session2.endSession(at: session2.dateCreated.addingTimeInterval(30 * 60))
+        var session3 = WorkoutSessionModel(authorId: uid, template: WorkoutTemplateModel.mocks[2])
+        session3.endSession(at: session3.dateCreated.addingTimeInterval(60 * 60))
+        return [session1, session2, session3]
     }
 }

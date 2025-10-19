@@ -98,7 +98,7 @@ struct OnboardingCompletedView: View {
             } catch {
                 // Proceed even if saving goal fails
             }
-            root.updateViewState(showTabBarView: true)
+            // AppView will switch to main automatically once onboardingStep is .complete
         }
     }
 }

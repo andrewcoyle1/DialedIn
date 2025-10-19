@@ -234,8 +234,7 @@ struct SettingsView: View {
     
     private func dismissScreen() async {
         dismiss()
-        // try? await Task.sleep(for: .seconds(1))
-        appState.updateViewState(showTabBarView: false)
+        // AppView will show onboarding automatically when auth/user state changes
     }
     
     func onDeleteAccountPressed() {

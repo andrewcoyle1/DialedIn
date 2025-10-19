@@ -91,11 +91,11 @@ struct TrainingView: View {
     }
     
     private var contentView: some View {
-        VStack(spacing: 0) {
-            List {
-                pickerSection
+        Group {
+            // List {
+                // pickerSection
                 listContents
-            }
+            // }
             .scrollIndicators(.hidden)
             #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView) {
@@ -114,7 +114,7 @@ struct TrainingView: View {
             .sheet(item: $programActiveSheet) { sheet in
                 switch sheet {
                 case .programPicker:
-                    ProgramPickerSheetView()
+                    ProgramManagementView()
                 case .progressDashboard:
                     ProgressDashboardView()
                 case .strengthProgress:
@@ -128,6 +128,12 @@ struct TrainingView: View {
                     )
                 }
             }
+            .navigationTitle("Training")
+            .navigationSubtitle(navigationSubtitle)
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                toolbarContent
+            }
             .sheet(isPresented: $showCreateExercise) {
                 CreateExerciseView()
             }
@@ -135,16 +141,10 @@ struct TrainingView: View {
                 CreateWorkoutView()
             }
         }
-        .navigationTitle("Training")
-        .navigationSubtitle(navigationSubtitle)
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            toolbarContent
-        }
     }
 
     private var pickerSection: some View {
-        Section {
+        // Section {
             Picker("Section", selection: $presentationMode) {
                 Text("Program").tag(TrainingPresentationMode.program)
                 Text("Workouts").tag(TrainingPresentationMode.workouts)
@@ -152,9 +152,8 @@ struct TrainingView: View {
                 Text("History").tag(TrainingPresentationMode.history)
             }
             .pickerStyle(.segmented)
-        }
-        .listSectionSpacing(0)
-        .removeListRowFormatting()
+            .padding(.top, 2)
+        // }
     }
     
     private var listContents: some View {
@@ -191,6 +190,63 @@ struct TrainingView: View {
         }
         #endif
         
+        ToolbarItem(placement: .topBarTrailing) {
+            Menu {
+                Button {
+                    presentationMode = TrainingPresentationMode.program
+                } label: {
+                    Label {
+                        Text("Program")
+                    } icon: {
+                        Image(systemName: presentationMode == .program ? "calendar.circle.fill" : "calendar")
+                    }
+                }
+                Button {
+                    presentationMode = TrainingPresentationMode.workouts
+                } label: {
+                    Label {
+                        Text("Workouts")
+                    } icon: {
+                        Image(systemName: presentationMode == .workouts ? "dumbbell.fill" : "dumbbell")
+                    }
+                }
+                Button {
+                    presentationMode = TrainingPresentationMode.exercises
+                } label: {
+                    Label {
+                        Text("Exercises")
+                    } icon: {
+                        Image(systemName: presentationMode == .exercises ? "list.bullet.rectangle.portrait.fill" : "list.bullet.rectangle.portrait")
+                    }
+                }
+                Button {
+                    presentationMode = TrainingPresentationMode.history
+                } label: {
+                    Label {
+                        Text("History")
+                    } icon: {
+                        Image(systemName: presentationMode == .history ? "clock.fill" : "clock")
+                    }
+                }
+            } label: {
+                Image(systemName: currentMenuIcon)
+            }
+
+//            Picker(selection: $presentationMode) {
+//                Text("Program")
+//                    .tag(TrainingPresentationMode.program)
+//                Text("Workouts")
+//                    .tag(TrainingPresentationMode.workouts)
+//                Text("Exercises")
+//                    .tag(TrainingPresentationMode.exercises)
+//                Text("History")
+//                    .tag(TrainingPresentationMode.history)
+//            } label: {
+//                Image(systemName: "bell.fill")
+//            }
+//            .pickerStyle(.menu)
+        }
+        
         // Today's workout quick action
         if presentationMode == .program, !trainingPlanManager.getTodaysWorkouts().isEmpty {
             ToolbarItem(placement: .topBarTrailing) {
@@ -216,31 +272,23 @@ struct TrainingView: View {
                 Image(systemName: "bell")
             }
         }
-//        #if os(iOS)
-//        if UIDevice.current.userInterfaceIdiom != .phone {
-//            ToolbarSpacer(placement: .topBarTrailing)
-//            ToolbarItem(placement: .topBarTrailing) {
-//                Button {
-//                    isShowingInspector.toggle()
-//                } label: {
-//                    Image(systemName: "info")
-//                }
-//            }
-//        }
-//        #else
-//        ToolbarSpacer(placement: .topBarTrailing)
-//        ToolbarItem(placement: .topBarTrailing) {
-//            Button {
-//                isShowingInspector.toggle()
-//            } label: {
-//                Image(systemName: "info")
-//            }
-//        }
-//        #endif
     }
     
     private func onNotificationsPressed() {
         showNotificationsView = true
+    }
+    
+    private var currentMenuIcon: String {
+        switch presentationMode {
+        case .program:
+            return "calendar.circle.fill"
+        case .workouts:
+            return "dumbbell.fill"
+        case .exercises:
+            return "list.bullet.rectangle.portrait.fill"
+        case .history:
+            return "clock.fill"
+        }
     }
     
     private var navigationSubtitle: String {

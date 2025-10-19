@@ -82,17 +82,19 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
     
     /// Retrieves a complete workout session including all exercises and sets (flattened collections)
     func getWorkoutSession(id: String) async throws -> WorkoutSessionModel {
-        // Get session data
+        let base = try await fetchBaseSession(id: id)
+        let exerciseRecords = try await fetchExerciseRecords(sessionId: id)
+        let exercises = try await buildExercises(sessionId: id, exerciseRecords: exerciseRecords)
+        return base.withExercises(exercises)
+    }
+
+    private func fetchBaseSession(id: String) async throws -> WorkoutSessionModel {
         let sessionSnapshot = try await collection.document(id).getDocument()
         guard let sessionData = sessionSnapshot.data() else {
             throw NSError(domain: "FirebaseWorkoutSessionService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Workout session not found"])
         }
-        
-        // Decode storage model first (session doc does not contain nested exercises)
         let storage = try Firestore.Decoder().decode(WorkoutSessionForFirebase.self, from: sessionData)
-        
-        // Build base domain model without exercises; populate exercises below from flattened collections
-        let baseSession = WorkoutSessionModel(
+        return WorkoutSessionModel(
             id: storage.id,
             authorId: storage.authorId,
             name: storage.name,
@@ -105,56 +107,66 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
             notes: storage.notes,
             exercises: []
         )
-        
-        // Fetch exercises from flattened collection
-        let exercisesSnapshot = try await exercisesCollection
-            .whereField(WorkoutExerciseRecord.CodingKeys.sessionId.rawValue, isEqualTo: id)
+    }
+
+    private func fetchExerciseRecords(sessionId: String) async throws -> [WorkoutExerciseRecord] {
+        let snapshot = try await exercisesCollection
+            .whereField(WorkoutExerciseRecord.CodingKeys.sessionId.rawValue, isEqualTo: sessionId)
             .order(by: WorkoutExerciseRecord.CodingKeys.order.rawValue)
             .getDocuments()
-        
-        var exercises: [WorkoutExerciseModel] = []
-        for exerciseDoc in exercisesSnapshot.documents {
-            let record = try Firestore.Decoder().decode(WorkoutExerciseRecord.self, from: exerciseDoc.data())
-            
-            // Fetch sets for this exercise
-            let setsSnapshot = try await setsCollection
-                .whereField(WorkoutSetRecord.CodingKeys.sessionId.rawValue, isEqualTo: id)
-                .whereField(WorkoutSetRecord.CodingKeys.exerciseId.rawValue, isEqualTo: record.id)
-                .order(by: WorkoutSetRecord.CodingKeys.setIndex.rawValue)
-                .getDocuments()
-            let setRecords: [WorkoutSetRecord] = try setsSnapshot.documents.map { setDoc in
-                try Firestore.Decoder().decode(WorkoutSetRecord.self, from: setDoc.data())
-            }
-            let sets: [WorkoutSetModel] = setRecords.map { srecord in
-                WorkoutSetModel(
-                    id: srecord.id,
-                    authorId: srecord.authorId,
-                    index: srecord.setIndex,
-                    reps: srecord.reps,
-                    weightKg: srecord.weightKg,
-                    durationSec: srecord.durationSec,
-                    distanceMeters: srecord.distanceMeters,
-                    rpe: srecord.rpe,
-                    isWarmup: srecord.isWarmup,
-                    completedAt: srecord.completedAt,
-                    dateCreated: srecord.dateCreated
-                )
-            }
-            let exercise = WorkoutExerciseModel(
-                id: record.id,
-                authorId: record.authorId,
-                templateId: record.templateId,
-                name: record.name,
-                trackingMode: record.trackingMode,
-                index: record.index,
-                notes: record.notes,
-                imageName: record.imageName,
-                sets: sets
+        return try snapshot.documents.map { doc in
+            try Firestore.Decoder().decode(WorkoutExerciseRecord.self, from: doc.data())
+        }
+    }
+
+    private func fetchSetRecords(sessionId: String, exerciseId: String) async throws -> [WorkoutSetRecord] {
+        let setsSnapshot = try await setsCollection
+            .whereField(WorkoutSetRecord.CodingKeys.sessionId.rawValue, isEqualTo: sessionId)
+            .whereField(WorkoutSetRecord.CodingKeys.exerciseId.rawValue, isEqualTo: exerciseId)
+            .order(by: WorkoutSetRecord.CodingKeys.setIndex.rawValue)
+            .getDocuments()
+        return try setsSnapshot.documents.map { setDoc in
+            try Firestore.Decoder().decode(WorkoutSetRecord.self, from: setDoc.data())
+        }
+    }
+
+    private func makeExercise(from record: WorkoutExerciseRecord, setRecords: [WorkoutSetRecord]) -> WorkoutExerciseModel {
+        let sets: [WorkoutSetModel] = setRecords.map { srecord in
+            WorkoutSetModel(
+                id: srecord.id,
+                authorId: srecord.authorId,
+                index: srecord.setIndex,
+                reps: srecord.reps,
+                weightKg: srecord.weightKg,
+                durationSec: srecord.durationSec,
+                distanceMeters: srecord.distanceMeters,
+                rpe: srecord.rpe,
+                isWarmup: srecord.isWarmup,
+                completedAt: srecord.completedAt,
+                dateCreated: srecord.dateCreated
             )
+        }
+        return WorkoutExerciseModel(
+            id: record.id,
+            authorId: record.authorId,
+            templateId: record.templateId,
+            name: record.name,
+            trackingMode: record.trackingMode,
+            index: record.index,
+            notes: record.notes,
+            imageName: record.imageName,
+            sets: sets
+        )
+    }
+
+    private func buildExercises(sessionId: String, exerciseRecords: [WorkoutExerciseRecord]) async throws -> [WorkoutExerciseModel] {
+        var exercises: [WorkoutExerciseModel] = []
+        for record in exerciseRecords {
+            let setRecords = try await fetchSetRecords(sessionId: sessionId, exerciseId: record.id)
+            let exercise = makeExercise(from: record, setRecords: setRecords)
             exercises.append(exercise)
         }
-        
-        return baseSession.withExercises(exercises)
+        return exercises
     }
     
     /// Retrieves multiple workout sessions by IDs

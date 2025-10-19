@@ -447,3 +447,18 @@ enum OnboardingStep: String, Codable {
     case diet
     case complete
 }
+
+extension OnboardingStep {
+    var orderIndex: Int {
+        switch self {
+        case .auth: return 0
+        case .subscription: return 1
+        case .completeAccountSetup: return 2
+        case .healthDisclaimer: return 3
+        case .goalSetting: return 4
+        case .customiseProgram: return 5
+        case .diet: return 6
+        case .complete: return 7
+        }
+    }
+}

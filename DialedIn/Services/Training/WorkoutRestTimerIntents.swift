@@ -8,7 +8,7 @@
 import Foundation
 import AppIntents
 #if canImport(ActivityKit)
-import ActivityKit
+@preconcurrency import ActivityKit
 #endif
 
 // MARK: - Adjust Rest Timer Intent
@@ -218,78 +218,19 @@ struct CompleteSetIntent: LiveActivityIntent {
             return .result()
         }
         
-        // Set loading state immediately
-        var loadingState = state
-        loadingState.isProcessingIntent = true
-        loadingState.lastIntentTimestamp = Date()
+        await updateLoading(activity: activity, state: state)
         
-        await activity.update(
-            ActivityContent(
-                state: loadingState,
-                staleDate: state.restEndsAt,
-                relevanceScore: 100
-            )
-        )
-        
-        // Use defer to ensure loading state is always cleared
         defer {
             Task { @MainActor in
-                // Clear loading state after a brief delay to show feedback
-                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+                try? await Task.sleep(nanoseconds: 300_000_000)
             }
         }
         
-        // Create set completion with target values and write to shared storage
-        let completion = SharedWorkoutStorage.PendingSetCompletion(
-            setId: setId,
-            weightKg: state.targetWeightKg,
-            reps: state.targetReps,
-            distanceMeters: state.targetDistanceMeters,
-            durationSec: state.targetDurationSec,
-            completedAt: Date()
-        )
-        SharedWorkoutStorage.pendingSetCompletion = completion
+        SharedWorkoutStorage.pendingSetCompletion = buildPendingSetCompletion(from: state, setId: setId)
 
-        // Read the current state and optimistically increment set count for instant UI feedback
-        var updatedState = state
-        let currentCompleted = updatedState.completedSetsCount
-        let totalSets = max(updatedState.totalSetsCount, 0)
-        if totalSets > 0 {
-            updatedState.completedSetsCount = min(currentCompleted + 1, totalSets)
-            // Update progress if available
-            let progress = totalSets > 0 ? Double(updatedState.completedSetsCount) / Double(totalSets) : 0
-            updatedState.progress = progress
-        }
-        
-        // Check if this completes all sets in the workout
-        let isAllSetsComplete = totalSets > 0 && updatedState.completedSetsCount >= totalSets
-        updatedState.isAllSetsComplete = isAllSetsComplete
-
-        // Only start a rest period if there are more sets to do
-        if !isAllSetsComplete {
-            let restEnd = Date().addingTimeInterval(TimeInterval(defaultRestDurationSeconds))
-            updatedState.restEndsAt = restEnd
-            updatedState.statusMessage = "Resting"
-            // Persist rest timer to shared storage
-            SharedWorkoutStorage.restEndTime = restEnd
-        } else {
-            // All sets complete - clear rest timer
-            updatedState.restEndsAt = nil
-            updatedState.statusMessage = nil
-            SharedWorkoutStorage.clearRestEndTime()
-        }
-        
-        // Clear loading state
-        updatedState.isProcessingIntent = false
-
-        // Push the update to the Live Activity
-        await activity.update(
-            ActivityContent(
-                state: updatedState,
-                staleDate: updatedState.restEndsAt,
-                relevanceScore: 100
-            )
-        )
+        var updatedState = applyOptimisticProgress(to: state)
+        updatedState = applyRestLogic(to: updatedState)
+        await pushUpdate(activity: activity, newState: updatedState)
 
         if let restEnd = updatedState.restEndsAt {
             print("✅ Completed set '\(setId)' with values (weight: \(state.targetWeightKg ?? 0)kg, reps: \(state.targetReps ?? 0)), starting rest until: \(restEnd)")
@@ -300,3 +241,70 @@ struct CompleteSetIntent: LiveActivityIntent {
         return .result()
     }
 }
+
+#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+@MainActor
+fileprivate extension CompleteSetIntent {
+    func updateLoading(activity: Activity<WorkoutActivityAttributes>, state: WorkoutActivityAttributes.ContentState) async {
+        var loadingState = state
+        loadingState.isProcessingIntent = true
+        loadingState.lastIntentTimestamp = Date()
+        await activity.update(
+            ActivityContent(
+                state: loadingState,
+                staleDate: state.restEndsAt,
+                relevanceScore: 100
+            )
+        )
+    }
+
+    func buildPendingSetCompletion(from state: WorkoutActivityAttributes.ContentState, setId: String) -> SharedWorkoutStorage.PendingSetCompletion {
+        SharedWorkoutStorage.PendingSetCompletion(
+            setId: setId,
+            weightKg: state.targetWeightKg,
+            reps: state.targetReps,
+            distanceMeters: state.targetDistanceMeters,
+            durationSec: state.targetDurationSec,
+            completedAt: Date()
+        )
+    }
+
+    func applyOptimisticProgress(to state: WorkoutActivityAttributes.ContentState) -> WorkoutActivityAttributes.ContentState {
+        var updated = state
+        let currentCompleted = updated.completedSetsCount
+        let totalSets = max(updated.totalSetsCount, 0)
+        if totalSets > 0 {
+            updated.completedSetsCount = min(currentCompleted + 1, totalSets)
+            updated.progress = totalSets > 0 ? Double(updated.completedSetsCount) / Double(totalSets) : 0
+        }
+        updated.isAllSetsComplete = totalSets > 0 && updated.completedSetsCount >= totalSets
+        return updated
+    }
+
+    func applyRestLogic(to state: WorkoutActivityAttributes.ContentState) -> WorkoutActivityAttributes.ContentState {
+        var updated = state
+        if !updated.isAllSetsComplete {
+            let restEnd = Date().addingTimeInterval(TimeInterval(defaultRestDurationSeconds))
+            updated.restEndsAt = restEnd
+            updated.statusMessage = "Resting"
+            SharedWorkoutStorage.restEndTime = restEnd
+        } else {
+            updated.restEndsAt = nil
+            updated.statusMessage = nil
+            SharedWorkoutStorage.clearRestEndTime()
+        }
+        updated.isProcessingIntent = false
+        return updated
+    }
+
+    func pushUpdate(activity: Activity<WorkoutActivityAttributes>, newState: WorkoutActivityAttributes.ContentState) async {
+        await activity.update(
+            ActivityContent(
+                state: newState,
+                staleDate: newState.restEndsAt,
+                relevanceScore: 100
+            )
+        )
+    }
+}
+#endif

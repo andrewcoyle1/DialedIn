@@ -270,12 +270,7 @@ struct EmailVerificationView: View {
             // Navigate based on user's current onboarding step
             let step = userManager.currentUser?.onboardingStep
             let destination = getNavigationDestination(for: step)
-            if destination == .completed {
-                // User has completed onboarding, show main app
-                appState.updateViewState(showTabBarView: true)
-            } else {
-                navigationDestination = destination
-            }
+            navigationDestination = destination
             // Stop polling on success
             currentPollingTask?.cancel()
             currentPollingTask = nil
@@ -364,12 +359,7 @@ struct EmailVerificationView: View {
                             // Navigate based on user's current onboarding step
                             let step = userManager.currentUser?.onboardingStep
                             let destination = getNavigationDestination(for: step)
-                            if destination == .completed {
-                                // User has completed onboarding, show main app
-                                appState.updateViewState(showTabBarView: true)
-                            } else {
-                                navigationDestination = destination
-                            }
+                            navigationDestination = destination
                             break
                         }
                     } catch {

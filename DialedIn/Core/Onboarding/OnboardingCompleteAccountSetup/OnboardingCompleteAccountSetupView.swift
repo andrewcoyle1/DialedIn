@@ -85,12 +85,12 @@ struct OnboardingCompleteAccountSetupView: View {
     }
     
     private func updateOnboardingStep() async {
-        // Only update if not already at this step to avoid redundant writes and step-flapping
-        guard userManager.currentUser?.onboardingStep != .completeAccountSetup else {
+        let target: OnboardingStep = .completeAccountSetup
+        if let current = userManager.currentUser?.onboardingStep, current.orderIndex >= target.orderIndex {
             return
         }
         do {
-            try await userManager.updateOnboardingStep(step: .completeAccountSetup)
+            try await userManager.updateOnboardingStep(step: target)
         } catch {
             showAlert = AnyAppAlert(title: "Internet Connection Failed", subtitle: "Please check your internet connection and try again.") {
                 AnyView(

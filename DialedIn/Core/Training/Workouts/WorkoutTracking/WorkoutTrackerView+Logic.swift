@@ -24,14 +24,7 @@ extension WorkoutTrackerView {
         }
     }
     
-    var isRestActive: Bool {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        guard let end = hkWorkoutManager.restEndTime else { return false }
-        return Date() < end
-        #else
-        return false
-        #endif
-    }
+    // isRestActive moved to WorkoutTrackerView+RestTimer.swift
     
     var completedSetsCount: Int {
         workoutSession.exercises.flatMap { $0.sets }.filter { $0.completedAt != nil }.count
@@ -88,96 +81,7 @@ extension WorkoutTrackerView {
         syncPendingSetCompletionFromWidget()
     }
     
-    // MARK: - Widget Communication
-    
-    func startWidgetSyncTimer() {
-        // Poll for widget set completions and workout completion every second
-        widgetSyncTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            syncPendingSetCompletionFromWidget()
-            syncPendingWorkoutCompletionFromWidget()
-        }
-    }
-    
-    func stopWidgetSyncTimer() {
-        widgetSyncTimer?.invalidate()
-        widgetSyncTimer = nil
-    }
-    
-    func syncPendingSetCompletionFromWidget() {
-        // Check if widget completed a set
-        guard let pending = SharedWorkoutStorage.pendingSetCompletion else { return }
-        
-        print("🔍 Widget Completion: Found pending for set '\(pending.setId)'")
-        print("   Values: weight=\(pending.weightKg ?? 0)kg, reps=\(pending.reps ?? 0)")
-        
-        // Find the set in the current workout
-        guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { exercise in
-            exercise.sets.contains { $0.id == pending.setId }
-        }) else {
-            print("❌ Widget Completion: Set not found in current workout")
-            print("   Available set IDs: \(workoutSession.exercises.flatMap { $0.sets.map { $0.id } })")
-            SharedWorkoutStorage.clearPendingSetCompletion()
-            return
-        }
-        
-        guard let setIndex = workoutSession.exercises[exerciseIndex].sets.firstIndex(where: { $0.id == pending.setId }) else {
-            print("❌ Set ID matched but not found in sets array")
-            SharedWorkoutStorage.clearPendingSetCompletion()
-            return
-        }
-        
-        let exercise = workoutSession.exercises[exerciseIndex]
-        print("✓ Found in exercise \(exerciseIndex): '\(exercise.name)' at set index \(setIndex)")
-        
-        // Get the set and apply values from widget
-        var updatedSet = exercise.sets[setIndex]
-        
-        let beforeComplete = updatedSet.completedAt
-        print("   Before: completedAt=\(beforeComplete?.description ?? "nil")")
-        
-        // Apply values from widget completion (these are already in SI units)
-        if let weight = pending.weightKg { updatedSet.weightKg = weight }
-        if let reps = pending.reps { updatedSet.reps = reps }
-        if let distance = pending.distanceMeters { updatedSet.distanceMeters = distance }
-        if let duration = pending.durationSec { updatedSet.durationSec = duration }
-        updatedSet.completedAt = pending.completedAt
-        
-        print("   After: completedAt=\(updatedSet.completedAt?.description ?? "nil")")
-        
-        // Clear the pending completion BEFORE calling updateSet to avoid reprocessing
-        SharedWorkoutStorage.clearPendingSetCompletion()
-        
-        print("✅ Widget Completion: Routing through updateSet() to trigger all mechanics")
-        
-        // Route through existing updateSet() logic to ensure:
-        // - Rest timer starts properly
-        // - Exercise auto-advance if all sets complete
-        // - Proper state management
-        // - Live Activity updates
-        updateSet(updatedSet, in: exercise.id)
-    }
-    
-    func syncPendingWorkoutCompletionFromWidget() {
-        // Check if widget requested workout completion
-        guard let pending = SharedWorkoutStorage.pendingWorkoutCompletion else { return }
-        
-        print("🔍 Widget Workout Completion: Found pending for session '\(pending.sessionId)'")
-        
-        // Verify this is the current session
-        guard pending.sessionId == workoutSession.id else {
-            print("❌ Widget Workout Completion: Session ID mismatch")
-            SharedWorkoutStorage.clearPendingWorkoutCompletion()
-            return
-        }
-        
-        print("✅ Widget Workout Completion: Triggering finishWorkout()")
-        
-        // Clear the pending completion BEFORE calling finishWorkout
-        SharedWorkoutStorage.clearPendingWorkoutCompletion()
-        
-        // Call the existing finishWorkout method which handles all the proper save logic
-        finishWorkout()
-    }
+    // Widget communication moved to WorkoutTrackerView+WidgetSync.swift
     
     // MARK: - Unit Preference Management
     
@@ -511,48 +415,7 @@ extension WorkoutTrackerView {
         }
     }
     
-    // MARK: - Rest Timer Controls
-    
-    private func startRestTimer(durationSeconds: Int = 0) {
-        let duration = durationSeconds > 0 ? durationSeconds : restDurationSeconds
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        hkWorkoutManager.startRest(durationSeconds: duration, session: workoutSession, currentExerciseIndex: currentExerciseIndex)
-        // Sync rest timer with manager for tab bar accessory
-        workoutSessionManager.restEndTime = hkWorkoutManager.restEndTime
-
-        // Schedule local notification for when rest is complete
-        if let endTime = hkWorkoutManager.restEndTime {
-            Task {
-                do {
-                    try await pushManager.schedulePushNotification(
-                        identifier: restTimerNotificationId,
-                        title: "Rest Complete",
-                        body: "Time to get back to your workout!",
-                        date: endTime
-                    )
-                } catch {
-                    // Silently fail - notification is nice to have but not critical
-                    print("Failed to schedule rest timer notification: \(error)")
-                }
-            }
-        }
-        #endif
-    }
-    
-    private func cancelRestTimer() {
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        // Cancel in manager (will also update Live Activity)
-        hkWorkoutManager.cancelRest()
-        #endif
-        
-        // Sync rest timer with manager for tab bar accessory
-        workoutSessionManager.restEndTime = nil
-        
-        // Cancel the pending rest timer notification
-        Task {
-            await pushManager.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
-        }
-    }
+    // Rest timer controls moved to WorkoutTrackerView+RestTimer.swift
     
     internal func updateWorkoutNotes() {
         workoutSession.notes = workoutNotes.isEmpty ? nil : workoutNotes

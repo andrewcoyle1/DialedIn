@@ -30,9 +30,12 @@ struct OnboardingSubscriptionPlanView: View {
             tsAndCsSection
         }
         .onFirstTask {
+            let target: OnboardingStep = .subscription
+            let current = userManager.currentUser?.onboardingStep
+            guard current == nil || current!.orderIndex < target.orderIndex else { return }
             logManager.trackEvent(event: Event.updateOnboardingStart)
             do {
-                try await userManager.updateOnboardingStep(step: .subscription)
+                try await userManager.updateOnboardingStep(step: target)
                 logManager.trackEvent(event: Event.updateOnboardingSuccess)
             } catch {
                 logManager.trackEvent(event: Event.updateOnboardingFail(error: error))

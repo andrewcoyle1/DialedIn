@@ -356,67 +356,29 @@ extension WorkoutActivityViewModel {
         totalVolumeKgOverride: Double?,
         elapsedTimeOverride: TimeInterval?
     ) -> WorkoutActivityAttributes.ContentState {
-        let totalExercisesCount = session.exercises.count
-        let currentExercise: WorkoutExerciseModel? =
-            (0..<totalExercisesCount).contains(currentExerciseIndex)
-            ? session.exercises[currentExerciseIndex]
-            : nil
-        
-        let currentExerciseName = currentExercise?.name
-        let currentExerciseImageName = currentExercise?.imageName
-        
-        // Only log when image changes
-        if currentExerciseImageName != lastContentState?.currentExerciseImageName {
-            if let imageName = currentExerciseImageName {
-                print("📸 Live Activity: Exercise image changed to '\(imageName)' (index: \(currentExerciseIndex), name: \(currentExerciseName ?? "nil"))")
-            } else {
-                print("⚠️ Live Activity: No image for current exercise (index: \(currentExerciseIndex))")
-            }
-        }
-
-        let allSets = session.exercises.flatMap { $0.sets }
-        let totalSetsCount = allSets.count
-        let completedSetsCount = allSets.filter { $0.completedAt != nil }.count
-        let progress = totalSetsCount > 0 ? Double(completedSetsCount) / Double(totalSetsCount) : 0
-
-        let computedVolume = allSets
-            .compactMap { set -> Double? in
-                guard let weight = set.weightKg, let reps = set.reps else { return nil }
-                return weight * Double(reps)
-            }
-            .reduce(0.0, +)
-        let totalVolumeKg = totalVolumeKgOverride ?? (computedVolume > 0 ? computedVolume : nil)
-        
-        // Find the first incomplete set in the current exercise to use as target
-        let targetSet = currentExercise?.sets.first { $0.completedAt == nil }
-        
-        // Calculate per-exercise set counts for more contextual display
-        let currentExerciseSets = currentExercise?.sets ?? []
-        let currentExerciseCompletedSetsCount = currentExerciseSets.filter { $0.completedAt != nil }.count
-        let currentExerciseTotalSetsCount = currentExerciseSets.count
-        
-        // Check if all sets in the entire workout are complete
-        let isAllSetsComplete = totalSetsCount > 0 && completedSetsCount == totalSetsCount
+        let totals = computeTotals(session: session, totalVolumeKgOverride: totalVolumeKgOverride)
+        let current = deriveCurrentExerciseData(session: session, index: currentExerciseIndex)
+        logExerciseImageChange(current.imageName, currentExerciseIndex: currentExerciseIndex, exerciseName: current.name)
 
         return WorkoutActivityAttributes.ContentState(
             isActive: isActive,
-            completedSetsCount: completedSetsCount,
-            totalSetsCount: totalSetsCount,
-            currentExerciseName: currentExerciseName,
-            currentExerciseImageName: currentExerciseImageName,
+            completedSetsCount: totals.completedSetsCount,
+            totalSetsCount: totals.totalSetsCount,
+            currentExerciseName: current.name,
+            currentExerciseImageName: current.imageName,
             currentExerciseIndex: currentExerciseIndex,
-            totalExercisesCount: totalExercisesCount,
-            currentExerciseCompletedSetsCount: currentExerciseCompletedSetsCount,
-            currentExerciseTotalSetsCount: currentExerciseTotalSetsCount,
-            targetSetId: targetSet?.id,
-            targetWeightKg: targetSet?.weightKg,
-            targetReps: targetSet?.reps,
-            targetDistanceMeters: targetSet?.distanceMeters,
-            targetDurationSec: targetSet?.durationSec,
+            totalExercisesCount: session.exercises.count,
+            currentExerciseCompletedSetsCount: current.currentExerciseCompletedSetsCount,
+            currentExerciseTotalSetsCount: current.currentExerciseTotalSetsCount,
+            targetSetId: current.targetSet?.id,
+            targetWeightKg: current.targetSet?.weightKg,
+            targetReps: current.targetSet?.reps,
+            targetDistanceMeters: current.targetSet?.distanceMeters,
+            targetDurationSec: current.targetSet?.durationSec,
             restEndsAt: restEndsAt,
             statusMessage: statusMessage,
-            totalVolumeKg: totalVolumeKg,
-            progress: progress,
+            totalVolumeKg: totals.totalVolumeKg,
+            progress: totals.progress,
             isWorkoutEnded: false,
             endedSuccessfully: nil,
             finalDurationSeconds: nil,
@@ -425,7 +387,7 @@ extension WorkoutActivityViewModel {
             finalTotalExercisesCount: nil,
             isProcessingIntent: false,
             lastIntentTimestamp: nil,
-            isAllSetsComplete: isAllSetsComplete
+            isAllSetsComplete: totals.isAllSetsComplete
         )
     }
 
@@ -477,6 +439,80 @@ extension WorkoutActivityViewModel {
                     relevanceScore: 100
                 )
             )
+        }
+    }
+
+    // MARK: - Derived state helpers
+    private struct Totals {
+        let totalSetsCount: Int
+        let completedSetsCount: Int
+        let totalVolumeKg: Double?
+        let progress: Double
+        let isAllSetsComplete: Bool
+    }
+
+    private func computeTotals(session: WorkoutSessionModel, totalVolumeKgOverride: Double?) -> Totals {
+        let allSets = session.exercises.flatMap { $0.sets }
+        let totalSetsCount = allSets.count
+        let completedSetsCount = allSets.filter { $0.completedAt != nil }.count
+        let progress = totalSetsCount > 0 ? Double(completedSetsCount) / Double(totalSetsCount) : 0
+
+        let computedVolume = allSets
+            .compactMap { set -> Double? in
+                guard let weight = set.weightKg, let reps = set.reps else { return nil }
+                return weight * Double(reps)
+            }
+            .reduce(0.0, +)
+        let totalVolumeKg = totalVolumeKgOverride ?? (computedVolume > 0 ? computedVolume : nil)
+        let isAllSetsComplete = totalSetsCount > 0 && completedSetsCount == totalSetsCount
+
+        return Totals(
+            totalSetsCount: totalSetsCount,
+            completedSetsCount: completedSetsCount,
+            totalVolumeKg: totalVolumeKg,
+            progress: progress,
+            isAllSetsComplete: isAllSetsComplete
+        )
+    }
+
+    private struct CurrentExerciseData {
+        let name: String?
+        let imageName: String?
+        let currentExerciseCompletedSetsCount: Int
+        let currentExerciseTotalSetsCount: Int
+        let targetSet: WorkoutSetModel?
+    }
+
+    private func deriveCurrentExerciseData(session: WorkoutSessionModel, index: Int) -> CurrentExerciseData {
+        let totalExercisesCount = session.exercises.count
+        let currentExercise: WorkoutExerciseModel? =
+            (0..<totalExercisesCount).contains(index)
+            ? session.exercises[index]
+            : nil
+
+        let currentExerciseName = currentExercise?.name
+        let currentExerciseImageName = currentExercise?.imageName
+
+        let currentExerciseSets = currentExercise?.sets ?? []
+        let currentExerciseCompletedSetsCount = currentExerciseSets.filter { $0.completedAt != nil }.count
+        let currentExerciseTotalSetsCount = currentExerciseSets.count
+        let targetSet = currentExercise?.sets.first { $0.completedAt == nil }
+
+        return CurrentExerciseData(
+            name: currentExerciseName,
+            imageName: currentExerciseImageName,
+            currentExerciseCompletedSetsCount: currentExerciseCompletedSetsCount,
+            currentExerciseTotalSetsCount: currentExerciseTotalSetsCount,
+            targetSet: targetSet
+        )
+    }
+
+    private func logExerciseImageChange(_ imageName: String?, currentExerciseIndex: Int, exerciseName: String?) {
+        guard imageName != lastContentState?.currentExerciseImageName else { return }
+        if let imageName {
+            print("📸 Live Activity: Exercise image changed to '\(imageName)' (index: \(currentExerciseIndex), name: \(exerciseName ?? "nil"))")
+        } else {
+            print("⚠️ Live Activity: No image for current exercise (index: \(currentExerciseIndex))")
         }
     }
 }

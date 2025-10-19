@@ -198,10 +198,6 @@ struct AuthOptionsSection: View {
             
             logManager.trackEvent(event: Event.appleAuthStart)
             do {
-                // Ensure we have an anonymous user to link to, avoiding new UID creation
-                if authManager.auth == nil {
-                    _ = try await authManager.signInAnonymously()
-                }
                 let result = try await authManager.signInApple()
                 logManager.trackEvent(event: Event.appleAuthSuccess)
                 // Proceed immediately on success (do not rely solely on onChange)
@@ -232,10 +228,6 @@ struct AuthOptionsSection: View {
             
             logManager.trackEvent(event: Event.googleAuthStart)
             do {
-                // Ensure we have an anonymous user to link to, avoiding new UID creation
-                if authManager.auth == nil {
-                    _ = try await authManager.signInAnonymously()
-                }
                 let result = try await authManager.signInGoogle()
                 logManager.trackEvent(event: Event.googleAuthSuccess)
                 // Proceed immediately on success (do not rely solely on onChange)
@@ -286,12 +278,7 @@ struct AuthOptionsSection: View {
     private func handleNavigation() {
         // Navigate based on user's current onboarding step
         let destination = getNavigationDestination(for: userManager.currentUser?.onboardingStep ?? .auth)
-        if destination == .completed {
-            // User has completed onboarding, show main app
-            appState.updateViewState(showTabBarView: true)
-        } else {
-            navigationDestination = destination
-        }
+        navigationDestination = destination
     }
     
     // MARK: - Helper Methods

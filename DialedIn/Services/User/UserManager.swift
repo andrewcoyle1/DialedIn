@@ -213,6 +213,10 @@ class UserManager {
     
     func updateOnboardingStep(step: OnboardingStep) async throws {
         let uid = try currentUserId()
+        // Monotonic guard: only advance forward
+        if let current = currentUser?.onboardingStep, current.orderIndex >= step.orderIndex {
+            return
+        }
         try await remote.updateOnboardingStep(userId: uid, step: step)
         // Optimistically update local cache so routing on app relaunch restores to the latest step
         if let existing = currentUser {

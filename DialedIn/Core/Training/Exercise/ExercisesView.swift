@@ -29,7 +29,7 @@ struct ExercisesView: View {
     @Binding var showCreateExercise: Bool
 
     var body: some View {
-        Group {
+        List {
             if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 
                 if !favouriteExercises.isEmpty {

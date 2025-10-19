@@ -1,3 +1,12 @@
+//
+//  ScheduledWorkoutRow.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 20/10/2025.
+//
+
+import SwiftUI
+
 struct ScheduledWorkoutRow: View {
     let scheduledWorkout: ScheduledWorkout
     
@@ -43,5 +52,11 @@ struct ScheduledWorkoutRow: View {
         } else {
             return .gray
         }
+    }
+}
+
+#Preview {
+    List {
+    ScheduledWorkoutRow(scheduledWorkout: ScheduledWorkout.mocksWeek1.first!)
     }
 }

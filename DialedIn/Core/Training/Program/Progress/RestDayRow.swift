@@ -1,3 +1,12 @@
+//
+//  RestDayRow.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 20/10/2025.
+//
+
+import SwiftUI
+
 struct RestDayRow: View {
     let date: Date
     
@@ -16,5 +25,11 @@ struct RestDayRow: View {
             
             Spacer()
         }
+    }
+}
+
+#Preview {
+    List {
+        RestDayRow(date: Date())
     }
 }

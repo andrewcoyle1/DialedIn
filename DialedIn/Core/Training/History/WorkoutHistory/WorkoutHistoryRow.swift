@@ -1,3 +1,12 @@
+//
+//  WorkoutHistoryRow.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 19/10/2025.
+//
+
+import SwiftUI
+
 struct WorkoutHistoryRow: View {
     let session: WorkoutSessionModel
     
@@ -39,5 +48,11 @@ struct WorkoutHistoryRow: View {
                 .foregroundStyle(.tertiary)
         }
         .padding(.vertical, 4)
+    }
+}
+
+#Preview {
+    List {
+        WorkoutHistoryRow(session: WorkoutSessionModel.mock)
     }
 }

@@ -257,6 +257,7 @@ extension View {
             .environment(logManager)
             .environment(AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil), logManager: logManager))
             .environment(AppState())
+            .environment(DetailNavigationModel())
             .environment(ReportManager(service: MockReportService(), userManager: userManager))
             .environment(ExerciseTemplateManager(services: MockExerciseTemplateServices()))
             .environment(ExerciseUnitPreferenceManager(userManager: userManager))

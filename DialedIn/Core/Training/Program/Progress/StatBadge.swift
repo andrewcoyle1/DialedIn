@@ -1,3 +1,12 @@
+//
+//  StatBadge.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 20/10/2025.
+//
+
+import SwiftUI
+
 struct StatBadge: View {
     let value: String
     let label: String
@@ -19,4 +28,13 @@ struct StatBadge: View {
                 .foregroundStyle(.secondary)
         }
     }
+}
+
+#Preview {
+    StatBadge(
+        value: "Value",
+        label: "Label",
+        systemImage: "dumbbell",
+        color: .red
+    )
 }

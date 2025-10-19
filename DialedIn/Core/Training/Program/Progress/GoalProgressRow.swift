@@ -1,3 +1,12 @@
+//
+//  GoalProgressRow.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 20/10/2025.
+//
+
+import SwiftUI
+
 struct GoalProgressRow: View {
     let goal: TrainingGoal
     
@@ -27,5 +36,11 @@ struct GoalProgressRow: View {
                 }
             }
         }
+    }
+}
+
+#Preview {
+    List {
+        GoalProgressRow(goal: TrainingGoal.mocks.first!)
     }
 }

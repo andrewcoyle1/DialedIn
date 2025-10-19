@@ -34,6 +34,11 @@ struct MockWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         try tryShowError()
     }
     
+    func upsertLocalWorkoutSession(session: WorkoutSessionModel) throws {
+        try tryShowError()
+        // Mock implementation: just delegates to tryShowError for consistency
+    }
+    
     func endLocalWorkoutSession(id: String, at endedAt: Date) throws {
         try tryShowError()
     }

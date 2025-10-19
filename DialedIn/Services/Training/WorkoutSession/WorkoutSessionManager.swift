@@ -9,7 +9,7 @@ import SwiftUI
 
 @MainActor
 @Observable
-class WorkoutSessionManager: LocalWorkoutSessionPersistence, RemoteWorkoutSessionService {
+class WorkoutSessionManager {
     
     private let local: LocalWorkoutSessionPersistence
     private let remote: RemoteWorkoutSessionService
@@ -26,6 +26,9 @@ class WorkoutSessionManager: LocalWorkoutSessionPersistence, RemoteWorkoutSessio
     
     // Optional reference to TrainingPlanManager for auto-completion
     weak var trainingPlanManager: TrainingPlanManager?
+    
+    // Tracks when sessions are modified (for UI refresh triggers)
+    var sessionsLastModified: Date = Date()
     
     init(services: WorkoutSessionServices) {
         self.remote = services.remote
@@ -62,6 +65,11 @@ class WorkoutSessionManager: LocalWorkoutSessionPersistence, RemoteWorkoutSessio
                 scheduledWorkoutId: scheduledWorkoutId,
                 session: session
             )
+        }
+        
+        // Save completed session locally for offline history
+        if let session = activeSession, session.endedAt != nil {
+            try? local.updateLocalWorkoutSession(session: session)
         }
         
         activeSession = nil
@@ -115,10 +123,12 @@ class WorkoutSessionManager: LocalWorkoutSessionPersistence, RemoteWorkoutSessio
     // Delete
     func deleteLocalWorkoutSession(id: String) throws {
         try local.deleteLocalWorkoutSession(id: id)
+        sessionsLastModified = Date()
     }
     
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws {
         try local.deleteAllLocalWorkoutSessionsForAuthor(authorId: authorId)
+        sessionsLastModified = Date()
     }
     
     // MARK: - Remote Operations
@@ -126,6 +136,7 @@ class WorkoutSessionManager: LocalWorkoutSessionPersistence, RemoteWorkoutSessio
     // Create
     func createWorkoutSession(session: WorkoutSessionModel) async throws {
         try await remote.createWorkoutSession(session: session)
+        sessionsLastModified = Date()
     }
     
     // Read
@@ -152,18 +163,53 @@ class WorkoutSessionManager: LocalWorkoutSessionPersistence, RemoteWorkoutSessio
     // Update
     func updateWorkoutSession(session: WorkoutSessionModel) async throws {
         try await remote.updateWorkoutSession(session: session)
+        sessionsLastModified = Date()
     }
     
     func endWorkoutSession(id: String, at endedAt: Date) async throws {
         try await remote.endWorkoutSession(id: id, at: endedAt)
+        sessionsLastModified = Date()
     }
     
     // Delete
     func deleteWorkoutSession(id: String) async throws {
         try await remote.deleteWorkoutSession(id: id)
+        sessionsLastModified = Date()
     }
     
     func deleteAllWorkoutSessionsForAuthor(authorId: String) async throws {
         try await remote.deleteAllWorkoutSessionsForAuthor(authorId: authorId)
+        sessionsLastModified = Date()
+    }
+    
+    // MARK: - Sync Operations
+    
+    /// Syncs workout sessions from remote Firebase to local storage
+    /// Fetches recent sessions and upserts them into local store
+    func syncWorkoutSessionsFromRemote(authorId: String, limitTo: Int = 100) async throws {
+        let remoteSessions = try await remote.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limitTo)
+        var failedSessions: [(id: String, error: Error)] = []
+        
+        for session in remoteSessions {
+            do {
+                // Upsert: create if not exists or update if exists
+                try local.upsertLocalWorkoutSession(session: session)
+            } catch {
+                // Log individual failures but continue syncing other sessions
+                failedSessions.append((id: session.id, error: error))
+            }
+        }
+        
+        // If any sessions failed to sync, throw aggregate error
+        if !failedSessions.isEmpty {
+            let errorMessage = "Failed to sync \(failedSessions.count) of \(remoteSessions.count) sessions"
+            let userInfo: [String: Any] = [
+                NSLocalizedDescriptionKey: errorMessage,
+                "failed_session_ids": failedSessions.map { $0.id },
+                "failed_session_count": failedSessions.count,
+                "total_session_count": remoteSessions.count
+            ]
+            throw NSError(domain: "WorkoutSessionManager", code: 500, userInfo: userInfo)
+        }
     }
 }

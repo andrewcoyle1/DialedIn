@@ -42,19 +42,15 @@ struct OnboardingCustomisingProgramView: View {
     }
     
     private func updateOnboardingStep() async {
-        
-        // Only update if not already at this step (to avoid redundant updates and loading flashes)
-        guard userManager.currentUser?.onboardingStep != .customiseProgram else {
+        let target: OnboardingStep = .customiseProgram
+        if let current = userManager.currentUser?.onboardingStep, current.orderIndex >= target.orderIndex {
             return
         }
-        
         isLoading = true
         logManager.trackEvent(event: Event.updateOnboardingStepStart)
-        
         do {
-            try await userManager.updateOnboardingStep(step: .customiseProgram)
+            try await userManager.updateOnboardingStep(step: target)
             logManager.trackEvent(event: Event.updateOnboardingStepSuccess)
-
         } catch {
             showAlert = AnyAppAlert(title: "Unable to update your progress", subtitle: "Please check your internet connection and try again.", buttons: {
                 AnyView(

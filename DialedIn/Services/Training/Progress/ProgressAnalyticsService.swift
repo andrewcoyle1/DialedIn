@@ -66,7 +66,7 @@ class ProgressAnalyticsService {
                 // Get exercise template for muscle groups
                 let template = try await exerciseTemplateManager.getExerciseTemplate(id: exercise.templateId)
                 
-                for set in exercise.sets where set.completedAt != nil {
+                for set in exercise.sets where set.completedAt != nil && !set.isWarmup {
                     let reps = Double(set.reps ?? 0)
                     let weight = set.weightKg ?? 0
                     let volume = reps * weight
@@ -111,7 +111,7 @@ class ProgressAnalyticsService {
             
             var sessionVolume: Double = 0
             for exercise in session.exercises {
-                for set in exercise.sets where set.completedAt != nil {
+                for set in exercise.sets where set.completedAt != nil && !set.isWarmup {
                     let reps = Double(set.reps ?? 0)
                     let weight = set.weightKg ?? 0
                     sessionVolume += reps * weight
@@ -178,7 +178,7 @@ class ProgressAnalyticsService {
             for exercise in session.exercises {
                 let exerciseId = exercise.templateId
                 
-                for set in exercise.sets where set.completedAt != nil {
+                for set in exercise.sets where set.completedAt != nil && !set.isWarmup {
                     let weight = set.weightKg ?? 0
                     let reps = set.reps ?? 0
                     

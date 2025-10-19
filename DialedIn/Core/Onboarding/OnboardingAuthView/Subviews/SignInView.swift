@@ -167,12 +167,7 @@ struct SignInView: View {
                             // Navigate based on user's current onboarding step
                             let step = userManager.currentUser?.onboardingStep
                             let destination = getNavigationDestination(for: step)
-                            if destination == .completed {
-                                // User has completed onboarding, show main app
-                                appState.updateViewState(showTabBarView: true)
-                            } else {
-                                navigationDestination = destination
-                            }
+                            navigationDestination = destination
                         } else {
                             navigationDestination = .emailVerification
                         }

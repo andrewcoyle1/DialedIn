@@ -400,10 +400,7 @@ struct DevSettingsView: View {
             }
             // Clear local user cache
             userManager.clearAllLocalData()
-            // Reset UI back to onboarding
-            await MainActor.run {
-                appState.updateViewState(showTabBarView: false)
-            }
+            // UI will reset to onboarding automatically when auth/user state changes
         }
     }
     #endif

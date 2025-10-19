@@ -60,7 +60,7 @@ struct WorkoutsView: View {
     }
 
     var body: some View {
-        Group {
+        List {
             if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 
                 if !favouriteWorkouts.isEmpty {
