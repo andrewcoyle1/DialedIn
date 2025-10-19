@@ -88,8 +88,23 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
             throw NSError(domain: "FirebaseWorkoutSessionService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Workout session not found"])
         }
         
-        // Decode base session (expects the document to contain compatible fields)
-        let baseSession = try Firestore.Decoder().decode(WorkoutSessionModel.self, from: sessionData)
+        // Decode storage model first (session doc does not contain nested exercises)
+        let storage = try Firestore.Decoder().decode(WorkoutSessionForFirebase.self, from: sessionData)
+        
+        // Build base domain model without exercises; populate exercises below from flattened collections
+        let baseSession = WorkoutSessionModel(
+            id: storage.id,
+            authorId: storage.authorId,
+            name: storage.name,
+            workoutTemplateId: storage.workoutTemplateId,
+            scheduledWorkoutId: storage.scheduledWorkoutId,
+            trainingPlanId: storage.trainingPlanId,
+            dateCreated: storage.dateCreated,
+            dateModified: storage.dateModified,
+            endedAt: storage.endedAt,
+            notes: storage.notes,
+            exercises: []
+        )
         
         // Fetch exercises from flattened collection
         let exercisesSnapshot = try await exercisesCollection
@@ -198,6 +213,24 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
         }
         
         return sessions
+    }
+    
+    /// Retrieves the most recent completed workout session for a specific template
+    func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
+        let query = collection
+            .whereField(WorkoutSessionModel.CodingKeys.authorId.rawValue, isEqualTo: authorId)
+            .whereField(WorkoutSessionModel.CodingKeys.workoutTemplateId.rawValue, isEqualTo: templateId)
+            .whereField(WorkoutSessionModel.CodingKeys.endedAt.rawValue, isNotEqualTo: NSNull())
+            .order(by: WorkoutSessionModel.CodingKeys.endedAt.rawValue, descending: true)
+            .limit(to: 1)
+        
+        let snapshot = try await query.getDocuments()
+        
+        guard let document = snapshot.documents.first else {
+            return nil
+        }
+        
+        return try await getWorkoutSession(id: document.documentID)
     }
     
     // MARK: - Update Operations
@@ -392,7 +425,10 @@ extension WorkoutSessionModel {
         WorkoutSessionForFirebase(
             id: id,
             authorId: authorId,
+            name: name,
             workoutTemplateId: workoutTemplateId,
+            scheduledWorkoutId: scheduledWorkoutId,
+            trainingPlanId: trainingPlanId,
             dateCreated: dateCreated,
             dateModified: dateModified,
             endedAt: endedAt,
@@ -453,7 +489,10 @@ extension WorkoutExerciseModel {
 struct WorkoutSessionForFirebase: Codable {
     let id: String
     let authorId: String
+    let name: String
     let workoutTemplateId: String?
+    let scheduledWorkoutId: String?
+    let trainingPlanId: String?
     let dateCreated: Date
     let dateModified: Date
     let endedAt: Date?
@@ -462,7 +501,10 @@ struct WorkoutSessionForFirebase: Codable {
     enum CodingKeys: String, CodingKey {
         case id
         case authorId = "author_id"
+        case name
         case workoutTemplateId = "workout_template_id"
+        case scheduledWorkoutId = "scheduled_workout_id"
+        case trainingPlanId = "training_plan_id"
         case dateCreated = "date_created"
         case dateModified = "date_modified"
         case endedAt = "ended_at"

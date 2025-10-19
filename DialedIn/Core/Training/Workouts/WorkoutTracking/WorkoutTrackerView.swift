@@ -20,6 +20,7 @@ struct WorkoutTrackerView: View {
     #endif
     @Environment(PushManager.self) var pushManager
     @Environment(\.dismiss) var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     
     // Session state
     @State var workoutSession: WorkoutSessionModel
@@ -40,6 +41,9 @@ struct WorkoutTrackerView: View {
     // Unit preferences per exercise (keyed by template ID)
     @State var exerciseUnitPreferences: [String: ExerciseUnitPreference] = [:]
     
+    // Previous workout session for displaying previous values
+    @State var previousWorkoutSession: WorkoutSessionModel?
+    
     // Rest timer state (independent from workout duration)
     @State var restDurationSeconds: Int = 90
     // Per-set rest mapping used when the previous set completes
@@ -53,6 +57,9 @@ struct WorkoutTrackerView: View {
     
     // Error handling
     @State var showAlert: AnyAppAlert?
+    
+    // Widget sync timer
+    @State var widgetSyncTimer: Timer?
     
     // Notification identifier for rest timer
     let restTimerNotificationId = "workout-rest-timer"
@@ -89,9 +96,17 @@ struct WorkoutTrackerView: View {
                 }
                 .showCustomAlert(alert: $showAlert)
             }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                if newPhase == .active && oldPhase == .background {
+                    print("📱 App returned to foreground, syncing widget completions and refreshing view")
+                    syncPendingSetCompletionFromWidget()
+                    buildView()
+                }
+            }
             .onAppear {
                 buildView()
                 loadUnitPreferences()
+                startWidgetSyncTimer()
                 Task {
                     // Ensure HealthKit authorization before starting HK session
                     let healthKitManager = HealthKitManager()
@@ -215,12 +230,14 @@ struct WorkoutTrackerView: View {
             ForEach(workoutSession.exercises, id: \.id) { exercise in
                 let index = workoutSession.exercises.firstIndex(where: { $0.id == exercise.id }) ?? 0
                 let preference = exerciseUnitPreferences[exercise.templateId] ?? unitPreferenceManager.getPreference(for: exercise.templateId)
+                let previousSets = buildPreviousLookup(for: exercise)
                 ExerciseTrackerCard(
                     exercise: exercise,
                     exerciseIndex: index,
                     isCurrentExercise: index == currentExerciseIndex,
                     weightUnit: preference.weightUnit,
                     distanceUnit: preference.distanceUnit,
+                    previousSetsByIndex: previousSets,
                     onSetUpdate: { updatedSet in updateSet(updatedSet, in: exercise.id) },
                     onAddSet: { addSet(to: exercise.id) },
                     onDeleteSet: { setId in deleteSet(setId, from: exercise.id) },

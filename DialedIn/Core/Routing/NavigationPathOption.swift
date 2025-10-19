@@ -13,6 +13,7 @@ enum NavigationPathOption: Hashable {
     case workoutTemplateDetail(template: WorkoutTemplateModel)
     case ingredientTemplateDetail(template: IngredientTemplateModel)
     case recipeTemplateDetail(template: RecipeTemplateModel)
+    case workoutSessionDetail(session: WorkoutSessionModel)
 }
 
 enum NavigationOptions: Equatable, Hashable, Identifiable {
@@ -76,6 +77,8 @@ extension View {
                     IngredientDetailView(ingredientTemplate: template)
                 case .recipeTemplateDetail(template: let template):
                     RecipeDetailView(recipeTemplate: template)
+                case .workoutSessionDetail(session: let session):
+                    WorkoutSessionDetailView(session: session)
                 }
             }
     }

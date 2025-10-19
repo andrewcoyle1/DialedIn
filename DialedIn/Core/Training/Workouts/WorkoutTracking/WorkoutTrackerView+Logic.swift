@@ -83,6 +83,100 @@ extension WorkoutTrackerView {
         } else if let firstExercise = workoutSession.exercises.first {
             expandedExerciseIds.insert(firstExercise.id)
         }
+        
+        // Check for pending widget completions that happened while backgrounded
+        syncPendingSetCompletionFromWidget()
+    }
+    
+    // MARK: - Widget Communication
+    
+    func startWidgetSyncTimer() {
+        // Poll for widget set completions and workout completion every second
+        widgetSyncTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            syncPendingSetCompletionFromWidget()
+            syncPendingWorkoutCompletionFromWidget()
+        }
+    }
+    
+    func stopWidgetSyncTimer() {
+        widgetSyncTimer?.invalidate()
+        widgetSyncTimer = nil
+    }
+    
+    func syncPendingSetCompletionFromWidget() {
+        // Check if widget completed a set
+        guard let pending = SharedWorkoutStorage.pendingSetCompletion else { return }
+        
+        print("🔍 Widget Completion: Found pending for set '\(pending.setId)'")
+        print("   Values: weight=\(pending.weightKg ?? 0)kg, reps=\(pending.reps ?? 0)")
+        
+        // Find the set in the current workout
+        guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { exercise in
+            exercise.sets.contains { $0.id == pending.setId }
+        }) else {
+            print("❌ Widget Completion: Set not found in current workout")
+            print("   Available set IDs: \(workoutSession.exercises.flatMap { $0.sets.map { $0.id } })")
+            SharedWorkoutStorage.clearPendingSetCompletion()
+            return
+        }
+        
+        guard let setIndex = workoutSession.exercises[exerciseIndex].sets.firstIndex(where: { $0.id == pending.setId }) else {
+            print("❌ Set ID matched but not found in sets array")
+            SharedWorkoutStorage.clearPendingSetCompletion()
+            return
+        }
+        
+        let exercise = workoutSession.exercises[exerciseIndex]
+        print("✓ Found in exercise \(exerciseIndex): '\(exercise.name)' at set index \(setIndex)")
+        
+        // Get the set and apply values from widget
+        var updatedSet = exercise.sets[setIndex]
+        
+        let beforeComplete = updatedSet.completedAt
+        print("   Before: completedAt=\(beforeComplete?.description ?? "nil")")
+        
+        // Apply values from widget completion (these are already in SI units)
+        if let weight = pending.weightKg { updatedSet.weightKg = weight }
+        if let reps = pending.reps { updatedSet.reps = reps }
+        if let distance = pending.distanceMeters { updatedSet.distanceMeters = distance }
+        if let duration = pending.durationSec { updatedSet.durationSec = duration }
+        updatedSet.completedAt = pending.completedAt
+        
+        print("   After: completedAt=\(updatedSet.completedAt?.description ?? "nil")")
+        
+        // Clear the pending completion BEFORE calling updateSet to avoid reprocessing
+        SharedWorkoutStorage.clearPendingSetCompletion()
+        
+        print("✅ Widget Completion: Routing through updateSet() to trigger all mechanics")
+        
+        // Route through existing updateSet() logic to ensure:
+        // - Rest timer starts properly
+        // - Exercise auto-advance if all sets complete
+        // - Proper state management
+        // - Live Activity updates
+        updateSet(updatedSet, in: exercise.id)
+    }
+    
+    func syncPendingWorkoutCompletionFromWidget() {
+        // Check if widget requested workout completion
+        guard let pending = SharedWorkoutStorage.pendingWorkoutCompletion else { return }
+        
+        print("🔍 Widget Workout Completion: Found pending for session '\(pending.sessionId)'")
+        
+        // Verify this is the current session
+        guard pending.sessionId == workoutSession.id else {
+            print("❌ Widget Workout Completion: Session ID mismatch")
+            SharedWorkoutStorage.clearPendingWorkoutCompletion()
+            return
+        }
+        
+        print("✅ Widget Workout Completion: Triggering finishWorkout()")
+        
+        // Clear the pending completion BEFORE calling finishWorkout
+        SharedWorkoutStorage.clearPendingWorkoutCompletion()
+        
+        // Call the existing finishWorkout method which handles all the proper save logic
+        finishWorkout()
     }
     
     // MARK: - Unit Preference Management
@@ -93,6 +187,9 @@ extension WorkoutTrackerView {
             let preference = unitPreferenceManager.getPreference(for: exercise.templateId)
             exerciseUnitPreferences[exercise.templateId] = preference
         }
+        
+        // Load previous workout session for "Prev" column
+        loadPreviousWorkoutSession()
     }
     
     func updateWeightUnit(_ unit: ExerciseWeightUnit, for templateId: String) {
@@ -116,12 +213,58 @@ extension WorkoutTrackerView {
             exerciseUnitPreferences[templateId] = unitPreferenceManager.getPreference(for: templateId)
         }
     }
-
-    func discardWorkout() {
+    
+    // MARK: - Previous Values Management
+    
+    func loadPreviousWorkoutSession() {
+        // Only load previous session if this workout is from a template
+        guard let templateId = workoutSession.workoutTemplateId,
+              let authorId = userManager.currentUser?.userId else {
+            previousWorkoutSession = nil
+            return
+        }
+        
         Task {
             do {
+                previousWorkoutSession = try await workoutSessionManager.getLastCompletedSessionForTemplate(
+                    templateId: templateId,
+                    authorId: authorId
+                )
+            } catch {
+                print("Failed to load previous workout session: \(error)")
+                previousWorkoutSession = nil
+            }
+        }
+    }
+    
+    func buildPreviousLookup(for exercise: WorkoutExerciseModel) -> [Int: WorkoutSetModel] {
+        guard let prevSession = previousWorkoutSession else { return [:] }
+        
+        // Find matching exercise by templateId
+        guard let prevExercise = prevSession.exercises.first(where: { $0.templateId == exercise.templateId }) else {
+            return [:]
+        }
+        
+        // Map sets by index
+        return Dictionary(uniqueKeysWithValues: prevExercise.sets.map { ($0.index, $0) })
+    }
+
+    func discardWorkout() {
+        stopWidgetSyncTimer()
+        Task {
+            do {
+                #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+                // End HK session first
+                hkWorkoutManager.endWorkout()
+                #endif
+                
                 // Cancel any pending rest timer notifications
                 await pushManager.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
+                
+                #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+                // End live activity with immediate dismissal for discarded workouts
+                workoutActivityViewModel.endLiveActivity(session: workoutSession, isCompleted: false)
+                #endif
                 
                 try workoutSessionManager.deleteLocalWorkoutSession(id: workoutSession.id)
                 // Don't mark scheduled workout as complete when discarding
@@ -228,8 +371,13 @@ extension WorkoutTrackerView {
         workoutSession.updateExercises(updatedExercises)
         saveWorkoutProgress()
         
+        // Check if all sets in the entire workout are complete
+        let allSets = updatedExercises.flatMap { $0.sets }
+        let isAllSetsComplete = !allSets.isEmpty && allSets.allSatisfy { $0.completedAt != nil }
+        
         // Start a rest timer when a set transitions from incomplete -> complete
-        if previousCompletedAt == nil, updatedSet.completedAt != nil {
+        // BUT don't start rest if this was the last set in the entire workout
+        if previousCompletedAt == nil, updatedSet.completedAt != nil, !isAllSetsComplete {
             // Use rest defined for this set (applies after this set)
             let customForThisSet = restBeforeSetIdToSec[updatedSet.id]
             startRestTimer(durationSeconds: customForThisSet ?? restDurationSeconds)
@@ -241,6 +389,7 @@ extension WorkoutTrackerView {
             if nextIndex < updatedExercises.count {
                 expandedExerciseIds.removeAll()
                 expandedExerciseIds.insert(updatedExercises[nextIndex].id)
+                print("🔄 Current exercise index changed: \(currentExerciseIndex) → \(nextIndex) (reason: exercise completed)")
                 currentExerciseIndex = nextIndex
             } else {
                 // No next exercise; just collapse the completed one
@@ -248,8 +397,8 @@ extension WorkoutTrackerView {
             }
         }
         
-        // Always align current exercise to top-most incomplete after updates
-        syncCurrentExerciseIndexToFirstIncomplete(in: workoutSession.exercises)
+        // Don't sync current exercise index here - let it be controlled by user interaction
+        // Only sync when exercise is completed (handled above) or on view load/reorder
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Update activity to reflect set/volume/progress changes
@@ -298,8 +447,7 @@ extension WorkoutTrackerView {
         }
         workoutSession.updateExercises(updatedExercises)
         saveWorkoutProgress()
-        // Realign current exercise in case previously all-complete edge cases shift
-        syncCurrentExerciseIndexToFirstIncomplete(in: workoutSession.exercises)
+        // Don't sync current exercise index - adding a set doesn't change which exercise is current
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         workoutActivityViewModel.updateLiveActivity(
@@ -331,8 +479,7 @@ extension WorkoutTrackerView {
         
         workoutSession.updateExercises(updatedExercises)
         saveWorkoutProgress()
-        // Realign current exercise after deletion
-        syncCurrentExerciseIndexToFirstIncomplete(in: workoutSession.exercises)
+        // Don't sync current exercise index - deleting a set doesn't change which exercise is current
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         workoutActivityViewModel.updateLiveActivity(
@@ -450,6 +597,7 @@ extension WorkoutTrackerView {
     }
     
     internal func finishWorkout() {
+        stopWidgetSyncTimer()
         Task {
             do {
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -474,7 +622,7 @@ extension WorkoutTrackerView {
                 try await createExerciseHistoryEntries(performedAt: endTime)
                 
                     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-                    workoutActivityViewModel.endLiveActivity(session: workoutSession, success: true)
+                    workoutActivityViewModel.endLiveActivity(session: workoutSession, isCompleted: true)
                     #endif
                 await workoutSessionManager.endActiveSession()
                     dismiss()
@@ -687,10 +835,14 @@ extension WorkoutTrackerView {
     }
 
     private func syncCurrentExerciseIndexToFirstIncomplete(in exercises: [WorkoutExerciseModel]) {
+        let oldIndex = currentExerciseIndex
         if let idx = firstIncompleteExerciseIndex(in: exercises) {
             currentExerciseIndex = idx
         } else {
             currentExerciseIndex = max(0, exercises.isEmpty ? 0 : exercises.count - 1)
+        }
+        if oldIndex != currentExerciseIndex {
+            print("🔄 Current exercise index changed: \(oldIndex) → \(currentExerciseIndex) (reason: sync to first incomplete)")
         }
     }
 

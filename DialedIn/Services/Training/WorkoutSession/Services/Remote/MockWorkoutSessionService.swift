@@ -63,6 +63,18 @@ struct MockWorkoutSessionService: RemoteWorkoutSessionService {
         return sessions
     }
     
+    func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+        
+        // Return the first completed session matching the template
+        return sessions.first { session in
+            session.workoutTemplateId == templateId &&
+            session.authorId == authorId &&
+            session.endedAt != nil
+        }
+    }
+    
     // Update
     func updateWorkoutSession(session: WorkoutSessionModel) async throws {
         try await Task.sleep(for: .seconds(delay))

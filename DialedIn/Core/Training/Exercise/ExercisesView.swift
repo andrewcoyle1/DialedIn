@@ -28,45 +28,6 @@ struct ExercisesView: View {
     @Binding var selectedExerciseTemplate: ExerciseTemplateModel?
     @Binding var showCreateExercise: Bool
 
-    // MARK: Computed Variables
-
-    private var myExerciseIds: Set<String> {
-        Set(myExercises.map { $0.id })
-    }
-
-    private var favouriteExerciseIds: Set<String> {
-        Set(favouriteExercises.map { $0.id })
-    }
-
-    private var myExercisesVisible: [ExerciseTemplateModel] {
-        myExercises.filter { !favouriteExerciseIds.contains($0.id) }
-    }
-
-    private var bookmarkedOnlyExercises: [ExerciseTemplateModel] {
-        bookmarkedExercises.filter { !favouriteExerciseIds.contains($0.id) && !myExerciseIds.contains($0.id) }
-    }
-    
-    private var officialExerciseIds: Set<String> {
-        Set(officialExercises.map { $0.id })
-    }
-
-    private var savedExerciseIds: Set<String> {
-        favouriteExerciseIds.union(Set(bookmarkedOnlyExercises.map { $0.id }))
-    }
-    
-    private var officialExercisesVisible: [ExerciseTemplateModel] {
-        officialExercises.filter { !favouriteExerciseIds.contains($0.id) && !myExerciseIds.contains($0.id) && !savedExerciseIds.contains($0.id) }
-    }
-
-    private var trendingExercisesDeduped: [ExerciseTemplateModel] {
-        exercises.filter { !myExerciseIds.contains($0.id) && !savedExerciseIds.contains($0.id) && !officialExerciseIds.contains($0.id) }
-    }
-
-    private var visibleExerciseTemplates: [ExerciseTemplateModel] {
-        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? trendingExercisesDeduped : exercises
-    }
-
     var body: some View {
         Group {
             if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -106,7 +67,45 @@ struct ExercisesView: View {
             }
         }
     }
+    // MARK: Computed Variables
 
+    private var myExerciseIds: Set<String> {
+        Set(myExercises.map { $0.id })
+    }
+
+    private var favouriteExerciseIds: Set<String> {
+        Set(favouriteExercises.map { $0.id })
+    }
+
+    private var myExercisesVisible: [ExerciseTemplateModel] {
+        myExercises.filter { !favouriteExerciseIds.contains($0.id) }
+    }
+
+    private var bookmarkedOnlyExercises: [ExerciseTemplateModel] {
+        bookmarkedExercises.filter { !favouriteExerciseIds.contains($0.id) && !myExerciseIds.contains($0.id) }
+    }
+    
+    private var officialExerciseIds: Set<String> {
+        Set(officialExercises.map { $0.id })
+    }
+
+    private var savedExerciseIds: Set<String> {
+        favouriteExerciseIds.union(Set(bookmarkedOnlyExercises.map { $0.id }))
+    }
+    
+    private var officialExercisesVisible: [ExerciseTemplateModel] {
+        officialExercises.filter { !favouriteExerciseIds.contains($0.id) && !myExerciseIds.contains($0.id) && !savedExerciseIds.contains($0.id) }
+    }
+
+    private var trendingExercisesDeduped: [ExerciseTemplateModel] {
+        exercises.filter { !myExerciseIds.contains($0.id) && !savedExerciseIds.contains($0.id) && !officialExerciseIds.contains($0.id) }
+    }
+
+    private var visibleExerciseTemplates: [ExerciseTemplateModel] {
+        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? trendingExercisesDeduped : exercises
+    }
+    
     // MARK: UI Components
     private var favouriteExerciseTemplatesSection: some View {
         Section {

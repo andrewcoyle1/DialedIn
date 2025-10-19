@@ -225,11 +225,13 @@ class WorkoutActivityViewModel {
 	/// End the Workout Live Activity
 	func endLiveActivity(
 		session: WorkoutSessionModel,
-		success: Bool = true,
+		isCompleted: Bool = true,
 		statusMessage: String? = nil
 	) {
-		let message = statusMessage ?? (success ? "Workout completed" : "Workout ended")
-		let finalState = makeContentState(
+		let message = statusMessage ?? (isCompleted ? "Workout completed" : "Workout ended")
+		
+		// Build final state with summary metrics if completed
+		var finalState = makeContentState(
 			for: session,
 			isActive: false,
 			currentExerciseIndex: 0,
@@ -239,22 +241,43 @@ class WorkoutActivityViewModel {
 			elapsedTimeOverride: Date().timeIntervalSince(session.dateCreated)
 		)
 		
+		// Update ended flags
+		finalState.isWorkoutEnded = true
+		finalState.endedSuccessfully = isCompleted
+		
+		// Add summary metrics for completed workouts
+		if isCompleted {
+			let elapsedTime = Date().timeIntervalSince(session.dateCreated)
+			let allSets = session.exercises.flatMap { $0.sets }
+			let completedSetsCount = allSets.filter { $0.completedAt != nil }.count
+			let totalVolume = allSets.compactMap { set -> Double? in
+				guard let weight = set.weightKg, let reps = set.reps else { return nil }
+				return weight * Double(reps)
+			}.reduce(0.0, +)
+			
+			finalState.finalDurationSeconds = elapsedTime
+			finalState.finalVolumeKg = totalVolume > 0 ? totalVolume : nil
+			finalState.finalCompletedSetsCount = completedSetsCount
+			finalState.finalTotalExercisesCount = session.exercises.count
+		}
+		
 		lastContentState = finalState
+		
+		// Use different dismissal policies based on completion state
+		let dismissalPolicy: ActivityUIDismissalPolicy = isCompleted ? .default : .immediate
 
         Task { @MainActor in
-            await self.endActivity(with: finalState)
+            await self.endActivity(with: finalState, dismissalPolicy: dismissalPolicy)
         }
 	}
 }
 
 extension WorkoutActivityViewModel {
     
-    func endActivity(with finalState: WorkoutActivityAttributes.ContentState) async {
+    func endActivity(with finalState: WorkoutActivityAttributes.ContentState, dismissalPolicy: ActivityUIDismissalPolicy) async {
         guard let activity = currentActivity else {
             return
         }
-        
-        let dismissalPolicy: ActivityUIDismissalPolicy = .default
         
         hkWorkoutManager.isLiveActivityActive = false
         Task {
@@ -345,9 +368,9 @@ extension WorkoutActivityViewModel {
         // Only log when image changes
         if currentExerciseImageName != lastContentState?.currentExerciseImageName {
             if let imageName = currentExerciseImageName {
-                print("📸 Live Activity: Exercise image changed to '\(imageName)'")
+                print("📸 Live Activity: Exercise image changed to '\(imageName)' (index: \(currentExerciseIndex), name: \(currentExerciseName ?? "nil"))")
             } else {
-                print("⚠️ Live Activity: No image for current exercise")
+                print("⚠️ Live Activity: No image for current exercise (index: \(currentExerciseIndex))")
             }
         }
 
@@ -363,6 +386,17 @@ extension WorkoutActivityViewModel {
             }
             .reduce(0.0, +)
         let totalVolumeKg = totalVolumeKgOverride ?? (computedVolume > 0 ? computedVolume : nil)
+        
+        // Find the first incomplete set in the current exercise to use as target
+        let targetSet = currentExercise?.sets.first { $0.completedAt == nil }
+        
+        // Calculate per-exercise set counts for more contextual display
+        let currentExerciseSets = currentExercise?.sets ?? []
+        let currentExerciseCompletedSetsCount = currentExerciseSets.filter { $0.completedAt != nil }.count
+        let currentExerciseTotalSetsCount = currentExerciseSets.count
+        
+        // Check if all sets in the entire workout are complete
+        let isAllSetsComplete = totalSetsCount > 0 && completedSetsCount == totalSetsCount
 
         return WorkoutActivityAttributes.ContentState(
             isActive: isActive,
@@ -372,10 +406,26 @@ extension WorkoutActivityViewModel {
             currentExerciseImageName: currentExerciseImageName,
             currentExerciseIndex: currentExerciseIndex,
             totalExercisesCount: totalExercisesCount,
+            currentExerciseCompletedSetsCount: currentExerciseCompletedSetsCount,
+            currentExerciseTotalSetsCount: currentExerciseTotalSetsCount,
+            targetSetId: targetSet?.id,
+            targetWeightKg: targetSet?.weightKg,
+            targetReps: targetSet?.reps,
+            targetDistanceMeters: targetSet?.distanceMeters,
+            targetDurationSec: targetSet?.durationSec,
             restEndsAt: restEndsAt,
             statusMessage: statusMessage,
             totalVolumeKg: totalVolumeKg,
-            progress: progress
+            progress: progress,
+            isWorkoutEnded: false,
+            endedSuccessfully: nil,
+            finalDurationSeconds: nil,
+            finalVolumeKg: nil,
+            finalCompletedSetsCount: nil,
+            finalTotalExercisesCount: nil,
+            isProcessingIntent: false,
+            lastIntentTimestamp: nil,
+            isAllSetsComplete: isAllSetsComplete
         )
     }
 
@@ -397,10 +447,26 @@ extension WorkoutActivityViewModel {
                 currentExerciseImageName: previous?.currentExerciseImageName,
                 currentExerciseIndex: previous?.currentExerciseIndex ?? 0,
                 totalExercisesCount: previous?.totalExercisesCount ?? 0,
+                currentExerciseCompletedSetsCount: previous?.currentExerciseCompletedSetsCount ?? 0,
+                currentExerciseTotalSetsCount: previous?.currentExerciseTotalSetsCount ?? 0,
+                targetSetId: previous?.targetSetId,
+                targetWeightKg: previous?.targetWeightKg,
+                targetReps: previous?.targetReps,
+                targetDistanceMeters: previous?.targetDistanceMeters,
+                targetDurationSec: previous?.targetDurationSec,
                 restEndsAt: restEndsAt,
                 statusMessage: statusMessage ?? previous?.statusMessage,
                 totalVolumeKg: previous?.totalVolumeKg,
-                progress: previous?.progress ?? 0
+                progress: previous?.progress ?? 0,
+                isWorkoutEnded: false,
+                endedSuccessfully: nil,
+                finalDurationSeconds: nil,
+                finalVolumeKg: nil,
+                finalCompletedSetsCount: nil,
+                finalTotalExercisesCount: nil,
+                isProcessingIntent: false,
+                lastIntentTimestamp: nil,
+                isAllSetsComplete: previous?.isAllSetsComplete ?? false
             )
             // Reflect locally and push update with staleDate aligned to rest end
             self.activityViewState?.contentState = newState
@@ -438,7 +504,7 @@ class WorkoutActivityViewModel {
 
     func endLiveActivity(
         session: WorkoutSessionModel,
-        success: Bool = true,
+        isCompleted: Bool = true,
         statusMessage: String? = nil
     ) { }
 

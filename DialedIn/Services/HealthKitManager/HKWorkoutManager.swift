@@ -237,7 +237,7 @@ class HKWorkoutManager: NSObject {
             if let sessionModel = activeSessionModel {
                     workoutActivityViewModel?.endLiveActivity(
                     session: sessionModel,
-                    success: true,
+                    isCompleted: true,
                     statusMessage: "Workout ended"
                 )
             }
@@ -247,7 +247,7 @@ class HKWorkoutManager: NSObject {
             if let sessionModel = activeSessionModel {
                     workoutActivityViewModel?.endLiveActivity(
                     session: sessionModel,
-                    success: false,
+                    isCompleted: false,
                     statusMessage: "Failed to finish workout"
                 )
             }
@@ -267,26 +267,9 @@ class HKWorkoutManager: NSObject {
                     // Sync rest end time from shared storage (in case widget updated it)
                     self.syncRestEndTimeFromSharedStorage()
                     
-                    if let sessionModel = self.activeSessionModel {
-                        // Debounce immediately after a rest state change to ensure that
-                        // the explicit rest update reaches the Live Activity first.
-                        if let changedAt = self.restStateChangedAt, Date().timeIntervalSince(changedAt) < 0.5 {
-                            return
-                        }
-                        if !self.isUpdatingActivity {
-                            self.isUpdatingActivity = true
-                            self.workoutActivityViewModel?.updateLiveActivity(
-                                session: sessionModel,
-                                isActive: self.state == .running,
-                                currentExerciseIndex: 0,
-                                restEndsAt: self.restEndTime,
-                                statusMessage: nil,
-                                totalVolumeKg: nil,
-                                elapsedTime: self.metrics.elapsedTime
-                            )
-                            self.isUpdatingActivity = false
-                        }
-                    }
+                    // Don't update Live Activity from here - let WorkoutTrackerView handle it
+                    // HKWorkoutManager should only update rest/elapsed time via updateRestAndActive
+                    // to avoid interfering with the currentExerciseIndex managed by WorkoutTrackerView
                 }
             }
         }
@@ -444,15 +427,11 @@ extension HKWorkoutManager {
         // Clear from shared storage
         SharedWorkoutStorage.clearRestEndTime()
 
-        guard let sessionModel = activeSessionModel else { return }
-        workoutActivityViewModel?.updateLiveActivity(
-            session: sessionModel,
+        // Update Live Activity to clear rest state (use updateRestAndActive to preserve exercise index)
+        workoutActivityViewModel?.updateRestAndActive(
             isActive: state == .running,
-            currentExerciseIndex: 0,
             restEndsAt: nil,
-            statusMessage: nil,
-            totalVolumeKg: nil,
-            elapsedTime: metrics.elapsedTime
+            statusMessage: nil
         )
     }
 
@@ -467,7 +446,7 @@ extension HKWorkoutManager {
         // Clear from shared storage
         SharedWorkoutStorage.clearRestEndTime()
 
-        guard let sessionModel = activeSessionModel else {
+        guard activeSessionModel != nil else {
             print("⚠️ endRest called but activeSessionModel is nil")
             return
         }
@@ -477,14 +456,11 @@ extension HKWorkoutManager {
             return
         }
         
-        workoutActivityViewModel?.updateLiveActivity(
-            session: sessionModel,
+        // Update Live Activity to clear rest state (use updateRestAndActive to preserve exercise index)
+        workoutActivityViewModel?.updateRestAndActive(
             isActive: state == .running,
-            currentExerciseIndex: 0,
             restEndsAt: nil,
-            statusMessage: nil,
-            totalVolumeKg: nil,
-            elapsedTime: metrics.elapsedTime
+            statusMessage: nil
         )
     }
 

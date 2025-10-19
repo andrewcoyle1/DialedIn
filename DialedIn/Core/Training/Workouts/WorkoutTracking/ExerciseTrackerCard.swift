@@ -13,6 +13,7 @@ struct ExerciseTrackerCard: View {
     let isCurrentExercise: Bool
     let weightUnit: ExerciseWeightUnit
     let distanceUnit: ExerciseDistanceUnit
+    let previousSetsByIndex: [Int: WorkoutSetModel]
     let onSetUpdate: (WorkoutSetModel) -> Void
     let onAddSet: () -> Void
     let onDeleteSet: (String) -> Void
@@ -34,6 +35,7 @@ struct ExerciseTrackerCard: View {
         isCurrentExercise: Bool,
         weightUnit: ExerciseWeightUnit = .kilograms,
         distanceUnit: ExerciseDistanceUnit = .meters,
+        previousSetsByIndex: [Int: WorkoutSetModel] = [:],
         onSetUpdate: @escaping (WorkoutSetModel) -> Void,
         onAddSet: @escaping () -> Void,
         onDeleteSet: @escaping (String) -> Void,
@@ -51,6 +53,7 @@ struct ExerciseTrackerCard: View {
         self.isCurrentExercise = isCurrentExercise
         self.weightUnit = weightUnit
         self.distanceUnit = distanceUnit
+        self.previousSetsByIndex = previousSetsByIndex
         self.onSetUpdate = onSetUpdate
         self.onAddSet = onAddSet
         self.onDeleteSet = onDeleteSet
@@ -176,6 +179,7 @@ struct ExerciseTrackerCard: View {
                     trackingMode: exercise.trackingMode,
                     weightUnit: weightUnit,
                     distanceUnit: distanceUnit,
+                    previousSet: previousSetsByIndex[set.index],
                     restBeforeSec: restBeforeSecForSet(set.id),
                     onRestBeforeChange: { onRestBeforeChange(set.id, $0) },
                     onRequestRestPicker: { _, _ in onRequestRestPicker(set.id, restBeforeSecForSet(set.id)) },

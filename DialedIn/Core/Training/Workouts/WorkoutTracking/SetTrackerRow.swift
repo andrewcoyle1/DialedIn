@@ -12,6 +12,7 @@ struct SetTrackerRow: View {
     let trackingMode: TrackingMode
     let weightUnit: ExerciseWeightUnit
     let distanceUnit: ExerciseDistanceUnit
+    let previousSet: WorkoutSetModel?
     let restBeforeSec: Int?
     let onRestBeforeChange: (Int?) -> Void
     let onRequestRestPicker: (String, Int?) -> Void
@@ -26,6 +27,7 @@ struct SetTrackerRow: View {
         trackingMode: TrackingMode,
         weightUnit: ExerciseWeightUnit = .kilograms,
         distanceUnit: ExerciseDistanceUnit = .meters,
+        previousSet: WorkoutSetModel? = nil,
         restBeforeSec: Int?,
         onRestBeforeChange: @escaping (Int?) -> Void,
         onRequestRestPicker: @escaping (String, Int?) -> Void = { _, _ in },
@@ -35,6 +37,7 @@ struct SetTrackerRow: View {
         self.trackingMode = trackingMode
         self.weightUnit = weightUnit
         self.distanceUnit = distanceUnit
+        self.previousSet = previousSet
         self.restBeforeSec = restBeforeSec
         self.onRestBeforeChange = onRestBeforeChange
         self.onRequestRestPicker = onRequestRestPicker
@@ -89,16 +92,81 @@ struct SetTrackerRow: View {
 
     // MARK: Previous Values
     private var previousValues: some View {
-        VStack {
+        VStack(alignment: .leading, spacing: 2) {
             if set.index == 1 {
                 Text("Prev")
                     .font(.caption2)
+                    .foregroundColor(.secondary)
             }
-            Text("—")
-                .font(.caption)
-                .frame(height: cellHeight)
+            
+            if let prev = previousSet {
+                switch trackingMode {
+                case .weightReps:
+                    if let weight = prev.weightKg, let reps = prev.reps {
+                        let displayWeight = UnitConversion.formatWeight(weight, unit: weightUnit)
+                        Text("\(displayWeight) × \(reps)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(height: cellHeight)
+                    } else {
+                        Text("—")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(height: cellHeight)
+                    }
+                    
+                case .repsOnly:
+                    if let reps = prev.reps {
+                        Text("\(reps)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(height: cellHeight)
+                    } else {
+                        Text("—")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(height: cellHeight)
+                    }
+                    
+                case .timeOnly:
+                    if let duration = prev.durationSec {
+                        let minutes = duration / 60
+                        let seconds = duration % 60
+                        Text("\(minutes):\(String(format: "%02d", seconds))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(height: cellHeight)
+                    } else {
+                        Text("—")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(height: cellHeight)
+                    }
+                    
+                case .distanceTime:
+                    if let distance = prev.distanceMeters, let duration = prev.durationSec {
+                        let displayDistance = UnitConversion.formatDistance(distance, unit: distanceUnit)
+                        let minutes = duration / 60
+                        let seconds = duration % 60
+                        Text("\(displayDistance) \(minutes):\(String(format: "%02d", seconds))")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .frame(height: cellHeight)
+                            .lineLimit(2)
+                    } else {
+                        Text("—")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(height: cellHeight)
+                    }
+                }
+            } else {
+                Text("—")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(height: cellHeight)
+            }
         }
-        .foregroundColor(.secondary)
         .frame(width: 60, alignment: .leading)
     }
     
@@ -143,7 +211,7 @@ struct SetTrackerRow: View {
                     .keyboardType(.decimalPad)
                     .frame(height: cellHeight)
             }
-            .frame(width: 60)
+            .frame(width: 70)
             
             VStack(alignment: .leading) {
                 if set.index == 1 {

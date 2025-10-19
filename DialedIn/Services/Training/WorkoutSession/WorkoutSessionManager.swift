@@ -145,6 +145,10 @@ class WorkoutSessionManager: LocalWorkoutSessionPersistence, RemoteWorkoutSessio
         try await remote.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limitTo)
     }
     
+    func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
+        try await remote.getLastCompletedSessionForTemplate(templateId: templateId, authorId: authorId)
+    }
+    
     // Update
     func updateWorkoutSession(session: WorkoutSessionModel) async throws {
         try await remote.updateWorkoutSession(session: session)

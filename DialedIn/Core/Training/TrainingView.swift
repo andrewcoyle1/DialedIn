@@ -42,11 +42,13 @@ struct TrainingView: View {
     @State private var showCreateWorkout: Bool = false
     // Centralized sheet coordination for ProgramView
     @State private var programActiveSheet: ProgramView.ActiveSheet?
+    @State private var selectedHistorySession: WorkoutSessionModel?
 
     enum TrainingPresentationMode {
         case program
         case workouts
         case exercises
+        case history
     }
     
     var body: some View {
@@ -66,6 +68,8 @@ struct TrainingView: View {
                     NavigationStack { ExerciseDetailView(exerciseTemplate: exercise) }
                 } else if let workout = selectedWorkoutTemplate {
                     NavigationStack { WorkoutTemplateDetailView(workoutTemplate: workout) }
+                } else if let session = selectedHistorySession {
+                    NavigationStack { WorkoutSessionDetailView(session: session) }
                 } else {
                     Text("Select an item").foregroundStyle(.secondary).padding()
                 }
@@ -78,6 +82,10 @@ struct TrainingView: View {
         .onChange(of: selectedWorkoutTemplate) { _, workout in
             guard layoutMode == .splitView else { return }
             if let workout { detail.path = [.workoutTemplateDetail(template: workout)] }
+        }
+        .onChange(of: selectedHistorySession) { _, session in
+            guard layoutMode == .splitView else { return }
+            if let session { detail.path = [.workoutSessionDetail(session: session)] }
         }
         .showCustomAlert(alert: $showAlert)
     }
@@ -141,6 +149,7 @@ struct TrainingView: View {
                 Text("Program").tag(TrainingPresentationMode.program)
                 Text("Workouts").tag(TrainingPresentationMode.workouts)
                 Text("Exercises").tag(TrainingPresentationMode.exercises)
+                Text("History").tag(TrainingPresentationMode.history)
             }
             .pickerStyle(.segmented)
         }
@@ -164,6 +173,8 @@ struct TrainingView: View {
                 WorkoutsView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate, showCreateWorkout: $showCreateWorkout)
             case .exercises:
                 ExercisesView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate, showCreateExercise: $showCreateExercise)
+            case .history:
+                WorkoutHistoryView(alert: $showAlert, selectedSession: $selectedHistorySession, isShowingInspector: $isShowingInspector)
             }
         }
     }

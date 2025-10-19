@@ -49,34 +49,60 @@ struct WorkoutSessionActivity: Widget {
                     Group {
                         if let currentExerciseName = context.state.currentExerciseName {
                             HStack {
-                                if let imageName = context.state.currentExerciseImageName, !imageName.isEmpty {
+                                if context.state.isAllSetsComplete {
+                                    // Show completion icon when all sets are done
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 32))
+                                        .foregroundStyle(.green)
+                                        .frame(width: 40, height: 40)
+                                } else if let imageName = context.state.currentExerciseImageName, !imageName.isEmpty {
                                     Image(imageName)
                                         .renderingMode(.original)
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
                                         .frame(height: 50)
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        .opacity((context.state.restEndsAt != nil && context.state.restEndsAt! > Date()) ? 0.7 : 1.0)
                                 } else {
                                     Image(systemName: "figure.strengthtraining.traditional")
                                         .font(.system(size: 32))
                                         .foregroundStyle(.secondary)
                                         .frame(width: 40, height: 40)
+                                        .opacity((context.state.restEndsAt != nil && context.state.restEndsAt! > Date()) ? 0.7 : 1.0)
                                 }
                                 VStack(alignment: .leading, spacing: 0) {
-                                    Text(currentExerciseName)
-                                        .font(.headline)
-                                        .fontWeight(.medium)
-                                        .foregroundStyle(Color.primary)
-                                    Text("Set \(context.state.completedSetsCount) of \(context.state.totalSetsCount)")
-                                        .font(.subheadline)
-                                        .foregroundStyle(Color.secondary)
+                                    if context.state.isAllSetsComplete {
+                                        Text("Workout Complete")
+                                            .font(.headline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(.green)
+                                    } else if context.state.restEndsAt != nil && context.state.restEndsAt! > Date() {
+                                        Text("Next: \(currentExerciseName)")
+                                            .font(.headline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(Color.secondary)
+                                    } else {
+                                        Text(currentExerciseName)
+                                            .font(.headline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(Color.primary)
+                                    }
+                                    if context.state.isAllSetsComplete {
+                                        Text("\(context.state.completedSetsCount) sets completed")
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.secondary)
+                                    } else {
+                                        Text("Set \(context.state.currentExerciseCompletedSetsCount + 1) of \(context.state.currentExerciseTotalSetsCount)")
+                                            .font(.subheadline)
+                                            .foregroundStyle(Color.secondary)
+                                    }
                                 }
                                 Spacer()
                             }
                             
                         }
                         HStack {
-                            if let restEndsAt = context.state.restEndsAt, restEndsAt > Date() {
+                            if let restEndsAt = context.state.restEndsAt, restEndsAt > Date(), !context.state.isAllSetsComplete {
                                 VStack {
                                     ProgressView(timerInterval: Date()...restEndsAt)
                                         .labelsHidden()
@@ -90,6 +116,8 @@ struct WorkoutSessionActivity: Widget {
                                                 )
                                         }
                                         .buttonStyle(.plain)
+                                        .disabled(context.state.isProcessingIntent)
+                                        .opacity(context.state.isProcessingIntent ? 0.5 : 1.0)
                                         Spacer()
                                         Text("Rest: ")
                                         Text(timerInterval: Date()...restEndsAt)
@@ -105,23 +133,78 @@ struct WorkoutSessionActivity: Widget {
                                                 )
                                         }
                                         .buttonStyle(.plain)
+                                        .disabled(context.state.isProcessingIntent)
+                                        .opacity(context.state.isProcessingIntent ? 0.5 : 1.0)
                                         Button(intent: SkipRestTimerIntent()) {
-                                            Text("Skip")
-                                                .foregroundStyle(Color.white)
+                                            if context.state.isProcessingIntent {
+                                                ProgressView()
+                                                    .tint(.white)
+                                            } else {
+                                                Text("Skip")
+                                                    .foregroundStyle(Color.white)
+                                            }
                                         }
                                         .buttonStyle(.borderedProminent)
+                                        .disabled(context.state.isProcessingIntent)
                                     }
                                 }
                             } else {
                                 HStack {
-                                    Text("Target: 100 kg x 8 reps")
-                                        .font(.headline)
-                                    Spacer()
-                                    Button(intent: CompleteSetIntent()) {
-                                        Image(systemName: "checkmark")
-                                            .foregroundStyle(Color.white)
+                                    if context.state.isAllSetsComplete {
+                                        // Show "Complete Workout" when all sets are done
+                                        Text("All sets complete!")
+                                            .font(.headline)
+                                            .foregroundStyle(.green)
+                                        Spacer()
+                                        Button(intent: CompleteWorkoutIntent()) {
+                                            if context.state.isProcessingIntent {
+                                                ProgressView()
+                                                    .tint(.white)
+                                            } else {
+                                                HStack(spacing: 4) {
+                                                    Image(systemName: "checkmark.circle.fill")
+                                                    Text("Finish")
+                                                }
+                                                .foregroundStyle(Color.white)
+                                            }
+                                        }
+                                        .buttonStyle(.borderedProminent)
+                                        .disabled(context.state.isProcessingIntent)
+                                    } else {
+                                        // Show target and complete set button
+                                        if let weight = context.state.targetWeightKg, let reps = context.state.targetReps {
+                                            Text("Target: \(String(format: "%.1f", weight)) kg × \(reps) reps")
+                                                .font(.headline)
+                                        } else if let reps = context.state.targetReps {
+                                            Text("Target: \(reps) reps")
+                                                .font(.headline)
+                                        } else if let distance = context.state.targetDistanceMeters, let duration = context.state.targetDurationSec {
+                                            let minutes = duration / 60
+                                            let seconds = duration % 60
+                                            Text("Target: \(String(format: "%.0f", distance))m in \(minutes):\(String(format: "%02d", seconds))")
+                                                .font(.headline)
+                                        } else if let duration = context.state.targetDurationSec {
+                                            let minutes = duration / 60
+                                            let seconds = duration % 60
+                                            Text("Target: \(minutes):\(String(format: "%02d", seconds))")
+                                                .font(.headline)
+                                        } else {
+                                            Text("Complete Set")
+                                                .font(.headline)
+                                        }
+                                        Spacer()
+                                        Button(intent: CompleteSetIntent()) {
+                                            if context.state.isProcessingIntent {
+                                                Image(systemName: "checkmark")
+                                                    .foregroundStyle(Color.secondary)
+                                            } else {
+                                                Image(systemName: "checkmark")
+                                                    .foregroundStyle(Color.white)
+                                            }
+                                        }
+                                        .buttonStyle(.borderedProminent)
+                                        .disabled(context.state.targetSetId == nil || context.state.isProcessingIntent)
                                     }
-                                    .buttonStyle(.borderedProminent)
                                 }
                             }
                         }
@@ -151,7 +234,7 @@ struct WorkoutSessionActivity: Widget {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 } else {
-                    Text("Sets: \(context.state.completedSetsCount)/\(context.state.totalSetsCount)")
+                    Text("Set \(context.state.currentExerciseCompletedSetsCount + 1)/\(context.state.currentExerciseTotalSetsCount)")
                         .font(.footnote)
                         .foregroundColor(.secondary)
                 }
@@ -232,10 +315,26 @@ extension WorkoutActivityAttributes.ContentState {
             currentExerciseImageName: "BarbellBenchPress",
             currentExerciseIndex: 1,
             totalExercisesCount: 4,
+            currentExerciseCompletedSetsCount: 2,
+            currentExerciseTotalSetsCount: 4,
+            targetSetId: UUID().uuidString,
+            targetWeightKg: 100.0,
+            targetReps: 8,
+            targetDistanceMeters: nil,
+            targetDurationSec: nil,
             restEndsAt: Date().addingTimeInterval(45), // 45 seconds from now
             statusMessage: "Resting",
             totalVolumeKg: 3250,
-            progress: 0.42
+            progress: 0.42,
+            isWorkoutEnded: false,
+            endedSuccessfully: nil,
+            finalDurationSeconds: nil,
+            finalVolumeKg: nil,
+            finalCompletedSetsCount: nil,
+            finalTotalExercisesCount: nil,
+            isProcessingIntent: false,
+            lastIntentTimestamp: nil,
+            isAllSetsComplete: false
         )
     }
     
@@ -248,10 +347,26 @@ extension WorkoutActivityAttributes.ContentState {
             currentExerciseImageName: "BarbellBenchPress",
             currentExerciseIndex: 1,
             totalExercisesCount: 4,
+            currentExerciseCompletedSetsCount: 2,
+            currentExerciseTotalSetsCount: 4,
+            targetSetId: UUID().uuidString,
+            targetWeightKg: 100.0,
+            targetReps: 8,
+            targetDistanceMeters: nil,
+            targetDurationSec: nil,
             restEndsAt: nil,
             statusMessage: "Paused",
             totalVolumeKg: 3250,
-            progress: 1 // 0.42
+            progress: 1, // 0.42
+            isWorkoutEnded: true,
+            endedSuccessfully: nil,
+            finalDurationSeconds: nil,
+            finalVolumeKg: nil,
+            finalCompletedSetsCount: nil,
+            finalTotalExercisesCount: nil,
+            isProcessingIntent: false,
+            lastIntentTimestamp: nil,
+            isAllSetsComplete: false
         )
     }
     
@@ -264,10 +379,26 @@ extension WorkoutActivityAttributes.ContentState {
             currentExerciseImageName: "OverheadExtensionStraightBar",
             currentExerciseIndex: 2,
             totalExercisesCount: 4,
+            currentExerciseCompletedSetsCount: 3,
+            currentExerciseTotalSetsCount: 3,
+            targetSetId: UUID().uuidString,
+            targetWeightKg: 60.0,
+            targetReps: 12,
+            targetDistanceMeters: nil,
+            targetDurationSec: nil,
             restEndsAt: nil,
             statusMessage: "In progress",
             totalVolumeKg: 4800,
-            progress: 0.83
+            progress: 0.83,
+            isWorkoutEnded: false,
+            endedSuccessfully: nil,
+            finalDurationSeconds: nil,
+            finalVolumeKg: nil,
+            finalCompletedSetsCount: nil,
+            finalTotalExercisesCount: nil,
+            isProcessingIntent: true,
+            lastIntentTimestamp: Date(),
+            isAllSetsComplete: true
         )
     }
 }

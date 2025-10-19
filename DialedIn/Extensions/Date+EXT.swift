@@ -99,4 +99,16 @@ extension Date {
         formatter.timeZone = .current
         return formatter.string(from: self)
     }
+    
+    /// Formats a time interval as "1h 23m" or "45m"
+    static func formatDuration(_ interval: TimeInterval) -> String {
+        let hours = Int(interval) / 3600
+        let minutes = Int(interval) / 60 % 60
+        
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        } else {
+            return "\(minutes)m"
+        }
+    }
 }

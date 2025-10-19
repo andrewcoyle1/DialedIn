@@ -17,6 +17,7 @@ protocol RemoteWorkoutSessionService {
     func getWorkoutSessions(ids: [String], limitTo: Int) async throws -> [WorkoutSessionModel]
     func getWorkoutSessionsByTemplateAndAuthor(templateId: String, authorId: String, limitTo: Int) async throws -> [WorkoutSessionModel]
     func getWorkoutSessionsForAuthor(authorId: String, limitTo: Int) async throws -> [WorkoutSessionModel]
+    func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel?
 
     // Delete
     func deleteWorkoutSession(id: String) async throws
