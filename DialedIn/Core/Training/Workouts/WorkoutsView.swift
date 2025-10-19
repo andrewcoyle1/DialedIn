@@ -20,12 +20,13 @@ struct WorkoutsView: View {
     @State private var myWorkouts: [WorkoutTemplateModel] = []
     @State private var favouriteWorkouts: [WorkoutTemplateModel] = []
     @State private var bookmarkedWorkouts: [WorkoutTemplateModel] = []
+    @State private var systemWorkouts: [WorkoutTemplateModel] = []
     @State private var workouts: [WorkoutTemplateModel] = []
-    @State private var showAddWorkoutModal: Bool = false
 
     @Binding var isShowingInspector: Bool
     @Binding var selectedWorkoutTemplate: WorkoutTemplateModel?
     @Binding var selectedExerciseTemplate: ExerciseTemplateModel?
+    @Binding var showCreateWorkout: Bool
 
     // MARK: Computed Variables
 
@@ -67,6 +68,10 @@ struct WorkoutsView: View {
                 }
 
                 myWorkoutsSection
+                
+                if !systemWorkouts.isEmpty {
+                    systemWorkoutTemplatesSection
+                }
 
                 if !bookmarkedOnlyWorkouts.isEmpty {
                     bookmarkedWorkoutTemplatesSection
@@ -81,10 +86,8 @@ struct WorkoutsView: View {
             }
         }
         .screenAppearAnalytics(name: "WorkoutsView")
-        .sheet(isPresented: $showAddWorkoutModal) {
-            CreateWorkoutView()
-        }
         .task {
+            await loadSystemWorkouts()
             await loadMyWorkoutsIfNeeded()
             await loadTopWorkoutsIfNeeded()
             await syncSavedWorkoutsFromUser()
@@ -202,7 +205,7 @@ struct WorkoutsView: View {
                 Text("My Templates")
                 Spacer()
                 Button {
-                    showAddWorkoutModal = true
+                    showCreateWorkout = true
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20))
@@ -213,12 +216,41 @@ struct WorkoutsView: View {
             logManager.trackEvent(event: Event.myTemplatesSectionViewed(count: myWorkoutsVisible.count))
         }
     }
+    
+    private var systemWorkoutTemplatesSection: some View {
+        Section {
+            ForEach(systemWorkouts) { workout in
+                CustomListCellView(
+                    imageName: workout.imageURL,
+                    title: workout.name,
+                    subtitle: workout.description
+                )
+                .anyButton(.highlight) {
+                    onWorkoutPressed(workout: workout)
+                }
+                .removeListRowFormatting()
+            }
+        } header: {
+            HStack {
+                Text("Pre-Built Templates")
+                Spacer()
+                Text("\(systemWorkouts.count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } footer: {
+            Text("Professional workout templates designed for common training programs.")
+        }
+        .onAppear {
+            logManager.trackEvent(event: Event.systemTemplatesSectionViewed(count: systemWorkouts.count))
+        }
+    }
 
     // MARK: Business Logic
 
     private func onAddWorkoutPressed() {
         logManager.trackEvent(event: Event.onAddWorkoutPressed)
-        showAddWorkoutModal = true
+        showCreateWorkout = true
     }
 
     private func onWorkoutPressed(workout: WorkoutTemplateModel) {
@@ -327,6 +359,18 @@ struct WorkoutsView: View {
         )
     }
 
+    private func loadSystemWorkouts() async {
+        // Load seeded system workouts from local storage
+        do {
+            let allLocal = try workoutTemplateManager.getAllLocalWorkoutTemplates()
+            systemWorkouts = allLocal.filter { $0.isSystemWorkout }
+            logManager.trackEvent(event: Event.loadSystemWorkoutsSuccess(count: systemWorkouts.count))
+        } catch {
+            logManager.trackEvent(event: Event.loadSystemWorkoutsFail(error: error))
+            systemWorkouts = []
+        }
+    }
+    
     private func loadMyWorkoutsIfNeeded() async {
         guard let userId = userManager.currentUser?.userId else { return }
         logManager.trackEvent(event: Event.loadMyWorkoutsStart)
@@ -406,6 +450,8 @@ struct WorkoutsView: View {
         case performWorkoutSearchFail(error: Error)
         case performWorkoutSearchEmptyResults(query: String)
         case searchCleared
+        case loadSystemWorkoutsSuccess(count: Int)
+        case loadSystemWorkoutsFail(error: Error)
         case loadMyWorkoutsStart
         case loadMyWorkoutsSuccess(count: Int)
         case loadMyWorkoutsFail(error: Error)
@@ -422,6 +468,7 @@ struct WorkoutsView: View {
         case onAddWorkoutPressed
         case favouritesSectionViewed(count: Int)
         case bookmarkedSectionViewed(count: Int)
+        case systemTemplatesSectionViewed(count: Int)
         case trendingSectionViewed(count: Int)
         case myTemplatesSectionViewed(count: Int)
         case emptyStateShown
@@ -437,6 +484,8 @@ struct WorkoutsView: View {
             case .performWorkoutSearchFail:           return "WorkoutsView_Search_Fail"
             case .performWorkoutSearchEmptyResults:   return "WorkoutsView_Search_EmptyResults"
             case .searchCleared:                         return "WorkoutsView_Search_Cleared"
+            case .loadSystemWorkoutsSuccess:          return "WorkoutsView_LoadSystemWorkouts_Success"
+            case .loadSystemWorkoutsFail:             return "WorkoutsView_LoadSystemWorkouts_Fail"
             case .loadMyWorkoutsStart:                return "WorkoutsView_LoadMyWorkouts_Start"
             case .loadMyWorkoutsSuccess:              return "WorkoutsView_LoadMyWorkouts_Success"
             case .loadMyWorkoutsFail:                 return "WorkoutsView_LoadMyWorkouts_Fail"
@@ -453,6 +502,7 @@ struct WorkoutsView: View {
             case .onAddWorkoutPressed:                return "WorkoutsView_AddWorkoutPressed"
             case .favouritesSectionViewed:               return "WorkoutsView_Favourites_SectionViewed"
             case .bookmarkedSectionViewed:               return "WorkoutsView_Bookmarked_SectionViewed"
+            case .systemTemplatesSectionViewed:          return "WorkoutsView_SystemTemplates_SectionViewed"
             case .trendingSectionViewed:                 return "WorkoutsView_Trending_SectionViewed"
             case .myTemplatesSectionViewed:              return "WorkoutsView_MyTemplates_SectionViewed"
             case .emptyStateShown:                       return "WorkoutsView_EmptyState_Shown"
@@ -469,6 +519,8 @@ struct WorkoutsView: View {
                 return ["query": query, "resultCount": count]
             case .performWorkoutSearchEmptyResults(query: let query):
                 return ["query": query]
+            case .loadSystemWorkoutsSuccess(count: let count):
+                return ["count": count]
             case .loadMyWorkoutsSuccess(count: let count):
                 return ["count": count]
             case .loadTopWorkoutsSuccess(count: let count):
@@ -479,11 +531,13 @@ struct WorkoutsView: View {
                 return ["count": count]
             case .bookmarkedSectionViewed(count: let count):
                 return ["count": count]
+            case .systemTemplatesSectionViewed(count: let count):
+                return ["count": count]
             case .trendingSectionViewed(count: let count):
                 return ["count": count]
             case .myTemplatesSectionViewed(count: let count):
                 return ["count": count]
-            case .loadMyWorkoutsFail(error: let error), .loadTopWorkoutsFail(error: let error), .performWorkoutSearchFail(error: let error), .incrementWorkoutFail(error: let error), .syncWorkoutsFromCurrentUserFail(error: let error):
+            case .loadSystemWorkoutsFail(error: let error), .loadMyWorkoutsFail(error: let error), .loadTopWorkoutsFail(error: let error), .performWorkoutSearchFail(error: let error), .incrementWorkoutFail(error: let error), .syncWorkoutsFromCurrentUserFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -492,7 +546,7 @@ struct WorkoutsView: View {
 
         var type: LogType {
             switch self {
-            case .loadMyWorkoutsFail, .loadTopWorkoutsFail, .performWorkoutSearchFail, .incrementWorkoutFail, .syncWorkoutsFromCurrentUserFail:
+            case .loadSystemWorkoutsFail, .loadMyWorkoutsFail, .loadTopWorkoutsFail, .performWorkoutSearchFail, .incrementWorkoutFail, .syncWorkoutsFromCurrentUserFail:
                 return .severe
             case .syncWorkoutsFromCurrentUserNoUid:
                 return .warning
@@ -509,7 +563,8 @@ struct WorkoutsView: View {
         WorkoutsView(
             isShowingInspector: Binding.constant(true),
             selectedWorkoutTemplate: Binding.constant(nil),
-            selectedExerciseTemplate: Binding.constant(nil)
+            selectedExerciseTemplate: Binding.constant(nil),
+            showCreateWorkout: Binding.constant(false)
         )
     }
     .previewEnvironment()

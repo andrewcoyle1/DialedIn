@@ -428,6 +428,7 @@ class UserManager {
         // 2) Delete/anonymize REMOTE data in parallel while auth is still valid
         try await withThrowingTaskGroup(of: Void.self) { group in
             // Profile image in Storage (best-effort; ignore if missing)
+            let exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             group.addTask {
                 do {
                     try await FirebaseImageUploadService().deleteImage(path: "users/\(uid)/profile.jpg")
@@ -451,7 +452,7 @@ class UserManager {
                 try await manager.removeAuthorIdFromAllExerciseTemplates(id: uid)
             }
             group.addTask {
-                let manager = await WorkoutTemplateManager(services: ProductionWorkoutTemplateServices())
+                let manager = await WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
                 try await manager.removeAuthorIdFromAllWorkoutTemplates(id: uid)
             }
             group.addTask {

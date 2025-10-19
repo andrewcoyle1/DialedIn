@@ -13,6 +13,8 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
     let authorId: String
     let name: String
     let workoutTemplateId: String?
+    let scheduledWorkoutId: String?
+    let trainingPlanId: String?
     let dateCreated: Date
     private(set) var dateModified: Date
     private(set) var endedAt: Date?
@@ -24,6 +26,8 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
         authorId: String,
         name: String,
         workoutTemplateId: String? = nil,
+        scheduledWorkoutId: String? = nil,
+        trainingPlanId: String? = nil,
         dateCreated: Date,
         dateModified: Date? = nil,
         endedAt: Date? = nil,
@@ -34,6 +38,8 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
         self.authorId = authorId
         self.name = name
         self.workoutTemplateId = workoutTemplateId
+        self.scheduledWorkoutId = scheduledWorkoutId
+        self.trainingPlanId = trainingPlanId
         self.dateCreated = dateCreated
         self.dateModified = dateModified ?? dateCreated
         self.endedAt = endedAt
@@ -46,6 +52,8 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
         case authorId = "author_id"
         case name = "name"
         case workoutTemplateId = "workout_template_id"
+        case scheduledWorkoutId = "scheduled_workout_id"
+        case trainingPlanId = "training_plan_id"
         case dateCreated = "date_created"
         case dateModified = "date_modified"
         case endedAt = "ended_at"
@@ -53,11 +61,13 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
         case exercises
     }
 
-    init(authorId: String, template: WorkoutTemplateModel, notes: String? = nil) {
+    init(authorId: String, template: WorkoutTemplateModel, notes: String? = nil, scheduledWorkoutId: String? = nil, trainingPlanId: String? = nil) {
         self.id = UUID().uuidString
         self.authorId = authorId
         self.name = template.name
         self.workoutTemplateId = template.id
+        self.scheduledWorkoutId = scheduledWorkoutId
+        self.trainingPlanId = trainingPlanId
         self.dateCreated = .now
         self.dateModified = .now
         self.endedAt = nil

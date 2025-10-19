@@ -10,22 +10,208 @@ import SwiftUI
 struct ProgramView: View {
     
     @Environment(TrainingPlanManager.self) private var trainingPlanManager
+    @Environment(ProgramTemplateManager.self) private var programTemplateManager
+    @Environment(WorkoutSessionManager.self) private var workoutSessionManager
+    @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
+    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
+    @Environment(AuthManager.self) private var authManager
     
     @Binding var isShowingInspector: Bool
     @Binding var selectedWorkoutTemplate: WorkoutTemplateModel?
     @Binding var selectedExerciseTemplate: ExerciseTemplateModel?
 
     @State private var isShowingCalendar: Bool = true
+    enum ActiveSheet: Identifiable {
+        case programPicker
+        case progressDashboard
+        case strengthProgress
+        case workoutHeatmap
+        case workoutStart(WorkoutTemplateModel)
+        var id: String {
+            switch self {
+            case .programPicker: return "programPicker"
+            case .progressDashboard: return "progressDashboard"
+            case .strengthProgress: return "strengthProgress"
+            case .workoutHeatmap: return "workoutHeatmap"
+            case .workoutStart: return "workoutStart"
+            }
+        }
+    }
+    @State private var activeSheet: ActiveSheet?
     @State private var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
+    @State private var showAlert: AnyAppAlert?
+    @State private var scheduledWorkoutToStart: ScheduledWorkout?
     
     var body: some View {
         listContents
+            .sheet(item: $activeSheet) { sheet in
+                switch sheet {
+                case .programPicker:
+                    ProgramPickerSheetView()
+                case .progressDashboard:
+                    ProgressDashboardView()
+                case .strengthProgress:
+                    StrengthProgressView()
+                case .workoutHeatmap:
+                    WorkoutHeatmapView(
+                        progressAnalytics: ProgressAnalyticsService(
+                            workoutSessionManager: workoutSessionManager,
+                            exerciseTemplateManager: exerciseTemplateManager
+                        )
+                    )
+                case .workoutStart(let template):
+                    WorkoutStartView(
+                        template: template,
+                        scheduledWorkout: scheduledWorkoutToStart
+                    )
+                }
+            }
+            .showCustomAlert(alert: $showAlert)
     }
     
     private var listContents: some View {
         Group {
+            if trainingPlanManager.currentTrainingPlan != nil {
+                activeProgramView
+            } else {
+                noProgramView
+            }
+        }
+    }
+    
+    private var activeProgramView: some View {
+        Group {
+            programOverviewSection
+            todaysWorkoutSection
             calendarSection
+            weekProgressSection
+            goalsSection
             chartSection
+        }
+    }
+    
+    private var programOverviewSection: some View {
+        Section {
+            if let plan = trainingPlanManager.currentTrainingPlan {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(plan.name)
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                            if let description = plan.description {
+                                Text(description)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer()
+                        Menu {
+                            Button {
+                                activeSheet = .programPicker
+                            } label: {
+                                Label("Manage Programs", systemImage: "list.bullet")
+                            }
+                            
+                            Button {
+                                activeSheet = .progressDashboard
+                            } label: {
+                                Label("View Analytics", systemImage: "chart.xyaxis.line")
+                            }
+
+                            Button {
+                                activeSheet = .strengthProgress
+                            } label: {
+                                Label("Strength Progress", systemImage: "chart.line.uptrend.xyaxis")
+                            }
+
+                            Button {
+                                activeSheet = .workoutHeatmap
+                            } label: {
+                                Label("Training Frequency", systemImage: "square.grid.3x3.fill.square")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                        }
+                    }
+                    
+                    // Quick stats
+                    HStack(spacing: 20) {
+                        StatBadge(
+                            value: "\(Int(trainingPlanManager.getAdherenceRate() * 100))%",
+                            label: "Adherence",
+                            systemImage: "checkmark.circle.fill",
+                            color: adherenceColor(trainingPlanManager.getAdherenceRate())
+                        )
+                        
+                        if let currentWeek = trainingPlanManager.getCurrentWeek() {
+                            let progress = trainingPlanManager.getWeeklyProgress(for: currentWeek.weekNumber)
+                            StatBadge(
+                                value: "\(progress.completedWorkouts)/\(progress.totalWorkouts)",
+                                label: "This Week",
+                                systemImage: "calendar",
+                                color: .blue
+                            )
+                        }
+                        
+                        let upcomingCount = trainingPlanManager.getUpcomingWorkouts().count
+                        StatBadge(
+                            value: "\(upcomingCount)",
+                            label: "Upcoming",
+                            systemImage: "clock",
+                            color: .orange
+                        )
+                    }
+                    
+                    // Program timeline
+                    if let endDate = plan.endDate {
+                        ProgressView(value: progressValue(start: plan.startDate, end: endDate)) {
+                            HStack {
+                                Text("Week \(currentWeekNumber(start: plan.startDate)) of \(totalWeeks(start: plan.startDate, end: endDate))")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                                Text(daysRemaining(until: endDate))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+        } header: {
+            Text("Active Program")
+        }
+    }
+    
+    private var todaysWorkoutSection: some View {
+        Group {
+            let todaysWorkouts = trainingPlanManager.getTodaysWorkouts()
+            if !todaysWorkouts.isEmpty {
+                Section {
+                    ForEach(todaysWorkouts) { workout in
+                        TodaysWorkoutCard(
+                            scheduledWorkout: workout,
+                            onStart: {
+                                Task {
+                                    do {
+                                        try await startWorkout(workout)
+                                    } catch {
+                                        showAlert = AnyAppAlert(error: error)
+                                    }
+                                }
+                            }
+                        )
+                    }
+                } header: {
+                    HStack {
+                        Image(systemName: "star.fill")
+                            .foregroundStyle(.yellow)
+                        Text("Today's Workout")
+                    }
+                }
+            }
         }
     }
     
@@ -33,12 +219,370 @@ struct ProgramView: View {
         WorkoutCalendarView()
     }
     
+    private var weekProgressSection: some View {
+        Group {
+            Section {
+                let calendar = Calendar.current
+                if let weekInterval = calendar.dateInterval(of: .weekOfYear, for: Date()) {
+                    ForEach(0..<7, id: \.self) { dayOffset in
+                        let day = calendar.date(byAdding: .day, value: dayOffset, to: weekInterval.start) ?? weekInterval.start
+                        let workoutsForDay = (trainingPlanManager.currentTrainingPlan?.weeks.flatMap { $0.scheduledWorkouts } ?? [])
+                            .filter { workout in
+                                guard let scheduled = workout.scheduledDate else { return false }
+                                return calendar.isDate(scheduled, inSameDayAs: day)
+                            }
+                            .sorted { ($0.scheduledDate ?? .distantFuture) < ($1.scheduledDate ?? .distantFuture) }
+                        Group {
+                            if workoutsForDay.isEmpty {
+                                RestDayRow(date: day)
+                            } else {
+                                ForEach(workoutsForDay) { workout in
+                                    ScheduledWorkoutRow(scheduledWorkout: workout)
+                                }
+                            }
+                        }
+                    }
+                }
+            } header: {
+                Text("This Week's Workouts")
+            }
+        }
+    }
+    
+    private var goalsSection: some View {
+        Group {
+            if let plan = trainingPlanManager.currentTrainingPlan, !plan.goals.isEmpty {
+                Section {
+                    ForEach(plan.goals) { goal in
+                        GoalProgressRow(goal: goal)
+                    }
+                } header: {
+                    Text("Goals")
+                }
+            }
+        }
+    }
+    
     private var chartSection: some View {
         Section {
+            Button {
+                activeSheet = .progressDashboard
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("View Progress Analytics")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                        Text("Track volume, strength, and performance")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chart.xyaxis.line")
+                        .foregroundStyle(.blue)
+                }
+                .padding(.vertical, 8)
+            }
+            
             HistoryChart(series: TimeSeriesData.last30Days)
         } header: {
-            Text("Chart")
+            Text("Activity")
         }
+    }
+    
+    private var noProgramView: some View {
+        Section {
+            VStack(spacing: 16) {
+                Image(systemName: "calendar.badge.plus")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.secondary)
+                
+                Text("No Active Program")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                
+                Text("Start a training program to schedule workouts and track your progress")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                
+                Button {
+                    activeSheet = .programPicker
+                } label: {
+                    Label("Choose Program", systemImage: "plus.circle.fill")
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 8)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 32)
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func adherenceColor(_ rate: Double) -> Color {
+        if rate >= 0.8 { return .green }
+        if rate >= 0.6 { return .orange }
+        return .red
+    }
+    
+    private func progressValue(start: Date, end: Date) -> Double {
+        let total = end.timeIntervalSince(start)
+        let elapsed = Date().timeIntervalSince(start)
+        return min(max(elapsed / total, 0), 1)
+    }
+    
+    private func currentWeekNumber(start: Date) -> Int {
+        let weeks = Calendar.current.dateComponents([.weekOfYear], from: start, to: .now).weekOfYear ?? 0
+        return weeks + 1
+    }
+    
+    private func totalWeeks(start: Date, end: Date) -> Int {
+        let weeks = Calendar.current.dateComponents([.weekOfYear], from: start, to: end).weekOfYear ?? 0
+        return weeks + 1
+    }
+    
+    private func daysRemaining(until date: Date) -> String {
+        let days = Calendar.current.dateComponents([.day], from: .now, to: date).day ?? 0
+        if days == 0 {
+            return "Ends today"
+        } else if days == 1 {
+            return "1 day left"
+        } else {
+            return "\(days) days left"
+        }
+    }
+    
+    private func startWorkout(_ scheduledWorkout: ScheduledWorkout) async throws {
+        let template = try await workoutTemplateManager.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
+        
+        // Store scheduled workout reference for WorkoutStartView
+        scheduledWorkoutToStart = scheduledWorkout
+        
+        // Small delay to ensure any pending presentations complete
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+        
+        // Show WorkoutStartView (preview, notes, etc.)
+        activeSheet = .workoutStart(template)
+    }
+}
+
+// MARK: - Supporting Views
+
+struct StatBadge: View {
+    let value: String
+    let label: String
+    let systemImage: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 4) {
+                Image(systemName: systemImage)
+                    .font(.caption)
+                Text(value)
+                    .font(.headline)
+            }
+            .foregroundStyle(color)
+            
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+struct TodaysWorkoutCard: View {
+    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
+    let scheduledWorkout: ScheduledWorkout
+    let onStart: () -> Void
+    
+    @State private var templateName: String = "Workout"
+    @State private var exerciseCount: Int = 0
+    @State private var showAlert: AnyAppAlert?
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // Status indicator
+            VStack(spacing: 4) {
+                if scheduledWorkout.isCompleted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.largeTitle)
+                        .foregroundStyle(.green)
+                    Text("Done")
+                        .font(.caption2)
+                        .foregroundStyle(.green)
+                } else {
+                    Image(systemName: "play.circle.fill")
+                        .font(.largeTitle)
+                        .foregroundStyle(.blue)
+                    Text("Ready")
+                        .font(.caption2)
+                        .foregroundStyle(.blue)
+                }
+            }
+            
+            // Workout info
+            VStack(alignment: .leading, spacing: 6) {
+                Text(templateName)
+                    .font(.headline)
+                
+                HStack(spacing: 12) {
+                    Label("\(exerciseCount) exercises", systemImage: "figure.strengthtraining.traditional")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    if let date = scheduledWorkout.scheduledDate {
+                        Label(date.formatted(date: .omitted, time: .shortened), systemImage: "clock")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            
+            Spacer()
+            
+            // Start button
+            if !scheduledWorkout.isCompleted {
+                Button {
+                    onStart()
+                } label: {
+                    Text("Start")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(.blue)
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.vertical, 8)
+        .task {
+            do {
+                try await loadWorkoutDetails()
+            } catch {
+                showAlert = AnyAppAlert(error: error)
+            }
+        }
+        .showCustomAlert(alert: $showAlert)
+    }
+    
+    private func loadWorkoutDetails() async throws {
+        let template = try await workoutTemplateManager.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
+            templateName = template.name
+            exerciseCount = template.exercises.count
+        
+    }
+}
+
+struct ScheduledWorkoutRow: View {
+    let scheduledWorkout: ScheduledWorkout
+    
+    var body: some View {
+        HStack {
+            Image(systemName: statusIcon)
+                .foregroundStyle(statusColor)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Workout") // Would fetch template name
+                    .font(.subheadline)
+                if let date = scheduledWorkout.scheduledDate {
+                    Text(date.formatted(date: .abbreviated, time: .shortened))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            
+            Spacer()
+            
+            if scheduledWorkout.isCompleted {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+            }
+        }
+    }
+    
+    private var statusIcon: String {
+        if scheduledWorkout.isCompleted {
+            return "checkmark.circle.fill"
+        } else if scheduledWorkout.isMissed {
+            return "exclamationmark.circle.fill"
+        } else {
+            return "circle"
+        }
+    }
+    
+    private var statusColor: Color {
+        if scheduledWorkout.isCompleted {
+            return .green
+        } else if scheduledWorkout.isMissed {
+            return .red
+        } else {
+            return .gray
+        }
+    }
+}
+
+struct GoalProgressRow: View {
+    let goal: TrainingGoal
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(goal.type.description)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                Spacer()
+                Text("\(Int(goal.progress * 100))%")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            ProgressView(value: goal.progress) {
+                HStack {
+                    Text("\(Int(goal.currentValue)) / \(Int(goal.targetValue)) \(goal.type.unit)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    if let targetDate = goal.targetDate {
+                        Text(targetDate.formatted(date: .abbreviated, time: .omitted))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct RestDayRow: View {
+    let date: Date
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "moon.zzz.fill")
+                .foregroundStyle(.secondary)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Rest Day")
+                    .font(.subheadline)
+                Text(date.formatted(date: .abbreviated, time: .omitted))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Spacer()
+        }
+    }
+}
+
+struct ProgramPickerSheetView: View {
+    var body: some View {
+        ProgramManagementView()
     }
 }
 

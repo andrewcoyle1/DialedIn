@@ -15,6 +15,7 @@ class WorkoutTemplateEntity {
     var name: String
     var workoutDescription: String?
     var imageURL: String?
+    var isSystemWorkout: Bool
     var dateCreated: Date
     var dateModified: Date
     var exercises: [String]
@@ -28,6 +29,7 @@ class WorkoutTemplateEntity {
         self.name = model.name
         self.workoutDescription = model.description
         self.imageURL = model.imageURL
+        self.isSystemWorkout = model.isSystemWorkout
         self.dateCreated = model.dateCreated
         self.dateModified = model.dateModified
         self.exercises = model.exercises.map(\.exerciseId)
@@ -37,16 +39,27 @@ class WorkoutTemplateEntity {
     }
     
     @MainActor
-    func toModel() -> WorkoutTemplateModel {
-        WorkoutTemplateModel(
+    func toModel(exerciseManager: ExerciseTemplateManager? = nil) -> WorkoutTemplateModel {
+        // Fetch actual exercise templates if manager is provided
+        var exerciseTemplates: [ExerciseTemplateModel] = []
+        if let exerciseManager = exerciseManager {
+            for exerciseId in exercises {
+                if let exercise = try? exerciseManager.getLocalExerciseTemplate(id: exerciseId) {
+                    exerciseTemplates.append(exercise)
+                }
+            }
+        }
+        
+        return WorkoutTemplateModel(
             id: workoutTemplateId,
             authorId: authorId ?? "",
             name: name,
             description: workoutDescription,
             imageURL: imageURL,
+            isSystemWorkout: isSystemWorkout,
             dateCreated: dateCreated,
             dateModified: dateModified,
-            exercises: [],
+            exercises: exerciseTemplates,
             clickCount: clickCount,
             bookmarkCount: bookmarkCount,
             favouriteCount: favouriteCount

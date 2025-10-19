@@ -23,11 +23,11 @@ struct IngredientsView: View {
     @State private var favouriteIngredients: [IngredientTemplateModel] = []
     @State private var bookmarkedIngredients: [IngredientTemplateModel] = []
     @State private var ingredients: [IngredientTemplateModel] = []
-    @State private var showAddIngredientModal: Bool = false
 
     @Binding var isShowingInspector: Bool
     @Binding var selectedIngredientTemplate: IngredientTemplateModel?
     @Binding var selectedRecipeTemplate: RecipeTemplateModel?
+    @Binding var showCreateIngredient: Bool
 
     // MARK: Computed variables
     private var myIngredientIds: Set<String> {
@@ -82,9 +82,6 @@ struct IngredientsView: View {
             }
         }
         .screenAppearAnalytics(name: "IngredientsView")
-        .sheet(isPresented: $showAddIngredientModal) {
-            CreateIngredientView()
-        }
         .task {
             await loadMyIngredientsIfNeeded()
             await loadTopIngredientsIfNeeded()
@@ -219,7 +216,7 @@ struct IngredientsView: View {
 
     private func onAddIngredientPressed() {
         logManager.trackEvent(event: Event.onAddIngredientPressed)
-        showAddIngredientModal = true
+        showCreateIngredient = true
     }
 
     private func onIngredientPressed(ingredient: IngredientTemplateModel) {
@@ -506,7 +503,8 @@ struct IngredientsView: View {
         IngredientsView(
             isShowingInspector: Binding.constant(false),
             selectedIngredientTemplate: Binding.constant(nil),
-            selectedRecipeTemplate: Binding.constant(nil)
+            selectedRecipeTemplate: Binding.constant(nil),
+            showCreateIngredient: Binding.constant(false)
         )
     }
     .previewEnvironment()

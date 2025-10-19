@@ -12,6 +12,8 @@ import UIKit
 
 struct NutritionView: View {
     
+    @Environment(\.layoutMode) private var layoutMode
+    @Environment(DetailNavigationModel.self) private var detail
     @State private var presentationMode: NutritionPresentationMode = .log
 
     @State private var isLoading: Bool = false
@@ -24,16 +26,16 @@ struct NutritionView: View {
     @State private var favouriteIngredients: [IngredientTemplateModel] = []
     @State private var bookmarkedIngredients: [IngredientTemplateModel] = []
     @State private var ingredients: [IngredientTemplateModel] = []
-    @State private var showAddIngredientModal: Bool = false
     @State private var selectedIngredientTemplate: IngredientTemplateModel?
+    @State private var showCreateIngredient: Bool = false
 
     @State private var searchRecipeTask: Task<Void, Never>?
     @State private var myRecipes: [RecipeTemplateModel] = []
     @State private var favouriteRecipes: [RecipeTemplateModel] = []
     @State private var bookmarkedRecipes: [RecipeTemplateModel] = []
     @State private var recipes: [RecipeTemplateModel] = []
-    @State private var showAddRecipeModal: Bool = false
     @State private var selectedRecipeTemplate: RecipeTemplateModel?
+    @State private var showCreateRecipe: Bool = false
 
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
@@ -47,18 +49,35 @@ struct NutritionView: View {
     }
     
     var body: some View {
-        NavigationStack {
+        Group {
+            if layoutMode == .tabBar {
+                NavigationStack {
+                    contentView
+                }
+            } else {
+                contentView
+            }
+        }
+        // Only show inspector in compact/tabBar modes; not in split view where detail is used
+        .modifier(InspectorIfCompact(isPresented: $isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView))
+        .onChange(of: selectedIngredientTemplate) { _, ing in
+            guard layoutMode == .splitView else { return }
+            if let ing { detail.path = [.ingredientTemplateDetail(template: ing)] }
+        }
+        .onChange(of: selectedRecipeTemplate) { _, rec in
+            guard layoutMode == .splitView else { return }
+            if let rec { detail.path = [.recipeTemplateDetail(template: rec)] }
+        }
+    }
+    
+    private var contentView: some View {
+        VStack(spacing: 0) {
             List {
                 pickerSection
                 listContents
             }
-            .navigationTitle("Nutrition")
-            .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
-            .navigationBarTitleDisplayMode(.large)
             .scrollIndicators(.hidden)
             .showCustomAlert(alert: $showAlert)
-                toolbarContent
-            }
             #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView) {
                 DevSettingsView()
@@ -67,9 +86,18 @@ struct NutritionView: View {
             .sheet(isPresented: $showNotifications) {
                 NotificationsView()
             }
+            .sheet(isPresented: $showCreateIngredient) {
+                CreateIngredientView()
+            }
+            .sheet(isPresented: $showCreateRecipe) {
+                CreateRecipeView()
+            }
         }
-        .inspector(isPresented: $isShowingInspector) {
-            inspectorContent
+        .navigationTitle("Nutrition")
+        .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            toolbarContent
         }
     }
 
@@ -97,14 +125,16 @@ struct NutritionView: View {
                 RecipesView(
                     isShowingInspector: $isShowingInspector,
                     selectedIngredientTemplate: $selectedIngredientTemplate,
-                    selectedRecipeTemplate: $selectedRecipeTemplate
+                    selectedRecipeTemplate: $selectedRecipeTemplate,
+                    showCreateRecipe: $showCreateRecipe
                 )
             case .ingredients:
                 // ingredientsSection
                 IngredientsView(
                     isShowingInspector: $isShowingInspector,
                     selectedIngredientTemplate: $selectedIngredientTemplate,
-                    selectedRecipeTemplate: $selectedRecipeTemplate
+                    selectedRecipeTemplate: $selectedRecipeTemplate,
+                    showCreateIngredient: $showCreateIngredient
                 )
             }
         }
@@ -141,7 +171,7 @@ struct NutritionView: View {
         }
         #endif
         
-        ToolbarItem(placement: .topBarTrailing) {
+        ToolbarItem(placement: .topBarLeading) {
             Button {
                 onNotificationsPressed()
             } label: {
@@ -149,27 +179,27 @@ struct NutritionView: View {
             }
         }
         
-        #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom != .phone {
-            ToolbarSpacer(placement: .topBarTrailing)
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isShowingInspector.toggle()
-                } label: {
-                    Image(systemName: "info")
-                }
-            }
-        }
-        #else
-        ToolbarSpacer(placement: .topBarTrailing)
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                isShowingInspector.toggle()
-            } label: {
-                Image(systemName: "info")
-            }
-        }
-        #endif
+//        #if os(iOS)
+//        if UIDevice.current.userInterfaceIdiom != .phone {
+//            ToolbarSpacer(placement: .topBarTrailing)
+//            ToolbarItem(placement: .topBarTrailing) {
+//                Button {
+//                    isShowingInspector.toggle()
+//                } label: {
+//                    Image(systemName: "info")
+//                }
+//            }
+//        }
+//        #else
+//        ToolbarSpacer(placement: .topBarTrailing)
+//        ToolbarItem(placement: .topBarTrailing) {
+//            Button {
+//                isShowingInspector.toggle()
+//            } label: {
+//                Image(systemName: "info")
+//            }
+//        }
+//        #endif
     }
 }
 
@@ -184,4 +214,21 @@ extension NutritionView {
         showNotifications = true
     }
     
+}
+
+private struct InspectorIfCompact<InspectorContent: View>: ViewModifier {
+    @Binding var isPresented: Bool
+    let inspector: () -> InspectorContent
+    let enabled: Bool
+
+    func body(content: Content) -> some View {
+        Group {
+            if enabled {
+                content
+                    .inspector(isPresented: $isPresented) { self.inspector() }
+            } else {
+                content
+            }
+        }
+    }
 }

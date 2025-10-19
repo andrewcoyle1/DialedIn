@@ -25,6 +25,8 @@ struct DialedInApp: App {
                 .environment(delegate.dependencies.workoutSessionManager)
                 .environment(delegate.dependencies.exerciseHistoryManager)
                 .environment(delegate.dependencies.trainingPlanManager)
+                .environment(delegate.dependencies.programTemplateManager)
+                .environment(delegate.dependencies.detailNavigationModel)
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 .environment(delegate.dependencies.hkWorkoutManager)
                 .environment(delegate.dependencies.workoutActivityViewModel)
@@ -39,6 +41,7 @@ struct DialedInApp: App {
                 .environment(delegate.dependencies.healthKitManager)
                 .environment(delegate.dependencies.pushManager)
                 .environment(delegate.dependencies.purchaseManager)
+                .environment(delegate.dependencies.trainingAnalyticsManager)
                 .environment(delegate.dependencies.userManager)
                 .environment(delegate.dependencies.authManager)
                 .onOpenURL { url in
@@ -114,6 +117,7 @@ struct Dependencies {
     let workoutSessionManager: WorkoutSessionManager
     let exerciseHistoryManager: ExerciseHistoryManager
     let trainingPlanManager: TrainingPlanManager
+    let programTemplateManager: ProgramTemplateManager
     let ingredientTemplateManager: IngredientTemplateManager
     let recipeTemplateManager: RecipeTemplateManager
     let nutritionManager: NutritionManager
@@ -123,6 +127,8 @@ struct Dependencies {
     let logManager: LogManager
     let reportManager: ReportManager
     let healthKitManager: HealthKitManager
+    let trainingAnalyticsManager: TrainingAnalyticsManager
+    let detailNavigationModel: DetailNavigationModel
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     let hkWorkoutManager: HKWorkoutManager
     let workoutActivityViewModel: WorkoutActivityViewModel
@@ -136,10 +142,15 @@ struct Dependencies {
             userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
             purchaseManager = PurchaseManager(services: MockPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
-            workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices())
+            workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())
             trainingPlanManager = TrainingPlanManager(services: MockTrainingPlanServices())
+            programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: MockProgramTemplateService()))
+            
+            // Link managers for auto-completion
+            workoutSessionManager.trainingPlanManager = trainingPlanManager
+            
             ingredientTemplateManager = IngredientTemplateManager(services: MockIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: MockRecipeTemplateServices())
             nutritionManager = NutritionManager(services: MockNutritionServices())
@@ -149,6 +160,7 @@ struct Dependencies {
                 ConsoleService(printParameters: false)
             ])
             reportManager = ReportManager(service: MockReportService(), userManager: userManager, logManager: logManager)
+            trainingAnalyticsManager = TrainingAnalyticsManager(services: MockTrainingAnalyticsServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             hkWorkoutManager = HKWorkoutManager()
             workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
@@ -166,10 +178,15 @@ struct Dependencies {
             userManager = UserManager(services: ProductionUserServices(), logManager: logs)
             purchaseManager = PurchaseManager(services: ProductionPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
-            workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices())
+            workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices())
+            programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()))
+            
+            // Link managers for auto-completion
+            workoutSessionManager.trainingPlanManager = trainingPlanManager
+            
             ingredientTemplateManager = IngredientTemplateManager(services: ProductionIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: ProductionRecipeTemplateServices())
             nutritionManager = NutritionManager(services: ProductionNutritionServices())
@@ -177,6 +194,7 @@ struct Dependencies {
             aiManager = AIManager(service: GoogleAIService())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
+            trainingAnalyticsManager = TrainingAnalyticsManager(services: ProductionTrainingAnalyticsServices(workoutSessionManager: workoutSessionManager, exerciseTemplateManager: exerciseTemplateManager))
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             hkWorkoutManager = HKWorkoutManager()
             workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
@@ -193,10 +211,15 @@ struct Dependencies {
             userManager = UserManager(services: ProductionUserServices(), logManager: logs)
             purchaseManager = PurchaseManager(services: ProductionPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
-            workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices())
+            workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices())
+            programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()))
+            
+            // Link managers for auto-completion
+            workoutSessionManager.trainingPlanManager = trainingPlanManager
+            
             ingredientTemplateManager = IngredientTemplateManager(services: ProductionIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: ProductionRecipeTemplateServices())
             nutritionManager = NutritionManager(services: ProductionNutritionServices())
@@ -204,11 +227,13 @@ struct Dependencies {
             aiManager = AIManager(service: GoogleAIService())
             logManager = logs
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
+            trainingAnalyticsManager = TrainingAnalyticsManager(services: ProductionTrainingAnalyticsServices(workoutSessionManager: workoutSessionManager, exerciseTemplateManager: exerciseTemplateManager))
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             hkWorkoutManager = HKWorkoutManager()
             workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
             #endif
         }
+        detailNavigationModel = DetailNavigationModel()
         pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
         healthKitManager = HealthKitManager(service: HealthKitService())
     }
@@ -228,10 +253,12 @@ extension View {
             .environment(AppState())
             .environment(ReportManager(service: MockReportService(), userManager: UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))))
             .environment(ExerciseTemplateManager(services: MockExerciseTemplateServices()))
-            .environment(WorkoutTemplateManager(services: MockWorkoutTemplateServices()))
+            .environment(WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: ExerciseTemplateManager(services: MockExerciseTemplateServices())))
             .environment(WorkoutSessionManager(services: MockWorkoutSessionServices()))
             .environment(ExerciseHistoryManager(services: MockExerciseHistoryServices()))
             .environment(TrainingPlanManager(services: MockTrainingPlanServices()))
+            .environment(ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: MockProgramTemplateService())))
+            .environment(TrainingAnalyticsManager(services: MockTrainingAnalyticsServices()))
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             .environment(hkWorkoutManager)
             .environment(WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager))

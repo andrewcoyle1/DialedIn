@@ -24,8 +24,8 @@ struct ProductionWorkoutTemplateServices: WorkoutTemplateServices {
     let remote: RemoteWorkoutTemplateService
     let local: LocalWorkoutTemplatePersistence
     
-    init() {
+    init(exerciseManager: ExerciseTemplateManager) {
         self.remote = FirebaseWorkoutTemplateService()
-        self.local = SwiftWorkoutTemplatePersistence()
+        self.local = SwiftWorkoutTemplatePersistence(exerciseManager: exerciseManager)
     }
 }

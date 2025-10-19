@@ -22,11 +22,11 @@ struct ExercisesView: View {
     @State private var bookmarkedExercises: [ExerciseTemplateModel] = []
     @State private var officialExercises: [ExerciseTemplateModel] = []
     @State private var exercises: [ExerciseTemplateModel] = []
-    @State private var showAddExerciseModal: Bool = false
 
     @Binding var isShowingInspector: Bool
     @Binding var selectedWorkoutTemplate: WorkoutTemplateModel?
     @Binding var selectedExerciseTemplate: ExerciseTemplateModel?
+    @Binding var showCreateExercise: Bool
 
     // MARK: Computed Variables
 
@@ -94,9 +94,6 @@ struct ExercisesView: View {
             }
         }
         .screenAppearAnalytics(name: "ExercisesView")
-        .sheet(isPresented: $showAddExerciseModal) {
-            CreateExerciseView()
-        }
         .task {
             await loadMyExercisesIfNeeded()
             await loadOfficialExercises()
@@ -243,7 +240,7 @@ struct ExercisesView: View {
                 Text("My Templates")
                 Spacer()
                 Button {
-                    showAddExerciseModal = true
+                    showCreateExercise = true
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20))
@@ -312,7 +309,7 @@ struct ExercisesView: View {
 
     private func onAddExercisePressed() {
         logManager.trackEvent(event: ExercisesViewEvents.onAddExercisePressed)
-        showAddExerciseModal = true
+        showCreateExercise = true
     }
 
     private func onExercisePressed(exercise: ExerciseTemplateModel) {
@@ -510,7 +507,8 @@ struct ExercisesView: View {
         ExercisesView(
             isShowingInspector: Binding.constant(true),
             selectedWorkoutTemplate: Binding.constant(nil),
-            selectedExerciseTemplate: Binding.constant(nil)
+            selectedExerciseTemplate: Binding.constant(nil),
+            showCreateExercise: Binding.constant(false)
         )
     }
     .previewEnvironment()

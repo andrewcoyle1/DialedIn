@@ -13,10 +13,26 @@ class WorkoutTemplateManager {
     
     private let local: LocalWorkoutTemplatePersistence
     private let remote: RemoteWorkoutTemplateService
+    private var seedingManager: WorkoutSeedingManager?
+    private let exerciseManager: ExerciseTemplateManager
     
-    init(services: WorkoutTemplateServices) {
+    init(services: WorkoutTemplateServices, exerciseManager: ExerciseTemplateManager) {
         self.remote = services.remote
         self.local = services.local
+        self.exerciseManager = exerciseManager
+        
+        // Initialize seeding manager if using production services
+        if let swiftPersistence = services.local as? SwiftWorkoutTemplatePersistence {
+            self.seedingManager = WorkoutSeedingManager(
+                modelContext: swiftPersistence.modelContext,
+                exerciseManager: exerciseManager
+            )
+            
+            // Seed workouts on initialization
+            Task {
+                try? await self.seedingManager?.seedWorkoutsIfNeeded()
+            }
+        }
     }
     
     func addLocalWorkoutTemplate(workout: WorkoutTemplateModel) async throws {
@@ -56,7 +72,19 @@ class WorkoutTemplateManager {
     }
     
     func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel {
-        try await remote.getWorkoutTemplate(id: id)
+        // Try local first (for system workouts), then remote
+        if let localTemplate = try? local.getLocalWorkoutTemplate(id: id) {
+            return localTemplate
+        }
+        return try await remote.getWorkoutTemplate(id: id)
+    }
+    
+    func get(id: String) async -> WorkoutTemplateModel? {
+        // Non-throwing version for convenience
+        if let localTemplate = try? local.getLocalWorkoutTemplate(id: id) {
+            return localTemplate
+        }
+        return try? await remote.getWorkoutTemplate(id: id)
     }
     
     func getWorkoutTemplates(ids: [String], limitTo: Int = 20) async throws -> [WorkoutTemplateModel] {

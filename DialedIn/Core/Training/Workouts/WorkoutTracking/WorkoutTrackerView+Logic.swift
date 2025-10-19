@@ -92,10 +92,9 @@ extension WorkoutTrackerView {
                 await pushManager.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
                 
                 try workoutSessionManager.deleteLocalWorkoutSession(id: workoutSession.id)
-                await MainActor.run {
-                    workoutSessionManager.endActiveSession()
+                // Don't mark scheduled workout as complete when discarding
+                await workoutSessionManager.endActiveSession(markScheduledComplete: false)
                     dismiss()
-                }
             } catch {
                 await MainActor.run {
                     showAlert = AnyAppAlert(
@@ -442,13 +441,11 @@ extension WorkoutTrackerView {
                 // Create exercise history entries (remote + local)
                 try await createExerciseHistoryEntries(performedAt: endTime)
                 
-                await MainActor.run {
                     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                     workoutActivityViewModel.endLiveActivity(session: workoutSession, success: true)
                     #endif
-                    workoutSessionManager.endActiveSession()
+                await workoutSessionManager.endActiveSession()
                     dismiss()
-                }
             } catch {
                 showAlert = AnyAppAlert(title: "Failed to finish workout", subtitle: error.localizedDescription)
             }

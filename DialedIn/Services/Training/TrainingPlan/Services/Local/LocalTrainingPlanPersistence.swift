@@ -8,5 +8,11 @@
 @MainActor
 protocol LocalTrainingPlanPersistence {
     func getCurrentTrainingPlan() -> TrainingPlan?
+    func getAllPlans() -> [TrainingPlan]
+    func getPlan(id: String) -> TrainingPlan?
+    func savePlan(_ plan: TrainingPlan) throws
+    func deletePlan(id: String) throws
+    
+    // Legacy method for backwards compatibility
     func saveTrainingPlan(plan: TrainingPlan) throws
 }

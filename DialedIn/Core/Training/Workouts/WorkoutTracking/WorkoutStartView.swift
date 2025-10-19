@@ -12,14 +12,21 @@ struct WorkoutStartView: View {
     @Environment(ExerciseHistoryManager.self) private var exerciseHistoryManager
     @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @Environment(WorkoutActivityViewModel.self) private var workoutActivityViewModel
+    @Environment(TrainingPlanManager.self) private var trainingPlanManager
     @Environment(\.dismiss) private var dismiss
     
     let template: WorkoutTemplateModel
+    let scheduledWorkout: ScheduledWorkout?
     
     @State private var workoutNotes = ""
     @State private var isStarting = false
     @State private var showingTracker = false
     @State private var createdSession: WorkoutSessionModel?
+    
+    init(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout? = nil) {
+        self.template = template
+        self.scheduledWorkout = scheduledWorkout
+    }
     
     var body: some View {
         NavigationStack {
@@ -197,7 +204,9 @@ struct WorkoutStartView: View {
                 let session = WorkoutSessionModel(
                     authorId: userId,
                     template: template,
-                    notes: workoutNotes.isEmpty ? nil : workoutNotes
+                    notes: workoutNotes.isEmpty ? nil : workoutNotes,
+                    scheduledWorkoutId: scheduledWorkout?.id,
+                    trainingPlanId: scheduledWorkout != nil ? trainingPlanManager.currentTrainingPlan?.planId : nil
                 )
                 
                 // Save locally first (MainActor-isolated)
@@ -205,8 +214,14 @@ struct WorkoutStartView: View {
                 
                 await MainActor.run {
                     createdSession = session
-                    workoutSessionManager.startActiveSession(session)
                     isStarting = false
+                }
+                
+                // Small delay before presenting next screen
+                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                
+                await MainActor.run {
+                    workoutSessionManager.startActiveSession(session)
                     showingTracker = true
                 }
                 

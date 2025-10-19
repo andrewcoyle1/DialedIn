@@ -24,6 +24,9 @@ class WorkoutSessionManager: LocalWorkoutSessionPersistence, RemoteWorkoutSessio
     // Rest timer state for active session
     var restEndTime: Date?
     
+    // Optional reference to TrainingPlanManager for auto-completion
+    weak var trainingPlanManager: TrainingPlanManager?
+    
     init(services: WorkoutSessionServices) {
         self.remote = services.remote
         self.local = services.local
@@ -49,7 +52,18 @@ class WorkoutSessionManager: LocalWorkoutSessionPersistence, RemoteWorkoutSessio
         isTrackerPresented = true
     }
     
-    func endActiveSession() {
+    func endActiveSession(markScheduledComplete: Bool = true) async {
+        // Mark scheduled workout as complete if linked to training plan AND not discarding
+        if markScheduledComplete,
+           let session = activeSession,
+           let scheduledWorkoutId = session.scheduledWorkoutId,
+           let trainingPlanManager = trainingPlanManager {
+            try? await trainingPlanManager.completeWorkout(
+                scheduledWorkoutId: scheduledWorkoutId,
+                session: session
+            )
+        }
+        
         activeSession = nil
         isTrackerPresented = false
         restEndTime = nil

@@ -9,55 +9,33 @@ import SwiftUI
 
 struct TabBarView: View {
     
-    private enum Section: String, CaseIterable, Identifiable {
-        case dashboard
-        case exercises
-        case nutrition
-        case profile
-        
-        var id: Self { self }
-        
-        var title: String {
-            switch self {
-            case .dashboard: return "Dashboard"
-            case .exercises: return "Training"
-            case .nutrition: return "Nutrition"
-            case .profile: return "Profile"
-            }
-        }
-        
-        var systemImage: String {
-            switch self {
-            case .dashboard: return "house"
-            case .exercises: return "dumbbell"
-            case .nutrition: return "carrot"
-            case .profile: return "person.fill"
-            }
-        }
-    }
-    
     @Environment(WorkoutSessionManager.self) private var workoutSessionManager
-    @State private var selectedSection: Section? = .dashboard
+    @Environment(AppNavigationModel.self) private var appNavigation
     @State private var presentTracker: Bool = false
     
     var body: some View {
-        TabView {
+        @Bindable var appNavigation = appNavigation
+        TabView(selection: $appNavigation.selectedSection) {
             DashboardView()
+                .tag(AppSection.dashboard)
                 .tabItem {
                     Label("Dashboard", systemImage: "house")
                 }
             
             TrainingView()
+                .tag(AppSection.training)
                 .tabItem {
                     Label("Training", systemImage: "dumbbell")
                 }
             
             NutritionView()
+                .tag(AppSection.nutrition)
                 .tabItem {
                     Label("Nutrition", systemImage: "carrot")
                 }
             
             ProfileView()
+                .tag(AppSection.profile)
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")
                 }

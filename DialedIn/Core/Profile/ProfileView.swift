@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProfileView: View {
     
+    @Environment(\.layoutMode) private var layoutMode
     @Environment(UserManager.self) private var userManager: UserManager
     @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
@@ -22,32 +23,42 @@ struct ProfileView: View {
     @State private var showCreateProfileSheet: Bool = false
     
     var body: some View {
-        NavigationStack {
-            List {
-                profileSection
-                myTemplatesSection
+        Group {
+            if layoutMode == .tabBar {
+                NavigationStack {
+                    contentView
+                }
+            } else {
+                contentView
             }
-            .navigationTitle("Profile")
-            .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
-            .navigationBarTitleDisplayMode(.large)
-            #if DEBUG || MOCK
-            .sheet(isPresented: $showDebugView, content: {
-                DevSettingsView()
-            })
-            #endif
-            .sheet(isPresented: $showCreateProfileSheet) {
-                CreateAccountView()
-                    .presentationDetents([
-                        .fraction(0.4)
-                    ])
-                // OnboardingCreateProfileView()
-            }
-            .sheet(isPresented: $showNotifications) {
-                NotificationsView()
-            }
-            .toolbar {
-                toolbarContent
-            }
+        }
+    }
+    
+    private var contentView: some View {
+        List {
+            profileSection
+            myTemplatesSection
+        }
+        .navigationTitle("Profile")
+        .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
+        .navigationBarTitleDisplayMode(.large)
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView, content: {
+            DevSettingsView()
+        })
+        #endif
+        .sheet(isPresented: $showCreateProfileSheet) {
+            CreateAccountView()
+                .presentationDetents([
+                    .fraction(0.4)
+                ])
+            // OnboardingCreateProfileView()
+        }
+        .sheet(isPresented: $showNotifications) {
+            NotificationsView()
+        }
+        .toolbar {
+            toolbarContent
         }
     }
 }
@@ -229,7 +240,7 @@ extension ProfileView {
             }
         }
         #endif
-        ToolbarItem(placement: .topBarTrailing) {
+        ToolbarItem(placement: .topBarLeading) {
             Button {
                 onNotificationsPressed()
             } label: {

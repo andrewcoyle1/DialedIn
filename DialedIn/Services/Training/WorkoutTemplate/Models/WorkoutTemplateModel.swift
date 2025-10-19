@@ -18,6 +18,7 @@ struct WorkoutTemplateModel: Identifiable, Codable, StringIdentifiable, Hashable
     let name: String
     let description: String?
     private(set) var imageURL: String?
+    let isSystemWorkout: Bool
     let dateCreated: Date
     let dateModified: Date
     var exercises: [ExerciseTemplateModel]
@@ -31,6 +32,7 @@ struct WorkoutTemplateModel: Identifiable, Codable, StringIdentifiable, Hashable
         name: String,
         description: String? = nil,
         imageURL: String? = nil,
+        isSystemWorkout: Bool = false,
         dateCreated: Date,
         dateModified: Date,
         exercises: [ExerciseTemplateModel] = [],
@@ -43,6 +45,7 @@ struct WorkoutTemplateModel: Identifiable, Codable, StringIdentifiable, Hashable
         self.name = name
         self.description = description
         self.imageURL = imageURL
+        self.isSystemWorkout = isSystemWorkout
         self.dateCreated = dateCreated
         self.dateModified = dateModified
         self.exercises = exercises
@@ -77,6 +80,7 @@ struct WorkoutTemplateModel: Identifiable, Codable, StringIdentifiable, Hashable
         case name = "name"
         case description = "description"
         case imageURL = "image_url"
+        case isSystemWorkout = "is_system_workout"
         case dateCreated = "date_created"
         case dateModified = "date_modified"
         case exercises = "exercises"
@@ -107,6 +111,7 @@ struct WorkoutTemplateModel: Identifiable, Codable, StringIdentifiable, Hashable
         authorId: String,
         description: String? = nil,
         imageURL: String? = nil,
+        isSystemWorkout: Bool = false,
         exercises: [ExerciseTemplateModel] = [],
         clickCount: Int? = 0,
         bookmarkCount: Int? = 0,
@@ -118,6 +123,7 @@ struct WorkoutTemplateModel: Identifiable, Codable, StringIdentifiable, Hashable
             name: name,
             description: description,
             imageURL: imageURL,
+            isSystemWorkout: isSystemWorkout,
             dateCreated: .now,
             dateModified: .now,
             exercises: exercises,

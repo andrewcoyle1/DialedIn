@@ -34,8 +34,16 @@ struct FirebaseAnalyticsService: LogService {
         
         for (key, value) in dict {
             if let string = String.convertToString(value) {
-                let key = key.clean(maxCharacters: 40)
-                let string = string.clean(maxCharacters: 100)
+                let alias: [String: String] = [
+                    "user_weight_unit_preference": "weight_unit",
+                    "user_daily_activity_level": "activity_level",
+                    "user_length_unit_preference": "length_unit",
+                    "user_did_complete_onboarding": "onboarded",
+                    "user_cardio_fitness_level": "cardio_level"
+                ]
+                let rawKey = alias[key] ?? key
+                let key = rawKey.clean(maxCharacters: 24)
+                let string = string.clean(maxCharacters: 36)
                 Analytics.setUserProperty(string, forName: key)
             }
         }

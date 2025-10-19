@@ -11,10 +11,14 @@ import Foundation
 class MockTrainingPlanPersistence: LocalTrainingPlanPersistence {
     
     var showError: Bool
-    private var storedPlan: TrainingPlan?
+    private var plans: [String: TrainingPlan] = [:]
     
     init(showError: Bool = false) {
         self.showError = showError
+        
+        // Seed with mock data
+        let mockPlan = TrainingPlan.mock
+        plans[mockPlan.planId] = mockPlan
     }
     
     private func tryShowError() throws {
@@ -24,11 +28,29 @@ class MockTrainingPlanPersistence: LocalTrainingPlanPersistence {
     }
     
     func getCurrentTrainingPlan() -> TrainingPlan? {
-        storedPlan
+        plans.values.first { $0.isActive }
     }
     
-    func saveTrainingPlan(plan: TrainingPlan) throws {
+    func getAllPlans() -> [TrainingPlan] {
+        Array(plans.values).sorted { $0.createdAt > $1.createdAt }
+    }
+    
+    func getPlan(id: String) -> TrainingPlan? {
+        plans[id]
+    }
+    
+    func savePlan(_ plan: TrainingPlan) throws {
         try tryShowError()
-        storedPlan = plan
+        plans[plan.planId] = plan
+    }
+    
+    func deletePlan(id: String) throws {
+        try tryShowError()
+        plans.removeValue(forKey: id)
+    }
+    
+    // Legacy method for backwards compatibility
+    func saveTrainingPlan(plan: TrainingPlan) throws {
+        try savePlan(plan)
     }
 }

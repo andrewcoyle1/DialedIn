@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DashboardView: View {
 
+    @Environment(\.layoutMode) private var layoutMode
     @Environment(LogManager.self) private var logManager
     @Environment(NutritionManager.self) private var nutritionManager
     @State private var showNotifications: Bool = false
@@ -22,28 +23,41 @@ struct DashboardView: View {
     @State private var chartEndDate: Date = Date()
     
     var body: some View {
-        NavigationStack {
-            List {
-                carouselSection
-                nutritionTargetSection
-                contributionChartSection
+        Group {
+            if layoutMode == .tabBar {
+                NavigationStack {
+                    contentView
+                }
+            } else {
+                contentView
             }
-            .navigationTitle("Dashboard")
-            .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
-            .toolbar {
-                toolbarContent
-            }
-            #if DEBUG || MOCK
-            .sheet(isPresented: $showDebugView) {
-                DevSettingsView()
-            }
-            #endif
-            .sheet(isPresented: $showNotifications) {
-                NotificationsView()
-            }
-            .onOpenURL { url in
-                handleDeepLink(url: url)
-            }
+        }
+        .modifier(InspectorIfCompact(isPresented: $isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView))
+    }
+    
+    private var contentView: some View {
+        List {
+            carouselSection
+            nutritionTargetSection
+            contributionChartSection
+        }
+        .navigationTitle("Dashboard")
+        .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
+        .navigationBarTitleDisplayMode(.large)
+
+        .toolbar {
+            toolbarContent
+        }
+        #if DEBUG || MOCK
+        .sheet(isPresented: $showDebugView) {
+            DevSettingsView()
+        }
+        #endif
+        .sheet(isPresented: $showNotifications) {
+            NotificationsView()
+        }
+        .onOpenURL { url in
+            handleDeepLink(url: url)
         }
     }
     
@@ -115,7 +129,7 @@ struct DashboardView: View {
         }
         #endif
 
-        ToolbarItem(placement: .topBarTrailing) {
+        ToolbarItem(placement: .topBarLeading) {
             Button {
                 onPushNotificationsPressed()
             } label: {
@@ -123,27 +137,27 @@ struct DashboardView: View {
             }
         }
         
-        #if os(iOS)
-        if UIDevice.current.userInterfaceIdiom != .phone {
-            ToolbarSpacer(placement: .topBarTrailing)
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isShowingInspector.toggle()
-                } label: {
-                    Image(systemName: "info")
-                }
-            }
-        }
-        #else
-        ToolbarSpacer(placement: .topBarTrailing)
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                isShowingInspector.toggle()
-            } label: {
-                Image(systemName: "info")
-            }
-        }
-        #endif
+//        #if os(iOS)
+//        if UIDevice.current.userInterfaceIdiom != .phone {
+//            ToolbarSpacer(placement: .topBarTrailing)
+//            ToolbarItem(placement: .topBarTrailing) {
+//                Button {
+//                    isShowingInspector.toggle()
+//                } label: {
+//                    Image(systemName: "info")
+//                }
+//            }
+//        }
+//        #else
+//        ToolbarSpacer(placement: .topBarTrailing)
+//        ToolbarItem(placement: .topBarTrailing) {
+//            Button {
+//                isShowingInspector.toggle()
+//            } label: {
+//                Image(systemName: "info")
+//            }
+//        }
+//        #endif
     }
 }
 
@@ -180,6 +194,23 @@ extension DashboardView {
             default:
                 return .analytic
 
+            }
+        }
+    }
+}
+
+private struct InspectorIfCompact<InspectorContent: View>: ViewModifier {
+    @Binding var isPresented: Bool
+    let inspector: () -> InspectorContent
+    let enabled: Bool
+
+    func body(content: Content) -> some View {
+        Group {
+            if enabled {
+                content
+                    .inspector(isPresented: $isPresented) { self.inspector() }
+            } else {
+                content
             }
         }
     }

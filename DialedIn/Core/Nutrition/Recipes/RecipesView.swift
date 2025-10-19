@@ -22,11 +22,11 @@ struct RecipesView: View {
     @State private var favouriteRecipes: [RecipeTemplateModel] = []
     @State private var bookmarkedRecipes: [RecipeTemplateModel] = []
     @State private var recipes: [RecipeTemplateModel] = []
-    @State private var showAddRecipeModal: Bool = false
 
     @Binding var isShowingInspector: Bool
     @Binding var selectedIngredientTemplate: IngredientTemplateModel?
     @Binding var selectedRecipeTemplate: RecipeTemplateModel?
+    @Binding var showCreateRecipe: Bool
 
     // MARK: Computed variables
 
@@ -82,9 +82,6 @@ struct RecipesView: View {
             }
         }
         .screenAppearAnalytics(name: "RecipesView")
-        .sheet(isPresented: $showAddRecipeModal) {
-            CreateRecipeView()
-        }
         .task {
             await loadMyRecipesIfNeeded()
             await loadTopRecipesIfNeeded()
@@ -203,7 +200,7 @@ struct RecipesView: View {
                 Text("My Templates")
                 Spacer()
                 Button {
-                    showAddRecipeModal = true
+                    showCreateRecipe = true
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20))
@@ -219,7 +216,7 @@ struct RecipesView: View {
 
     private func onAddRecipePressed() {
         logManager.trackEvent(event: Event.onAddRecipePressed)
-        showAddRecipeModal = true
+        showCreateRecipe = true
     }
 
     private func onRecipePressed(recipe: RecipeTemplateModel) {
@@ -506,7 +503,8 @@ struct RecipesView: View {
         RecipesView(
             isShowingInspector: Binding.constant(false),
             selectedIngredientTemplate: Binding.constant(nil),
-            selectedRecipeTemplate: Binding.constant(nil)
+            selectedRecipeTemplate: Binding.constant(nil),
+            showCreateRecipe: Binding.constant(false)
         )
     }
     .previewEnvironment()
