@@ -327,7 +327,7 @@ class DevPreview {
     #endif
     
     init(isSignedIn: Bool = true) {
-        let logManager = LogManager(services: [ConsoleService(printParameters: false)])
+        let logManager = LogManager(services: [ConsoleService(printParameters: true)])
         let userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         let hkWorkoutManager = HKWorkoutManager()
@@ -348,7 +348,7 @@ class DevPreview {
         self.nutritionManager = NutritionManager(services: MockNutritionServices())
         self.mealLogManager = MealLogManager(services: MockMealLogServices(mealsByDay: MealLogModel.previewWeekMealsByDay))
         self.aiManager = AIManager(service: MockAIService())
-        self.pushManager = PushManager(services: MockPushServices(), logManager: nil)
+        self.pushManager = PushManager(services: MockPushServices(), logManager: logManager)
         self.logManager = logManager
         self.reportManager = ReportManager(service: MockReportService(), userManager: userManager)
         self.healthKitManager = HealthKitManager(service: MockHealthService())

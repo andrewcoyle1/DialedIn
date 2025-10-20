@@ -12,7 +12,6 @@ struct AuthOptionsView: View {
     @State var viewModel: AuthOptionsViewModel
     
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(AppState.self) private var appState
     
     var body: some View {
         VStack {
@@ -120,53 +119,61 @@ struct AuthOptionsView: View {
 // Note: AuthConstants and AuthTimeoutError are now defined in AuthErrorHandler.swift
 
 #Preview("Functioning Auth") {
-    @Previewable @State var userAuth: UserAuthInfo?
-    @Previewable @State var isNewUser: Bool = false
-    let logManager = LogManager(services: [ConsoleService(printParameters: false)])
-    let authManager = AuthManager(service: MockAuthService(), logManager: logManager)
-    let userManager = UserManager(services: MockUserServices(), logManager: logManager)
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(authManager: authManager, userManager: userManager, logManager: logManager))
+        AuthOptionsView(
+            viewModel: AuthOptionsViewModel(
+                authManager: DevPreview.shared.authManager,
+                userManager: DevPreview.shared.userManager,
+                logManager: DevPreview.shared.logManager
+            )
+        )
     }
-    .previewEnvironment()
 }
 
 #Preview("Slow Auth") {
-    let logManager = LogManager(services: [ConsoleService(printParameters: false)])
-    let authManager = AuthManager(service: MockAuthService(delay: 3), logManager: logManager)
-    let userManager = UserManager(services: MockUserServices(), logManager: logManager)
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(authManager: authManager, userManager: userManager, logManager: logManager))
+        AuthOptionsView(
+            viewModel: AuthOptionsViewModel(
+                authManager: DevPreview.shared.authManager,
+                userManager: DevPreview.shared.userManager,
+                logManager: DevPreview.shared.logManager
+            )
+        )
     }
-    .previewEnvironment()
 }
 
 #Preview("Failing Auth") {
-    let logManager = LogManager(services: [ConsoleService(printParameters: false)])
-    let authManager = AuthManager(service: MockAuthService(user: nil, showError: true), logManager: logManager)
-    let userManager = UserManager(services: MockUserServices(), logManager: logManager)
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(authManager: authManager, userManager: userManager, logManager: logManager))
+        AuthOptionsView(
+            viewModel: AuthOptionsViewModel(
+                authManager: DevPreview.shared.authManager,
+                userManager: DevPreview.shared.userManager,
+                logManager: DevPreview.shared.logManager
+            )
+        )
     }
-    .previewEnvironment()
 }
 
 #Preview("Slow Login") {
-    let logManager = LogManager(services: [ConsoleService(printParameters: true)])
-    let authManager = AuthManager(service: MockAuthService(user: nil), logManager: logManager)
-    let userManager = UserManager(services: MockUserServices(user: nil, delay: 3), logManager: logManager)
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(authManager: authManager, userManager: userManager, logManager: logManager))
+        AuthOptionsView(
+            viewModel: AuthOptionsViewModel(
+                authManager: DevPreview.shared.authManager,
+                userManager: DevPreview.shared.userManager,
+                logManager: DevPreview.shared.logManager
+            )
+        )
     }
-    .previewEnvironment()
 }
 
 #Preview("Failing Login") {
-    let logManager = LogManager(services: [ConsoleService(printParameters: false)])
-    let authManager = AuthManager(service: MockAuthService(user: nil, showError: true), logManager: logManager)
-    let userManager = UserManager(services: MockUserServices(user: nil, showError: true), logManager: logManager)
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(authManager: authManager, userManager: userManager, logManager: logManager))
+        AuthOptionsView(
+            viewModel: AuthOptionsViewModel(
+                authManager: DevPreview.shared.authManager,
+                userManager: DevPreview.shared.userManager,
+                logManager: DevPreview.shared.logManager
+            )
+        )
     }
-    .previewEnvironment()
 }

@@ -18,6 +18,7 @@ struct TrainingView: View {
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
+    @Environment(LogManager.self) private var logManager
     @Environment(AuthManager.self) private var authManager
     @State private var presentationMode: TrainingPresentationMode = .program
 
@@ -173,7 +174,15 @@ struct TrainingView: View {
             case .exercises:
                 ExercisesView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate, showCreateExercise: $showCreateExercise)
             case .history:
-                WorkoutHistoryView(alert: $showAlert, selectedSession: $selectedHistorySession, isShowingInspector: $isShowingInspector)
+                WorkoutHistoryView(
+                    viewModel: WorkoutHistoryViewModel(
+                        authManager: authManager,
+                        workoutSessionManager: workoutSessionManager,
+                        logManager: logManager
+                    ),
+                    selectedSession: $selectedHistorySession,
+                    isShowingInspector: $isShowingInspector
+                )
             }
         }
     }
