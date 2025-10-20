@@ -131,10 +131,11 @@ class TrainingPlanManager {
         _ template: ProgramTemplateModel,
         startDate: Date,
         userId: String,
-        planName: String? = nil
+        planName: String? = nil,
+        workoutTemplateManager: WorkoutTemplateManager? = nil
     ) async throws -> TrainingPlan {
         // Use ProgramTemplateManager to instantiate
-        let plan = instantiatePlanFromTemplate(template, userId: userId, startDate: startDate, planName: planName)
+        let plan = instantiatePlanFromTemplate(template, userId: userId, startDate: startDate, planName: planName, workoutTemplateManager: workoutTemplateManager)
         try await createPlan(plan)
         return plan
     }
@@ -229,6 +230,7 @@ class TrainingPlanManager {
     
     func scheduleWorkout(
         workoutTemplateId: String,
+        workoutName: String? = nil,
         on date: Date,
         weekNumber: Int? = nil
     ) async throws {
@@ -250,6 +252,7 @@ class TrainingPlanManager {
         
         let scheduledWorkout = ScheduledWorkout(
             workoutTemplateId: workoutTemplateId,
+            workoutName: workoutName,
             dayOfWeek: dayOfWeek,
             scheduledDate: date
         )
@@ -283,6 +286,7 @@ class TrainingPlanManager {
                 updatedWorkout = ScheduledWorkout(
                     id: updatedWorkout.id,
                     workoutTemplateId: updatedWorkout.workoutTemplateId,
+                    workoutName: updatedWorkout.workoutName,
                     dayOfWeek: dayOfWeek,
                     scheduledDate: newDate,
                     completedSessionId: updatedWorkout.completedSessionId,
@@ -331,6 +335,7 @@ class TrainingPlanManager {
                 updatedWorkout = ScheduledWorkout(
                     id: updatedWorkout.id,
                     workoutTemplateId: updatedWorkout.workoutTemplateId,
+                    workoutName: updatedWorkout.workoutName,
                     dayOfWeek: updatedWorkout.dayOfWeek,
                     scheduledDate: updatedWorkout.scheduledDate,
                     completedSessionId: session.id,
@@ -357,6 +362,7 @@ class TrainingPlanManager {
                 updatedWorkout = ScheduledWorkout(
                     id: updatedWorkout.id,
                     workoutTemplateId: updatedWorkout.workoutTemplateId,
+                    workoutName: updatedWorkout.workoutName,
                     dayOfWeek: updatedWorkout.dayOfWeek,
                     scheduledDate: updatedWorkout.scheduledDate,
                     completedSessionId: nil,
@@ -454,6 +460,7 @@ class TrainingPlanManager {
             
             return ScheduledWorkout(
                 workoutTemplateId: workout.workoutTemplateId,
+                workoutName: workout.workoutName,
                 dayOfWeek: workout.dayOfWeek,
                 scheduledDate: nextWeekDate
             )
@@ -466,7 +473,8 @@ class TrainingPlanManager {
         _ template: ProgramTemplateModel,
         userId: String,
         startDate: Date,
-        planName: String?
+        planName: String?,
+        workoutTemplateManager: WorkoutTemplateManager? = nil
     ) -> TrainingPlan {
         let weeks = template.weekTemplates.map { weekTemplate in
             let scheduledWorkouts = weekTemplate.workoutSchedule.map { mapping in
@@ -477,8 +485,18 @@ class TrainingPlanManager {
                     dayOfWeek: mapping.dayOfWeek
                 )
                 
+                // Use workout name from mapping, or fallback to template lookup
+                let workoutName: String? = mapping.workoutName ?? {
+                    if let manager = workoutTemplateManager,
+                       let template = try? manager.getLocalWorkoutTemplate(id: mapping.workoutTemplateId) {
+                        return template.name
+                    }
+                    return nil
+                }()
+                
                 return ScheduledWorkout(
                     workoutTemplateId: mapping.workoutTemplateId,
+                    workoutName: workoutName,
                     dayOfWeek: mapping.dayOfWeek,
                     scheduledDate: scheduledDate
                 )

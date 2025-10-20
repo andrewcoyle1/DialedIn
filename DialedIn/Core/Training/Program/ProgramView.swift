@@ -207,35 +207,46 @@ struct ProgramView: View {
     }
     
     private var weekProgressSection: some View {
-        Group {
-            Section {
-                let calendar = Calendar.current
-                if let weekInterval = calendar.dateInterval(of: .weekOfYear, for: Date()) {
-                    ForEach(0..<7, id: \.self) { dayOffset in
-                        let day = calendar.date(byAdding: .day, value: dayOffset, to: weekInterval.start) ?? weekInterval.start
-                        let workoutsForDay = (trainingPlanManager.currentTrainingPlan?.weeks.flatMap { $0.scheduledWorkouts } ?? [])
-                            .filter { workout in
-                                guard let scheduled = workout.scheduledDate else { return false }
-                                return calendar.isDate(scheduled, inSameDayAs: day)
-                            }
-                            .sorted { ($0.scheduledDate ?? .distantFuture) < ($1.scheduledDate ?? .distantFuture) }
-                        Group {
-                            if workoutsForDay.isEmpty {
-                                RestDayRow(date: day)
-                            } else {
-                                ForEach(workoutsForDay) { workout in
-                                    ScheduledWorkoutRow(scheduledWorkout: workout)
-                                }
-                            }
-                        }
-                    }
-                }
-            } header: {
-                Text("This Week's Workouts")
+        Section {
+            weekProgressContent
+        } header: {
+            Text("This Week's Workouts")
+        }
+    }
+    
+    @ViewBuilder
+    private var weekProgressContent: some View {
+        let calendar = Calendar.current
+        if let weekInterval = calendar.dateInterval(of: .weekOfYear, for: Date()) {
+            ForEach(0..<7, id: \.self) { dayOffset in
+                dayWorkoutRow(dayOffset: dayOffset, weekStart: weekInterval.start, calendar: calendar)
             }
         }
     }
     
+    @ViewBuilder
+    private func dayWorkoutRow(dayOffset: Int, weekStart: Date, calendar: Calendar) -> some View {
+        let day = calendar.date(byAdding: .day, value: dayOffset, to: weekStart) ?? weekStart
+        let workoutsForDay = getWorkoutsForDay(day, calendar: calendar)
+        
+        if workoutsForDay.isEmpty {
+            RestDayRow(date: day)
+        } else {
+            ForEach(workoutsForDay) { workout in
+                ScheduledWorkoutRow(scheduledWorkout: workout)
+            }
+        }
+    }
+    
+    private func getWorkoutsForDay(_ day: Date, calendar: Calendar) -> [ScheduledWorkout] {
+        (trainingPlanManager.currentTrainingPlan?.weeks.flatMap { $0.scheduledWorkouts } ?? [])
+            .filter { workout in
+                guard let scheduled = workout.scheduledDate else { return false }
+                return calendar.isDate(scheduled, inSameDayAs: day)
+            }
+            .sorted { ($0.scheduledDate ?? .distantFuture) < ($1.scheduledDate ?? .distantFuture) }
+    }
+
     private var goalsSection: some View {
         Group {
             if let plan = trainingPlanManager.currentTrainingPlan, !plan.goals.isEmpty {

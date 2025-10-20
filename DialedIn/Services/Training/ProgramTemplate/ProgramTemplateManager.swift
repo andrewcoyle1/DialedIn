@@ -101,7 +101,8 @@ class ProgramTemplateManager {
         _ template: ProgramTemplateModel,
         for userId: String,
         startDate: Date,
-        planName: String? = nil
+        planName: String? = nil,
+        workoutTemplateManager: WorkoutTemplateManager? = nil
     ) -> TrainingPlan {
         let weeks = template.weekTemplates.map { weekTemplate in
             let scheduledWorkouts = weekTemplate.workoutSchedule.map { mapping in
@@ -112,8 +113,18 @@ class ProgramTemplateManager {
                     dayOfWeek: mapping.dayOfWeek
                 )
                 
+                // Use workout name from mapping, or fallback to template lookup
+                let workoutName: String? = mapping.workoutName ?? {
+                    if let manager = workoutTemplateManager,
+                       let template = try? manager.getLocalWorkoutTemplate(id: mapping.workoutTemplateId) {
+                        return template.name
+                    }
+                    return nil
+                }()
+                
                 return ScheduledWorkout(
                     workoutTemplateId: mapping.workoutTemplateId,
+                    workoutName: workoutName,
                     dayOfWeek: mapping.dayOfWeek,
                     scheduledDate: scheduledDate
                 )

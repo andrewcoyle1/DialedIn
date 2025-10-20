@@ -19,7 +19,8 @@ struct AdaptiveMainView: View {
             .environment(appNavigation)
             .layoutMode(.splitView)
         #else
-        if UIDevice.current.userInterfaceIdiom == .phone || horizontalSizeClass == .compact {
+        if horizontalSizeClass == .compact {
+//            if UIDevice.current.userInterfaceIdiom == .phone || horizontalSizeClass == .compact {
             TabBarView()
                 .environment(detail)
                 .environment(appNavigation)

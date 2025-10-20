@@ -255,7 +255,7 @@ struct CustomProgramBuilderView: View {
             let sortedDays = week.mappings.keys.sorted()
             let schedule = sortedDays.compactMap { day -> DayWorkoutMapping? in
                 guard let selected = week.mappings[day] else { return nil }
-                return DayWorkoutMapping(dayOfWeek: day, workoutTemplateId: selected.id)
+                return DayWorkoutMapping(dayOfWeek: day, workoutTemplateId: selected.id, workoutName: selected.name)
             }
             return WeekTemplate(
                 weekNumber: week.weekNumber,
@@ -299,7 +299,8 @@ struct CustomProgramBuilderView: View {
                 template,
                 startDate: startDate,
                 userId: userId,
-                planName: customName
+                planName: customName,
+                workoutTemplateManager: workoutTemplateManager
             )
             dismiss()
         } catch {

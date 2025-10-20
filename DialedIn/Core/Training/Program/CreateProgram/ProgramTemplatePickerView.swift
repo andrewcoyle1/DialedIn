@@ -11,6 +11,7 @@ struct ProgramTemplatePickerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(ProgramTemplateManager.self) private var programTemplateManager
     @Environment(TrainingPlanManager.self) private var trainingPlanManager
+    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     @Environment(AuthManager.self) private var authManager
     
     @State private var selectedTemplate: ProgramTemplateModel?
@@ -131,7 +132,8 @@ struct ProgramTemplatePickerView: View {
                 template,
                 startDate: startDate,
                 userId: userId,
-                planName: customName
+                planName: customName,
+                workoutTemplateManager: workoutTemplateManager
             )
             dismiss()
         } catch {

@@ -165,12 +165,12 @@ struct WeekTemplate: Sendable, Codable, Equatable, Identifiable, Hashable {
     // Push/Pull/Legs template (6 workouts per week)
     static var pushPullLegsWeeks: [WeekTemplate] {
         let schedule = [
-            DayWorkoutMapping(dayOfWeek: 2, workoutTemplateId: "workout-push-1"),
-            DayWorkoutMapping(dayOfWeek: 3, workoutTemplateId: "workout-pull-1"),
-            DayWorkoutMapping(dayOfWeek: 4, workoutTemplateId: "workout-legs-1"),
-            DayWorkoutMapping(dayOfWeek: 5, workoutTemplateId: "workout-push-2"),
-            DayWorkoutMapping(dayOfWeek: 6, workoutTemplateId: "workout-pull-2"),
-            DayWorkoutMapping(dayOfWeek: 7, workoutTemplateId: "workout-legs-2")
+            DayWorkoutMapping(dayOfWeek: 2, workoutTemplateId: "workout-push-1", workoutName: "Push Day 1"),
+            DayWorkoutMapping(dayOfWeek: 3, workoutTemplateId: "workout-pull-1", workoutName: "Pull Day 1"),
+            DayWorkoutMapping(dayOfWeek: 4, workoutTemplateId: "workout-legs-1", workoutName: "Leg Day 1"),
+            DayWorkoutMapping(dayOfWeek: 5, workoutTemplateId: "workout-push-2", workoutName: "Push Day 2"),
+            DayWorkoutMapping(dayOfWeek: 6, workoutTemplateId: "workout-pull-2", workoutName: "Pull Day 2"),
+            DayWorkoutMapping(dayOfWeek: 7, workoutTemplateId: "workout-legs-2", workoutName: "Leg Day 2")
         ]
         
         return (1...8).map { weekNum in
@@ -186,9 +186,9 @@ struct WeekTemplate: Sendable, Codable, Equatable, Identifiable, Hashable {
     // Full Body template (3 workouts per week)
     static var fullBodyWeeks: [WeekTemplate] {
         let schedule = [
-            DayWorkoutMapping(dayOfWeek: 2, workoutTemplateId: "workout-full-body-1"),
-            DayWorkoutMapping(dayOfWeek: 4, workoutTemplateId: "workout-full-body-2"),
-            DayWorkoutMapping(dayOfWeek: 6, workoutTemplateId: "workout-full-body-3")
+            DayWorkoutMapping(dayOfWeek: 2, workoutTemplateId: "workout-full-body-1", workoutName: "Full Body A"),
+            DayWorkoutMapping(dayOfWeek: 4, workoutTemplateId: "workout-full-body-2", workoutName: "Full Body B"),
+            DayWorkoutMapping(dayOfWeek: 6, workoutTemplateId: "workout-full-body-3", workoutName: "Full Body C")
         ]
         
         return (1...6).map { weekNum in
@@ -203,10 +203,10 @@ struct WeekTemplate: Sendable, Codable, Equatable, Identifiable, Hashable {
     // Upper/Lower template (4 workouts per week)
     static var upperLowerWeeks: [WeekTemplate] {
         let schedule = [
-            DayWorkoutMapping(dayOfWeek: 2, workoutTemplateId: "workout-upper-1"),
-            DayWorkoutMapping(dayOfWeek: 3, workoutTemplateId: "workout-lower-1"),
-            DayWorkoutMapping(dayOfWeek: 5, workoutTemplateId: "workout-upper-2"),
-            DayWorkoutMapping(dayOfWeek: 6, workoutTemplateId: "workout-lower-2")
+            DayWorkoutMapping(dayOfWeek: 2, workoutTemplateId: "workout-upper-1", workoutName: "Upper Body A"),
+            DayWorkoutMapping(dayOfWeek: 3, workoutTemplateId: "workout-lower-1", workoutName: "Lower Body A"),
+            DayWorkoutMapping(dayOfWeek: 5, workoutTemplateId: "workout-upper-2", workoutName: "Upper Body B"),
+            DayWorkoutMapping(dayOfWeek: 6, workoutTemplateId: "workout-lower-2", workoutName: "Lower Body B")
         ]
         
         return (1...8).map { weekNum in
@@ -225,15 +225,18 @@ struct DayWorkoutMapping: Sendable, Codable, Equatable, Identifiable, Hashable {
     
     let dayOfWeek: Int // 1 = Sunday, 2 = Monday, ..., 7 = Saturday
     let workoutTemplateId: String
+    let workoutName: String?
     
     enum CodingKeys: String, CodingKey {
         case dayOfWeek = "day_of_week"
         case workoutTemplateId = "workout_template_id"
+        case workoutName = "workout_name"
     }
     
-    init(dayOfWeek: Int, workoutTemplateId: String) {
+    init(dayOfWeek: Int, workoutTemplateId: String, workoutName: String? = nil) {
         self.dayOfWeek = dayOfWeek
         self.workoutTemplateId = workoutTemplateId
+        self.workoutName = workoutName
     }
 }
 

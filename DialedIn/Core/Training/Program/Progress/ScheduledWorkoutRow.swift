@@ -16,10 +16,10 @@ struct ScheduledWorkoutRow: View {
                 .foregroundStyle(statusColor)
             
             VStack(alignment: .leading, spacing: 2) {
-                Text("Workout") // Would fetch template name
+                Text(scheduledWorkout.workoutName ?? "Workout") // Would fetch template name
                     .font(.subheadline)
                 if let date = scheduledWorkout.scheduledDate {
-                    Text(date.formatted(date: .abbreviated, time: .shortened))
+                    Text(date.formatted(date: .abbreviated, time: .omitted))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

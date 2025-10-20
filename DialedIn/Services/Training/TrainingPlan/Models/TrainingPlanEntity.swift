@@ -90,6 +90,7 @@ class TrainingWeekEntity {
 class ScheduledWorkoutEntity {
     @Attribute(.unique) var id: String
     var workoutTemplateId: String
+    var workoutName: String?
     var dayOfWeek: Int
     var scheduledDate: Date?
     var completedSessionId: String?
@@ -101,6 +102,7 @@ class ScheduledWorkoutEntity {
     init(from model: ScheduledWorkout) {
         self.id = model.id
         self.workoutTemplateId = model.workoutTemplateId
+        self.workoutName = model.workoutName
         self.dayOfWeek = model.dayOfWeek
         self.scheduledDate = model.scheduledDate
         self.completedSessionId = model.completedSessionId
@@ -113,6 +115,7 @@ class ScheduledWorkoutEntity {
         ScheduledWorkout(
             id: id,
             workoutTemplateId: workoutTemplateId,
+            workoutName: workoutName,
             dayOfWeek: dayOfWeek,
             scheduledDate: scheduledDate,
             completedSessionId: completedSessionId,

@@ -185,6 +185,7 @@ struct TrainingWeek: Codable, Equatable, Identifiable {
 struct ScheduledWorkout: Codable, Equatable, Identifiable {
     let id: String
     let workoutTemplateId: String
+    let workoutName: String?
     let dayOfWeek: Int // 1 = Sunday, 2 = Monday, ..., 7 = Saturday
     let scheduledDate: Date?
     var completedSessionId: String?
@@ -194,6 +195,7 @@ struct ScheduledWorkout: Codable, Equatable, Identifiable {
     enum CodingKeys: String, CodingKey {
         case id
         case workoutTemplateId = "workout_template_id"
+        case workoutName = "workout_name"
         case dayOfWeek = "day_of_week"
         case scheduledDate = "scheduled_date"
         case completedSessionId = "completed_session_id"
@@ -204,6 +206,7 @@ struct ScheduledWorkout: Codable, Equatable, Identifiable {
     init(
         id: String = UUID().uuidString,
         workoutTemplateId: String,
+        workoutName: String? = nil,
         dayOfWeek: Int,
         scheduledDate: Date? = nil,
         completedSessionId: String? = nil,
@@ -212,6 +215,7 @@ struct ScheduledWorkout: Codable, Equatable, Identifiable {
     ) {
         self.id = id
         self.workoutTemplateId = workoutTemplateId
+        self.workoutName = workoutName
         self.dayOfWeek = dayOfWeek
         self.scheduledDate = scheduledDate
         self.completedSessionId = completedSessionId
