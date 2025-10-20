@@ -33,6 +33,9 @@ struct UserModel: Codable, Equatable {
     let lengthUnitPreference: LengthUnitPreference?
     let weightUnitPreference: WeightUnitPreference?
     
+    // Goals
+    let currentGoalId: String?
+    
     // Profile
     private(set) var profileImageUrl: String?
 
@@ -85,6 +88,7 @@ struct UserModel: Codable, Equatable {
         cardioFitnessLevel: ProfileCardioFitnessLevel? = nil,
         lengthUnitPreference: LengthUnitPreference? = nil,
         weightUnitPreference: WeightUnitPreference? = nil,
+        currentGoalId: String? = nil,
         profileImageUrl: String? = nil,
         creationDate: Date? = nil,
         creationVersion: String? = nil,
@@ -119,6 +123,7 @@ struct UserModel: Codable, Equatable {
         self.cardioFitnessLevel = cardioFitnessLevel
         self.lengthUnitPreference = lengthUnitPreference
         self.weightUnitPreference = weightUnitPreference
+        self.currentGoalId = currentGoalId
         self.profileImageUrl = profileImageUrl
         self.creationDate = creationDate
         self.creationVersion = creationVersion
@@ -170,6 +175,7 @@ struct UserModel: Codable, Equatable {
         case cardioFitnessLevel = "cardio_fitness_level"
         case lengthUnitPreference = "length_unit_preference"
         case weightUnitPreference = "weight_unit_preference"
+        case currentGoalId = "current_goal_id"
         case profileImageUrl = "profile_image_url"
         case creationDate = "creation_date"
         case creationVersion = "creation_version"
@@ -206,6 +212,7 @@ struct UserModel: Codable, Equatable {
             "user_\(CodingKeys.cardioFitnessLevel.rawValue)": cardioFitnessLevel?.rawValue,
             "user_\(CodingKeys.lengthUnitPreference.rawValue)": lengthUnitPreference?.rawValue,
             "user_\(CodingKeys.weightUnitPreference.rawValue)": weightUnitPreference?.rawValue,
+            "user_\(CodingKeys.currentGoalId.rawValue)": currentGoalId,
             "user_\(CodingKeys.isAnonymous.rawValue)": isAnonymous,
             "user_\(CodingKeys.creationDate.rawValue)": creationDate,
             "user_\(CodingKeys.creationVersion.rawValue)": creationVersion,

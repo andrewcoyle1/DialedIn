@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingTargetWeightView: View {
     @Environment(UserManager.self) private var userManager
     let objective: OverarchingObjective
+    let isStandaloneMode: Bool
     
     @State private var targetWeight: Double = 0
     @State private var currentWeight: Double = 0
@@ -21,6 +22,11 @@ struct OnboardingTargetWeightView: View {
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
+    
+    init(objective: OverarchingObjective, isStandaloneMode: Bool = false) {
+        self.objective = objective
+        self.isStandaloneMode = isStandaloneMode
+    }
     
     var body: some View {
         List {
@@ -60,7 +66,7 @@ struct OnboardingTargetWeightView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             NavigationLink {
-                OnboardingWeightRateView(objective: objective, targetWeight: targetWeight)
+                OnboardingWeightRateView(objective: objective, targetWeight: targetWeight, isStandaloneMode: isStandaloneMode)
             } label: {
                 Image(systemName: "chevron.right")
             }

@@ -55,6 +55,11 @@ struct MockUserService: RemoteUserService {
         try tryShowError()
     }
     
+    func updateWeight(userId: String, weightKg: Double) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
+    
     func updateProfileImageUrl(userId: String, url: String?) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
@@ -213,7 +218,7 @@ struct MockUserService: RemoteUserService {
         }
     }
     
-    func updateGoalSettings(userId: String, objective: String, targetWeightKilograms: Double, weeklyChangeKilograms: Double) async throws {
+    func updateCurrentGoalId(userId: String, goalId: String?) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
     }

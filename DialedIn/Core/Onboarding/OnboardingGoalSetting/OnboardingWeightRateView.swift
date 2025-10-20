@@ -13,6 +13,8 @@ struct OnboardingWeightRateView: View {
     
     let objective: OverarchingObjective
     let targetWeight: Double
+    let isStandaloneMode: Bool
+    
     @State private var navigationDestination: NavigationDestination?
     @State private var currentWeight: Double = 0
     @State private var weightUnit: WeightUnitPreference = .kilograms
@@ -29,6 +31,12 @@ struct OnboardingWeightRateView: View {
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
+    
+    init(objective: OverarchingObjective, targetWeight: Double, isStandaloneMode: Bool = false) {
+        self.objective = objective
+        self.targetWeight = targetWeight
+        self.isStandaloneMode = isStandaloneMode
+    }
     
     enum WeightRateCategory {
         case conservative, standard, aggressive
@@ -104,7 +112,7 @@ struct OnboardingWeightRateView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             NavigationLink {
-                OnboardingGoalSummaryView(objective: objective, targetWeight: targetWeight, weightRate: weightChangeRate)
+                OnboardingGoalSummaryView(objective: objective, targetWeight: targetWeight, weightRate: weightChangeRate, isStandaloneMode: isStandaloneMode)
             } label: {
                 Image(systemName: "chevron.right")
             }

@@ -14,9 +14,9 @@ struct MockNutritionServices: NutritionServices {
     let remote: RemoteNutritionService
     let local: LocalNutritionPersistence
     
-    init(delay: Double = 0, showError: Bool = false) {
-        self.remote = MockNutritionService(delay: delay, showError: showError)
-        self.local = MockNutritionPersistence(showError: showError)
+    init(plan: DietPlan? = .mock, delay: Double = 0, showError: Bool = false) {
+        self.remote = MockNutritionService(plan: plan, delay: delay, showError: showError)
+        self.local = MockNutritionPersistence(plan: plan, delay: delay, showError: showError)
     }
 }
 

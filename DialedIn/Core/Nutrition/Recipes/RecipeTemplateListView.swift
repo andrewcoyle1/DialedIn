@@ -19,7 +19,7 @@ struct RecipeTemplateListView: View {
     
     var body: some View {
         NavigationStack(path: $path) {
-            Group {
+            List {
                 if isLoading {
                     ProgressView()
                 } else if templates.isEmpty {
@@ -28,19 +28,18 @@ struct RecipeTemplateListView: View {
                         systemImage: "fork.knife",
                         description: Text("You haven't created any recipe templates yet.")
                     )
+                    .removeListRowFormatting()
                 } else {
-                    List {
-                        ForEach(templates) { template in
-                            CustomListCellView(
-                                imageName: template.imageURL,
-                                title: template.name,
-                                subtitle: template.description
-                            )
-                            .anyButton(.highlight) {
-                                path.append(.recipeTemplateDetail(template: template))
-                            }
-                            .removeListRowFormatting()
+                    ForEach(templates) { template in
+                        CustomListCellView(
+                            imageName: template.imageURL,
+                            title: template.name,
+                            subtitle: template.description
+                        )
+                        .anyButton(.highlight) {
+                            path.append(.recipeTemplateDetail(template: template))
                         }
+                        .removeListRowFormatting()
                     }
                 }
             }
@@ -52,6 +51,9 @@ struct RecipeTemplateListView: View {
                 }
             }
             .task { await loadTemplates() }
+            .refreshable {
+                await loadTemplates()
+            }
             .showCustomAlert(alert: $showAlert)
             .navigationDestinationForCoreModule(path: $path)
         }

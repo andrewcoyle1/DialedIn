@@ -10,12 +10,18 @@ import SwiftUI
 struct OnboardingOverarchingObjectiveView: View {
     @Environment(UserManager.self) private var userManager
     
+    let isStandaloneMode: Bool
+    
     @State private var selectedObjective: OverarchingObjective?
     @State private var userWeight: Double?
     
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
+    
+    init(isStandaloneMode: Bool = false) {
+        self.isStandaloneMode = isStandaloneMode
+    }
         
     var body: some View {
         List {
@@ -88,9 +94,9 @@ struct OnboardingOverarchingObjectiveView: View {
             NavigationLink {
                 if let objective = selectedObjective, let weight = userWeight {
                     if objective != .maintain {
-                        OnboardingTargetWeightView(objective: objective)
+                        OnboardingTargetWeightView(objective: objective, isStandaloneMode: isStandaloneMode)
                     } else {
-                        OnboardingGoalSummaryView(objective: objective, targetWeight: weight, weightRate: 0)
+                        OnboardingGoalSummaryView(objective: objective, targetWeight: weight, weightRate: 0, isStandaloneMode: isStandaloneMode)
                     }
                 }
             } label: {

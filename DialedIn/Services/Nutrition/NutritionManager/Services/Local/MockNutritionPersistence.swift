@@ -10,10 +10,13 @@ import Foundation
 @MainActor
 class MockNutritionPersistence: LocalNutritionPersistence {
     
+    var delay: Double
     var showError: Bool
     private var storedPlan: DietPlan?
 
-    init(showError: Bool = false) {
+    init(plan: DietPlan? = .mock, delay: Double = 0, showError: Bool = false) {
+        self.storedPlan = plan
+        self.delay = delay
         self.showError = showError
     }
     

@@ -377,7 +377,7 @@ struct WorkoutSessionDetailView: View {
         updatedExercises[exerciseIndex].sets.removeAll { $0.id == setId }
         
         // Reindex remaining sets
-        for (index, _) in updatedExercises[exerciseIndex].sets.enumerated() {
+        for index in updatedExercises[exerciseIndex].sets.indices {
             updatedExercises[exerciseIndex].sets[index].index = index + 1
         }
         
@@ -391,7 +391,7 @@ struct WorkoutSessionDetailView: View {
         updatedExercises.removeAll { $0.id == id }
         
         // Reindex remaining exercises
-        for (index, _) in updatedExercises.enumerated() {
+        for index in updatedExercises.indices {
             updatedExercises[index].index = index + 1
         }
         

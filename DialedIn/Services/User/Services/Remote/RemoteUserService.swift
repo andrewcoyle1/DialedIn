@@ -14,12 +14,13 @@ protocol RemoteUserService: Sendable {
     func updateLastName(userId: String, lastName: String) async throws
     func updateDateOfBirth(userId: String, dateOfBirth: Date) async throws
     func updateGender(userId: String, gender: Gender) async throws
+    func updateWeight(userId: String, weightKg: Double) async throws
     func updateProfileImageUrl(userId: String, url: String?) async throws
     func updateLastSignInDate(userId: String) async throws
     // MARK: - Onboarding Step
     func updateOnboardingStep(userId: String, step: OnboardingStep) async throws
     // MARK: - Goal Settings
-    func updateGoalSettings(userId: String, objective: String, targetWeightKilograms: Double, weeklyChangeKilograms: Double) async throws
+    func updateCurrentGoalId(userId: String, goalId: String?) async throws
     func addCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
     func removeCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws
     func addBookmarkedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws

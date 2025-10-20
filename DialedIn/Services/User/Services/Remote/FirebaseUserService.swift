@@ -62,6 +62,12 @@ struct FirebaseUserService: RemoteUserService {
         ])
     }
     
+    func updateWeight(userId: String, weightKg: Double) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.weightKilograms.rawValue: weightKg
+        ])
+    }
+    
     func updateProfileImageUrl(userId: String, url: String?) async throws {
         var data: [String: Any] = [:]
         if let url {
@@ -86,12 +92,13 @@ struct FirebaseUserService: RemoteUserService {
     }
     
     // MARK: - Goal Settings
-    func updateGoalSettings(userId: String, objective: String, targetWeightKilograms: Double, weeklyChangeKilograms: Double) async throws {
-        let data: [String: Any] = [
-            "goal_objective": objective,
-            "goal_target_weight_kg": targetWeightKilograms,
-            "goal_weekly_change_kg": weeklyChangeKilograms
-        ]
+    func updateCurrentGoalId(userId: String, goalId: String?) async throws {
+        var data: [String: Any] = [:]
+        if let goalId = goalId {
+            data[UserModel.CodingKeys.currentGoalId.rawValue] = goalId
+        } else {
+            data[UserModel.CodingKeys.currentGoalId.rawValue] = FieldValue.delete()
+        }
         try await collection.document(userId).updateData(data)
     }
     

@@ -9,19 +9,30 @@ import SwiftUI
 
 struct OnboardingGoalSummaryView: View {
     @Environment(UserManager.self) private var userManager
+    @Environment(GoalManager.self) private var goalManager
     @Environment(LogManager.self) private var logManager
+    @Environment(\.goalFlowDismissAction) private var dismissFlow
     
     let objective: OverarchingObjective
     let targetWeight: Double
     let weightRate: Double
+    let isStandaloneMode: Bool
     
     @State private var isLoading: Bool = true
+    @State private var goalCreated: Bool = false
     
     @State private var showAlert: AnyAppAlert?
     
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
+    
+    init(objective: OverarchingObjective, targetWeight: Double, weightRate: Double, isStandaloneMode: Bool = false) {
+        self.objective = objective
+        self.targetWeight = targetWeight
+        self.weightRate = weightRate
+        self.isStandaloneMode = isStandaloneMode
+    }
         
     var body: some View {
         List {
@@ -59,30 +70,65 @@ struct OnboardingGoalSummaryView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                OnboardingCustomisingProgramView()
-            } label: {
-                Image(systemName: "chevron.right")
+            if isStandaloneMode {
+                Button {
+                    // Goal is saved in .task, just need to dismiss when ready
+                    if goalCreated {
+                        dismissFlow?()
+                    }
+                } label: {
+                    Text("Complete")
+                }
+                .buttonStyle(.glassProminent)
+                .disabled(isLoading || !goalCreated)
+            } else {
+                NavigationLink {
+                    OnboardingCustomisingProgramView()
+                } label: {
+                    Image(systemName: "chevron.right")
+                }
+                .buttonStyle(.glassProminent)
+                .disabled(isLoading)
             }
-            .buttonStyle(.glassProminent)
-            .disabled(isLoading)
         }
     }
     
     private func uploadGoalSettings() async {
         logManager.trackEvent(event: Event.goalSaveStart(objective: objective, targetKg: targetWeight, rateKgPerWeek: weightRate))
-            defer { isLoading = false }
-            do {
-                try await userManager.updateGoalSettings(
-                    objective: objective.description,
-                    targetWeightKilograms: targetWeight,
-                    weeklyChangeKilograms: weightRate
-                )
-                logManager.trackEvent(event: Event.goalSaveSuccess(objective: objective, targetKg: targetWeight, rateKgPerWeek: weightRate))
-            } catch {
-                logManager.trackEvent(event: Event.goalSaveFail(error: error, objective: objective, targetKg: targetWeight, rateKgPerWeek: weightRate))
-                handleSaveError(error)
+        defer { isLoading = false }
+        
+        guard let user = userManager.currentUser,
+              let startingWeight = user.weightKilograms else {
+            handleSaveError(NSError(domain: "GoalError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Current weight not available"]))
+            return
+        }
+        
+        do {
+            // Create goal in subcollection with frozen starting weight
+            let goal = try await goalManager.createGoal(
+                userId: user.userId,
+                objective: objective.description,
+                startingWeightKg: startingWeight,
+                targetWeightKg: targetWeight,
+                weeklyChangeKg: weightRate
+            )
+            
+            // Update user's currentGoalId reference
+            try await userManager.updateCurrentGoalId(goalId: goal.goalId)
+            
+            logManager.trackEvent(event: Event.goalSaveSuccess(objective: objective, targetKg: targetWeight, rateKgPerWeek: weightRate))
+            
+            goalCreated = true
+            
+            // If standalone mode, auto-dismiss after a brief delay
+            if isStandaloneMode {
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second
+                dismissFlow?()
             }
+        } catch {
+            logManager.trackEvent(event: Event.goalSaveFail(error: error, objective: objective, targetKg: targetWeight, rateKgPerWeek: weightRate))
+            handleSaveError(error)
+        }
     }
     
     private func handleSaveError(_ error: Error) {

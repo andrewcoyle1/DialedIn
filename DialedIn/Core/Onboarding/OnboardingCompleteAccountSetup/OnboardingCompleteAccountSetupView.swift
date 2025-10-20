@@ -18,6 +18,13 @@ struct OnboardingCompleteAccountSetupView: View {
     
     @State private var showAlert: AnyAppAlert?
     
+    enum NavigationDestination {
+        case healthData
+        case notifications
+        case namePhoto
+        case gender
+    }
+    
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
@@ -63,6 +70,19 @@ struct OnboardingCompleteAccountSetupView: View {
             )
         ) {
             OnboardingNotificationsView()
+        }
+        .navigationDestination(
+            isPresented: Binding(
+                get: {
+                    navigationDestination == .namePhoto
+                }, set: {
+                    if !$0 {
+                        navigationDestination = nil
+                    }
+                }
+            )
+        ) {
+            OnboardingNamePhotoView()
         }
         .navigationDestination(
             isPresented: Binding(
@@ -136,7 +156,7 @@ struct OnboardingCompleteAccountSetupView: View {
                     } else if canRequestNotificationsAuthorisation == true {
                         navigationDestination = .notifications
                     } else {
-                        navigationDestination = .gender
+                        navigationDestination = .namePhoto
                     }
                 }
             } label: {

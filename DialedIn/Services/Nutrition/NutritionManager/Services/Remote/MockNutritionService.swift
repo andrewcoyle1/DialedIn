@@ -9,10 +9,12 @@ import SwiftUI
 
 struct MockNutritionService: RemoteNutritionService {
     
+    let plan: DietPlan?
     let delay: Double
     let showError: Bool
     
-    init(delay: Double = 0.0, showError: Bool = false) {
+    init(plan: DietPlan? = .mock, delay: Double = 0.0, showError: Bool = false) {
+        self.plan = plan
         self.delay = delay
         self.showError = showError
     }

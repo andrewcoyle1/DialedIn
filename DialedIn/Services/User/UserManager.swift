@@ -39,15 +39,71 @@ class UserManager {
             do {
                 try local.saveCurrentUser(user: currentUser)
                 logManager?.trackEvent(event: Event.saveLocalSuccess(user: currentUser))
+                
+                // Cache profile image if available
+                await cacheProfileImageIfNeeded()
             } catch {
                 logManager?.trackEvent(event: Event.saveLocalFail(error: error))
             }
         }
     }
     
+    private func cacheProfileImageIfNeeded() async {
+        guard let user = currentUser,
+              let urlString = user.profileImageUrl,
+              !urlString.isEmpty else {
+            return
+        }
+        
+        // Check if image is already cached
+        if ProfileImageCache.shared.getCachedImage(userId: user.userId) != nil {
+            return
+        }
+        
+        // Download and cache the image
+        do {
+            _ = try await ProfileImageCache.shared.downloadAndCache(from: urlString, userId: user.userId)
+            logManager?.trackEvent(eventName: "profile_image_cached", parameters: ["user_id": user.userId])
+        } catch {
+            logManager?.trackEvent(eventName: "profile_image_cache_failed", parameters: [
+                "user_id": user.userId,
+                "error": error.localizedDescription
+            ])
+        }
+    }
+    
+    /// Force refresh the cached profile image from Firebase
+    func refreshProfileImage() async {
+        guard let user = currentUser,
+              let urlString = user.profileImageUrl,
+              !urlString.isEmpty else {
+            return
+        }
+        
+        // Remove old cached image
+        ProfileImageCache.shared.removeCachedImage(userId: user.userId)
+        
+        // Download fresh image
+        do {
+            _ = try await ProfileImageCache.shared.downloadAndCache(from: urlString, userId: user.userId)
+            logManager?.trackEvent(eventName: "profile_image_refreshed", parameters: ["user_id": user.userId])
+        } catch {
+            logManager?.trackEvent(eventName: "profile_image_refresh_failed", parameters: [
+                "user_id": user.userId,
+                "error": error.localizedDescription
+            ])
+        }
+    }
+    
     func clearAllLocalData() {
         logManager?.trackEvent(event: Event.clearAllLocalData)
         local.clearCurrentUser()
+        
+        // Clear cached profile images
+        if let userId = currentUser?.userId {
+            ProfileImageCache.shared.removeCachedImage(userId: userId)
+        }
+        
         currentUser = nil
     }
     
@@ -105,7 +161,19 @@ class UserManager {
     
     func saveUser(user: UserModel, image: PlatformImage?) async throws {
         try await remote.saveUser(user: user, image: image)
-    
+        
+        // Cache the image locally if provided
+        if let image = image {
+            do {
+                try ProfileImageCache.shared.cacheImage(image, userId: user.userId)
+                logManager?.trackEvent(eventName: "profile_image_uploaded_and_cached", parameters: ["user_id": user.userId])
+            } catch {
+                logManager?.trackEvent(eventName: "profile_image_cache_after_upload_failed", parameters: [
+                    "user_id": user.userId,
+                    "error": error.localizedDescription
+                ])
+            }
+        }
     }
     
     // MARK: - Onboarding: Complete Account Setup
@@ -197,6 +265,52 @@ class UserManager {
         try await remote.updateGender(userId: uid, gender: gender)
     }
     
+    func updateWeight(userId: String, weightKg: Double) async throws {
+        try await remote.updateWeight(userId: userId, weightKg: weightKg)
+        
+        // Update local cache
+        if var user = currentUser, user.userId == userId {
+            user = UserModel(
+                userId: user.userId,
+                email: user.email,
+                isAnonymous: user.isAnonymous,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                dateOfBirth: user.dateOfBirth,
+                gender: user.gender,
+                heightCentimeters: user.heightCentimeters,
+                weightKilograms: weightKg,
+                exerciseFrequency: user.exerciseFrequency,
+                dailyActivityLevel: user.dailyActivityLevel,
+                cardioFitnessLevel: user.cardioFitnessLevel,
+                lengthUnitPreference: user.lengthUnitPreference,
+                weightUnitPreference: user.weightUnitPreference,
+                currentGoalId: user.currentGoalId,
+                profileImageUrl: user.profileImageUrl,
+                creationDate: user.creationDate,
+                creationVersion: user.creationVersion,
+                lastSignInDate: user.lastSignInDate,
+                didCompleteOnboarding: user.didCompleteOnboarding,
+                onboardingStep: user.onboardingStep,
+                createdExerciseTemplateIds: user.createdExerciseTemplateIds,
+                bookmarkedExerciseTemplateIds: user.bookmarkedExerciseTemplateIds,
+                favouritedExerciseTemplateIds: user.favouritedExerciseTemplateIds,
+                createdWorkoutTemplateIds: user.createdWorkoutTemplateIds,
+                bookmarkedWorkoutTemplateIds: user.bookmarkedWorkoutTemplateIds,
+                favouritedWorkoutTemplateIds: user.favouritedWorkoutTemplateIds,
+                createdIngredientTemplateIds: user.createdIngredientTemplateIds,
+                bookmarkedIngredientTemplateIds: user.bookmarkedIngredientTemplateIds,
+                favouritedIngredientTemplateIds: user.favouritedIngredientTemplateIds,
+                createdRecipeTemplateIds: user.createdRecipeTemplateIds,
+                bookmarkedRecipeTemplateIds: user.bookmarkedRecipeTemplateIds,
+                favouritedRecipeTemplateIds: user.favouritedRecipeTemplateIds,
+                blockedUserIds: user.blockedUserIds
+            )
+            currentUser = user
+            saveCurrentUserLocally()
+        }
+    }
+    
     // MARK: - Image URL
     
     func updateProfileImageUrl(url: String?) async throws {
@@ -261,9 +375,9 @@ class UserManager {
     }
     
     // MARK: - Goal Settings
-    func updateGoalSettings(objective: String, targetWeightKilograms: Double, weeklyChangeKilograms: Double) async throws {
+    func updateCurrentGoalId(goalId: String?) async throws {
         let uid = try currentUserId()
-        try await remote.updateGoalSettings(userId: uid, objective: objective, targetWeightKilograms: targetWeightKilograms, weeklyChangeKilograms: weeklyChangeKilograms)
+        try await remote.updateCurrentGoalId(userId: uid, goalId: goalId)
     }
     
     // MARK: - Consents
