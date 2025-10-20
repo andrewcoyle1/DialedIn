@@ -463,6 +463,17 @@ extension WorkoutTrackerView {
         stopWidgetSyncTimer()
         Task {
             do {
+                logManager.trackEvent(
+                    eventName: "finish_workout_debug",
+                    parameters: [
+                        "session_id": workoutSession.id,
+                        "template_id": workoutSession.workoutTemplateId ?? "nil",
+                        "scheduled_id": workoutSession.scheduledWorkoutId ?? "nil",
+                        "plan_id": workoutSession.trainingPlanId ?? "nil"
+                    ],
+                    type: .info
+                )
+                
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 // End HK session first
                 hkWorkoutManager.endWorkout()

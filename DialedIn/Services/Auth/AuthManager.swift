@@ -49,6 +49,7 @@ class AuthManager {
         return uid
     }
 
+    // Email Authentication
     @discardableResult
     func createUser(email: String, password: String) async throws -> UserAuthInfo {
         let result = try await service.createUser(email: email, password: password)
@@ -88,6 +89,7 @@ class AuthManager {
         try await service.reauthenticate(email: email, password: password)
     }
 
+    // Anonymous Authentication
     @discardableResult
     func signInAnonymously() async throws -> UserAuthInfo {
         let result = try await service.signInAnonymously()
@@ -96,6 +98,7 @@ class AuthManager {
         return result
     }
 
+    // Sign in with Apple
     @discardableResult
     func signInApple() async throws -> UserAuthInfo {
         let result = try await service.signInApple()
@@ -103,7 +106,12 @@ class AuthManager {
         self.auth = result
         return result
     }
+    
+    func reauthenticateWithApple() async throws {
+        try await service.reauthenticateWithApple()
+    }
 
+    // Sign in with Google
     @discardableResult
     func signInGoogle() async throws -> UserAuthInfo {
         let result = try await service.signInGoogle()
@@ -112,6 +120,7 @@ class AuthManager {
         return result
     }
 
+    // Sign Out
     func signOut() throws {
         logManager?.trackEvent(event: Event.signOutStart)
         
@@ -121,10 +130,7 @@ class AuthManager {
         
     }
     
-    func reauthenticateWithApple() async throws {
-        try await service.reauthenticateWithApple()
-    }
-    
+    // Delete Account
     func deleteAccount() async throws {
         logManager?.trackEvent(event: Event.deleteAccountStart)
         

@@ -76,6 +76,23 @@ class TrainingPlanManager {
     }
     
     @MainActor
+    func clearAllLocalData() {
+        // Stop listener
+        stopSyncListener()
+        
+        // Clear all local plans
+        let planIds = allPlans.map { $0.planId }
+        for planId in planIds {
+            try? local.deletePlan(id: planId)
+        }
+        
+        // Clear state
+        currentTrainingPlan = nil
+        allPlans = []
+        userId = nil
+    }
+    
+    @MainActor
     private func mergeRemotePlans(_ remotePlans: [TrainingPlan]) {
         // Get local plans
         let localPlans = local.getAllPlans()

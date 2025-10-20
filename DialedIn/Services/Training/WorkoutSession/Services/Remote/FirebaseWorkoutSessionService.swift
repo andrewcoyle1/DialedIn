@@ -12,6 +12,12 @@ import SwiftfulFirestore
 /// This provides better scalability and query performance for large workout sessions
 struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
     
+    let logManager: LogManager?
+    
+    init(logManager: LogManager? = nil) {
+        self.logManager = logManager
+    }
+    
     var collection: CollectionReference {
         Firestore.firestore().collection("workout_sessions")
     }
@@ -28,12 +34,35 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
     
     /// Creates a workout session with related exercises/sets stored in flattened top-level collections
     func createWorkoutSession(session: WorkoutSessionModel) async throws {
+        logManager?.trackEvent(
+            eventName: "firebase_create_session_debug",
+            parameters: [
+                "session_id": session.id,
+                "template_id": session.workoutTemplateId ?? "nil",
+                "scheduled_id": session.scheduledWorkoutId ?? "nil",
+                "plan_id": session.trainingPlanId ?? "nil"
+            ],
+            type: .info
+        )
+        
         let database = Firestore.firestore()
         let batch = database.batch()
         
         // Create session document (no nested data)
         let sessionDoc = collection.document(session.id)
-        let sessionData = try Firestore.Encoder().encode(session.forFirebaseStorage())
+        let storage = session.forFirebaseStorage()
+        
+        logManager?.trackEvent(
+            eventName: "firebase_storage_model_debug",
+            parameters: [
+                "session_id": session.id,
+                "scheduled_id": storage.scheduledWorkoutId ?? "nil",
+                "plan_id": storage.trainingPlanId ?? "nil"
+            ],
+            type: .info
+        )
+        
+        let sessionData = try Firestore.Encoder().encode(storage)
         batch.setData(sessionData, forDocument: sessionDoc, merge: true)
         
         // Create flattened workout_exercises and workout_sets documents
@@ -89,12 +118,30 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
     }
 
     private func fetchBaseSession(id: String) async throws -> WorkoutSessionModel {
+        logManager?.trackEvent(
+            eventName: "firebase_fetch_session_debug",
+            parameters: ["session_id": id],
+            type: .info
+        )
+        
         let sessionSnapshot = try await collection.document(id).getDocument()
         guard let sessionData = sessionSnapshot.data() else {
             throw NSError(domain: "FirebaseWorkoutSessionService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Workout session not found"])
         }
+        
         let storage = try Firestore.Decoder().decode(WorkoutSessionForFirebase.self, from: sessionData)
-        return WorkoutSessionModel(
+        
+        logManager?.trackEvent(
+            eventName: "firebase_decoded_storage_debug",
+            parameters: [
+                "session_id": id,
+                "scheduled_id": storage.scheduledWorkoutId ?? "nil",
+                "plan_id": storage.trainingPlanId ?? "nil"
+            ],
+            type: .info
+        )
+        
+        let model = WorkoutSessionModel(
             id: storage.id,
             authorId: storage.authorId,
             name: storage.name,
@@ -107,6 +154,18 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
             notes: storage.notes,
             exercises: []
         )
+        
+        logManager?.trackEvent(
+            eventName: "firebase_final_model_debug",
+            parameters: [
+                "session_id": id,
+                "scheduled_id": model.scheduledWorkoutId ?? "nil",
+                "plan_id": model.trainingPlanId ?? "nil"
+            ],
+            type: .info
+        )
+        
+        return model
     }
 
     private func fetchExerciseRecords(sessionId: String) async throws -> [WorkoutExerciseRecord] {

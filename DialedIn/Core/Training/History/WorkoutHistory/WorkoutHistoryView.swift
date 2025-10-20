@@ -7,6 +7,12 @@
 
 import SwiftUI
 
+@Observable
+@MainActor
+class WorkoutHistoryViewModel {
+    
+}
+
 struct WorkoutHistoryView: View {
     @Environment(WorkoutSessionManager.self) private var sessionManager
     @Environment(AuthManager.self) private var authManager

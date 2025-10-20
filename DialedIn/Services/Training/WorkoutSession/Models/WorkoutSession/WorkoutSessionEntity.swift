@@ -13,7 +13,11 @@ class WorkoutSessionEntity {
     @Attribute(.unique) var workoutSessionId: String
     var authorId: String
     var name: String
+    var workoutTemplateId: String?
+    var scheduledWorkoutId: String?
+    var trainingPlanId: String?
     var dateCreated: Date
+    var dateModified: Date
     var endedAt: Date?
     var notes: String?
     @Relationship(deleteRule: .cascade, inverse: \WorkoutExerciseEntity.session) var exercises: [WorkoutExerciseEntity]
@@ -22,7 +26,11 @@ class WorkoutSessionEntity {
         self.workoutSessionId = model.id
         self.authorId = model.authorId
         self.name = model.name
+        self.workoutTemplateId = model.workoutTemplateId
+        self.scheduledWorkoutId = model.scheduledWorkoutId
+        self.trainingPlanId = model.trainingPlanId
         self.dateCreated = model.dateCreated
+        self.dateModified = model.dateModified
         self.endedAt = model.endedAt
         self.notes = model.notes
         // Persist exercises in index order
@@ -37,7 +45,11 @@ class WorkoutSessionEntity {
             id: workoutSessionId,
             authorId: authorId,
             name: name,
+            workoutTemplateId: workoutTemplateId,
+            scheduledWorkoutId: scheduledWorkoutId,
+            trainingPlanId: trainingPlanId,
             dateCreated: dateCreated,
+            dateModified: dateModified,
             endedAt: endedAt,
             notes: notes,
             // Load exercises sorted by their own index; sets also sorted by index

@@ -105,26 +105,34 @@ struct FirebaseAuthService: AuthService {
             rawNonce: response.nonce
         )
         
-        if let user = Auth.auth().currentUser, user.isAnonymous {
+        // Check if there's a current anonymous user
+        if let currentUser = Auth.auth().currentUser, currentUser.isAnonymous {
             do {
                 // Try to link to existing anonymous account
-                let result = try await user.link(with: credential)
+                let result = try await currentUser.link(with: credential)
                 return result.asAuthInfo
             } catch let error as NSError {
                 let authError = AuthErrorCode(rawValue: error.code)
-                switch authError {
-                case .providerAlreadyLinked, .credentialAlreadyInUse:
-                    if let secondaryCredential = error.userInfo["FIRAuthErrorUserInfoUpdatedCredentialKey"] as? AuthCredential {
-                        let result = try await Auth.auth().signIn(with: secondaryCredential)
-                        return result.asAuthInfo
-                    }
-                default:
-                    break
+                
+                // Handle specific linking errors
+                if authError == .credentialAlreadyInUse {
+                    // The Apple credential is already associated with another account
+                    // Delete the anonymous user and sign into the existing account
+                    try? await currentUser.delete()
+                    let result = try await Auth.auth().signIn(with: credential)
+                    return result.asAuthInfo
+                } else if authError == .providerAlreadyLinked {
+                    // Provider already linked, just sign in
+                    let result = try await Auth.auth().signIn(with: credential)
+                    return result.asAuthInfo
+                } else {
+                    // Re-throw any other errors
+                    throw error
                 }
             }
         }
         
-        // Otherwise sign in to new account
+        // No anonymous user, sign in normally
         let result = try await Auth.auth().signIn(with: credential)
         return result.asAuthInfo
     }
@@ -167,6 +175,7 @@ struct FirebaseAuthService: AuthService {
         
         let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: user.accessToken.tokenString)
         
+        // Check if there's a current anonymous user
         if let currentUser = Auth.auth().currentUser, currentUser.isAnonymous {
             do {
                 // Try to link to existing anonymous account
@@ -174,19 +183,26 @@ struct FirebaseAuthService: AuthService {
                 return authResult.asAuthInfo
             } catch let error as NSError {
                 let authError = AuthErrorCode(rawValue: error.code)
-                switch authError {
-                case .providerAlreadyLinked, .credentialAlreadyInUse:
-                    if let secondaryCredential = error.userInfo["FIRAuthErrorUserInfoUpdatedCredentialKey"] as? AuthCredential {
-                        let authResult = try await Auth.auth().signIn(with: secondaryCredential)
-                        return authResult.asAuthInfo
-                    }
-                default:
-                    break
+                
+                // Handle specific linking errors
+                if authError == .credentialAlreadyInUse {
+                    // The Google credential is already associated with another account
+                    // Delete the anonymous user and sign into the existing account
+                    try? await currentUser.delete()
+                    let authResult = try await Auth.auth().signIn(with: credential)
+                    return authResult.asAuthInfo
+                } else if authError == .providerAlreadyLinked {
+                    // Provider already linked, just sign in
+                    let authResult = try await Auth.auth().signIn(with: credential)
+                    return authResult.asAuthInfo
+                } else {
+                    // Re-throw any other errors
+                    throw error
                 }
             }
         }
         
-        // Otherwise sign in to new account
+        // No anonymous user, sign in normally
         let authResult = try await Auth.auth().signIn(with: credential)
         return authResult.asAuthInfo
     }

@@ -247,8 +247,8 @@ struct TrainingView: View {
 //            .pickerStyle(.menu)
         }
         
-        // Today's workout quick action
-        if presentationMode == .program, !trainingPlanManager.getTodaysWorkouts().isEmpty {
+        // Today's workout quick action (only if there are incomplete workouts today and not in Program view)
+        if presentationMode != .program, trainingPlanManager.getTodaysWorkouts().contains(where: { !$0.isCompleted }) {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {

@@ -9,6 +9,10 @@ import SwiftUI
 
 struct OnboardingIntroView: View {
 
+    @Environment(AuthManager.self) private var authManager
+    @Environment(UserManager.self) private var userManager
+    @Environment(LogManager.self) private var logManager
+    
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
@@ -116,7 +120,7 @@ struct OnboardingIntroView: View {
     private var buttonSection: some View {
         VStack(spacing: 12) {
             NavigationLink {
-                AuthOptionsSection()
+                AuthOptionsView(viewModel: AuthOptionsViewModel(authManager: authManager, userManager: userManager, logManager: logManager))
             } label: {
                 Text("Continue")
                     .frame(maxWidth: .infinity)

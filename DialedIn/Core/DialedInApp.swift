@@ -189,7 +189,7 @@ struct Dependencies {
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
-            workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
+            workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices(logManager: logs))
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices())
             programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()))
@@ -225,7 +225,7 @@ struct Dependencies {
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
-            workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
+            workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices(logManager: logs))
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices())
             programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()))
@@ -291,5 +291,74 @@ extension View {
             .environment(AIManager(service: MockAIService()))
             .environment(PushManager(services: MockPushServices(), logManager: nil))
             .environment(HealthKitManager(service: MockHealthService()))
+    }
+}
+
+@MainActor
+class DevPreview {
+    static let shared = DevPreview()
+    
+    let authManager: AuthManager
+    let userManager: UserManager
+    let purchaseManager: PurchaseManager
+    let exerciseTemplateManager: ExerciseTemplateManager
+    let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
+    let workoutTemplateManager: WorkoutTemplateManager
+    let workoutSessionManager: WorkoutSessionManager
+    let exerciseHistoryManager: ExerciseHistoryManager
+    let trainingPlanManager: TrainingPlanManager
+    let programTemplateManager: ProgramTemplateManager
+    let ingredientTemplateManager: IngredientTemplateManager
+    let recipeTemplateManager: RecipeTemplateManager
+    let nutritionManager: NutritionManager
+    let mealLogManager: MealLogManager
+    let pushManager: PushManager
+    let aiManager: AIManager
+    let logManager: LogManager
+    let reportManager: ReportManager
+    let healthKitManager: HealthKitManager
+    let trainingAnalyticsManager: TrainingAnalyticsManager
+    let detailNavigationModel: DetailNavigationModel
+    let userWeightManager: UserWeightManager
+    let goalManager: GoalManager
+    #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+    let hkWorkoutManager: HKWorkoutManager
+    let workoutActivityViewModel: WorkoutActivityViewModel
+    #endif
+    
+    init(isSignedIn: Bool = true) {
+        let logManager = LogManager(services: [ConsoleService(printParameters: false)])
+        let userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        let hkWorkoutManager = HKWorkoutManager()
+        #endif
+        
+        self.authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil), logManager: logManager)
+        self.userManager = userManager
+        self.purchaseManager = PurchaseManager(services: MockPurchaseServices())
+        self.exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
+        self.exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
+        self.workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: ExerciseTemplateManager(services: MockExerciseTemplateServices()))
+        self.workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
+        self.exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())
+        self.trainingPlanManager = TrainingPlanManager(services: MockTrainingPlanServices())
+        self.programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: MockProgramTemplateService()))
+        self.ingredientTemplateManager = IngredientTemplateManager(services: MockIngredientTemplateServices())
+        self.recipeTemplateManager = RecipeTemplateManager(services: MockRecipeTemplateServices())
+        self.nutritionManager = NutritionManager(services: MockNutritionServices())
+        self.mealLogManager = MealLogManager(services: MockMealLogServices(mealsByDay: MealLogModel.previewWeekMealsByDay))
+        self.aiManager = AIManager(service: MockAIService())
+        self.pushManager = PushManager(services: MockPushServices(), logManager: nil)
+        self.logManager = logManager
+        self.reportManager = ReportManager(service: MockReportService(), userManager: userManager)
+        self.healthKitManager = HealthKitManager(service: MockHealthService())
+        self.trainingAnalyticsManager = TrainingAnalyticsManager(services: MockTrainingAnalyticsServices())
+        self.detailNavigationModel = DetailNavigationModel()
+        self.userWeightManager = UserWeightManager(services: MockUserWeightServices())
+        self.goalManager = GoalManager(services: MockGoalServices())
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        self.hkWorkoutManager = hkWorkoutManager
+        self.workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
+        #endif
     }
 }

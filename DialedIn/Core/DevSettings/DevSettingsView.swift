@@ -14,12 +14,17 @@ struct DevSettingsView: View {
     @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     @Environment(TrainingPlanManager.self) private var trainingPlanManager
+    @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @Environment(AppState.self) private var appState
 
     @Environment(\.dismiss) private var dismiss
     
     @State private var isReseeding = false
     @State private var reseedingMessage = ""
+    @State private var testSessionId = ""
+    @State private var fetchedSession: WorkoutSessionModel?
+    @State private var isFetchingSession = false
+    @State private var fetchError: String?
     
     var body: some View {
         NavigationStack {
@@ -27,9 +32,12 @@ struct DevSettingsView: View {
                 authSection
                 userSection
                 deviceSection
+                activeWorkoutSessionSection
+                trainingPlanSection
+                localStorageDebugSection
+                firebaseTestSection
                 exerciseTemplateSection
                 workoutTemplateSection
-                trainingPlanSection
                 seedingSection
                 debugActionsSection
             }
@@ -156,44 +164,47 @@ struct DevSettingsView: View {
         Section {
             if let plan = trainingPlanManager.currentTrainingPlan {
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text(plan.name)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        Spacer()
-                        Text("\(plan.weeks.count) weeks")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    // Plan basics
+                    debugRow(label: "Plan ID", value: plan.planId)
+                    debugRow(label: "User ID", value: plan.userId ?? "nil")
+                    debugRow(label: "Name", value: plan.name)
+                    debugRow(label: "Is Active", value: "\(plan.isActive)")
+                    debugRow(label: "Weeks Count", value: "\(plan.weeks.count)")
+                    
+                    if let currentWeek = trainingPlanManager.getCurrentWeek() {
+                        debugRow(label: "Current Week #", value: "\(currentWeek.weekNumber)")
                     }
                     
+                    // Today's workouts detail
                     let todaysWorkouts = trainingPlanManager.getTodaysWorkouts()
                     if !todaysWorkouts.isEmpty {
                         Divider()
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Today's Workouts: \(todaysWorkouts.count)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            
-                            ForEach(todaysWorkouts) { workout in
-                                HStack {
-                                    Text("• Workout")
-                                        .font(.caption2)
-                                    Spacer()
-                                    if workout.isCompleted {
-                                        Text("Completed ✓")
-                                            .font(.caption2)
-                                            .foregroundStyle(.green)
-                                    } else if workout.isMissed {
-                                        Text("Missed")
-                                            .font(.caption2)
-                                            .foregroundStyle(.red)
-                                    } else {
-                                        Text("Scheduled")
-                                            .font(.caption2)
-                                            .foregroundStyle(.orange)
-                                    }
+                        Text("Today's Workouts (\(todaysWorkouts.count))")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 4)
+                        
+                        ForEach(todaysWorkouts) { workout in
+                            VStack(alignment: .leading, spacing: 2) {
+                                debugRow(label: "  Scheduled ID", value: workout.id)
+                                debugRow(label: "  Template ID", value: workout.workoutTemplateId)
+                                debugRow(label: "  Name", value: workout.workoutName ?? "nil")
+                                if let date = workout.scheduledDate {
+                                    debugRow(label: "  Scheduled", value: date.formatted(date: .numeric, time: .shortened))
                                 }
+                                debugRow(label: "  Is Completed", value: "\(workout.isCompleted)")
+                                if let sessionId = workout.completedSessionId {
+                                    debugRow(label: "  Session ID", value: sessionId)
+                                } else {
+                                    debugRow(label: "  Session ID", value: "nil")
+                                }
+                                debugRow(label: "  Is Missed", value: "\(workout.isMissed)")
                             }
+                            .padding(.vertical, 2)
+                            .padding(.horizontal, 4)
+                            .background(Color.secondary.opacity(0.1))
+                            .cornerRadius(4)
                         }
                         
                         Button {
@@ -215,9 +226,181 @@ struct DevSettingsView: View {
                     .foregroundStyle(.secondary)
             }
         } header: {
-            Text("Training Plan")
+            Text("Training Plan Debug")
         } footer: {
-            Text("Reset today's workouts to test the start/complete/discard flow again.")
+            Text("Shows the current training plan state and today's scheduled workouts with all IDs.")
+        }
+    }
+    
+    private var activeWorkoutSessionSection: some View {
+        Section {
+            if let session = workoutSessionManager.activeSession {
+                VStack(alignment: .leading, spacing: 8) {
+                    debugRow(label: "Session ID", value: session.id)
+                    debugRow(label: "Name", value: session.name)
+                    debugRow(label: "Template ID", value: session.workoutTemplateId ?? "nil")
+                    debugRow(label: "Scheduled ID", value: session.scheduledWorkoutId ?? "nil")
+                    debugRow(label: "Plan ID", value: session.trainingPlanId ?? "nil")
+                    debugRow(label: "Created", value: session.dateCreated.formatted(date: .numeric, time: .shortened))
+                    if let endedAt = session.endedAt {
+                        debugRow(label: "Ended", value: endedAt.formatted(date: .numeric, time: .shortened))
+                    } else {
+                        debugRow(label: "Ended", value: "nil (in progress)")
+                    }
+                    debugRow(label: "Exercises", value: "\(session.exercises.count)")
+                    
+                    let completedSets = session.exercises.flatMap { $0.sets }.filter { $0.completedAt != nil }.count
+                    let totalSets = session.exercises.flatMap { $0.sets }.count
+                    debugRow(label: "Sets", value: "\(completedSets)/\(totalSets)")
+                }
+                .padding(.vertical, 4)
+            } else {
+                Text("No active workout session")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Active Workout Session")
+        } footer: {
+            Text("Shows the currently active workout session if one is in progress.")
+        }
+    }
+    
+    private var localStorageDebugSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 8) {
+                // Active session from local storage
+                if let activeSession = try? workoutSessionManager.getActiveLocalWorkoutSession() {
+                    Text("Active Session (Local)")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        debugRow(label: "  Session ID", value: activeSession.id)
+                        debugRow(label: "  Template ID", value: activeSession.workoutTemplateId ?? "nil")
+                        debugRow(label: "  Scheduled ID", value: activeSession.scheduledWorkoutId ?? "nil")
+                        debugRow(label: "  Plan ID", value: activeSession.trainingPlanId ?? "nil")
+                    }
+                    .padding(.vertical, 2)
+                    .padding(.horizontal, 4)
+                    .background(Color.secondary.opacity(0.1))
+                    .cornerRadius(4)
+                } else {
+                    Text("No active session in local storage")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Divider()
+                
+                // Recent sessions
+                let recentSessions = (try? workoutSessionManager.getAllLocalWorkoutSessions()) ?? []
+                let last3 = Array(recentSessions.sorted(by: { $0.dateCreated > $1.dateCreated }).prefix(3))
+                
+                Text("Recent Sessions (Last 3)")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+                
+                if last3.isEmpty {
+                    Text("No recent sessions")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(last3, id: \.id) { session in
+                        VStack(alignment: .leading, spacing: 2) {
+                            debugRow(label: "  Session ID", value: String(session.id.prefix(8)) + "...")
+                            debugRow(label: "  Template ID", value: session.workoutTemplateId ?? "nil")
+                            debugRow(label: "  Scheduled ID", value: session.scheduledWorkoutId ?? "nil")
+                            debugRow(label: "  Plan ID", value: session.trainingPlanId ?? "nil")
+                            debugRow(label: "  Created", value: session.dateCreated.formatted(date: .numeric, time: .shortened))
+                            if let ended = session.endedAt {
+                                debugRow(label: "  Ended", value: ended.formatted(date: .numeric, time: .shortened))
+                            }
+                        }
+                        .padding(.vertical, 2)
+                        .padding(.horizontal, 4)
+                        .background(Color.secondary.opacity(0.1))
+                        .cornerRadius(4)
+                    }
+                }
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text("Local Storage Debug")
+        } footer: {
+            Text("Verifies that scheduledWorkoutId and other IDs are properly persisted in local SwiftData storage.")
+        }
+    }
+    
+    private var firebaseTestSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Fetch Session from Firebase")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                
+                TextField("Session ID", text: $testSessionId)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.caption)
+                
+                Button {
+                    Task {
+                        await fetchSessionFromFirebase()
+                    }
+                } label: {
+                    if isFetchingSession {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Label("Fetch Session", systemImage: "arrow.down.circle")
+                            .font(.caption)
+                    }
+                }
+                .buttonStyle(.bordered)
+                .disabled(testSessionId.isEmpty || isFetchingSession)
+                
+                if let error = fetchError {
+                    Text(error)
+                        .font(.caption2)
+                        .foregroundStyle(.red)
+                        .padding(.top, 4)
+                }
+                
+                if let session = fetchedSession {
+                    Divider()
+                    
+                    Text("Fetched Session")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 4)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        debugRow(label: "  Session ID", value: String(session.id.prefix(8)) + "...")
+                        debugRow(label: "  Name", value: session.name)
+                        debugRow(label: "  Template ID", value: session.workoutTemplateId ?? "nil")
+                        debugRow(label: "  Scheduled ID", value: session.scheduledWorkoutId ?? "nil")
+                        debugRow(label: "  Plan ID", value: session.trainingPlanId ?? "nil")
+                        debugRow(label: "  Created", value: session.dateCreated.formatted(date: .numeric, time: .shortened))
+                        if let ended = session.endedAt {
+                            debugRow(label: "  Ended", value: ended.formatted(date: .numeric, time: .shortened))
+                        }
+                    }
+                    .padding(.vertical, 2)
+                    .padding(.horizontal, 4)
+                    .background(Color.green.opacity(0.1))
+                    .cornerRadius(4)
+                }
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text("Firebase Test")
+        } footer: {
+            Text("Fetch a session from Firebase to verify that scheduledWorkoutId and trainingPlanId are properly stored and retrieved.")
         }
     }
     
@@ -275,11 +458,13 @@ struct DevSettingsView: View {
                 }
                 dismiss()
             } label: {
-                Text("Force fresh anonymous user")
+                Text("Clear local data & sign out")
             }
             .tint(.red)
         } header: {
             Text("Debug Actions")
+        } footer: {
+            Text("Clears all local data and signs out. Your Firebase account remains intact.")
         }
         #endif
     }
@@ -389,18 +574,73 @@ struct DevSettingsView: View {
         reseedingMessage = ""
     }
     
+    private func fetchSessionFromFirebase() async {
+        isFetchingSession = true
+        fetchError = nil
+        fetchedSession = nil
+        
+        do {
+            let session = try await workoutSessionManager.getWorkoutSession(id: testSessionId)
+            await MainActor.run {
+                fetchedSession = session
+                isFetchingSession = false
+            }
+        } catch {
+            await MainActor.run {
+                fetchError = error.localizedDescription
+                isFetchingSession = false
+            }
+        }
+    }
+    
+    private func debugRow(label: String, value: String) -> some View {
+        HStack(alignment: .top) {
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value)
+                .font(.caption2)
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.trailing)
+        }
+    }
+    
     #if DEBUG
     private func onForceFreshAnonUser() {
         Task {
-            // Attempt account deletion first; if that fails, sign out
-            do {
-                try await authManager.deleteAccount()
-            } catch {
+            guard let userId = userManager.currentUser?.userId else {
+                // No user, just sign out
                 try? authManager.signOut()
+                return
             }
-            // Clear local user cache
-            userManager.clearAllLocalData()
-            // UI will reset to onboarding automatically when auth/user state changes
+            
+            // 1. Stop all listeners FIRST to prevent permission errors
+            await MainActor.run {
+                // Stop TrainingPlanManager listener
+                trainingPlanManager.clearAllLocalData()
+            }
+            
+            // 2. Clear ALL local data
+            // Clear workout sessions
+            do {
+                try workoutSessionManager.deleteAllLocalWorkoutSessionsForAuthor(authorId: userId)
+            } catch {
+                print("Error clearing local workout sessions: \(error)")
+            }
+            
+            // Clear user data and stop UserManager listener
+            userManager.signOut()
+            
+            // 3. Sign out (account remains intact in Firebase)
+            do {
+                try authManager.signOut()
+                print("✅ Signed out successfully - account preserved")
+            } catch {
+                print("⚠️ Sign out failed: \(error)")
+            }
+            
+            // UI will reset to onboarding automatically when auth state changes
         }
     }
     #endif

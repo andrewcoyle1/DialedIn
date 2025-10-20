@@ -7,28 +7,80 @@
 import SwiftUI
 import AuthenticationServices
 
+public enum AppleButtonStyle {
+    case white
+    case black
+    case whiteOutline
+    
+    var asASAuth: ASAuthorizationAppleIDButton.Style {
+        switch self {
+        case .white:
+            return .white
+        case .black:
+            return .black
+        case .whiteOutline:
+            return .whiteOutline
+        }
+    }
+}
+
+public enum AppleButtonType {
+    case continueType
+    case signIn
+    case signUp
+    
+    var asASAuth: ASAuthorizationAppleIDButton.ButtonType {
+        switch self {
+        case .continueType:
+            return .continue
+        case .signIn:
+            return .signIn
+        case .signUp:
+            return .signUp
+        }
+    }
+}
 public struct SignInWithAppleButtonView: View {
-    public let type: ASAuthorizationAppleIDButton.ButtonType
-    public let style: ASAuthorizationAppleIDButton.Style
+    
+    @Environment(\.colorScheme) private var colorScheme
+    
+    public let type: AppleButtonType
+    public var preferredStyle: AppleButtonStyle?
     public let cornerRadius: CGFloat
+    public let height: CGFloat
+    public let action: () -> Void
+
+    private var resolvedStyle: AppleButtonStyle {
+        if let preferredStyle { return preferredStyle }
+        return colorScheme == .dark ? .white : .black
+    }
 
     public init(
-        type: ASAuthorizationAppleIDButton.ButtonType = .signIn,
-        style: ASAuthorizationAppleIDButton.Style = .black,
-        cornerRadius: CGFloat = 10
+        
+        type: AppleButtonType = .continueType,
+        style: AppleButtonStyle? = nil,
+        cornerRadius: CGFloat = 28,
+        height: CGFloat = 56,
+        action: @escaping () -> Void = {}
     ) {
         self.type = type
-        self.style = style
+        self.preferredStyle = style
         self.cornerRadius = cornerRadius
+        self.height = height
+        self.action = action
     }
 
     public var body: some View {
         ZStack {
             Color.black.opacity(0.001)
-
-            SignInWithAppleButtonViewRepresentable(type: type, style: style, cornerRadius: cornerRadius)
+            SignInWithAppleButtonViewRepresentable(type: type.asASAuth, style: resolvedStyle.asASAuth, cornerRadius: cornerRadius)
                 .disabled(true)
         }
+        .frame(height: height)
+        .anyButton(.press) {
+            action()
+        }
+        .frame(maxWidth: 408)
     }
 }
 
@@ -37,18 +89,80 @@ private struct SignInWithAppleButtonViewRepresentable: UIViewRepresentable {
     let style: ASAuthorizationAppleIDButton.Style
     let cornerRadius: CGFloat
 
-    func makeUIView(context: Context) -> some UIView {
+    func makeUIView(context: Context) -> UIView {
+        // Create a container view
+        let containerView = UIView()
+        
+        // Create the button
         let button = ASAuthorizationAppleIDButton(type: type, style: style)
         button.cornerRadius = cornerRadius
-        return button
+        button.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Add button to container
+        containerView.addSubview(button)
+        
+        // Pin button to all edges of container
+        NSLayoutConstraint.activate([
+            button.topAnchor.constraint(equalTo: containerView.topAnchor),
+            button.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            button.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            button.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+        ])
+        
+        // Store button reference and current properties in coordinator
+        context.coordinator.currentButton = button
+        context.coordinator.currentStyle = style
+        context.coordinator.currentType = type
+        context.coordinator.currentCornerRadius = cornerRadius
+        
+        return containerView
     }
 
     func updateUIView(_ uiView: UIViewType, context: Context) {
-
+        // ASAuthorizationAppleIDButton doesn't support changing style after creation,
+        // so we need to replace it if the style or type has changed
+        
+        if context.coordinator.currentStyle != style || context.coordinator.currentType != type {
+            // Remove old button
+            context.coordinator.currentButton?.removeFromSuperview()
+            
+            // Create new button with updated style
+            let newButton = ASAuthorizationAppleIDButton(type: type, style: style)
+            newButton.cornerRadius = cornerRadius
+            newButton.translatesAutoresizingMaskIntoConstraints = false
+            
+            // Add new button to container
+            uiView.addSubview(newButton)
+            
+            // Pin button to all edges of container
+            NSLayoutConstraint.activate([
+                newButton.topAnchor.constraint(equalTo: uiView.topAnchor),
+                newButton.leadingAnchor.constraint(equalTo: uiView.leadingAnchor),
+                newButton.trailingAnchor.constraint(equalTo: uiView.trailingAnchor),
+                newButton.bottomAnchor.constraint(equalTo: uiView.bottomAnchor)
+            ])
+            
+            // Update coordinator
+            context.coordinator.currentButton = newButton
+            context.coordinator.currentStyle = style
+            context.coordinator.currentType = type
+            context.coordinator.currentCornerRadius = cornerRadius
+        } else if context.coordinator.currentCornerRadius != cornerRadius {
+            // Just update corner radius if only that changed
+            context.coordinator.currentButton?.cornerRadius = cornerRadius
+            context.coordinator.currentCornerRadius = cornerRadius
+        }
     }
 
-    func makeCoordinator() {
-
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+    
+    class Coordinator {
+        var currentButton: ASAuthorizationAppleIDButton?
+        var currentStyle: ASAuthorizationAppleIDButton.Style = .black
+        var currentType: ASAuthorizationAppleIDButton.ButtonType = .signIn
+        var currentCornerRadius: CGFloat = 10
     }
 }
 

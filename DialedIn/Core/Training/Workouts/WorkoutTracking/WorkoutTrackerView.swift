@@ -13,6 +13,7 @@ struct WorkoutTrackerView: View {
     @Environment(WorkoutSessionManager.self) var workoutSessionManager
     @Environment(ExerciseHistoryManager.self) var exerciseHistoryManager
     @Environment(ExerciseUnitPreferenceManager.self) var unitPreferenceManager
+    @Environment(LogManager.self) var logManager
     
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     @Environment(HKWorkoutManager.self) var hkWorkoutManager

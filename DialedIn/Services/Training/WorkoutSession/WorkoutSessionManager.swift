@@ -59,12 +59,24 @@ class WorkoutSessionManager {
         // Mark scheduled workout as complete if linked to training plan AND not discarding
         if markScheduledComplete,
            let session = activeSession,
-           let scheduledWorkoutId = session.scheduledWorkoutId,
            let trainingPlanManager = trainingPlanManager {
-            try? await trainingPlanManager.completeWorkout(
-                scheduledWorkoutId: scheduledWorkoutId,
-                session: session
-            )
+            if let scheduledWorkoutId = session.scheduledWorkoutId {
+                // Direct link - mark the specific scheduled workout complete
+                try? await trainingPlanManager.completeWorkout(
+                    scheduledWorkoutId: scheduledWorkoutId,
+                    session: session
+                )
+            } else if let templateId = session.workoutTemplateId {
+                // Fallback: if no explicit link, try to find a scheduled workout for today
+                // matching this template that is not yet completed
+                let todays = trainingPlanManager.getTodaysWorkouts()
+                if let match = todays.first(where: { !$0.isCompleted && $0.workoutTemplateId == templateId }) {
+                    try? await trainingPlanManager.completeWorkout(
+                        scheduledWorkoutId: match.id,
+                        session: session
+                    )
+                }
+            }
         }
         
         // Save completed session locally for offline history
@@ -87,7 +99,7 @@ class WorkoutSessionManager {
         try local.setActiveLocalWorkoutSession(session)
     }
 
-    // MARK: - Remote Operations
+    // MARK: - Local Operations
 
     // Create
     func addLocalWorkoutSession(session: WorkoutSessionModel) throws {

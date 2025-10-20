@@ -24,8 +24,8 @@ struct ProductionWorkoutSessionServices: WorkoutSessionServices {
     let remote: RemoteWorkoutSessionService
     let local: LocalWorkoutSessionPersistence
     
-    init() {
-        self.remote = FirebaseWorkoutSessionService()
+    init(logManager: LogManager? = nil) {
+        self.remote = FirebaseWorkoutSessionService(logManager: logManager)
         self.local = SwiftWorkoutSessionPersistence()
     }
 }

@@ -41,10 +41,14 @@ struct ProgramView: View {
     }
     @State private var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
     @State private var showAlert: AnyAppAlert?
+    @State private var completedSessionToShow: WorkoutSessionModel?
     
     var body: some View {
         listContents
             .showCustomAlert(alert: $showAlert)
+            .sheet(item: $completedSessionToShow) { session in
+                WorkoutSessionDetailView(session: session)
+            }
     }
     
     private var listContents: some View {
@@ -174,7 +178,7 @@ struct ProgramView: View {
     
     private var todaysWorkoutSection: some View {
         Group {
-            let todaysWorkouts = trainingPlanManager.getTodaysWorkouts()
+            let todaysWorkouts = trainingPlanManager.getTodaysWorkouts().filter { !$0.isCompleted }
             if !todaysWorkouts.isEmpty {
                 Section {
                     ForEach(todaysWorkouts) { workout in
@@ -234,6 +238,20 @@ struct ProgramView: View {
         } else {
             ForEach(workoutsForDay) { workout in
                 ScheduledWorkoutRow(scheduledWorkout: workout)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        Task {
+                            if workout.isCompleted {
+                                await openCompletedSession(for: workout)
+                            } else {
+                                do {
+                                    try await startWorkout(workout)
+                                } catch {
+                                    showAlert = AnyAppAlert(error: error)
+                                }
+                            }
+                        }
+                    }
             }
         }
     }
@@ -368,6 +386,18 @@ struct ProgramView: View {
         
         // Show WorkoutStartView (preview, notes, etc.)
         workoutToStart = template
+    }
+
+    private func openCompletedSession(for scheduledWorkout: ScheduledWorkout) async {
+        guard let sessionId = scheduledWorkout.completedSessionId else { return }
+        do {
+            let session = try await workoutSessionManager.getWorkoutSession(id: sessionId)
+            await MainActor.run {
+                completedSessionToShow = session
+            }
+        } catch {
+            showAlert = AnyAppAlert(error: error)
+        }
     }
 }
 

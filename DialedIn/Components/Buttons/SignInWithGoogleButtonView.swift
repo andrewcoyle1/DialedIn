@@ -9,15 +9,35 @@ import SwiftUI
 
 struct SignInWithGoogleButtonView: View {
 
-    let style: DisplayMode
+    @Environment(\.colorScheme) private var colorScheme
+
+    let style: DisplayMode?
     let scheme: DisplayScheme
     let action: () -> Void
-
+    let height: CGFloat
+    
+    private var resolvedStyle: DisplayMode {
+        if let style { return style }
+        return colorScheme == .dark ? .dark : .light
+    }
+    
+    init(
+        style: DisplayMode? = nil,
+        scheme: DisplayScheme = .continueWithGoogle,
+        action: @escaping () -> Void = {},
+        height: CGFloat = 56
+    ) {
+        self.style = style
+        self.scheme = scheme
+        self.action = action
+        self.height = height
+    }
+    
     var body: some View {
         HStack(spacing: 4) {
             Spacer()
             ZStack {
-                Image(style == .light ? "GoogleLogoLight" : "GoogleLogoDark")
+                Image(resolvedStyle == .light ? "GoogleLogoLight" : "GoogleLogoDark")
                     .resizable()
                     .aspectRatio(1, contentMode: .fit)
                     .frame(width: 30, height: 30)
@@ -25,7 +45,7 @@ struct SignInWithGoogleButtonView: View {
             }
             .frame(width: 20, height: 20)
             Text(scheme.description)
-                .foregroundStyle(style.accentColour)
+                .foregroundStyle(resolvedStyle.accentColour)
                 .fontWeight(.medium)
                 .font(.system(size: 21))
             Spacer()
@@ -33,14 +53,15 @@ struct SignInWithGoogleButtonView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .frame(height: 50)
-        .background(style.backgroundColour)
+        .background(resolvedStyle.backgroundColour)
         .cornerRadius(25)
         .frame(maxWidth: .infinity)
-        .shadow(color: style.accentColour, radius: 1)
-        .padding(.horizontal)
+        .shadow(color: resolvedStyle.accentColour, radius: 1)
         .anyButton(.press) {
             action()
         }
+        .frame(height: height)
+        .frame(maxWidth: 408)
     }
 
     enum DisplayMode {
