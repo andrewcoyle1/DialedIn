@@ -28,7 +28,7 @@ struct EnhancedScheduleView: View {
             // Calendar grid
             calendarGrid
         }
-        .padding()
+        // .padding()
     }
     
     private var monthNavigator: some View {
@@ -39,7 +39,12 @@ struct EnhancedScheduleView: View {
                 }
             } label: {
                 Image(systemName: "chevron.left")
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .frame(width: 44, height: 44)
+                    .background(Circle().fill(Color.gray.opacity(0.1)))
             }
+            .buttonStyle(.plain)
             
             Spacer()
             
@@ -54,7 +59,12 @@ struct EnhancedScheduleView: View {
                 }
             } label: {
                 Image(systemName: "chevron.right")
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .frame(width: 44, height: 44)
+                    .background(Circle().fill(Color.gray.opacity(0.1)))
             }
+            .buttonStyle(.plain)
         }
     }
     

@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct ProfileView: View {
-    
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(\.layoutMode) private var layoutMode
     @Environment(UserManager.self) private var userManager: UserManager
     @Environment(GoalManager.self) private var goalManager: GoalManager
@@ -56,7 +57,7 @@ struct ProfileView: View {
         .navigationBarTitleDisplayMode(.large)
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView, content: {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         })
         #endif
         .sheet(isPresented: $showCreateProfileSheet) {

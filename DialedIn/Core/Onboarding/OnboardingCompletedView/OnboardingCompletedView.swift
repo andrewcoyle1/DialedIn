@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct OnboardingCompletedView: View {
-    
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(AppState.self) private var root
     
     @State private var isCompletingProfileSetup: Bool = false
@@ -42,7 +43,7 @@ struct OnboardingCompletedView: View {
             }
         }
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
     }

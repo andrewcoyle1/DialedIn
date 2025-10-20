@@ -9,6 +9,7 @@ import SwiftUI
 
 struct OnboardingIntroView: View {
 
+    @Environment(DependencyContainer.self) private var container
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
@@ -45,7 +46,7 @@ struct OnboardingIntroView: View {
             }
         }
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .screenAppearAnalytics(name: "OnboardingIntro")
@@ -120,7 +121,7 @@ struct OnboardingIntroView: View {
     private var buttonSection: some View {
         VStack(spacing: 12) {
             NavigationLink {
-                AuthOptionsView(viewModel: AuthOptionsViewModel(authManager: authManager, userManager: userManager, logManager: logManager))
+                AuthOptionsView(viewModel: AuthOptionsViewModel(container: container))
             } label: {
                 Text("Continue")
                     .frame(maxWidth: .infinity)
@@ -132,6 +133,8 @@ struct OnboardingIntroView: View {
 }
 
 #Preview {
+    let container = DevPreview.shared.container
     NavigationStack { OnboardingIntroView() }
         .previewEnvironment()
+        .environment(container)
 }

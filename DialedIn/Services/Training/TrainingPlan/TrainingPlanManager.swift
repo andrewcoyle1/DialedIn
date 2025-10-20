@@ -76,14 +76,14 @@ class TrainingPlanManager {
     }
     
     @MainActor
-    func clearAllLocalData() {
+    func clearAllLocalData() throws {
         // Stop listener
         stopSyncListener()
         
         // Clear all local plans
         let planIds = allPlans.map { $0.planId }
         for planId in planIds {
-            try? local.deletePlan(id: planId)
+            try local.deletePlan(id: planId)
         }
         
         // Clear state
@@ -147,12 +147,13 @@ class TrainingPlanManager {
     func createPlanFromTemplate(
         _ template: ProgramTemplateModel,
         startDate: Date,
+        endDate: Date? = nil,
         userId: String,
         planName: String? = nil,
         workoutTemplateManager: WorkoutTemplateManager? = nil
     ) async throws -> TrainingPlan {
         // Use ProgramTemplateManager to instantiate
-        let plan = instantiatePlanFromTemplate(template, userId: userId, startDate: startDate, planName: planName, workoutTemplateManager: workoutTemplateManager)
+        let plan = instantiatePlanFromTemplate(template, userId: userId, startDate: startDate, endDate: endDate, planName: planName, workoutTemplateManager: workoutTemplateManager)
         try await createPlan(plan)
         return plan
     }
@@ -395,6 +396,54 @@ class TrainingPlanManager {
         throw TrainingPlanError.workoutNotFound
     }
     
+    /// Syncs scheduled workout completion status with completed workout sessions
+    /// This is useful for reconciling state after retroactive fixes or data migrations
+    func syncScheduledWorkoutsWithCompletedSessions(completedSessions: [WorkoutSessionModel]) async throws {
+        guard var plan = currentTrainingPlan else {
+            throw TrainingPlanError.noActivePlan
+        }
+        
+        var planWasModified = false
+        
+        // Build a map of scheduledWorkoutId -> completed session for quick lookup
+        let completedSessionsMap = Dictionary(
+            completedSessions
+                .filter { $0.endedAt != nil && $0.scheduledWorkoutId != nil }
+                .map { ($0.scheduledWorkoutId!, $0) },
+            uniquingKeysWith: { first, _ in first } // Keep first if duplicates
+        )
+        
+        // Check each scheduled workout
+        for (weekIndex, week) in plan.weeks.enumerated() {
+            for (workoutIndex, scheduledWorkout) in week.scheduledWorkouts.enumerated() {
+                // If scheduled workout is marked incomplete but we have a completed session for it
+                if !scheduledWorkout.isCompleted,
+                   let completedSession = completedSessionsMap[scheduledWorkout.id] {
+                    
+                    // Update the scheduled workout
+                    let updatedWorkout = ScheduledWorkout(
+                        id: scheduledWorkout.id,
+                        workoutTemplateId: scheduledWorkout.workoutTemplateId,
+                        workoutName: scheduledWorkout.workoutName,
+                        dayOfWeek: scheduledWorkout.dayOfWeek,
+                        scheduledDate: scheduledWorkout.scheduledDate,
+                        completedSessionId: completedSession.id,
+                        isCompleted: true,
+                        notes: scheduledWorkout.notes
+                    )
+                    
+                    plan.weeks[weekIndex].scheduledWorkouts[workoutIndex] = updatedWorkout
+                    planWasModified = true
+                }
+            }
+        }
+        
+        // Save plan if any changes were made
+        if planWasModified {
+            try await updatePlan(plan)
+        }
+    }
+    
     // MARK: - Progress Tracking
     
     func getWeeklyProgress(for weekNumber: Int) -> WeekProgress {
@@ -490,17 +539,23 @@ class TrainingPlanManager {
         _ template: ProgramTemplateModel,
         userId: String,
         startDate: Date,
+        endDate: Date? = nil,
         planName: String?,
         workoutTemplateManager: WorkoutTemplateManager? = nil
     ) -> TrainingPlan {
-        let weeks = template.weekTemplates.map { weekTemplate in
-            let scheduledWorkouts = weekTemplate.workoutSchedule.map { mapping in
+        let weeks: [TrainingWeek] = template.weekTemplates.map { weekTemplate -> TrainingWeek in
+            let scheduledWorkouts: [ScheduledWorkout] = weekTemplate.workoutSchedule.compactMap { mapping -> ScheduledWorkout? in
                 let weekOffset = weekTemplate.weekNumber - 1
                 let scheduledDate = calculateDate(
                     startDate: startDate,
                     weekOffset: weekOffset,
                     dayOfWeek: mapping.dayOfWeek
                 )
+                
+                // Filter out workouts beyond end date
+                if let endDate = endDate, scheduledDate > endDate {
+                    return nil
+                }
                 
                 // Use workout name from mapping, or fallback to template lookup
                 let workoutName: String? = mapping.workoutName ?? {
@@ -524,9 +579,11 @@ class TrainingPlanManager {
                 scheduledWorkouts: scheduledWorkouts,
                 notes: weekTemplate.notes
             )
+        }.filter { (week: TrainingWeek) -> Bool in
+            !week.scheduledWorkouts.isEmpty
         }
         
-        let endDate = Calendar.current.date(
+        let calculatedEndDate = endDate ?? Calendar.current.date(
             byAdding: .weekOfYear,
             value: template.duration,
             to: startDate
@@ -538,7 +595,7 @@ class TrainingPlanManager {
             name: planName ?? template.name,
             description: template.description,
             startDate: startDate,
-            endDate: endDate,
+            endDate: calculatedEndDate,
             isActive: true,
             programTemplateId: template.id,
             weeks: weeks,

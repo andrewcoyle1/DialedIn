@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct OnboardingHeightView: View {
-    
+    @Environment(DependencyContainer.self) private var container
+
     let gender: Gender
     let dateOfBirth: Date
     @State private var unit: UnitOfLength = .centimeters
@@ -67,7 +68,7 @@ struct OnboardingHeightView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
     }

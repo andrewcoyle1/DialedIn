@@ -9,7 +9,7 @@ import SwiftUI
 import PhotosUI
 
 struct CreateExerciseView: View {
-    
+    @Environment(DependencyContainer.self) private var container
     @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
     @Environment(AIManager.self) private var aiManager
     @Environment(UserManager.self) private var userManager
@@ -90,7 +90,7 @@ struct CreateExerciseView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView) {
-                DevSettingsView()
+                DevSettingsView(viewModel: DevSettingsViewModel(container: container))
             }
             #endif
             .showCustomAlert(alert: $alert)

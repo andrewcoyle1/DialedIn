@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct OnboardingSubscriptionView: View {
-        
+    @Environment(DependencyContainer.self) private var container
+
     #if DEBUG || MOCK
     @State private var showDebugView: Bool = false
     #endif
@@ -25,7 +26,7 @@ struct OnboardingSubscriptionView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
     }

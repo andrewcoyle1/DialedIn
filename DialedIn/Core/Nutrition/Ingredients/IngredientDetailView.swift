@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct IngredientDetailView: View {
-    
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(IngredientTemplateManager.self) private var ingredientTemplateManager
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
@@ -56,7 +57,7 @@ struct IngredientDetailView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
     }

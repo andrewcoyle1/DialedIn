@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct OnboardingDateOfBirthView: View {
-    
+    @Environment(DependencyContainer.self) private var container
+
     let gender: Gender
     @State private var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
     
@@ -49,7 +50,7 @@ struct OnboardingDateOfBirthView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
     }

@@ -10,6 +10,8 @@ import SwiftUI
 struct EditProgramView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(TrainingPlanManager.self) private var trainingPlanManager
+    @Environment(ProgramTemplateManager.self) private var programTemplateManager
+    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     
     let plan: TrainingPlan
     
@@ -245,12 +247,41 @@ struct EditProgramView: View {
             updatedWeeks = rescheduleWorkouts(weeks: plan.weeks, oldStartDate: originalStartDate, newStartDate: startDate)
         }
         
-        // Adjust end date if it exists and start date changed
-        var adjustedEndDate = endDate
+        // Handle end date changes
+        let originalEndDate = plan.endDate
+        let newEndDate = hasEndDate ? endDate : nil
+        
+        // Adjust end date if start date changed (maintain duration)
+        var adjustedEndDate = newEndDate
         if hasEndDate, let currentEndDate = endDate, startDate != originalStartDate {
             let calendar = Calendar.current
             let daysDifference = calendar.dateComponents([.day], from: originalStartDate, to: startDate).day ?? 0
             adjustedEndDate = calendar.date(byAdding: .day, value: daysDifference, to: currentEndDate)
+        }
+        
+        // Handle end date extension/shortening
+        if adjustedEndDate != originalEndDate {
+            if let newEnd = adjustedEndDate {
+                // Check if extending or shortening
+                if let oldEnd = originalEndDate, newEnd > oldEnd {
+                    // Extending: Add more workouts from template if available
+                    do {
+                        updatedWeeks = try await extendProgramSchedule(
+                            weeks: updatedWeeks,
+                            startDate: startDate,
+                            oldEndDate: oldEnd,
+                            newEndDate: newEnd,
+                            programTemplateId: plan.programTemplateId
+                        )
+                    } catch {
+                        print("Error extending program schedule: \(error)")
+                    }
+                } else {
+                    // Shortening or setting for first time: Filter out future workouts
+                    updatedWeeks = filterWorkoutsByEndDate(weeks: updatedWeeks, endDate: newEnd)
+                }
+            }
+            // If newEndDate is nil, keep all workouts (no end date = indefinite)
         }
         
         let updatedPlan = TrainingPlan(
@@ -259,7 +290,7 @@ struct EditProgramView: View {
             name: name,
             description: description.isEmpty ? nil : description,
             startDate: startDate,
-            endDate: hasEndDate ? adjustedEndDate : nil,
+            endDate: adjustedEndDate,
             isActive: plan.isActive,
             programTemplateId: plan.programTemplateId,
             weeks: updatedWeeks,
@@ -288,6 +319,7 @@ struct EditProgramView: View {
                     updatedWorkout = ScheduledWorkout(
                         id: workout.id,
                         workoutTemplateId: workout.workoutTemplateId,
+                        workoutName: workout.workoutName,
                         dayOfWeek: calendar.component(.weekday, from: newDate),
                         scheduledDate: newDate,
                         completedSessionId: workout.completedSessionId,
@@ -304,6 +336,130 @@ struct EditProgramView: View {
                 notes: week.notes
             )
         }
+    }
+    
+    private func filterWorkoutsByEndDate(weeks: [TrainingWeek], endDate: Date) -> [TrainingWeek] {
+        return weeks.map { week in
+            let filteredWorkouts = week.scheduledWorkouts.filter { workout in
+                // Keep completed workouts regardless of date
+                if workout.isCompleted {
+                    return true
+                }
+                // Filter future workouts by end date
+                guard let scheduledDate = workout.scheduledDate else {
+                    return true
+                }
+                return scheduledDate <= endDate
+            }
+            
+            return TrainingWeek(
+                weekNumber: week.weekNumber,
+                scheduledWorkouts: filteredWorkouts,
+                notes: week.notes
+            )
+        }.filter { !$0.scheduledWorkouts.isEmpty || $0.notes != nil }
+    }
+    
+    private func extendProgramSchedule(
+        weeks: [TrainingWeek],
+        startDate: Date,
+        oldEndDate: Date,
+        newEndDate: Date,
+        programTemplateId: String?
+    ) async throws -> [TrainingWeek] {
+        // If no template, can't auto-extend
+        guard let templateId = programTemplateId,
+              let template = programTemplateManager.get(id: templateId) else {
+            return weeks
+        }
+        
+        // Find the highest week number currently scheduled
+        let maxScheduledWeek = weeks.map { $0.weekNumber }.max() ?? 0
+        
+        // Get weeks from template that haven't been scheduled yet
+        let additionalWeeks = template.weekTemplates.filter { $0.weekNumber > maxScheduledWeek }
+        
+        var updatedWeeks = weeks
+        
+        // Schedule additional weeks that fall within the new date range
+        for weekTemplate in additionalWeeks {
+            let scheduledWorkouts: [ScheduledWorkout] = weekTemplate.workoutSchedule.compactMap { mapping -> ScheduledWorkout? in
+                let weekOffset = weekTemplate.weekNumber - 1
+                let scheduledDate = calculateScheduleDate(
+                    startDate: startDate,
+                    weekOffset: weekOffset,
+                    dayOfWeek: mapping.dayOfWeek
+                )
+                
+                // Only schedule if within new end date
+                guard scheduledDate <= newEndDate else {
+                    return nil
+                }
+                
+                // Fetch workout name
+                let workoutName: String? = mapping.workoutName ?? {
+                    if let template = try? workoutTemplateManager.getLocalWorkoutTemplate(id: mapping.workoutTemplateId) {
+                        return template.name
+                    }
+                    return nil
+                }()
+                
+                return ScheduledWorkout(
+                    workoutTemplateId: mapping.workoutTemplateId,
+                    workoutName: workoutName,
+                    dayOfWeek: mapping.dayOfWeek,
+                    scheduledDate: scheduledDate
+                )
+            }
+            
+            // Only add week if it has workouts
+            if !scheduledWorkouts.isEmpty {
+                updatedWeeks.append(TrainingWeek(
+                    weekNumber: weekTemplate.weekNumber,
+                    scheduledWorkouts: scheduledWorkouts,
+                    notes: weekTemplate.notes
+                ))
+            }
+        }
+        
+        return updatedWeeks.sorted { $0.weekNumber < $1.weekNumber }
+    }
+    
+    private func calculateScheduleDate(startDate: Date, weekOffset: Int, dayOfWeek: Int) -> Date {
+        let calendar = Calendar.current
+        
+        // For week 1, find the first occurrence of this day of week on or after start date
+        if weekOffset == 0 {
+            return findNextDayOfWeek(dayOfWeek, onOrAfter: startDate)
+        }
+        
+        // For subsequent weeks, calculate from the first week's anchor
+        let week1Date = findNextDayOfWeek(dayOfWeek, onOrAfter: startDate)
+        guard let targetDate = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: week1Date) else {
+            return startDate
+        }
+        
+        return targetDate
+    }
+    
+    private func findNextDayOfWeek(_ targetDayOfWeek: Int, onOrAfter date: Date) -> Date {
+        let calendar = Calendar.current
+        let currentDayOfWeek = calendar.component(.weekday, from: date)
+        
+        if currentDayOfWeek == targetDayOfWeek {
+            return date
+        }
+        
+        var daysToAdd = targetDayOfWeek - currentDayOfWeek
+        if daysToAdd < 0 {
+            daysToAdd += 7
+        }
+        
+        guard let targetDate = calendar.date(byAdding: .day, value: daysToAdd, to: date) else {
+            return date
+        }
+        
+        return targetDate
     }
 }
 

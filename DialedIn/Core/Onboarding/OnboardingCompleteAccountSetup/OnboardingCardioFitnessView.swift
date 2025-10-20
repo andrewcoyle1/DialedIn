@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct OnboardingCardioFitnessView: View {
-    
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(LogManager.self) private var logManager
     @Environment(UserManager.self) private var userManager
     
@@ -56,7 +57,7 @@ struct OnboardingCardioFitnessView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
     }

@@ -26,13 +26,11 @@ class AuthOptionsViewModel {
     #endif
     
     init(
-        authManager: AuthManager,
-        userManager: UserManager,
-        logManager: LogManager
+        container: DependencyContainer
     ) {
-        self.authManager = authManager
-        self.userManager = userManager
-        self.logManager = logManager
+        self.authManager = container.resolve(AuthManager.self)!
+        self.userManager = container.resolve(UserManager.self)!
+        self.logManager = container.resolve(LogManager.self)!
     }
     
     func endTask() {

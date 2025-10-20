@@ -2,7 +2,7 @@
 //  WorkoutHistoryView.swift
 //  DialedIn
 //
-//  Created by AI Assistant
+//  Created by Andrew Coyle
 //
 
 import SwiftUI
@@ -17,34 +17,25 @@ struct WorkoutHistoryView: View {
     
     var body: some View {
         List {
-            
-                if viewModel.isLoading && viewModel.sessions.isEmpty {
-                    loadingState
-                } else if viewModel.sessions.isEmpty {
-                    Section {
-                        emptyState
-                    }
-                } else {
-                    Section {
-                    listContents
-                    } header: {
-                        Text("Completed Workouts")
-                    }
-                }
-            
+            if viewModel.isLoading && viewModel.sessions.isEmpty {
+                loadingState
+            } else if viewModel.sessions.isEmpty {
+                emptyState
+            } else {
+                listContents
+            }
+        }
+        .screenAppearAnalytics(name: "WorkoutHistoryView")
+        .onAppear {
+            viewModel.loadInitialSessions()
+        }
+        .onFirstTask {
+            await viewModel.syncSessions()
         }
         .refreshable {
             await viewModel.syncSessions()
         }
-        .screenAppearAnalytics(name: "WorkoutHistoryView")
-        .onFirstTask {
-            await viewModel.syncSessions()
-        }
-        .task {
-            await viewModel.loadInitialSessions()
-        }
         .showCustomAlert(alert: $viewModel.showAlert)
-        // Navigation and alert handled by parent to preserve Section semantics inside List
     }
     
     private var loadingState: some View {
@@ -58,61 +49,107 @@ struct WorkoutHistoryView: View {
     }
     
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: 48))
-                .foregroundStyle(.secondary)
-            
-            Text("No Workout History")
-                .font(.title3)
-                .fontWeight(.semibold)
-            
+        ContentUnavailableView {
+            Label("No Workout History", systemImage: "clock.arrow.circlepath")
+        } description: {
             Text("Complete your first workout to see it here")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+        } actions: {
+            Button {
+                Task {
+                    await viewModel.syncSessions()
+                }
+            } label: {
+                Text("Reload")
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 32)
     }
     
     private var listContents: some View {
-        ForEach(viewModel.sessions) { session in
-            WorkoutHistoryRow(session: session)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    selectedSession = session
-                    // In compact/tabBar mode, open inspector; split view will route via onChange in parent
-                    if layoutMode != .splitView { isShowingInspector = true }
-                }
+        Section {
+            ForEach(viewModel.sessions) { session in
+                WorkoutHistoryRow(session: session)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selectedSession = session
+                        // In compact/tabBar mode, open inspector; split view will route via onChange in parent
+                        if layoutMode != .splitView { isShowingInspector = true }
+                    }
+            }
+        } header: {
+            Text("Completed Workouts")
         }
     }
 }
 
-#Preview {
-    @Previewable @State var isShowingInspector: Bool = false
-    WorkoutHistoryView(
-        viewModel: WorkoutHistoryViewModel(
-            authManager: DevPreview.shared.authManager,
-            workoutSessionManager: DevPreview.shared.workoutSessionManager,
-            logManager: DevPreview.shared.logManager
-        ),
-        selectedSession: .constant(nil),
-        isShowingInspector: $isShowingInspector
-    )
+#Preview("Functioning") {
+    NavigationStack {
+        WorkoutHistoryView(
+            viewModel: WorkoutHistoryViewModel(
+                container: DevPreview.shared.container
+            ),
+            selectedSession: Binding.constant(nil),
+            isShowingInspector: Binding.constant(false)
+        )
+        .navigationTitle("Workout History")
+    }
     .previewEnvironment()
 }
 
 #Preview("Slow Loading") {
-    @Previewable @State var isShowingInspector: Bool = false
-    WorkoutHistoryView(
-        viewModel: WorkoutHistoryViewModel(
-            authManager: DevPreview.shared.authManager,
-            workoutSessionManager: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)),
-            logManager: DevPreview.shared.logManager
-        ),
-        selectedSession: .constant(nil),
-        isShowingInspector: $isShowingInspector
-    )
+    let container = DevPreview.shared.container
+    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
+    return NavigationStack {
+        WorkoutHistoryView(
+            viewModel: WorkoutHistoryViewModel(container: container),
+            selectedSession: .constant(nil),
+            isShowingInspector: .constant(false)
+        )
+        .navigationTitle("Workout History")
+    }
+    .previewEnvironment()
+}
+
+#Preview("No Data") {
+    let container = DevPreview.shared.container
+    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(sessions: [])))
+    return NavigationStack {
+        WorkoutHistoryView(
+            viewModel: WorkoutHistoryViewModel(container: container),
+            selectedSession: .constant(nil),
+            isShowingInspector: .constant(false)
+        )
+        .navigationTitle("Workout History")
+    }
+    .previewEnvironment()
+}
+
+#Preview("Remote Loading Failure") {
+    let container = DevPreview.shared.container
+    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 1, showErrorRemote: true)))
+    
+    return NavigationStack {
+        WorkoutHistoryView(
+            viewModel: WorkoutHistoryViewModel(container: container),
+            selectedSession: .constant(nil),
+            isShowingInspector: .constant(false)
+        )
+        .navigationTitle("Workout History")
+    }
+    .previewEnvironment()
+}
+
+#Preview("Local Loading Failure") {
+    let container = DevPreview.shared.container
+    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(
+        services: MockWorkoutSessionServices(delay: 3, showErrorLocal: true)))
+    
+    return NavigationStack {
+        WorkoutHistoryView(
+            viewModel: WorkoutHistoryViewModel(container: container),
+            selectedSession: .constant(nil),
+            isShowingInspector: .constant(false)
+        )
+        .navigationTitle("Workout History")
+    }
     .previewEnvironment()
 }

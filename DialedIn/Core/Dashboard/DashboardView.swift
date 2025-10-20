@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct DashboardView: View {
+    @Environment(DependencyContainer.self) private var container
 
     @Environment(\.layoutMode) private var layoutMode
     @Environment(LogManager.self) private var logManager
@@ -50,7 +51,7 @@ struct DashboardView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .sheet(isPresented: $showNotifications) {

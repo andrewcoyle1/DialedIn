@@ -9,6 +9,8 @@ import SwiftUI
 import PhotosUI
 
 struct OnboardingCreateProfileView: View {
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
     
@@ -55,7 +57,7 @@ struct OnboardingCreateProfileView: View {
             }
         }
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .onAppear(perform: prefillFromCurrentUser)

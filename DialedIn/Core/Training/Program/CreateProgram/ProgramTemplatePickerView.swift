@@ -37,9 +37,9 @@ struct ProgramTemplatePickerView: View {
             .navigationDestination(item: $selectedTemplate) { template in
                 ProgramStartConfigView(
                     template: template,
-                    onStart: { startDate, customName in
+                    onStart: { startDate, endDate, customName in
                         Task {
-                            await createPlanFromTemplate(template, startDate: startDate, customName: customName)
+                            await createPlanFromTemplate(template, startDate: startDate, endDate: endDate, customName: customName)
                         }
                     }
                 )
@@ -122,7 +122,7 @@ struct ProgramTemplatePickerView: View {
         }
     }
     
-    private func createPlanFromTemplate(_ template: ProgramTemplateModel, startDate: Date, customName: String?) async {
+    private func createPlanFromTemplate(_ template: ProgramTemplateModel, startDate: Date, endDate: Date?, customName: String?) async {
         guard let userId = authManager.auth?.uid else { return }
         
         isCreatingPlan = true
@@ -131,6 +131,7 @@ struct ProgramTemplatePickerView: View {
             _ = try await trainingPlanManager.createPlanFromTemplate(
                 template,
                 startDate: startDate,
+                endDate: endDate,
                 userId: userId,
                 planName: customName,
                 workoutTemplateManager: workoutTemplateManager

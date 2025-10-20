@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct OnboardingTargetWeightView: View {
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(UserManager.self) private var userManager
     let objective: OverarchingObjective
     let isStandaloneMode: Bool
@@ -44,7 +46,7 @@ struct OnboardingTargetWeightView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .toolbar {

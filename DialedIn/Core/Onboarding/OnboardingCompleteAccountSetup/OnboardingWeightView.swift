@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct OnboardingWeightView: View {
-    
+    @Environment(DependencyContainer.self) private var container
+
     let gender: Gender
     let dateOfBirth: Date
     let height: Double
@@ -66,7 +67,7 @@ struct OnboardingWeightView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .navigationDestination(isPresented: Binding(

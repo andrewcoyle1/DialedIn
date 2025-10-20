@@ -1,5 +1,5 @@
 //
-//  AuthOptionsSection.swift
+//  AuthOptionsView.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 03/10/2025.
@@ -8,18 +8,21 @@
 import SwiftUI
 
 struct AuthOptionsView: View {
-    
+    @Environment(DependencyContainer.self) private var container
+
     @State var viewModel: AuthOptionsViewModel
-    
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         VStack {
             imageSection
-            SignInWithAppleButtonView { viewModel.onSignInApplePressed() }
-            SignInWithGoogleButtonView { viewModel.onSignInGooglePressed() }
-            signUpButtonSection
-            signInButtonSection
+            Group {
+                SignInWithAppleButtonView { viewModel.onSignInApplePressed() }
+                SignInWithGoogleButtonView { viewModel.onSignInGooglePressed() }
+                signUpButtonSection
+                signInButtonSection
+            }
+            .padding(.horizontal)
         }
         .allowsHitTesting(!viewModel.isLoading)
         .background {
@@ -41,6 +44,7 @@ struct AuthOptionsView: View {
         .showCustomAlert(alert: $viewModel.showAlert)
         .safeAreaInset(edge: .bottom) {
             tsAndCsSection
+                .padding(.horizontal)
         }
         .showModal(showModal: $viewModel.isLoading) {
             ProgressView()
@@ -53,7 +57,7 @@ struct AuthOptionsView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
     }
@@ -84,8 +88,7 @@ struct AuthOptionsView: View {
             .frame(height: AuthConstants.buttonHeight/1.5)
         }
         .buttonStyle(.borderedProminent)
-        .padding(.horizontal)
-        .frame(maxWidth: 440)
+        .frame(maxWidth: 408)
     }
 
     private var signInButtonSection: some View {
@@ -100,17 +103,15 @@ struct AuthOptionsView: View {
             .frame(height: AuthConstants.buttonHeight/1.5)
         }
         .buttonStyle(.bordered)
-        .padding(.horizontal)
-        .frame(maxWidth: 440)
+        .frame(maxWidth: 408)
     }
 
     private var tsAndCsSection: some View {
         Text("By continuing, you agree to our [Terms of Service](Constants.termsofServiceURL) and [Privacy Policy](Constants.privacyPolicyURL)")
             .font(.caption)
             .foregroundStyle(Color.secondary)
-            .padding(.horizontal)
             .padding(.top)
-            .frame(maxWidth: 440)
+            .frame(maxWidth: 408)
 
     }
 }
@@ -120,60 +121,35 @@ struct AuthOptionsView: View {
 
 #Preview("Functioning Auth") {
     NavigationStack {
-        AuthOptionsView(
-            viewModel: AuthOptionsViewModel(
-                authManager: DevPreview.shared.authManager,
-                userManager: DevPreview.shared.userManager,
-                logManager: DevPreview.shared.logManager
-            )
-        )
+        AuthOptionsView(viewModel: AuthOptionsViewModel(container: DevPreview.shared.container))
     }
+    .previewEnvironment()
 }
 
 #Preview("Slow Auth") {
     NavigationStack {
-        AuthOptionsView(
-            viewModel: AuthOptionsViewModel(
-                authManager: DevPreview.shared.authManager,
-                userManager: DevPreview.shared.userManager,
-                logManager: DevPreview.shared.logManager
-            )
-        )
+        AuthOptionsView(viewModel: AuthOptionsViewModel(container: DevPreview.shared.container))
     }
+    .previewEnvironment()
 }
 
 #Preview("Failing Auth") {
     NavigationStack {
-        AuthOptionsView(
-            viewModel: AuthOptionsViewModel(
-                authManager: DevPreview.shared.authManager,
-                userManager: DevPreview.shared.userManager,
-                logManager: DevPreview.shared.logManager
-            )
-        )
+        AuthOptionsView(viewModel: AuthOptionsViewModel(container: DevPreview.shared.container))
     }
+    .previewEnvironment()
 }
 
 #Preview("Slow Login") {
     NavigationStack {
-        AuthOptionsView(
-            viewModel: AuthOptionsViewModel(
-                authManager: DevPreview.shared.authManager,
-                userManager: DevPreview.shared.userManager,
-                logManager: DevPreview.shared.logManager
-            )
-        )
+        AuthOptionsView(viewModel: AuthOptionsViewModel(container: DevPreview.shared.container))
     }
+    .previewEnvironment()
 }
 
 #Preview("Failing Login") {
     NavigationStack {
-        AuthOptionsView(
-            viewModel: AuthOptionsViewModel(
-                authManager: DevPreview.shared.authManager,
-                userManager: DevPreview.shared.userManager,
-                logManager: DevPreview.shared.logManager
-            )
-        )
+        AuthOptionsView(viewModel: AuthOptionsViewModel(container: DevPreview.shared.container))
     }
+    .previewEnvironment()
 }

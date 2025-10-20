@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct WorkoutTemplateDetailView: View {
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(UserManager.self) private var userManager
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     @Environment(WorkoutSessionManager.self) private var workoutSessionManager
@@ -50,7 +52,7 @@ struct WorkoutTemplateDetailView: View {
         .showCustomAlert(alert: $showAlert)
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .toolbar {

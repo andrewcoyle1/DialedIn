@@ -11,7 +11,8 @@ import UIKit
 #endif
 
 struct NutritionView: View {
-    
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(\.layoutMode) private var layoutMode
     @Environment(DetailNavigationModel.self) private var detail
     @State private var presentationMode: NutritionPresentationMode = .log
@@ -80,7 +81,7 @@ struct NutritionView: View {
             .showCustomAlert(alert: $showAlert)
             #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView) {
-                DevSettingsView()
+                DevSettingsView(viewModel: DevSettingsViewModel(container: container))
             }
             #endif
             .sheet(isPresented: $showNotifications) {

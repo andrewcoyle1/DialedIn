@@ -11,6 +11,7 @@ import UIKit
 #endif
 
 struct TrainingView: View {
+    @Environment(DependencyContainer.self) private var container
 
     @Environment(\.layoutMode) private var layoutMode
     @Environment(DetailNavigationModel.self) private var detail
@@ -100,7 +101,7 @@ struct TrainingView: View {
             .scrollIndicators(.hidden)
             #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView) {
-                DevSettingsView()
+                DevSettingsView(viewModel: DevSettingsViewModel(container: container))
             }
             #endif
             .sheet(isPresented: $showNotificationsView) {
@@ -165,6 +166,7 @@ struct TrainingView: View {
                     isShowingInspector: $isShowingInspector,
                     selectedWorkoutTemplate: $selectedWorkoutTemplate,
                     selectedExerciseTemplate: $selectedExerciseTemplate,
+                    selectedHistorySession: $selectedHistorySession,
                     activeSheet: $programActiveSheet,
                     workoutToStart: $workoutToStart,
                     scheduledWorkoutToStart: $scheduledWorkoutToStart
@@ -174,15 +176,17 @@ struct TrainingView: View {
             case .exercises:
                 ExercisesView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate, showCreateExercise: $showCreateExercise)
             case .history:
-                WorkoutHistoryView(
-                    viewModel: WorkoutHistoryViewModel(
-                        authManager: authManager,
-                        workoutSessionManager: workoutSessionManager,
-                        logManager: logManager
-                    ),
-                    selectedSession: $selectedHistorySession,
-                    isShowingInspector: $isShowingInspector
-                )
+                Group {
+                    let container = DependencyContainer()
+                    container.register(AuthManager.self, service: authManager)
+                    container.register(WorkoutSessionManager.self, service: workoutSessionManager)
+                    container.register(LogManager.self, service: logManager)
+                    return WorkoutHistoryView(
+                        viewModel: WorkoutHistoryViewModel(container: container),
+                        selectedSession: $selectedHistorySession,
+                        isShowingInspector: $isShowingInspector
+                    )
+                }
             }
         }
     }

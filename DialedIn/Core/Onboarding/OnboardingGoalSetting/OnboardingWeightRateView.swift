@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct OnboardingWeightRateView: View {
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
     
@@ -92,7 +94,7 @@ struct OnboardingWeightRateView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .showCustomAlert(alert: $showAlert)

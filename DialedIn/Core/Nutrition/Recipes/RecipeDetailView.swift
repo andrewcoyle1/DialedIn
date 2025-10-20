@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct RecipeDetailView: View {
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(UserManager.self) private var userManager
     @Environment(RecipeTemplateManager.self) private var recipeTemplateManager
     @Environment(\.dismiss) private var dismiss
@@ -85,7 +87,7 @@ struct RecipeDetailView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .onAppear { loadInitialState()}

@@ -212,6 +212,13 @@ class WorkoutSessionManager {
             }
         }
         
+        // Sync scheduled workouts with completed sessions
+        if let trainingPlanManager = trainingPlanManager {
+            try? await trainingPlanManager.syncScheduledWorkoutsWithCompletedSessions(
+                completedSessions: remoteSessions
+            )
+        }
+        
         // If any sessions failed to sync, throw aggregate error
         if !failedSessions.isEmpty {
             let errorMessage = "Failed to sync \(failedSessions.count) of \(remoteSessions.count) sessions"

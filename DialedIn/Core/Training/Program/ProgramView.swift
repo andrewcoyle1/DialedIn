@@ -19,6 +19,7 @@ struct ProgramView: View {
     @Binding var isShowingInspector: Bool
     @Binding var selectedWorkoutTemplate: WorkoutTemplateModel?
     @Binding var selectedExerciseTemplate: ExerciseTemplateModel?
+    @Binding var selectedHistorySession: WorkoutSessionModel?
     // Sheet coordination is hoisted to TrainingView
     @Binding var activeSheet: ActiveSheet?
     @Binding var workoutToStart: WorkoutTemplateModel?
@@ -41,14 +42,10 @@ struct ProgramView: View {
     }
     @State private var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
     @State private var showAlert: AnyAppAlert?
-    @State private var completedSessionToShow: WorkoutSessionModel?
     
     var body: some View {
         listContents
             .showCustomAlert(alert: $showAlert)
-            .sheet(item: $completedSessionToShow) { session in
-                WorkoutSessionDetailView(session: session)
-            }
     }
     
     private var listContents: some View {
@@ -178,22 +175,33 @@ struct ProgramView: View {
     
     private var todaysWorkoutSection: some View {
         Group {
-            let todaysWorkouts = trainingPlanManager.getTodaysWorkouts().filter { !$0.isCompleted }
+            let todaysWorkouts = trainingPlanManager.getTodaysWorkouts()
             if !todaysWorkouts.isEmpty {
                 Section {
                     ForEach(todaysWorkouts) { workout in
-                        TodaysWorkoutCard(
-                            scheduledWorkout: workout,
-                            onStart: {
-                                Task {
-                                    do {
-                                        try await startWorkout(workout)
-                                    } catch {
-                                        showAlert = AnyAppAlert(error: error)
+                        if workout.isCompleted {
+                            WorkoutSummaryCard(
+                                scheduledWorkout: workout,
+                                onTap: {
+                                    Task {
+                                        await openCompletedSession(for: workout)
                                     }
                                 }
-                            }
-                        )
+                            )
+                        } else {
+                            TodaysWorkoutCard(
+                                scheduledWorkout: workout,
+                                onStart: {
+                                    Task {
+                                        do {
+                                            try await startWorkout(workout)
+                                        } catch {
+                                            showAlert = AnyAppAlert(error: error)
+                                        }
+                                    }
+                                }
+                            )
+                        }
                     }
                 } header: {
                     HStack {
@@ -207,7 +215,12 @@ struct ProgramView: View {
     }
     
     private var calendarSection: some View {
-        WorkoutCalendarView()
+        WorkoutCalendarView(
+            workoutToStart: $workoutToStart,
+            scheduledWorkoutToStart: $scheduledWorkoutToStart,
+            selectedHistorySession: $selectedHistorySession,
+            isShowingInspector: $isShowingInspector
+        )
     }
     
     private var weekProgressSection: some View {
@@ -237,13 +250,20 @@ struct ProgramView: View {
             RestDayRow(date: day)
         } else {
             ForEach(workoutsForDay) { workout in
-                ScheduledWorkoutRow(scheduledWorkout: workout)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        Task {
-                            if workout.isCompleted {
+                if workout.isCompleted {
+                    WorkoutSummaryCard(
+                        scheduledWorkout: workout,
+                        onTap: {
+                            Task {
                                 await openCompletedSession(for: workout)
-                            } else {
+                            }
+                        }
+                    )
+                } else {
+                    ScheduledWorkoutRow(scheduledWorkout: workout)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            Task {
                                 do {
                                     try await startWorkout(workout)
                                 } catch {
@@ -251,7 +271,7 @@ struct ProgramView: View {
                                 }
                             }
                         }
-                    }
+                }
             }
         }
     }
@@ -393,7 +413,8 @@ struct ProgramView: View {
         do {
             let session = try await workoutSessionManager.getWorkoutSession(id: sessionId)
             await MainActor.run {
-                completedSessionToShow = session
+                selectedHistorySession = session
+                isShowingInspector = true
             }
         } catch {
             showAlert = AnyAppAlert(error: error)
@@ -406,6 +427,7 @@ struct ProgramView: View {
         ProgramView(isShowingInspector: Binding.constant(true),
                     selectedWorkoutTemplate: Binding.constant(nil),
                     selectedExerciseTemplate: Binding.constant(nil),
+                    selectedHistorySession: Binding.constant(nil),
                     activeSheet: Binding.constant(nil),
                     workoutToStart: Binding.constant(nil),
                     scheduledWorkoutToStart: Binding.constant(nil))

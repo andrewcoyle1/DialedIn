@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct OnboardingCalorieDistributionView: View {
+    @Environment(DependencyContainer.self) private var container
 
     let preferredDiet: PreferredDiet
     let calorieFloor: CalorieFloor
@@ -29,7 +30,7 @@ struct OnboardingCalorieDistributionView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
     }

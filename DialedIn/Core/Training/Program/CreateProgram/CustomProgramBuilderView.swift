@@ -60,8 +60,8 @@ struct CustomProgramBuilderView: View {
             }
         }
         .sheet(item: $startConfigTemplate) { template in
-            ProgramStartConfigView(template: template) { startDate, customName in
-                Task { await startProgram(template: template, startDate: startDate, customName: customName) }
+            ProgramStartConfigView(template: template) { startDate, endDate, customName in
+                Task { await startProgram(template: template, startDate: startDate, endDate: endDate, customName: customName) }
             }
         }
         .onChange(of: durationWeeks) { _, newValue in
@@ -290,7 +290,7 @@ struct CustomProgramBuilderView: View {
         }
     }
     
-    private func startProgram(template: ProgramTemplateModel, startDate: Date, customName: String?) async {
+    private func startProgram(template: ProgramTemplateModel, startDate: Date, endDate: Date?, customName: String?) async {
         guard let userId = authManager.auth?.uid else { return }
         isStarting = true
         defer { isStarting = false }
@@ -298,6 +298,7 @@ struct CustomProgramBuilderView: View {
             _ = try await trainingPlanManager.createPlanFromTemplate(
                 template,
                 startDate: startDate,
+                endDate: endDate,
                 userId: userId,
                 planName: customName,
                 workoutTemplateManager: workoutTemplateManager

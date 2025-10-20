@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct OnboardingGoalSummaryView: View {
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(UserManager.self) private var userManager
     @Environment(GoalManager.self) private var goalManager
     @Environment(LogManager.self) private var logManager
@@ -48,7 +50,7 @@ struct OnboardingGoalSummaryView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .toolbar {

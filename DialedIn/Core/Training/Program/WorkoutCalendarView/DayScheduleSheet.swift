@@ -16,6 +16,7 @@ struct DayScheduleSheet: View {
     
     let date: Date
     let scheduledWorkouts: [ScheduledWorkout]
+    let onStartWorkout: (ScheduledWorkout) async throws -> Void
     @State private var sessionToShow: WorkoutSessionModel?
     @State private var showAlert: AnyAppAlert?
     
@@ -31,13 +32,32 @@ struct DayScheduleSheet: View {
                 } else {
                     Section {
                         ForEach(scheduledWorkouts) { workout in
-                            WorkoutScheduleRow(workout: workout)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    if workout.isCompleted {
-                                        Task { await openCompletedSession(for: workout) }
+                            if workout.isCompleted {
+                                WorkoutSummaryCard(
+                                    scheduledWorkout: workout,
+                                    onTap: {
+                                        Task {
+                                            await openCompletedSession(for: workout)
+                                        }
                                     }
-                                }
+                                )
+                            } else {
+                                TodaysWorkoutCard(
+                                    scheduledWorkout: workout,
+                                    onStart: {
+                                        Task {
+                                            dismiss()
+                                            // Small delay to ensure sheet dismissal completes
+                                            try? await Task.sleep(nanoseconds: 100_000_000)
+                                            do {
+                                                try await onStartWorkout(workout)
+                                            } catch {
+                                                showAlert = AnyAppAlert(error: error)
+                                            }
+                                        }
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -72,11 +92,19 @@ struct DayScheduleSheet: View {
 }
 
 #Preview {
-    DayScheduleSheet(date: Date(), scheduledWorkouts: ScheduledWorkout.mocksWeek1)
-        .previewEnvironment()
+    DayScheduleSheet(
+        date: Date(),
+        scheduledWorkouts: ScheduledWorkout.mocksWeek1,
+        onStartWorkout: { _ in }
+    )
+    .previewEnvironment()
 }
 
 #Preview("No Workouts Scheduled") {
-    DayScheduleSheet(date: Date(), scheduledWorkouts: [])
-        .previewEnvironment()
+    DayScheduleSheet(
+        date: Date(),
+        scheduledWorkouts: [],
+        onStartWorkout: { _ in }
+    )
+    .previewEnvironment()
 }

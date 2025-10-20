@@ -16,19 +16,18 @@ class WorkoutHistoryViewModel {
     
     private(set) var sessions: [WorkoutSessionModel] = []
     private(set) var isLoading = false
+    
     var showAlert: AnyAppAlert?
 
     init(
-        authManager: AuthManager,
-        workoutSessionManager: WorkoutSessionManager,
-        logManager: LogManager
+        container: DependencyContainer
     ) {
-        self.authManager = authManager
-        self.workoutSessionManager = workoutSessionManager
-        self.logManager = logManager
+        self.authManager = container.resolve(AuthManager.self)!
+        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
+        self.logManager = container.resolve(LogManager.self)!
     }
     
-    func loadInitialSessions() async {
+    func loadInitialSessions() {
         guard !isLoading else { return }
         isLoading = true
         logManager.trackEvent(event: Event.loadInitialSessionsStart)
@@ -48,7 +47,10 @@ class WorkoutHistoryViewModel {
                 .sorted { ($0.dateCreated) > ($1.dateCreated) }
         } catch {
             logManager.trackEvent(event: Event.loadInitialSessionsFail(error: error))
-            showAlert = AnyAppAlert(error: error)
+            showAlert = AnyAppAlert(
+                title: "We couldn't retrieve your sessions.",
+                subtitle: "Please try again later."
+            )
         }
     }
     
@@ -65,11 +67,14 @@ class WorkoutHistoryViewModel {
             logManager.trackEvent(event: Event.syncSessionsSuccess)
 
             // Reload from local
-            await loadInitialSessions()
+            loadInitialSessions()
 
         } catch {
             logManager.trackEvent(event: Event.syncSessionsFail(error: error))
-            showAlert = AnyAppAlert(error: error)
+            showAlert = AnyAppAlert(
+                title: "We couldn't retrieve your sessions.",
+                subtitle: "Please check your internet connection and try again."
+            )
         }
     }
     

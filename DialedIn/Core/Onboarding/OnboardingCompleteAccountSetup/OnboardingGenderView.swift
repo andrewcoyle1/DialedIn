@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct OnboardingGenderView: View {
-    
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(LogManager.self) private var logManager
     @Environment(\.dismiss) private var dismiss
     
@@ -56,7 +57,7 @@ struct OnboardingGenderView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
     }

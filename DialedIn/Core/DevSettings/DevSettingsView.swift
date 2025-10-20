@@ -4,27 +4,14 @@
 //
 //  Created by Andrew Coyle on 10/22/24.
 //
+
 import SwiftUI
-import SwiftfulUtilities
 
 struct DevSettingsView: View {
     
-    @Environment(AuthManager.self) private var authManager
-    @Environment(UserManager.self) private var userManager
-    @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
-    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
-    @Environment(TrainingPlanManager.self) private var trainingPlanManager
-    @Environment(WorkoutSessionManager.self) private var workoutSessionManager
+    @State var viewModel: DevSettingsViewModel
     @Environment(AppState.self) private var appState
-
     @Environment(\.dismiss) private var dismiss
-    
-    @State private var isReseeding = false
-    @State private var reseedingMessage = ""
-    @State private var testSessionId = ""
-    @State private var fetchedSession: WorkoutSessionModel?
-    @State private var isFetchingSession = false
-    @State private var fetchError: String?
     
     var body: some View {
         NavigationStack {
@@ -60,12 +47,12 @@ struct DevSettingsView: View {
     }
     
     private func onBackButtonPressed() {
-        dismiss()
+        viewModel.dismiss(dismiss())
     }
     
     private var authSection: some View {
         Section {
-            let array = authManager.auth?.eventParameters.asAlphabeticalArray ?? []
+            let array = viewModel.authParams()
             ForEach(array, id: \.key) { item in
                 itemRow(item: item)
             }
@@ -76,7 +63,7 @@ struct DevSettingsView: View {
     
     private var userSection: some View {
         Section {
-            let array = userManager.currentUser?.eventParameters.asAlphabeticalArray ?? []
+            let array = viewModel.userParams()
             ForEach(array, id: \.key) { item in
                 itemRow(item: item)
             }
@@ -87,7 +74,7 @@ struct DevSettingsView: View {
     
     private var deviceSection: some View {
         Section {
-            let array = SwiftfulUtilities.Utilities.eventParameters.asAlphabeticalArray
+            let array = viewModel.deviceParams()
             ForEach(array, id: \.key) { item in
                 itemRow(item: item)
             }
@@ -97,72 +84,76 @@ struct DevSettingsView: View {
     }
     
     private var exerciseTemplateSection: some View {
-        Section {
-            let array = (try? exerciseTemplateManager.getAllLocalExerciseTemplates()) ?? []
-            ForEach(array, id: \.exerciseId) { item in
-                CustomListCellView(imageName: item.imageURL, title: item.name, subtitle: item.description)
-                    .removeListRowFormatting()
-            }
-        } header: {
-            HStack {
-                Text("Exercise Templates")
-                Spacer()
-                Text("\(((try? exerciseTemplateManager.getAllLocalExerciseTemplates()) ?? []).count)")
-                    .foregroundStyle(.secondary)
+        Group {
+            let array = viewModel.getLocalExercises()
+            Section {
+                ForEach(array, id: \.exerciseId) { item in
+                    CustomListCellView(imageName: item.imageURL, title: item.name, subtitle: item.description)
+                        .removeListRowFormatting()
+                }
+            } header: {
+                HStack {
+                    Text("Exercise Templates")
+                    Spacer()
+                    Text("\(array.count)")
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }
     
     private var workoutTemplateSection: some View {
-        Section {
-            let workouts = (try? workoutTemplateManager.getAllLocalWorkoutTemplates()) ?? []
-            ForEach(workouts, id: \.workoutId) { workout in
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(workout.name)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        Spacer()
-                        if workout.isSystemWorkout {
-                            Text("System")
-                                .font(.caption2)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(.blue.opacity(0.1))
-                                .foregroundStyle(.blue)
-                                .clipShape(Capsule())
+        Group {
+            let workouts = viewModel.getLocalWorkoutTemplates()
+            Section {
+                ForEach(workouts, id: \.workoutId) { workout in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(workout.name)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            Spacer()
+                            if workout.isSystemWorkout {
+                                Text("System")
+                                    .font(.caption2)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(.blue.opacity(0.1))
+                                    .foregroundStyle(.blue)
+                                    .clipShape(Capsule())
+                            }
                         }
+                        
+                        if let description = workout.description {
+                            Text(description)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        HStack(spacing: 4) {
+                            Image(systemName: "figure.strengthtraining.traditional")
+                                .font(.caption2)
+                            Text("\(workout.exercises.count) exercises")
+                                .font(.caption2)
+                        }
+                        .foregroundStyle(.secondary)
                     }
-                    
-                    if let description = workout.description {
-                        Text(description)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    HStack(spacing: 4) {
-                        Image(systemName: "figure.strengthtraining.traditional")
-                            .font(.caption2)
-                        Text("\(workout.exercises.count) exercises")
-                            .font(.caption2)
-                    }
-                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 4)
                 }
-                .padding(.vertical, 4)
-            }
-        } header: {
-            HStack {
-                Text("Workout Templates")
-                Spacer()
-                Text("\(((try? workoutTemplateManager.getAllLocalWorkoutTemplates()) ?? []).count)")
-                    .foregroundStyle(.secondary)
+            } header: {
+                HStack {
+                    Text("Workout Templates")
+                    Spacer()
+                    Text("\(workouts.count)")
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }
     
     private var trainingPlanSection: some View {
         Section {
-            if let plan = trainingPlanManager.currentTrainingPlan {
+            if let plan = viewModel.getLocalTrainingPlan() {
                 VStack(alignment: .leading, spacing: 8) {
                     // Plan basics
                     debugRow(label: "Plan ID", value: plan.planId)
@@ -171,12 +162,12 @@ struct DevSettingsView: View {
                     debugRow(label: "Is Active", value: "\(plan.isActive)")
                     debugRow(label: "Weeks Count", value: "\(plan.weeks.count)")
                     
-                    if let currentWeek = trainingPlanManager.getCurrentWeek() {
+                    if let currentWeek = viewModel.getCurrentTrainingPlanWeek() {
                         debugRow(label: "Current Week #", value: "\(currentWeek.weekNumber)")
                     }
                     
                     // Today's workouts detail
-                    let todaysWorkouts = trainingPlanManager.getTodaysWorkouts()
+                    let todaysWorkouts = viewModel.getTodaysWorkouts()
                     if !todaysWorkouts.isEmpty {
                         Divider()
                         Text("Today's Workouts (\(todaysWorkouts.count))")
@@ -209,14 +200,14 @@ struct DevSettingsView: View {
                         
                         Button {
                             Task {
-                                await resetTodaysWorkouts()
+                                await viewModel.resetTodaysWorkouts()
                             }
                         } label: {
                             Label("Reset Today's Workouts", systemImage: "arrow.counterclockwise")
                                 .font(.caption)
                         }
                         .buttonStyle(.bordered)
-                        .disabled(isReseeding)
+                        .disabled(viewModel.isReseeding)
                     }
                 }
                 .padding(.vertical, 4)
@@ -234,7 +225,7 @@ struct DevSettingsView: View {
     
     private var activeWorkoutSessionSection: some View {
         Section {
-            if let session = workoutSessionManager.activeSession {
+            if let session = viewModel.getActiveSession() {
                 VStack(alignment: .leading, spacing: 8) {
                     debugRow(label: "Session ID", value: session.id)
                     debugRow(label: "Name", value: session.name)
@@ -270,7 +261,7 @@ struct DevSettingsView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 // Active session from local storage
-                if let activeSession = try? workoutSessionManager.getActiveLocalWorkoutSession() {
+                if let activeSession = viewModel.getActiveLocalWorkoutSession() {
                     Text("Active Session (Local)")
                         .font(.caption)
                         .fontWeight(.semibold)
@@ -295,7 +286,7 @@ struct DevSettingsView: View {
                 Divider()
                 
                 // Recent sessions
-                let recentSessions = (try? workoutSessionManager.getAllLocalWorkoutSessions()) ?? []
+                let recentSessions = viewModel.getRecentWorkoutSessions()
                 let last3 = Array(recentSessions.sorted(by: { $0.dateCreated > $1.dateCreated }).prefix(3))
                 
                 Text("Recent Sessions (Last 3)")
@@ -343,16 +334,16 @@ struct DevSettingsView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)
                 
-                TextField("Session ID", text: $testSessionId)
+                TextField("Session ID", text: $viewModel.testSessionId)
                     .textFieldStyle(.roundedBorder)
                     .font(.caption)
                 
                 Button {
                     Task {
-                        await fetchSessionFromFirebase()
+                        await viewModel.fetchSessionFromFirebase()
                     }
                 } label: {
-                    if isFetchingSession {
+                    if viewModel.isFetchingSession {
                         ProgressView()
                             .controlSize(.small)
                     } else {
@@ -361,16 +352,16 @@ struct DevSettingsView: View {
                     }
                 }
                 .buttonStyle(.bordered)
-                .disabled(testSessionId.isEmpty || isFetchingSession)
+                .disabled(viewModel.testSessionId.isEmpty || viewModel.isFetchingSession)
                 
-                if let error = fetchError {
+                if let error = viewModel.fetchError {
                     Text(error)
                         .font(.caption2)
                         .foregroundStyle(.red)
                         .padding(.top, 4)
                 }
                 
-                if let session = fetchedSession {
+                if let session = viewModel.fetchedSession {
                     Divider()
                     
                     Text("Fetched Session")
@@ -408,35 +399,35 @@ struct DevSettingsView: View {
         Section {
             Button {
                 Task {
-                    await resetExerciseSeeding()
+                    await viewModel.resetExerciseSeeding()
                 }
             } label: {
                 Label("Reset Exercise Seeding", systemImage: "arrow.clockwise")
             }
-            .disabled(isReseeding)
+            .disabled(viewModel.isReseeding)
             
             Button {
                 Task {
-                    await resetWorkoutSeeding()
+                    await viewModel.resetWorkoutSeeding()
                 }
             } label: {
                 Label("Reset Workout Seeding", systemImage: "arrow.clockwise")
             }
-            .disabled(isReseeding)
+            .disabled(viewModel.isReseeding)
             
             Button {
                 Task {
-                    await resetAllSeeding()
+                    await viewModel.resetAllSeeding()
                 }
             } label: {
                 Label("Reset All Seeding", systemImage: "arrow.clockwise.circle.fill")
             }
-            .disabled(isReseeding)
+            .disabled(viewModel.isReseeding)
             
-            if isReseeding {
+            if viewModel.isReseeding {
                 HStack {
                     ProgressView()
-                    Text(reseedingMessage)
+                    Text(viewModel.reseedingMessage)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -450,11 +441,10 @@ struct DevSettingsView: View {
     
     @ViewBuilder
     private var debugActionsSection: some View {
-        #if DEBUG
         Section {
             Button(role: .destructive) {
                 defer {
-                    onForceFreshAnonUser()
+                    viewModel.onForceFreshAnonUser()
                 }
                 dismiss()
             } label: {
@@ -466,7 +456,6 @@ struct DevSettingsView: View {
         } footer: {
             Text("Clears all local data and signs out. Your Firebase account remains intact.")
         }
-        #endif
     }
     
     private func itemRow(item: (key: String, value: Any)) -> some View {
@@ -485,114 +474,6 @@ struct DevSettingsView: View {
         .minimumScaleFactor(0.3)
     }
     
-    private func resetExerciseSeeding() async {
-        isReseeding = true
-        reseedingMessage = "Resetting exercises..."
-        
-        UserDefaults.standard.removeObject(forKey: "hasSeededPrebuiltExercises")
-        UserDefaults.standard.removeObject(forKey: "prebuiltExercisesSeedingVersion")
-        
-        reseedingMessage = "Complete! Restart app to reseed."
-        
-        try? await Task.sleep(nanoseconds: 2_000_000_000)
-        isReseeding = false
-        reseedingMessage = ""
-    }
-    
-    private func resetWorkoutSeeding() async {
-        isReseeding = true
-        reseedingMessage = "Resetting workouts..."
-        
-        UserDefaults.standard.removeObject(forKey: "hasSeededPrebuiltWorkouts")
-        UserDefaults.standard.removeObject(forKey: "prebuiltWorkoutsSeedingVersion")
-        
-        reseedingMessage = "Complete! Restart app to reseed."
-        
-        try? await Task.sleep(nanoseconds: 2_000_000_000)
-        isReseeding = false
-        reseedingMessage = ""
-    }
-    
-    private func resetAllSeeding() async {
-        isReseeding = true
-        reseedingMessage = "Resetting all seeding..."
-        
-        UserDefaults.standard.removeObject(forKey: "hasSeededPrebuiltExercises")
-        UserDefaults.standard.removeObject(forKey: "prebuiltExercisesSeedingVersion")
-        UserDefaults.standard.removeObject(forKey: "hasSeededPrebuiltWorkouts")
-        UserDefaults.standard.removeObject(forKey: "prebuiltWorkoutsSeedingVersion")
-        
-        reseedingMessage = "Complete! Restart app to reseed."
-        
-        try? await Task.sleep(nanoseconds: 2_000_000_000)
-        isReseeding = false
-        reseedingMessage = ""
-    }
-    
-    private func resetTodaysWorkouts() async {
-        isReseeding = true
-        reseedingMessage = "Resetting today's workouts..."
-        
-        guard var plan = trainingPlanManager.currentTrainingPlan else {
-            reseedingMessage = "No active plan"
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            isReseeding = false
-            reseedingMessage = ""
-            return
-        }
-        
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        // Find and reset today's workouts
-        for (weekIndex, week) in plan.weeks.enumerated() {
-            for (workoutIndex, workout) in week.scheduledWorkouts.enumerated() {
-                if let scheduledDate = workout.scheduledDate,
-                   calendar.isDate(scheduledDate, inSameDayAs: today) {
-                    // Reset to incomplete
-                    let resetWorkout = ScheduledWorkout(
-                        id: workout.id,
-                        workoutTemplateId: workout.workoutTemplateId,
-                        dayOfWeek: workout.dayOfWeek,
-                        scheduledDate: workout.scheduledDate,
-                        completedSessionId: nil,
-                        isCompleted: false,
-                        notes: workout.notes
-                    )
-                    plan.weeks[weekIndex].scheduledWorkouts[workoutIndex] = resetWorkout
-                }
-            }
-        }
-        
-        // Save updated plan
-        try? await trainingPlanManager.updatePlan(plan)
-        
-        reseedingMessage = "Reset complete!"
-        
-        try? await Task.sleep(nanoseconds: 1_500_000_000)
-        isReseeding = false
-        reseedingMessage = ""
-    }
-    
-    private func fetchSessionFromFirebase() async {
-        isFetchingSession = true
-        fetchError = nil
-        fetchedSession = nil
-        
-        do {
-            let session = try await workoutSessionManager.getWorkoutSession(id: testSessionId)
-            await MainActor.run {
-                fetchedSession = session
-                isFetchingSession = false
-            }
-        } catch {
-            await MainActor.run {
-                fetchError = error.localizedDescription
-                isFetchingSession = false
-            }
-        }
-    }
-    
     private func debugRow(label: String, value: String) -> some View {
         HStack(alignment: .top) {
             Text(label)
@@ -605,48 +486,10 @@ struct DevSettingsView: View {
                 .multilineTextAlignment(.trailing)
         }
     }
-    
-    #if DEBUG
-    private func onForceFreshAnonUser() {
-        Task {
-            guard let userId = userManager.currentUser?.userId else {
-                // No user, just sign out
-                try? authManager.signOut()
-                return
-            }
-            
-            // 1. Stop all listeners FIRST to prevent permission errors
-            await MainActor.run {
-                // Stop TrainingPlanManager listener
-                trainingPlanManager.clearAllLocalData()
-            }
-            
-            // 2. Clear ALL local data
-            // Clear workout sessions
-            do {
-                try workoutSessionManager.deleteAllLocalWorkoutSessionsForAuthor(authorId: userId)
-            } catch {
-                print("Error clearing local workout sessions: \(error)")
-            }
-            
-            // Clear user data and stop UserManager listener
-            userManager.signOut()
-            
-            // 3. Sign out (account remains intact in Firebase)
-            do {
-                try authManager.signOut()
-                print("✅ Signed out successfully - account preserved")
-            } catch {
-                print("⚠️ Sign out failed: \(error)")
-            }
-            
-            // UI will reset to onboarding automatically when auth state changes
-        }
-    }
-    #endif
 }
 
 #Preview {
-    DevSettingsView()
+    let container = DevPreview.shared.container
+    DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         .previewEnvironment()
 }

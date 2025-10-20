@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct EmailVerificationView: View {
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
@@ -148,7 +150,7 @@ struct EmailVerificationView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .onFirstTask {

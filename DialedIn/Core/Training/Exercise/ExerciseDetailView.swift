@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct ExerciseDetailView: View {
-    
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
     @Environment(ExerciseHistoryManager.self) private var exerciseHistoryManager
     @Environment(UserManager.self) private var userManager
@@ -94,7 +95,7 @@ struct ExerciseDetailView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
     }

@@ -101,17 +101,23 @@ class ProgramTemplateManager {
         _ template: ProgramTemplateModel,
         for userId: String,
         startDate: Date,
+        endDate: Date? = nil,
         planName: String? = nil,
         workoutTemplateManager: WorkoutTemplateManager? = nil
     ) -> TrainingPlan {
-        let weeks = template.weekTemplates.map { weekTemplate in
-            let scheduledWorkouts = weekTemplate.workoutSchedule.map { mapping in
+        let weeks: [TrainingWeek] = template.weekTemplates.map { weekTemplate -> TrainingWeek in
+            let scheduledWorkouts: [ScheduledWorkout] = weekTemplate.workoutSchedule.compactMap { mapping -> ScheduledWorkout? in
                 let weekOffset = weekTemplate.weekNumber - 1
                 let scheduledDate = calculateDate(
                     startDate: startDate,
                     weekOffset: weekOffset,
                     dayOfWeek: mapping.dayOfWeek
                 )
+                
+                // Filter out workouts beyond end date
+                if let endDate = endDate, scheduledDate > endDate {
+                    return nil
+                }
                 
                 // Use workout name from mapping, or fallback to template lookup
                 let workoutName: String? = mapping.workoutName ?? {
@@ -135,9 +141,11 @@ class ProgramTemplateManager {
                 scheduledWorkouts: scheduledWorkouts,
                 notes: weekTemplate.notes
             )
+        }.filter { (week: TrainingWeek) -> Bool in
+            !week.scheduledWorkouts.isEmpty
         }
         
-        let endDate = Calendar.current.date(
+        let calculatedEndDate = endDate ?? Calendar.current.date(
             byAdding: .weekOfYear,
             value: template.duration,
             to: startDate
@@ -149,7 +157,7 @@ class ProgramTemplateManager {
             name: planName ?? template.name,
             description: template.description,
             startDate: startDate,
-            endDate: endDate,
+            endDate: calculatedEndDate,
             isActive: true,
             programTemplateId: template.id,
             weeks: weeks,

@@ -10,9 +10,11 @@ import SwiftUI
 struct ProgramStartConfigView: View {
     @Environment(\.dismiss) private var dismiss
     let template: ProgramTemplateModel
-    let onStart: (Date, String?) -> Void
+    let onStart: (Date, Date?, String?) -> Void
     
     @State private var startDate = Date()
+    @State private var hasEndDate = false
+    @State private var endDate = Date()
     @State private var useCustomName = false
     @State private var customName = ""
     
@@ -27,6 +29,10 @@ struct ProgramStartConfigView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 toolbarContent
+            }
+            .onAppear {
+                // Initialize end date to default value based on template duration
+                endDate = calculateDefaultEndDate(from: startDate)
             }
         }
     }
@@ -50,6 +56,18 @@ struct ProgramStartConfigView: View {
     private var configurationSection: some View {
         Section {
             DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
+                .onChange(of: startDate) { _, newValue in
+                    // Update end date to maintain duration when start date changes
+                    if !hasEndDate {
+                        endDate = calculateDefaultEndDate(from: newValue)
+                    }
+                }
+            
+            Toggle("Set End Date", isOn: $hasEndDate)
+            
+            if hasEndDate {
+                DatePicker("End Date", selection: $endDate, in: startDate..., displayedComponents: .date)
+            }
             
             Toggle("Custom Name", isOn: $useCustomName)
             
@@ -59,7 +77,12 @@ struct ProgramStartConfigView: View {
         } header: {
             Text("Configuration")
         } footer: {
-            Text("This program will run for \(template.duration) weeks from your start date.")
+            if hasEndDate {
+                let weeks = calculateWeeks(from: startDate, to: endDate)
+                Text("Custom duration: \(weeks) week\(weeks == 1 ? "" : "s"). Only workouts within this range will be scheduled.")
+            } else {
+                Text("This program will run for \(template.duration) weeks from your start date.")
+            }
         }
     }
     
@@ -113,7 +136,8 @@ struct ProgramStartConfigView: View {
         ToolbarItem(placement: .confirmationAction) {
             Button("Start") {
                 let name = useCustomName && !customName.isEmpty ? customName : nil
-                onStart(startDate, name)
+                let finalEndDate = hasEndDate ? endDate : nil
+                onStart(startDate, finalEndDate, name)
             }
         }
     }
@@ -142,12 +166,23 @@ struct ProgramStartConfigView: View {
         
         return calendar.date(byAdding: .day, value: daysToAdd, to: startDate) ?? startDate
     }
+    
+    private func calculateDefaultEndDate(from startDate: Date) -> Date {
+        let calendar = Calendar.current
+        return calendar.date(byAdding: .weekOfYear, value: template.duration, to: startDate) ?? startDate
+    }
+    
+    private func calculateWeeks(from startDate: Date, to endDate: Date) -> Int {
+        let calendar = Calendar.current
+        let weeks = calendar.dateComponents([.weekOfYear], from: startDate, to: endDate).weekOfYear ?? 0
+        return max(weeks, 0)
+    }
 }
 
 #Preview {
     NavigationStack {
         ProgramStartConfigView(
-            template: ProgramTemplateModel.mock, onStart: { _, _ in
+            template: ProgramTemplateModel.mock, onStart: { _, _, _ in
                 
             }
         )

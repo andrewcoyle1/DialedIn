@@ -11,10 +11,10 @@ struct MockLocalUserWeightService: LocalUserWeightService {
     let delay: Double
     let showError: Bool
     
-    init(delay: Double, showError: Bool) {
-        self.delay = delay
-        self.showError = showError
-    }
+//    init(delay: Double, showError: Bool) {
+//        self.delay = delay
+//        self.showError = showError
+//    }
     
     private func tryShowError() throws {
         if showError {

@@ -9,6 +9,8 @@ import SwiftUI
 import PhotosUI
 
 struct OnboardingNamePhotoView: View {
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
     
@@ -44,7 +46,7 @@ struct OnboardingNamePhotoView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .onAppear(perform: prefillFromCurrentUser)

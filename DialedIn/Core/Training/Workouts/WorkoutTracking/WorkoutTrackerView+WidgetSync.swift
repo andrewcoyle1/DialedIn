@@ -9,7 +9,7 @@ import Foundation
 
 extension WorkoutTrackerView {
     // MARK: - Widget Communication
-    
+
     func startWidgetSyncTimer() {
         // Poll for widget set completions and workout completion every second
         widgetSyncTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in

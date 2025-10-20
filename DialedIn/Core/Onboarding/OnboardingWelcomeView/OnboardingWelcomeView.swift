@@ -9,6 +9,7 @@ import SwiftUI
 
 struct OnboardingWelcomeView: View {
 
+    @Environment(DependencyContainer.self) private var container
     @Environment(AppState.self) private var root
     @Environment(AuthManager.self) private var authManager
     @Environment(UserManager.self) private var userManager
@@ -39,7 +40,7 @@ struct OnboardingWelcomeView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView) {
-                DevSettingsView()
+                DevSettingsView(viewModel: DevSettingsViewModel(container: container))
             }
             #endif
             .screenAppearAnalytics(name: "Welcome")
@@ -60,7 +61,7 @@ struct OnboardingWelcomeView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             NavigationLink {
-                AuthOptionsView(viewModel: AuthOptionsViewModel(authManager: authManager, userManager: userManager, logManager: logManager))
+                AuthOptionsView(viewModel: AuthOptionsViewModel(container: container))
             } label: {
                 Image(systemName: "chevron.right")
             }

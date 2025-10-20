@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct OnboardingOverarchingObjectiveView: View {
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(UserManager.self) private var userManager
     
     let isStandaloneMode: Bool
@@ -36,7 +38,7 @@ struct OnboardingOverarchingObjectiveView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
     }

@@ -20,6 +20,7 @@ struct DialedInApp: App {
     var body: some Scene {
         WindowGroup {
             AppView()
+                .environment(delegate.dependencies.container)
                 .environment(delegate.dependencies.exerciseTemplateManager)
                 .environment(delegate.dependencies.exerciseUnitPreferenceManager)
                 .environment(delegate.dependencies.workoutTemplateManager)
@@ -110,8 +111,30 @@ enum BuildConfiguration {
     }
 }
 
+@Observable
+@MainActor
+class DependencyContainer {
+    private var services: [String: Any] = [:]
+    
+    func register<T>(_ type: T.Type, service: T) {
+        let key = "\(type)"
+        services[key] = service
+    }
+    
+    func register<T>(_ type: T.Type, service: () -> T) {
+        let key = "\(type)"
+        services[key] = service()
+    }
+    
+    func resolve<T>(_ type: T.Type) -> T? {
+        let key = "\(type)"
+        return services[key] as? T
+    }
+}
+
 @MainActor
 struct Dependencies {
+    let container: DependencyContainer
     let authManager: AuthManager
     let userManager: UserManager
     let purchaseManager: PurchaseManager
@@ -251,6 +274,36 @@ struct Dependencies {
         detailNavigationModel = DetailNavigationModel()
         pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
         healthKitManager = HealthKitManager(service: HealthKitService())
+        
+        let container = DependencyContainer()
+        container.register(AuthManager.self, service: authManager)
+        container.register(UserManager.self, service: userManager)
+        container.register(PurchaseManager.self, service: purchaseManager)
+        container.register(ExerciseTemplateManager.self, service: exerciseTemplateManager)
+        container.register(ExerciseUnitPreferenceManager.self, service: exerciseUnitPreferenceManager)
+        container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
+        container.register(WorkoutSessionManager.self, service: workoutSessionManager)
+        container.register(ExerciseHistoryManager.self, service: exerciseHistoryManager)
+        container.register(TrainingPlanManager.self, service: trainingPlanManager)
+        container.register(ProgramTemplateManager.self, service: programTemplateManager)
+        container.register(IngredientTemplateManager.self, service: ingredientTemplateManager)
+        container.register(RecipeTemplateManager.self, service: recipeTemplateManager)
+        container.register(NutritionManager.self, service: nutritionManager)
+        container.register(MealLogManager.self, service: mealLogManager)
+        container.register(PushManager.self, service: pushManager)
+        container.register(AIManager.self, service: aiManager)
+        container.register(LogManager.self, service: logManager)
+        container.register(ReportManager.self, service: reportManager)
+        container.register(HealthKitManager.self, service: healthKitManager)
+        container.register(TrainingAnalyticsManager.self, service: trainingAnalyticsManager)
+        container.register(DetailNavigationModel.self, service: detailNavigationModel)
+        container.register(UserWeightManager.self, service: userWeightManager)
+        container.register(GoalManager.self, service: goalManager)
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        container.register(HKWorkoutManager.self, service: hkWorkoutManager)
+        container.register(WorkoutActivityViewModel.self, service: workoutActivityViewModel)
+        #endif
+        self.container = container
     }
 }
 
@@ -297,6 +350,38 @@ extension View {
 @MainActor
 class DevPreview {
     static let shared = DevPreview()
+    
+    var container: DependencyContainer {
+        let container = DependencyContainer()
+        container.register(AuthManager.self, service: authManager)
+        container.register(UserManager.self, service: userManager)
+        container.register(PurchaseManager.self, service: purchaseManager)
+        container.register(ExerciseTemplateManager.self, service: exerciseTemplateManager)
+        container.register(ExerciseUnitPreferenceManager.self, service: exerciseUnitPreferenceManager)
+        container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
+        container.register(WorkoutSessionManager.self, service: workoutSessionManager)
+        container.register(ExerciseHistoryManager.self, service: exerciseHistoryManager)
+        container.register(TrainingPlanManager.self, service: trainingPlanManager)
+        container.register(ProgramTemplateManager.self, service: programTemplateManager)
+        container.register(IngredientTemplateManager.self, service: ingredientTemplateManager)
+        container.register(RecipeTemplateManager.self, service: recipeTemplateManager)
+        container.register(NutritionManager.self, service: nutritionManager)
+        container.register(MealLogManager.self, service: mealLogManager)
+        container.register(PushManager.self, service: pushManager)
+        container.register(AIManager.self, service: aiManager)
+        container.register(LogManager.self, service: logManager)
+        container.register(ReportManager.self, service: reportManager)
+        container.register(HealthKitManager.self, service: healthKitManager)
+        container.register(TrainingAnalyticsManager.self, service: trainingAnalyticsManager)
+        container.register(DetailNavigationModel.self, service: detailNavigationModel)
+        container.register(UserWeightManager.self, service: userWeightManager)
+        container.register(GoalManager.self, service: goalManager)
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        container.register(HKWorkoutManager.self, service: hkWorkoutManager)
+        container.register(WorkoutActivityViewModel.self, service: workoutActivityViewModel)
+        #endif
+        return container
+    }
     
     let authManager: AuthManager
     let userManager: UserManager

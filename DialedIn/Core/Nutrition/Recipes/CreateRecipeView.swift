@@ -9,7 +9,8 @@ import SwiftUI
 import PhotosUI
 
 struct CreateRecipeView: View {
-    
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(RecipeTemplateManager.self) private var recipeTemplateManager
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
@@ -101,7 +102,7 @@ struct CreateRecipeView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView, content: {
-                DevSettingsView()
+                DevSettingsView(viewModel: DevSettingsViewModel(container: container))
             })
             #endif
             .sheet(isPresented: $showAddIngredientModal) {

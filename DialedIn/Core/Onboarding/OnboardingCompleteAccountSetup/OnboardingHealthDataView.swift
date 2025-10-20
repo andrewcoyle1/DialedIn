@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct OnboardingHealthDataView: View {
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(HealthKitManager.self) private var healthKitManager
     @Environment(LogManager.self) private var logManager
     @Environment(PushManager.self) private var pushManager
@@ -38,7 +40,7 @@ struct OnboardingHealthDataView: View {
         .navigationBarBackButtonHidden(true)
         #else
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .toolbar {

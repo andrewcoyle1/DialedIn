@@ -9,7 +9,7 @@ import SwiftUI
 import PhotosUI
 
 struct CreateWorkoutView: View {
-    
+    @Environment(DependencyContainer.self) private var container
     @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     @Environment(UserManager.self) private var userManager
     @Environment(LogManager.self) private var logManager
@@ -109,7 +109,7 @@ struct CreateWorkoutView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView, content: {
-                DevSettingsView()
+                DevSettingsView(viewModel: DevSettingsViewModel(container: container))
             })
             #endif
             .sheet(isPresented: $showAddExerciseModal) {

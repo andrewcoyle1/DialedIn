@@ -60,6 +60,9 @@ struct MockWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     func getLocalWorkoutSessionsForAuthor(authorId: String, limitTo: Int) throws -> [WorkoutSessionModel] {
         try tryShowError()
         let filtered = workoutSessions.filter { $0.authorId == authorId }
+        if limitTo == 0 {
+            return filtered  // No limit
+        }
         return Array(filtered.prefix(limitTo))
     }
     

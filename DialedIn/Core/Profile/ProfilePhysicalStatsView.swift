@@ -12,6 +12,7 @@ struct ProfilePhysicalStatsView: View {
     @Environment(UserWeightManager.self) private var weightManager
     
     @State private var showLogWeightSheet: Bool = false
+    @State private var weights: [WeightEntry] = []
     
     var body: some View {
         List {
@@ -37,7 +38,7 @@ struct ProfilePhysicalStatsView: View {
         }
         .task {
             if let user = userManager.currentUser {
-                try? await weightManager.getWeightHistory(userId: user.userId, limit: 5)
+                weights = (try? await weightManager.getWeightHistory(userId: user.userId, limit: 5)) ?? []
             }
         }
     }
@@ -280,16 +281,61 @@ struct ProfilePhysicalStatsView: View {
         let heightM = heightCm / 100
         return weightKg / (heightM * heightM)
     }
+    enum BMICategory {
+        case underweight
+        case normal
+        case overweight
+        case obese
+        
+        var name: String {
+            switch self {
+            case .underweight:
+                return "Underweight"
+            case .normal:
+                return "Normal"
+            case .overweight:
+                return "Overweight"
+            case .obese:
+                return "Obese"
+            }
+        }
+        
+        var color: Color {
+            switch self {
+            case .underweight:
+                return .blue
+            case .normal:
+                return .green
+            case .overweight:
+                return .orange
+            case .obese:
+                return .red
+            }
+        }
+        
+        var description: String {
+            switch self {
+            case .underweight:
+                return "A BMI below 18.5 may indicate underweight. Consider consulting a healthcare provider."
+            case .normal:
+                return "A BMI between 18.5 and 24.9 is considered healthy weight range."
+            case .overweight:
+                return "A BMI between 25.0 and 29.9 may indicate overweight. Consider a balanced diet and regular exercise."
+            case .obese:
+                return "A BMI of 30.0 or higher may indicate obesity. Consider consulting a healthcare provider for guidance."
+            }
+        }
+    }
     
-    private func getBMICategory(_ bmi: Double) -> (name: String, color: Color, description: String) {
+    private func getBMICategory(_ bmi: Double) -> BMICategory {
         if bmi < 18.5 {
-            return ("Underweight", .blue, "A BMI below 18.5 may indicate underweight. Consider consulting a healthcare provider.")
+            return .underweight
         } else if bmi < 25.0 {
-            return ("Normal", .green, "A BMI between 18.5 and 24.9 is considered healthy weight range.")
+            return .normal
         } else if bmi < 30.0 {
-            return ("Overweight", .orange, "A BMI between 25.0 and 29.9 may indicate overweight. Consider a balanced diet and regular exercise.")
+            return .overweight
         } else {
-            return ("Obese", .red, "A BMI of 30.0 or higher may indicate obesity. Consider consulting a healthcare provider for guidance.")
+            return .obese
         }
     }
     

@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct OnboardingNotificationsView: View {
+    @Environment(DependencyContainer.self) private var container
+
     @Environment(PushManager.self) private var pushManager
     @Environment(HealthKitManager.self) private var healthKitManager
     @Environment(LogManager.self) private var logManager
@@ -35,7 +37,7 @@ struct OnboardingNotificationsView: View {
         .navigationBarBackButtonHidden(true)
         #else
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView()
+            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
         }
         #endif
         .toolbar {
