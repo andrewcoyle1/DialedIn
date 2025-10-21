@@ -344,6 +344,7 @@ extension View {
             .environment(AIManager(service: MockAIService()))
             .environment(PushManager(services: MockPushServices(), logManager: nil))
             .environment(HealthKitManager(service: MockHealthService()))
+            .environment(DevPreview.shared.container)
     }
 }
 

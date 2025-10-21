@@ -552,7 +552,6 @@ struct SetTrackerRow: View {
     }
     
 }
-
 #Preview("Weight & Reps - Incomplete") {
     SetTrackerRow(
         set: WorkoutSetModel(
@@ -575,7 +574,6 @@ struct SetTrackerRow: View {
     )
     .padding()
 }
-
 #Preview("Weight & Reps - Complete") {
     SetTrackerRow(
         set: WorkoutSetModel(
@@ -597,7 +595,6 @@ struct SetTrackerRow: View {
         onUpdate: { _ in }
     )
 }
-
 #Preview("Duration - Incomplete") {
     SetTrackerRow(
         set: WorkoutSetModel(

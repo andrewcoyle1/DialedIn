@@ -149,41 +149,8 @@ struct WorkoutSessionDetailView: View {
                     .foregroundStyle(.green)
             }
             
-            // Notes editor (editable in edit mode)
-            if isEditMode {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Workout Notes")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    
-                    ZStack(alignment: .topLeading) {
-                        if editedSession.notes?.isEmpty ?? true {
-                            Text("Add notes here...")
-                                .foregroundStyle(.secondary)
-                                .padding(.top, 8)
-                                .padding(.leading, 6)
-                        }
-                        TextEditor(text: Binding(
-                            get: { editedSession.notes ?? "" },
-                            set: { editedSession.notes = $0.isEmpty ? nil : $0 }
-                        ))
-                        .scrollContentBackground(.hidden)
-                        .frame(minHeight: 80)
-                        .textInputAutocapitalization(.sentences)
-                    }
-                    .padding(8)
-                    .background(.blue.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-            } else if let notes = currentSession.notes, !notes.isEmpty {
-                Text(notes)
-                    .font(.subheadline)
-                    .foregroundStyle(.primary)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.blue.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
+            notesEditor()
+            
         } header: {
             Text("Workout Summary")
         }
@@ -263,6 +230,45 @@ struct WorkoutSessionDetailView: View {
             }
         } header: {
             Text("Exercises")
+        }
+    }
+    
+    @ViewBuilder
+    private func notesEditor() -> some View {
+        // Notes editor (editable in edit mode)
+        if isEditMode {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Workout Notes")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                ZStack(alignment: .topLeading) {
+                    if editedSession.notes?.isEmpty ?? true {
+                        Text("Add notes here...")
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 8)
+                            .padding(.leading, 6)
+                    }
+                    TextEditor(text: Binding(
+                        get: { editedSession.notes ?? "" },
+                        set: { editedSession.notes = $0.isEmpty ? nil : $0 }
+                    ))
+                    .scrollContentBackground(.hidden)
+                    .frame(minHeight: 80)
+                    .textInputAutocapitalization(.sentences)
+                }
+                .padding(8)
+                .background(.blue.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+        } else if let notes = currentSession.notes, !notes.isEmpty {
+            Text(notes)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.blue.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }
     

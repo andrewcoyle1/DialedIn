@@ -8,17 +8,13 @@
 import SwiftUI
 
 struct ProfileGoalsDetailView: View {
-    @Environment(UserManager.self) private var userManager
-    @Environment(GoalManager.self) private var goalManager
-    @Environment(UserWeightManager.self) private var weightManager
-    
-    @State private var showLogWeightSheet: Bool = false
-    @State private var realWeightHistory: [WeightEntry] = []
+    @Environment(DependencyContainer.self) private var container
+    @State var viewModel: ProfileGoalsDetailViewModel
     
     var body: some View {
         List {
-            if let goal = goalManager.currentGoal,
-               let user = userManager.currentUser {
+            if let goal = viewModel.currentGoal,
+               let user = viewModel.currentUser {
                 goalOverviewSection(goal: goal)
                 weightDetailsSection(goal: goal, currentWeight: user.weightKilograms, unit: user.weightUnitPreference ?? .kilograms)
                 timelineSection(goal: goal, currentWeight: user.weightKilograms, unit: user.weightUnitPreference ?? .kilograms)
@@ -37,16 +33,11 @@ struct ProfileGoalsDetailView: View {
         .toolbar {
             toolbarContent
         }
-        .sheet(isPresented: $showLogWeightSheet) {
-            LogWeightView()
+        .sheet(isPresented: $viewModel.showLogWeightSheet) {
+            LogWeightView(viewModel: LogWeightViewModel(container: container))
         }
         .task {
-            if let user = userManager.currentUser {
-                // Load active goal
-                try? await goalManager.getActiveGoal(userId: user.userId)
-                // Load weight history
-                realWeightHistory = (try? await weightManager.getWeightHistory(userId: user.userId, limit: 10)) ?? []
-            }
+            await viewModel.getActiveGoal()
         }
     }
     
@@ -54,10 +45,11 @@ struct ProfileGoalsDetailView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
             Button {
-                showLogWeightSheet = true
+                viewModel.showLogWeightSheet = true
             } label: {
-                Label("Log Weight", systemImage: "plus.circle.fill")
+                Label("Log Weight", systemImage: "plus")
             }
+            .buttonStyle(.glassProminent)
         }
     }
     
@@ -67,12 +59,12 @@ struct ProfileGoalsDetailView: View {
                 Text(goal.objective.capitalized)
                     .font(.system(size: 20, weight: .bold))
                 Spacer()
-                Image(systemName: objectiveIcon(goal.objective))
+                Image(systemName: viewModel.objectiveIcon(goal.objective))
                     .font(.system(size: 20))
                     .foregroundStyle(.accent)
             }
             
-            Text(objectiveDescription(goal.objective))
+            Text(viewModel.objectiveDescription(goal.objective))
                 .font(.subheadline)
                 .foregroundStyle(.tertiary)
         } header: {
@@ -148,7 +140,7 @@ struct ProfileGoalsDetailView: View {
                     .font(.subheadline)
                     .foregroundStyle(.tertiary)
 
-                Text("Based on your selected rate of \(formatWeight(goal.weeklyChangeKg, unit: unit)) per week")
+                Text("Based on your selected rate of \(viewModel.formatWeight(goal.weeklyChangeKg, unit: unit)) per week")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -169,13 +161,17 @@ struct ProfileGoalsDetailView: View {
                 let isLosing = goal.isLosing
 
                 progressPercentageCard(progress: progress, objective: goal.objective)
-                progressStatistics(
+                let progressState = ProgressState(
                     startingWeight: goal.startingWeightKg,
                     currentWeight: currentWeight,
                     weightChanged: weightChanged,
                     weightRemaining: weightRemaining,
                     isLosing: isLosing,
                     unit: unit
+                )
+
+                progressStatistics(
+                    progressState: progressState
                 )
 
                 if goal.weeklyChangeKg > 0, goal.startingWeightKg != currentWeight {
@@ -218,7 +214,7 @@ struct ProfileGoalsDetailView: View {
                 Spacer()
             }
             
-            Text(motivationalMessage(goal.objective))
+            Text(viewModel.motivationalMessage(goal.objective))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -235,54 +231,12 @@ struct ProfileGoalsDetailView: View {
                 Text(label)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                Text(formatWeight(weight, unit: unit) + suffix)
+                Text(viewModel.formatWeight(weight, unit: unit) + suffix)
                     .font(.title3)
                     .fontWeight(.semibold)
             }
             
             Spacer()
-        }
-    }
-    
-    // MARK: - Helper Functions
-    
-    private func formatWeight(_ weightKg: Double, unit: WeightUnitPreference) -> String {
-        switch unit {
-        case .kilograms:
-            return String(format: "%.1f kg", weightKg)
-        case .pounds:
-            let pounds = weightKg * 2.20462
-            return String(format: "%.1f lbs", pounds)
-        }
-    }
-    
-    private func objectiveIcon(_ objective: String) -> String {
-        if objective.lowercased().contains("lose") {
-            return "arrow.down.circle.fill"
-        } else if objective.lowercased().contains("gain") {
-            return "arrow.up.circle.fill"
-        } else {
-            return "equal.circle.fill"
-        }
-    }
-    
-    private func objectiveDescription(_ objective: String) -> String {
-        if objective.lowercased().contains("lose") {
-            return "Your goal is to lose weight in a healthy and sustainable way. We'll help you achieve this through personalized nutrition and training guidance."
-        } else if objective.lowercased().contains("gain") {
-            return "Your goal is to gain weight through muscle building and proper nutrition. We'll support you with customized plans to help you reach your target."
-        } else {
-            return "Your goal is to maintain your current weight while staying healthy and fit. We'll help you maintain balance through proper nutrition and exercise."
-        }
-    }
-    
-    private func motivationalMessage(_ objective: String) -> String {
-        if objective.lowercased().contains("lose") {
-            return "Every step you take towards your goal is progress. Stay consistent with your nutrition and exercise, and you'll reach your target weight. Remember, sustainable changes lead to lasting results."
-        } else if objective.lowercased().contains("gain") {
-            return "Building healthy weight takes time and dedication. Focus on nutrient-dense foods and progressive strength training. Your body will thank you for the consistent effort."
-        } else {
-            return "Maintaining your current weight is a fantastic goal! Focus on balanced nutrition and regular activity to keep your body healthy and strong. Consistency is key to long-term success."
         }
     }
     
@@ -314,13 +268,17 @@ struct ProfileGoalsDetailView: View {
         .padding(.vertical, 8)
     }
     
+    struct ProgressState {
+        let startingWeight: Double
+        let currentWeight: Double
+        let weightChanged: Double
+        let weightRemaining: Double
+        let isLosing: Bool
+        let unit: WeightUnitPreference
+    }
+    
     private func progressStatistics(
-        startingWeight: Double,
-        currentWeight: Double,
-        weightChanged: Double,
-        weightRemaining: Double,
-        isLosing: Bool,
-        unit: WeightUnitPreference
+        progressState: ProgressState
     ) -> some View {
         VStack(spacing: 12) {
             HStack {
@@ -328,7 +286,7 @@ struct ProfileGoalsDetailView: View {
                     Text("Starting Weight")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text(formatWeight(startingWeight, unit: unit))
+                    Text(viewModel.formatWeight(progressState.startingWeight, unit: progressState.unit))
                         .font(.headline)
                 }
                 
@@ -344,7 +302,7 @@ struct ProfileGoalsDetailView: View {
                     Text("Current Weight")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text(formatWeight(currentWeight, unit: unit))
+                    Text(viewModel.formatWeight(progressState.currentWeight, unit: progressState.unit))
                         .font(.headline)
                 }
             }
@@ -353,17 +311,17 @@ struct ProfileGoalsDetailView: View {
             
             HStack(spacing: 32) {
                 VStack(spacing: 4) {
-                    Text(formatWeightChange(abs(weightChanged), unit: unit))
+                    Text(formatWeightChange(abs(progressState.weightChanged), unit: progressState.unit))
                         .font(.title3)
                         .fontWeight(.semibold)
-                        .foregroundStyle(weightChanged != 0 ? (isLosing && weightChanged > 0 ? .green : !isLosing && weightChanged < 0 ? .green : .orange) : .secondary)
+                        .foregroundStyle(progressState.weightChanged != 0 ? (progressState.isLosing && progressState.weightChanged > 0 ? .green : !progressState.isLosing && progressState.weightChanged < 0 ? .green : .orange) : .secondary)
                     Text("Changed")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 
                 VStack(spacing: 4) {
-                    Text(formatWeightChange(weightRemaining, unit: unit))
+                    Text(formatWeightChange(progressState.weightRemaining, unit: progressState.unit))
                         .font(.title3)
                         .fontWeight(.semibold)
                         .foregroundStyle(.blue)
@@ -412,7 +370,7 @@ struct ProfileGoalsDetailView: View {
                 
                 Spacer()
                 
-                if !realWeightHistory.isEmpty {
+                if !viewModel.realWeightHistory.isEmpty {
                     Text("Real Data")
                         .font(.caption2)
                         .foregroundStyle(.green)
@@ -431,8 +389,8 @@ struct ProfileGoalsDetailView: View {
                 }
             }
             
-            let history: [WeightDataPoint] = !realWeightHistory.isEmpty
-            ? realWeightHistory.map { entry in
+            let history: [WeightDataPoint] = !viewModel.realWeightHistory.isEmpty
+            ? viewModel.realWeightHistory.map { entry in
                 WeightDataPoint(date: entry.date, weightKg: entry.weightKg)
               }
             : generateMockWeightHistory(
@@ -543,16 +501,20 @@ struct ProfileGoalsDetailView: View {
                 let range = maxWeight - minWeight
                 
                 // Simple bar chart visualization
-                HStack(alignment: .bottom, spacing: 4) {
-                    ForEach(history) { dataPoint in
-                        VStack(spacing: 2) {
-                            let normalizedHeight = range > 0 ? (dataPoint.weightKg - minWeight) / range : 0.5
-                            let barHeight = max(40 * normalizedHeight, 4)
-                            
-                            Rectangle()
-                                .fill(dataPoint.date.timeIntervalSinceNow > -86400 ? Color.accentColor : Color.accentColor.opacity(0.5))
-                                .frame(width: max((UIScreen.main.bounds.width - 80) / CGFloat(history.count) - 4, 8), height: barHeight)
-                                .clipShape(RoundedRectangle(cornerRadius: 2))
+                GeometryReader { proxy in
+                    let availableWidth = max(proxy.size.width - 80, 0)
+                    HStack(alignment: .bottom, spacing: 4) {
+                        ForEach(history) { dataPoint in
+                            VStack(spacing: 2) {
+                                let normalizedHeight = range > 0 ? (dataPoint.weightKg - minWeight) / range : 0.5
+                                let barHeight = max(40 * normalizedHeight, 4)
+                                let barWidth = max((availableWidth / CGFloat(history.count)) - 4, 8)
+
+                                Rectangle()
+                                    .fill(dataPoint.date.timeIntervalSinceNow > -86400 ? Color.accentColor : Color.accentColor.opacity(0.5))
+                                    .frame(width: barWidth, height: barHeight)
+                                    .clipShape(RoundedRectangle(cornerRadius: 2))
+                            }
                         }
                     }
                 }
@@ -560,13 +522,13 @@ struct ProfileGoalsDetailView: View {
                 
                 // Labels
                 HStack {
-                    Text(formatWeight(minWeight, unit: unit))
+                    Text(viewModel.formatWeight(minWeight, unit: unit))
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                     
                     Spacer()
                     
-                    Text(formatWeight(maxWeight, unit: unit))
+                    Text(viewModel.formatWeight(maxWeight, unit: unit))
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
@@ -644,31 +606,10 @@ enum TrackingStatus {
 }
 
 #Preview {
-    let goalManager = GoalManager(services: MockGoalServices())
-    goalManager.setCurrentGoalForTesting(WeightGoal.mock(
-        objective: "lose weight",
-        startingWeightKg: 72.0,
-        targetWeightKg: 65.0,
-        weeklyChangeKg: 0.5
-    ))
-    
-    return NavigationStack {
-        ProfileGoalsDetailView()
-    }
-    .environment(
-        UserManager(
-            services: MockUserServices(
-                user: UserModel(
-                    userId: "mockUser",
-                    email: "user@example.com",
-                    firstName: "Alice",
-                    lastName: "Cooper",
-                    weightKilograms: 68,
-                    weightUnitPreference: .kilograms
-                )
-            )
+    NavigationStack {
+        ProfileGoalsDetailView(
+            viewModel: ProfileGoalsDetailViewModel(container: DevPreview.shared.container)
         )
-    )
-    .environment(goalManager)
+    }
     .previewEnvironment()
 }

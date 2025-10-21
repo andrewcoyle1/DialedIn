@@ -69,7 +69,7 @@ struct TrainingView: View {
                 if let exercise = selectedExerciseTemplate {
                     NavigationStack { ExerciseDetailView(exerciseTemplate: exercise) }
                 } else if let workout = selectedWorkoutTemplate {
-                    NavigationStack { WorkoutTemplateDetailView(workoutTemplate: workout) }
+                    NavigationStack { WorkoutTemplateDetailView(viewModel: WorkoutTemplateDetailViewModel(container: container), workoutTemplate: workout) }
                 } else if let session = selectedHistorySession {
                     NavigationStack { WorkoutSessionDetailView(session: session) }
                 } else {
@@ -109,6 +109,7 @@ struct TrainingView: View {
             }
             .sheet(item: $workoutToStart) { template in
                 WorkoutStartView(
+                    viewModel: WorkoutStartViewModel(container: container),
                     template: template,
                     scheduledWorkout: scheduledWorkoutToStart
                 )

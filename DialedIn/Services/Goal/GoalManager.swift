@@ -57,6 +57,7 @@ class GoalManager {
     }
     
     /// Get the active goal for the user
+    @discardableResult
     func getActiveGoal(userId: String) async throws -> WeightGoal? {
         isLoading = true
         defer { isLoading = false }

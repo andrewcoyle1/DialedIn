@@ -9,6 +9,7 @@ import SwiftUI
 import Observation
 
 struct SplitViewContainer: View {
+    @Environment(DependencyContainer.self) private var container
     @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @Environment(AppNavigationModel.self) private var appNavigation
     @State private var preferredColumn: NavigationSplitViewColumn = .sidebar
@@ -42,16 +43,16 @@ struct SplitViewContainer: View {
                 if let selectedSection = appNavigation.selectedSection {
                     switch selectedSection {
                     case .dashboard:
-                        NavigationOptions.dashboard.viewForPage()
+                        NavigationOptions.dashboard.viewForPage(container: container)
                     case .training:
-                        NavigationOptions.training.viewForPage()
+                        NavigationOptions.training.viewForPage(container: container)
                     case .nutrition:
-                        NavigationOptions.nutrition.viewForPage()
+                        NavigationOptions.nutrition.viewForPage(container: container)
                     case .profile:
-                        NavigationOptions.profile.viewForPage()
+                        NavigationOptions.profile.viewForPage(container: container)
                     }
                 } else {
-                    NavigationOptions.dashboard.viewForPage()
+                    NavigationOptions.dashboard.viewForPage(container: container)
                 }
             }
             .background(
@@ -70,7 +71,7 @@ struct SplitViewContainer: View {
             workoutSessionManager.isTrackerPresented = newValue
         })) {
             if let session = workoutSessionManager.activeSession {
-                WorkoutTrackerView(workoutSession: session)
+                WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(container: container, workoutSession: session), initialWorkoutSession: session)
             }
         }
         .task {

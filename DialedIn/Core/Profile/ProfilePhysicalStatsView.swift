@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ProfilePhysicalStatsView: View {
+    @Environment(DependencyContainer.self) private var container
     @Environment(UserManager.self) private var userManager
     @Environment(UserWeightManager.self) private var weightManager
     
@@ -34,7 +35,7 @@ struct ProfilePhysicalStatsView: View {
             toolbarContent
         }
         .sheet(isPresented: $showLogWeightSheet) {
-            LogWeightView()
+            LogWeightView(viewModel: LogWeightViewModel(container: container))
         }
         .task {
             if let user = userManager.currentUser {

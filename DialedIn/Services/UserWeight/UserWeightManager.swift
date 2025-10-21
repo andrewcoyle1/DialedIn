@@ -48,6 +48,7 @@ class UserWeightManager {
     }
     
     /// Get weight history with optional limit
+    @discardableResult
     func getWeightHistory(userId: String, limit: Int? = nil) async throws -> [WeightEntry] {
         isLoading = true
         defer { isLoading = false }

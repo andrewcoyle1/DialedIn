@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProgramManagementView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(DependencyContainer.self) private var container
     @Environment(TrainingPlanManager.self) private var trainingPlanManager
     @Environment(ProgramTemplateManager.self) private var programTemplateManager
     @Environment(AuthManager.self) private var authManager
@@ -50,7 +51,7 @@ struct ProgramManagementView: View {
                 ProgramTemplatePickerView()
             }
             .sheet(item: $editingPlan) { plan in
-                EditProgramView(plan: plan)
+                EditProgramView(viewModel: EditProgramViewModel(container: container), plan: plan)
             }
             .alert("Delete Program", isPresented: $showDeleteAlert, presenting: planToDelete) { plan in
                 Button("Cancel", role: .cancel) { }

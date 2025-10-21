@@ -7,13 +7,14 @@
 
 import Foundation
 
+@MainActor
 @Observable
 class TrainingPlanManager {
     
     private let local: LocalTrainingPlanPersistence
     private let remote: RemoteTrainingPlanService
     private var userId: String?
-    nonisolated(unsafe) private var plansListener: (() -> Void)?
+    private var plansListener: (() -> Void)?
     
     private(set) var currentTrainingPlan: TrainingPlan?
     private(set) var allPlans: [TrainingPlan] = []
@@ -31,10 +32,6 @@ class TrainingPlanManager {
         if userId != nil {
             startSyncListener()
         }
-    }
-    
-    deinit {
-        stopSyncListener()
     }
     
     // MARK: - User Management
@@ -70,7 +67,7 @@ class TrainingPlanManager {
         }
     }
     
-    nonisolated private func stopSyncListener() {
+    private func stopSyncListener() {
         plansListener?()
         plansListener = nil
     }
@@ -244,206 +241,6 @@ class TrainingPlanManager {
         allPlans = local.getAllPlans()
     }
     
-    // MARK: - Workout Scheduling
-    
-    func scheduleWorkout(
-        workoutTemplateId: String,
-        workoutName: String? = nil,
-        on date: Date,
-        weekNumber: Int? = nil
-    ) async throws {
-        guard var plan = currentTrainingPlan else {
-            throw TrainingPlanError.noActivePlan
-        }
-        
-        let calendar = Calendar.current
-        let dayOfWeek = calendar.component(.weekday, from: date)
-        
-        // Determine week number if not provided
-        let targetWeekNumber: Int
-        if let weekNum = weekNumber {
-            targetWeekNumber = weekNum
-        } else {
-            let weeksSinceStart = calendar.dateComponents([.weekOfYear], from: plan.startDate, to: date).weekOfYear ?? 0
-            targetWeekNumber = weeksSinceStart + 1
-        }
-        
-        let scheduledWorkout = ScheduledWorkout(
-            workoutTemplateId: workoutTemplateId,
-            workoutName: workoutName,
-            dayOfWeek: dayOfWeek,
-            scheduledDate: date
-        )
-        
-        // Find or create week
-        if let weekIndex = plan.weeks.firstIndex(where: { $0.weekNumber == targetWeekNumber }) {
-            plan.weeks[weekIndex].scheduledWorkouts.append(scheduledWorkout)
-        } else {
-            let newWeek = TrainingWeek(weekNumber: targetWeekNumber, scheduledWorkouts: [scheduledWorkout])
-            plan.addWeek(newWeek)
-        }
-        
-        try await updatePlan(plan)
-    }
-    
-    func rescheduleWorkout(
-        scheduledWorkoutId: String,
-        to newDate: Date
-    ) async throws {
-        guard var plan = currentTrainingPlan else {
-            throw TrainingPlanError.noActivePlan
-        }
-        
-        let calendar = Calendar.current
-        let dayOfWeek = calendar.component(.weekday, from: newDate)
-        
-        // Find and update the workout
-        for (weekIndex, week) in plan.weeks.enumerated() {
-            if let workoutIndex = week.scheduledWorkouts.firstIndex(where: { $0.id == scheduledWorkoutId }) {
-                var updatedWorkout = week.scheduledWorkouts[workoutIndex]
-                updatedWorkout = ScheduledWorkout(
-                    id: updatedWorkout.id,
-                    workoutTemplateId: updatedWorkout.workoutTemplateId,
-                    workoutName: updatedWorkout.workoutName,
-                    dayOfWeek: dayOfWeek,
-                    scheduledDate: newDate,
-                    completedSessionId: updatedWorkout.completedSessionId,
-                    isCompleted: updatedWorkout.isCompleted,
-                    notes: updatedWorkout.notes
-                )
-                plan.weeks[weekIndex].scheduledWorkouts[workoutIndex] = updatedWorkout
-                try await updatePlan(plan)
-                return
-            }
-        }
-        
-        throw TrainingPlanError.workoutNotFound
-    }
-    
-    func removeScheduledWorkout(id: String) async throws {
-        guard var plan = currentTrainingPlan else {
-            throw TrainingPlanError.noActivePlan
-        }
-        
-        for (weekIndex, week) in plan.weeks.enumerated() {
-            if let workoutIndex = week.scheduledWorkouts.firstIndex(where: { $0.id == id }) {
-                plan.weeks[weekIndex].scheduledWorkouts.remove(at: workoutIndex)
-                try await updatePlan(plan)
-                return
-            }
-        }
-        
-        throw TrainingPlanError.workoutNotFound
-    }
-    
-    // MARK: - Workout Completion
-    
-    func completeWorkout(
-        scheduledWorkoutId: String,
-        session: WorkoutSessionModel
-    ) async throws {
-        guard var plan = currentTrainingPlan else {
-            throw TrainingPlanError.noActivePlan
-        }
-        
-        // Find and mark workout as completed
-        for (weekIndex, week) in plan.weeks.enumerated() {
-            if let workoutIndex = week.scheduledWorkouts.firstIndex(where: { $0.id == scheduledWorkoutId }) {
-                var updatedWorkout = week.scheduledWorkouts[workoutIndex]
-                updatedWorkout = ScheduledWorkout(
-                    id: updatedWorkout.id,
-                    workoutTemplateId: updatedWorkout.workoutTemplateId,
-                    workoutName: updatedWorkout.workoutName,
-                    dayOfWeek: updatedWorkout.dayOfWeek,
-                    scheduledDate: updatedWorkout.scheduledDate,
-                    completedSessionId: session.id,
-                    isCompleted: true,
-                    notes: updatedWorkout.notes
-                )
-                plan.weeks[weekIndex].scheduledWorkouts[workoutIndex] = updatedWorkout
-                try await updatePlan(plan)
-                return
-            }
-        }
-        
-        throw TrainingPlanError.workoutNotFound
-    }
-    
-    func markWorkoutIncomplete(scheduledWorkoutId: String) async throws {
-        guard var plan = currentTrainingPlan else {
-            throw TrainingPlanError.noActivePlan
-        }
-        
-        for (weekIndex, week) in plan.weeks.enumerated() {
-            if let workoutIndex = week.scheduledWorkouts.firstIndex(where: { $0.id == scheduledWorkoutId }) {
-                var updatedWorkout = week.scheduledWorkouts[workoutIndex]
-                updatedWorkout = ScheduledWorkout(
-                    id: updatedWorkout.id,
-                    workoutTemplateId: updatedWorkout.workoutTemplateId,
-                    workoutName: updatedWorkout.workoutName,
-                    dayOfWeek: updatedWorkout.dayOfWeek,
-                    scheduledDate: updatedWorkout.scheduledDate,
-                    completedSessionId: nil,
-                    isCompleted: false,
-                    notes: updatedWorkout.notes
-                )
-                plan.weeks[weekIndex].scheduledWorkouts[workoutIndex] = updatedWorkout
-                try await updatePlan(plan)
-                return
-            }
-        }
-        
-        throw TrainingPlanError.workoutNotFound
-    }
-    
-    /// Syncs scheduled workout completion status with completed workout sessions
-    /// This is useful for reconciling state after retroactive fixes or data migrations
-    func syncScheduledWorkoutsWithCompletedSessions(completedSessions: [WorkoutSessionModel]) async throws {
-        guard var plan = currentTrainingPlan else {
-            throw TrainingPlanError.noActivePlan
-        }
-        
-        var planWasModified = false
-        
-        // Build a map of scheduledWorkoutId -> completed session for quick lookup
-        let completedSessionsMap = Dictionary(
-            completedSessions
-                .filter { $0.endedAt != nil && $0.scheduledWorkoutId != nil }
-                .map { ($0.scheduledWorkoutId!, $0) },
-            uniquingKeysWith: { first, _ in first } // Keep first if duplicates
-        )
-        
-        // Check each scheduled workout
-        for (weekIndex, week) in plan.weeks.enumerated() {
-            for (workoutIndex, scheduledWorkout) in week.scheduledWorkouts.enumerated() {
-                // If scheduled workout is marked incomplete but we have a completed session for it
-                if !scheduledWorkout.isCompleted,
-                   let completedSession = completedSessionsMap[scheduledWorkout.id] {
-                    
-                    // Update the scheduled workout
-                    let updatedWorkout = ScheduledWorkout(
-                        id: scheduledWorkout.id,
-                        workoutTemplateId: scheduledWorkout.workoutTemplateId,
-                        workoutName: scheduledWorkout.workoutName,
-                        dayOfWeek: scheduledWorkout.dayOfWeek,
-                        scheduledDate: scheduledWorkout.scheduledDate,
-                        completedSessionId: completedSession.id,
-                        isCompleted: true,
-                        notes: scheduledWorkout.notes
-                    )
-                    
-                    plan.weeks[weekIndex].scheduledWorkouts[workoutIndex] = updatedWorkout
-                    planWasModified = true
-                }
-            }
-        }
-        
-        // Save plan if any changes were made
-        if planWasModified {
-            try await updatePlan(plan)
-        }
-    }
-    
     // MARK: - Progress Tracking
     
     func getWeeklyProgress(for weekNumber: Int) -> WeekProgress {
@@ -557,14 +354,10 @@ class TrainingPlanManager {
                     return nil
                 }
                 
-                // Use workout name from mapping, or fallback to template lookup
-                let workoutName: String? = mapping.workoutName ?? {
-                    if let manager = workoutTemplateManager,
-                       let template = try? manager.getLocalWorkoutTemplate(id: mapping.workoutTemplateId) {
-                        return template.name
-                    }
-                    return nil
-                }()
+                let workoutName = resolveWorkoutName(
+                    from: mapping,
+                    using: workoutTemplateManager
+                )
                 
                 return ScheduledWorkout(
                     workoutTemplateId: mapping.workoutTemplateId,
@@ -603,6 +396,20 @@ class TrainingPlanManager {
             createdAt: .now,
             modifiedAt: .now
         )
+    }
+    
+    private func resolveWorkoutName(
+        from mapping: DayWorkoutMapping,
+        using workoutTemplateManager: WorkoutTemplateManager?
+    ) -> String? {
+        if let name = mapping.workoutName {
+            return name
+        }
+        guard let manager = workoutTemplateManager,
+              let template = try? manager.getLocalWorkoutTemplate(id: mapping.workoutTemplateId) else {
+            return nil
+        }
+        return template.name
     }
     
     private func calculateDate(startDate: Date, weekOffset: Int, dayOfWeek: Int) -> Date {

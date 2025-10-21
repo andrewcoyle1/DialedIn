@@ -119,14 +119,10 @@ class ProgramTemplateManager {
                     return nil
                 }
                 
-                // Use workout name from mapping, or fallback to template lookup
-                let workoutName: String? = mapping.workoutName ?? {
-                    if let manager = workoutTemplateManager,
-                       let template = try? manager.getLocalWorkoutTemplate(id: mapping.workoutTemplateId) {
-                        return template.name
-                    }
-                    return nil
-                }()
+                let workoutName = resolveWorkoutName(
+                    from: mapping,
+                    using: workoutTemplateManager
+                )
                 
                 return ScheduledWorkout(
                     workoutTemplateId: mapping.workoutTemplateId,
@@ -168,6 +164,20 @@ class ProgramTemplateManager {
     }
     
     // MARK: - Helper Methods
+    
+    private func resolveWorkoutName(
+        from mapping: DayWorkoutMapping,
+        using workoutTemplateManager: WorkoutTemplateManager?
+    ) -> String? {
+        if let name = mapping.workoutName {
+            return name
+        }
+        guard let manager = workoutTemplateManager,
+              let template = try? manager.getLocalWorkoutTemplate(id: mapping.workoutTemplateId) else {
+            return nil
+        }
+        return template.name
+    }
     
     private func calculateDate(startDate: Date, weekOffset: Int, dayOfWeek: Int) -> Date {
         let calendar = Calendar.current

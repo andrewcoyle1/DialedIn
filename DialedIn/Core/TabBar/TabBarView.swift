@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TabBarView: View {
-    
+    @Environment(DependencyContainer.self) private var container
     @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @Environment(AppNavigationModel.self) private var appNavigation
     @State private var presentTracker: Bool = false
@@ -34,7 +34,7 @@ struct TabBarView: View {
                     Label("Nutrition", systemImage: "carrot")
                 }
             
-            ProfileView()
+            ProfileView(viewModel: ProfileViewModel(container: container))
                 .tag(AppSection.profile)
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")
@@ -53,7 +53,7 @@ struct TabBarView: View {
             workoutSessionManager.isTrackerPresented = newValue
         })) {
             if let session = workoutSessionManager.activeSession {
-                WorkoutTrackerView(workoutSession: session)
+                WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(container: container, workoutSession: session), initialWorkoutSession: session)
             }
         }
         .task {

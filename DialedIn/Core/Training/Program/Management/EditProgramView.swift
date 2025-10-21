@@ -7,284 +7,134 @@
 
 import SwiftUI
 
-struct EditProgramView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(TrainingPlanManager.self) private var trainingPlanManager
-    @Environment(ProgramTemplateManager.self) private var programTemplateManager
-    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
+@Observable
+@MainActor
+class EditProgramViewModel {
+    private let workoutTemplateManager: WorkoutTemplateManager
+    private let trainingPlanManager: TrainingPlanManager
+    private let programTemplateManager: ProgramTemplateManager
     
-    let plan: TrainingPlan
+    var name: String = ""
+    var description: String = ""
+    var startDate: Date = .now
+    var endDate: Date?
+    var hasEndDate: Bool = false
+    private(set) var isSaving = false
+    var showDateChangeAlert = false
+    var showDeleteActiveAlert = false
+    var pendingStartDate: Date?
     
-    @State private var name: String
-    @State private var description: String
-    @State private var startDate: Date
-    @State private var endDate: Date?
-    @State private var hasEndDate: Bool
-    @State private var isSaving = false
-    @State private var showDateChangeAlert = false
-    @State private var showDeleteActiveAlert = false
-    @State private var pendingStartDate: Date?
+    var originalStartDate: Date = .now
     
-    private let originalStartDate: Date
-    
-    init(plan: TrainingPlan) {
-        self.plan = plan
-        self.originalStartDate = plan.startDate
-        _name = State(initialValue: plan.name)
-        _description = State(initialValue: plan.description ?? "")
-        _startDate = State(initialValue: plan.startDate)
-        _endDate = State(initialValue: plan.endDate)
-        _hasEndDate = State(initialValue: plan.endDate != nil)
+    init(
+        container: DependencyContainer
+    ) {
+        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
+        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
+        self.programTemplateManager = container.resolve(ProgramTemplateManager.self)!
+        
+        // Initialize with default values - will be set by the view
+        self.name = ""
+        self.description = ""
+        self.startDate = .now
+        self.endDate = nil
+        self.hasEndDate = false
+        self.originalStartDate = .now
     }
     
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    TextField("Program Name", text: $name)
-                    
-                    TextField("Description (Optional)", text: $description, axis: .vertical)
-                        .lineLimit(3...6)
-                } header: {
-                    Text("Basic Information")
-                }
-                
-                Section {
-                    DatePicker("Start Date", selection: Binding(
-                        get: { startDate },
-                        set: { newDate in
-                            if !plan.weeks.flatMap({ $0.scheduledWorkouts }).isEmpty && newDate != originalStartDate {
-                                pendingStartDate = newDate
-                                showDateChangeAlert = true
-                            } else {
-                                startDate = newDate
-                            }
-                        }
-                    ), displayedComponents: .date)
-                    
-                    Toggle("Set End Date", isOn: $hasEndDate)
-                    
-                    if hasEndDate {
-                        DatePicker("End Date", selection: Binding(
-                            get: { endDate ?? startDate },
-                            set: { endDate = $0 }
-                        ), displayedComponents: .date)
-                    }
-                } header: {
-                    Text("Schedule")
-                } footer: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        if !hasEndDate {
-                            Text("Program will continue indefinitely")
-                        }
-                        if startDate != originalStartDate {
-                            Text("Changing the start date will automatically reschedule all workouts")
-                                .foregroundStyle(.orange)
-                        }
-                    }
-                }
-                
-                Section {
-                    HStack {
-                        Text("Duration")
-                        Spacer()
-                        if hasEndDate, let end = endDate {
-                            Text("\(calculateWeeks(from: startDate, to: end)) weeks")
-                                .foregroundStyle(.secondary)
-                        } else {
-                            Text("Ongoing")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    
-                    HStack {
-                        Text("Scheduled Weeks")
-                        Spacer()
-                        Text("\(plan.weeks.count)")
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    HStack {
-                        Text("Total Workouts")
-                        Spacer()
-                        Text("\(totalWorkouts)")
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    HStack {
-                        Text("Completed")
-                        Spacer()
-                        Text("\(completedWorkouts)")
-                            .foregroundStyle(.secondary)
-                    }
-                } header: {
-                    Text("Statistics")
-                } footer: {
-                    if hasEndDate, let end = endDate, startDate != originalStartDate || end != plan.endDate {
-                        Text("Program duration will be adjusted based on new dates")
-                            .foregroundStyle(.blue)
-                    }
-                }
-                
-                Section {
-                    NavigationLink {
-                        ProgramGoalsView(plan: plan)
-                    } label: {
-                        HStack {
-                            Label("Manage Goals", systemImage: "target")
-                            Spacer()
-                            Text("\(plan.goals.count)")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    
-                    NavigationLink {
-                        ProgramScheduleView(plan: plan)
-                    } label: {
-                        Label("View Schedule", systemImage: "calendar")
-                    }
-                } header: {
-                    Text("Details")
-                }
-                
-                if plan.isActive {
-                    Section {
-                        Button(role: .destructive) {
-                            showDeleteActiveAlert = true
-                        } label: {
-                            Label("Delete Program", systemImage: "trash")
-                        }
-                    } footer: {
-                        Text("This is your active program. Deleting it will remove all scheduled workouts and progress tracking.")
-                    }
-                }
-            }
-            .navigationTitle("Edit Program")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        Task {
-                            await savePlan()
-                        }
-                    }
-                    .disabled(name.isEmpty || isSaving)
-                }
-            }
-            .overlay {
-                if isSaving {
-                    ProgressView()
-                        .padding()
-                        .background(.regularMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-            }
-            .alert("Reschedule Workouts", isPresented: $showDateChangeAlert) {
-                Button("Cancel", role: .cancel) {
-                    pendingStartDate = nil
-                }
-                Button("Reschedule") {
-                    if let newDate = pendingStartDate {
-                        startDate = newDate
-                        pendingStartDate = nil
-                    }
-                }
-            } message: {
-                Text("This program has scheduled workouts. Changing the start date will automatically reschedule all workouts. Do you want to continue?")
-            }
-            .alert("Delete Active Program", isPresented: $showDeleteActiveAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Delete", role: .destructive) {
-                    Task {
-                        await deleteActivePlan()
-                    }
-                }
-            } message: {
-                Text("Are you sure you want to delete your active program '\(plan.name)'? This will remove all scheduled workouts and you'll need to create or select a new program.")
-            }
-        }
-    }
-    
-    private var totalWorkouts: Int {
+    func totalWorkouts(for plan: TrainingPlan) -> Int {
         plan.weeks.flatMap { $0.scheduledWorkouts }.count
     }
     
-    private var completedWorkouts: Int {
+    func completedWorkouts(for plan: TrainingPlan) -> Int {
         plan.weeks.flatMap { $0.scheduledWorkouts }.filter { $0.isCompleted }.count
     }
     
-    private func calculateWeeks(from startDate: Date, to endDate: Date) -> Int {
+    func calculateWeeks(from startDate: Date, to endDate: Date) -> Int {
         let calendar = Calendar.current
         let weeks = calendar.dateComponents([.weekOfYear], from: startDate, to: endDate).weekOfYear ?? 0
         return max(weeks, 0)
     }
     
-    private func deleteActivePlan() async {
+    func deleteActivePlan(plan: TrainingPlan, onDismiss: @escaping @MainActor () -> Void) async {
         isSaving = true
         defer { isSaving = false }
         
         do {
             try await trainingPlanManager.deletePlan(id: plan.planId)
-            dismiss()
+            onDismiss()
         } catch {
             print("Error deleting active plan: \(error)")
         }
     }
     
-    private func savePlan() async {
+    func savePlan(plan: TrainingPlan, onDismiss: @escaping @MainActor () -> Void) async {
         isSaving = true
         defer { isSaving = false }
         
-        // Check if start date changed and we need to reschedule workouts
         var updatedWeeks = plan.weeks
         if startDate != originalStartDate {
             updatedWeeks = rescheduleWorkouts(weeks: plan.weeks, oldStartDate: originalStartDate, newStartDate: startDate)
         }
         
-        // Handle end date changes
-        let originalEndDate = plan.endDate
-        let newEndDate = hasEndDate ? endDate : nil
+        let adjustedEndDate = calculateAdjustedEndDate(originalEndDate: plan.endDate)
+        updatedWeeks = await handleEndDateChanges(
+            weeks: updatedWeeks,
+            originalEndDate: plan.endDate,
+            adjustedEndDate: adjustedEndDate,
+            programTemplateId: plan.programTemplateId
+        )
         
-        // Adjust end date if start date changed (maintain duration)
+        let updatedPlan = createUpdatedPlan(from: plan, weeks: updatedWeeks, adjustedEndDate: adjustedEndDate)
+        await sendUpdatedPlan(updatedPlan: updatedPlan, onDismiss: onDismiss)
+    }
+    
+    private func calculateAdjustedEndDate(originalEndDate: Date?) -> Date? {
+        let newEndDate = hasEndDate ? endDate : nil
         var adjustedEndDate = newEndDate
+        
         if hasEndDate, let currentEndDate = endDate, startDate != originalStartDate {
             let calendar = Calendar.current
             let daysDifference = calendar.dateComponents([.day], from: originalStartDate, to: startDate).day ?? 0
             adjustedEndDate = calendar.date(byAdding: .day, value: daysDifference, to: currentEndDate)
         }
         
-        // Handle end date extension/shortening
+        return adjustedEndDate
+    }
+    
+    private func handleEndDateChanges(
+        weeks: [TrainingWeek],
+        originalEndDate: Date?,
+        adjustedEndDate: Date?,
+        programTemplateId: String?
+    ) async -> [TrainingWeek] {
+        var updatedWeeks = weeks
+        
         if adjustedEndDate != originalEndDate {
             if let newEnd = adjustedEndDate {
-                // Check if extending or shortening
                 if let oldEnd = originalEndDate, newEnd > oldEnd {
-                    // Extending: Add more workouts from template if available
                     do {
                         updatedWeeks = try await extendProgramSchedule(
                             weeks: updatedWeeks,
                             startDate: startDate,
                             oldEndDate: oldEnd,
                             newEndDate: newEnd,
-                            programTemplateId: plan.programTemplateId
+                            programTemplateId: programTemplateId
                         )
                     } catch {
                         print("Error extending program schedule: \(error)")
                     }
                 } else {
-                    // Shortening or setting for first time: Filter out future workouts
                     updatedWeeks = filterWorkoutsByEndDate(weeks: updatedWeeks, endDate: newEnd)
                 }
             }
-            // If newEndDate is nil, keep all workouts (no end date = indefinite)
         }
         
-        let updatedPlan = TrainingPlan(
+        return updatedWeeks
+    }
+    
+    private func createUpdatedPlan(from plan: TrainingPlan, weeks: [TrainingWeek], adjustedEndDate: Date?) -> TrainingPlan {
+        TrainingPlan(
             planId: plan.planId,
             userId: plan.userId,
             name: name,
@@ -293,21 +143,23 @@ struct EditProgramView: View {
             endDate: adjustedEndDate,
             isActive: plan.isActive,
             programTemplateId: plan.programTemplateId,
-            weeks: updatedWeeks,
+            weeks: weeks,
             goals: plan.goals,
             createdAt: plan.createdAt,
             modifiedAt: .now
         )
-        
+    }
+    
+    func sendUpdatedPlan(updatedPlan: TrainingPlan, onDismiss: @escaping @MainActor () -> Void) async {
         do {
             try await trainingPlanManager.updatePlan(updatedPlan)
-            dismiss()
+            onDismiss()
         } catch {
             print("Error updating plan: \(error)")
         }
     }
     
-    private func rescheduleWorkouts(weeks: [TrainingWeek], oldStartDate: Date, newStartDate: Date) -> [TrainingWeek] {
+    func rescheduleWorkouts(weeks: [TrainingWeek], oldStartDate: Date, newStartDate: Date) -> [TrainingWeek] {
         let calendar = Calendar.current
         let daysDifference = calendar.dateComponents([.day], from: oldStartDate, to: newStartDate).day ?? 0
         
@@ -338,7 +190,7 @@ struct EditProgramView: View {
         }
     }
     
-    private func filterWorkoutsByEndDate(weeks: [TrainingWeek], endDate: Date) -> [TrainingWeek] {
+    func filterWorkoutsByEndDate(weeks: [TrainingWeek], endDate: Date) -> [TrainingWeek] {
         return weeks.map { week in
             let filteredWorkouts = week.scheduledWorkouts.filter { workout in
                 // Keep completed workouts regardless of date
@@ -360,7 +212,7 @@ struct EditProgramView: View {
         }.filter { !$0.scheduledWorkouts.isEmpty || $0.notes != nil }
     }
     
-    private func extendProgramSchedule(
+    func extendProgramSchedule(
         weeks: [TrainingWeek],
         startDate: Date,
         oldEndDate: Date,
@@ -425,7 +277,7 @@ struct EditProgramView: View {
         return updatedWeeks.sorted { $0.weekNumber < $1.weekNumber }
     }
     
-    private func calculateScheduleDate(startDate: Date, weekOffset: Int, dayOfWeek: Int) -> Date {
+    func calculateScheduleDate(startDate: Date, weekOffset: Int, dayOfWeek: Int) -> Date {
         let calendar = Calendar.current
         
         // For week 1, find the first occurrence of this day of week on or after start date
@@ -442,7 +294,7 @@ struct EditProgramView: View {
         return targetDate
     }
     
-    private func findNextDayOfWeek(_ targetDayOfWeek: Int, onOrAfter date: Date) -> Date {
+    func findNextDayOfWeek(_ targetDayOfWeek: Int, onOrAfter date: Date) -> Date {
         let calendar = Calendar.current
         let currentDayOfWeek = calendar.component(.weekday, from: date)
         
@@ -463,7 +315,204 @@ struct EditProgramView: View {
     }
 }
 
+struct EditProgramView: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    @State var viewModel: EditProgramViewModel
+    
+    let plan: TrainingPlan
+    
+    init(viewModel: EditProgramViewModel, plan: TrainingPlan) {
+        self.viewModel = viewModel
+        self.plan = plan
+        self.viewModel.originalStartDate = plan.startDate
+        self.viewModel.name = plan.name
+        self.viewModel.description = plan.description ?? ""
+        self.viewModel.startDate = plan.startDate
+        self.viewModel.endDate = plan.endDate
+        self.viewModel.hasEndDate = plan.endDate != nil
+    }
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Program Name", text: $viewModel.name)
+                    
+                    TextField("Description (Optional)", text: $viewModel.description, axis: .vertical)
+                        .lineLimit(3...6)
+                } header: {
+                    Text("Basic Information")
+                }
+                
+                Section {
+                    DatePicker("Start Date", selection: Binding(
+                        get: { viewModel.startDate },
+                        set: { newDate in
+                            if !plan.weeks.flatMap({ $0.scheduledWorkouts }).isEmpty && newDate != viewModel.originalStartDate {
+                                viewModel.pendingStartDate = newDate
+                                viewModel.showDateChangeAlert = true
+                            } else {
+                                viewModel.startDate = newDate
+                            }
+                        }
+                    ), displayedComponents: .date)
+                    
+                    Toggle("Set End Date", isOn: $viewModel.hasEndDate)
+                    
+                    if viewModel.hasEndDate {
+                        DatePicker("End Date", selection: Binding(
+                            get: { viewModel.endDate ?? viewModel.startDate },
+                            set: { viewModel.endDate = $0 }
+                        ), displayedComponents: .date)
+                    }
+                } header: {
+                    Text("Schedule")
+                } footer: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        if !viewModel.hasEndDate {
+                            Text("Program will continue indefinitely")
+                        }
+                        if viewModel.startDate != viewModel.originalStartDate {
+                            Text("Changing the start date will automatically reschedule all workouts")
+                                .foregroundStyle(.orange)
+                        }
+                    }
+                }
+                
+                Section {
+                    HStack {
+                        Text("Duration")
+                        Spacer()
+                        if viewModel.hasEndDate, let end = viewModel.endDate {
+                            Text("\(viewModel.calculateWeeks(from: viewModel.startDate, to: end)) weeks")
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("Ongoing")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    
+                    HStack {
+                        Text("Scheduled Weeks")
+                        Spacer()
+                        Text("\(plan.weeks.count)")
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("Total Workouts")
+                        Spacer()
+                        Text("\(viewModel.totalWorkouts(for: plan))")
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("Completed")
+                        Spacer()
+                        Text("\(viewModel.completedWorkouts(for: plan))")
+                            .foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("Statistics")
+                } footer: {
+                    if viewModel.hasEndDate, let end = viewModel.endDate, viewModel.startDate != viewModel.originalStartDate || end != plan.endDate {
+                        Text("Program duration will be adjusted based on new dates")
+                            .foregroundStyle(.blue)
+                    }
+                }
+                
+                Section {
+                    NavigationLink {
+                        ProgramGoalsView(plan: plan)
+                    } label: {
+                        HStack {
+                            Label("Manage Goals", systemImage: "target")
+                            Spacer()
+                            Text("\(plan.goals.count)")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    
+                    NavigationLink {
+                        ProgramScheduleView(plan: plan)
+                    } label: {
+                        Label("View Schedule", systemImage: "calendar")
+                    }
+                } header: {
+                    Text("Details")
+                }
+                
+                if plan.isActive {
+                    Section {
+                        Button(role: .destructive) {
+                            viewModel.showDeleteActiveAlert = true
+                        } label: {
+                            Label("Delete Program", systemImage: "trash")
+                        }
+                    } footer: {
+                        Text("This is your active program. Deleting it will remove all scheduled workouts and progress tracking.")
+                    }
+                }
+            }
+            .navigationTitle("Edit Program")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        Task {
+                            await viewModel.savePlan(plan: plan, onDismiss: {
+                                dismiss()
+                            })
+                        }
+                    }
+                    .disabled(viewModel.name.isEmpty || viewModel.isSaving)
+                }
+            }
+            .overlay {
+                if viewModel.isSaving {
+                    ProgressView()
+                        .padding()
+                        .background(.regularMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
+            .alert("Reschedule Workouts", isPresented: $viewModel.showDateChangeAlert) {
+                Button("Cancel", role: .cancel) {
+                    viewModel.pendingStartDate = nil
+                }
+                Button("Reschedule") {
+                    if let newDate = viewModel.pendingStartDate {
+                        viewModel.startDate = newDate
+                        viewModel.pendingStartDate = nil
+                    }
+                }
+            } message: {
+                Text("This program has scheduled workouts. Changing the start date will automatically reschedule all workouts. Do you want to continue?")
+            }
+            .alert("Delete Active Program", isPresented: $viewModel.showDeleteActiveAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    Task {
+                        await viewModel.deleteActivePlan(plan: plan, onDismiss: {
+                            dismiss()
+                        })
+                    }
+                }
+            } message: {
+                Text("Are you sure you want to delete your active program '\(plan.name)'? This will remove all scheduled workouts and you'll need to create or select a new program.")
+            }
+        }
+    }
+}
+
 #Preview {
-    EditProgramView(plan: TrainingPlan.mock)
+    EditProgramView(viewModel: EditProgramViewModel(container: DevPreview.shared.container), plan: TrainingPlan.mock)
         .previewEnvironment()
 }

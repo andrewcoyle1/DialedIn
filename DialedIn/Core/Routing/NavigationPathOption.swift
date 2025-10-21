@@ -51,20 +51,23 @@ enum NavigationOptions: Equatable, Hashable, Identifiable {
     }
     
     /// A view builder that the split view uses to show a view for the selected navigation option.
-    @MainActor @ViewBuilder func viewForPage() -> some View {
+    @MainActor @ViewBuilder func viewForPage(container: DependencyContainer) -> some View {
         switch self {
         case .dashboard: DashboardView()
         case .nutrition: NutritionView()
         case .training: TrainingView()
-        case .profile: ProfileView()
+        case .profile: ProfileView(viewModel: ProfileViewModel(container: container))
         }
     }
 }
 
-extension View {
+struct NavDestinationForCoreModuleViewModifier: ViewModifier {
     
-    func navigationDestinationForCoreModule(path: Binding<[NavigationPathOption]>) -> some View {
-        self
+    @Environment(DependencyContainer.self) private var container
+    let path: Binding<[NavigationPathOption]>
+    
+    func body(content: Content) -> some View {
+        content
             .navigationDestination(for: NavigationPathOption.self) { newValue in
                 switch newValue {
                 case .exerciseTemplate(exerciseTemplate: let exerciseTemplate):
@@ -72,7 +75,7 @@ extension View {
                 case .workoutTemplateList:
                     WorkoutTemplateListView()
                 case .workoutTemplateDetail(template: let template):
-                    WorkoutTemplateDetailView(workoutTemplate: template)
+                    WorkoutTemplateDetailView(viewModel: WorkoutTemplateDetailViewModel(container: container), workoutTemplate: template)
                 case .ingredientTemplateDetail(template: let template):
                     IngredientDetailView(ingredientTemplate: template)
                 case .recipeTemplateDetail(template: let template):
@@ -81,5 +84,12 @@ extension View {
                     WorkoutSessionDetailView(session: session)
                 }
             }
+    }
+}
+
+extension View {
+    
+    func navigationDestinationForCoreModule(path: Binding<[NavigationPathOption]>) -> some View {
+        modifier(NavDestinationForCoreModuleViewModifier(path: path))
     }
 }

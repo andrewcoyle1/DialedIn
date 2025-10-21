@@ -1,0 +1,115 @@
+//
+//  WorkoutStartViewModel.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 21/10/2025.
+//
+
+import SwiftUI
+
+@Observable
+@MainActor
+class WorkoutStartViewModel {
+    private let userManager: UserManager
+    private let exerciseHistoryManager: ExerciseHistoryManager
+    private let workoutSessionManager: WorkoutSessionManager
+#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+    private let workoutActivityViewModel: WorkoutActivityViewModel
+#endif
+    private let trainingPlanManager: TrainingPlanManager
+    
+    init(
+        container: DependencyContainer
+    ) {
+        self.userManager = container.resolve(UserManager.self)!
+        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
+        self.exerciseHistoryManager = container.resolve(ExerciseHistoryManager.self)!
+        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
+#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        self.workoutActivityViewModel = container.resolve(WorkoutActivityViewModel.self)!
+#endif
+    }
+
+    var workoutNotes = ""
+    var isStarting = false
+    var showingTracker = false
+    private(set) var createdSession: WorkoutSessionModel?
+    
+    var activeSession: WorkoutSessionModel? {
+        workoutSessionManager.activeSession
+    }
+    
+    var currentTrainingPlan: TrainingPlan? {
+        trainingPlanManager.currentTrainingPlan
+    }
+    
+    var currentUser: UserModel? {
+        userManager.currentUser
+    }
+    
+    func estimatedTime(template: WorkoutTemplateModel) -> String {
+        // Rough estimate: 3-4 minutes per exercise
+        let minutes = template.exercises.count * 4
+        let hours = minutes / 60
+        let remainingMinutes = minutes % 60
+        
+        if hours > 0 {
+            return "\(hours)h \(remainingMinutes)m"
+        } else {
+            return "\(remainingMinutes)m"
+        }
+    }
+    
+    func primaryMuscleGroup(template: WorkoutTemplateModel) -> String {
+        // Find the most common exercise category
+        let categories = template.exercises.map { $0.type }
+        let categoryFrequency = Dictionary(grouping: categories, by: { $0 })
+            .mapValues { $0.count }
+        
+        let mostCommon = categoryFrequency.max(by: { $0.value < $1.value })?.key
+        return mostCommon?.displayName ?? "Mixed"
+    }
+    
+    func startWorkout(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout?) {
+        guard let userId = currentUser?.userId else {
+            return
+        }
+        
+        Task {
+            isStarting = true
+            
+            do {
+                // Create workout session from template
+                let session = WorkoutSessionModel(
+                    authorId: userId,
+                    template: template,
+                    notes: workoutNotes.isEmpty ? nil : workoutNotes,
+                    scheduledWorkoutId: scheduledWorkout?.id,
+                    trainingPlanId: scheduledWorkout != nil ? currentTrainingPlan?.planId : nil
+                )
+                
+                // Save locally first (MainActor-isolated)
+                try workoutSessionManager.addLocalWorkoutSession(session: session)
+                
+                await MainActor.run {
+                    createdSession = session
+                    isStarting = false
+                }
+                
+                // Small delay before presenting next screen
+                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                
+                await MainActor.run {
+                    workoutSessionManager.startActiveSession(session)
+                    showingTracker = true
+                }
+                
+            } catch {
+                await MainActor.run {
+                    isStarting = false
+                    // Handle error - could show an alert
+                }
+            }
+        }
+    }
+}
