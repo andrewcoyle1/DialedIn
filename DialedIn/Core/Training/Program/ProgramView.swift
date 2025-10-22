@@ -8,55 +8,18 @@
 import SwiftUI
 
 struct ProgramView: View {
-    
-    @Environment(TrainingPlanManager.self) private var trainingPlanManager
-    @Environment(ProgramTemplateManager.self) private var programTemplateManager
-    @Environment(WorkoutSessionManager.self) private var workoutSessionManager
-    @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
-    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
-    @Environment(AuthManager.self) private var authManager
-    
-    @Binding var isShowingInspector: Bool
-    @Binding var selectedWorkoutTemplate: WorkoutTemplateModel?
-    @Binding var selectedExerciseTemplate: ExerciseTemplateModel?
-    @Binding var selectedHistorySession: WorkoutSessionModel?
-    // Sheet coordination is hoisted to TrainingView
-    @Binding var activeSheet: ActiveSheet?
-    @Binding var workoutToStart: WorkoutTemplateModel?
-    @Binding var scheduledWorkoutToStart: ScheduledWorkout?
-
-    @State private var isShowingCalendar: Bool = true
-    enum ActiveSheet: Identifiable {
-        case programPicker
-        case progressDashboard
-        case strengthProgress
-        case workoutHeatmap
-        var id: String {
-            switch self {
-            case .programPicker: return "programPicker"
-            case .progressDashboard: return "progressDashboard"
-            case .strengthProgress: return "strengthProgress"
-            case .workoutHeatmap: return "workoutHeatmap"
-            }
-        }
-    }
-    @State private var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
-    @State private var showAlert: AnyAppAlert?
+    @Environment(DependencyContainer.self) private var container
+    @State var viewModel: ProgramViewModel
     
     var body: some View {
-        listContents
-            .showCustomAlert(alert: $showAlert)
-    }
-    
-    private var listContents: some View {
-        // Group {
         List {
-            if trainingPlanManager.currentTrainingPlan != nil {
+            if viewModel.currentTrainingPlan != nil {
                 activeProgramView
             } else {
                 noProgramView
             }
         }
+        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     private var activeProgramView: some View {
@@ -72,7 +35,7 @@ struct ProgramView: View {
     
     private var programOverviewSection: some View {
         Section {
-            if let plan = trainingPlanManager.currentTrainingPlan {
+            if let plan = viewModel.currentTrainingPlan {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
@@ -89,7 +52,7 @@ struct ProgramView: View {
                         Menu {
                             Button {
                                 DispatchQueue.main.async {
-                                    activeSheet = .programPicker
+                                    viewModel.activeSheet = .programPicker
                                 }
                             } label: {
                                 Label("Manage Programs", systemImage: "list.bullet")
@@ -97,7 +60,7 @@ struct ProgramView: View {
                             
                             Button {
                                 DispatchQueue.main.async {
-                                    activeSheet = .progressDashboard
+                                    viewModel.activeSheet = .progressDashboard
                                 }
                             } label: {
                                 Label("View Analytics", systemImage: "chart.xyaxis.line")
@@ -105,7 +68,7 @@ struct ProgramView: View {
 
                             Button {
                                 DispatchQueue.main.async {
-                                    activeSheet = .strengthProgress
+                                    viewModel.activeSheet = .strengthProgress
                                 }
                             } label: {
                                 Label("Strength Progress", systemImage: "chart.line.uptrend.xyaxis")
@@ -113,7 +76,7 @@ struct ProgramView: View {
 
                             Button {
                                 DispatchQueue.main.async {
-                                    activeSheet = .workoutHeatmap
+                                    viewModel.activeSheet = .workoutHeatmap
                                 }
                             } label: {
                                 Label("Training Frequency", systemImage: "square.grid.3x3.fill.square")
@@ -126,14 +89,14 @@ struct ProgramView: View {
                     // Quick stats
                     HStack(spacing: 20) {
                         StatBadge(
-                            value: "\(Int(trainingPlanManager.getAdherenceRate() * 100))%",
+                            value: "\(Int(viewModel.adherenceRate*100))%",
                             label: "Adherence",
                             systemImage: "checkmark.circle.fill",
-                            color: adherenceColor(trainingPlanManager.getAdherenceRate())
+                            color: viewModel.adherenceColor(viewModel.adherenceRate)
                         )
                         
-                        if let currentWeek = trainingPlanManager.getCurrentWeek() {
-                            let progress = trainingPlanManager.getWeeklyProgress(for: currentWeek.weekNumber)
+                        if let currentWeek = viewModel.currentWeek {
+                            let progress = viewModel.getWeeklyProgress(weekNumber: currentWeek.weekNumber)
                             StatBadge(
                                 value: "\(progress.completedWorkouts)/\(progress.totalWorkouts)",
                                 label: "This Week",
@@ -142,7 +105,7 @@ struct ProgramView: View {
                             )
                         }
                         
-                        let upcomingCount = trainingPlanManager.getUpcomingWorkouts().count
+                        let upcomingCount = viewModel.upcomingWorkouts.count
                         StatBadge(
                             value: "\(upcomingCount)",
                             label: "Upcoming",
@@ -153,13 +116,13 @@ struct ProgramView: View {
                     
                     // Program timeline
                     if let endDate = plan.endDate {
-                        ProgressView(value: progressValue(start: plan.startDate, end: endDate)) {
+                        ProgressView(value: viewModel.progressValue(start: plan.startDate, end: endDate)) {
                             HStack {
-                                Text("Week \(currentWeekNumber(start: plan.startDate)) of \(totalWeeks(start: plan.startDate, end: endDate))")
+                                Text("Week \(viewModel.currentWeekNumber(start: plan.startDate)) of \(viewModel.totalWeeks(start: plan.startDate, end: endDate))")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                 Spacer()
-                                Text(daysRemaining(until: endDate))
+                                Text(viewModel.daysRemaining(until: endDate))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -175,31 +138,35 @@ struct ProgramView: View {
     
     private var todaysWorkoutSection: some View {
         Group {
-            let todaysWorkouts = trainingPlanManager.getTodaysWorkouts()
+            let todaysWorkouts = viewModel.todaysWorkouts
             if !todaysWorkouts.isEmpty {
                 Section {
                     ForEach(todaysWorkouts) { workout in
                         if workout.isCompleted {
-                            WorkoutSummaryCard(
-                                scheduledWorkout: workout,
-                                onTap: {
-                                    Task {
-                                        await openCompletedSession(for: workout)
+                            WorkoutSummaryCardView(
+                                viewModel: WorkoutSummaryCardViewModel(
+                                    container: container,
+                                    scheduledWorkout: workout,
+                                    onTap: {
+                                        Task {
+                                            await viewModel.openCompletedSession(for: workout)
+                                        }
                                     }
-                                }
+                                )
                             )
                         } else {
-                            TodaysWorkoutCard(
+                            TodaysWorkoutCardView(
+                                viewModel: TodaysWorkoutCardViewModel(container: container,
                                 scheduledWorkout: workout,
                                 onStart: {
                                     Task {
                                         do {
-                                            try await startWorkout(workout)
+                                            try await viewModel.startWorkout(workout)
                                         } catch {
-                                            showAlert = AnyAppAlert(error: error)
+                                            viewModel.showAlert = AnyAppAlert(error: error)
                                         }
                                     }
-                                }
+                                })
                             )
                         }
                     }
@@ -216,10 +183,10 @@ struct ProgramView: View {
     
     private var calendarSection: some View {
         WorkoutCalendarView(
-            workoutToStart: $workoutToStart,
-            scheduledWorkoutToStart: $scheduledWorkoutToStart,
-            selectedHistorySession: $selectedHistorySession,
-            isShowingInspector: $isShowingInspector
+            workoutToStart: $viewModel.workoutToStart,
+            scheduledWorkoutToStart: $viewModel.scheduledWorkoutToStart,
+            selectedHistorySession: $viewModel.selectedHistorySession,
+            isShowingInspector: $viewModel.isShowingInspector
         )
     }
     
@@ -244,30 +211,33 @@ struct ProgramView: View {
     @ViewBuilder
     private func dayWorkoutRow(dayOffset: Int, weekStart: Date, calendar: Calendar) -> some View {
         let day = calendar.date(byAdding: .day, value: dayOffset, to: weekStart) ?? weekStart
-        let workoutsForDay = getWorkoutsForDay(day, calendar: calendar)
+        let workoutsForDay = viewModel.getWorkoutsForDay(day, calendar: calendar)
         
         if workoutsForDay.isEmpty {
             RestDayRow(date: day)
         } else {
             ForEach(workoutsForDay) { workout in
                 if workout.isCompleted {
-                    WorkoutSummaryCard(
-                        scheduledWorkout: workout,
-                        onTap: {
-                            Task {
-                                await openCompletedSession(for: workout)
+                    WorkoutSummaryCardView(
+                        viewModel: WorkoutSummaryCardViewModel(
+                            container: container,
+                            scheduledWorkout: workout,
+                            onTap: {
+                                Task {
+                                    await viewModel.openCompletedSession(for: workout)
+                                }
                             }
-                        }
+                        )
                     )
                 } else {
-                    ScheduledWorkoutRow(scheduledWorkout: workout)
+                    ScheduledWorkoutRowView(viewModel: ScheduledWorkoutRowViewModel(scheduledWorkout: workout))
                         .contentShape(Rectangle())
                         .onTapGesture {
                             Task {
                                 do {
-                                    try await startWorkout(workout)
+                                    try await viewModel.startWorkout(workout)
                                 } catch {
-                                    showAlert = AnyAppAlert(error: error)
+                                    viewModel.showAlert = AnyAppAlert(error: error)
                                 }
                             }
                         }
@@ -275,19 +245,10 @@ struct ProgramView: View {
             }
         }
     }
-    
-    private func getWorkoutsForDay(_ day: Date, calendar: Calendar) -> [ScheduledWorkout] {
-        (trainingPlanManager.currentTrainingPlan?.weeks.flatMap { $0.scheduledWorkouts } ?? [])
-            .filter { workout in
-                guard let scheduled = workout.scheduledDate else { return false }
-                return calendar.isDate(scheduled, inSameDayAs: day)
-            }
-            .sorted { ($0.scheduledDate ?? .distantFuture) < ($1.scheduledDate ?? .distantFuture) }
-    }
 
     private var goalsSection: some View {
         Group {
-            if let plan = trainingPlanManager.currentTrainingPlan, !plan.goals.isEmpty {
+            if let plan = viewModel.currentTrainingPlan, !plan.goals.isEmpty {
                 Section {
                     ForEach(plan.goals) { goal in
                         GoalProgressRow(goal: goal)
@@ -303,7 +264,7 @@ struct ProgramView: View {
         Section {
             Button {
                 DispatchQueue.main.async {
-                    activeSheet = .progressDashboard
+                    viewModel.activeSheet = .progressDashboard
                 }
             } label: {
                 HStack {
@@ -347,7 +308,7 @@ struct ProgramView: View {
                 
                 Button {
                     DispatchQueue.main.async {
-                        activeSheet = .programPicker
+                        viewModel.activeSheet = .programPicker
                     }
                 } label: {
                     Label("Choose Program", systemImage: "plus.circle.fill")
@@ -359,78 +320,26 @@ struct ProgramView: View {
             .padding(.vertical, 32)
         }
     }
-    
-    // MARK: - Helper Methods
-    
-    private func adherenceColor(_ rate: Double) -> Color {
-        if rate >= 0.8 { return .green }
-        if rate >= 0.6 { return .orange }
-        return .red
-    }
-    
-    private func progressValue(start: Date, end: Date) -> Double {
-        let total = end.timeIntervalSince(start)
-        let elapsed = Date().timeIntervalSince(start)
-        return min(max(elapsed / total, 0), 1)
-    }
-    
-    private func currentWeekNumber(start: Date) -> Int {
-        let weeks = Calendar.current.dateComponents([.weekOfYear], from: start, to: .now).weekOfYear ?? 0
-        return weeks + 1
-    }
-    
-    private func totalWeeks(start: Date, end: Date) -> Int {
-        let weeks = Calendar.current.dateComponents([.weekOfYear], from: start, to: end).weekOfYear ?? 0
-        return weeks + 1
-    }
-    
-    private func daysRemaining(until date: Date) -> String {
-        let days = Calendar.current.dateComponents([.day], from: .now, to: date).day ?? 0
-        if days == 0 {
-            return "Ends today"
-        } else if days == 1 {
-            return "1 day left"
-        } else {
-            return "\(days) days left"
-        }
-    }
-    
-    private func startWorkout(_ scheduledWorkout: ScheduledWorkout) async throws {
-        let template = try await workoutTemplateManager.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
-        
-        // Store scheduled workout reference for WorkoutStartView
-        scheduledWorkoutToStart = scheduledWorkout
-        
-        // Small delay to ensure any pending presentations complete
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-        
-        // Show WorkoutStartView (preview, notes, etc.)
-        workoutToStart = template
-    }
-
-    private func openCompletedSession(for scheduledWorkout: ScheduledWorkout) async {
-        guard let sessionId = scheduledWorkout.completedSessionId else { return }
-        do {
-            let session = try await workoutSessionManager.getWorkoutSession(id: sessionId)
-            await MainActor.run {
-                selectedHistorySession = session
-                isShowingInspector = true
-            }
-        } catch {
-            showAlert = AnyAppAlert(error: error)
-        }
-    }
 }
 
 #Preview {
     List {
-        ProgramView(isShowingInspector: Binding.constant(true),
-                    selectedWorkoutTemplate: Binding.constant(nil),
-                    selectedExerciseTemplate: Binding.constant(nil),
-                    selectedHistorySession: Binding.constant(nil),
-                    activeSheet: Binding.constant(nil),
-                    workoutToStart: Binding.constant(nil),
-                    scheduledWorkoutToStart: Binding.constant(nil))
+        ProgramView(viewModel: ProgramViewModel(container: DevPreview.shared.container))
     }
     .previewEnvironment()
+}
+
+enum ActiveSheet: Identifiable {
+    case programPicker
+    case progressDashboard
+    case strengthProgress
+    case workoutHeatmap
+    var id: String {
+        switch self {
+        case .programPicker: return "programPicker"
+        case .progressDashboard: return "progressDashboard"
+        case .strengthProgress: return "strengthProgress"
+        case .workoutHeatmap: return "workoutHeatmap"
+        }
+    }
 }

@@ -32,7 +32,7 @@ struct SplitViewContainer: View {
             }
             .safeAreaInset(edge: .bottom) {
                 if let active = workoutSessionManager.activeSession, !workoutSessionManager.isTrackerPresented {
-                    TabViewAccessory(active: active)
+                    TabViewAccessoryView(viewModel: TabViewAccessoryViewModel(container: container), active: active)
                         .padding()
                         .buttonStyle(.bordered)
                 }

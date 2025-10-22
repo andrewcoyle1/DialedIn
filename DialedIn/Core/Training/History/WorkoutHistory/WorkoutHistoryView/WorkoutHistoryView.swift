@@ -8,13 +8,10 @@
 import SwiftUI
 
 struct WorkoutHistoryView: View {
-    
-    @State var viewModel: WorkoutHistoryViewModel
+    @Environment(DependencyContainer.self) private var container
     @Environment(\.layoutMode) private var layoutMode
-    
-    @Binding var selectedSession: WorkoutSessionModel?
-    @Binding var isShowingInspector: Bool
-    
+    @State var viewModel: WorkoutHistoryViewModel
+
     var body: some View {
         List {
             if viewModel.isLoading && viewModel.sessions.isEmpty {
@@ -69,10 +66,8 @@ struct WorkoutHistoryView: View {
             ForEach(viewModel.sessions) { session in
                 WorkoutHistoryRow(session: session)
                     .contentShape(Rectangle())
-                    .onTapGesture {
-                        selectedSession = session
-                        // In compact/tabBar mode, open inspector; split view will route via onChange in parent
-                        if layoutMode != .splitView { isShowingInspector = true }
+                    .anyButton(.highlight) {
+                        viewModel.onWorkoutSessionPressed(session: session, layoutMode: layoutMode)
                     }
             }
         } header: {
@@ -86,9 +81,7 @@ struct WorkoutHistoryView: View {
         WorkoutHistoryView(
             viewModel: WorkoutHistoryViewModel(
                 container: DevPreview.shared.container
-            ),
-            selectedSession: Binding.constant(nil),
-            isShowingInspector: Binding.constant(false)
+            )
         )
         .navigationTitle("Workout History")
     }
@@ -100,9 +93,7 @@ struct WorkoutHistoryView: View {
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
     return NavigationStack {
         WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(container: container),
-            selectedSession: .constant(nil),
-            isShowingInspector: .constant(false)
+            viewModel: WorkoutHistoryViewModel(container: container)
         )
         .navigationTitle("Workout History")
     }
@@ -114,9 +105,7 @@ struct WorkoutHistoryView: View {
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(sessions: [])))
     return NavigationStack {
         WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(container: container),
-            selectedSession: .constant(nil),
-            isShowingInspector: .constant(false)
+            viewModel: WorkoutHistoryViewModel(container: container)
         )
         .navigationTitle("Workout History")
     }
@@ -129,9 +118,7 @@ struct WorkoutHistoryView: View {
     
     return NavigationStack {
         WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(container: container),
-            selectedSession: .constant(nil),
-            isShowingInspector: .constant(false)
+            viewModel: WorkoutHistoryViewModel(container: container)
         )
         .navigationTitle("Workout History")
     }
@@ -145,9 +132,7 @@ struct WorkoutHistoryView: View {
     
     return NavigationStack {
         WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(container: container),
-            selectedSession: .constant(nil),
-            isShowingInspector: .constant(false)
+            viewModel: WorkoutHistoryViewModel(container: container)
         )
         .navigationTitle("Workout History")
     }

@@ -216,20 +216,3 @@ extension NutritionView {
     }
     
 }
-
-private struct InspectorIfCompact<InspectorContent: View>: ViewModifier {
-    @Binding var isPresented: Bool
-    let inspector: () -> InspectorContent
-    let enabled: Bool
-
-    func body(content: Content) -> some View {
-        Group {
-            if enabled {
-                content
-                    .inspector(isPresented: $isPresented) { self.inspector() }
-            } else {
-                content
-            }
-        }
-    }
-}

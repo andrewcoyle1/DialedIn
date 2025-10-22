@@ -8,20 +8,9 @@
 import SwiftUI
 
 struct WorkoutHeatmapView: View {
+    @State var viewModel: WorkoutHeatmapViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var progressAnalytics: ProgressAnalyticsService
-    @State private var performanceMetrics: PerformanceMetrics?
-    @State private var heatmapData: [Date: Int] = [:]
-    @State private var isLoading = false
-    @State private var selectedMonth: Date = Date()
-    
-    init(progressAnalytics: ProgressAnalyticsService) {
-        self.progressAnalytics = progressAnalytics
-    }
-    
-    private let calendar = Calendar.current
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
-    
+   
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -29,7 +18,7 @@ struct WorkoutHeatmapView: View {
                     // Month selector
                     monthNavigator
                     
-                    if isLoading {
+                    if viewModel.isLoading {
                         ProgressView()
                             .padding(40)
                     } else {
@@ -43,7 +32,7 @@ struct WorkoutHeatmapView: View {
                         heatmapLegend
                         
                         // Stats
-                        if let metrics = performanceMetrics {
+                        if let metrics = viewModel.performanceMetrics {
                             heatmapStatsSection(metrics)
                         }
                     }
@@ -60,11 +49,11 @@ struct WorkoutHeatmapView: View {
                 }
             }
             .task {
-                await loadHeatmapData()
+                await viewModel.loadHeatmapData()
             }
-            .onChange(of: selectedMonth) { _, _ in
+            .onChange(of: viewModel.selectedMonth) { _, _ in
                 Task {
-                    await loadHeatmapData()
+                    await viewModel.loadHeatmapData()
                 }
             }
         }
@@ -73,8 +62,8 @@ struct WorkoutHeatmapView: View {
     private var monthNavigator: some View {
         HStack {
             Button {
-                if let newMonth = calendar.date(byAdding: .month, value: -1, to: selectedMonth) {
-                    selectedMonth = newMonth
+                if let newMonth = viewModel.calendar.date(byAdding: .month, value: -1, to: viewModel.selectedMonth) {
+                    viewModel.selectedMonth = newMonth
                 }
             } label: {
                 Image(systemName: "chevron.left")
@@ -83,28 +72,28 @@ struct WorkoutHeatmapView: View {
             
             Spacer()
             
-            Text(selectedMonth.formatted(.dateTime.month(.wide).year()))
+            Text(viewModel.selectedMonth.formatted(.dateTime.month(.wide).year()))
                 .font(.headline)
             
             Spacer()
             
             Button {
-                if let newMonth = calendar.date(byAdding: .month, value: 1, to: selectedMonth),
+                if let newMonth = viewModel.calendar.date(byAdding: .month, value: 1, to: viewModel.selectedMonth),
                    newMonth <= Date() {
-                    selectedMonth = newMonth
+                    viewModel.selectedMonth = newMonth
                 }
             } label: {
                 Image(systemName: "chevron.right")
                     .font(.title3)
             }
-            .disabled(calendar.isDate(selectedMonth, equalTo: Date(), toGranularity: .month))
+            .disabled(viewModel.calendar.isDate(viewModel.selectedMonth, equalTo: Date(), toGranularity: .month))
         }
         .padding(.horizontal)
     }
     
     private var weekdayHeaders: some View {
-        LazyVGrid(columns: columns, spacing: 4) {
-            ForEach(Array(calendar.veryShortWeekdaySymbols.enumerated()), id: \.offset) { _, symbol in
+        LazyVGrid(columns: viewModel.columns, spacing: 4) {
+            ForEach(Array(viewModel.calendar.veryShortWeekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                 Text(symbol)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -115,8 +104,8 @@ struct WorkoutHeatmapView: View {
     }
     
     private var calendarGrid: some View {
-        LazyVGrid(columns: columns, spacing: 4) {
-            ForEach(daysInMonth(), id: \.self) { date in
+        LazyVGrid(columns: viewModel.columns, spacing: 4) {
+            ForEach(viewModel.daysInMonth(), id: \.self) { date in
                 if let date = date {
                     dayCell(for: date)
                 } else {
@@ -129,9 +118,9 @@ struct WorkoutHeatmapView: View {
     }
     
     private func dayCell(for date: Date) -> some View {
-        let workoutCount = heatmapData[calendar.startOfDay(for: date)] ?? 0
-        let intensity = intensityColor(for: workoutCount)
-        let isToday = calendar.isDateInToday(date)
+        let workoutCount = viewModel.heatmapData[viewModel.calendar.startOfDay(for: date)] ?? 0
+        let intensity = viewModel.intensityColor(for: workoutCount)
+        let isToday = viewModel.calendar.isDateInToday(date)
         
         return ZStack {
             RoundedRectangle(cornerRadius: 8)
@@ -143,7 +132,7 @@ struct WorkoutHeatmapView: View {
             }
             
             VStack(spacing: 2) {
-                Text("\(calendar.component(.day, from: date))")
+                Text("\(viewModel.calendar.component(.day, from: date))")
                     .font(.caption)
                     .fontWeight(isToday ? .bold : .regular)
                     .foregroundStyle(workoutCount > 0 ? .white : .primary)
@@ -194,7 +183,7 @@ struct WorkoutHeatmapView: View {
                     
                     HStack(spacing: 8) {
                         ForEach(metrics.restDayPattern.prefix(3), id: \.self) { dayIndex in
-                            Text(calendar.weekdaySymbols[dayIndex - 1])
+                            Text(viewModel.calendar.weekdaySymbols[dayIndex - 1])
                                 .font(.caption)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
@@ -223,7 +212,7 @@ struct WorkoutHeatmapView: View {
                 
                 ForEach(0...4, id: \.self) { level in
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(intensityColor(for: level))
+                        .fill(viewModel.intensityColor(for: level))
                         .frame(width: 16, height: 16)
                 }
                 
@@ -236,77 +225,6 @@ struct WorkoutHeatmapView: View {
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
-    
-    private func daysInMonth() -> [Date?] {
-        guard let monthInterval = calendar.dateInterval(of: .month, for: selectedMonth) else {
-            return []
-        }
-        
-        let monthStart = monthInterval.start
-        let firstWeekday = calendar.component(.weekday, from: monthStart)
-        let daysInMonth = calendar.range(of: .day, in: .month, for: monthStart)?.count ?? 0
-        
-        var days: [Date?] = []
-        
-        // Add leading empty cells
-        for _ in 1..<firstWeekday {
-            days.append(nil)
-        }
-        
-        // Add actual days
-        for day in 0..<daysInMonth {
-            if let date = calendar.date(byAdding: .day, value: day, to: monthStart) {
-                days.append(date)
-            }
-        }
-        
-        return days
-    }
-    
-    private func intensityColor(for workoutCount: Int) -> Color {
-        switch workoutCount {
-        case 0:
-            return Color.gray.opacity(0.1)
-        case 1:
-            return Color.green.opacity(0.3)
-        case 2:
-            return Color.green.opacity(0.6)
-        case 3:
-            return Color.green.opacity(0.8)
-        default:
-            return Color.green
-        }
-    }
-    
-    private func loadHeatmapData() async {
-        isLoading = true
-        defer { isLoading = false }
-        
-        // Get month interval
-        guard let monthInterval = calendar.dateInterval(of: .month, for: selectedMonth) else {
-            return
-        }
-        
-        do {
-            let snapshot = try await progressAnalytics.getProgressSnapshot(for: monthInterval)
-            performanceMetrics = snapshot.performanceMetrics
-            
-            // For now, create mock heatmap data
-            // In production, this would come from actual workout sessions
-            var data: [Date: Int] = [:]
-            for day in 0..<30 {
-                if let date = calendar.date(byAdding: .day, value: day, to: monthInterval.start) {
-                    let workoutCount = Int.random(in: 0...2)
-                    if workoutCount > 0 {
-                        data[calendar.startOfDay(for: date)] = workoutCount
-                    }
-                }
-            }
-            heatmapData = data
-        } catch {
-            print("Error loading heatmap data: \(error)")
-        }
-    }
 }
 
 #Preview("Loaded") {
@@ -317,7 +235,7 @@ struct WorkoutHeatmapView: View {
         exerciseTemplateManager: exerciseTemplateManager
     )
     
-    return WorkoutHeatmapView(progressAnalytics: analytics)
+    return WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(container: DevPreview.shared.container, progressAnalytics: analytics))
         .previewEnvironment()
 }
 
@@ -329,11 +247,11 @@ struct WorkoutHeatmapView: View {
         exerciseTemplateManager: exerciseTemplateManager
     )
     
-    return WorkoutHeatmapView(progressAnalytics: analytics)
+    return WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(container: DevPreview.shared.container, progressAnalytics: analytics))
         .previewEnvironment()
 }
 
-#Preview("fail") {
+#Preview("Fail") {
     let workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
     let exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
     let analytics = ProgressAnalyticsService(
@@ -341,6 +259,6 @@ struct WorkoutHeatmapView: View {
         exerciseTemplateManager: exerciseTemplateManager
     )
     
-    return WorkoutHeatmapView(progressAnalytics: analytics)
+    return WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(container: DevPreview.shared.container, progressAnalytics: analytics))
         .previewEnvironment()
 }

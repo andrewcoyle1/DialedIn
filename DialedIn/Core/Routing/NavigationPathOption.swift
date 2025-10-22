@@ -55,7 +55,7 @@ enum NavigationOptions: Equatable, Hashable, Identifiable {
         switch self {
         case .dashboard: DashboardView()
         case .nutrition: NutritionView()
-        case .training: TrainingView()
+        case .training: TrainingView(viewModel: TrainingViewModel(container: container))
         case .profile: ProfileView(viewModel: ProfileViewModel(container: container))
         }
     }
@@ -71,9 +71,9 @@ struct NavDestinationForCoreModuleViewModifier: ViewModifier {
             .navigationDestination(for: NavigationPathOption.self) { newValue in
                 switch newValue {
                 case .exerciseTemplate(exerciseTemplate: let exerciseTemplate):
-                    ExerciseDetailView(exerciseTemplate: exerciseTemplate)
+                    ExerciseTemplateDetailView(viewModel: ExerciseTemplateDetailViewModel(container: container), exerciseTemplate: exerciseTemplate)
                 case .workoutTemplateList:
-                    WorkoutTemplateListView()
+                    WorkoutTemplateListView(viewModel: WorkoutTemplateListViewModel(container: container))
                 case .workoutTemplateDetail(template: let template):
                     WorkoutTemplateDetailView(viewModel: WorkoutTemplateDetailViewModel(container: container), workoutTemplate: template)
                 case .ingredientTemplateDetail(template: let template):
@@ -81,7 +81,7 @@ struct NavDestinationForCoreModuleViewModifier: ViewModifier {
                 case .recipeTemplateDetail(template: let template):
                     RecipeDetailView(recipeTemplate: template)
                 case .workoutSessionDetail(session: let session):
-                    WorkoutSessionDetailView(session: session)
+                    WorkoutSessionDetailView(session: session, container: container)
                 }
             }
     }

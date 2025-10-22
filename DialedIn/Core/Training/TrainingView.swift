@@ -12,47 +12,11 @@ import UIKit
 
 struct TrainingView: View {
     @Environment(DependencyContainer.self) private var container
-
-    @Environment(\.layoutMode) private var layoutMode
     @Environment(DetailNavigationModel.self) private var detail
-    @Environment(TrainingPlanManager.self) private var trainingPlanManager
-    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
-    @Environment(WorkoutSessionManager.self) private var workoutSessionManager
-    @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
-    @Environment(LogManager.self) private var logManager
-    @Environment(AuthManager.self) private var authManager
-    @State private var presentationMode: TrainingPresentationMode = .program
+    @Environment(\.layoutMode) private var layoutMode
 
-    #if DEBUG || MOCK
-    @State private var showDebugView: Bool = false
-    #endif
-    
-    @State private var showNotificationsView: Bool = false
-    
-    @State private var searchExerciseTask: Task<Void, Never>?
-    @State private var searchWorkoutTask: Task<Void, Never>?
-    @State private var isLoading: Bool = false
-    @State private var searchText: String = ""
-    @State private var showAlert: AnyAppAlert?
+    @State var viewModel: TrainingViewModel
 
-    @State private var isShowingInspector: Bool = false
-    @State private var selectedExerciseTemplate: ExerciseTemplateModel?
-    @State private var selectedWorkoutTemplate: WorkoutTemplateModel?
-    @State private var workoutToStart: WorkoutTemplateModel?
-    @State private var scheduledWorkoutToStart: ScheduledWorkout?
-    @State private var showCreateExercise: Bool = false
-    @State private var showCreateWorkout: Bool = false
-    // Centralized sheet coordination for ProgramView
-    @State private var programActiveSheet: ProgramView.ActiveSheet?
-    @State private var selectedHistorySession: WorkoutSessionModel?
-
-    enum TrainingPresentationMode {
-        case program
-        case workouts
-        case exercises
-        case history
-    }
-    
     var body: some View {
         Group {
             if layoutMode == .tabBar {
@@ -64,32 +28,47 @@ struct TrainingView: View {
             }
         }
         // Only show inspector in compact/tabBar modes; not in split view where detail is used
-        .modifier(InspectorIfCompact(isPresented: $isShowingInspector, inspector: {
-            Group {
-                if let exercise = selectedExerciseTemplate {
-                    NavigationStack { ExerciseDetailView(exerciseTemplate: exercise) }
-                } else if let workout = selectedWorkoutTemplate {
-                    NavigationStack { WorkoutTemplateDetailView(viewModel: WorkoutTemplateDetailViewModel(container: container), workoutTemplate: workout) }
-                } else if let session = selectedHistorySession {
-                    NavigationStack { WorkoutSessionDetailView(session: session) }
-                } else {
-                    Text("Select an item").foregroundStyle(.secondary).padding()
-                }
-            }
-        }, enabled: layoutMode != .splitView))
-        .onChange(of: selectedExerciseTemplate) { _, exercise in
+        .modifier(
+            InspectorIfCompact(
+                isPresented: $viewModel.isShowingInspector,
+                inspector: {
+                    Group {
+                        if let exercise = viewModel.selectedExerciseTemplate {
+                            NavigationStack {
+                                ExerciseTemplateDetailView(
+                                    viewModel: ExerciseTemplateDetailViewModel(container: container),
+                                    exerciseTemplate: exercise
+                                )
+                            }
+                        } else if let workout = viewModel.selectedWorkoutTemplate {
+                            NavigationStack {
+                                WorkoutTemplateDetailView(
+                                    viewModel: WorkoutTemplateDetailViewModel(container: container),
+                                    workoutTemplate: workout
+                                )
+                            }
+                        } else if let session = viewModel.selectedHistorySession {
+                            NavigationStack { WorkoutSessionDetailView(session: session, container: container) }
+                        } else {
+                            Text("Select an item").foregroundStyle(.secondary).padding()
+                        }
+                    }
+                },
+                enabled: layoutMode != .splitView)
+        )
+        .onChange(of: viewModel.selectedExerciseTemplate) { _, exercise in
             guard layoutMode == .splitView else { return }
             if let exercise { detail.path = [.exerciseTemplate(exerciseTemplate: exercise)] }
         }
-        .onChange(of: selectedWorkoutTemplate) { _, workout in
+        .onChange(of: viewModel.selectedWorkoutTemplate) { _, workout in
             guard layoutMode == .splitView else { return }
             if let workout { detail.path = [.workoutTemplateDetail(template: workout)] }
         }
-        .onChange(of: selectedHistorySession) { _, session in
+        .onChange(of: viewModel.selectedHistorySession) { _, session in
             guard layoutMode == .splitView else { return }
             if let session { detail.path = [.workoutSessionDetail(session: session)] }
         }
-        .showCustomAlert(alert: $showAlert)
+        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     private var contentView: some View {
@@ -100,47 +79,46 @@ struct TrainingView: View {
             // }
             .scrollIndicators(.hidden)
             #if DEBUG || MOCK
-            .sheet(isPresented: $showDebugView) {
+            .sheet(isPresented: $viewModel.showDebugView) {
                 DevSettingsView(viewModel: DevSettingsViewModel(container: container))
             }
             #endif
-            .sheet(isPresented: $showNotificationsView) {
+            .sheet(isPresented: $viewModel.showNotificationsView) {
                 NotificationsView()
             }
-            .sheet(item: $workoutToStart) { template in
+            .sheet(item: $viewModel.workoutToStart) { template in
                 WorkoutStartView(
                     viewModel: WorkoutStartViewModel(container: container),
                     template: template,
-                    scheduledWorkout: scheduledWorkoutToStart
+                    scheduledWorkout: viewModel.scheduledWorkoutToStart
                 )
             }
-            .sheet(item: $programActiveSheet) { sheet in
+            .sheet(item: $viewModel.programActiveSheet) { sheet in
                 switch sheet {
                 case .programPicker:
-                    ProgramManagementView()
+                    ProgramManagementView(viewModel: ProgramManagementViewModel(container: container))
                 case .progressDashboard:
                     ProgressDashboardView()
                 case .strengthProgress:
                     StrengthProgressView()
                 case .workoutHeatmap:
-                    WorkoutHeatmapView(
-                        progressAnalytics: ProgressAnalyticsService(
-                            workoutSessionManager: workoutSessionManager,
-                            exerciseTemplateManager: exerciseTemplateManager
-                        )
+                    WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(container: container, progressAnalytics: ProgressAnalyticsService(
+                        workoutSessionManager: container.resolve(WorkoutSessionManager.self)!,
+                        exerciseTemplateManager: container.resolve(ExerciseTemplateManager.self)!
+                    ))
                     )
                 }
             }
             .navigationTitle("Training")
-            .navigationSubtitle(navigationSubtitle)
+            .navigationSubtitle(viewModel.navigationSubtitle)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 toolbarContent
             }
-            .sheet(isPresented: $showCreateExercise) {
-                CreateExerciseView()
+            .sheet(isPresented: $viewModel.showCreateExercise) {
+                CreateExerciseView(viewModel: CreateExerciseViewModel(container: container))
             }
-            .sheet(isPresented: $showCreateWorkout) {
+            .sheet(isPresented: $viewModel.showCreateWorkout) {
                 CreateWorkoutView()
             }
         }
@@ -148,7 +126,7 @@ struct TrainingView: View {
 
     private var pickerSection: some View {
         // Section {
-            Picker("Section", selection: $presentationMode) {
+        Picker("Section", selection: $viewModel.presentationMode) {
                 Text("Program").tag(TrainingPresentationMode.program)
                 Text("Workouts").tag(TrainingPresentationMode.workouts)
                 Text("Exercises").tag(TrainingPresentationMode.exercises)
@@ -161,33 +139,15 @@ struct TrainingView: View {
     
     private var listContents: some View {
         Group {
-            switch presentationMode {
+            switch viewModel.presentationMode {
             case .program:
-                ProgramView(
-                    isShowingInspector: $isShowingInspector,
-                    selectedWorkoutTemplate: $selectedWorkoutTemplate,
-                    selectedExerciseTemplate: $selectedExerciseTemplate,
-                    selectedHistorySession: $selectedHistorySession,
-                    activeSheet: $programActiveSheet,
-                    workoutToStart: $workoutToStart,
-                    scheduledWorkoutToStart: $scheduledWorkoutToStart
-                )
+                ProgramView(viewModel: ProgramViewModel(container: container))
             case .workouts:
-                WorkoutsView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate, showCreateWorkout: $showCreateWorkout)
+                WorkoutsView(viewModel: WorkoutsViewModel(container: container))
             case .exercises:
-                ExercisesView(isShowingInspector: $isShowingInspector, selectedWorkoutTemplate: $selectedWorkoutTemplate, selectedExerciseTemplate: $selectedExerciseTemplate, showCreateExercise: $showCreateExercise)
+                ExercisesView(viewModel: ExercisesViewModel(container: container))
             case .history:
-                Group {
-                    let container = DependencyContainer()
-                    container.register(AuthManager.self, service: authManager)
-                    container.register(WorkoutSessionManager.self, service: workoutSessionManager)
-                    container.register(LogManager.self, service: logManager)
-                    return WorkoutHistoryView(
-                        viewModel: WorkoutHistoryViewModel(container: container),
-                        selectedSession: $selectedHistorySession,
-                        isShowingInspector: $isShowingInspector
-                    )
-                }
+                WorkoutHistoryView(viewModel: WorkoutHistoryViewModel(container: container))
             }
         }
     }
@@ -197,7 +157,7 @@ struct TrainingView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                showDebugView = true
+                viewModel.showDebugView = true
             } label: {
                 Image(systemName: "info")
             }
@@ -207,43 +167,43 @@ struct TrainingView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
                 Button {
-                    presentationMode = TrainingPresentationMode.program
+                    viewModel.presentationMode = TrainingPresentationMode.program
                 } label: {
                     Label {
                         Text("Program")
                     } icon: {
-                        Image(systemName: presentationMode == .program ? "calendar.circle.fill" : "calendar")
+                        Image(systemName: viewModel.presentationMode == .program ? "calendar.circle.fill" : "calendar")
                     }
                 }
                 Button {
-                    presentationMode = TrainingPresentationMode.workouts
+                    viewModel.presentationMode = TrainingPresentationMode.workouts
                 } label: {
                     Label {
                         Text("Workouts")
                     } icon: {
-                        Image(systemName: presentationMode == .workouts ? "dumbbell.fill" : "dumbbell")
+                        Image(systemName: viewModel.presentationMode == .workouts ? "dumbbell.fill" : "dumbbell")
                     }
                 }
                 Button {
-                    presentationMode = TrainingPresentationMode.exercises
+                    viewModel.presentationMode = TrainingPresentationMode.exercises
                 } label: {
                     Label {
                         Text("Exercises")
                     } icon: {
-                        Image(systemName: presentationMode == .exercises ? "list.bullet.rectangle.portrait.fill" : "list.bullet.rectangle.portrait")
+                        Image(systemName: viewModel.presentationMode == .exercises ? "list.bullet.rectangle.portrait.fill" : "list.bullet.rectangle.portrait")
                     }
                 }
                 Button {
-                    presentationMode = TrainingPresentationMode.history
+                    viewModel.presentationMode = TrainingPresentationMode.history
                 } label: {
                     Label {
                         Text("History")
                     } icon: {
-                        Image(systemName: presentationMode == .history ? "clock.fill" : "clock")
+                        Image(systemName: viewModel.presentationMode == .history ? "clock.fill" : "clock")
                     }
                 }
             } label: {
-                Image(systemName: currentMenuIcon)
+                Image(systemName: viewModel.currentMenuIcon)
             }
 
 //            Picker(selection: $presentationMode) {
@@ -262,14 +222,14 @@ struct TrainingView: View {
         }
         
         // Today's workout quick action (only if there are incomplete workouts today and not in Program view)
-        if presentationMode != .program, trainingPlanManager.getTodaysWorkouts().contains(where: { !$0.isCompleted }) {
+        if viewModel.presentationMode != .program, viewModel.getTodaysWorkouts() {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
                         do {
-                            try await startTodaysWorkout()
+                            try await viewModel.startTodaysWorkout()
                         } catch {
-                            showAlert = AnyAppAlert(error: error)
+                            viewModel.showAlert = AnyAppAlert(error: error)
                         }
                     }
                 } label: {
@@ -281,88 +241,22 @@ struct TrainingView: View {
         
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                onNotificationsPressed()
+                viewModel.onNotificationsPressed()
             } label: {
                 Image(systemName: "bell")
             }
         }
     }
-    
-    private func onNotificationsPressed() {
-        showNotificationsView = true
-    }
-    
-    private var currentMenuIcon: String {
-        switch presentationMode {
-        case .program:
-            return "calendar.circle.fill"
-        case .workouts:
-            return "dumbbell.fill"
-        case .exercises:
-            return "list.bullet.rectangle.portrait.fill"
-        case .history:
-            return "clock.fill"
-        }
-    }
-    
-    private var navigationSubtitle: String {
-        if presentationMode == .program, let plan = trainingPlanManager.currentTrainingPlan {
-            let todaysWorkouts = trainingPlanManager.getTodaysWorkouts()
-            if !todaysWorkouts.isEmpty {
-                let completedCount = todaysWorkouts.filter { $0.isCompleted }.count
-                if completedCount == todaysWorkouts.count {
-                    return "\(plan.name) • Today's workout complete ✓"
-                } else {
-                    return "\(plan.name) • Workout scheduled for today"
-                }
-            }
-            
-            let upcomingCount = trainingPlanManager.getUpcomingWorkouts(limit: 1).count
-            if upcomingCount > 0 {
-                return "\(plan.name) • Next workout scheduled"
-            } else {
-                return plan.name
-            }
-        }
-        return Date.now.formatted(date: .abbreviated, time: .omitted)
-    }
-    
-    private func startTodaysWorkout() async throws {
-        let todaysWorkouts = trainingPlanManager.getTodaysWorkouts()
-        guard let firstIncomplete = todaysWorkouts.first(where: { !$0.isCompleted }) else { return }
-        
-        let template = try await workoutTemplateManager.getWorkoutTemplate(id: firstIncomplete.workoutTemplateId)
-        
-        // Store scheduled workout reference for WorkoutStartView
-        scheduledWorkoutToStart = firstIncomplete
-        
-        // Small delay to ensure any pending presentations complete
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-        
-        // Show WorkoutStartView (preview, notes, etc.)
-        workoutToStart = template
-    }
 }
 
 #Preview {
-    TrainingView()
+    TrainingView(viewModel: TrainingViewModel(container: DevPreview.shared.container))
         .previewEnvironment()
 }
 
-// Reuse the compact-only inspector modifier from NutritionView
-private struct InspectorIfCompact<InspectorContent: View>: ViewModifier {
-    @Binding var isPresented: Bool
-    let inspector: () -> InspectorContent
-    let enabled: Bool
-
-    func body(content: Content) -> some View {
-        Group {
-            if enabled {
-                content
-                    .inspector(isPresented: $isPresented) { self.inspector() }
-            } else {
-                content
-            }
-        }
-    }
+enum TrainingPresentationMode {
+    case program
+    case workouts
+    case exercises
+    case history
 }

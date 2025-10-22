@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct AdaptiveMainView: View {
+    @Environment(DependencyContainer.self) private var container
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var detail = DetailNavigationModel()
     @State private var appNavigation = AppNavigationModel()
@@ -21,7 +22,7 @@ struct AdaptiveMainView: View {
         #else
         if horizontalSizeClass == .compact {
 //            if UIDevice.current.userInterfaceIdiom == .phone || horizontalSizeClass == .compact {
-            TabBarView()
+            TabBarView(viewModel: TabBarViewModel(container: container))
                 .environment(detail)
                 .environment(appNavigation)
                 .layoutMode(.tabBar)

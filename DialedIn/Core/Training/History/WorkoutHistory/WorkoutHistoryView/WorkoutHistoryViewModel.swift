@@ -17,6 +17,8 @@ class WorkoutHistoryViewModel {
     private(set) var sessions: [WorkoutSessionModel] = []
     private(set) var isLoading = false
     
+    var selectedSession: WorkoutSessionModel?
+    var isShowingInspector: Bool = false
     var showAlert: AnyAppAlert?
 
     init(
@@ -25,6 +27,11 @@ class WorkoutHistoryViewModel {
         self.authManager = container.resolve(AuthManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
         self.logManager = container.resolve(LogManager.self)!
+    }
+    
+    func onWorkoutSessionPressed(session: WorkoutSessionModel, layoutMode: LayoutMode) {
+        selectedSession = session
+        if layoutMode != .splitView { isShowingInspector = true }
     }
     
     func loadInitialSessions() {

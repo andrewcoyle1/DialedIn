@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProfileMyTemplatesView: View {
-    
+    @Environment(DependencyContainer.self) private var container
     @State var viewModel: ProfileMyTemplatesViewModel
     
     var body: some View {
@@ -28,7 +28,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             NavigationLink {
-                ExerciseTemplateListView(templateIds: templateIds)
+                ExerciseTemplateListView(viewModel: ExerciseTemplateListViewModel(container: container), templateIds: templateIds)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Exercise Templates")
@@ -48,7 +48,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             NavigationLink {
-                WorkoutTemplateListView(templateIds: templateIds)
+                WorkoutTemplateListView(viewModel: WorkoutTemplateListViewModel(container: container), templateIds: templateIds)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Workout Templates")

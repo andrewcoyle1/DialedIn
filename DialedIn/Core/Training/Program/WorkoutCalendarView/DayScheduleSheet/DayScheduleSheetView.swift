@@ -1,0 +1,100 @@
+//
+//  DayScheduleSheetView.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 18/10/2025.
+//
+
+import SwiftUI
+
+struct DayScheduleSheetView: View {
+    @State var viewModel: DayScheduleSheetViewModel
+    @Environment(\.dismiss) private var dismiss
+    @Environment(DependencyContainer.self) private var container
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                if viewModel.scheduledWorkouts.isEmpty {
+                    ContentUnavailableView(
+                        "No Workouts Scheduled",
+                        systemImage: "calendar.badge.exclamationmark",
+                        description: Text("No workouts are scheduled for this day.")
+                    )
+                } else {
+                    Section {
+                        ForEach(viewModel.scheduledWorkouts) { workout in
+                            if workout.isCompleted {
+                                WorkoutSummaryCardView(
+                                    viewModel: WorkoutSummaryCardViewModel(
+                                        container: container,
+                                        scheduledWorkout: workout,
+                                        onTap: {
+                                            Task {
+                                                await viewModel.openCompletedSession(for: workout)
+                                            }
+                                        }
+                                    )
+                                )
+                            } else {
+                                TodaysWorkoutCardView(
+                                    viewModel: TodaysWorkoutCardViewModel(container: container,
+                                    scheduledWorkout: workout,
+                                    onStart: {
+                                        Task {
+                                            dismiss()
+                                            // Small delay to ensure sheet dismissal completes
+                                            try? await Task.sleep(nanoseconds: 100_000_000)
+                                            do {
+                                                try await viewModel.onStartWorkout(workout)
+                                            } catch {
+                                                viewModel.showAlert = AnyAppAlert(error: error)
+                                            }
+                                        }
+                                    })
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle(viewModel.date.formatted(date: .long, time: .omitted))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+            .sheet(item: $viewModel.sessionToShow) { session in
+                WorkoutSessionDetailView(session: session, container: container)
+            }
+            .showCustomAlert(alert: $viewModel.showAlert)
+        }
+    }
+}
+
+#Preview {
+    DayScheduleSheetView(
+        viewModel: DayScheduleSheetViewModel(
+            container: DevPreview.shared.container,
+            date: Date(),
+            scheduledWorkouts: ScheduledWorkout.mocksWeek1,
+            onStartWorkout: { _ in }
+        )
+    )
+    .previewEnvironment()
+}
+
+#Preview("No Workouts Scheduled") {
+    DayScheduleSheetView(
+        viewModel: DayScheduleSheetViewModel(
+            container: DevPreview.shared.container,
+            date: Date(),
+            scheduledWorkouts: [],
+            onStartWorkout: { _ in }
+        )
+    )
+    .previewEnvironment()
+}

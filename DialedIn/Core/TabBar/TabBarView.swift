@@ -8,10 +8,11 @@
 import SwiftUI
 
 struct TabBarView: View {
+    
+    @State var viewModel: TabBarViewModel
     @Environment(DependencyContainer.self) private var container
     @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @Environment(AppNavigationModel.self) private var appNavigation
-    @State private var presentTracker: Bool = false
     
     var body: some View {
         @Bindable var appNavigation = appNavigation
@@ -22,7 +23,7 @@ struct TabBarView: View {
                     Label("Dashboard", systemImage: "house")
                 }
             
-            TrainingView()
+            TrainingView(viewModel: TrainingViewModel(container: container))
                 .tag(AppSection.training)
                 .tabItem {
                     Label("Training", systemImage: "dumbbell")
@@ -43,8 +44,8 @@ struct TabBarView: View {
         .tabViewStyle(.sidebarAdaptable)
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory {
-            if let active = workoutSessionManager.activeSession, !workoutSessionManager.isTrackerPresented {
-                TabViewAccessory(active: active)
+            if let active = viewModel.active, !viewModel.trackerPresented {
+                TabViewAccessoryView(viewModel: TabViewAccessoryViewModel(container: container), active: active)
             }
         }
         .fullScreenCover(isPresented: Binding(get: {
@@ -57,22 +58,19 @@ struct TabBarView: View {
             }
         }
         .task {
-            // Load any active session from local storage when the TabBar appears
-            if let active = try? workoutSessionManager.getActiveLocalWorkoutSession() {
-                workoutSessionManager.activeSession = active
-            }
+            _ = viewModel.checkForActiveSession()
         }
     }
 }
 
 #Preview("Has No Active Session") {
-    TabBarView()
+    TabBarView(viewModel: TabBarViewModel(container: DevPreview.shared.container))
         .environment(WorkoutSessionManager(services: MockWorkoutSessionServices(hasActiveSession: false)))
         .previewEnvironment()
 }
 
 #Preview("Has Active Session") {
-    TabBarView()
+    TabBarView(viewModel: TabBarViewModel(container: DevPreview.shared.container))
         .environment(WorkoutSessionManager(services: MockWorkoutSessionServices(hasActiveSession: true)))
         .previewEnvironment()
 }
