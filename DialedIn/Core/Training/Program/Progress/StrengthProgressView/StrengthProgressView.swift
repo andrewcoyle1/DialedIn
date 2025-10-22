@@ -8,52 +8,43 @@
 import SwiftUI
 import Charts
 
-struct StrengthProgressView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
-    @Environment(TrainingAnalyticsManager.self) private var trainingAnalytics
+enum TimePeriod: String, CaseIterable {
+    case lastMonth = "Month"
+    case lastThreeMonths = "3 Months"
+    case lastSixMonths = "6 Months"
+    case allTime = "All Time"
     
-    @State private var strengthMetrics: StrengthMetrics?
-    @State private var selectedExerciseId: String?
-    @State private var exerciseProgression: StrengthProgression?
-    @State private var isLoading = false
-    @State private var selectedPeriod: TimePeriod = .lastThreeMonths
-    
-    init() {}
-    
-    enum TimePeriod: String, CaseIterable {
-        case lastMonth = "Month"
-        case lastThreeMonths = "3 Months"
-        case lastSixMonths = "6 Months"
-        case allTime = "All Time"
+    var dateInterval: DateInterval {
+        let now = Date()
+        let calendar = Calendar.current
         
-        var dateInterval: DateInterval {
-            let now = Date()
-            let calendar = Calendar.current
-            
-            switch self {
-            case .lastMonth:
-                let start = calendar.date(byAdding: .month, value: -1, to: now) ?? now
-                return DateInterval(start: start, end: now)
-            case .lastThreeMonths:
-                let start = calendar.date(byAdding: .month, value: -3, to: now) ?? now
-                return DateInterval(start: start, end: now)
-            case .lastSixMonths:
-                let start = calendar.date(byAdding: .month, value: -6, to: now) ?? now
-                return DateInterval(start: start, end: now)
-            case .allTime:
-                let start = calendar.date(byAdding: .year, value: -1, to: now) ?? now
-                return DateInterval(start: start, end: now)
-            }
+        switch self {
+        case .lastMonth:
+            let start = calendar.date(byAdding: .month, value: -1, to: now) ?? now
+            return DateInterval(start: start, end: now)
+        case .lastThreeMonths:
+            let start = calendar.date(byAdding: .month, value: -3, to: now) ?? now
+            return DateInterval(start: start, end: now)
+        case .lastSixMonths:
+            let start = calendar.date(byAdding: .month, value: -6, to: now) ?? now
+            return DateInterval(start: start, end: now)
+        case .allTime:
+            let start = calendar.date(byAdding: .year, value: -1, to: now) ?? now
+            return DateInterval(start: start, end: now)
         }
     }
+}
+
+struct StrengthProgressView: View {
+    @State var viewModel: StrengthProgressViewModel
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationStack {
             List {
                 // Period picker
                 Section {
-                    Picker("Period", selection: $selectedPeriod) {
+                    Picker("Period", selection: $viewModel.selectedPeriod) {
                         ForEach(TimePeriod.allCases, id: \.self) { period in
                             Text(period.rawValue).tag(period)
                         }
@@ -63,15 +54,15 @@ struct StrengthProgressView: View {
                 .removeListRowFormatting()
                 .listSectionSpacing(0)
                 
-                if isLoading {
+                if viewModel.isLoading {
                     ProgressView()
                         .frame(maxWidth: .infinity)
                         .padding(.top, 200)
                         .removeListRowFormatting()
-                } else if let metrics = strengthMetrics {
+                } else if let metrics = viewModel.strengthMetrics {
                     personalRecordsSection(metrics)
                     
-                    if let progression = exerciseProgression {
+                    if let progression = viewModel.exerciseProgression {
                         progressionChartSection(progression)
                     }
                 } else {
@@ -88,20 +79,20 @@ struct StrengthProgressView: View {
                 }
             }
             .task {
-                await loadStrengthData()
+                await viewModel.loadStrengthData()
             }
-            .onChange(of: selectedPeriod) { _, _ in
+            .onChange(of: viewModel.selectedPeriod) { _, _ in
                 Task {
-                    await loadStrengthData()
-                    if let id = selectedExerciseId {
-                        await loadExerciseProgression(id)
+                    await viewModel.loadStrengthData()
+                    if let id = viewModel.selectedExerciseId {
+                        await viewModel.loadExerciseProgression(id)
                     }
                 }
             }
-            .onChange(of: selectedExerciseId) { _, newValue in
+            .onChange(of: viewModel.selectedExerciseId) { _, newValue in
                 if let exerciseId = newValue {
                     Task {
-                        await loadExerciseProgression(exerciseId)
+                        await viewModel.loadExerciseProgression(exerciseId)
                     }
                 }
             }
@@ -113,9 +104,9 @@ struct StrengthProgressView: View {
             if !metrics.personalRecords.isEmpty {
                 ForEach(metrics.personalRecords.prefix(10)) { personalRecord in
                     Button {
-                        selectedExerciseId = personalRecord.exerciseId
+                        viewModel.selectedExerciseId = personalRecord.exerciseId
                     } label: {
-                        PRCard(record: personalRecord, isSelected: selectedExerciseId == personalRecord.exerciseId)
+                        PRCard(record: personalRecord, isSelected: viewModel.selectedExerciseId == personalRecord.exerciseId)
                             .tappableBackground()
                     }
                     .buttonStyle(.plain)
@@ -149,10 +140,10 @@ struct StrengthProgressView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button {
-                    selectedExerciseId = nil
-                    exerciseProgression = nil
+                    viewModel.selectedExerciseId = nil
+                    viewModel.exerciseProgression = nil
                 } label: {
-                    if selectedExerciseId != nil {
+                    if viewModel.selectedExerciseId != nil {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(Color.accent)
                     }
@@ -217,7 +208,7 @@ struct StrengthProgressView: View {
             }
             .frame(height: 200)
             .chartYAxisLabel("Estimated 1RM (kg)")
-            .chartXScale(domain: selectedPeriod.dateInterval.start ... selectedPeriod.dateInterval.end)
+            .chartXScale(domain: viewModel.selectedPeriod.dateInterval.start ... viewModel.selectedPeriod.dateInterval.end)
         }
     }
     
@@ -236,50 +227,19 @@ struct StrengthProgressView: View {
         }
         .padding(40)
     }
-    
-    private func loadStrengthData() async {
-        isLoading = true
-        defer { isLoading = false }
-        
-        do {
-            let snapshot = try await trainingAnalytics.getProgressSnapshot(for: selectedPeriod.dateInterval)
-            strengthMetrics = snapshot.strengthMetrics
-            
-            // Auto-select first PR if available
-            if let firstPR = snapshot.strengthMetrics.personalRecords.first {
-                selectedExerciseId = firstPR.exerciseId
-            }
-        } catch {
-            print("Error loading strength data: \(error)")
-        }
-    }
-    
-    private func loadExerciseProgression(_ exerciseId: String) async {
-        do {
-            let progression = try await trainingAnalytics.getStrengthProgression(
-                for: exerciseId,
-                in: selectedPeriod.dateInterval
-            )
-            exerciseProgression = progression
-        } catch {
-            print("Error loading exercise progression: \(error)")
-        }
-    }
 }
 
 #Preview("Main State") {
-    StrengthProgressView()
+    StrengthProgressView(viewModel: StrengthProgressViewModel(container: DevPreview.shared.container))
         .previewEnvironment()
 }
 
 #Preview("Is Loading") {
-    StrengthProgressView()
-        .environment(TrainingAnalyticsManager(services: MockTrainingAnalyticsServices(delay: 3)))
+    StrengthProgressView(viewModel: StrengthProgressViewModel(container: DevPreview.shared.container))
         .previewEnvironment()
 }
 
 #Preview("No Data") {
-    StrengthProgressView()
-        .environment(TrainingAnalyticsManager(services: MockTrainingAnalyticsServices(showError: true)))
+    StrengthProgressView(viewModel: StrengthProgressViewModel(container: DevPreview.shared.container))
         .previewEnvironment()
 }

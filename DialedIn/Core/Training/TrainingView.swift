@@ -98,11 +98,12 @@ struct TrainingView: View {
                 case .programPicker:
                     ProgramManagementView(viewModel: ProgramManagementViewModel(container: container))
                 case .progressDashboard:
-                    ProgressDashboardView()
+                    ProgressDashboardView(viewModel: ProgressDashboardViewModel(container: container))
                 case .strengthProgress:
-                    StrengthProgressView()
+                    StrengthProgressView(viewModel: StrengthProgressViewModel(container: container))
                 case .workoutHeatmap:
-                    WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(container: container, progressAnalytics: ProgressAnalyticsService(
+                    WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(
+                        container: container, progressAnalytics: ProgressAnalyticsService(
                         workoutSessionManager: container.resolve(WorkoutSessionManager.self)!,
                         exerciseTemplateManager: container.resolve(ExerciseTemplateManager.self)!
                     ))
@@ -119,7 +120,7 @@ struct TrainingView: View {
                 CreateExerciseView(viewModel: CreateExerciseViewModel(container: container))
             }
             .sheet(isPresented: $viewModel.showCreateWorkout) {
-                CreateWorkoutView()
+                CreateWorkoutView(viewModel: CreateWorkoutViewModel(container: container))
             }
         }
     }

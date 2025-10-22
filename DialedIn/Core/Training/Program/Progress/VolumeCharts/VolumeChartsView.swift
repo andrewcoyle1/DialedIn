@@ -9,43 +9,16 @@ import SwiftUI
 import Charts
 
 struct VolumeChartsView: View {
+    @State var viewModel: VolumeChartsViewModel
+    @Environment(DependencyContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
-    @Environment(TrainingAnalyticsManager.self) private var trainingAnalytics
-    @State private var volumeTrend: VolumeTrend?
-    @State private var isLoading = false
-    @State private var selectedPeriod: TimePeriod = .lastMonth
-    
-    init() {}
-    
-    enum TimePeriod: String, CaseIterable {
-        case lastMonth = "Month"
-        case lastThreeMonths = "3 Months"
-        case lastSixMonths = "6 Months"
-        
-        var dateInterval: DateInterval {
-            let now = Date()
-            let calendar = Calendar.current
-            
-            switch self {
-            case .lastMonth:
-                let start = calendar.date(byAdding: .month, value: -1, to: now) ?? now
-                return DateInterval(start: start, end: now)
-            case .lastThreeMonths:
-                let start = calendar.date(byAdding: .month, value: -3, to: now) ?? now
-                return DateInterval(start: start, end: now)
-            case .lastSixMonths:
-                let start = calendar.date(byAdding: .month, value: -6, to: now) ?? now
-                return DateInterval(start: start, end: now)
-            }
-        }
-    }
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     // Period picker
-                    Picker("Period", selection: $selectedPeriod) {
+                    Picker("Period", selection: $viewModel.selectedPeriod) {
                         ForEach(TimePeriod.allCases, id: \.self) { period in
                             Text(period.rawValue).tag(period)
                         }
@@ -53,12 +26,16 @@ struct VolumeChartsView: View {
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
                     
-                    if isLoading {
+                    if viewModel.isLoading {
                         ProgressView()
                             .padding(40)
-                    } else if let trend = volumeTrend {
+                    } else if let trend = viewModel.volumeTrend {
                         VolumeChartSection(trend: trend)
-                        TrendSummarySection(trend: trend)
+                        TrendSummarySection(
+                            viewModel: TrendSummarySectionViewModel(
+                                container: container,
+                                trend: trend)
+                        )
                     } else {
                         EmptyState()
                     }
@@ -75,28 +52,18 @@ struct VolumeChartsView: View {
                 }
             }
             .task {
-                await loadVolumeData()
+                await viewModel.loadVolumeData()
             }
-            .onChange(of: selectedPeriod) { _, _ in
+            .onChange(of: viewModel.selectedPeriod) { _, _ in
                 Task {
-                    await loadVolumeData()
+                    await viewModel.loadVolumeData()
                 }
             }
         }
     }
-    
-    private func loadVolumeData() async {
-        isLoading = true
-        defer { isLoading = false }
-        let trend = await trainingAnalytics.getVolumeTrend(
-            for: selectedPeriod.dateInterval,
-            interval: .weekOfYear
-        )
-        volumeTrend = trend
-    }
 }
 
 #Preview {
-    return VolumeChartsView()
+    return VolumeChartsView(viewModel: VolumeChartsViewModel(container: DevPreview.shared.container))
         .previewEnvironment()
 }

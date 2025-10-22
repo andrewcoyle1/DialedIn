@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ExerciseTrackerCard: View {
+    @Environment(DependencyContainer.self) private var container
     let exercise: WorkoutExerciseModel
     let exerciseIndex: Int
     let isCurrentExercise: Bool
@@ -174,16 +175,19 @@ struct ExerciseTrackerCard: View {
             }
 
             ForEach(exercise.sets) { set in
-                SetTrackerRow(
-                    set: set,
-                    trackingMode: exercise.trackingMode,
-                    weightUnit: weightUnit,
-                    distanceUnit: distanceUnit,
-                    previousSet: previousSetsByIndex[set.index],
-                    restBeforeSec: restBeforeSecForSet(set.id),
-                    onRestBeforeChange: { onRestBeforeChange(set.id, $0) },
-                    onRequestRestPicker: { _, _ in onRequestRestPicker(set.id, restBeforeSecForSet(set.id)) },
-                    onUpdate: onSetUpdate
+                SetTrackerRowView(
+                    viewModel: SetTrackerRowViewModel(
+                        container: container,
+                        set: set,
+                        trackingMode: exercise.trackingMode,
+                        weightUnit: weightUnit,
+                        distanceUnit: distanceUnit,
+                        previousSet: previousSetsByIndex[set.index],
+                        restBeforeSec: restBeforeSecForSet(set.id),
+                        onRestBeforeChange: { onRestBeforeChange(set.id, $0) },
+                        onRequestRestPicker: { _, _ in onRequestRestPicker(set.id, restBeforeSecForSet(set.id)) },
+                        onUpdate: onSetUpdate
+                    )
                 )
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button(role: .destructive) {

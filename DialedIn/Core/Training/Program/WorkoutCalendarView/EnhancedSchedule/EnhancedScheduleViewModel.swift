@@ -1,0 +1,64 @@
+//
+//  EnhancedScheduleViewModel.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 22/10/2025.
+//
+
+import SwiftUI
+
+@Observable
+@MainActor
+class EnhancedScheduleViewModel {
+    let scheduledWorkouts: [ScheduledWorkout]
+    let onDateSelected: (Date) -> Void
+    let onDateTapped: (Date) -> Void
+    let calendar = Calendar.current
+
+    var selectedDate: Date = Date()
+    var selectedTime: Date = Date()
+    
+    init(
+        container: DependencyContainer,
+        scheduledWorkouts: [ScheduledWorkout],
+        onDateSelected: @escaping (Date) -> Void,
+        onDateTapped: @escaping (Date) -> Void
+    ) {
+        self.scheduledWorkouts = scheduledWorkouts
+        self.onDateSelected = onDateSelected
+        self.onDateTapped = onDateTapped
+    }
+    
+    func daysInMonth() -> [Date?] {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: selectedDate) else {
+            return []
+        }
+        
+        let monthStart = monthInterval.start
+        let firstWeekday = calendar.component(.weekday, from: monthStart)
+        let daysInMonth = calendar.range(of: .day, in: .month, for: monthStart)?.count ?? 0
+        
+        var days: [Date?] = []
+        
+        // Add leading empty cells
+        for _ in 1..<firstWeekday {
+            days.append(nil)
+        }
+        
+        // Add actual days
+        for day in 0..<daysInMonth {
+            if let date = calendar.date(byAdding: .day, value: day, to: monthStart) {
+                days.append(date)
+            }
+        }
+        
+        return days
+    }
+    
+    func workoutsForDate(_ date: Date) -> [ScheduledWorkout] {
+        scheduledWorkouts.filter { workout in
+            guard let scheduledDate = workout.scheduledDate else { return false }
+            return calendar.isDate(scheduledDate, inSameDayAs: date)
+        }
+    }
+}

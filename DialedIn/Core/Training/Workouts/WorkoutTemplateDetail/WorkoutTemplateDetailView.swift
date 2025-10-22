@@ -60,7 +60,11 @@ struct WorkoutTemplateDetailView: View {
                 .environment(userManager)
         }
         .sheet(isPresented: $viewModel.showEditSheet) {
-            CreateWorkoutView(workoutTemplate: workoutTemplate)
+            CreateWorkoutView(
+                viewModel: CreateWorkoutViewModel(
+                    container: container,
+                    workoutTemplate: workoutTemplate)
+            )
         }
         .confirmationDialog("Delete Workout", isPresented: $viewModel.showDeleteConfirmation, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {

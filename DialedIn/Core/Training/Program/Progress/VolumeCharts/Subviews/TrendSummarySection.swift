@@ -7,9 +7,57 @@
 
 import SwiftUI
 
-struct TrendSummarySection: View {
+@Observable
+@MainActor
+class TrendSummarySectionViewModel {
     
     let trend: VolumeTrend
+    
+    init(
+        container: DependencyContainer,
+        trend: VolumeTrend
+    ) {
+        self.trend = trend
+    }
+    
+    var trendIcon: String {
+        switch self.trend.trendDirection {
+        case .increasing: return "arrow.up.right"
+        case .decreasing: return "arrow.down.right"
+        case .stable: return "arrow.right"
+        }
+    }
+    
+    var trendColor: Color {
+        switch self.trend.trendDirection {
+        case .increasing: return .green
+        case .decreasing: return .red
+        case .stable: return .orange
+        }
+    }
+    
+    var trendText: String {
+        switch self.trend.trendDirection {
+        case .increasing: return "+\(Int(abs(self.trend.percentageChange)))%"
+        case .decreasing: return "-\(Int(abs(self.trend.percentageChange)))%"
+        case .stable: return "Stable"
+        }
+    }
+    
+    var trendInsight: String {
+        switch self.trend.trendDirection {
+        case .increasing:
+            return "Great progress! Your training volume has increased by \(Int(abs(self.trend.percentageChange)))%. Keep up the momentum!"
+        case .decreasing:
+            return "Your training volume has decreased by \(Int(abs(self.trend.percentageChange)))%. Consider if you need more recovery or to increase workout frequency."
+        case .stable:
+            return "Your training volume is stable. This can be good for maintenance or you might want to consider progressive overload."
+        }
+    }
+}
+
+struct TrendSummarySection: View {
+    @State var viewModel: TrendSummarySectionViewModel
     
     var body: some View {
         
@@ -22,7 +70,7 @@ struct TrendSummarySection: View {
                     Text("Average Volume")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text("\(Int(trend.averageVolume)) kg")
+                    Text("\(Int(viewModel.trend.averageVolume)) kg")
                         .font(.title3)
                         .fontWeight(.semibold)
                 }
@@ -34,22 +82,22 @@ struct TrendSummarySection: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     HStack(spacing: 4) {
-                        Image(systemName: trendIcon(trend.trendDirection))
-                            .foregroundStyle(trendColor(trend.trendDirection))
-                        Text(trendText(trend.trendDirection, trend.percentageChange))
+                        Image(systemName: viewModel.trendIcon)
+                            .foregroundStyle(viewModel.trendColor)
+                        Text(viewModel.trendText)
                             .font(.title3)
                             .fontWeight(.semibold)
-                            .foregroundStyle(trendColor(trend.trendDirection))
+                            .foregroundStyle(viewModel.trendColor)
                     }
                 }
             }
             
             // Insights
-            if abs(trend.percentageChange) > 10 {
+            if abs(viewModel.trend.percentageChange) > 10 {
                 HStack(spacing: 8) {
                     Image(systemName: "lightbulb.fill")
                         .foregroundStyle(.yellow)
-                    Text(trendInsight(trend.trendDirection, trend.percentageChange))
+                    Text(viewModel.trendInsight)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -62,45 +110,13 @@ struct TrendSummarySection: View {
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
-    
-    private func trendIcon(_ direction: VolumeTrend.TrendDirection) -> String {
-        switch direction {
-        case .increasing: return "arrow.up.right"
-        case .decreasing: return "arrow.down.right"
-        case .stable: return "arrow.right"
-        }
-    }
-    
-    private func trendColor(_ direction: VolumeTrend.TrendDirection) -> Color {
-        switch direction {
-        case .increasing: return .green
-        case .decreasing: return .red
-        case .stable: return .orange
-        }
-    }
-    
-    private func trendText(_ direction: VolumeTrend.TrendDirection, _ change: Double) -> String {
-        switch direction {
-        case .increasing: return "+\(Int(abs(change)))%"
-        case .decreasing: return "-\(Int(abs(change)))%"
-        case .stable: return "Stable"
-        }
-    }
-    
-    private func trendInsight(_ direction: VolumeTrend.TrendDirection, _ change: Double) -> String {
-        switch direction {
-        case .increasing:
-            return "Great progress! Your training volume has increased by \(Int(abs(change)))%. Keep up the momentum!"
-        case .decreasing:
-            return "Your training volume has decreased by \(Int(abs(change)))%. Consider if you need more recovery or to increase workout frequency."
-        case .stable:
-            return "Your training volume is stable. This can be good for maintenance or you might want to consider progressive overload."
-        }
-    }
 }
 
 #Preview {
     List {
-        TrendSummarySection(trend: VolumeTrend.mock)
+        TrendSummarySection(
+            viewModel: TrendSummarySectionViewModel(
+                container: DevPreview.shared.container,
+                trend: VolumeTrend.mock))
     }
 }

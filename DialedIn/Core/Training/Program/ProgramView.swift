@@ -183,11 +183,7 @@ struct ProgramView: View {
     
     private var calendarSection: some View {
         WorkoutCalendarView(
-            workoutToStart: $viewModel.workoutToStart,
-            scheduledWorkoutToStart: $viewModel.scheduledWorkoutToStart,
-            selectedHistorySession: $viewModel.selectedHistorySession,
-            isShowingInspector: $viewModel.isShowingInspector
-        )
+            viewModel: WorkoutCalendarViewModel(container: container))
     }
     
     private var weekProgressSection: some View {

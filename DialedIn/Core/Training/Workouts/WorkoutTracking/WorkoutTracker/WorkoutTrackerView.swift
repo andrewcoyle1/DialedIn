@@ -9,6 +9,7 @@ import SwiftUI
 import HealthKit
 
 struct WorkoutTrackerView: View {
+    @Environment(DependencyContainer.self) private var container
     @Environment(\.dismiss) var dismiss
     @Environment(\.scenePhase) private var scenePhase
     
@@ -105,8 +106,13 @@ struct WorkoutTrackerView: View {
                 viewModel.addSelectedExercises(templates: pendingSelectedTemplates)
                 pendingSelectedTemplates = []
             }, content: {
-                AddExerciseModal(selectedExercises: $pendingSelectedTemplates)
-            })
+                AddExerciseModalView(
+                    viewModel: AddExerciseModalViewModel(
+                        container: container,
+                        selectedExercises: $pendingSelectedTemplates)
+                )
+            }
+            )
         }
     }
 

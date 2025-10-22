@@ -8,14 +8,8 @@
 import SwiftUI
 
 struct EnhancedScheduleView: View {
-    let scheduledWorkouts: [ScheduledWorkout]
-    let onDateSelected: (Date) -> Void
-    let onDateTapped: (Date) -> Void
     
-    @State private var selectedDate: Date = Date()
-    @State private var selectedTime: Date = Date()
-    
-    private let calendar = Calendar.current
+    @State var viewModel: EnhancedScheduleViewModel
     
     var body: some View {
         VStack(spacing: 16) {
@@ -34,8 +28,8 @@ struct EnhancedScheduleView: View {
     private var monthNavigator: some View {
         HStack {
             Button {
-                if let newDate = calendar.date(byAdding: .month, value: -1, to: selectedDate) {
-                    selectedDate = newDate
+                if let newDate = viewModel.calendar.date(byAdding: .month, value: -1, to: viewModel.selectedDate) {
+                    viewModel.selectedDate = newDate
                 }
             } label: {
                 Image(systemName: "chevron.left")
@@ -43,14 +37,14 @@ struct EnhancedScheduleView: View {
             
             Spacer()
             
-            Text(selectedDate.formatted(.dateTime.month(.wide).year()))
+            Text(viewModel.selectedDate.formatted(.dateTime.month(.wide).year()))
                 .font(.headline)
             
             Spacer()
             
             Button {
-                if let newDate = calendar.date(byAdding: .month, value: 1, to: selectedDate) {
-                    selectedDate = newDate
+                if let newDate = viewModel.calendar.date(byAdding: .month, value: 1, to: viewModel.selectedDate) {
+                    viewModel.selectedDate = newDate
                 }
             } label: {
                 Image(systemName: "chevron.right")
@@ -60,7 +54,7 @@ struct EnhancedScheduleView: View {
     
     private var weekdayHeaders: some View {
         HStack(spacing: 0) {
-            ForEach(Array(calendar.veryShortWeekdaySymbols.enumerated()), id: \.offset) { _, symbol in
+            ForEach(Array(viewModel.calendar.veryShortWeekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                 Text(symbol)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -70,7 +64,7 @@ struct EnhancedScheduleView: View {
     }
     
     private var calendarGrid: some View {
-        let days = daysInMonth()
+        let days = viewModel.daysInMonth()
         let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
         
         return LazyVGrid(columns: columns, spacing: 4) {
@@ -86,21 +80,21 @@ struct EnhancedScheduleView: View {
     }
     
     private func dayCell(for date: Date) -> some View {
-        let workouts = workoutsForDate(date)
-        let isToday = calendar.isDateInToday(date)
+        let workouts = viewModel.workoutsForDate(date)
+        let isToday = viewModel.calendar.isDateInToday(date)
         let hasWorkouts = !workouts.isEmpty
         let completedCount = workouts.filter { $0.isCompleted }.count
         let missedCount = workouts.filter { $0.isMissed }.count
         
         return Button {
-            selectedDate = date
-            onDateTapped(date)
+            viewModel.selectedDate = date
+            viewModel.onDateTapped(date)
             if hasWorkouts {
-                onDateSelected(date)
+                viewModel.onDateSelected(date)
             }
         } label: {
             VStack(spacing: 4) {
-                Text("\(calendar.component(.day, from: date))")
+                Text("\(viewModel.calendar.component(.day, from: date))")
                     .font(.system(size: 16))
                     .fontWeight(isToday ? .bold : .regular)
                     .foregroundStyle(isToday ? .blue : .primary)
@@ -138,49 +132,19 @@ struct EnhancedScheduleView: View {
         }
         .buttonStyle(.plain)
     }
-    
-    private func daysInMonth() -> [Date?] {
-        guard let monthInterval = calendar.dateInterval(of: .month, for: selectedDate) else {
-            return []
-        }
-        
-        let monthStart = monthInterval.start
-        let firstWeekday = calendar.component(.weekday, from: monthStart)
-        let daysInMonth = calendar.range(of: .day, in: .month, for: monthStart)?.count ?? 0
-        
-        var days: [Date?] = []
-        
-        // Add leading empty cells
-        for _ in 1..<firstWeekday {
-            days.append(nil)
-        }
-        
-        // Add actual days
-        for day in 0..<daysInMonth {
-            if let date = calendar.date(byAdding: .day, value: day, to: monthStart) {
-                days.append(date)
-            }
-        }
-        
-        return days
-    }
-    
-    private func workoutsForDate(_ date: Date) -> [ScheduledWorkout] {
-        scheduledWorkouts.filter { workout in
-            guard let scheduledDate = workout.scheduledDate else { return false }
-            return calendar.isDate(scheduledDate, inSameDayAs: date)
-        }
-    }
 }
 
 #Preview {
     EnhancedScheduleView(
-        scheduledWorkouts: ScheduledWorkout.mocksWeek1,
-        onDateSelected: { _ in
-            
-        }, onDateTapped: { _ in
-            
-        }
+        viewModel: EnhancedScheduleViewModel(
+            container: DevPreview.shared.container,
+            scheduledWorkouts: ScheduledWorkout.mocksWeek1,
+            onDateSelected: { _ in
+                
+            }, onDateTapped: { _ in
+                
+            }
+        )
     )
     .previewEnvironment()
 }

@@ -95,7 +95,12 @@ struct WorkoutSessionDetailView: View {
                 .tint(.white)
         }
         .sheet(isPresented: $viewModel.showAddExerciseSheet, onDismiss: viewModel.addSelectedExercises) {
-            AddExerciseModal(selectedExercises: $viewModel.selectedExerciseTemplates)
+            AddExerciseModalView(
+                viewModel: AddExerciseModalViewModel(
+                    container: container,
+                    selectedExercises: $viewModel.selectedExerciseTemplates
+                )
+            )
         }
         .showCustomAlert(alert: $viewModel.showAlert)
         .onAppear {

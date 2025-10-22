@@ -9,43 +9,8 @@ import SwiftUI
 import Charts
 
 struct ProgressDashboardView: View {
+    @State var viewModel: ProgressDashboardViewModel
     @Environment(\.dismiss) private var dismiss
-    @Environment(TrainingPlanManager.self) private var trainingPlanManager
-    @Environment(TrainingAnalyticsManager.self) private var trainingAnalytics
-    
-    @State private var selectedPeriod: TimePeriod = .lastMonth
-    @State private var progressSnapshot: ProgressSnapshot?
-    @State private var isLoading = false
-    
-    init() {}
-    
-    enum TimePeriod: String, CaseIterable {
-        case lastWeek = "7 Days"
-        case lastMonth = "30 Days"
-        case lastThreeMonths = "90 Days"
-        case allTime = "All Time"
-        
-        var dateInterval: DateInterval {
-            let now = Date()
-            let calendar = Calendar.current
-            
-            switch self {
-            case .lastWeek:
-                let start = calendar.date(byAdding: .day, value: -7, to: now) ?? now
-                return DateInterval(start: start, end: now)
-            case .lastMonth:
-                let start = calendar.date(byAdding: .day, value: -30, to: now) ?? now
-                return DateInterval(start: start, end: now)
-            case .lastThreeMonths:
-                let start = calendar.date(byAdding: .day, value: -90, to: now) ?? now
-                return DateInterval(start: start, end: now)
-            case .allTime:
-                // Start from a year ago as fallback
-                let start = calendar.date(byAdding: .year, value: -1, to: now) ?? now
-                return DateInterval(start: start, end: now)
-            }
-        }
-    }
     
     var body: some View {
         NavigationStack {
@@ -54,10 +19,10 @@ struct ProgressDashboardView: View {
                     // Period selector
                     periodPicker
                     
-                    if isLoading {
+                    if viewModel.isLoading {
                         ProgressView()
                             .padding(40)
-                    } else if let snapshot = progressSnapshot {
+                    } else if let snapshot = viewModel.progressSnapshot {
                         // Performance metrics
                         performanceSection(snapshot.performanceMetrics)
                         
@@ -82,18 +47,18 @@ struct ProgressDashboardView: View {
                 }
             }
             .task {
-                await loadProgressData()
+                await viewModel.loadProgressData()
             }
-            .onChange(of: selectedPeriod) { _, _ in
+            .onChange(of: viewModel.selectedPeriod) { _, _ in
                 Task {
-                    await loadProgressData()
+                    await viewModel.loadProgressData()
                 }
             }
         }
     }
     
     private var periodPicker: some View {
-        Picker("Period", selection: $selectedPeriod) {
+        Picker("Period", selection: $viewModel.selectedPeriod) {
             ForEach(TimePeriod.allCases, id: \.self) { period in
                 Text(period.rawValue).tag(period)
             }
@@ -260,22 +225,9 @@ struct ProgressDashboardView: View {
         }
         .padding(40)
     }
-    
-    private func loadProgressData() async {
-        isLoading = true
-        defer { isLoading = false }
-        
-        do {
-            let snapshot = try await trainingAnalytics.getProgressSnapshot(for: selectedPeriod.dateInterval)
-            progressSnapshot = snapshot
-        } catch {
-            print("Error loading progress: \(error)")
-            progressSnapshot = .empty
-        }
-    }
 }
 
 #Preview {
-    return ProgressDashboardView()
+    return ProgressDashboardView(viewModel: ProgressDashboardViewModel(container: DevPreview.shared.container))
         .previewEnvironment()
 }
