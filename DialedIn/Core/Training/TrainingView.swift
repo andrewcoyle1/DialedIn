@@ -27,6 +27,36 @@ struct TrainingView: View {
                 contentView
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            HStack {
+                Spacer()
+                Menu {
+                    Button {
+                        
+                    } label: {
+                        Label("Log Meal", systemImage: "tray.fill")
+                            .tint(.accent)
+                    }
+                    Button {
+                        
+                    } label: {
+                        Label("Log Weight", systemImage: "scalemass.fill")
+                            .tint(.accent)
+                    }
+                } label: {
+                    Circle()
+                        .foregroundStyle(.accent)
+                        .frame(width: 40, height: 50)
+                        .overlay(alignment: .center) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 30))
+                                .fontWeight(.semibold)
+                        }
+                }
+                .buttonStyle(.glassProminent)
+            }
+            .padding()
+        }
         // Only show inspector in compact/tabBar modes; not in split view where detail is used
         .modifier(
             InspectorIfCompact(
@@ -63,6 +93,9 @@ struct TrainingView: View {
                 },
                 enabled: layoutMode != .splitView)
         )
+        .onAppear {
+            viewModel.presentationMode = .program
+        }
         .onChange(of: viewModel.selectedExerciseTemplate) { _, exercise in
             if layoutMode == .splitView {
                 if let exercise { detail.path = [.exerciseTemplate(exerciseTemplate: exercise)] }
@@ -141,13 +174,13 @@ struct TrainingView: View {
     private var pickerSection: some View {
         // Section {
         Picker("Section", selection: $viewModel.presentationMode) {
-                Text("Program").tag(TrainingPresentationMode.program)
-                Text("Workouts").tag(TrainingPresentationMode.workouts)
-                Text("Exercises").tag(TrainingPresentationMode.exercises)
-                Text("History").tag(TrainingPresentationMode.history)
-            }
-            .pickerStyle(.segmented)
-            .padding(.top, 2)
+            Text("Program").tag(TrainingPresentationMode.program)
+            Text("Workouts").tag(TrainingPresentationMode.workouts)
+            Text("Exercises").tag(TrainingPresentationMode.exercises)
+            Text("History").tag(TrainingPresentationMode.history)
+        }
+        .pickerStyle(.segmented)
+        .padding(.top, 2)
         // }
     }
     
@@ -162,6 +195,9 @@ struct TrainingView: View {
                     },
                     onWorkoutStartRequested: { template, scheduledWorkout in
                         viewModel.handleWorkoutStartRequest(template: template, scheduledWorkout: scheduledWorkout)
+                    },
+                    onActiveSheetChanged: { sheet in
+                        viewModel.programActiveSheet = sheet
                     }
                 ))
             case .workouts:
@@ -208,7 +244,7 @@ struct TrainingView: View {
                 Image(systemName: "bell")
             }
         }
-        
+                
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
                 Button {

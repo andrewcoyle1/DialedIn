@@ -17,31 +17,27 @@ struct TabBarView: View {
     var body: some View {
         @Bindable var appNavigation = appNavigation
         TabView(selection: $appNavigation.selectedSection) {
-            DashboardView()
-                .tag(AppSection.dashboard)
-                .tabItem {
-                    Label("Dashboard", systemImage: "house")
-                }
+            Tab("Dashboard", systemImage: "house", value: AppSection.dashboard) {
+                DashboardView()
+            }
             
-            TrainingView(viewModel: TrainingViewModel(container: container))
-                .tag(AppSection.training)
-                .tabItem {
-                    Label("Training", systemImage: "dumbbell")
-                }
+            Tab("Training", systemImage: "dumbbell", value: AppSection.training) {
+                TrainingView(viewModel: TrainingViewModel(container: container))
+            }
             
-            NutritionView()
-                .tag(AppSection.nutrition)
-                .tabItem {
-                    Label("Nutrition", systemImage: "carrot")
-                }
+            Tab("Nutrition", systemImage: "carrot", value: AppSection.nutrition) {
+                NutritionView()
+            }
             
-            ProfileView(viewModel: ProfileViewModel(container: container))
-                .tag(AppSection.profile)
-                .tabItem {
-                    Label("Profile", systemImage: "person.fill")
-                }
+            Tab("Profile", systemImage: "person.fill", value: AppSection.profile) {
+                ProfileView(viewModel: ProfileViewModel(container: container))
+            }
+            
+            Tab(value: AppSection.search, role: .search) {
+                SearchView()
+            }
         }
-        .tabViewStyle(.sidebarAdaptable)
+        .tabViewStyle(.tabBarOnly)
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory {
             if let active = viewModel.active, !viewModel.trackerPresented {

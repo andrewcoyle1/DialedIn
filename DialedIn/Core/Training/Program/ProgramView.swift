@@ -20,6 +20,7 @@ struct ProgramView: View {
                 noProgramView
             }
         }
+        .scrollIndicators(.hidden)
         .navigationTitle("Training")
         .navigationSubtitle(viewModel.navigationSubtitle)
         .navigationBarTitleDisplayMode(.large)
@@ -62,33 +63,33 @@ struct ProgramView: View {
                         Spacer()
                         Menu {
                             Button {
-                                DispatchQueue.main.async {
-                                    viewModel.activeSheet = .programPicker
-                                }
+                                // DispatchQueue.main.async {
+                                    viewModel.setActiveSheet(.programPicker)
+                                // }
                             } label: {
                                 Label("Manage Programs", systemImage: "list.bullet")
                             }
                             
                             Button {
-                                DispatchQueue.main.async {
-                                    viewModel.activeSheet = .progressDashboard
-                                }
+                                // DispatchQueue.main.async {
+                                    viewModel.setActiveSheet(.progressDashboard)
+                                // }
                             } label: {
                                 Label("View Analytics", systemImage: "chart.xyaxis.line")
                             }
 
                             Button {
-                                DispatchQueue.main.async {
-                                    viewModel.activeSheet = .strengthProgress
-                                }
+                                // DispatchQueue.main.async {
+                                    viewModel.setActiveSheet(.strengthProgress)
+                                // }
                             } label: {
                                 Label("Strength Progress", systemImage: "chart.line.uptrend.xyaxis")
                             }
 
                             Button {
-                                DispatchQueue.main.async {
-                                    viewModel.activeSheet = .workoutHeatmap
-                                }
+                                // DispatchQueue.main.async {
+                                    viewModel.setActiveSheet(.workoutHeatmap)
+                                // }
                             } label: {
                                 Label("Training Frequency", systemImage: "square.grid.3x3.fill.square")
                             }
@@ -159,9 +160,7 @@ struct ProgramView: View {
                                     container: container,
                                     scheduledWorkout: workout,
                                     onTap: {
-                                        Task {
-                                            await viewModel.openCompletedSession(for: workout)
-                                        }
+                                        viewModel.openCompletedSession(for: workout)
                                     }
                                 )
                             )
@@ -172,22 +171,14 @@ struct ProgramView: View {
                                 scheduledWorkout: workout,
                                 onStart: {
                                     Task {
-                                        do {
-                                            try await viewModel.startWorkout(workout)
-                                        } catch {
-                                            viewModel.showAlert = AnyAppAlert(error: error)
-                                        }
+                                        await viewModel.startWorkout(workout)
                                     }
                                 })
                             )
                         }
                     }
                 } header: {
-                    HStack {
-                        Image(systemName: "star.fill")
-                            .foregroundStyle(.yellow)
-                        Text("Today's Workout")
-                    }
+                    Text("Today's Workout")
                 }
             }
         }
@@ -233,9 +224,7 @@ struct ProgramView: View {
                             container: container,
                             scheduledWorkout: workout,
                             onTap: {
-                                Task {
-                                    await viewModel.openCompletedSession(for: workout)
-                                }
+                                viewModel.openCompletedSession(for: workout)
                             }
                         )
                     )
@@ -245,11 +234,7 @@ struct ProgramView: View {
                         .contentShape(Rectangle())
                         .onTapGesture {
                             Task {
-                                do {
-                                    try await viewModel.startWorkout(workout)
-                                } catch {
-                                    viewModel.showAlert = AnyAppAlert(error: error)
-                                }
+                                await viewModel.startWorkout(workout)
                             }
                         }
                 }
@@ -259,10 +244,27 @@ struct ProgramView: View {
 
     private var goalsSection: some View {
         Group {
-            if let plan = viewModel.currentTrainingPlan, !plan.goals.isEmpty {
+            if let plan = viewModel.currentTrainingPlan {
                 Section {
-                    ForEach(plan.goals) { goal in
-                        GoalProgressRow(goal: goal)
+                    if !plan.goals.isEmpty {
+                        ForEach(plan.goals) { goal in
+                            GoalProgressRow(goal: goal)
+                        }
+                    } else {
+                        ContentUnavailableView {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.yellow)
+                        } description: {
+                            Text("No training goals set. Tap the plus button to add one.")
+                        } actions: {
+                            Button {
+                                
+                            } label: {
+                                Image(systemName: "plus")
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+
                     }
                 } header: {
                     Text("Goals")
@@ -333,9 +335,105 @@ struct ProgramView: View {
     }
 }
 
-#Preview {
-    List {
-        ProgramView(viewModel: ProgramViewModel(container: DevPreview.shared.container))
+#Preview("No Active Program") {
+    let container = DevPreview.shared.container
+    // Override with empty training plan manager
+    let emptyTrainingPlanManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: nil))
+    container.register(TrainingPlanManager.self, service: emptyTrainingPlanManager)
+    
+    return NavigationStack {
+        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+    }
+    .previewEnvironment()
+}
+
+#Preview("Active Program - High Adherence") {
+    let container = DevPreview.shared.container
+    let highAdherenceManager = TrainingPlanManager(
+        services: MockTrainingPlanServices(
+            customPlan: TrainingPlan.mockHighAdherence
+        )
+    )
+    container.register(
+        TrainingPlanManager.self,
+        service: highAdherenceManager
+    )
+    
+    return NavigationStack {
+        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+    }
+    .previewEnvironment()
+}
+
+#Preview("Active Program - Low Adherence") {
+    let container = DevPreview.shared.container
+    let lowAdherenceManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: TrainingPlan.mockLowAdherence))
+    container.register(TrainingPlanManager.self, service: lowAdherenceManager)
+    
+    return NavigationStack {
+        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+    }
+    .previewEnvironment()
+}
+
+#Preview("Today's Workout - Incomplete") {
+    let container = DevPreview.shared.container
+    let todaysWorkoutManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: TrainingPlan.mockWithTodaysWorkout))
+    container.register(TrainingPlanManager.self, service: todaysWorkoutManager)
+    
+    return NavigationStack {
+        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+    }
+    .previewEnvironment()
+}
+
+#Preview("Today's Workout - Completed") {
+    let container = DevPreview.shared.container
+    let completedWorkoutManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: TrainingPlan.mockWithCompletedTodaysWorkout))
+    container.register(TrainingPlanManager.self, service: completedWorkoutManager)
+    
+    return NavigationStack {
+        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+    }
+    .previewEnvironment()
+}
+
+#Preview("Multiple Today's Workouts") {
+    let container = DevPreview.shared.container
+    let multipleWorkoutsManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: TrainingPlan.mockWithMultipleTodaysWorkouts))
+    container.register(TrainingPlanManager.self, service: multipleWorkoutsManager)
+    
+    return NavigationStack {
+        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+    }
+    .previewEnvironment()
+}
+
+#Preview("No Goals Set") {
+    let container = DevPreview.shared.container
+    let noGoalsManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: TrainingPlan.mockNoGoals))
+    container.register(TrainingPlanManager.self, service: noGoalsManager)
+    
+    return NavigationStack {
+        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+    }
+    .previewEnvironment()
+}
+
+#Preview("Program Near End") {
+    let container = DevPreview.shared.container
+    let nearEndManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: TrainingPlan.mockNearEnd))
+    container.register(TrainingPlanManager.self, service: nearEndManager)
+    
+    return NavigationStack {
+        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+    }
+    .previewEnvironment()
+}
+
+#Preview("Mid-Program Progress") {
+    NavigationStack {
+        ProgramView(viewModel: ProgramViewModel(container: DevPreview.shared.container, onActiveSheetChanged: nil))
     }
     .previewEnvironment()
 }
@@ -352,5 +450,14 @@ enum ActiveSheet: Identifiable {
         case .strengthProgress: return "strengthProgress"
         case .workoutHeatmap: return "workoutHeatmap"
         }
+    }
+    
+    var eventParameters: [String: Any] {
+        let sheet = self
+        let params: [String: Any] = [
+            "program_sheet": sheet.id
+        ]
+        
+        return params
     }
 }

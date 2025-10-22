@@ -22,7 +22,6 @@ struct EnhancedScheduleView: View {
             // Calendar grid
             calendarGrid
         }
-        // .padding()
     }
     
     private var monthNavigator: some View {
@@ -34,7 +33,7 @@ struct EnhancedScheduleView: View {
             } label: {
                 Image(systemName: "chevron.left")
             }
-            
+            .buttonStyle(.borderedProminent)
             Spacer()
             
             Text(viewModel.selectedDate.formatted(.dateTime.month(.wide).year()))
@@ -49,6 +48,7 @@ struct EnhancedScheduleView: View {
             } label: {
                 Image(systemName: "chevron.right")
             }
+            .buttonStyle(.borderedProminent)
         }
     }
     
@@ -77,6 +77,7 @@ struct EnhancedScheduleView: View {
                 }
             }
         }
+        .id("\(viewModel.calendar.component(.month, from: viewModel.selectedDate))-\(viewModel.calendar.component(.year, from: viewModel.selectedDate))")
     }
     
     private func dayCell(for date: Date) -> some View {

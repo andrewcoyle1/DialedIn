@@ -13,6 +13,7 @@ enum AppSection: String, Hashable, CaseIterable, Identifiable {
     case training
     case nutrition
     case profile
+    case search
     
     var id: Self { self }
     
@@ -22,6 +23,7 @@ enum AppSection: String, Hashable, CaseIterable, Identifiable {
         case .training: return "Training"
         case .nutrition: return "Nutrition"
         case .profile: return "Profile"
+        case .search: return "Search"
         }
     }
     
@@ -31,6 +33,7 @@ enum AppSection: String, Hashable, CaseIterable, Identifiable {
         case .training: return "dumbbell"
         case .nutrition: return "carrot"
         case .profile: return "person.fill"
+        case .search: return "magnifyingglass"
         }
     }
 }

@@ -23,6 +23,7 @@ struct WorkoutHistoryView: View {
             }
         }
         .screenAppearAnalytics(name: "WorkoutHistoryView")
+        .scrollIndicators(.hidden)
         .navigationTitle("Workout Sessions")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {

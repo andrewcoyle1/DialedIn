@@ -156,6 +156,22 @@ class WorkoutSessionManager {
         try await remote.getWorkoutSession(id: id)
     }
     
+    /// Get workout session, trying local storage first, then falling back to remote
+    func getWorkoutSessionWithFallback(id: String) async throws -> WorkoutSessionModel {
+        // Try local first
+        if let cachedSession = try? local.getLocalWorkoutSession(id: id) {
+            return cachedSession
+        }
+        
+        // Fetch from remote
+        let remoteSession = try await remote.getWorkoutSession(id: id)
+        
+        // Cache locally for future use
+        try? local.upsertLocalWorkoutSession(session: remoteSession)
+        
+        return remoteSession
+    }
+    
     func getWorkoutSessions(ids: [String], limitTo: Int = 20) async throws -> [WorkoutSessionModel] {
         try await remote.getWorkoutSessions(ids: ids, limitTo: limitTo)
     }

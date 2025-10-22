@@ -68,21 +68,22 @@ struct TodaysWorkoutCardView: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(.vertical, 8)
         .task {
-            await viewModel.loadDetails()
+            await viewModel.loadWorkoutDetails()
         }
         .showCustomAlert(alert: $viewModel.showAlert)
     }
 }
 
 #Preview {
-    TodaysWorkoutCardView(
-        viewModel: TodaysWorkoutCardViewModel(container: DevPreview.shared.container,
-        scheduledWorkout: ScheduledWorkout.mocksWeek1.first!,
-        onStart: {
-            
-        })
-    )
+    List {
+        TodaysWorkoutCardView(
+            viewModel: TodaysWorkoutCardViewModel(
+                container: DevPreview.shared.container,
+                scheduledWorkout: ScheduledWorkout.mocksWeek1.first!,
+                onStart: { }
+            )
+        )
+    }
     .previewEnvironment()
 }

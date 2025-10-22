@@ -10,6 +10,7 @@ import SwiftUI
 @Observable
 @MainActor
 class WorkoutCalendarViewModel {
+    private let logManager: LogManager
     private let workoutTemplateManager: WorkoutTemplateManager
     private let workoutSessionManager: WorkoutSessionManager
     private let trainingPlanManager: TrainingPlanManager
@@ -33,6 +34,7 @@ class WorkoutCalendarViewModel {
         onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil,
         onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)? = nil
     ) {
+        self.logManager = container.resolve(LogManager.self)!
         self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
         self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
@@ -84,33 +86,78 @@ class WorkoutCalendarViewModel {
         if workout.isCompleted {
             await openCompletedSession(for: workout)
         } else {
-            do {
-                try await startWorkout(workout)
-            } catch {
-                showAlert = AnyAppAlert(error: error)
-            }
+            await startWorkout(workout)
         }
     }
     
-    func startWorkout(_ scheduledWorkout: ScheduledWorkout) async throws {
-        let template = try await workoutTemplateManager.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
-        
-        // Small delay to ensure any pending presentations complete
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-        
-        // Notify parent to show WorkoutStartView
-        onWorkoutStartRequested?(template, scheduledWorkout)
+    func startWorkout(_ scheduledWorkout: ScheduledWorkout) async {
+        logManager.trackEvent(event: Event.startWorkoutStart)
+        do {
+            let template = try await workoutTemplateManager.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
+            
+            // Small delay to ensure any pending presentations complete
+            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+            
+            // Notify parent to show WorkoutStartView
+            onWorkoutStartRequested?(template, scheduledWorkout)
+            logManager.trackEvent(event: Event.startWorkoutSuccess)
+        } catch {
+            showAlert = AnyAppAlert(error: error)
+            logManager.trackEvent(event: Event.startWorkoutFail(error: error))
+        }
     }
     
     func openCompletedSession(for scheduledWorkout: ScheduledWorkout) async {
         guard let sessionId = scheduledWorkout.completedSessionId else { return }
+        logManager.trackEvent(event: Event.openCompletedSessionStart)
         do {
             let session = try await workoutSessionManager.getWorkoutSession(id: sessionId)
             await MainActor.run {
                 onSessionSelectionChanged?(session)
+                logManager.trackEvent(event: Event.openCompletedSessionSuccess)
             }
         } catch {
             showAlert = AnyAppAlert(error: error)
+            logManager.trackEvent(event: Event.openCompletedSessionFail(error: error))
+        }
+    }
+    
+    enum Event: LoggableEvent {
+        case startWorkoutStart
+        case startWorkoutSuccess
+        case startWorkoutFail(error: Error)
+        case openCompletedSessionStart
+        case openCompletedSessionSuccess
+        case openCompletedSessionFail(error: Error)
+        
+        var eventName: String {
+            switch self {
+            case .startWorkoutStart:    return "WorkoutCalendar_StartWorkout_Start"
+            case .startWorkoutSuccess:  return "WorkoutCalendar_StartWorkout_Success"
+            case .startWorkoutFail:  return "WorkoutCalendar_StartWorkout_Fail"
+            case .openCompletedSessionStart:    return "WorkoutCalendar_OpenCompletedSession_Start"
+            case .openCompletedSessionSuccess:  return "WorkoutCalendar_OpenCompletedSession_Success"
+            case .openCompletedSessionFail:  return "WorkoutCalendar_OpenCompletedSession_Fail"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            case .startWorkoutFail(error: let error), .openCompletedSessionFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            case .startWorkoutFail, .openCompletedSessionFail:
+                return .severe
+            default:
+                return .analytic
+                
+            }
         }
     }
 }

@@ -50,6 +50,8 @@ struct SplitViewContainer: View {
                         NavigationOptions.nutrition.viewForPage(container: container)
                     case .profile:
                         NavigationOptions.profile.viewForPage(container: container)
+                    case .search:
+                        NavigationOptions.search.viewForPage(container: container)
                     }
                 } else {
                     NavigationOptions.dashboard.viewForPage(container: container)

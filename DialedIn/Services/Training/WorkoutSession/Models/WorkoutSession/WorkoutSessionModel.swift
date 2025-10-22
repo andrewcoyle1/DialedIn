@@ -61,8 +61,8 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
         case exercises
     }
 
-    init(authorId: String, template: WorkoutTemplateModel, notes: String? = nil, scheduledWorkoutId: String? = nil, trainingPlanId: String? = nil) {
-        self.id = UUID().uuidString
+    init(id: String = UUID().uuidString, authorId: String, template: WorkoutTemplateModel, notes: String? = nil, scheduledWorkoutId: String? = nil, trainingPlanId: String? = nil) {
+        self.id = id
         self.authorId = authorId
         self.name = template.name
         self.workoutTemplateId = template.id
@@ -148,11 +148,11 @@ struct WorkoutSessionModel: Identifiable, Codable, StringIdentifiable, Hashable 
     static var mocks: [WorkoutSessionModel] {
         // Ensure mock sessions belong to the preview/mock user and are completed so they appear in history
         let uid = UserAuthInfo.mock().uid
-        var session1 = WorkoutSessionModel(authorId: uid, template: WorkoutTemplateModel.mocks[0])
+        var session1 = WorkoutSessionModel(id: "session-1", authorId: uid, template: WorkoutTemplateModel.mocks[0])
         session1.endSession(at: session1.dateCreated.addingTimeInterval(45 * 60))
-        var session2 = WorkoutSessionModel(authorId: uid, template: WorkoutTemplateModel.mocks[1])
+        var session2 = WorkoutSessionModel(id: "session-2", authorId: uid, template: WorkoutTemplateModel.mocks[1])
         session2.endSession(at: session2.dateCreated.addingTimeInterval(30 * 60))
-        var session3 = WorkoutSessionModel(authorId: uid, template: WorkoutTemplateModel.mocks[2])
+        var session3 = WorkoutSessionModel(id: "session-3", authorId: uid, template: WorkoutTemplateModel.mocks[2])
         session3.endSession(at: session3.dateCreated.addingTimeInterval(60 * 60))
         return [session1, session2, session3]
     }

@@ -89,9 +89,14 @@ struct TrainingPlan: Codable, Equatable, Identifiable {
     
     var adherenceRate: Double {
         let allWorkouts = weeks.flatMap { $0.scheduledWorkouts }
-        guard !allWorkouts.isEmpty else { return 0 }
-        let completed = allWorkouts.filter { $0.isCompleted }.count
-        return Double(completed) / Double(allWorkouts.count)
+        // Only consider workouts scheduled up to and including today
+        let pastAndCurrentWorkouts = allWorkouts.filter { workout in
+            guard let scheduledDate = workout.scheduledDate else { return false }
+            return scheduledDate <= Date()
+        }
+        guard !pastAndCurrentWorkouts.isEmpty else { return 0 }
+        let completed = pastAndCurrentWorkouts.filter { $0.isCompleted }.count
+        return Double(completed) / Double(pastAndCurrentWorkouts.count)
     }
     
     mutating func updateWeek(_ week: TrainingWeek) {
@@ -143,6 +148,172 @@ struct TrainingPlan: Codable, Equatable, Identifiable {
             weeks: TrainingWeek.mocks,
             goals: TrainingGoal.mocks,
             createdAt: Date(timeIntervalSinceNow: -86400 * 14),
+            modifiedAt: .now
+        )
+    }
+    
+    // MARK: - Preview Mock Variations
+    
+    static var mockNoGoals: TrainingPlan {
+        TrainingPlan(
+            planId: "mock-plan-no-goals",
+            userId: "user-1",
+            name: "Basic Training Plan",
+            description: "A simple training plan without specific goals",
+            startDate: Calendar.current.date(byAdding: .weekOfYear, value: -1, to: .now) ?? .now,
+            endDate: Calendar.current.date(byAdding: .weekOfYear, value: 7, to: .now),
+            isActive: true,
+            programTemplateId: "template-basic",
+            weeks: TrainingWeek.mocks,
+            goals: [], // No goals
+            createdAt: Date(timeIntervalSinceNow: -86400 * 7),
+            modifiedAt: .now
+        )
+    }
+    
+    static var mockHighAdherence: TrainingPlan {
+        // Create a new plan with high adherence data
+        var highAdherenceWeeks = TrainingWeek.mocks
+        for iteration in 0..<highAdherenceWeeks.count {
+            highAdherenceWeeks[iteration].scheduledWorkouts = highAdherenceWeeks[iteration].scheduledWorkouts.map { workout in
+                var modifiedWorkout = workout
+                modifiedWorkout.isCompleted = true
+                modifiedWorkout.completedSessionId = "session-\(iteration+1)"
+                return modifiedWorkout
+            }
+        }
+        
+        return TrainingPlan(
+            planId: "mock-plan-high-adherence",
+            userId: "user-1",
+            name: "Consistent Training Program",
+            description: "High adherence training program",
+            startDate: Calendar.current.date(byAdding: .weekOfYear, value: -2, to: .now) ?? .now,
+            endDate: Calendar.current.date(byAdding: .weekOfYear, value: 6, to: .now),
+            isActive: true,
+            programTemplateId: "template-ppl",
+            weeks: highAdherenceWeeks,
+            goals: TrainingGoal.mocks,
+            createdAt: Date(timeIntervalSinceNow: -86400 * 14),
+            modifiedAt: .now
+        )
+    }
+    
+    static var mockLowAdherence: TrainingPlan {
+        // Create a new plan with low adherence data
+        var lowAdherenceWeeks = TrainingWeek.mocks
+        for iteration in 0..<lowAdherenceWeeks.count {
+            lowAdherenceWeeks[iteration].scheduledWorkouts = lowAdherenceWeeks[iteration].scheduledWorkouts.enumerated().map { index, workout in
+                var modifiedWorkout = workout
+                // Only complete 1 out of 3 workouts per week
+                modifiedWorkout.isCompleted = index % 3 == 0
+                if modifiedWorkout.isCompleted {
+                    modifiedWorkout.completedSessionId = "session-\(iteration+1)"
+                }
+                return modifiedWorkout
+            }
+        }
+        
+        return TrainingPlan(
+            planId: "mock-plan-low-adherence",
+            userId: "user-1",
+            name: "Struggling Training Program",
+            description: "Low adherence training program",
+            startDate: Calendar.current.date(byAdding: .weekOfYear, value: -2, to: .now) ?? .now,
+            endDate: Calendar.current.date(byAdding: .weekOfYear, value: 6, to: .now),
+            isActive: true,
+            programTemplateId: "template-ppl",
+            weeks: lowAdherenceWeeks,
+            goals: TrainingGoal.mocks,
+            createdAt: Date(timeIntervalSinceNow: -86400 * 14),
+            modifiedAt: .now
+        )
+    }
+    
+    static var mockWithTodaysWorkout: TrainingPlan {
+        
+        // Add a workout for today
+        let todaysWorkout = ScheduledWorkout.todayIncomplete
+        var modifiedWeeks = TrainingWeek.mocks
+        if !modifiedWeeks.isEmpty {
+            modifiedWeeks[0].scheduledWorkouts.append(todaysWorkout)
+        }
+        
+        return TrainingPlan(
+            planId: "mock-plan-todays-workout",
+            userId: "user-1",
+            name: "Today's Workout Program",
+            description: "Program with workout scheduled for today",
+            startDate: Calendar.current.date(byAdding: .weekOfYear, value: -2, to: .now) ?? .now,
+            endDate: Calendar.current.date(byAdding: .weekOfYear, value: 6, to: .now),
+            isActive: true,
+            programTemplateId: "template-ppl",
+            weeks: modifiedWeeks,
+            goals: TrainingGoal.mocks,
+            createdAt: Date(timeIntervalSinceNow: -86400 * 14),
+            modifiedAt: .now
+        )
+    }
+    
+    static var mockWithCompletedTodaysWorkout: TrainingPlan {
+        let todaysWorkout = ScheduledWorkout.todayComplete
+        var modifiedWeeks = TrainingWeek.mocks
+        if !modifiedWeeks.isEmpty {
+            modifiedWeeks[0].scheduledWorkouts.append(todaysWorkout)
+        }
+        
+        return TrainingPlan(
+            planId: "mock-plan-completed-todays-workout",
+            userId: "user-1",
+            name: "Completed Today's Workout Program",
+            description: "Program with today's workout already completed",
+            startDate: Calendar.current.date(byAdding: .weekOfYear, value: -2, to: .now) ?? .now,
+            endDate: Calendar.current.date(byAdding: .weekOfYear, value: 6, to: .now),
+            isActive: true,
+            programTemplateId: "template-ppl",
+            weeks: modifiedWeeks,
+            goals: TrainingGoal.mocks,
+            createdAt: Date(timeIntervalSinceNow: -86400 * 14),
+            modifiedAt: .now
+        )
+    }
+    
+    static var mockWithMultipleTodaysWorkouts: TrainingPlan {
+        let todaysWorkouts = ScheduledWorkout.todayMultiple
+        var modifiedWeeks = TrainingWeek.mocks
+        if !modifiedWeeks.isEmpty {
+            modifiedWeeks[0].scheduledWorkouts.append(contentsOf: todaysWorkouts)
+        }
+        
+        return TrainingPlan(
+            planId: "mock-plan-multiple-todays-workouts",
+            userId: "user-1",
+            name: "Multiple Today's Workouts Program",
+            description: "Program with multiple workouts scheduled for today",
+            startDate: Calendar.current.date(byAdding: .weekOfYear, value: -2, to: .now) ?? .now,
+            endDate: Calendar.current.date(byAdding: .weekOfYear, value: 6, to: .now),
+            isActive: true,
+            programTemplateId: "template-ppl",
+            weeks: modifiedWeeks,
+            goals: TrainingGoal.mocks,
+            createdAt: Date(timeIntervalSinceNow: -86400 * 14),
+            modifiedAt: .now
+        )
+    }
+    
+    static var mockNearEnd: TrainingPlan {
+        TrainingPlan(
+            planId: "mock-plan-near-end",
+            userId: "user-1",
+            name: "Finishing Program",
+            description: "Program ending soon",
+            startDate: Calendar.current.date(byAdding: .day, value: -50, to: .now) ?? .now,
+            endDate: Calendar.current.date(byAdding: .day, value: 3, to: .now), // Ends in 3 days
+            isActive: true,
+            programTemplateId: "template-finishing",
+            weeks: TrainingWeek.mocks,
+            goals: TrainingGoal.mocks,
+            createdAt: Date(timeIntervalSinceNow: -86400 * 50),
             modifiedAt: .now
         )
     }
@@ -240,14 +411,14 @@ struct ScheduledWorkout: Codable, Equatable, Identifiable {
                 workoutTemplateId: "workout1",
                 dayOfWeek: 2,
                 scheduledDate: calendar.date(byAdding: .day, value: -6, to: today),
-                completedSessionId: "session1",
+                completedSessionId: "session-1",
                 isCompleted: true
             ),
             ScheduledWorkout(
                 workoutTemplateId: "workout2",
                 dayOfWeek: 4,
                 scheduledDate: calendar.date(byAdding: .day, value: -4, to: today),
-                completedSessionId: "session2",
+                completedSessionId: "session-2",
                 isCompleted: true
             ),
             ScheduledWorkout(
@@ -304,6 +475,54 @@ struct ScheduledWorkout: Codable, Equatable, Identifiable {
                 workoutTemplateId: "workout3",
                 dayOfWeek: 6,
                 scheduledDate: calendar.date(byAdding: .day, value: 12, to: today),
+                isCompleted: false
+            )
+        ]
+    }
+    
+    // MARK: - Preview Mock Variations
+    
+    static var todayIncomplete: ScheduledWorkout {
+        let today = Date()
+        return ScheduledWorkout(
+            workoutTemplateId: "workout-today",
+            workoutName: "Push Day",
+            dayOfWeek: Calendar.current.component(.weekday, from: today),
+            scheduledDate: today,
+            isCompleted: false
+        )
+    }
+    
+    static var todayComplete: ScheduledWorkout {
+        let today = Date()
+        return ScheduledWorkout(
+            workoutTemplateId: "workout-today-complete",
+            workoutName: "Pull Day",
+            dayOfWeek: Calendar.current.component(.weekday, from: today),
+            scheduledDate: today,
+            completedSessionId: "session-1",
+            isCompleted: true
+        )
+    }
+    
+    static var todayMultiple: [ScheduledWorkout] {
+        let today = Date()
+        let weekday = Calendar.current.component(.weekday, from: today)
+        
+        return [
+            ScheduledWorkout(
+                workoutTemplateId: "workout-morning",
+                workoutName: "Morning Cardio",
+                dayOfWeek: weekday,
+                scheduledDate: today,
+                completedSessionId: "session-1",
+                isCompleted: true
+            ),
+            ScheduledWorkout(
+                workoutTemplateId: "workout-afternoon",
+                workoutName: "Strength Training",
+                dayOfWeek: weekday,
+                scheduledDate: today,
                 isCompleted: false
             )
         ]

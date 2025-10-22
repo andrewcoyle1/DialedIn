@@ -90,16 +90,7 @@ class EditProgramViewModel {
     }
     
     private func calculateAdjustedEndDate(originalEndDate: Date?) -> Date? {
-        let newEndDate = hasEndDate ? endDate : nil
-        var adjustedEndDate = newEndDate
-        
-        if hasEndDate, let currentEndDate = endDate, startDate != originalStartDate {
-            let calendar = Calendar.current
-            let daysDifference = calendar.dateComponents([.day], from: originalStartDate, to: startDate).day ?? 0
-            adjustedEndDate = calendar.date(byAdding: .day, value: daysDifference, to: currentEndDate)
-        }
-        
-        return adjustedEndDate
+        return hasEndDate ? endDate : nil
     }
     
     private func handleEndDateChanges(
@@ -219,34 +210,66 @@ class EditProgramViewModel {
         newEndDate: Date,
         programTemplateId: String?
     ) async throws -> [TrainingWeek] {
+        // Debug: List all available templates
+        let allTemplates = programTemplateManager.getAll()
+        for template in allTemplates {
+            print("  - \(template.id): \(template.name)")
+        }
+        
         // If no template, can't auto-extend
-        guard let templateId = programTemplateId,
-              let template = programTemplateManager.get(id: templateId) else {
+        guard let templateId = programTemplateId else {
             return weeks
         }
         
-        // Find the highest week number currently scheduled
-        let maxScheduledWeek = weeks.map { $0.weekNumber }.max() ?? 0
+        // Try to get template locally first
+        var template = programTemplateManager.get(id: templateId)
         
-        // Get weeks from template that haven't been scheduled yet
-        let additionalWeeks = template.weekTemplates.filter { $0.weekNumber > maxScheduledWeek }
+        // If not found locally, try to fetch from Firebase
+        if template == nil {
+            do {
+                template = try await programTemplateManager.fetchTemplateFromRemote(id: templateId)
+            } catch {
+                return weeks
+            }
+        }
+        
+        guard let template = template else {
+            return weeks
+        }
+                
+        guard !template.weekTemplates.isEmpty else {
+            return weeks
+        }
         
         var updatedWeeks = weeks
         
-        // Schedule additional weeks that fall within the new date range
-        for weekTemplate in additionalWeeks {
-            let scheduledWorkouts: [ScheduledWorkout] = weekTemplate.workoutSchedule.compactMap { mapping -> ScheduledWorkout? in
-                let weekOffset = weekTemplate.weekNumber - 1
-                let scheduledDate = calculateScheduleDate(
-                    startDate: startDate,
-                    weekOffset: weekOffset,
-                    dayOfWeek: mapping.dayOfWeek
-                )
-                
-                // Only schedule if within new end date
-                guard scheduledDate <= newEndDate else {
-                    return nil
-                }
+        // Use date-based approach: iterate through each day in the extended range
+        let calendar = Calendar.current
+        let startOfOldEnd = calendar.startOfDay(for: oldEndDate)
+        let startOfNewEnd = calendar.startOfDay(for: newEndDate)
+        
+        // Start from the day after the old end date
+        guard var currentDate = calendar.date(byAdding: .day, value: 1, to: startOfOldEnd) else {
+            return weeks
+        }
+        
+        // Dictionary to group workouts by week number
+        var workoutsByWeek: [Int: [ScheduledWorkout]] = [:]
+        
+        // Iterate through each day in the extended range
+        while currentDate <= startOfNewEnd {
+            let dayOfWeek = calendar.component(.weekday, from: currentDate)
+            
+            // Calculate which week this date belongs to
+            let weeksSinceStart = calendar.dateComponents([.weekOfYear], from: startDate, to: currentDate).weekOfYear ?? 0
+            let weekNumber = weeksSinceStart + 1
+            
+            // Find the corresponding template week (cycling through template)
+            let templateIndex = (weekNumber - 1) % template.weekTemplates.count
+            let weekTemplate = template.weekTemplates[templateIndex]
+            
+            // Check if this template week has a workout scheduled for this day of week
+            if let mapping = weekTemplate.workoutSchedule.first(where: { $0.dayOfWeek == dayOfWeek }) {
                 
                 // Fetch workout name
                 let workoutName: String? = mapping.workoutName ?? {
@@ -256,21 +279,41 @@ class EditProgramViewModel {
                     return nil
                 }()
                 
-                return ScheduledWorkout(
+                let workout = ScheduledWorkout(
                     workoutTemplateId: mapping.workoutTemplateId,
                     workoutName: workoutName,
-                    dayOfWeek: mapping.dayOfWeek,
-                    scheduledDate: scheduledDate
+                    dayOfWeek: dayOfWeek,
+                    scheduledDate: currentDate
                 )
+                
+                // Group by week number
+                if workoutsByWeek[weekNumber] == nil {
+                    workoutsByWeek[weekNumber] = []
+                }
+                workoutsByWeek[weekNumber]?.append(workout)
             }
             
-            // Only add week if it has workouts
-            if !scheduledWorkouts.isEmpty {
-                updatedWeeks.append(TrainingWeek(
-                    weekNumber: weekTemplate.weekNumber,
-                    scheduledWorkouts: scheduledWorkouts,
+            // Move to next day
+            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? currentDate
+        }
+        
+        // Add the grouped workouts as training weeks
+        for (weekNumber, workouts) in workoutsByWeek.sorted(by: { $0.key < $1.key }) {
+            let templateIndex = (weekNumber - 1) % template.weekTemplates.count
+            let weekTemplate = template.weekTemplates[templateIndex]
+            
+            // Check if this week already exists in updatedWeeks
+            if let existingWeekIndex = updatedWeeks.firstIndex(where: { $0.weekNumber == weekNumber }) {
+                // Append to existing week
+                updatedWeeks[existingWeekIndex].scheduledWorkouts.append(contentsOf: workouts)
+            } else {
+                // Create new week
+                let newWeek = TrainingWeek(
+                    weekNumber: weekNumber,
+                    scheduledWorkouts: workouts,
                     notes: weekTemplate.notes
-                ))
+                )
+                updatedWeeks.append(newWeek)
             }
         }
         

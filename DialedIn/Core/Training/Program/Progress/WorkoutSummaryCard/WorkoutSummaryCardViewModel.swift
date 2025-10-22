@@ -10,6 +10,7 @@ import SwiftUI
 @Observable
 @MainActor
 class WorkoutSummaryCardViewModel {
+    private let logManager: LogManager
     private let workoutSessionManager: WorkoutSessionManager
     let scheduledWorkout: ScheduledWorkout
     let onTap: () -> Void
@@ -22,6 +23,7 @@ class WorkoutSummaryCardViewModel {
         scheduledWorkout: ScheduledWorkout,
         onTap: @escaping () -> Void
     ) {
+        self.logManager = container.resolve(LogManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
         self.scheduledWorkout = scheduledWorkout
         self.onTap = onTap
@@ -54,16 +56,52 @@ class WorkoutSummaryCardViewModel {
             return
         }
         
+        logManager.trackEvent(event: Event.loadSessionStart)
         do {
-            let fetchedSession = try await workoutSessionManager.getWorkoutSession(id: sessionId)
+            let fetchedSession = try await workoutSessionManager.getWorkoutSessionWithFallback(id: sessionId)
             await MainActor.run {
                 self.session = fetchedSession
                 self.isLoading = false
+                logManager.trackEvent(event: Event.loadSessionSuccess)
             }
         } catch {
+            logManager.trackEvent(event: Event.loadSessionFail(error: error))
             await MainActor.run {
                 self.isLoading = false
                 self.showAlert = AnyAppAlert(error: error)
+            }
+        }
+    }
+    
+    enum Event: LoggableEvent {
+        case loadSessionStart
+        case loadSessionSuccess
+        case loadSessionFail(error: Error)
+        
+        var eventName: String {
+            switch self {
+            case .loadSessionStart:     return "WorkoutSummaryCard_LoadSession_Start"
+            case .loadSessionSuccess:   return "WorkoutSummaryCard_LoadSession_Success"
+            case .loadSessionFail:      return "WorkoutSummaryCard_LoadSession_Fail"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            case .loadSessionFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            case .loadSessionFail:
+                return .severe
+            default:
+                return .analytic
+                
             }
         }
     }

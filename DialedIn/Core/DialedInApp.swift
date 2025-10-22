@@ -345,6 +345,7 @@ extension View {
             .environment(PushManager(services: MockPushServices(), logManager: nil))
             .environment(HealthKitManager(service: MockHealthService()))
             .environment(DevPreview.shared.container)
+            .environment(AppNavigationModel())
     }
 }
 

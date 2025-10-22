@@ -42,6 +42,7 @@ struct WorkoutsView: View {
         .navigationTitle("Workouts")
         .navigationSubtitle("\(viewModel.workouts.count) workouts")
         .navigationBarTitleDisplayMode(.large)
+        .scrollIndicators(.hidden)
         .onFirstTask {
             await viewModel.loadSystemWorkouts()
             await viewModel.loadMyWorkoutsIfNeeded()
@@ -210,10 +211,8 @@ struct WorkoutsView: View {
 }
 
 #Preview {
-    List {
-        WorkoutsView(
-            viewModel: WorkoutsViewModel(container: DevPreview.shared.container)
-        )
+    NavigationStack {
+        WorkoutsView(viewModel: WorkoutsViewModel(container: DevPreview.shared.container))
     }
     .previewEnvironment()
 }

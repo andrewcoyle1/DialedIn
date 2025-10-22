@@ -9,23 +9,14 @@ import SwiftUI
 
 struct WorkoutCalendarView: View {
     @State var viewModel: WorkoutCalendarViewModel
+    @State private var scheduleViewModel: EnhancedScheduleViewModel?
     @Environment(DependencyContainer.self) private var container
     
     var body: some View {
         Section(isExpanded: $viewModel.isShowingCalendar) {
-            EnhancedScheduleView(
-                viewModel: EnhancedScheduleViewModel(
-                    container: container,
-                getScheduledWorkouts: { viewModel.scheduledWorkouts },
-                onDateSelected: { date in
-                    viewModel.selectedDate = date
-                    viewModel.collapsedSubtitle = "Next: \(date.formatted(.dateTime.day().month()))"
-                },
-                onDateTapped: { date in
-                    viewModel.handleDateTapped(date)
-                }
-            )
-                )
+            if let scheduleViewModel {
+                EnhancedScheduleView(viewModel: scheduleViewModel)
+            }
         } header: {
             HStack(alignment: .firstTextBaseline) {
                 Text("Plan")
@@ -67,6 +58,19 @@ struct WorkoutCalendarView: View {
         }
         .showCustomAlert(alert: $viewModel.showAlert)
         .onAppear {
+            if scheduleViewModel == nil {
+                scheduleViewModel = EnhancedScheduleViewModel(
+                    container: container,
+                    getScheduledWorkouts: { viewModel.scheduledWorkouts },
+                    onDateSelected: { date in
+                        viewModel.selectedDate = date
+                        viewModel.collapsedSubtitle = "Next: \(date.formatted(.dateTime.day().month()))"
+                    },
+                    onDateTapped: { date in
+                        viewModel.handleDateTapped(date)
+                    }
+                )
+            }
             viewModel.loadScheduledWorkouts()
         }
         .onChange(of: viewModel.trainingPlan) { _, _ in

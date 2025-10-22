@@ -243,6 +243,7 @@ class WorkoutsViewModel {
         if bookmarkedIds.isEmpty && favouritedIds.isEmpty {
             favouriteWorkouts = []
             bookmarkedWorkouts = []
+            logManager.trackEvent(event: Event.syncWorkoutsFromCurrentUserSuccess(favouriteCount: 0, bookmarkedCount: 0))
             return
         }
         do {

@@ -9,7 +9,6 @@ import SwiftUI
 
 struct WorkoutSummaryCardView: View {
     @State var viewModel: WorkoutSummaryCardViewModel
-    @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     
     var body: some View {
         Button {
@@ -17,37 +16,18 @@ struct WorkoutSummaryCardView: View {
         } label: {
             HStack(spacing: 16) {
                 // Status indicator
-                VStack(spacing: 4) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(.green)
-                    Text("Done")
-                        .font(.caption2)
-                        .foregroundStyle(.green)
-                }
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
                 
                 // Workout info
                 VStack(alignment: .leading, spacing: 8) {
                     Text(viewModel.session?.name ?? viewModel.scheduledWorkout.workoutName ?? "Workout")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
+                        .font(.subheadline)
                     
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .controlSize(.small)
-                    } else if let session = viewModel.session {
-                        summaryMetrics(for: session)
-                    }
+                        summaryMetrics
                 }
-                
-                Spacer()
-                
-                // Navigation indicator
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(.vertical, 8)
             .tappableBackground()
         }
         .buttonStyle(.plain)
@@ -57,67 +37,138 @@ struct WorkoutSummaryCardView: View {
         .showCustomAlert(alert: $viewModel.showAlert)
     }
     
-    @ViewBuilder
-    private func summaryMetrics(for session: WorkoutSessionModel) -> some View {
+    private var summaryMetrics: some View {
         HStack(spacing: 16) {
-            // Duration
-            if let endedAt = session.endedAt {
-                let duration = endedAt.timeIntervalSince(session.dateCreated)
-                metricView(
-                    label: "Duration",
-                    value: viewModel.formatDuration(duration),
-                    icon: "clock"
+            if let session = viewModel.session {
+                // Date
+                MetricView(
+                    label: "date",
+                    value: session.dateModified.formatted(.dateTime.day().month()),
+                    icon: "calendar"
                 )
-            }
-            
-            // Sets completed
-            let completedSetsCount = session.exercises.flatMap { $0.sets }.filter { $0.completedAt != nil }.count
-            metricView(
-                label: "Sets",
-                value: "\(completedSetsCount)",
-                icon: "list.bullet"
-            )
-            
-            // Volume (if applicable)
-            let volume = viewModel.calculateTotalVolume(session: session)
-            if volume > 0 {
-                metricView(
-                    label: "Volume",
-                    value: String(format: "%.0f kg", volume),
-                    icon: "scalemass"
+
+                // Duration
+                if let endedAt = session.endedAt {
+                    let duration = endedAt.timeIntervalSince(session.dateCreated)
+                    MetricView(
+                        label: "Duration",
+                        value: viewModel.formatDuration(duration),
+                        icon: "clock",
+                        isLoading: viewModel.isLoading
+                    )
+                } else {
+                    MetricView(
+                        label: "Duration",
+                        value: "—",
+                        icon: "clock",
+                        isLoading: viewModel.isLoading
+                    )
+                }
+
+                // Sets completed
+                let completedSetsCount = session.exercises.flatMap { $0.sets }.filter { $0.completedAt != nil }.count
+                MetricView(
+                    label: "Sets",
+                    value: "\(completedSetsCount)",
+                    icon: "list.bullet"
                 )
+
+                // Volume (if applicable)
+                let volume = viewModel.calculateTotalVolume(session: session)
+                if volume > 0 {
+                    MetricView(
+                        label: "Volume",
+                        value: String(format: "%.0f kg", volume),
+                        icon: "scalemass"
+                    )
+                }
+
+                // Exercises
+                MetricView(
+                    label: "Exercises",
+                    value: "\(session.exercises.count)",
+                    icon: "figure.strengthtraining.traditional"
+                )
+            } else {
+                // Fallback placeholders if session isn't loaded yet
+                MetricView(label: "date", value: "xxxxxxxxx", icon: "calendar", isLoading: true)
+                MetricView(label: "Duration", value: "xxxxxxxxx", icon: "clock", isLoading: true)
+                MetricView(label: "Sets", value: "0", icon: "list.bullet", isLoading: true)
+                MetricView(label: "Exercises", value: "0", icon: "figure.strengthtraining.traditional", isLoading: true)
             }
-            
-            // Exercises
-            metricView(
-                label: "Exercises",
-                value: "\(session.exercises.count)",
-                icon: "figure.strengthtraining.traditional"
-            )
         }
         .font(.caption)
         .foregroundStyle(.secondary)
     }
+}
+struct MetricView: View {
+    let label: String
+    let value: String
+    let icon: String
+    var isLoading: Bool = false
     
-    private func metricView(label: String, value: String, icon: String) -> some View {
+    var body: some View {
         HStack(spacing: 4) {
             Image(systemName: icon)
-            Text(value)
-                .fontWeight(.medium)
+            if isLoading {
+                Text(value)
+                    .fontWeight(.medium)
+                    .redacted(reason: .placeholder)
+            } else {
+                Text(value)
+                    .fontWeight(.medium)
+            }
         }
     }
 }
 
-#Preview {
+#Preview("Completed Workout") {
     let scheduledWorkout = ScheduledWorkout(
         workoutTemplateId: "test",
         workoutName: "Upper Body Strength",
         dayOfWeek: 2,
         scheduledDate: Date(),
-        completedSessionId: "session-123",
+        completedSessionId: "session-1",
         isCompleted: true
     )
     
-    WorkoutSummaryCardView(viewModel: WorkoutSummaryCardViewModel(container: DevPreview.shared.container, scheduledWorkout: scheduledWorkout, onTap: {}))
-        .previewEnvironment()
+    List {
+        WorkoutSummaryCardView(
+            viewModel: WorkoutSummaryCardViewModel(
+                container: DevPreview.shared.container,
+                scheduledWorkout: scheduledWorkout,
+                onTap: {
+                    print("Row tapped.")
+                }
+            )
+        )
+    }
+    .previewEnvironment()
+}
+
+#Preview("Loading State") {
+    let scheduledWorkout = ScheduledWorkout(
+        workoutTemplateId: "test",
+        workoutName: "Upper Body Strength",
+        dayOfWeek: 2,
+        scheduledDate: Date(),
+        completedSessionId: "session-1",
+        isCompleted: true
+    )
+    
+    let container = DevPreview.shared.container
+    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
+    
+    return List {
+        WorkoutSummaryCardView(
+            viewModel: WorkoutSummaryCardViewModel(
+                container: container,
+                scheduledWorkout: scheduledWorkout,
+                onTap: {
+                    print("Row tapped.")
+                }
+            )
+        )
+    }
+    .previewEnvironment()
 }

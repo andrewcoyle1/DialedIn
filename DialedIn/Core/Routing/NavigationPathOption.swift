@@ -21,6 +21,7 @@ enum NavigationOptions: Equatable, Hashable, Identifiable {
     case nutrition
     case training
     case profile
+    case search
     
     static let mainPages: [NavigationOptions] = [.dashboard, .nutrition, .training, .profile]
     var id: String {
@@ -29,6 +30,7 @@ enum NavigationOptions: Equatable, Hashable, Identifiable {
         case .nutrition: return "Nutrition"
         case .training: return "Training"
         case .profile: return "Profile"
+        case .search: return "Search"
         }
     }
     
@@ -38,6 +40,7 @@ enum NavigationOptions: Equatable, Hashable, Identifiable {
         case .nutrition: LocalizedStringResource("Nutrition", comment: "Title for the Nutrition tab, shown in the sidebar.")
         case .training: LocalizedStringResource("Training", comment: "Title for the Training tab, shown in the sidebar.")
         case .profile: LocalizedStringResource("Profile", comment: "Title for the Profile tab, shown in the sidebar.")
+        case .search: LocalizedStringResource("Search", comment: "Title for the Search tab, shown in the sidebar.")
         }
     }
     
@@ -47,6 +50,7 @@ enum NavigationOptions: Equatable, Hashable, Identifiable {
         case .nutrition: "dumbbell"
         case .training: "carrot"
         case .profile: "person.fill"
+        case .search: "magnifyingglass"
         }
     }
     
@@ -57,6 +61,7 @@ enum NavigationOptions: Equatable, Hashable, Identifiable {
         case .nutrition: NutritionView()
         case .training: TrainingView(viewModel: TrainingViewModel(container: container))
         case .profile: ProfileView(viewModel: ProfileViewModel(container: container))
+        case .search: SearchView()
         }
     }
 }

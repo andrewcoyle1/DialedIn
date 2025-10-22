@@ -12,6 +12,7 @@ import SwiftUI
 class ProgramViewModel {
     
     private let authManager: AuthManager
+    private let logManager: LogManager
     private let exerciseTemplateManager: ExerciseTemplateManager
     private let workoutTemplateManager: WorkoutTemplateManager
     private let workoutSessionManager: WorkoutSessionManager
@@ -19,13 +20,15 @@ class ProgramViewModel {
     private let programTemplateManager: ProgramTemplateManager
     private let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
     private let onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)?
+    private let onActiveSheetChanged: ((ActiveSheet?) -> Void)?
     
     private(set) var selectedWorkoutTemplate: WorkoutTemplateModel?
     private(set) var selectedExerciseTemplate: ExerciseTemplateModel?
-    var selectedHistorySession: WorkoutSessionModel?
-    var activeSheet: ActiveSheet?
     private(set) var isShowingCalendar: Bool = true
     private(set) var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
+
+    var selectedHistorySession: WorkoutSessionModel?
+    var activeSheet: ActiveSheet?
     var showAlert: AnyAppAlert?
     
     var currentTrainingPlan: TrainingPlan? {
@@ -72,9 +75,11 @@ class ProgramViewModel {
     init(
         container: DependencyContainer,
         onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil,
-        onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)? = nil
+        onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)? = nil,
+        onActiveSheetChanged: ((ActiveSheet?) -> Void)? = nil
     ) {
         self.authManager = container.resolve(AuthManager.self)!
+        self.logManager = container.resolve(LogManager.self)!
         self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
         self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
@@ -82,10 +87,18 @@ class ProgramViewModel {
         self.programTemplateManager = container.resolve(ProgramTemplateManager.self)!
         self.onSessionSelectionChanged = onSessionSelectionChanged
         self.onWorkoutStartRequested = onWorkoutStartRequested
+        self.onActiveSheetChanged = onActiveSheetChanged
+    }
+    
+    func setActiveSheet(_ activeSheet: ActiveSheet) {
+        self.activeSheet = activeSheet
+        onActiveSheetChanged?(activeSheet)
+        logManager.trackEvent(event: Event.setActiveSheet(sheet: activeSheet))
     }
     
     func getWeeklyProgress(weekNumber: Int) -> WeekProgress {
-        trainingPlanManager.getWeeklyProgress(for: weekNumber)
+        logManager.trackEvent(event: Event.getWeeklyProgress)
+        return trainingPlanManager.getWeeklyProgress(for: weekNumber)
     }
     
     func getWorkoutsForDay(_ day: Date, calendar: Calendar) -> [ScheduledWorkout] {
@@ -134,26 +147,35 @@ class ProgramViewModel {
         onWorkoutStartRequested?(template, scheduledWorkout)
     }
     
-    func startWorkout(_ scheduledWorkout: ScheduledWorkout) async throws {
-        let template = try await workoutTemplateManager.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
-        
-        // Small delay to ensure any pending presentations complete
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-        
-        // Notify parent to show WorkoutStartView
-        onWorkoutStartRequested?(template, scheduledWorkout)
+    func startWorkout(_ scheduledWorkout: ScheduledWorkout) async {
+        logManager.trackEvent(event: Event.startWorkoutRequestedStart)
+        do {
+            let template = try await workoutTemplateManager.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
+            
+            // Small delay to ensure any pending presentations complete
+            try? await Task.sleep(for: .seconds(0.1))
+            
+            // Notify parent to show WorkoutStartView
+            onWorkoutStartRequested?(template, scheduledWorkout)
+            logManager.trackEvent(event: Event.startWorkoutRequestedSuccess)
+
+        } catch {
+            logManager.trackEvent(event: Event.startWorkoutRequestedFail(error: error))
+            self.showAlert = AnyAppAlert(error: error)
+        }
     }
 
-    func openCompletedSession(for scheduledWorkout: ScheduledWorkout) async {
+    func openCompletedSession(for scheduledWorkout: ScheduledWorkout) {
         guard let sessionId = scheduledWorkout.completedSessionId else { return }
+        logManager.trackEvent(event: Event.openCompletedSessionStart)
         do {
-            let session = try await workoutSessionManager.getWorkoutSession(id: sessionId)
-            await MainActor.run {
+            let session = try workoutSessionManager.getLocalWorkoutSession(id: sessionId)
                 selectedHistorySession = session
                 onSessionSelectionChanged?(session)
-            }
+                logManager.trackEvent(event: Event.openCompletedSessionSuccess)
         } catch {
             showAlert = AnyAppAlert(error: error)
+            logManager.trackEvent(event: Event.openCompletedSessionFail(error: error))
         }
     }
     
@@ -168,22 +190,81 @@ class ProgramViewModel {
     
     func loadData() async {
         ensureUserIdIsSet()
-        
+        logManager.trackEvent(event: Event.loadDataStart)
         do {
             try await trainingPlanManager.syncFromRemote()
+            logManager.trackEvent(event: Event.loadDataSuccess)
         } catch {
-            // Silently fail on initial load - we'll have local data if available
-            print("Failed to sync training plan: \(error.localizedDescription)")
+            logManager.trackEvent(event: Event.loadDataFail(error: error))
         }
     }
     
     func refreshData() async {
         ensureUserIdIsSet()
-        
+        logManager.trackEvent(event: Event.refreshDataStart)
         do {
             try await trainingPlanManager.syncFromRemote()
+            logManager.trackEvent(event: Event.refreshDataSuccess)
         } catch {
+            logManager.trackEvent(event: Event.refreshDataFail(error: error))
             showAlert = AnyAppAlert(error: error)
+        }
+    }
+    
+    enum Event: LoggableEvent {
+        case setActiveSheet(sheet: ActiveSheet)
+        case startWorkoutRequestedStart
+        case startWorkoutRequestedSuccess
+        case startWorkoutRequestedFail(error: Error)
+        case openCompletedSessionStart
+        case openCompletedSessionSuccess
+        case openCompletedSessionFail(error: Error)
+        case loadDataStart
+        case loadDataSuccess
+        case loadDataFail(error: Error)
+        case refreshDataStart
+        case refreshDataSuccess
+        case refreshDataFail(error: Error)
+        case getWeeklyProgress
+
+        var eventName: String {
+            switch self {
+            case .setActiveSheet:                return "ProgramView_SetActiveSheet"
+            case .startWorkoutRequestedStart:    return "ProgramView_StartWorkoutRequested_Start"
+            case .startWorkoutRequestedSuccess:  return "ProgramView_StartWorkoutRequested_Success"
+            case .startWorkoutRequestedFail:     return "ProgramView_StartWorkoutRequested_Fail"
+            case .openCompletedSessionStart:     return "ProgramView_OpenCompletedSession_Start"
+            case .openCompletedSessionSuccess:   return "ProgramView_OpenCompletedSession_Success"
+            case .openCompletedSessionFail:      return "ProgramView_OpenCompletedSession_Fail"
+            case .loadDataStart:                 return "ProgramView_LoadData_Start"
+            case .loadDataSuccess:               return "ProgramView_LoadData_Success"
+            case .loadDataFail:                  return "ProgramView_LoadData_Fail"
+            case .refreshDataStart:              return "ProgramView_RefreshData_Start"
+            case .refreshDataSuccess:            return "ProgramView_RefreshData_Success"
+            case .refreshDataFail:               return "ProgramView_RefreshData_Fail"
+            case .getWeeklyProgress:             return "ProgramView_GetWeeklyProgress"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            case .setActiveSheet(sheet: let sheet):
+                return sheet.eventParameters
+            case .loadDataFail(error: let error), .refreshDataFail(error: let error), .startWorkoutRequestedFail(error: let error), .openCompletedSessionFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            case .loadDataFail, .refreshDataFail, .startWorkoutRequestedFail, .openCompletedSessionFail:
+                return .severe
+            default:
+                return .analytic
+                
+            }
         }
     }
 }

@@ -10,7 +10,7 @@ import SwiftUI
 struct ScheduledWorkoutRowView: View {
     @State var viewModel: ScheduledWorkoutRowViewModel
     var body: some View {
-        HStack {
+        HStack(spacing: 16) {
             Image(systemName: viewModel.statusIcon)
                 .foregroundStyle(viewModel.statusColor)
             
@@ -18,9 +18,13 @@ struct ScheduledWorkoutRowView: View {
                 Text(viewModel.scheduledWorkout.workoutName ?? "Workout") // Would fetch template name
                     .font(.subheadline)
                 if let date = viewModel.scheduledWorkout.scheduledDate {
-                    Text(date.formatted(date: .abbreviated, time: .omitted))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    MetricView(
+                        label: "Date",
+                        value: date.formatted(.dateTime.day().month()),
+                        icon: "calendar"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 }
             }
             

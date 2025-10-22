@@ -94,6 +94,16 @@ class ProgramTemplateManager {
         try await remote.fetchPublicTemplates()
     }
     
+    func fetchTemplateFromRemote(id: String) async throws -> ProgramTemplateModel {
+        let template = try await remote.fetch(id: id)
+        
+        // Save the fetched template locally for future use
+        try local.save(template)
+        templates = local.getAll()
+        
+        return template
+    }
+    
     // MARK: - Template Instantiation
     
     /// Converts a ProgramTemplate into a TrainingPlan ready to be used
