@@ -23,6 +23,8 @@ struct WorkoutHistoryView: View {
             }
         }
         .screenAppearAnalytics(name: "WorkoutHistoryView")
+        .navigationTitle("Workout Sessions")
+        .navigationBarTitleDisplayMode(.large)
         .onAppear {
             viewModel.loadInitialSessions()
         }
@@ -33,17 +35,6 @@ struct WorkoutHistoryView: View {
             await viewModel.syncSessions()
         }
         .showCustomAlert(alert: $viewModel.showAlert)
-        .modifier(InspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: {
-            Group {
-                if let session = viewModel.selectedSession {
-                    NavigationStack { 
-                        WorkoutSessionDetailView(session: session, container: container)
-                    }
-                } else {
-                    Text("Select an item").foregroundStyle(.secondary).padding()
-                }
-            }
-        }, enabled: layoutMode != .splitView))
     }
     
     private var loadingState: some View {
@@ -82,7 +73,13 @@ struct WorkoutHistoryView: View {
                     }
             }
         } header: {
-            Text("Completed Workouts")
+            HStack {
+                Text("Completed Workouts")
+                Spacer()
+                Text("\(viewModel.sessions.count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }

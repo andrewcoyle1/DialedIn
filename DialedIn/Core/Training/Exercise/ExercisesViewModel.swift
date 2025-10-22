@@ -25,7 +25,6 @@ class ExercisesViewModel {
     private(set) var officialExercises: [ExerciseTemplateModel] = []
     private(set) var exercises: [ExerciseTemplateModel] = []
 
-    var isShowingInspector: Bool = false
     var selectedWorkoutTemplate: WorkoutTemplateModel?
     var selectedExerciseTemplate: ExerciseTemplateModel?
     var showCreateExercise: Bool = false
@@ -102,7 +101,6 @@ class ExercisesViewModel {
         }
         selectedWorkoutTemplate = nil
         selectedExerciseTemplate = exercise
-        isShowingInspector = true
         onExerciseSelectionChanged?(exercise)
     }
 

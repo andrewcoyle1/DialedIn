@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProgramView: View {
     @Environment(DependencyContainer.self) private var container
+    @Environment(\.layoutMode) private var layoutMode
     @State var viewModel: ProgramViewModel
     
     var body: some View {
@@ -19,7 +20,17 @@ struct ProgramView: View {
                 noProgramView
             }
         }
+        .navigationTitle("Training")
+        .navigationSubtitle(viewModel.navigationSubtitle)
+        .navigationBarTitleDisplayMode(.large)
+        .onFirstTask {
+            await viewModel.loadData()
+        }
+        .refreshable {
+            await viewModel.refreshData()
+        }
         .showCustomAlert(alert: $viewModel.showAlert)
+        
     }
     
     private var activeProgramView: some View {
@@ -154,6 +165,7 @@ struct ProgramView: View {
                                     }
                                 )
                             )
+                            .id(workout.id)
                         } else {
                             TodaysWorkoutCardView(
                                 viewModel: TodaysWorkoutCardViewModel(container: container,
@@ -183,24 +195,26 @@ struct ProgramView: View {
     
     private var calendarSection: some View {
         WorkoutCalendarView(
-            viewModel: WorkoutCalendarViewModel(container: container))
+            viewModel: WorkoutCalendarViewModel(
+                container: container,
+                onSessionSelectionChanged: { session in
+                    viewModel.selectedHistorySession = session
+                },
+                onWorkoutStartRequested: viewModel.handleWorkoutStartRequest
+            )
+        )
     }
     
     private var weekProgressSection: some View {
         Section {
-            weekProgressContent
+            let calendar = Calendar.current
+            if let weekInterval = calendar.dateInterval(of: .weekOfYear, for: Date()) {
+                ForEach(0..<7, id: \.self) { dayOffset in
+                    dayWorkoutRow(dayOffset: dayOffset, weekStart: weekInterval.start, calendar: calendar)
+                }
+            }
         } header: {
             Text("This Week's Workouts")
-        }
-    }
-    
-    @ViewBuilder
-    private var weekProgressContent: some View {
-        let calendar = Calendar.current
-        if let weekInterval = calendar.dateInterval(of: .weekOfYear, for: Date()) {
-            ForEach(0..<7, id: \.self) { dayOffset in
-                dayWorkoutRow(dayOffset: dayOffset, weekStart: weekInterval.start, calendar: calendar)
-            }
         }
     }
     
@@ -225,6 +239,7 @@ struct ProgramView: View {
                             }
                         )
                     )
+                    .id(workout.id)
                 } else {
                     ScheduledWorkoutRowView(viewModel: ScheduledWorkoutRowViewModel(scheduledWorkout: workout))
                         .contentShape(Rectangle())

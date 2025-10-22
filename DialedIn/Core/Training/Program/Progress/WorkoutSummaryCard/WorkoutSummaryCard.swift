@@ -48,6 +48,7 @@ struct WorkoutSummaryCardView: View {
                     .foregroundStyle(.secondary)
             }
             .padding(.vertical, 8)
+            .tappableBackground()
         }
         .buttonStyle(.plain)
         .task {

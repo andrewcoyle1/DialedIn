@@ -12,10 +12,6 @@ struct WorkoutSessionDetailView: View {
     @State var viewModel: WorkoutSessionDetailViewModel
     @Environment(\.dismiss) private var dismiss
     
-    init(session: WorkoutSessionModel, container: DependencyContainer) {
-        self.viewModel = WorkoutSessionDetailViewModel(container: container, session: session)
-    }
-    
     var body: some View {
         List {
             // Header section
@@ -261,7 +257,12 @@ struct WorkoutSessionDetailView: View {
 
 #Preview {
     NavigationStack {
-        WorkoutSessionDetailView(session: .mock, container: DevPreview.shared.container)
+        WorkoutSessionDetailView(
+            viewModel: WorkoutSessionDetailViewModel(
+                container: DevPreview.shared.container,
+                session: .mock
+            )
+        )
     }
     .previewEnvironment()
 }

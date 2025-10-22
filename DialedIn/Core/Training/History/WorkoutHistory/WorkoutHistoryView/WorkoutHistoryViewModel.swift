@@ -19,7 +19,6 @@ class WorkoutHistoryViewModel {
     private(set) var isLoading = false
     
     var selectedSession: WorkoutSessionModel?
-    var isShowingInspector: Bool = false
     var showAlert: AnyAppAlert?
 
     init(
@@ -34,7 +33,6 @@ class WorkoutHistoryViewModel {
     
     func onWorkoutSessionPressed(session: WorkoutSessionModel, layoutMode: LayoutMode) {
         selectedSession = session
-        if layoutMode != .splitView { isShowingInspector = true }
         onSessionSelectionChanged?(session)
     }
     

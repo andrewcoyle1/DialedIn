@@ -110,4 +110,9 @@ class TrainingViewModel {
     func getTodaysWorkouts() -> Bool {
         trainingPlanManager.getTodaysWorkouts().contains(where: { !$0.isCompleted })
     }
+    
+    func handleWorkoutStartRequest(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout?) {
+        workoutToStart = template
+        scheduledWorkoutToStart = scheduledWorkout
+    }
 }

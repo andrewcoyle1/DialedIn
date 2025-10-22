@@ -28,7 +28,6 @@ class WorkoutsViewModel {
     var showCreateWorkout: Bool = false
     var selectedExerciseTemplate: ExerciseTemplateModel?
     var selectedWorkoutTemplate: WorkoutTemplateModel?
-    var isShowingInspector: Bool = false
     
     var currentUser: UserModel? {
         userManager.currentUser
@@ -94,7 +93,6 @@ class WorkoutsViewModel {
         }
         selectedExerciseTemplate = nil
         selectedWorkoutTemplate = workout
-        isShowingInspector = true
         onWorkoutSelectionChanged?(workout)
     }
 

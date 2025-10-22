@@ -81,7 +81,7 @@ struct NavDestinationForCoreModuleViewModifier: ViewModifier {
                 case .recipeTemplateDetail(template: let template):
                     RecipeDetailView(recipeTemplate: template)
                 case .workoutSessionDetail(session: let session):
-                    WorkoutSessionDetailView(session: session, container: container)
+                    WorkoutSessionDetailView(viewModel: WorkoutSessionDetailViewModel(container: container, session: session))
                 }
             }
     }

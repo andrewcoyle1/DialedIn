@@ -13,6 +13,8 @@ class WorkoutCalendarViewModel {
     private let workoutTemplateManager: WorkoutTemplateManager
     private let workoutSessionManager: WorkoutSessionManager
     private let trainingPlanManager: TrainingPlanManager
+    private let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
+    private let onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)?
 
     var isShowingCalendar: Bool = true
     var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
@@ -22,21 +24,20 @@ class WorkoutCalendarViewModel {
     private(set) var workoutsForMenu: [ScheduledWorkout] = []
     var showAlert: AnyAppAlert?
     
-    var workoutToStart: WorkoutTemplateModel?
-    var scheduledWorkoutToStart: ScheduledWorkout?
-    var selectedHistorySession: WorkoutSessionModel?
-    var isShowingInspector: Bool = false
-    
     var trainingPlan: TrainingPlan? {
         trainingPlanManager.currentTrainingPlan
     }
     
     init(
-        container: DependencyContainer
+        container: DependencyContainer,
+        onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil,
+        onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)? = nil
     ) {
         self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
         self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
+        self.onSessionSelectionChanged = onSessionSelectionChanged
+        self.onWorkoutStartRequested = onWorkoutStartRequested
     }
     
     func onCalendarToggled() {
@@ -94,14 +95,11 @@ class WorkoutCalendarViewModel {
     func startWorkout(_ scheduledWorkout: ScheduledWorkout) async throws {
         let template = try await workoutTemplateManager.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
         
-        // Store scheduled workout reference for WorkoutStartView
-        scheduledWorkoutToStart = scheduledWorkout
-        
         // Small delay to ensure any pending presentations complete
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
         
-        // Show WorkoutStartView (preview, notes, etc.)
-        workoutToStart = template
+        // Notify parent to show WorkoutStartView
+        onWorkoutStartRequested?(template, scheduledWorkout)
     }
     
     func openCompletedSession(for scheduledWorkout: ScheduledWorkout) async {
@@ -109,8 +107,7 @@ class WorkoutCalendarViewModel {
         do {
             let session = try await workoutSessionManager.getWorkoutSession(id: sessionId)
             await MainActor.run {
-                selectedHistorySession = session
-                isShowingInspector = true
+                onSessionSelectionChanged?(session)
             }
         } catch {
             showAlert = AnyAppAlert(error: error)

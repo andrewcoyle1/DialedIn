@@ -17,14 +17,13 @@ class ProgramViewModel {
     private let workoutSessionManager: WorkoutSessionManager
     private let trainingPlanManager: TrainingPlanManager
     private let programTemplateManager: ProgramTemplateManager
+    private let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
+    private let onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)?
     
-    var isShowingInspector: Bool = false
     private(set) var selectedWorkoutTemplate: WorkoutTemplateModel?
     private(set) var selectedExerciseTemplate: ExerciseTemplateModel?
     var selectedHistorySession: WorkoutSessionModel?
     var activeSheet: ActiveSheet?
-    var workoutToStart: WorkoutTemplateModel?
-    var scheduledWorkoutToStart: ScheduledWorkout?
     private(set) var isShowingCalendar: Bool = true
     private(set) var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
     var showAlert: AnyAppAlert?
@@ -48,8 +47,32 @@ class ProgramViewModel {
     var todaysWorkouts: [ScheduledWorkout] {
         trainingPlanManager.getTodaysWorkouts()
     }
+    
+    var navigationSubtitle: String {
+        if let plan = trainingPlanManager.currentTrainingPlan {
+            let todaysWorkouts = trainingPlanManager.getTodaysWorkouts()
+            if !todaysWorkouts.isEmpty {
+                let completedCount = todaysWorkouts.filter { $0.isCompleted }.count
+                if completedCount == todaysWorkouts.count {
+                    return "\(plan.name) • Today's workout complete ✓"
+                } else {
+                    return "\(plan.name) • Workout scheduled for today"
+                }
+            }
+            
+            let upcomingCount = trainingPlanManager.getUpcomingWorkouts(limit: 1).count
+            if upcomingCount > 0 {
+                return "\(plan.name) • Next workout scheduled"
+            } else {
+                return plan.name
+            }
+        }
+        return ""
+    }
     init(
-        container: DependencyContainer
+        container: DependencyContainer,
+        onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil,
+        onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)? = nil
     ) {
         self.authManager = container.resolve(AuthManager.self)!
         self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
@@ -57,6 +80,8 @@ class ProgramViewModel {
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
         self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
         self.programTemplateManager = container.resolve(ProgramTemplateManager.self)!
+        self.onSessionSelectionChanged = onSessionSelectionChanged
+        self.onWorkoutStartRequested = onWorkoutStartRequested
     }
     
     func getWeeklyProgress(weekNumber: Int) -> WeekProgress {
@@ -105,17 +130,18 @@ class ProgramViewModel {
         }
     }
     
+    func handleWorkoutStartRequest(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout?) {
+        onWorkoutStartRequested?(template, scheduledWorkout)
+    }
+    
     func startWorkout(_ scheduledWorkout: ScheduledWorkout) async throws {
         let template = try await workoutTemplateManager.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
-        
-        // Store scheduled workout reference for WorkoutStartView
-        scheduledWorkoutToStart = scheduledWorkout
         
         // Small delay to ensure any pending presentations complete
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
         
-        // Show WorkoutStartView (preview, notes, etc.)
-        workoutToStart = template
+        // Notify parent to show WorkoutStartView
+        onWorkoutStartRequested?(template, scheduledWorkout)
     }
 
     func openCompletedSession(for scheduledWorkout: ScheduledWorkout) async {
@@ -124,8 +150,38 @@ class ProgramViewModel {
             let session = try await workoutSessionManager.getWorkoutSession(id: sessionId)
             await MainActor.run {
                 selectedHistorySession = session
-                isShowingInspector = true
+                onSessionSelectionChanged?(session)
             }
+        } catch {
+            showAlert = AnyAppAlert(error: error)
+        }
+    }
+    
+    // MARK: - Data Loading
+    
+    private func ensureUserIdIsSet() {
+        // Ensure userId is set in trainingPlanManager before syncing
+        if let userId = try? authManager.getAuthId() {
+            trainingPlanManager.setUserId(userId)
+        }
+    }
+    
+    func loadData() async {
+        ensureUserIdIsSet()
+        
+        do {
+            try await trainingPlanManager.syncFromRemote()
+        } catch {
+            // Silently fail on initial load - we'll have local data if available
+            print("Failed to sync training plan: \(error.localizedDescription)")
+        }
+    }
+    
+    func refreshData() async {
+        ensureUserIdIsSet()
+        
+        do {
+            try await trainingPlanManager.syncFromRemote()
         } catch {
             showAlert = AnyAppAlert(error: error)
         }

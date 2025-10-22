@@ -31,6 +31,7 @@ struct ScheduledWorkoutRowView: View {
                     .foregroundStyle(.green)
             }
         }
+        .tappableBackground()
     }
 }
 

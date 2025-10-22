@@ -39,7 +39,16 @@ struct ExercisesView: View {
             }
         }
         .screenAppearAnalytics(name: "ExercisesView")
-        .task {
+        .navigationTitle("Exercises")
+        .navigationSubtitle("\(viewModel.exercises.count) exercises")
+        .navigationBarTitleDisplayMode(.large)
+        .onFirstTask {
+            await viewModel.loadMyExercisesIfNeeded()
+            await viewModel.loadOfficialExercises()
+            await viewModel.loadTopExercisesIfNeeded()
+            await viewModel.syncSavedExercisesFromUser()
+        }
+        .refreshable {
             await viewModel.loadMyExercisesIfNeeded()
             await viewModel.loadOfficialExercises()
             await viewModel.loadTopExercisesIfNeeded()
@@ -50,15 +59,6 @@ struct ExercisesView: View {
                 await viewModel.syncSavedExercisesFromUser()
             }
         }
-        .modifier(InspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: {
-            Group {
-                if let exercise = viewModel.selectedExerciseTemplate {
-                    NavigationStack { ExerciseTemplateDetailView(viewModel: ExerciseTemplateDetailViewModel(container: container), exerciseTemplate: exercise) }
-                } else {
-                    Text("Select an item").foregroundStyle(.secondary).padding()
-                }
-            }
-        }, enabled: layoutMode != .splitView))
     }
     
     private var favouriteExerciseTemplatesSection: some View {

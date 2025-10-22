@@ -48,7 +48,14 @@ struct TrainingView: View {
                                 )
                             }
                         } else if let session = viewModel.selectedHistorySession {
-                            NavigationStack { WorkoutSessionDetailView(session: session, container: container) }
+                            NavigationStack {
+                                WorkoutSessionDetailView(
+                                    viewModel: WorkoutSessionDetailViewModel(
+                                        container: container,
+                                        session: session
+                                    )
+                                )
+                            }
                         } else {
                             Text("Select an item").foregroundStyle(.secondary).padding()
                         }
@@ -57,26 +64,32 @@ struct TrainingView: View {
                 enabled: layoutMode != .splitView)
         )
         .onChange(of: viewModel.selectedExerciseTemplate) { _, exercise in
-            guard layoutMode == .splitView else { return }
-            if let exercise { detail.path = [.exerciseTemplate(exerciseTemplate: exercise)] }
+            if layoutMode == .splitView {
+                if let exercise { detail.path = [.exerciseTemplate(exerciseTemplate: exercise)] }
+            } else {
+                if exercise != nil { viewModel.isShowingInspector = true }
+            }
         }
         .onChange(of: viewModel.selectedWorkoutTemplate) { _, workout in
-            guard layoutMode == .splitView else { return }
-            if let workout { detail.path = [.workoutTemplateDetail(template: workout)] }
+            if layoutMode == .splitView {
+                if let workout { detail.path = [.workoutTemplateDetail(template: workout)] }
+            } else {
+                if workout != nil { viewModel.isShowingInspector = true }
+            }
         }
         .onChange(of: viewModel.selectedHistorySession) { _, session in
-            guard layoutMode == .splitView else { return }
-            if let session { detail.path = [.workoutSessionDetail(session: session)] }
+            if layoutMode == .splitView {
+                if let session { detail.path = [.workoutSessionDetail(session: session)] }
+            } else {
+                if session != nil { viewModel.isShowingInspector = true }
+            }
         }
         .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     private var contentView: some View {
         Group {
-            // List {
-                // pickerSection
-                listContents
-            // }
+            listContents
             .scrollIndicators(.hidden)
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView) {
@@ -142,7 +155,15 @@ struct TrainingView: View {
         Group {
             switch viewModel.presentationMode {
             case .program:
-                ProgramView(viewModel: ProgramViewModel(container: container))
+                ProgramView(viewModel: ProgramViewModel(
+                    container: container,
+                    onSessionSelectionChanged: { session in
+                        viewModel.selectedHistorySession = session
+                    },
+                    onWorkoutStartRequested: { template, scheduledWorkout in
+                        viewModel.handleWorkoutStartRequest(template: template, scheduledWorkout: scheduledWorkout)
+                    }
+                ))
             case .workouts:
                 WorkoutsView(viewModel: WorkoutsViewModel(
                     container: container,
@@ -179,6 +200,14 @@ struct TrainingView: View {
             }
         }
         #endif
+        
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                viewModel.onNotificationsPressed()
+            } label: {
+                Image(systemName: "bell")
+            }
+        }
         
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
@@ -221,20 +250,6 @@ struct TrainingView: View {
             } label: {
                 Image(systemName: viewModel.currentMenuIcon)
             }
-
-//            Picker(selection: $presentationMode) {
-//                Text("Program")
-//                    .tag(TrainingPresentationMode.program)
-//                Text("Workouts")
-//                    .tag(TrainingPresentationMode.workouts)
-//                Text("Exercises")
-//                    .tag(TrainingPresentationMode.exercises)
-//                Text("History")
-//                    .tag(TrainingPresentationMode.history)
-//            } label: {
-//                Image(systemName: "bell.fill")
-//            }
-//            .pickerStyle(.menu)
         }
         
         // Today's workout quick action (only if there are incomplete workouts today and not in Program view)
@@ -252,14 +267,6 @@ struct TrainingView: View {
                     Label("Start Workout", systemImage: "play.fill")
                 }
                 .buttonStyle(.glassProminent)
-            }
-        }
-        
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                viewModel.onNotificationsPressed()
-            } label: {
-                Image(systemName: "bell")
             }
         }
     }

@@ -68,7 +68,12 @@ struct DayScheduleSheetView: View {
                 }
             }
             .sheet(item: $viewModel.sessionToShow) { session in
-                WorkoutSessionDetailView(session: session, container: container)
+                WorkoutSessionDetailView(
+                    viewModel: WorkoutSessionDetailViewModel(
+                        container: container,
+                        session: session
+                    )
+                )
             }
             .showCustomAlert(alert: $viewModel.showAlert)
         }

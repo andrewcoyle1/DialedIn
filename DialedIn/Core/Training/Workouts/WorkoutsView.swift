@@ -39,7 +39,16 @@ struct WorkoutsView: View {
             }
         }
         .screenAppearAnalytics(name: "WorkoutsView")
-        .task {
+        .navigationTitle("Workouts")
+        .navigationSubtitle("\(viewModel.workouts.count) workouts")
+        .navigationBarTitleDisplayMode(.large)
+        .onFirstTask {
+            await viewModel.loadSystemWorkouts()
+            await viewModel.loadMyWorkoutsIfNeeded()
+            await viewModel.loadTopWorkoutsIfNeeded()
+            await viewModel.syncSavedWorkoutsFromUser()
+        }
+        .refreshable {
             await viewModel.loadSystemWorkouts()
             await viewModel.loadMyWorkoutsIfNeeded()
             await viewModel.loadTopWorkoutsIfNeeded()
@@ -50,16 +59,6 @@ struct WorkoutsView: View {
                 await viewModel.syncSavedWorkoutsFromUser()
             }
         }
-        // Only show inspector in compact/tabBar modes; not in split view where detail is used
-        .modifier(InspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: {
-            Group {
-                if let workout = viewModel.selectedWorkoutTemplate {
-                    NavigationStack { WorkoutTemplateDetailView(viewModel: WorkoutTemplateDetailViewModel(container: container), workoutTemplate: workout) }
-                } else {
-                    Text("Select an item").foregroundStyle(.secondary).padding()
-                }
-            }
-        }, enabled: layoutMode != .splitView))
     }
 
     // MARK: UI Components
