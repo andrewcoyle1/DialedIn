@@ -13,6 +13,7 @@ class WorkoutHistoryViewModel {
     private let authManager: AuthManager
     private let workoutSessionManager: WorkoutSessionManager
     private let logManager: LogManager
+    private let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
     
     private(set) var sessions: [WorkoutSessionModel] = []
     private(set) var isLoading = false
@@ -22,16 +23,19 @@ class WorkoutHistoryViewModel {
     var showAlert: AnyAppAlert?
 
     init(
-        container: DependencyContainer
+        container: DependencyContainer,
+        onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil
     ) {
         self.authManager = container.resolve(AuthManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
         self.logManager = container.resolve(LogManager.self)!
+        self.onSessionSelectionChanged = onSessionSelectionChanged
     }
     
     func onWorkoutSessionPressed(session: WorkoutSessionModel, layoutMode: LayoutMode) {
         selectedSession = session
         if layoutMode != .splitView { isShowingInspector = true }
+        onSessionSelectionChanged?(session)
     }
     
     func loadInitialSessions() {

@@ -13,6 +13,7 @@ class WorkoutsViewModel {
     private let userManager: UserManager
     private let workoutTemplateManager: WorkoutTemplateManager
     private let logManager: LogManager
+    private let onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)?
 
     private(set) var isLoading: Bool = false
     private(set) var searchText: String = ""
@@ -63,11 +64,13 @@ class WorkoutsViewModel {
     }
     
     init(
-        container: DependencyContainer
+        container: DependencyContainer,
+        onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)? = nil
     ) {
         self.userManager = container.resolve(UserManager.self)!
         self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
         self.logManager = container.resolve(LogManager.self)!
+        self.onWorkoutSelectionChanged = onWorkoutSelectionChanged
     }
     
     func onAddWorkoutPressed() {
@@ -92,6 +95,7 @@ class WorkoutsViewModel {
         selectedExerciseTemplate = nil
         selectedWorkoutTemplate = workout
         isShowingInspector = true
+        onWorkoutSelectionChanged?(workout)
     }
 
     func onWorkoutPressedFromFavourites(workout: WorkoutTemplateModel) {

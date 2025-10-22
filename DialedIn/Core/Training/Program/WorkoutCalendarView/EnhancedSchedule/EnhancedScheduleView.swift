@@ -138,7 +138,7 @@ struct EnhancedScheduleView: View {
     EnhancedScheduleView(
         viewModel: EnhancedScheduleViewModel(
             container: DevPreview.shared.container,
-            scheduledWorkouts: ScheduledWorkout.mocksWeek1,
+            getScheduledWorkouts: { ScheduledWorkout.mocksWeek1 },
             onDateSelected: { _ in
                 
             }, onDateTapped: { _ in

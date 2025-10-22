@@ -144,11 +144,26 @@ struct TrainingView: View {
             case .program:
                 ProgramView(viewModel: ProgramViewModel(container: container))
             case .workouts:
-                WorkoutsView(viewModel: WorkoutsViewModel(container: container))
+                WorkoutsView(viewModel: WorkoutsViewModel(
+                    container: container,
+                    onWorkoutSelectionChanged: { workout in
+                        viewModel.selectedWorkoutTemplate = workout
+                    }
+                ))
             case .exercises:
-                ExercisesView(viewModel: ExercisesViewModel(container: container))
+                ExercisesView(viewModel: ExercisesViewModel(
+                    container: container,
+                    onExerciseSelectionChanged: { exercise in
+                        viewModel.selectedExerciseTemplate = exercise
+                    }
+                ))
             case .history:
-                WorkoutHistoryView(viewModel: WorkoutHistoryViewModel(container: container))
+                WorkoutHistoryView(viewModel: WorkoutHistoryViewModel(
+                    container: container,
+                    onSessionSelectionChanged: { session in
+                        viewModel.selectedHistorySession = session
+                    }
+                ))
             }
         }
     }

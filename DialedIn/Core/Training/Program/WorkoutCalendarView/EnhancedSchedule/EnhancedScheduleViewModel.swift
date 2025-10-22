@@ -10,7 +10,7 @@ import SwiftUI
 @Observable
 @MainActor
 class EnhancedScheduleViewModel {
-    let scheduledWorkouts: [ScheduledWorkout]
+    let getScheduledWorkouts: () -> [ScheduledWorkout]
     let onDateSelected: (Date) -> Void
     let onDateTapped: (Date) -> Void
     let calendar = Calendar.current
@@ -18,13 +18,17 @@ class EnhancedScheduleViewModel {
     var selectedDate: Date = Date()
     var selectedTime: Date = Date()
     
+    var scheduledWorkouts: [ScheduledWorkout] {
+        getScheduledWorkouts()
+    }
+    
     init(
         container: DependencyContainer,
-        scheduledWorkouts: [ScheduledWorkout],
+        getScheduledWorkouts: @escaping () -> [ScheduledWorkout],
         onDateSelected: @escaping (Date) -> Void,
         onDateTapped: @escaping (Date) -> Void
     ) {
-        self.scheduledWorkouts = scheduledWorkouts
+        self.getScheduledWorkouts = getScheduledWorkouts
         self.onDateSelected = onDateSelected
         self.onDateTapped = onDateTapped
     }

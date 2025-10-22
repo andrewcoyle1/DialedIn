@@ -13,6 +13,7 @@ class ExercisesViewModel {
     private let userManager: UserManager
     private let exerciseTemplateManager: ExerciseTemplateManager
     private let logManager: LogManager
+    private let onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?
     
     private(set) var isLoading: Bool = false
     private(set) var searchText: String = ""
@@ -71,11 +72,13 @@ class ExercisesViewModel {
     }
     
     init(
-        container: DependencyContainer
+        container: DependencyContainer,
+        onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)? = nil
     ) {
         self.userManager = container.resolve(UserManager.self)!
         self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
         self.logManager = container.resolve(LogManager.self)!
+        self.onExerciseSelectionChanged = onExerciseSelectionChanged
     }
     
     func onAddExercisePressed() {
@@ -100,6 +103,7 @@ class ExercisesViewModel {
         selectedWorkoutTemplate = nil
         selectedExerciseTemplate = exercise
         isShowingInspector = true
+        onExerciseSelectionChanged?(exercise)
     }
 
     func onExercisePressedFromFavourites(exercise: ExerciseTemplateModel) {

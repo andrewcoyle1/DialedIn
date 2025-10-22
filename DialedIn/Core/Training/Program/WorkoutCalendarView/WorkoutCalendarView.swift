@@ -16,7 +16,7 @@ struct WorkoutCalendarView: View {
             EnhancedScheduleView(
                 viewModel: EnhancedScheduleViewModel(
                     container: container,
-                scheduledWorkouts: viewModel.scheduledWorkouts,
+                getScheduledWorkouts: { viewModel.scheduledWorkouts },
                 onDateSelected: { date in
                     viewModel.selectedDate = date
                     viewModel.collapsedSubtitle = "Next: \(date.formatted(.dateTime.day().month()))"
