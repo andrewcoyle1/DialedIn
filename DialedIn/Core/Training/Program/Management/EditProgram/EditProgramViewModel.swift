@@ -216,9 +216,27 @@ class EditProgramViewModel {
             print("  - \(template.id): \(template.name)")
         }
         
-        // If no template, can't auto-extend
-        guard let templateId = programTemplateId else {
+        guard let template = try await fetchProgramTemplate(templateId: programTemplateId) else {
             return weeks
+        }
+        
+        let workoutsByWeek = generateScheduledWorkouts(
+            from: oldEndDate,
+            to: newEndDate,
+            startDate: startDate,
+            template: template
+        )
+        
+        return consolidateWorkoutsIntoWeeks(
+            workoutsByWeek: workoutsByWeek,
+            existingWeeks: weeks,
+            template: template
+        )
+    }
+    
+    private func fetchProgramTemplate(templateId: String?) async throws -> ProgramTemplateModel? {
+        guard let templateId = templateId else {
+            return nil
         }
         
         // Try to get template locally first
@@ -229,55 +247,43 @@ class EditProgramViewModel {
             do {
                 template = try await programTemplateManager.fetchTemplateFromRemote(id: templateId)
             } catch {
-                return weeks
+                return nil
             }
         }
         
-        guard let template = template else {
-            return weeks
-        }
-                
-        guard !template.weekTemplates.isEmpty else {
-            return weeks
+        guard let template = template, !template.weekTemplates.isEmpty else {
+            return nil
         }
         
-        var updatedWeeks = weeks
-        
-        // Use date-based approach: iterate through each day in the extended range
+        return template
+    }
+    
+    private func generateScheduledWorkouts(
+        from oldEndDate: Date,
+        to newEndDate: Date,
+        startDate: Date,
+        template: ProgramTemplateModel
+    ) -> [Int: [ScheduledWorkout]] {
         let calendar = Calendar.current
         let startOfOldEnd = calendar.startOfDay(for: oldEndDate)
         let startOfNewEnd = calendar.startOfDay(for: newEndDate)
         
-        // Start from the day after the old end date
         guard var currentDate = calendar.date(byAdding: .day, value: 1, to: startOfOldEnd) else {
-            return weeks
+            return [:]
         }
         
-        // Dictionary to group workouts by week number
         var workoutsByWeek: [Int: [ScheduledWorkout]] = [:]
         
-        // Iterate through each day in the extended range
         while currentDate <= startOfNewEnd {
             let dayOfWeek = calendar.component(.weekday, from: currentDate)
-            
-            // Calculate which week this date belongs to
             let weeksSinceStart = calendar.dateComponents([.weekOfYear], from: startDate, to: currentDate).weekOfYear ?? 0
             let weekNumber = weeksSinceStart + 1
             
-            // Find the corresponding template week (cycling through template)
             let templateIndex = (weekNumber - 1) % template.weekTemplates.count
             let weekTemplate = template.weekTemplates[templateIndex]
             
-            // Check if this template week has a workout scheduled for this day of week
             if let mapping = weekTemplate.workoutSchedule.first(where: { $0.dayOfWeek == dayOfWeek }) {
-                
-                // Fetch workout name
-                let workoutName: String? = mapping.workoutName ?? {
-                    if let template = try? workoutTemplateManager.getLocalWorkoutTemplate(id: mapping.workoutTemplateId) {
-                        return template.name
-                    }
-                    return nil
-                }()
+                let workoutName = getWorkoutName(for: mapping.workoutTemplateId)
                 
                 let workout = ScheduledWorkout(
                     workoutTemplateId: mapping.workoutTemplateId,
@@ -286,28 +292,39 @@ class EditProgramViewModel {
                     scheduledDate: currentDate
                 )
                 
-                // Group by week number
                 if workoutsByWeek[weekNumber] == nil {
                     workoutsByWeek[weekNumber] = []
                 }
                 workoutsByWeek[weekNumber]?.append(workout)
             }
             
-            // Move to next day
             currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? currentDate
         }
         
-        // Add the grouped workouts as training weeks
+        return workoutsByWeek
+    }
+    
+    private func getWorkoutName(for workoutTemplateId: String) -> String? {
+        if let template = try? workoutTemplateManager.getLocalWorkoutTemplate(id: workoutTemplateId) {
+            return template.name
+        }
+        return nil
+    }
+    
+    private func consolidateWorkoutsIntoWeeks(
+        workoutsByWeek: [Int: [ScheduledWorkout]],
+        existingWeeks: [TrainingWeek],
+        template: ProgramTemplateModel
+    ) -> [TrainingWeek] {
+        var updatedWeeks = existingWeeks
+        
         for (weekNumber, workouts) in workoutsByWeek.sorted(by: { $0.key < $1.key }) {
             let templateIndex = (weekNumber - 1) % template.weekTemplates.count
             let weekTemplate = template.weekTemplates[templateIndex]
             
-            // Check if this week already exists in updatedWeeks
             if let existingWeekIndex = updatedWeeks.firstIndex(where: { $0.weekNumber == weekNumber }) {
-                // Append to existing week
                 updatedWeeks[existingWeekIndex].scheduledWorkouts.append(contentsOf: workouts)
             } else {
-                // Create new week
                 let newWeek = TrainingWeek(
                     weekNumber: weekNumber,
                     scheduledWorkouts: workouts,
