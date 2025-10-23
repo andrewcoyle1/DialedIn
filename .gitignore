@@ -1,0 +1,33 @@
+# Xcode build artifacts
+build/
+DerivedData/
+
+# Xcode user data/state
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+
+# SwiftPM
+.build/
+
+# Carthage (safe if unused)
+Carthage/Build/
+
+# CocoaPods (safe if unused)
+Pods/
+!Pods/Manifest.lock
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# Archives & dSYMs
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# macOS
+.DS_Store
