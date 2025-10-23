@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D04A11F32EAABAB600DFE552 /* ,gitignore in Resources */ = {isa = PBXBuildFile; fileRef = D04A11F22EAABAB600DFE552 /* ,gitignore */; };
 		D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0B9D2E8EA0F00027C662 /* Mixpanel */; };
 		D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA02E8EA1050027C662 /* OpenAI */; };
 		D05D0BA42E8EA1180027C662 /* SignInAppleAsync in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA32E8EA1180027C662 /* SignInAppleAsync */; };
@@ -75,6 +76,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D04A11F22EAABAB600DFE552 /* ,gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = ",gitignore"; sourceTree = "<group>"; };
 		D08F58482E8BF61B001D3980 /* WorkoutSessionActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WorkoutSessionActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D08F58492E8BF61B001D3980 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D08F584B2E8BF61B001D3980 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -216,6 +218,7 @@
 				D08F584D2E8BF61B001D3980 /* WorkoutSessionActivity */,
 				D0A29B792E54B07C00DA64F7 /* Frameworks */,
 				D0A2993E2E54AEA700DA64F7 /* Products */,
+				D04A11F22EAABAB600DFE552 /* ,gitignore */,
 			);
 			sourceTree = "<group>";
 		};
@@ -429,6 +432,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D04A11F32EAABAB600DFE552 /* ,gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
