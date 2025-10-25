@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct ProfileNutritionDetailView: View {
-    @Environment(NutritionManager.self) private var nutritionManager
+    @State var viewModel: ProfileNutritionDetailViewModel
     
     var body: some View {
         List {
-            if let plan = nutritionManager.currentDietPlan {
+            if let plan = viewModel.currentDietPlan {
                 overviewSection(plan)
                 weeklyBreakdownSection(plan)
                 chartSection(plan)
@@ -153,7 +153,7 @@ private extension Array {
 
 #Preview {
     NavigationStack {
-        ProfileNutritionDetailView()
+        ProfileNutritionDetailView(viewModel: ProfileNutritionDetailViewModel(container: DevPreview.shared.container))
     }
     .environment(NutritionManager(services: MockNutritionServices()))
     .previewEnvironment()

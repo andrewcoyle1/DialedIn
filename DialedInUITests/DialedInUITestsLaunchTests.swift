@@ -1,13 +1,13 @@
 //
-//  DialedInWatchAppUITestsLaunchTests.swift
-//  DialedInWatchAppUITests
+//  DialedInUITestsLaunchTests.swift
+//  DialedInUITests
 //
-//  Created by Andrew Coyle on 23/10/2025.
+//  Created by Andrew Coyle on 25/10/2025.
 //
 
 import XCTest
 
-final class DialedInWatchAppUITestsLaunchTests: XCTestCase {
+final class DialedInUITestsLaunchTests: XCTestCase {
 
     override static var runsForEachTargetApplicationUIConfiguration: Bool {
         true

@@ -8,13 +8,14 @@
 import SwiftUI
 
 struct ProfilePhysicalMetricsView: View {
+    @Environment(DependencyContainer.self) private var container
     @State var viewModel: ProfilePhysicalMetricsViewModel
     
     var body: some View {
         Section {
             if let user = viewModel.currentUser {
                 NavigationLink {
-                    ProfilePhysicalStatsView()
+                    ProfilePhysicalStatsView(viewModel: ProfilePhysicalStatsViewModel(container: container))
                 } label: {
                     ProfileSectionCard(
                         icon: "figure.walk",

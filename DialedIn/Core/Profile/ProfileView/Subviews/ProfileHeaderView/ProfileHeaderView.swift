@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct ProfileHeaderView: View {
-    
+    @Environment(DependencyContainer.self) private var container
     @State var viewModel: ProfileHeaderViewModel
     
     var body: some View {
         Section {
             if let user = viewModel.currentUser {
                 NavigationLink {
-                    ProfileEditView()
+                    ProfileEditView(viewModel: ProfileEditViewModel(container: container))
                 } label: {
                     HStack(spacing: 16) {
                         // Profile Image

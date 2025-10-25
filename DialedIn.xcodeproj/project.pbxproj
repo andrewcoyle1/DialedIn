@@ -45,6 +45,13 @@
 			remoteGlobalIDString = D0A2993C2E54AEA700DA64F7;
 			remoteInfo = DialedIn;
 		};
+		D012F07B2EAD20760014C602 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0A299352E54AEA700DA64F7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D0A2993C2E54AEA700DA64F7;
+			remoteInfo = DialedIn;
+		};
 		D08F58552E8BF61D001D3980 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D0A299352E54AEA700DA64F7 /* Project object */;
@@ -52,33 +59,12 @@
 			remoteGlobalIDString = D08F58472E8BF61B001D3980;
 			remoteInfo = WorkoutSessionActivityExtension;
 		};
-		D0CE845A2EAAC4EB00C3CCBE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D0A299352E54AEA700DA64F7 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D0CE844C2EAAC4E900C3CCBE;
-			remoteInfo = "DialedInWatchApp Watch App";
-		};
-		D0CE84642EAAC4EB00C3CCBE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D0A299352E54AEA700DA64F7 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D0CE844C2EAAC4E900C3CCBE;
-			remoteInfo = "DialedInWatchApp Watch App";
-		};
 		D0CE846B2EAAC4EB00C3CCBE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D0A299352E54AEA700DA64F7 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = D0CE844C2EAAC4E900C3CCBE;
 			remoteInfo = "DialedInWatchApp Watch App";
-		};
-		D0CE847B2EAAC92E00C3CCBE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D0A299352E54AEA700DA64F7 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D0A2993C2E54AEA700DA64F7;
-			remoteInfo = DialedIn;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -109,6 +95,7 @@
 
 /* Begin PBXFileReference section */
 		D012F01A2EACD46C0014C602 /* DialedInTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DialedInTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D012F0752EAD20760014C602 /* DialedInUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DialedInUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D08F58482E8BF61B001D3980 /* WorkoutSessionActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WorkoutSessionActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D08F58492E8BF61B001D3980 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D08F584B2E8BF61B001D3980 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -117,8 +104,6 @@
 		D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedWorkoutStorage.swift; sourceTree = "<group>"; };
 		D0BC0E4D2EA29936008A1E22 /* WorkoutSessionActivityExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WorkoutSessionActivityExtension.entitlements; sourceTree = "<group>"; };
 		D0CE844D2EAAC4E900C3CCBE /* DialedInWatchApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DialedInWatchApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		D0CE84592EAAC4EB00C3CCBE /* DialedInWatchAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DialedInWatchAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		D0CE84632EAAC4EB00C3CCBE /* DialedInWatchAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DialedInWatchAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0DB1C922EA1901800682653 /* MetricsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsModel.swift; sourceTree = "<group>"; };
 		D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -176,6 +161,11 @@
 			path = DialedInTests;
 			sourceTree = "<group>";
 		};
+		D012F0762EAD20760014C602 /* DialedInUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = DialedInUITests;
+			sourceTree = "<group>";
+		};
 		D08F584D2E8BF61B001D3980 /* WorkoutSessionActivity */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -199,20 +189,17 @@
 			path = DialedInWatchApp;
 			sourceTree = "<group>";
 		};
-		D0CE845C2EAAC4EB00C3CCBE /* DialedInWatchAppTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DialedInWatchAppTests;
-			sourceTree = "<group>";
-		};
-		D0CE84662EAAC4EB00C3CCBE /* DialedInWatchAppUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DialedInWatchAppUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		D012F0172EACD46C0014C602 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D012F0722EAD20760014C602 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -258,20 +245,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D0CE84562EAAC4EB00C3CCBE /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D0CE84602EAAC4EB00C3CCBE /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -294,9 +267,8 @@
 				D0A2993F2E54AEA700DA64F7 /* DialedIn */,
 				D08F584D2E8BF61B001D3980 /* WorkoutSessionActivity */,
 				D0CE844E2EAAC4E900C3CCBE /* DialedInWatchApp */,
-				D0CE845C2EAAC4EB00C3CCBE /* DialedInWatchAppTests */,
-				D0CE84662EAAC4EB00C3CCBE /* DialedInWatchAppUITests */,
 				D012F01B2EACD46C0014C602 /* DialedInTests */,
+				D012F0762EAD20760014C602 /* DialedInUITests */,
 				D0A29B792E54B07C00DA64F7 /* Frameworks */,
 				D0A2993E2E54AEA700DA64F7 /* Products */,
 			);
@@ -308,9 +280,8 @@
 				D0A2993D2E54AEA700DA64F7 /* DialedIn.app */,
 				D08F58482E8BF61B001D3980 /* WorkoutSessionActivityExtension.appex */,
 				D0CE844D2EAAC4E900C3CCBE /* DialedInWatchApp.app */,
-				D0CE84592EAAC4EB00C3CCBE /* DialedInWatchAppTests.xctest */,
-				D0CE84632EAAC4EB00C3CCBE /* DialedInWatchAppUITests.xctest */,
 				D012F01A2EACD46C0014C602 /* DialedInTests.xctest */,
+				D012F0752EAD20760014C602 /* DialedInUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -349,6 +320,29 @@
 			productName = DialedInTests;
 			productReference = D012F01A2EACD46C0014C602 /* DialedInTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		D012F0742EAD20760014C602 /* DialedInUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D012F07D2EAD20760014C602 /* Build configuration list for PBXNativeTarget "DialedInUITests" */;
+			buildPhases = (
+				D012F0712EAD20760014C602 /* Sources */,
+				D012F0722EAD20760014C602 /* Frameworks */,
+				D012F0732EAD20760014C602 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D012F07C2EAD20760014C602 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D012F0762EAD20760014C602 /* DialedInUITests */,
+			);
+			name = DialedInUITests;
+			packageProductDependencies = (
+			);
+			productName = DialedInUITests;
+			productReference = D012F0752EAD20760014C602 /* DialedInUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		D08F58472E8BF61B001D3980 /* WorkoutSessionActivityExtension */ = {
 			isa = PBXNativeTarget;
@@ -438,53 +432,6 @@
 			productReference = D0CE844D2EAAC4E900C3CCBE /* DialedInWatchApp.app */;
 			productType = "com.apple.product-type.application";
 		};
-		D0CE84582EAAC4EB00C3CCBE /* DialedInWatchAppTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D0CE84732EAAC4EC00C3CCBE /* Build configuration list for PBXNativeTarget "DialedInWatchAppTests" */;
-			buildPhases = (
-				D0CE84552EAAC4EB00C3CCBE /* Sources */,
-				D0CE84562EAAC4EB00C3CCBE /* Frameworks */,
-				D0CE84572EAAC4EB00C3CCBE /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				D0CE845B2EAAC4EB00C3CCBE /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				D0CE845C2EAAC4EB00C3CCBE /* DialedInWatchAppTests */,
-			);
-			name = DialedInWatchAppTests;
-			packageProductDependencies = (
-			);
-			productName = "DialedInWatchApp Watch AppTests";
-			productReference = D0CE84592EAAC4EB00C3CCBE /* DialedInWatchAppTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		D0CE84622EAAC4EB00C3CCBE /* DialedInWatchAppUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D0CE84772EAAC4EC00C3CCBE /* Build configuration list for PBXNativeTarget "DialedInWatchAppUITests" */;
-			buildPhases = (
-				D0CE845F2EAAC4EB00C3CCBE /* Sources */,
-				D0CE84602EAAC4EB00C3CCBE /* Frameworks */,
-				D0CE84612EAAC4EB00C3CCBE /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				D0CE84652EAAC4EB00C3CCBE /* PBXTargetDependency */,
-				D0CE847C2EAAC92E00C3CCBE /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				D0CE84662EAAC4EB00C3CCBE /* DialedInWatchAppUITests */,
-			);
-			name = DialedInWatchAppUITests;
-			packageProductDependencies = (
-			);
-			productName = "DialedInWatchApp Watch AppUITests";
-			productReference = D0CE84632EAAC4EB00C3CCBE /* DialedInWatchAppUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -499,6 +446,10 @@
 						CreatedOnToolsVersion = 26.0;
 						TestTargetID = D0A2993C2E54AEA700DA64F7;
 					};
+					D012F0742EAD20760014C602 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = D0A2993C2E54AEA700DA64F7;
+					};
 					D08F58472E8BF61B001D3980 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
@@ -507,14 +458,6 @@
 					};
 					D0CE844C2EAAC4E900C3CCBE = {
 						CreatedOnToolsVersion = 26.0.1;
-					};
-					D0CE84582EAAC4EB00C3CCBE = {
-						CreatedOnToolsVersion = 26.0.1;
-						TestTargetID = D0CE844C2EAAC4E900C3CCBE;
-					};
-					D0CE84622EAAC4EB00C3CCBE = {
-						CreatedOnToolsVersion = 26.0.1;
-						TestTargetID = D0CE844C2EAAC4E900C3CCBE;
 					};
 				};
 			};
@@ -544,16 +487,22 @@
 			targets = (
 				D0A2993C2E54AEA700DA64F7 /* DialedIn */,
 				D08F58472E8BF61B001D3980 /* WorkoutSessionActivityExtension */,
-				D0CE844C2EAAC4E900C3CCBE /* DialedInWatchApp */,
-				D0CE84582EAAC4EB00C3CCBE /* DialedInWatchAppTests */,
-				D0CE84622EAAC4EB00C3CCBE /* DialedInWatchAppUITests */,
 				D012F0192EACD46C0014C602 /* DialedInTests */,
+				D012F0742EAD20760014C602 /* DialedInUITests */,
+				D0CE844C2EAAC4E900C3CCBE /* DialedInWatchApp */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		D012F0182EACD46C0014C602 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D012F0732EAD20760014C602 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -575,20 +524,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D0CE844B2EAAC4E900C3CCBE /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D0CE84572EAAC4EB00C3CCBE /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D0CE84612EAAC4EB00C3CCBE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -645,6 +580,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D012F0712EAD20760014C602 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D08F58442E8BF61B001D3980 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -674,20 +616,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D0CE84552EAAC4EB00C3CCBE /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D0CE845F2EAAC4EB00C3CCBE /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -696,30 +624,20 @@
 			target = D0A2993C2E54AEA700DA64F7 /* DialedIn */;
 			targetProxy = D012F01E2EACD46C0014C602 /* PBXContainerItemProxy */;
 		};
+		D012F07C2EAD20760014C602 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D0A2993C2E54AEA700DA64F7 /* DialedIn */;
+			targetProxy = D012F07B2EAD20760014C602 /* PBXContainerItemProxy */;
+		};
 		D08F58562E8BF61D001D3980 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D08F58472E8BF61B001D3980 /* WorkoutSessionActivityExtension */;
 			targetProxy = D08F58552E8BF61D001D3980 /* PBXContainerItemProxy */;
 		};
-		D0CE845B2EAAC4EB00C3CCBE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D0CE844C2EAAC4E900C3CCBE /* DialedInWatchApp */;
-			targetProxy = D0CE845A2EAAC4EB00C3CCBE /* PBXContainerItemProxy */;
-		};
-		D0CE84652EAAC4EB00C3CCBE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D0CE844C2EAAC4E900C3CCBE /* DialedInWatchApp */;
-			targetProxy = D0CE84642EAAC4EB00C3CCBE /* PBXContainerItemProxy */;
-		};
 		D0CE846C2EAAC4EB00C3CCBE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D0CE844C2EAAC4E900C3CCBE /* DialedInWatchApp */;
 			targetProxy = D0CE846B2EAAC4EB00C3CCBE /* PBXContainerItemProxy */;
-		};
-		D0CE847C2EAAC92E00C3CCBE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D0A2993C2E54AEA700DA64F7 /* DialedIn */;
-			targetProxy = D0CE847B2EAAC92E00C3CCBE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -806,6 +724,89 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DialedIn.app/DialedIn";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D012F07E2EAD20760014C602 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VRNWC32C76;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedInUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = DialedIn;
+			};
+			name = Debug;
+		};
+		D012F07F2EAD20760014C602 /* Mock */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VRNWC32C76;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedInUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = DialedIn;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Mock;
+		};
+		D012F0802EAD20760014C602 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VRNWC32C76;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedInUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = DialedIn;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -1386,151 +1387,6 @@
 			};
 			name = Release;
 		};
-		D0CE84742EAAC4EC00C3CCBE /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VRNWC32C76;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.andrewcoyle.DialedInWatchApp-Watch-AppTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DialedInWatchApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DialedInWatchApp";
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Debug;
-		};
-		D0CE84752EAAC4EC00C3CCBE /* Mock */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VRNWC32C76;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.andrewcoyle.DialedInWatchApp-Watch-AppTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DialedInWatchApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DialedInWatchApp";
-				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Mock;
-		};
-		D0CE84762EAAC4EC00C3CCBE /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VRNWC32C76;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.andrewcoyle.DialedInWatchApp-Watch-AppTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DialedInWatchApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DialedInWatchApp";
-				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Release;
-		};
-		D0CE84782EAAC4EC00C3CCBE /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VRNWC32C76;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.andrewcoyle.DialedInWatchApp-Watch-AppUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_TARGET_NAME = "DialedInWatchApp Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Debug;
-		};
-		D0CE84792EAAC4EC00C3CCBE /* Mock */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VRNWC32C76;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.andrewcoyle.DialedInWatchApp-Watch-AppUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_TARGET_NAME = "DialedInWatchApp Watch App";
-				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Mock;
-		};
-		D0CE847A2EAAC4EC00C3CCBE /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VRNWC32C76;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.andrewcoyle.DialedInWatchApp-Watch-AppUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_TARGET_NAME = "DialedInWatchApp Watch App";
-				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1540,6 +1396,16 @@
 				D012F0212EACD46C0014C602 /* Debug */,
 				D012F0222EACD46C0014C602 /* Mock */,
 				D012F0232EACD46C0014C602 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D012F07D2EAD20760014C602 /* Build configuration list for PBXNativeTarget "DialedInUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D012F07E2EAD20760014C602 /* Debug */,
+				D012F07F2EAD20760014C602 /* Mock */,
+				D012F0802EAD20760014C602 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -1580,26 +1446,6 @@
 				D0CE846F2EAAC4EC00C3CCBE /* Debug */,
 				D0CE84702EAAC4EC00C3CCBE /* Mock */,
 				D0CE84712EAAC4EC00C3CCBE /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		D0CE84732EAAC4EC00C3CCBE /* Build configuration list for PBXNativeTarget "DialedInWatchAppTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D0CE84742EAAC4EC00C3CCBE /* Debug */,
-				D0CE84752EAAC4EC00C3CCBE /* Mock */,
-				D0CE84762EAAC4EC00C3CCBE /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		D0CE84772EAAC4EC00C3CCBE /* Build configuration list for PBXNativeTarget "DialedInWatchAppUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D0CE84782EAAC4EC00C3CCBE /* Debug */,
-				D0CE84792EAAC4EC00C3CCBE /* Mock */,
-				D0CE847A2EAAC4EC00C3CCBE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

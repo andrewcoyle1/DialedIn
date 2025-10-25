@@ -9,15 +9,11 @@ import SwiftUI
 
 struct ProfilePhysicalStatsView: View {
     @Environment(DependencyContainer.self) private var container
-    @Environment(UserManager.self) private var userManager
-    @Environment(UserWeightManager.self) private var weightManager
-    
-    @State private var showLogWeightSheet: Bool = false
-    @State private var weights: [WeightEntry] = []
-    
+    @State var viewModel: ProfilePhysicalStatsViewModel
+        
     var body: some View {
         List {
-            if let user = userManager.currentUser {
+            if let user = viewModel.currentUser {
                 bodyMetricsSection(user)
                 weightHistorySection(user)
                 fitnessMetricsSection(user)
@@ -34,13 +30,12 @@ struct ProfilePhysicalStatsView: View {
         .toolbar {
             toolbarContent
         }
-        .sheet(isPresented: $showLogWeightSheet) {
+        .sheet(isPresented: $viewModel.showLogWeightSheet) {
             LogWeightView(viewModel: LogWeightViewModel(container: container))
         }
         .task {
-            if let user = userManager.currentUser {
-                weights = (try? await weightManager.getWeightHistory(userId: user.userId, limit: 5)) ?? []
-            }
+            await viewModel.loadWeights()
+            
         }
     }
     
@@ -48,7 +43,7 @@ struct ProfilePhysicalStatsView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
             Button {
-                showLogWeightSheet = true
+                viewModel.showLogWeightSheet = true
             } label: {
                 Label("Log Weight", systemImage: "plus.circle.fill")
             }
@@ -61,7 +56,7 @@ struct ProfilePhysicalStatsView: View {
                 metricCard(
                     icon: "ruler",
                     label: "Height",
-                    value: formatHeight(height, unit: user.lengthUnitPreference ?? .centimeters),
+                    value: viewModel.formatHeight(height, unit: user.lengthUnitPreference ?? .centimeters),
                     color: .blue
                 )
             }
@@ -70,7 +65,7 @@ struct ProfilePhysicalStatsView: View {
                 metricCard(
                     icon: "scalemass",
                     label: "Current Weight",
-                    value: formatWeight(weight, unit: user.weightUnitPreference ?? .kilograms),
+                    value: viewModel.formatWeight(weight, unit: user.weightUnitPreference ?? .kilograms),
                     color: .green
                 )
             }
@@ -98,7 +93,7 @@ struct ProfilePhysicalStatsView: View {
     
     private func weightHistorySection(_ user: UserModel) -> some View {
         Section {
-            if weightManager.weightHistory.isEmpty {
+            if viewModel.weightHistory.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "scalemass")
                         .font(.largeTitle)
@@ -113,14 +108,14 @@ struct ProfilePhysicalStatsView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
             } else {
-                ForEach(weightManager.weightHistory.prefix(5)) { entry in
+                ForEach(viewModel.weightHistory.prefix(5)) { entry in
                     weightEntryRow(entry, unit: user.weightUnitPreference ?? .kilograms)
                 }
             }
         } header: {
             Text("Weight History")
         } footer: {
-            if !weightManager.weightHistory.isEmpty {
+            if !viewModel.weightHistory.isEmpty {
                 Text("Showing recent entries")
             }
         }
@@ -129,7 +124,7 @@ struct ProfilePhysicalStatsView: View {
     private func weightEntryRow(_ entry: WeightEntry, unit: WeightUnitPreference) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(formatWeight(entry.weightKg, unit: unit))
+                Text(viewModel.formatWeight(entry.weightKg, unit: unit))
                     .font(.headline)
                 Text(entry.date.formatted(date: .abbreviated, time: .omitted))
                     .font(.caption)
@@ -158,7 +153,7 @@ struct ProfilePhysicalStatsView: View {
                 metricCard(
                     icon: "figure.walk",
                     label: "Exercise Frequency",
-                    value: formatExerciseFrequency(frequency),
+                    value: viewModel.formatExerciseFrequency(frequency),
                     color: .orange
                 )
             }
@@ -167,7 +162,7 @@ struct ProfilePhysicalStatsView: View {
                 metricCard(
                     icon: "figure.run",
                     label: "Daily Activity Level",
-                    value: formatActivityLevel(activity),
+                    value: viewModel.formatActivityLevel(activity),
                     color: .red
                 )
             }
@@ -176,7 +171,7 @@ struct ProfilePhysicalStatsView: View {
                 metricCard(
                     icon: "heart.fill",
                     label: "Cardio Fitness Level",
-                    value: formatCardioFitness(cardio),
+                    value: viewModel.formatCardioFitness(cardio),
                     color: .pink
                 )
             }
@@ -186,8 +181,8 @@ struct ProfilePhysicalStatsView: View {
     private func bmiSection(_ user: UserModel) -> some View {
         Group {
             if let height = user.heightCentimeters, let weight = user.weightKilograms {
-                let bmi = calculateBMI(heightCm: height, weightKg: weight)
-                let category = getBMICategory(bmi)
+                let bmi = viewModel.calculateBMI(heightCm: height, weightKg: weight)
+                let category = viewModel.getBMICategory(bmi)
                 
                 Section("Body Mass Index") {
                     VStack(spacing: 8) {
@@ -253,127 +248,11 @@ struct ProfilePhysicalStatsView: View {
                 .foregroundStyle(.secondary)
         }
     }
-    
-    // MARK: - Helper Functions
-    
-    private func formatHeight(_ heightCm: Double, unit: LengthUnitPreference) -> String {
-        switch unit {
-        case .centimeters:
-            return String(format: "%.0f cm", heightCm)
-        case .inches:
-            let totalInches = heightCm / 2.54
-            let feet = Int(totalInches / 12)
-            let inches = Int(totalInches.truncatingRemainder(dividingBy: 12))
-            return "\(feet)' \(inches)\""
-        }
-    }
-    
-    private func formatWeight(_ weightKg: Double, unit: WeightUnitPreference) -> String {
-        switch unit {
-        case .kilograms:
-            return String(format: "%.1f kg", weightKg)
-        case .pounds:
-            let pounds = weightKg * 2.20462
-            return String(format: "%.1f lbs", pounds)
-        }
-    }
-    
-    private func calculateBMI(heightCm: Double, weightKg: Double) -> Double {
-        let heightM = heightCm / 100
-        return weightKg / (heightM * heightM)
-    }
-    enum BMICategory {
-        case underweight
-        case normal
-        case overweight
-        case obese
-        
-        var name: String {
-            switch self {
-            case .underweight:
-                return "Underweight"
-            case .normal:
-                return "Normal"
-            case .overweight:
-                return "Overweight"
-            case .obese:
-                return "Obese"
-            }
-        }
-        
-        var color: Color {
-            switch self {
-            case .underweight:
-                return .blue
-            case .normal:
-                return .green
-            case .overweight:
-                return .orange
-            case .obese:
-                return .red
-            }
-        }
-        
-        var description: String {
-            switch self {
-            case .underweight:
-                return "A BMI below 18.5 may indicate underweight. Consider consulting a healthcare provider."
-            case .normal:
-                return "A BMI between 18.5 and 24.9 is considered healthy weight range."
-            case .overweight:
-                return "A BMI between 25.0 and 29.9 may indicate overweight. Consider a balanced diet and regular exercise."
-            case .obese:
-                return "A BMI of 30.0 or higher may indicate obesity. Consider consulting a healthcare provider for guidance."
-            }
-        }
-    }
-    
-    private func getBMICategory(_ bmi: Double) -> BMICategory {
-        if bmi < 18.5 {
-            return .underweight
-        } else if bmi < 25.0 {
-            return .normal
-        } else if bmi < 30.0 {
-            return .overweight
-        } else {
-            return .obese
-        }
-    }
-    
-    private func formatExerciseFrequency(_ frequency: ProfileExerciseFrequency) -> String {
-        switch frequency {
-        case .never: return "Never"
-        case .oneToTwo: return "1-2 times/week"
-        case .threeToFour: return "3-4 times/week"
-        case .fiveToSix: return "5-6 times/week"
-        case .daily: return "Daily"
-        }
-    }
-    
-    private func formatActivityLevel(_ level: ProfileDailyActivityLevel) -> String {
-        switch level {
-        case .sedentary: return "Sedentary"
-        case .light: return "Light"
-        case .moderate: return "Moderate"
-        case .active: return "Active"
-        case .veryActive: return "Very Active"
-        }
-    }
-    
-    private func formatCardioFitness(_ level: ProfileCardioFitnessLevel) -> String {
-        switch level {
-        case .beginner: return "Beginner"
-        case .novice: return "Novice"
-        case .intermediate: return "Intermediate"
-        case .advanced: return "Advanced"
-        case .elite: return "Elite"
-        }
-    }
 }
 
 #Preview {
     NavigationStack {
-        ProfilePhysicalStatsView()
+        ProfilePhysicalStatsView(viewModel: ProfilePhysicalStatsViewModel(container: DevPreview.shared.container))
     }
     .environment(
         UserManager(

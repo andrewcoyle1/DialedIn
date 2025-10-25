@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct ProfileNutritionPlanView: View {
-    
+    @Environment(DependencyContainer.self) private var container
     @State var viewModel: ProfileNutritionPlanViewModel
     
     var body: some View {
         Section {
             if let plan = viewModel.currentDietPlan {
                 NavigationLink {
-                    ProfileNutritionDetailView()
+                    ProfileNutritionDetailView(viewModel: ProfileNutritionDetailViewModel(container: container))
                 } label: {
                     ProfileSectionCard(
                         icon: "fork.knife",
