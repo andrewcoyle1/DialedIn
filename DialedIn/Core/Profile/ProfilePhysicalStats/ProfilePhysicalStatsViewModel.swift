@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 25/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 @Observable
 @MainActor
