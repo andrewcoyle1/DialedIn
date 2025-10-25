@@ -156,8 +156,11 @@ class WorkoutTrackerViewModel {
         
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Configure and start HK session for strength training
+        print("📱 WorkoutTrackerViewModel: Configuring HK session for strength training")
         hkWorkoutManager.setWorkoutConfiguration(activityType: .traditionalStrengthTraining, location: .indoor)
+        print("📱 WorkoutTrackerViewModel: About to call hkWorkoutManager.startWorkout()")
         hkWorkoutManager.startWorkout(workout: workoutSession)
+        print("📱 WorkoutTrackerViewModel: hkWorkoutManager.startWorkout() completed")
         #endif
     }
     

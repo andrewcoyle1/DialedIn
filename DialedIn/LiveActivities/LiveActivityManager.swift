@@ -86,14 +86,20 @@ class LiveActivityManager: LiveActivityUpdating {
 		restEndsAt: Date? = nil,
 		statusMessage: String? = nil
 	) {
-        if ActivityAuthorizationInfo().areActivitiesEnabled {
+        
+        let areActivitiesEnabled = ActivityAuthorizationInfo().areActivitiesEnabled
+        
+        if areActivitiesEnabled {
             // Reuse an existing activity if present (e.g. after app launch)
-            if let existing = Activity<WorkoutActivityAttributes>.activities.first {
+            let existingActivities = Activity<WorkoutActivityAttributes>.activities
+            
+            if let existing = existingActivities.first {
                 self.currentActivity = existing
                 self.setup(withActivity: existing)
                 isLiveActivityActive = true
                 return
             }
+                        
             do {
                 let attributes = WorkoutActivityAttributes(
                     sessionId: session.id,
@@ -124,10 +130,10 @@ class LiveActivityManager: LiveActivityUpdating {
                 self.setup(withActivity: activity)
                 isLiveActivityActive = true
             } catch {
-                print("Error starting workout live activity: \(error)")
                 isLiveActivityActive = false
-
             }
+        } else {
+            
         }
 	}
 

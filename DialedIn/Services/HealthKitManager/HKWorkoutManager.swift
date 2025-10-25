@@ -108,6 +108,9 @@ class HKWorkoutManager: NSObject {
     }
 
     func startWorkout(workout: WorkoutSessionModel) {
+        print("📱 HKWorkoutManager: startWorkout() called for workout \(workout.id)")
+        print("📱 HKWorkoutManager: liveActivityUpdater is \(liveActivityUpdater != nil ? "set" : "nil")")
+        
         self.activeSessionModel = workout
         Task {
             do {
@@ -117,6 +120,7 @@ class HKWorkoutManager: NSObject {
                 state = .running
                 try await builder?.beginCollection(at: startDate)
 
+                print("📱 HKWorkoutManager: About to call liveActivityUpdater?.startLiveActivity()")
                 liveActivityUpdater?.startLiveActivity(
                     session: workout,
                     isActive: true,
@@ -124,9 +128,10 @@ class HKWorkoutManager: NSObject {
                     restEndsAt: nil,
                     statusMessage: nil
                 )
+                print("📱 HKWorkoutManager: liveActivityUpdater?.startLiveActivity() completed")
                 startWorkoutTimer()
             } catch {
-                print("Failed to start workout \(error))")
+                print("❌ HKWorkoutManager: Failed to start workout \(error)")
                 state = .notStarted
             }
         }

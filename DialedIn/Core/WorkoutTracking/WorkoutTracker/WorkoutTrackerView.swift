@@ -38,6 +38,9 @@ struct WorkoutTrackerView: View {
                 }
                 .showCustomAlert(alert: $viewModel.showAlert)
             }
+            .task {
+                await viewModel.onAppear()
+            }
             .onChange(of: scenePhase) { oldPhase, newPhase in
                 viewModel.onScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
             }
