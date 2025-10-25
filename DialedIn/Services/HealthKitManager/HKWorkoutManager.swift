@@ -54,7 +54,7 @@ class HKWorkoutManager: NSObject {
     private var activeSessionModel: WorkoutSessionModel?
     
     // Weak reference to avoid circular dependency
-    weak var workoutActivityViewModel: WorkoutActivityViewModel?
+    weak var liveActivityUpdater: LiveActivityUpdating?
 
     /**
      Creates an asynchronous stream that buffers a single newest element
@@ -117,7 +117,13 @@ class HKWorkoutManager: NSObject {
                 state = .running
                 try await builder?.beginCollection(at: startDate)
 
-                workoutActivityViewModel?.startLiveActivity(session: workout)
+                liveActivityUpdater?.startLiveActivity(
+                    session: workout,
+                    isActive: true,
+                    currentExerciseIndex: 0,
+                    restEndsAt: nil,
+                    statusMessage: nil
+                )
                 startWorkoutTimer()
             } catch {
                 print("Failed to start workout \(error))")
@@ -137,7 +143,13 @@ class HKWorkoutManager: NSObject {
         workoutConfiguration = recoveredSession.workoutConfiguration
         builder?.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore, workoutConfiguration: recoveredSession.workoutConfiguration)
 
-        workoutActivityViewModel?.startLiveActivity(session: workout)
+        liveActivityUpdater?.startLiveActivity(
+            session: workout,
+            isActive: true,
+            currentExerciseIndex: 0,
+            restEndsAt: nil,
+            statusMessage: nil
+        )
         startWorkoutTimer()
     }
 
@@ -235,7 +247,7 @@ class HKWorkoutManager: NSObject {
             finishedWorkout = try await builder.finishWorkout()
             self.metrics.elapsedTime = finishedWorkout?.duration ?? 0
             if let sessionModel = activeSessionModel {
-                    workoutActivityViewModel?.endLiveActivity(
+                    liveActivityUpdater?.endLiveActivity(
                     session: sessionModel,
                     isCompleted: true,
                     statusMessage: "Workout ended"
@@ -245,7 +257,7 @@ class HKWorkoutManager: NSObject {
         } catch {
             print("Error finishing workout: \(error)")
             if let sessionModel = activeSessionModel {
-                    workoutActivityViewModel?.endLiveActivity(
+                    liveActivityUpdater?.endLiveActivity(
                     session: sessionModel,
                     isCompleted: false,
                     statusMessage: "Failed to finish workout"
@@ -361,7 +373,7 @@ extension HKWorkoutManager {
                 }
                 // Push an immediate Live Activity update so UI reflects changes without 1s delay
                 if activeSessionModel != nil {
-                    workoutActivityViewModel?.updateRestAndActive(
+                    liveActivityUpdater?.updateRestAndActive(
                         isActive: state == .running,
                         restEndsAt: restEndTime,
                         statusMessage: "Resting"
@@ -377,7 +389,7 @@ extension HKWorkoutManager {
             restTimer = nil
             // Push an immediate Live Activity update to clear UI
             if activeSessionModel != nil {
-                workoutActivityViewModel?.updateRestAndActive(
+                liveActivityUpdater?.updateRestAndActive(
                     isActive: state == .running,
                     restEndsAt: nil,
                     statusMessage: nil
@@ -400,7 +412,7 @@ extension HKWorkoutManager {
         SharedWorkoutStorage.restEndTime = restEndTime
 
         // Update Live Activity immediately to show Resting countdown
-        workoutActivityViewModel?.updateLiveActivity(
+        liveActivityUpdater?.updateLiveActivity(
             session: session,
             isActive: state == .running,
             currentExerciseIndex: currentExerciseIndex,
@@ -428,7 +440,7 @@ extension HKWorkoutManager {
         SharedWorkoutStorage.clearRestEndTime()
 
         // Update Live Activity to clear rest state (use updateRestAndActive to preserve exercise index)
-        workoutActivityViewModel?.updateRestAndActive(
+        liveActivityUpdater?.updateRestAndActive(
             isActive: state == .running,
             restEndsAt: nil,
             statusMessage: nil
@@ -451,13 +463,13 @@ extension HKWorkoutManager {
             return
         }
         
-        guard workoutActivityViewModel != nil else {
-            print("⚠️ endRest called but workoutActivityViewModel is nil")
+        guard liveActivityUpdater != nil else {
+            print("⚠️ endRest called but liveActivityUpdater is nil")
             return
         }
         
         // Update Live Activity to clear rest state (use updateRestAndActive to preserve exercise index)
-        workoutActivityViewModel?.updateRestAndActive(
+        liveActivityUpdater?.updateRestAndActive(
             isActive: state == .running,
             restEndsAt: nil,
             statusMessage: nil

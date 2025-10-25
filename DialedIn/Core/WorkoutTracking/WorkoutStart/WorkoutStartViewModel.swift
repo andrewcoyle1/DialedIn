@@ -14,7 +14,7 @@ class WorkoutStartViewModel {
     private let exerciseHistoryManager: ExerciseHistoryManager
     private let workoutSessionManager: WorkoutSessionManager
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-    private let workoutActivityViewModel: WorkoutActivityViewModel
+    private let liveActivityManager: LiveActivityManager
 #endif
     private let trainingPlanManager: TrainingPlanManager
     
@@ -26,7 +26,7 @@ class WorkoutStartViewModel {
         self.exerciseHistoryManager = container.resolve(ExerciseHistoryManager.self)!
         self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        self.workoutActivityViewModel = container.resolve(WorkoutActivityViewModel.self)!
+        self.liveActivityManager = container.resolve(LiveActivityManager.self)!
 #endif
     }
 

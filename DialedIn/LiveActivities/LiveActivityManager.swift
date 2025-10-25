@@ -1,5 +1,5 @@
 //
-//  WorkoutActivityViewModel.swift
+//  LiveActivityManager.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 30/09/2025.
@@ -12,14 +12,13 @@ import ActivityKit
 
 @Observable
 @MainActor
-class WorkoutActivityViewModel {
+class LiveActivityManager: LiveActivityUpdating {
     
-    private let hkWorkoutManager: HKWorkoutManager
+    // Track active state internally instead of setting it on HKWorkoutManager
+    private(set) var isLiveActivityActive: Bool = false
     
-    init(hkWorkoutManager: HKWorkoutManager) {
-        self.hkWorkoutManager = hkWorkoutManager
-        // Set up the circular reference
-        hkWorkoutManager.workoutActivityViewModel = self
+    init() {
+        // No circular reference setup needed
     }
     
     // The state model for keeping track of the widget's current state
@@ -92,7 +91,7 @@ class WorkoutActivityViewModel {
             if let existing = Activity<WorkoutActivityAttributes>.activities.first {
                 self.currentActivity = existing
                 self.setup(withActivity: existing)
-                hkWorkoutManager.isLiveActivityActive = true
+                isLiveActivityActive = true
                 return
             }
             do {
@@ -123,10 +122,10 @@ class WorkoutActivityViewModel {
                 
                 self.currentActivity = activity
                 self.setup(withActivity: activity)
-                hkWorkoutManager.isLiveActivityActive = true
+                isLiveActivityActive = true
             } catch {
                 print("Error starting workout live activity: \(error)")
-                hkWorkoutManager.isLiveActivityActive = false
+                isLiveActivityActive = false
 
             }
         }
@@ -272,14 +271,14 @@ class WorkoutActivityViewModel {
 	}
 }
 
-extension WorkoutActivityViewModel {
+extension LiveActivityManager {
     
     func endActivity(with finalState: WorkoutActivityAttributes.ContentState, dismissalPolicy: ActivityUIDismissalPolicy) async {
         guard let activity = currentActivity else {
             return
         }
         
-        hkWorkoutManager.isLiveActivityActive = false
+        isLiveActivityActive = false
         Task {
             await activity.end(
                 ActivityContent(
@@ -343,6 +342,7 @@ extension WorkoutActivityViewModel {
         self.currentActivity = nil
         self.activityViewState = nil
         self.lastContentState = nil
+        self.isLiveActivityActive = false
     }
     
     // MARK: - Helpers
@@ -519,7 +519,9 @@ extension WorkoutActivityViewModel {
 
 #else
 @Observable
-class WorkoutActivityViewModel {
+class LiveActivityManager: LiveActivityUpdating {
+    private(set) var isLiveActivityActive: Bool = false
+    
     func startLiveActivity(
         session: WorkoutSessionModel,
         isActive: Bool = true,

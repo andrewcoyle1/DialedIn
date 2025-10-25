@@ -12,6 +12,7 @@ import HealthKit
 import ActivityKit
 
 @MainActor
+// swiftlint:disable:next type_body_length
 struct CoreInteractor {
     private let authManager: AuthManager
     private let userManager: UserManager
@@ -38,7 +39,7 @@ struct CoreInteractor {
     private let goalManager: GoalManager
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     private let hkWorkoutManager: HKWorkoutManager
-    private let workoutActivityViewModel: WorkoutActivityViewModel
+    private let liveActivityManager: LiveActivityManager
 #endif
     
     init(
@@ -69,7 +70,7 @@ struct CoreInteractor {
         self.goalManager = container.resolve(GoalManager.self)!
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         self.hkWorkoutManager = container.resolve(HKWorkoutManager.self)!
-        self.workoutActivityViewModel = container.resolve(WorkoutActivityViewModel.self)!
+        self.liveActivityManager = container.resolve(LiveActivityManager.self)!
 #endif
     }
     
@@ -177,7 +178,18 @@ struct CoreInteractor {
         lengthUnitPreference: LengthUnitPreference,
         weightUnitPreference: WeightUnitPreference
     ) async throws -> UserModel {
-        try await userManager.saveCompleteAccountSetupProfile(dateOfBirth: dateOfBirth, gender: gender, heightCentimeters: heightCentimeters, weightKilograms: weightKilograms, exerciseFrequency: exerciseFrequency, dailyActivityLevel: dailyActivityLevel, cardioFitnessLevel: cardioFitnessLevel, lengthUnitPreference: lengthUnitPreference, weightUnitPreference: weightUnitPreference)
+        try await userManager
+            .saveCompleteAccountSetupProfile(
+                dateOfBirth: dateOfBirth,
+                gender: gender,
+                heightCentimeters: heightCentimeters,
+                weightKilograms: weightKilograms,
+                exerciseFrequency: exerciseFrequency,
+                dailyActivityLevel: dailyActivityLevel,
+                cardioFitnessLevel: cardioFitnessLevel,
+                lengthUnitPreference: lengthUnitPreference,
+                weightUnitPreference: weightUnitPreference
+            )
     }
     
     func logOut() {
@@ -250,10 +262,16 @@ struct CoreInteractor {
         try await userManager.deleteCurrentUser()
     }
     
+    // MARK: PurchaseManager
+    
+    func purchase() async throws {
+        try await purchaseManager.purchase()
+    }
+    
     // MARK: ExerciseTemplateManager
     
     func addLocalExerciseTemplate(exercise: ExerciseTemplateModel) async throws {
-        try await exerciseTemplateManager.incrementExerciseTemplateInteraction(id: exercise.id)
+        try await exerciseTemplateManager.addLocalExerciseTemplate(exercise: exercise)
     }
     
     func getLocalExerciseTemplate(id: String) throws -> ExerciseTemplateModel {
@@ -1362,10 +1380,10 @@ struct CoreInteractor {
         hkWorkoutManager.endRest()
     }
 
-    // MARK: WorkoutActivityViewModel
+    // MARK: LiveActivityManager
     
-    var liveActivityViewState: WorkoutActivityViewModel.ActivityViewState? {
-        workoutActivityViewModel.activityViewState
+    var liveActivityViewState: LiveActivityManager.ActivityViewState? {
+        liveActivityManager.activityViewState
     }
     
     func startLiveActivity(
@@ -1375,7 +1393,7 @@ struct CoreInteractor {
         restEndsAt: Date? = nil,
         statusMessage: String? = nil
     ) {
-        workoutActivityViewModel.startLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage)
+        liveActivityManager.startLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage)
     }
 
     /// Ensure a Workout Live Activity exists for this session; if found, reuse and update it, otherwise create it
@@ -1386,7 +1404,7 @@ struct CoreInteractor {
         restEndsAt: Date? = nil,
         statusMessage: String? = nil
     ) {
-        workoutActivityViewModel.ensureLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage)
+        liveActivityManager.ensureLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage)
     }
 
     /// Update the Workout Live Activity with latest session progress
@@ -1399,7 +1417,7 @@ struct CoreInteractor {
         totalVolumeKg: Double? = nil,
         elapsedTime: TimeInterval? = nil
     ) {
-        workoutActivityViewModel.updateLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage, totalVolumeKg: totalVolumeKg, elapsedTime: elapsedTime)
+        liveActivityManager.updateLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage, totalVolumeKg: totalVolumeKg, elapsedTime: elapsedTime)
     }
 
     /// End the Workout Live Activity
@@ -1408,27 +1426,27 @@ struct CoreInteractor {
         isCompleted: Bool = true,
         statusMessage: String? = nil
     ) {
-        workoutActivityViewModel.endLiveActivity(session: session, isCompleted: isCompleted, statusMessage: statusMessage)
+        liveActivityManager.endLiveActivity(session: session, isCompleted: isCompleted, statusMessage: statusMessage)
     }
     
     func endActivity(with finalState: WorkoutActivityAttributes.ContentState, dismissalPolicy: ActivityUIDismissalPolicy) async {
-        await workoutActivityViewModel.endActivity(with: finalState, dismissalPolicy: dismissalPolicy)
+        await liveActivityManager.endActivity(with: finalState, dismissalPolicy: dismissalPolicy)
     }
     
     func setup(withActivity activity: Activity<WorkoutActivityAttributes>) {
-        workoutActivityViewModel.setup(withActivity: activity)
+        liveActivityManager.setup(withActivity: activity)
     }
     
     func observeActivity(activity: Activity<WorkoutActivityAttributes>) {
-        workoutActivityViewModel.observeActivity(activity: activity)
+        liveActivityManager.observeActivity(activity: activity)
     }
     
     func updateWorkoutActivity(with updatedState: WorkoutActivityAttributes.ContentState) async throws {
-        try await workoutActivityViewModel.updateWorkoutActivity(with: updatedState)
+        try await liveActivityManager.updateWorkoutActivity(with: updatedState)
     }
     
     func cleanupDismissedActivity() {
-        workoutActivityViewModel.cleanupDismissedActivity()
+        liveActivityManager.cleanupDismissedActivity()
     }
 
     /// Update only isActive/rest/status from current content state to avoid recomputing set counts
@@ -1437,8 +1455,9 @@ struct CoreInteractor {
         restEndsAt: Date?,
         statusMessage: String? = nil
     ) {
-        workoutActivityViewModel.updateRestAndActive(isActive: isActive, restEndsAt: restEndsAt, statusMessage: statusMessage)
+        liveActivityManager.updateRestAndActive(isActive: isActive, restEndsAt: restEndsAt, statusMessage: statusMessage)
     }
 
     #endif
+    // swiftlint:disable:next file_length
 }

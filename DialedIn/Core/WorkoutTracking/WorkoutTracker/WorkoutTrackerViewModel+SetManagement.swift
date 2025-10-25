@@ -46,7 +46,7 @@ extension WorkoutTrackerViewModel {
         }
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        workoutActivityViewModel.updateLiveActivity(
+        liveActivityManager.updateLiveActivity(
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
@@ -91,7 +91,7 @@ extension WorkoutTrackerViewModel {
         saveWorkoutProgress()
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        workoutActivityViewModel.updateLiveActivity(
+        liveActivityManager.updateLiveActivity(
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
@@ -120,7 +120,7 @@ extension WorkoutTrackerViewModel {
         saveWorkoutProgress()
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        workoutActivityViewModel.updateLiveActivity(
+        liveActivityManager.updateLiveActivity(
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,

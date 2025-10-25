@@ -76,7 +76,7 @@ struct DialedInApp: App {
                 .environment(delegate.dependencies.detailNavigationModel)
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 .environment(delegate.dependencies.hkWorkoutManager)
-                .environment(delegate.dependencies.workoutActivityViewModel)
+                .environment(delegate.dependencies.liveActivityManager)
                 #endif
                 .environment(delegate.dependencies.userWeightManager)
                 .environment(delegate.dependencies.goalManager)
@@ -205,7 +205,7 @@ struct Dependencies {
     let goalManager: GoalManager
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     let hkWorkoutManager: HKWorkoutManager
-    let workoutActivityViewModel: WorkoutActivityViewModel
+    let liveActivityManager: LiveActivityManager
     #endif
 
     // swiftlint:disable:next function_body_length
@@ -240,7 +240,8 @@ struct Dependencies {
             goalManager = GoalManager(services: MockGoalServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             hkWorkoutManager = HKWorkoutManager()
-            workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
+            liveActivityManager = LiveActivityManager()
+            hkWorkoutManager.liveActivityUpdater = liveActivityManager
             #endif
 
         case .dev:
@@ -277,7 +278,8 @@ struct Dependencies {
             goalManager = GoalManager(services: ProductionGoalServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             hkWorkoutManager = HKWorkoutManager()
-            workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
+            liveActivityManager = LiveActivityManager()
+            hkWorkoutManager.liveActivityUpdater = liveActivityManager
             #endif
 
         case .prod:
@@ -313,7 +315,8 @@ struct Dependencies {
             goalManager = GoalManager(services: ProductionGoalServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             hkWorkoutManager = HKWorkoutManager()
-            workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
+            liveActivityManager = LiveActivityManager()
+            hkWorkoutManager.liveActivityUpdater = liveActivityManager
             #endif
         }
         detailNavigationModel = DetailNavigationModel()
@@ -346,7 +349,7 @@ struct Dependencies {
         container.register(GoalManager.self, service: goalManager)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         container.register(HKWorkoutManager.self, service: hkWorkoutManager)
-        container.register(WorkoutActivityViewModel.self, service: workoutActivityViewModel)
+        container.register(LiveActivityManager.self, service: liveActivityManager)
         #endif
         self.container = container
     }
@@ -358,6 +361,8 @@ extension View {
         let userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         let hkWorkoutManager = HKWorkoutManager()
+        let liveActivityManager = LiveActivityManager()
+        hkWorkoutManager.liveActivityUpdater = liveActivityManager
         #endif
         
         return self
@@ -377,7 +382,7 @@ extension View {
             .environment(TrainingAnalyticsManager(services: MockTrainingAnalyticsServices()))
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             .environment(hkWorkoutManager)
-            .environment(WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager))
+            .environment(liveActivityManager)
             #endif
             .environment(UserWeightManager(services: MockUserWeightServices()))
             .environment(GoalManager(services: MockGoalServices()))
@@ -425,7 +430,7 @@ class DevPreview {
         container.register(GoalManager.self, service: goalManager)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         container.register(HKWorkoutManager.self, service: hkWorkoutManager)
-        container.register(WorkoutActivityViewModel.self, service: workoutActivityViewModel)
+        container.register(LiveActivityManager.self, service: liveActivityManager)
         #endif
         return container
     }
@@ -455,7 +460,7 @@ class DevPreview {
     let goalManager: GoalManager
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     let hkWorkoutManager: HKWorkoutManager
-    let workoutActivityViewModel: WorkoutActivityViewModel
+    let liveActivityManager: LiveActivityManager
     #endif
     
     init(isSignedIn: Bool = true) {
@@ -490,7 +495,8 @@ class DevPreview {
         self.goalManager = GoalManager(services: MockGoalServices())
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         self.hkWorkoutManager = hkWorkoutManager
-        self.workoutActivityViewModel = WorkoutActivityViewModel(hkWorkoutManager: hkWorkoutManager)
+        self.liveActivityManager = LiveActivityManager()
+        self.hkWorkoutManager.liveActivityUpdater = liveActivityManager
         #endif
     }
 }

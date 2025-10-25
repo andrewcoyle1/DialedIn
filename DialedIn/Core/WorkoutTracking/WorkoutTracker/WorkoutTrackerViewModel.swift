@@ -22,7 +22,7 @@ class WorkoutTrackerViewModel {
     
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     let hkWorkoutManager: HKWorkoutManager
-    let workoutActivityViewModel: WorkoutActivityViewModel
+    let liveActivityManager: LiveActivityManager
     #endif
     
     // MARK: - State Properties
@@ -86,7 +86,7 @@ class WorkoutTrackerViewModel {
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         self.hkWorkoutManager = container.resolve(HKWorkoutManager.self)!
-        self.workoutActivityViewModel = container.resolve(WorkoutActivityViewModel.self)!
+        self.liveActivityManager = container.resolve(LiveActivityManager.self)!
         #endif
         
         self.workoutSession = workoutSession
@@ -187,7 +187,7 @@ class WorkoutTrackerViewModel {
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Ensure an existing Live Activity is reused, otherwise start one
-        workoutActivityViewModel.ensureLiveActivity(
+        liveActivityManager.ensureLiveActivity(
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
@@ -293,7 +293,7 @@ class WorkoutTrackerViewModel {
                 
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 // End live activity with immediate dismissal for discarded workouts
-                workoutActivityViewModel.endLiveActivity(session: workoutSession, isCompleted: false)
+                liveActivityManager.endLiveActivity(session: workoutSession, isCompleted: false)
                 #endif
                 
                 try workoutSessionManager.deleteLocalWorkoutSession(id: workoutSession.id)
@@ -350,7 +350,7 @@ class WorkoutTrackerViewModel {
                 try await createExerciseHistoryEntries(performedAt: endTime)
                 
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-                workoutActivityViewModel.endLiveActivity(session: workoutSession, isCompleted: true)
+                liveActivityManager.endLiveActivity(session: workoutSession, isCompleted: true)
                 #endif
                 await workoutSessionManager.endActiveSession()
                 await MainActor.run {
