@@ -1,5 +1,5 @@
 //
-//  AuthM.swift
+//  AuthManager.swift
 //  AIChatCourse
 //
 //  Created by Andrew Coyle on 10/13/24.
@@ -180,4 +180,11 @@ class AuthManager {
 
 enum AuthError: LocalizedError {
     case notSignedIn
+    
+    var errorDescription: String? {
+        switch self {
+        case .notSignedIn:
+            return "User is not signed in"
+        }
+    }
 }

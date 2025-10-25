@@ -7,12 +7,57 @@
 
 import SwiftUI
 import Firebase
-import FirebaseCore
+// import FirebaseCore
 import FirebaseAnalytics
 import FirebaseAppCheck
 import GoogleSignIn
+import SwiftfulUtilities
 
 @main
+struct AppEntryPoint {
+    
+    static func main() {
+        if SwiftfulUtilities.Utilities.isUnitTesting {
+            TestingApp.main()
+        } else {
+            DialedInApp.main()
+        }
+    }
+}
+
+struct TestingApp: App {
+    
+    @State var isLoading = false
+    
+    var body: some Scene {
+        WindowGroup {
+            VStack {
+                Text("Testing")
+                HStack {
+                    Circle()
+                        .fill(Color.orange)
+                        .frame(width: 10, height: 10)
+                        .scaleEffect(isLoading ? 1.5 : 0.5)
+                        .animation(.easeInOut(duration: 0.2).repeatForever(autoreverses: true), value: isLoading)
+                    Circle()
+                        .fill(Color.orange)
+                        .frame(width: 10, height: 10)
+                        .scaleEffect(isLoading ? 1.5 : 0.5)
+                        .animation(.easeInOut(duration: 0.2).repeatForever(autoreverses: true).delay(0.1), value: isLoading)
+                    Circle()
+                        .fill(Color.orange)
+                        .frame(width: 10, height: 10)
+                        .scaleEffect(isLoading ? 1.5 : 0.5)
+                        .animation(.easeInOut(duration: 0.2).repeatForever(autoreverses: true).delay(0.2), value: isLoading)
+                }
+            }
+            .onAppear {
+                isLoading = true
+            }
+        }
+    }
+}
+
 struct DialedInApp: App {
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate

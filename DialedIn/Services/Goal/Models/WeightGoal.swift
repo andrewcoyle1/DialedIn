@@ -99,6 +99,26 @@ struct WeightGoal: Codable, Identifiable, Equatable {
     
     func calculateProgress(currentWeight: Double) -> Double {
         guard targetWeightKg != startingWeightKg else { return 0 }
+        
+        // Determine if this is a losing or gaining goal
+        let isLosingGoal = targetWeightKg < startingWeightKg
+        
+        // Check if current weight is moving in the right direction
+        let movingRightDirection: Bool
+        if isLosingGoal {
+            // For losing weight: current must be less than starting
+            movingRightDirection = currentWeight < startingWeightKg
+        } else {
+            // For gaining weight: current must be greater than starting
+            movingRightDirection = currentWeight > startingWeightKg
+        }
+        
+        // If moving in wrong direction, return 0 progress
+        if !movingRightDirection {
+            return 0
+        }
+        
+        // Calculate progress based on how far we've moved towards the target
         let totalChange = abs(targetWeightKg - startingWeightKg)
         let currentChange = abs(startingWeightKg - currentWeight)
         let progress = min(max(currentChange / totalChange, 0), 1)

@@ -127,8 +127,22 @@
 		D012F02E2EACD6100014C602 /* Exceptions for "DialedIn" folder in "DialedInTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Services/Auth/AuthManager.swift,
 				Services/Auth/Models/UserAuthInfo.swift,
+				"Services/Auth/Models/UserAuthInfo+Firebase.swift",
+				Services/Auth/Services/AuthService.swift,
+				Services/Auth/Services/MockAuthService.swift,
+				Services/Goal/Models/WeightGoal.swift,
+				Services/Logs/LogManager.swift,
+				Services/Logs/Models/LoggableEvent.swift,
+				Services/Logs/Services/ConsoleService.swift,
+				Services/Logs/Services/LogService.swift,
+				Services/Nutrition/IngredientTemplate/Models/IngredientTemplateEntity.swift,
+				Services/Nutrition/IngredientTemplate/Models/IngredientTemplateModel.swift,
+				Services/Nutrition/NutritionTypes.swift,
 				Services/User/Models/UserModel.swift,
+				Services/UserWeight/Models/WeightEntry.swift,
+				Utilities/Constants.swift,
 			);
 			target = D012F0192EACD46C0014C602 /* DialedInTests */;
 		};
@@ -725,6 +739,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -749,6 +767,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -774,6 +796,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
