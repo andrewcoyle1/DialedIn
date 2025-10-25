@@ -228,7 +228,7 @@ class DevSettingsViewModel {
             }
             
             // Clear user data and stop UserManager listener
-            userManager.signOut()
+            userManager.logOut()
             
             // 3. Sign out (account remains intact in Firebase)
             signOutAuth()

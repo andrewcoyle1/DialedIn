@@ -26,6 +26,13 @@ class WorkoutTrackerViewModel {
     #endif
     
     // MARK: - State Properties
+
+    var pendingSelectedTemplates: [ExerciseTemplateModel] = []
+
+    var showingWorkoutNotes = false
+    var showingAddExercise = false
+    var editMode: EditMode = .inactive
+    var isRestPickerOpen: Bool = false
     
     var workoutSession: WorkoutSessionModel
     var startTime: Date
@@ -135,7 +142,7 @@ class WorkoutTrackerViewModel {
         let healthKitManager = HealthKitManager()
         if healthKitManager.canRequestAuthorisation() && healthKitManager.needsAuthorisationForRequiredTypes() {
             do {
-                try await healthKitManager.requestAuthorization()
+                try await healthKitManager.requestAuthorisation()
             } catch {
                 print("HealthKit authorization failed: \(error)")
             }
@@ -545,6 +552,10 @@ class WorkoutTrackerViewModel {
     }
     
     func presentWorkoutNotes() {
-
+        showingWorkoutNotes = true
+    }
+    
+    func presentAddExercise() {
+        showingAddExercise = true
     }
 }

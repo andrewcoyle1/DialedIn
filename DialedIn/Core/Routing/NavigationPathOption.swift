@@ -59,7 +59,7 @@ enum NavigationOptions: Equatable, Hashable, Identifiable {
         switch self {
         case .dashboard: DashboardView()
         case .nutrition: NutritionView()
-        case .training: TrainingView(viewModel: TrainingViewModel(container: container))
+        case .training: TrainingView(viewModel: TrainingViewModel(interactor: ProdTrainingInteractor(container: container)))
         case .profile: ProfileView(viewModel: ProfileViewModel(container: container))
         case .search: SearchView()
         }

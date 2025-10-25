@@ -10,7 +10,8 @@ import SwiftUI
 
 // MARK: - Exercise Management
 extension WorkoutTrackerViewModel {
-    func addSelectedExercises(templates: [ExerciseTemplateModel]) {
+    func addSelectedExercises() {
+        let templates = self.pendingSelectedTemplates
         guard !templates.isEmpty, let userId = userManager.currentUser?.userId else { return }
         var updated = workoutSession.exercises
         let startIndex = updated.count
@@ -51,6 +52,8 @@ extension WorkoutTrackerViewModel {
             elapsedTime: elapsedTime
         )
         #endif
+        
+        self.pendingSelectedTemplates = []
     }
     
     func deleteExercise(_ exerciseId: String) {

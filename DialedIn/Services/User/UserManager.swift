@@ -73,7 +73,7 @@ class UserManager {
     }
     
     /// Force refresh the cached profile image from Firebase
-    func refreshProfileImage() async {
+    func refreshProfileImage() async throws {
         guard let user = currentUser,
               let urlString = user.profileImageUrl,
               !urlString.isEmpty else {
@@ -84,15 +84,9 @@ class UserManager {
         ProfileImageCache.shared.removeCachedImage(userId: user.userId)
         
         // Download fresh image
-        do {
             _ = try await ProfileImageCache.shared.downloadAndCache(from: urlString, userId: user.userId)
             logManager?.trackEvent(eventName: "profile_image_refreshed", parameters: ["user_id": user.userId])
-        } catch {
-            logManager?.trackEvent(eventName: "profile_image_refresh_failed", parameters: [
-                "user_id": user.userId,
-                "error": error.localizedDescription
-            ])
-        }
+        
     }
     
     func clearAllLocalData() {
@@ -228,7 +222,7 @@ class UserManager {
         return updated
     }
     
-    func signOut() {
+    func logOut() {
         currentUserListener?()
         currentUserListener = nil
         currentUser = nil
@@ -464,7 +458,7 @@ class UserManager {
         logManager?.trackEvent(event: Event.deleteAccountSuccess)
 
         // 5) Reset UserManager state (does not sign out Auth)
-        signOut()
+        logOut()
     }
     
     // MARK: - User Streaming

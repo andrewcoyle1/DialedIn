@@ -22,7 +22,7 @@ struct TabBarView: View {
             }
             
             Tab("Training", systemImage: "dumbbell", value: AppSection.training) {
-                TrainingView(viewModel: TrainingViewModel(container: container))
+                TrainingView(viewModel: TrainingViewModel(interactor: ProdTrainingInteractor(container: container)))
             }
             
             Tab("Nutrition", systemImage: "carrot", value: AppSection.nutrition) {

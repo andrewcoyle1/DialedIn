@@ -123,7 +123,7 @@ class SettingsViewModel {
         Task {
             do {
                 try authManager.signOut()
-                userManager.signOut()
+                userManager.logOut()
                 logManager.trackEvent(event: Event.signOutSuccess)
 
                 onDismiss()

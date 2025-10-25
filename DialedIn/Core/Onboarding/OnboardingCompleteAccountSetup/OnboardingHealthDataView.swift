@@ -142,7 +142,7 @@ struct OnboardingHealthDataView: View {
         Task {
             logManager.trackEvent(event: Event.enableHealthKitStart)
             do {
-                try await healthKitManager.requestAuthorization()
+                try await healthKitManager.requestAuthorisation()
                 logManager.trackEvent(event: Event.enableHealthKitSuccess)
                 let canRequest = await pushManager.canRequestAuthorisation()
                 navigationDestination = canRequest ? .notifications : .gender

@@ -29,7 +29,7 @@ class HealthKitManager: NSObject {
         service.canRequestAuthorisation()
     }
     
-    func requestAuthorization() async throws {
+    func requestAuthorisation() async throws {
         try await service.requestAuthorisation()
     }
     

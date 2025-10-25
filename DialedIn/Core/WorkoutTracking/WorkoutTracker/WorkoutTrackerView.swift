@@ -2,7 +2,7 @@
 //  WorkoutTrackerView.swift
 //  DialedIn
 //
-//  Created by AI Assistant on 23/09/2025.
+//  Created by Andrew Coyle on 23/09/2025.
 //
 
 import SwiftUI
@@ -16,102 +16,50 @@ struct WorkoutTrackerView: View {
     // ViewModel
     @State var viewModel: WorkoutTrackerViewModel
     
-    // UI-only state
-    @State private var showingWorkoutNotes = false
-    @State private var showingAddExercise = false
-    @State private var editMode: EditMode = .inactive
-    @State private var pendingSelectedTemplates: [ExerciseTemplateModel] = []
-    @State private var isRestPickerOpen: Bool = false
-    
     let initialWorkoutSession: WorkoutSessionModel
     
     var body: some View {
         TimelineView(.periodic(from: viewModel.startTime, by: 1.0)) { _ in
             NavigationStack {
                 List {
-                    // Workout Overview Section
                     workoutOverviewCard
-                    
-                    // Exercise Section
                     exerciseSection
                 }
                 .navigationTitle(viewModel.workoutSession.name)
-                .navigationBarTitleDisplayMode(.large)
                 .navigationSubtitle(viewModel.elapsedTimeString)
+                .navigationBarTitleDisplayMode(.large)
                 .scrollIndicators(.hidden)
-                .environment(\.editMode, $editMode)
+                .environment(\.editMode, $viewModel.editMode)
                 .toolbar {
                     toolbarContent
                 }
                 .safeAreaInset(edge: .bottom) {
-                    // Timer Header
                     timerHeaderView()
                 }
-                .showCustomAlert(alert: Binding(
-                    get: { viewModel.showAlert },
-                    set: { viewModel.showAlert = $0 }
-                ))
+                .showCustomAlert(alert: $viewModel.showAlert)
             }
             .onChange(of: scenePhase) { oldPhase, newPhase in
                 viewModel.onScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
             }
-            .showModal(showModal: $isRestPickerOpen) {
-                CustomModalView(
-                    title: "Set Rest",
-                    subtitle: nil,
-                    primaryButtonTitle: "Save",
-                    primaryButtonAction: {
-                        viewModel.saveRestPickerValue()
-                        isRestPickerOpen = false
-                    },
-                    secondaryButtonTitle: "Cancel",
-                    secondaryButtonAction: { isRestPickerOpen = false },
-                    middleContent: AnyView(
-                        HStack(spacing: 16) {
-                            Picker("Minutes", selection: Binding(
-                                get: { viewModel.restPickerMinutesSelection },
-                                set: { viewModel.restPickerMinutesSelection = $0 }
-                            )) {
-                                ForEach(0..<60, id: \.self) { minute in
-                                    Text("\(minute) m").tag(minute)
-                                }
-                            }
-                            .pickerStyle(.wheel)
-                            .frame(maxWidth: .infinity)
-                            
-                            Picker("Seconds", selection: Binding(
-                                get: { viewModel.restPickerSecondsSelection },
-                                set: { viewModel.restPickerSecondsSelection = $0 }
-                            )) {
-                                ForEach(0..<60, id: \.self) { second in
-                                    Text("\(second) s").tag(second)
-                                }
-                            }
-                            .pickerStyle(.wheel)
-                            .frame(maxWidth: .infinity)
-                        }
-                            .frame(height: 180)
-                    )
-                )
+            .showModal(showModal: $viewModel.isRestPickerOpen) {
+                setRestModal
             }
-            .sheet(isPresented: $showingWorkoutNotes) {
-                WorkoutNotesView(notes: Binding(
-                    get: { viewModel.workoutNotes },
-                    set: { viewModel.workoutNotes = $0 }
-                )) {
+            .sheet(isPresented: $viewModel.showingWorkoutNotes) {
+                WorkoutNotesView(notes: $viewModel.workoutNotes) {
                     viewModel.updateWorkoutNotes()
                 }
             }
-            .sheet(isPresented: $showingAddExercise, onDismiss: {
-                viewModel.addSelectedExercises(templates: pendingSelectedTemplates)
-                pendingSelectedTemplates = []
-            }, content: {
-                AddExerciseModalView(
-                    viewModel: AddExerciseModalViewModel(
-                        container: container,
-                        selectedExercises: $pendingSelectedTemplates)
-                )
-            }
+            .sheet(
+                isPresented: $viewModel.showingAddExercise,
+                onDismiss: { viewModel.addSelectedExercises() },
+                content: {
+                    AddExerciseModalView(
+                        viewModel: AddExerciseModalViewModel(
+                            container: container,
+                            selectedExercises: $viewModel.pendingSelectedTemplates
+                        )
+                    )
+                }
             )
         }
     }
@@ -188,7 +136,7 @@ struct WorkoutTrackerView: View {
                     onRestBeforeChange: { setId, value in viewModel.updateRestBeforeSet(setId: setId, value: value) },
                     onRequestRestPicker: { setId, current in
                         viewModel.openRestPicker(for: setId, currentValue: current)
-                        isRestPickerOpen = true
+                        viewModel.isRestPickerOpen = true
                     },
                     isExpanded: Binding(
                         get: { viewModel.expandedExerciseIds.contains(exercise.id) },
@@ -301,7 +249,7 @@ struct WorkoutTrackerView: View {
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                showingWorkoutNotes = true
+                viewModel.presentWorkoutNotes()
             } label: {
                 Image(systemName: "long.text.page.and.pencil")
             }
@@ -333,12 +281,52 @@ struct WorkoutTrackerView: View {
         
         ToolbarItem(placement: .bottomBar) {
             Button {
-                pendingSelectedTemplates = []
-                showingAddExercise = true
+                viewModel.pendingSelectedTemplates = []
+                viewModel.presentAddExercise()
             } label: {
                 Image(systemName: "plus")
             }
         }
+    }
+    
+    private var setRestModal: some View {
+        CustomModalView(
+            title: "Set Rest",
+            subtitle: nil,
+            primaryButtonTitle: "Save",
+            primaryButtonAction: {
+                viewModel.saveRestPickerValue()
+                viewModel.isRestPickerOpen = false
+            },
+            secondaryButtonTitle: "Cancel",
+            secondaryButtonAction: { viewModel.isRestPickerOpen = false },
+            middleContent: AnyView(
+                HStack(spacing: 16) {
+                    Picker("Minutes", selection: Binding(
+                        get: { viewModel.restPickerMinutesSelection },
+                        set: { viewModel.restPickerMinutesSelection = $0 }
+                    )) {
+                        ForEach(0..<60, id: \.self) { minute in
+                            Text("\(minute) m").tag(minute)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(maxWidth: .infinity)
+                    
+                    Picker("Seconds", selection: Binding(
+                        get: { viewModel.restPickerSecondsSelection },
+                        set: { viewModel.restPickerSecondsSelection = $0 }
+                    )) {
+                        ForEach(0..<60, id: \.self) { second in
+                            Text("\(second) s").tag(second)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(maxWidth: .infinity)
+                }
+                    .frame(height: 180)
+            )
+        )
     }
 }
 

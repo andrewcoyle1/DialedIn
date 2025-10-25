@@ -7,9 +7,15 @@
 
 import SwiftUI
 
-@Observable
-@MainActor
-class TrainingViewModel {
+protocol TrainingInteractor {
+    var currentTrainingPlan: TrainingPlan? { get }
+    func getTodaysWorkouts() -> [ScheduledWorkout]
+    func getUpcomingWorkouts(limit: Int) -> [ScheduledWorkout]
+    
+    func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel?
+}
+
+struct ProdTrainingInteractor: TrainingInteractor {
     
     private let authManager: AuthManager
     private let exerciseTemplateManager: ExerciseTemplateManager
@@ -18,6 +24,39 @@ class TrainingViewModel {
     private let workoutSessionManager: WorkoutSessionManager
     private let trainingPlanManager: TrainingPlanManager
     private let logManager: LogManager
+    
+    var currentTrainingPlan: TrainingPlan? {
+        trainingPlanManager.currentTrainingPlan
+    }
+    
+    init(container: DependencyContainer) {
+        self.authManager = container.resolve(AuthManager.self)!
+        self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
+        self.exerciseUnitPreferenceManager = container.resolve(ExerciseUnitPreferenceManager.self)!
+        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
+        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
+        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
+        self.logManager = container.resolve(LogManager.self)!
+    }
+    
+    func getTodaysWorkouts() -> [ScheduledWorkout] {
+        trainingPlanManager.getTodaysWorkouts()
+    }
+    
+    func getUpcomingWorkouts(limit: Int) -> [ScheduledWorkout] {
+        trainingPlanManager.getUpcomingWorkouts(limit: limit)
+    }
+    
+    func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel? {
+        try await workoutTemplateManager.getWorkoutTemplate(id: id)
+    }
+}
+
+@Observable
+@MainActor
+class TrainingViewModel {
+    
+    let interactor: TrainingInteractor
     
     private(set) var searchExerciseTask: Task<Void, Never>?
     private(set) var searchWorkoutTask: Task<Void, Never>?
@@ -41,15 +80,9 @@ class TrainingViewModel {
     #endif
     
     init(
-        container: DependencyContainer
+        interactor: TrainingInteractor
     ) {
-        self.authManager = container.resolve(AuthManager.self)!
-        self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
-        self.exerciseUnitPreferenceManager = container.resolve(ExerciseUnitPreferenceManager.self)!
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
+        self.interactor = interactor
     }
     
     func onNotificationsPressed() {
@@ -70,8 +103,8 @@ class TrainingViewModel {
     }
     
     var navigationSubtitle: String {
-        if presentationMode == .program, let plan = trainingPlanManager.currentTrainingPlan {
-            let todaysWorkouts = trainingPlanManager.getTodaysWorkouts()
+        if presentationMode == .program, let plan = interactor.currentTrainingPlan {
+            let todaysWorkouts = interactor.getTodaysWorkouts()
             if !todaysWorkouts.isEmpty {
                 let completedCount = todaysWorkouts.filter { $0.isCompleted }.count
                 if completedCount == todaysWorkouts.count {
@@ -81,7 +114,7 @@ class TrainingViewModel {
                 }
             }
             
-            let upcomingCount = trainingPlanManager.getUpcomingWorkouts(limit: 1).count
+            let upcomingCount = interactor.getUpcomingWorkouts(limit: 1).count
             if upcomingCount > 0 {
                 return "\(plan.name) • Next workout scheduled"
             } else {
@@ -92,10 +125,10 @@ class TrainingViewModel {
     }
     
     func startTodaysWorkout() async throws {
-        let todaysWorkouts = trainingPlanManager.getTodaysWorkouts()
+        let todaysWorkouts = interactor.getTodaysWorkouts()
         guard let firstIncomplete = todaysWorkouts.first(where: { !$0.isCompleted }) else { return }
         
-        let template = try await workoutTemplateManager.getWorkoutTemplate(id: firstIncomplete.workoutTemplateId)
+        let template = try await interactor.getWorkoutTemplate(id: firstIncomplete.workoutTemplateId)
         
         // Store scheduled workout reference for WorkoutStartView
         scheduledWorkoutToStart = firstIncomplete
@@ -108,7 +141,7 @@ class TrainingViewModel {
     }
     
     func getTodaysWorkouts() -> Bool {
-        trainingPlanManager.getTodaysWorkouts().contains(where: { !$0.isCompleted })
+        interactor.getTodaysWorkouts().contains(where: { !$0.isCompleted })
     }
     
     func handleWorkoutStartRequest(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout?) {

@@ -19,8 +19,8 @@ class HKWorkoutManager: NSObject {
     
     private(set) var state: HKWorkoutSessionState = .notStarted
     
-    var workoutConfiguration: HKWorkoutConfiguration?
-    var selectedWorkout: HKWorkoutConfiguration? {
+    private var workoutConfiguration: HKWorkoutConfiguration?
+    private var selectedWorkout: HKWorkoutConfiguration? {
         didSet {
             guard let selectedWorkout else { return }
             
@@ -38,20 +38,20 @@ class HKWorkoutManager: NSObject {
         }
     }
     
-    let healthStore = HKHealthStore()
-    var session: HKWorkoutSession?
-    var builder: HKLiveWorkoutBuilder?
+    private let healthStore = HKHealthStore()
+    private var session: HKWorkoutSession?
+    private var builder: HKLiveWorkoutBuilder?
     
     var isLiveActivityActive: Bool = false
-    var timer: Timer?
+    private var timer: Timer?
     // Rest timer management for background-safe updates
-    var restTimer: DispatchSourceTimer?
-    var restEndTime: Date?
+    private var restTimer: DispatchSourceTimer?
+    private(set) var restEndTime: Date?
     private var isUpdatingActivity: Bool = false
     private var restStateChangedAt: Date?
     
-    var workout: HKWorkout?
-    var activeSessionModel: WorkoutSessionModel?
+    private var workout: HKWorkout?
+    private var activeSessionModel: WorkoutSessionModel?
     
     // Weak reference to avoid circular dependency
     weak var workoutActivityViewModel: WorkoutActivityViewModel?
@@ -62,7 +62,7 @@ class HKWorkoutManager: NSObject {
      The Swift actors don't handle tasks in a first-in-first-in manner.
      Use `AsyncStream` to ensure that the app presents the latest state.
      */
-    let asyncStreamTuple = AsyncStream.makeStream(of: SessionStateChange.self,
+    private let asyncStreamTuple = AsyncStream.makeStream(of: SessionStateChange.self,
                                                   bufferingPolicy: .bufferingNewest(1))
 
     /**

@@ -312,8 +312,14 @@ struct TrainingView: View {
 }
 
 #Preview {
-    TrainingView(viewModel: TrainingViewModel(container: DevPreview.shared.container))
-        .previewEnvironment()
+    TrainingView(
+        viewModel: TrainingViewModel(
+            interactor: ProdTrainingInteractor(
+                container: DevPreview.shared.container
+            )
+        )
+    )
+    .previewEnvironment()
 }
 
 enum TrainingPresentationMode {
