@@ -543,4 +543,8 @@ class WorkoutTrackerViewModel {
         }
         return nil
     }
+    
+    func presentWorkoutNotes() {
+
+    }
 }

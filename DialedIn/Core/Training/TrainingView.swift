@@ -154,6 +154,9 @@ struct TrainingView: View {
                         exerciseTemplateManager: container.resolve(ExerciseTemplateManager.self)!
                     ))
                     )
+                case .addGoal:
+                    // This case is handled by the ProgramView's sheet modifier
+                    EmptyView()
                 }
             }
             .navigationTitle("Training")

@@ -30,8 +30,12 @@ struct ProgramView: View {
         .refreshable {
             await viewModel.refreshData()
         }
+        .sheet(isPresented: $viewModel.showAddGoalSheet) {
+            if let plan = viewModel.currentTrainingPlan {
+                AddGoalView(viewModel: AddGoalViewModel(container: container), plan: plan)
+            }
+        }
         .showCustomAlert(alert: $viewModel.showAlert)
-        
     }
     
     private var activeProgramView: some View {
@@ -230,13 +234,21 @@ struct ProgramView: View {
                     )
                     .id(workout.id)
                 } else {
-                    ScheduledWorkoutRowView(viewModel: ScheduledWorkoutRowViewModel(scheduledWorkout: workout))
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            Task {
-                                await viewModel.startWorkout(workout)
-                            }
+                    ScheduledWorkoutRowView(
+                        viewModel: ScheduledWorkoutRowViewModel(
+                            scheduledWorkout: workout
+                        )
+                    )
+                    .contentShape(
+                        Rectangle()
+                    )
+                    .onTapGesture {
+                        Task {
+                            await viewModel.startWorkout(
+                                workout
+                            )
                         }
+                    }
                 }
             }
         }
@@ -258,7 +270,9 @@ struct ProgramView: View {
                             Text("No training goals set. Tap the plus button to add one.")
                         } actions: {
                             Button {
-                                
+                                if viewModel.currentTrainingPlan != nil {
+                                    viewModel.showAddGoalSheet = true
+                                }
                             } label: {
                                 Image(systemName: "plus")
                             }
@@ -443,12 +457,15 @@ enum ActiveSheet: Identifiable {
     case progressDashboard
     case strengthProgress
     case workoutHeatmap
+    case addGoal
+    
     var id: String {
         switch self {
         case .programPicker: return "programPicker"
         case .progressDashboard: return "progressDashboard"
         case .strengthProgress: return "strengthProgress"
         case .workoutHeatmap: return "workoutHeatmap"
+        case .addGoal: return "addGoal"
         }
     }
     

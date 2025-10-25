@@ -343,6 +343,12 @@ struct WorkoutTrackerView: View {
 }
 
 #Preview("Tracker View") {
-    WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(container: DevPreview.shared.container, workoutSession: WorkoutSessionModel.mock), initialWorkoutSession: WorkoutSessionModel.mock)
-        .previewEnvironment()
+    WorkoutTrackerView(
+        viewModel: WorkoutTrackerViewModel(
+            container: DevPreview.shared.container,
+            workoutSession: WorkoutSessionModel.mock
+        ),
+        initialWorkoutSession: WorkoutSessionModel.mock
+    )
+    .previewEnvironment()
 }

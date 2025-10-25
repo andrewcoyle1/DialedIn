@@ -22,11 +22,10 @@ class ProgramViewModel {
     private let onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)?
     private let onActiveSheetChanged: ((ActiveSheet?) -> Void)?
     
-    private(set) var selectedWorkoutTemplate: WorkoutTemplateModel?
-    private(set) var selectedExerciseTemplate: ExerciseTemplateModel?
-    private(set) var isShowingCalendar: Bool = true
     private(set) var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
 
+    private(set) var isShowingAddGoals: Bool = false
+    var showAddGoalSheet: Bool = false
     var selectedHistorySession: WorkoutSessionModel?
     var activeSheet: ActiveSheet?
     var showAlert: AnyAppAlert?
