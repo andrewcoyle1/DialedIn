@@ -6,20 +6,15 @@
 //
 
 import SwiftUI
-import UserNotifications
 
 struct NotificationsView: View {
-    @Environment(PushManager.self) private var pushManager
+    @State var viewModel: NotificationsViewModel
     @Environment(\.dismiss) private var dismiss
-    
-    @State private var notifications: [UNNotification] = []
-    @State private var authorizationStatus: UNAuthorizationStatus = .notDetermined
-    @State private var isLoading: Bool = true
     
     var body: some View {
         NavigationStack {
             Group {
-                if isLoading {
+                if viewModel.isLoading {
                     ProgressView()
                 } else {
                     content
@@ -32,21 +27,21 @@ struct NotificationsView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        onDismissPressed()
+                        viewModel.onDismissPressed(onDismiss: { dismiss() })
                     } label: {
                         Text("Done")
                     }
                 }
             }
             .task {
-                await loadNotifications()
+                await viewModel.loadNotifications()
             }
         }
     }
     
     @ViewBuilder
     private var content: some View {
-        switch authorizationStatus {
+        switch viewModel.authorizationStatus {
         case .authorized:
             authorizedContent
         case .notDetermined:
@@ -60,7 +55,7 @@ struct NotificationsView: View {
     
     private var authorizedContent: some View {
         Group {
-            if notifications.isEmpty {
+            if viewModel.notifications.isEmpty {
                 emptyStateContent
             } else {
                 notificationsList
@@ -70,10 +65,10 @@ struct NotificationsView: View {
     
     private var notificationsList: some View {
         List {
-            ForEach(notifications, id: \.request.identifier) { notification in
+            ForEach(viewModel.notifications, id: \.request.identifier) { notification in
                 notificationRow(notification)
             }
-            .onDelete(perform: deleteNotifications)
+            .onDelete(perform: viewModel.deleteNotifications)
         }
     }
     
@@ -135,7 +130,7 @@ struct NotificationsView: View {
                     .padding(.horizontal)
                 
                 Button {
-                    onRequestNotificationsPressed()
+                    viewModel.onRequestNotificationsPressed()
                 } label: {
                     Text("Enable Notifications")
                         .frame(maxWidth: .infinity)
@@ -167,7 +162,7 @@ struct NotificationsView: View {
                     .padding(.horizontal)
                 
                 Button {
-                    openSettings()
+                    viewModel.openSettings()
                 } label: {
                     Text("Open Settings")
                         .frame(maxWidth: .infinity)
@@ -180,54 +175,9 @@ struct NotificationsView: View {
             .padding(.vertical, 40)
         }
     }
-    
-    private func loadNotifications() async {
-        isLoading = true
-        
-        // Get authorization status
-        authorizationStatus = await pushManager.getAuthorizationStatus()
-        
-        // Load notifications if authorized
-        if authorizationStatus == .authorized {
-            notifications = await pushManager.getDeliveredNotifications()
-        }
-        
-        isLoading = false
-    }
-    
-    private func deleteNotifications(at offsets: IndexSet) {
-        Task {
-            for index in offsets {
-                let notification = notifications[index]
-                await pushManager.removeDeliveredNotification(identifier: notification.request.identifier)
-            }
-            notifications.remove(atOffsets: offsets)
-        }
-    }
-    
-    private func onRequestNotificationsPressed() {
-        Task {
-            do {
-                _ = try await pushManager.requestAuthorisation()
-                await loadNotifications()
-            } catch {
-                // Handle error silently or show alert
-            }
-        }
-    }
-    
-    private func openSettings() {
-        if let url = URL(string: UIApplication.openSettingsURLString) {
-            UIApplication.shared.open(url)
-        }
-    }
-
-    private func onDismissPressed() {
-        dismiss()
-    }
 }
 
 #Preview {
-    NotificationsView()
+    NotificationsView(viewModel: NotificationsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }

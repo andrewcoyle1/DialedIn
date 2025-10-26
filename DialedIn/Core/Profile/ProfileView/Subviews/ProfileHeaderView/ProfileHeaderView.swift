@@ -15,7 +15,7 @@ struct ProfileHeaderView: View {
         Section {
             if let user = viewModel.currentUser {
                 NavigationLink {
-                    ProfileEditView(viewModel: ProfileEditViewModel(container: container))
+                    ProfileEditView(viewModel: ProfileEditViewModel(interactor: CoreInteractor(container: container)))
                 } label: {
                     HStack(spacing: 16) {
                         // Profile Image
@@ -62,7 +62,7 @@ struct ProfileHeaderView: View {
 
 #Preview {
     List {
-        ProfileHeaderView(viewModel: ProfileHeaderViewModel(container: DevPreview.shared.container))
+        ProfileHeaderView(viewModel: ProfileHeaderViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .previewEnvironment()
 }

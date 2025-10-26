@@ -57,10 +57,10 @@ enum NavigationOptions: Equatable, Hashable, Identifiable {
     /// A view builder that the split view uses to show a view for the selected navigation option.
     @MainActor @ViewBuilder func viewForPage(container: DependencyContainer) -> some View {
         switch self {
-        case .dashboard: DashboardView()
-        case .nutrition: NutritionView()
-        case .training: TrainingView(viewModel: TrainingViewModel(interactor: ProdTrainingInteractor(container: container)))
-        case .profile: ProfileView(viewModel: ProfileViewModel(container: container))
+        case .dashboard: DashboardView(viewModel: DashboardViewModel(interactor: CoreInteractor(container: container)))
+        case .nutrition: NutritionView(viewModel: NutritionViewModel(interactor: CoreInteractor(container: container)))
+        case .training: TrainingView(viewModel: TrainingViewModel(interactor: CoreInteractor(container: container)))
+        case .profile: ProfileView(viewModel: ProfileViewModel(interactor: CoreInteractor(container: container)))
         case .search: SearchView()
         }
     }
@@ -76,17 +76,17 @@ struct NavDestinationForCoreModuleViewModifier: ViewModifier {
             .navigationDestination(for: NavigationPathOption.self) { newValue in
                 switch newValue {
                 case .exerciseTemplate(exerciseTemplate: let exerciseTemplate):
-                    ExerciseTemplateDetailView(viewModel: ExerciseTemplateDetailViewModel(container: container), exerciseTemplate: exerciseTemplate)
+                    ExerciseTemplateDetailView(viewModel: ExerciseTemplateDetailViewModel(interactor: CoreInteractor(container: container)), exerciseTemplate: exerciseTemplate)
                 case .workoutTemplateList:
-                    WorkoutTemplateListView(viewModel: WorkoutTemplateListViewModel(container: container))
+                    WorkoutTemplateListView(viewModel: WorkoutTemplateListViewModel(interactor: CoreInteractor(container: container)))
                 case .workoutTemplateDetail(template: let template):
-                    WorkoutTemplateDetailView(viewModel: WorkoutTemplateDetailViewModel(container: container), workoutTemplate: template)
+                    WorkoutTemplateDetailView(viewModel: WorkoutTemplateDetailViewModel(interactor: CoreInteractor(container: container)), workoutTemplate: template)
                 case .ingredientTemplateDetail(template: let template):
-                    IngredientDetailView(ingredientTemplate: template)
+                    IngredientDetailView(viewModel: IngredientDetailViewModel(interactor: CoreInteractor(container: container), ingredientTemplate: template))
                 case .recipeTemplateDetail(template: let template):
-                    RecipeDetailView(recipeTemplate: template)
+                    RecipeDetailView(viewModel: RecipeDetailViewModel(interactor: CoreInteractor(container: container), recipeTemplate: template))
                 case .workoutSessionDetail(session: let session):
-                    WorkoutSessionDetailView(viewModel: WorkoutSessionDetailViewModel(container: container, session: session))
+                    WorkoutSessionDetailView(viewModel: WorkoutSessionDetailViewModel(interactor: CoreInteractor(container: container), session: session))
                 }
             }
     }

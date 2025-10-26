@@ -7,13 +7,25 @@
 
 import SwiftUI
 
+protocol ExerciseTemplateDetailInteractor {
+    var currentUser: UserModel? { get }
+    func getPreference(templateId: String) -> ExerciseUnitPreference
+    func getExerciseHistoryForAuthor(authorId: String, limitTo: Int) async throws -> [ExerciseHistoryEntryModel]
+    func getLocalExerciseHistoryForTemplate(templateId: String, limitTo: Int) throws -> [ExerciseHistoryEntryModel]
+    func favouriteExerciseTemplate(id: String, isFavourited: Bool) async throws
+    func removeFavouritedExerciseTemplate(exerciseId: String) async throws
+    func bookmarkExerciseTemplate(id: String, isBookmarked: Bool) async throws
+    func addBookmarkedExerciseTemplate(exerciseId: String) async throws
+    func removeBookmarkedExerciseTemplate(exerciseId: String) async throws
+    func addFavouritedExerciseTemplate(exerciseId: String) async throws
+}
+
+extension CoreInteractor: ExerciseTemplateDetailInteractor { }
+
 @Observable
 @MainActor
 class ExerciseTemplateDetailViewModel {
-    private let userManager: UserManager
-    private let exerciseTemplateManager: ExerciseTemplateManager
-    private let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
-    private let exerciseHistoryManager: ExerciseHistoryManager
+    private let interactor: ExerciseTemplateDetailInteractor
     
     var section: CustomSection = .description
 
@@ -30,16 +42,13 @@ class ExerciseTemplateDetailViewModel {
     #endif
     
     init(
-        container: DependencyContainer
+        interactor: ExerciseTemplateDetailInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
-        self.exerciseUnitPreferenceManager = container.resolve(ExerciseUnitPreferenceManager.self)!
-        self.exerciseHistoryManager = container.resolve(ExerciseHistoryManager.self)!
+        self.interactor = interactor
     }
     
     var currentUser: UserModel? {
-        userManager.currentUser
+        interactor.currentUser
     }
     
     var performedSubtitle: String {
@@ -51,27 +60,27 @@ class ExerciseTemplateDetailViewModel {
     }
 
     func loadInitialState(exerciseTemplate: ExerciseTemplateModel) async {
-        let user = userManager.currentUser
+        let user = interactor.currentUser
         // Always treat authored templates as bookmarked
         let isAuthor = user?.userId == exerciseTemplate.authorId
         isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false)
         isFavourited = user?.favouritedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false
         // Load unit preferences for this exercise
-        unitPreference = exerciseUnitPreferenceManager.getPreference(for: exerciseTemplate.id)
+        unitPreference = interactor.getPreference(templateId: exerciseTemplate.id)
         await loadHistory(exerciseTemplate: exerciseTemplate)
     }
 
     func loadHistory(exerciseTemplate: ExerciseTemplateModel) async {
-        guard let userId = userManager.currentUser?.userId else { return }
+        guard let userId = interactor.currentUser?.userId else { return }
         isLoadingHistory = true
         do {
             var filtered: [ExerciseHistoryEntryModel] = []
             // Remote by author, filter by template
-            let remoteItems = try await exerciseHistoryManager.getExerciseHistoryForAuthor(authorId: userId, limitTo: 200)
+            let remoteItems = try await interactor.getExerciseHistoryForAuthor(authorId: userId, limitTo: 200)
             filtered = remoteItems.filter { $0.templateId == exerciseTemplate.id }
             // Fallback to local cache if remote empty
             if filtered.isEmpty {
-                if let localItems = try? exerciseHistoryManager.getLocalExerciseHistoryForTemplate(templateId: exerciseTemplate.id, limitTo: 200) {
+                if let localItems = try? interactor.getLocalExerciseHistoryForTemplate(templateId: exerciseTemplate.id, limitTo: 200) {
                     filtered = localItems.filter { $0.authorId == userId }
                 }
             }
@@ -82,7 +91,7 @@ class ExerciseTemplateDetailViewModel {
             }
         } catch {
             // Try local on error
-            if let localItems = try? exerciseHistoryManager.getLocalExerciseHistoryForTemplate(templateId: exerciseTemplate.id, limitTo: 200) {
+            if let localItems = try? interactor.getLocalExerciseHistoryForTemplate(templateId: exerciseTemplate.id, limitTo: 200) {
                 let filtered = localItems.filter { $0.authorId == userId }
                 await MainActor.run {
                     history = filtered
@@ -122,16 +131,16 @@ class ExerciseTemplateDetailViewModel {
         do {
             // If unbookmarking and currently favourited, unfavourite first to enforce rule
             if !newState && isFavourited {
-                try await exerciseTemplateManager.favouriteExerciseTemplate(id: exerciseTemplate.id, isFavourited: false)
+                try await interactor.favouriteExerciseTemplate(id: exerciseTemplate.id, isFavourited: false)
                 isFavourited = false
                 // Remove from user's favourited list
-                try await userManager.removeFavouritedExerciseTemplate(exerciseId: exerciseTemplate.id)
+                try await interactor.removeFavouritedExerciseTemplate(exerciseId: exerciseTemplate.id)
             }
-            try await exerciseTemplateManager.bookmarkExerciseTemplate(id: exerciseTemplate.id, isBookmarked: newState)
+            try await interactor.bookmarkExerciseTemplate(id: exerciseTemplate.id, isBookmarked: newState)
             if newState {
-                try await userManager.addBookmarkedExerciseTemplate(exerciseId: exerciseTemplate.id)
+                try await interactor.addBookmarkedExerciseTemplate(exerciseId: exerciseTemplate.id)
             } else {
-                try await userManager.removeBookmarkedExerciseTemplate(exerciseId: exerciseTemplate.id)
+                try await interactor.removeBookmarkedExerciseTemplate(exerciseId: exerciseTemplate.id)
             }
             isBookmarked = newState
         } catch {
@@ -144,15 +153,15 @@ class ExerciseTemplateDetailViewModel {
         do {
             // If favouriting and not bookmarked, bookmark first to enforce rule
             if newState && !isBookmarked {
-                try await exerciseTemplateManager.bookmarkExerciseTemplate(id: exerciseTemplate.id, isBookmarked: true)
-                try await userManager.addBookmarkedExerciseTemplate(exerciseId: exerciseTemplate.id)
+                try await interactor.bookmarkExerciseTemplate(id: exerciseTemplate.id, isBookmarked: true)
+                try await interactor.addBookmarkedExerciseTemplate(exerciseId: exerciseTemplate.id)
                 isBookmarked = true
             }
-            try await exerciseTemplateManager.favouriteExerciseTemplate(id: exerciseTemplate.id, isFavourited: newState)
+            try await interactor.favouriteExerciseTemplate(id: exerciseTemplate.id, isFavourited: newState)
             if newState {
-                try await userManager.addFavouritedExerciseTemplate(exerciseId: exerciseTemplate.id)
+                try await interactor.addFavouritedExerciseTemplate(exerciseId: exerciseTemplate.id)
             } else {
-                try await userManager.removeFavouritedExerciseTemplate(exerciseId: exerciseTemplate.id)
+                try await interactor.removeFavouritedExerciseTemplate(exerciseId: exerciseTemplate.id)
             }
             isFavourited = newState
         } catch {

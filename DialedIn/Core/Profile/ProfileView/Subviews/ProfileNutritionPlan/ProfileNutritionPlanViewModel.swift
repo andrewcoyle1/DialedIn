@@ -7,20 +7,24 @@
 
 import SwiftUI
 
+protocol ProfileNutritionPlanInteractor {
+    var currentDietPlan: DietPlan? { get }
+}
+
+extension CoreInteractor: ProfileNutritionPlanInteractor { }
+
 @Observable
 @MainActor
 class ProfileNutritionPlanViewModel {
-    private let userManager: UserManager
-    private let nutritionManager: NutritionManager
+    private let interactor: ProfileNutritionPlanInteractor
    
     var currentDietPlan: DietPlan? {
-        nutritionManager.currentDietPlan
+        interactor.currentDietPlan
     }
     
     init(
-        container: DependencyContainer
+        interactor: ProfileNutritionPlanInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.nutritionManager = container.resolve(NutritionManager.self)!
+        self.interactor = interactor
     }
 }

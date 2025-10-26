@@ -7,11 +7,20 @@
 
 import SwiftUI
 
+protocol LogWeightInteractor {
+    var currentUser: UserModel? { get }
+    var weightHistory: [WeightEntry] { get }
+    func updateWeight(userId: String, weightKg: Double) async throws
+    func getWeightHistory(userId: String, limit: Int?) async throws -> [WeightEntry]
+    func logWeight(_ weightKg: Double, date: Date, notes: String?, userId: String) async throws
+}
+
+extension CoreInteractor: LogWeightInteractor { }
+
 @Observable
 @MainActor
 class LogWeightViewModel {
-    private let userManager: UserManager
-    private let userWeightManager: UserWeightManager
+    private let interactor: LogWeightInteractor
     
     var selectedDate = Date()
     var selectedKilograms: Int = 70
@@ -31,18 +40,17 @@ class LogWeightViewModel {
     }
     
     var weightHistory: [WeightEntry] {
-        userWeightManager.weightHistory
+        interactor.weightHistory
     }
     
     init(
-        container: DependencyContainer
+        interactor: LogWeightInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.userWeightManager = container.resolve(UserWeightManager.self)!
+        self.interactor = interactor
     }
     
     func loadInitialData() async {
-        guard let user = userManager.currentUser else { return }
+        guard let user = interactor.currentUser else { return }
         
         // Set initial unit based on user preference
         if let preference = user.weightUnitPreference {
@@ -56,17 +64,17 @@ class LogWeightViewModel {
         }
         
         // Load recent entries
-        _ = try? await userWeightManager.getWeightHistory(userId: user.userId, limit: 5)
+        _ = try? await interactor.getWeightHistory(userId: user.userId, limit: 5)
     }
     
     func saveWeight(onDismiss: @escaping () -> Void) async {
-        guard let user = userManager.currentUser else { return }
+        guard let user = interactor.currentUser else { return }
         
         isLoading = true
         
         do {
             // Save weight entry
-            try await userWeightManager.logWeight(
+            try await interactor.logWeight(
                 weightKg,
                 date: selectedDate,
                 notes: notes.isEmpty ? nil : notes,
@@ -74,7 +82,7 @@ class LogWeightViewModel {
             )
             
             // Update user's current weight
-            try await userManager.updateWeight(userId: user.userId, weightKg: weightKg)
+            try await interactor.updateWeight(userId: user.userId, weightKg: weightKg)
             
             // Success haptic feedback
             #if os(iOS)

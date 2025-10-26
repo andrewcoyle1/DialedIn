@@ -33,7 +33,7 @@ struct VolumeChartsView: View {
                         VolumeChartSection(trend: trend)
                         TrendSummarySection(
                             viewModel: TrendSummarySectionViewModel(
-                                container: container,
+                                interactor: CoreInteractor(container: container),
                                 trend: trend)
                         )
                     } else {
@@ -64,6 +64,12 @@ struct VolumeChartsView: View {
 }
 
 #Preview {
-    return VolumeChartsView(viewModel: VolumeChartsViewModel(container: DevPreview.shared.container))
-        .previewEnvironment()
+    return VolumeChartsView(
+        viewModel: VolumeChartsViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        )
+    )
+    .previewEnvironment()
 }

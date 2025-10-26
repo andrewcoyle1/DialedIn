@@ -220,13 +220,13 @@ struct CoreInteractor {
         try await userManager.updateWeight(userId: userId, weightKg: weightKg)
     }
     
-    // MARK: - Image URL
+    // Image URL
     
     func updateProfileImageUrl(url: String?) async throws {
         try await userManager.updateProfileImageUrl(url: url)
     }
     
-    // MARK: - Update Metadata
+    // Update Metadata
     
     func updateLastSignInDate() async throws {
         try await userManager.updateLastSignInDate()
@@ -236,17 +236,17 @@ struct CoreInteractor {
         try await userManager.updateOnboardingStep(step: step)
     }
     
-    // MARK: - Goal Settings
+    // Goal Settings
     func updateCurrentGoalId(goalId: String?) async throws {
         try await userManager.updateCurrentGoalId(goalId: goalId)
     }
     
-    // MARK: - Consents
+    // Consents
     func updateHealthConsents(disclaimerVersion: String, privacyVersion: String, acceptedAt: Date = Date()) async throws {
         try await userManager.updateHealthConsents(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: acceptedAt)
     }
     
-    // MARK: - User Blocking
+    // User Blocking
     
     func blockUser(userId: String) async throws {
         try await userManager.blockUser(userId: userId)
@@ -256,10 +256,114 @@ struct CoreInteractor {
         try await userManager.unblockUser(userId: userId)
     }
     
-    // MARK: - User deletion
+    // User deletion
     
     func deleteCurrentUser() async throws {
         try await userManager.deleteCurrentUser()
+    }
+    
+    // Template Management
+    
+    func addCreatedExerciseTemplate(exerciseId: String) async throws {
+        try await userManager.addCreatedExerciseTemplate(exerciseId: exerciseId)
+    }
+    
+    func removeCreatedExerciseTemplate(exerciseId: String) async throws {
+        try await userManager.removeCreatedExerciseTemplate(exerciseId: exerciseId)
+    }
+    
+    func addBookmarkedExerciseTemplate(exerciseId: String) async throws {
+        try await userManager.addBookmarkedExerciseTemplate(exerciseId: exerciseId)
+    }
+    
+    func removeBookmarkedExerciseTemplate(exerciseId: String) async throws {
+        try await userManager.removeBookmarkedExerciseTemplate(exerciseId: exerciseId)
+    }
+    
+    func addFavouritedExerciseTemplate(exerciseId: String) async throws {
+        try await userManager.addFavouritedExerciseTemplate(exerciseId: exerciseId)
+    }
+    
+    func removeFavouritedExerciseTemplate(exerciseId: String) async throws {
+        try await userManager.removeFavouritedExerciseTemplate(exerciseId: exerciseId)
+    }
+    
+    // Created/Bookmarked/Favourited Workout Templates
+    
+    func addCreatedWorkoutTemplate(workoutId: String) async throws {
+        try await userManager.addCreatedWorkoutTemplate(workoutId: workoutId)
+    }
+    
+    func removeCreatedWorkoutTemplate(workoutId: String) async throws {
+        try await userManager.removeCreatedWorkoutTemplate(workoutId: workoutId)
+    }
+    
+    func addBookmarkedWorkoutTemplate(workoutId: String) async throws {
+        try await userManager.addBookmarkedWorkoutTemplate(workoutId: workoutId)
+    }
+    
+    func removeBookmarkedWorkoutTemplate(workoutId: String) async throws {
+        try await userManager.removeBookmarkedWorkoutTemplate(workoutId: workoutId)
+    }
+    
+    func addFavouritedWorkoutTemplate(workoutId: String) async throws {
+        try await userManager.addFavouritedWorkoutTemplate(workoutId: workoutId)
+    }
+    
+    func removeFavouritedWorkoutTemplate(workoutId: String) async throws {
+        try await userManager.removeFavouritedWorkoutTemplate(workoutId: workoutId)
+    }
+    
+    // MARK: - Created/Bookmarked/Favourited Ingredient Templates
+
+    func addCreatedIngredientTemplate(ingredientId: String) async throws {
+        try await userManager.addCreatedIngredientTemplate(ingredientId: ingredientId)
+    }
+
+    func removeCreatedIngredientTemplate(ingredientId: String) async throws {
+        try await userManager.removeCreatedIngredientTemplate(ingredientId: ingredientId)
+    }
+
+    func addBookmarkedIngredientTemplate(ingredientId: String) async throws {
+        try await userManager.addBookmarkedIngredientTemplate(ingredientId: ingredientId)
+    }
+
+    func removeBookmarkedIngredientTemplate(ingredientId: String) async throws {
+        try await userManager.removeBookmarkedIngredientTemplate(ingredientId: ingredientId)
+    }
+
+    func addFavouritedIngredientTemplate(ingredientId: String) async throws {
+        try await userManager.addFavouritedIngredientTemplate(ingredientId: ingredientId)
+    }
+
+    func removeFavouritedIngredientTemplate(ingredientId: String) async throws {
+        try await userManager.removeFavouritedIngredientTemplate(ingredientId: ingredientId)
+    }
+
+    // MARK: - Created/Bookmarked/Favourited Recipe Templates
+
+    func addCreatedRecipeTemplate(recipeId: String) async throws {
+        try await userManager.addCreatedRecipeTemplate(recipeId: recipeId)
+    }
+
+    func removeCreatedRecipeTemplate(recipeId: String) async throws {
+        try await userManager.removeCreatedRecipeTemplate(recipeId: recipeId)
+    }
+
+    func addBookmarkedRecipeTemplate(recipeId: String) async throws {
+        try await userManager.addBookmarkedRecipeTemplate(recipeId: recipeId)
+    }
+
+    func removeBookmarkedRecipeTemplate(recipeId: String) async throws {
+        try await userManager.removeBookmarkedRecipeTemplate(recipeId: recipeId)
+    }
+
+    func addFavouritedRecipeTemplate(recipeId: String) async throws {
+        try await userManager.addFavouritedRecipeTemplate(recipeId: recipeId)
+    }
+
+    func removeFavouritedRecipeTemplate(recipeId: String) async throws {
+        try await userManager.removeFavouritedRecipeTemplate(recipeId: recipeId)
     }
     
     // MARK: PurchaseManager
@@ -476,7 +580,7 @@ struct CoreInteractor {
         try workoutSessionManager.setActiveLocalWorkoutSession(session)
     }
     
-    // MARK: - Local Operations
+    // Local Operations
     
     // Create
     func addLocalWorkoutSession(session: WorkoutSessionModel) throws {
@@ -518,7 +622,7 @@ struct CoreInteractor {
         try workoutSessionManager.deleteAllLocalWorkoutSessionsForAuthor(authorId: authorId)
     }
     
-    // MARK: - Remote Operations
+    // Remote Operations
     
     // Create
     func createWorkoutSession(session: WorkoutSessionModel) async throws {
@@ -569,7 +673,7 @@ struct CoreInteractor {
         try await workoutSessionManager.deleteAllWorkoutSessionsForAuthor(authorId: authorId)
     }
     
-    // MARK: - Sync Operations
+    // Sync Operations
     
     /// Syncs workout sessions from remote Firebase to local storage
     /// Fetches recent sessions and upserts them into local store
@@ -659,7 +763,7 @@ struct CoreInteractor {
         try trainingPlanManager.clearAllLocalData()
     }
     
-    // MARK: - Plan Management
+    // Plan Management
     
     func createPlan(_ plan: TrainingPlan) async throws {
         try await trainingPlanManager.createPlan(plan)
@@ -670,10 +774,9 @@ struct CoreInteractor {
         startDate: Date,
         endDate: Date? = nil,
         userId: String,
-        planName: String? = nil,
-        workoutTemplateManager: WorkoutTemplateManager? = nil
+        planName: String? = nil
     ) async throws -> TrainingPlan {
-        try await trainingPlanManager.createPlanFromTemplate(template, startDate: startDate, endDate: endDate, userId: userId, planName: planName, workoutTemplateManager: workoutTemplateManager)
+        try await trainingPlanManager.createPlanFromTemplate(template, startDate: startDate, endDate: endDate, userId: userId, planName: planName)
     }
     
     func createBlankPlan(
@@ -698,7 +801,7 @@ struct CoreInteractor {
         trainingPlanManager.setActivePlan(plan)
     }
     
-    // MARK: - Progress Tracking
+    // Progress Tracking
     
     func getWeeklyProgress(for weekNumber: Int) -> WeekProgress {
         trainingPlanManager.getWeeklyProgress(for: weekNumber)
@@ -720,7 +823,7 @@ struct CoreInteractor {
         trainingPlanManager.getAdherenceRate()
     }
     
-    // MARK: - Goal Management
+    // Goal Management
     
     func addGoal(_ goal: TrainingGoal) async throws {
         try await trainingPlanManager.addGoal(goal)
@@ -734,13 +837,13 @@ struct CoreInteractor {
         try await trainingPlanManager.removeGoal(id: id)
     }
     
-    // MARK: - Smart Suggestions
+    // Smart Suggestions
     
     func suggestNextWeekWorkouts(basedOn currentWeek: TrainingWeek) -> [ScheduledWorkout] {
         trainingPlanManager.suggestNextWeekWorkouts(basedOn: currentWeek)
     }
     
-    // MARK: - Sync Operations
+    // Sync Operations
     
     func syncFromRemote() async throws {
         try await trainingPlanManager.syncFromRemote()
@@ -776,7 +879,7 @@ struct CoreInteractor {
         try await programTemplateManager.delete(id: id)
     }
     
-    // MARK: - Sync Operations
+    // Sync Operations
     
     func syncProgramTemplatesFromRemote() async throws {
         try await programTemplateManager.syncFromRemote()
@@ -790,7 +893,7 @@ struct CoreInteractor {
         try await programTemplateManager.fetchTemplateFromRemote(id: id)
     }
     
-    // MARK: - Template Instantiation
+    // Template Instantiation
     
     /// Converts a ProgramTemplate into a TrainingPlan ready to be used
     func instantiateTemplate(
@@ -798,16 +901,14 @@ struct CoreInteractor {
         for userId: String,
         startDate: Date,
         endDate: Date? = nil,
-        planName: String? = nil,
-        workoutTemplateManager: WorkoutTemplateManager? = nil
+        planName: String? = nil
     ) -> TrainingPlan {
         programTemplateManager.instantiateTemplate(
             template,
             for: userId,
             startDate: startDate,
             endDate: endDate,
-            planName: planName,
-            workoutTemplateManager: workoutTemplateManager
+            planName: planName
         )
     }
     
@@ -819,7 +920,7 @@ struct CoreInteractor {
         programTemplateManager.templatesByFocusArea(focusArea)
     }
     
-    // MARK: - Filtering Helpers
+    // Filtering Helpers
     
     func isBuiltIn(_ template: ProgramTemplateModel) -> Bool {
         programTemplateManager.isBuiltIn(template)
@@ -963,12 +1064,12 @@ struct CoreInteractor {
         try await nutritionManager.createAndSaveDietPlan(user: user, configuration: configuration)
     }
     
-    /// Get daily macro target for a specific date from the current diet plan
+    // Get daily macro target for a specific date from the current diet plan
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget? {
         try await nutritionManager.getDailyTarget(for: date, userId: userId)
     }
     
-    // MARK: - Estimation
+    // Estimation
     func estimateTDEE(user: UserModel?) -> Double {
         nutritionManager.estimateTDEE(user: user)
     }
@@ -1003,7 +1104,8 @@ struct CoreInteractor {
         try mealLogManager.getLocalDailyTotals(dayKey: dayKey)
     }
     
-    // MARK: - LocalMealLogPersistence
+    // LocalMealLogPersistence
+    
     func addLocalMeal(_ meal: MealLogModel) throws {
         try mealLogManager.addLocalMeal(meal)
     }
@@ -1032,7 +1134,7 @@ struct CoreInteractor {
         try mealLogManager.getLocalDailyTotals(dayKey: dayKey)
     }
     
-    // MARK: - RemoteMealLogService
+    // RemoteMealLogService
     
     func createMeal(_ meal: MealLogModel) async throws {
         try await mealLogManager.createMeal(meal)
@@ -1102,7 +1204,7 @@ struct CoreInteractor {
         try await aiManager.generateText(chats: chats)
     }
     
-    // LogManager
+    // MARK: LogManager
     
     func identifyUser(userId: String, name: String?, email: String?) {
         logManager.identifyUser(userId: userId, name: name, email: email)
@@ -1262,12 +1364,14 @@ struct CoreInteractor {
         try await goalManager.deleteGoal(goalId: goalId, userId: userId)
     }
     
-    // MARK: - Testing Helper
+    // Testing Helper
     
     /// Set current goal directly (for previews and testing only)
     func setCurrentGoalForTesting(_ goal: WeightGoal?) {
         goalManager.setCurrentGoalForTesting(goal)
     }
+    
+    // MARK: HKWorkoutManager
     
     #if canImport(HealthKit) && !targetEnvironment(macCatalyst)
     var workoutSessionState: HKWorkoutSessionState? {
@@ -1299,7 +1403,7 @@ struct CoreInteractor {
         hkWorkoutManager.recoverWorkout(workout: workout, recoveredSession: recoveredSession)
     }
     
-    // MARK: - State Control
+    // State Control
     
     func pause() {
         hkWorkoutManager.pause()
@@ -1356,7 +1460,7 @@ struct CoreInteractor {
         hkWorkoutManager.workoutBuilder(workoutBuilder, didEnd: workoutActivity)
     }
     
-    // MARK: - Rest Timer Management
+    // Rest Timer Management
     @MainActor
     func syncRestEndTimeFromSharedStorage() {
         hkWorkoutManager.syncRestEndTimeFromSharedStorage()

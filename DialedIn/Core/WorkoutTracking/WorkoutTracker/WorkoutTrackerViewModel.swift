@@ -8,22 +8,158 @@
 import SwiftUI
 import HealthKit
 
+/// Interactor protocol for handling all interactions between the Workout Tracker view model
+/// and data/services, supporting HealthKit session handling, local persistence, notifications,
+/// user event tracking, rest timing, preferences, and history management.
+protocol WorkoutTrackerInteractor {
+
+    // MARK: - User and Session Properties
+
+    /// The current logged-in user, or nil if not available.
+    var currentUser: UserModel? { get }
+    /// The current rest end time for the active session, if any.
+    var restEndTime: Date? { get }
+    /// The current active workout session, if any.
+    var activeSession: WorkoutSessionModel? { get }
+
+    // MARK: - Workout Session Configuration & Lifecycle
+
+    /// Set the configuration for a HealthKit workout session.
+    func setWorkoutConfiguration(
+        activityType: HKWorkoutActivityType,
+        location: HKWorkoutSessionLocationType
+    )
+
+    /// Start a new workout with the given session model.
+    func startWorkout(workout: WorkoutSessionModel)
+
+    /// Retrieve a local workout session by its unique identifier.
+    func getLocalWorkoutSession(id: String) throws -> WorkoutSessionModel
+
+    /// Retrieve the currently active local workout session, if any.
+    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
+
+    /// Create a new workout session and store it locally.
+    func createWorkoutSession(session: WorkoutSessionModel) async throws
+
+    /// Mark a local workout session as ended at the given date.
+    func endLocalWorkoutSession(id: String, at endedAt: Date) throws
+
+    /// End a workout session and optionally mark it as completed if scheduled.
+    func endActiveSession(markScheduledComplete: Bool) async
+
+    /// End a remote (possibly HealthKit) workout session asynchronously at provided date.
+    func endWorkoutSession(id: String, at endedAt: Date) async throws
+
+    /// End the current workout and persist/close resources as needed.
+    func endWorkout()
+
+    /// Delete a local workout session by its identifier.
+    func deleteLocalWorkoutSession(id: String) throws
+
+    /// Update a local workout session with new values.
+    func updateLocalWorkoutSession(session: WorkoutSessionModel) throws
+
+    /// Set a local session as the current active one, passing nil to clear.
+    func setActiveLocalWorkoutSession(_ session: WorkoutSessionModel?) throws
+
+    /// Minimize the active workout session, e.g., background the activity in the UI.
+    func minimizeActiveSession()
+
+    // MARK: - Live Activity & Status Updates
+
+    /// Ensure the associated live activity for a workout is continued or started.
+    func ensureLiveActivity(
+        session: WorkoutSessionModel,
+        isActive: Bool,
+        currentExerciseIndex: Int,
+        restEndsAt: Date?,
+        statusMessage: String?
+    )
+
+    /// End any running live activity for the provided workout session.
+    func endLiveActivity(
+        session: WorkoutSessionModel,
+        isCompleted: Bool,
+        statusMessage: String?
+    )
+
+    /// Update live activity status and metrics for widgets/external presentation.
+    func updateLiveActivity(
+        session: WorkoutSessionModel,
+        isActive: Bool,
+        currentExerciseIndex: Int,
+        restEndsAt: Date?,
+        statusMessage: String?,
+        totalVolumeKg: Double?,
+        elapsedTime: TimeInterval?
+    )
+
+    // MARK: - User Preferences
+
+    /// Get the exercise unit preference (weight, distance, etc.) for a template.
+    func getPreference(templateId: String) -> ExerciseUnitPreference
+
+    /// Set user's preferred weight unit for a particular exercise template.
+    func setWeightUnit(_ unit: ExerciseWeightUnit, for templateId: String)
+
+    /// Set user's preferred distance unit for a particular exercise template.
+    func setDistanceUnit(_ unit: ExerciseDistanceUnit, for templateId: String)
+
+    // MARK: - Workout History
+
+    /// Lookup the last completed session for a given template and author, if present.
+    func getLastCompletedSessionForTemplate(
+        templateId: String,
+        authorId: String
+    ) async throws -> WorkoutSessionModel?
+
+    /// Add a workout set result or data point to the local exercise history.
+    func addLocalExerciseHistory(entry: ExerciseHistoryEntryModel) throws
+
+    /// Persist a new history entry to remote or cloud store.
+    func createExerciseHistory(entry: ExerciseHistoryEntryModel) async throws
+
+    // MARK: - Rest & Notifications
+
+    /// Start a rest timer for the specified duration in seconds,
+    /// associated with the current session/exercise state.
+    func startRest(
+        durationSeconds: Int,
+        session: WorkoutSessionModel,
+        currentExerciseIndex: Int
+    )
+
+    /// Cancel any running rest timer.
+    func cancelRest()
+
+    /// Schedule a push notification at a future date.
+    func schedulePushNotification(
+        identifier: String,
+        title: String,
+        body: String,
+        date: Date
+    ) async throws
+
+    /// Remove any pending notifications matching given identifiers.
+    func removePendingNotifications(withIdentifiers identifiers: [String]) async
+
+    // MARK: - Analytics & Event Logging
+
+    /// Track an analytics or custom event with optional parameters.
+    func trackEvent(
+        eventName: String,
+        parameters: [String: Any]?,
+        type: LogType
+    )
+}
+
+extension CoreInteractor: WorkoutTrackerInteractor { }
+
 @Observable
 @MainActor
 class WorkoutTrackerViewModel {
-    // MARK: - Dependencies
-    
-    let userManager: UserManager
-    let workoutSessionManager: WorkoutSessionManager
-    let exerciseHistoryManager: ExerciseHistoryManager
-    let unitPreferenceManager: ExerciseUnitPreferenceManager
-    let logManager: LogManager
-    let pushManager: PushManager
-    
-    #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-    let hkWorkoutManager: HKWorkoutManager
-    let liveActivityManager: LiveActivityManager
-    #endif
+    let interactor: WorkoutTrackerInteractor
     
     // MARK: - State Properties
 
@@ -64,7 +200,7 @@ class WorkoutTrackerViewModel {
     
     var restEndTime: Date? {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        return hkWorkoutManager.restEndTime
+        return interactor.restEndTime
         #else
         return nil
         #endif
@@ -73,21 +209,10 @@ class WorkoutTrackerViewModel {
     // MARK: - Initialization
     
     init(
-        container: DependencyContainer,
+        interactor: WorkoutTrackerInteractor,
         workoutSession: WorkoutSessionModel
     ) {
-        
-        self.userManager = container.resolve(UserManager.self)!
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
-        self.exerciseHistoryManager = container.resolve(ExerciseHistoryManager.self)!
-        self.unitPreferenceManager = container.resolve(ExerciseUnitPreferenceManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
-        self.pushManager = container.resolve(PushManager.self)!
-
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        self.hkWorkoutManager = container.resolve(HKWorkoutManager.self)!
-        self.liveActivityManager = container.resolve(LiveActivityManager.self)!
-        #endif
+        self.interactor = interactor
         
         self.workoutSession = workoutSession
         self.workoutNotes = workoutSession.notes ?? ""
@@ -111,7 +236,7 @@ class WorkoutTrackerViewModel {
     
     var isRestActive: Bool {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        guard let end = hkWorkoutManager.restEndTime else { return false }
+        guard let end = interactor.restEndTime else { return false }
         return Date() < end
         #else
         return false
@@ -157,9 +282,9 @@ class WorkoutTrackerViewModel {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Configure and start HK session for strength training
         print("📱 WorkoutTrackerViewModel: Configuring HK session for strength training")
-        hkWorkoutManager.setWorkoutConfiguration(activityType: .traditionalStrengthTraining, location: .indoor)
+        interactor.setWorkoutConfiguration(activityType: .traditionalStrengthTraining, location: .indoor)
         print("📱 WorkoutTrackerViewModel: About to call hkWorkoutManager.startWorkout()")
-        hkWorkoutManager.startWorkout(workout: workoutSession)
+        interactor.startWorkout(workout: workoutSession)
         print("📱 WorkoutTrackerViewModel: hkWorkoutManager.startWorkout() completed")
         #endif
     }
@@ -174,10 +299,10 @@ class WorkoutTrackerViewModel {
     
     func buildView() {
         // Refresh from local active session to ensure persisted edits are loaded
-        if let latest = try? workoutSessionManager.getLocalWorkoutSession(id: workoutSession.id) {
+        if let latest = try? interactor.getLocalWorkoutSession(id: workoutSession.id) {
             workoutSession = latest
             workoutNotes = latest.notes ?? ""
-        } else if let activeOpt = try? workoutSessionManager.getActiveLocalWorkoutSession() {
+        } else if let activeOpt = try? interactor.getActiveLocalWorkoutSession() {
             if activeOpt.id == workoutSession.id {
                 workoutSession = activeOpt
                 workoutNotes = activeOpt.notes ?? ""
@@ -190,11 +315,11 @@ class WorkoutTrackerViewModel {
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Ensure an existing Live Activity is reused, otherwise start one
-        liveActivityManager.ensureLiveActivity(
+        interactor.ensureLiveActivity(
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: hkWorkoutManager.restEndTime,
+            restEndsAt: interactor.restEndTime,
             statusMessage: isRestActive ? "Resting" : nil
         )
         #endif
@@ -215,7 +340,7 @@ class WorkoutTrackerViewModel {
     func loadUnitPreferences() {
         // Load unit preferences for all exercises in the workout
         for exercise in workoutSession.exercises {
-            let preference = unitPreferenceManager.getPreference(for: exercise.templateId)
+            let preference = interactor.getPreference(templateId: exercise.templateId)
             exerciseUnitPreferences[exercise.templateId] = preference
         }
         
@@ -224,24 +349,24 @@ class WorkoutTrackerViewModel {
     }
     
     func updateWeightUnit(_ unit: ExerciseWeightUnit, for templateId: String) {
-        unitPreferenceManager.setWeightUnit(unit, for: templateId)
+        interactor.setWeightUnit(unit, for: templateId)
         // Update local cache
         if var preference = exerciseUnitPreferences[templateId] {
             preference.weightUnit = unit
             exerciseUnitPreferences[templateId] = preference
         } else {
-            exerciseUnitPreferences[templateId] = unitPreferenceManager.getPreference(for: templateId)
+            exerciseUnitPreferences[templateId] = interactor.getPreference(templateId: templateId)
         }
     }
     
     func updateDistanceUnit(_ unit: ExerciseDistanceUnit, for templateId: String) {
-        unitPreferenceManager.setDistanceUnit(unit, for: templateId)
+        interactor.setDistanceUnit(unit, for: templateId)
         // Update local cache
         if var preference = exerciseUnitPreferences[templateId] {
             preference.distanceUnit = unit
             exerciseUnitPreferences[templateId] = preference
         } else {
-            exerciseUnitPreferences[templateId] = unitPreferenceManager.getPreference(for: templateId)
+            exerciseUnitPreferences[templateId] = interactor.getPreference(templateId: templateId)
         }
     }
     
@@ -250,14 +375,14 @@ class WorkoutTrackerViewModel {
     func loadPreviousWorkoutSession() {
         // Only load previous session if this workout is from a template
         guard let templateId = workoutSession.workoutTemplateId,
-              let authorId = userManager.currentUser?.userId else {
+              let authorId = interactor.currentUser?.userId else {
             previousWorkoutSession = nil
             return
         }
         
         Task {
             do {
-                previousWorkoutSession = try await workoutSessionManager.getLastCompletedSessionForTemplate(
+                previousWorkoutSession = try await interactor.getLastCompletedSessionForTemplate(
                     templateId: templateId,
                     authorId: authorId
                 )
@@ -288,20 +413,20 @@ class WorkoutTrackerViewModel {
             do {
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 // End HK session first
-                hkWorkoutManager.endWorkout()
+                interactor.endWorkout()
                 #endif
                 
                 // Cancel any pending rest timer notifications
-                await pushManager.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
+                await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
                 
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 // End live activity with immediate dismissal for discarded workouts
-                liveActivityManager.endLiveActivity(session: workoutSession, isCompleted: false)
+                interactor.endLiveActivity(session: workoutSession, isCompleted: false, statusMessage: "Workout Discarded")
                 #endif
                 
-                try workoutSessionManager.deleteLocalWorkoutSession(id: workoutSession.id)
+                try interactor.deleteLocalWorkoutSession(id: workoutSession.id)
                 // Don't mark scheduled workout as complete when discarding
-                await workoutSessionManager.endActiveSession(markScheduledComplete: false)
+                await interactor.endActiveSession(markScheduledComplete: false)
                 await MainActor.run {
                     onDismiss()
                 }
@@ -320,7 +445,7 @@ class WorkoutTrackerViewModel {
         stopWidgetSyncTimer()
         Task {
             do {
-                logManager.trackEvent(
+                interactor.trackEvent(
                     eventName: "finish_workout_debug",
                     parameters: [
                         "session_id": workoutSession.id,
@@ -333,29 +458,29 @@ class WorkoutTrackerViewModel {
                 
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 // End HK session first
-                hkWorkoutManager.endWorkout()
+                interactor.endWorkout()
                 #endif
                 
                 let endTime = Date()
                 
                 // Cancel any pending rest timer notifications
-                await pushManager.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
+                await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
                 
                 // Update session end time
                 workoutSession.endSession(at: endTime)
-                try workoutSessionManager.endLocalWorkoutSession(id: workoutSession.id, at: endTime)
+                try interactor.endLocalWorkoutSession(id: workoutSession.id, at: endTime)
                 
                 // Save to remote
-                try await workoutSessionManager.createWorkoutSession(session: workoutSession)
-                try await workoutSessionManager.endWorkoutSession(id: workoutSession.id, at: endTime)
+                try await interactor.createWorkoutSession(session: workoutSession)
+                try await interactor.endWorkoutSession(id: workoutSession.id, at: endTime)
                 
                 // Create exercise history entries (remote + local)
                 try await createExerciseHistoryEntries(performedAt: endTime)
                 
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-                liveActivityManager.endLiveActivity(session: workoutSession, isCompleted: true)
+                interactor.endLiveActivity(session: workoutSession, isCompleted: true, statusMessage: "Workout ended & saved.")
                 #endif
-                await workoutSessionManager.endActiveSession()
+                await interactor.endActiveSession(markScheduledComplete: true)
                 await MainActor.run {
                     onDismiss()
                 }
@@ -384,7 +509,7 @@ class WorkoutTrackerViewModel {
     }
     
     func minimizeSession(onDismiss: @escaping () -> Void) {
-        workoutSessionManager.minimizeActiveSession()
+        interactor.minimizeActiveSession()
         onDismiss()
     }
     
@@ -393,15 +518,13 @@ class WorkoutTrackerViewModel {
     func startRestTimer(durationSeconds: Int = 0) {
         let duration = durationSeconds > 0 ? durationSeconds : restDurationSeconds
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        hkWorkoutManager.startRest(durationSeconds: duration, session: workoutSession, currentExerciseIndex: currentExerciseIndex)
-        // Sync rest timer with manager for tab bar accessory
-        workoutSessionManager.restEndTime = hkWorkoutManager.restEndTime
+        interactor.startRest(durationSeconds: duration, session: workoutSession, currentExerciseIndex: currentExerciseIndex)
         
         // Schedule local notification for when rest is complete
-        if let endTime = hkWorkoutManager.restEndTime {
+        if let endTime = interactor.restEndTime {
             Task {
                 do {
-                    try await pushManager.schedulePushNotification(
+                    try await interactor.schedulePushNotification(
                         identifier: restTimerNotificationId,
                         title: "Rest Complete",
                         body: "Time to get back to your workout!",
@@ -419,15 +542,12 @@ class WorkoutTrackerViewModel {
     func cancelRestTimer() {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Cancel in manager (will also update Live Activity)
-        hkWorkoutManager.cancelRest()
+        interactor.cancelRest()
         #endif
-        
-        // Sync rest timer with manager for tab bar accessory
-        workoutSessionManager.restEndTime = nil
         
         // Cancel the pending rest timer notification
         Task {
-            await pushManager.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
+            await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
         }
     }
     
@@ -463,12 +583,9 @@ class WorkoutTrackerViewModel {
     func saveWorkoutProgress() {
         Task {
             do {
-                try workoutSessionManager.updateLocalWorkoutSession(session: workoutSession)
+                try interactor.updateLocalWorkoutSession(session: workoutSession)
                 // Keep active session storage in sync so minimize/restore loads latest edits
-                try? workoutSessionManager.setActiveLocalWorkoutSession(workoutSession)
-                await MainActor.run {
-                    workoutSessionManager.activeSession = workoutSession
-                }
+                try? interactor.setActiveLocalWorkoutSession(workoutSession)
             } catch {
                 await MainActor.run {
                     showAlert = AnyAppAlert(title: "Failed to save progress", subtitle: error.localizedDescription)
@@ -478,7 +595,7 @@ class WorkoutTrackerViewModel {
     }
     
     private func createExerciseHistoryEntries(performedAt: Date) async throws {
-        guard let userId = userManager.currentUser?.userId else {
+        guard let userId = interactor.currentUser?.userId else {
             throw NSError(domain: "WorkoutTrackerViewModel", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
         }
         
@@ -496,10 +613,10 @@ class WorkoutTrackerViewModel {
             )
             
             // Save to local storage
-            try exerciseHistoryManager.addLocalExerciseHistory(entry: historyEntry)
+            try interactor.addLocalExerciseHistory(entry: historyEntry)
             
             // Save to remote storage
-            try await exerciseHistoryManager.createExerciseHistory(entry: historyEntry)
+            try await interactor.createExerciseHistory(entry: historyEntry)
         }
     }
     

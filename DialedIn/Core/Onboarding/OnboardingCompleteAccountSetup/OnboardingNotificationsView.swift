@@ -37,7 +37,7 @@ struct OnboardingNotificationsView: View {
         .navigationBarBackButtonHidden(true)
         #else
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
         }
         #endif
         .toolbar {

@@ -66,22 +66,22 @@ struct TrainingView: View {
                         if let exercise = viewModel.selectedExerciseTemplate {
                             NavigationStack {
                                 ExerciseTemplateDetailView(
-                                    viewModel: ExerciseTemplateDetailViewModel(container: container),
+                                    viewModel: ExerciseTemplateDetailViewModel(interactor: CoreInteractor(container: container)),
                                     exerciseTemplate: exercise
                                 )
                             }
                         } else if let workout = viewModel.selectedWorkoutTemplate {
                             NavigationStack {
                                 WorkoutTemplateDetailView(
-                                    viewModel: WorkoutTemplateDetailViewModel(container: container),
+                                    viewModel: WorkoutTemplateDetailViewModel(interactor: CoreInteractor(container: container)),
                                     workoutTemplate: workout
                                 )
                             }
                         } else if let session = viewModel.selectedHistorySession {
                             NavigationStack {
                                 WorkoutSessionDetailView(
-                                    viewModel: WorkoutSessionDetailViewModel(
-                                        container: container,
+                                    viewModel: WorkoutSessionDetailViewModel(interactor: CoreInteractor(
+                                        container: container),
                                         session: session
                                     )
                                 )
@@ -126,15 +126,15 @@ struct TrainingView: View {
             .scrollIndicators(.hidden)
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView) {
-                DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+                DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
             }
             #endif
             .sheet(isPresented: $viewModel.showNotificationsView) {
-                NotificationsView()
+                NotificationsView(viewModel: NotificationsViewModel(interactor: CoreInteractor(container: container)))
             }
             .sheet(item: $viewModel.workoutToStart) { template in
                 WorkoutStartView(
-                    viewModel: WorkoutStartViewModel(container: container),
+                    viewModel: WorkoutStartViewModel(interactor: CoreInteractor(container: container)),
                     template: template,
                     scheduledWorkout: viewModel.scheduledWorkoutToStart
                 )
@@ -142,14 +142,16 @@ struct TrainingView: View {
             .sheet(item: $viewModel.programActiveSheet) { sheet in
                 switch sheet {
                 case .programPicker:
-                    ProgramManagementView(viewModel: ProgramManagementViewModel(container: container))
+                    ProgramManagementView(viewModel: ProgramManagementViewModel(interactor: CoreInteractor(container: container)))
                 case .progressDashboard:
-                    ProgressDashboardView(viewModel: ProgressDashboardViewModel(container: container))
+                    ProgressDashboardView(viewModel: ProgressDashboardViewModel(interactor: CoreInteractor(container: container)))
                 case .strengthProgress:
-                    StrengthProgressView(viewModel: StrengthProgressViewModel(container: container))
+                    StrengthProgressView(viewModel: StrengthProgressViewModel(interactor: CoreInteractor(container: container)))
                 case .workoutHeatmap:
                     WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(
-                        container: container, progressAnalytics: ProgressAnalyticsService(
+                        interactor: CoreInteractor(
+                            container: container
+                        ), progressAnalytics: ProgressAnalyticsService(
                         workoutSessionManager: container.resolve(WorkoutSessionManager.self)!,
                         exerciseTemplateManager: container.resolve(ExerciseTemplateManager.self)!
                     ))
@@ -166,10 +168,10 @@ struct TrainingView: View {
                 toolbarContent
             }
             .sheet(isPresented: $viewModel.showCreateExercise) {
-                CreateExerciseView(viewModel: CreateExerciseViewModel(container: container))
+                CreateExerciseView(viewModel: CreateExerciseViewModel(interactor: CoreInteractor(container: container)))
             }
             .sheet(isPresented: $viewModel.showCreateWorkout) {
-                CreateWorkoutView(viewModel: CreateWorkoutViewModel(container: container))
+                CreateWorkoutView(viewModel: CreateWorkoutViewModel(interactor: CoreInteractor(container: container)))
             }
         }
     }
@@ -192,7 +194,7 @@ struct TrainingView: View {
             switch viewModel.presentationMode {
             case .program:
                 ProgramView(viewModel: ProgramViewModel(
-                    container: container,
+                    interactor: CoreInteractor(container: container),
                     onSessionSelectionChanged: { session in
                         viewModel.selectedHistorySession = session
                     },
@@ -205,21 +207,22 @@ struct TrainingView: View {
                 ))
             case .workouts:
                 WorkoutsView(viewModel: WorkoutsViewModel(
-                    container: container,
+                    interactor: CoreInteractor(
+                    container: container),
                     onWorkoutSelectionChanged: { workout in
                         viewModel.selectedWorkoutTemplate = workout
                     }
                 ))
             case .exercises:
                 ExercisesView(viewModel: ExercisesViewModel(
-                    container: container,
+                    interactor: CoreInteractor(container: container),
                     onExerciseSelectionChanged: { exercise in
                         viewModel.selectedExerciseTemplate = exercise
                     }
                 ))
             case .history:
                 WorkoutHistoryView(viewModel: WorkoutHistoryViewModel(
-                    container: container,
+                    interactor: CoreInteractor(container: container),
                     onSessionSelectionChanged: { session in
                         viewModel.selectedHistorySession = session
                     }
@@ -314,7 +317,7 @@ struct TrainingView: View {
 #Preview {
     TrainingView(
         viewModel: TrainingViewModel(
-            interactor: ProdTrainingInteractor(
+            interactor: CoreInteractor(
                 container: DevPreview.shared.container
             )
         )

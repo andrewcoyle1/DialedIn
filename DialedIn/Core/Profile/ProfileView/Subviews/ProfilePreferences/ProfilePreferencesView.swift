@@ -14,7 +14,7 @@ struct ProfilePreferencesView: View {
     var body: some View {
         Section {
             NavigationLink {
-                SettingsView(viewModel: SettingsViewModel(container: container))
+                SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: container)))
             } label: {
                 ProfileSectionCard(
                     icon: "gearshape",
@@ -39,5 +39,5 @@ struct ProfilePreferencesView: View {
 }
 
 #Preview {
-    ProfilePreferencesView(viewModel: ProfilePreferencesViewModel(container: DevPreview.shared.container))
+    ProfilePreferencesView(viewModel: ProfilePreferencesViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
 }

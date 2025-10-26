@@ -7,12 +7,24 @@
 
 import SwiftUI
 
+protocol ScheduledWorkoutRowInteractor {
+    
+}
+
+extension CoreInteractor: ScheduledWorkoutRowInteractor { }
+
 @Observable
 @MainActor
 class ScheduledWorkoutRowViewModel {
+    private let interactor: ScheduledWorkoutRowInteractor
+    
     let scheduledWorkout: ScheduledWorkout
     
-    init(scheduledWorkout: ScheduledWorkout) {
+    init(
+        interactor: ScheduledWorkoutRowInteractor,
+        scheduledWorkout: ScheduledWorkout
+    ) {
+        self.interactor = interactor
         self.scheduledWorkout = scheduledWorkout
     }
     

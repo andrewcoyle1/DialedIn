@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+protocol AddGoalInteractor {
+    func addGoal(_ goal: TrainingGoal) async throws
+}
+
+extension CoreInteractor: AddGoalInteractor { }
+
 @Observable
 @MainActor
 class AddGoalViewModel {
-    private let trainingPlanManager: TrainingPlanManager
+    private let interactor: AddGoalInteractor
     
     var selectedType: GoalType = .consistency
     var targetValue: Double = 12
@@ -20,9 +26,9 @@ class AddGoalViewModel {
     private(set) var plan: TrainingPlan?
     
     init(
-        container: DependencyContainer
+        interactor: AddGoalInteractor
     ) {
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
+        self.interactor = interactor
     }
     
     func addTrainingPlan(_ plan: TrainingPlan) {
@@ -41,7 +47,7 @@ class AddGoalViewModel {
         )
         
         do {
-            try await trainingPlanManager.addGoal(goal)
+            try await interactor.addGoal(goal)
             onDismiss()
         } catch {
             print("Error adding goal: \(error)")

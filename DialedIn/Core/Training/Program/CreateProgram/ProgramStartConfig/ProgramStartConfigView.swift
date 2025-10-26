@@ -114,7 +114,7 @@ struct ProgramStartConfigView: View {
             }
             
             NavigationLink {
-                ProgramPreviewView(viewModel: ProgramPreviewViewModel(container: container), template: viewModel.template, startDate: viewModel.startDate)
+                ProgramPreviewView(viewModel: ProgramPreviewViewModel(interactor: CoreInteractor(container: container)), template: viewModel.template, startDate: viewModel.startDate)
             } label: {
                 Label("View Full Schedule", systemImage: "calendar")
                     .font(.subheadline)
@@ -147,7 +147,7 @@ struct ProgramStartConfigView: View {
 #Preview {
     NavigationStack {
         ProgramStartConfigView(
-            viewModel: ProgramStartConfigViewModel(container: DevPreview.shared.container), template: ProgramTemplateModel.mock, onStart: { _, _, _ in
+            viewModel: ProgramStartConfigViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), template: ProgramTemplateModel.mock, onStart: { _, _, _ in
                 
             }
         )

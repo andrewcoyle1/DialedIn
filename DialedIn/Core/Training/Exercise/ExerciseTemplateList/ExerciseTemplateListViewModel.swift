@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+protocol ExerciseTemplateListInteractor {
+    func getExerciseTemplates(ids: [String], limitTo: Int) async throws -> [ExerciseTemplateModel]
+}
+
+extension CoreInteractor: ExerciseTemplateListInteractor { }
+
 @Observable
 @MainActor
 class ExerciseTemplateListViewModel {
-    private let exerciseTemplateManager: ExerciseTemplateManager
+    private let interactor: ExerciseTemplateListInteractor
     
     private(set) var templates: [ExerciseTemplateModel] = []
     private(set) var isLoading: Bool = false
@@ -18,9 +24,9 @@ class ExerciseTemplateListViewModel {
     var showAlert: AnyAppAlert?
     
     init(
-        container: DependencyContainer
+        interactor: ExerciseTemplateListInteractor
     ) {
-        self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
+        self.interactor = interactor
     }
     
     func loadTemplates(templateIds: [String]) async {
@@ -28,7 +34,7 @@ class ExerciseTemplateListViewModel {
         isLoading = true
         
         do {
-            let fetchedTemplates = try await exerciseTemplateManager.getExerciseTemplates(ids: templateIds, limitTo: templateIds.count)
+            let fetchedTemplates = try await interactor.getExerciseTemplates(ids: templateIds, limitTo: templateIds.count)
             templates = fetchedTemplates.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         } catch {
             showAlert = AnyAppAlert(

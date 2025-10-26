@@ -12,14 +12,16 @@ class ProgramTemplateManager {
     
     private let local: LocalProgramTemplatePersistence
     private let remote: RemoteProgramTemplateService
+    private let workoutTemplateResolver: WorkoutTemplateResolver?
     
     private(set) var templates: [ProgramTemplateModel] = []
     private(set) var isLoading: Bool = false
     private(set) var error: Error?
     
-    init(services: ProgramTemplateServices) {
+    init(services: ProgramTemplateServices, workoutTemplateResolver: WorkoutTemplateResolver? = nil) {
         self.local = services.local
         self.remote = services.remote
+        self.workoutTemplateResolver = workoutTemplateResolver
         self.templates = local.getAll()
     }
     
@@ -112,8 +114,7 @@ class ProgramTemplateManager {
         for userId: String,
         startDate: Date,
         endDate: Date? = nil,
-        planName: String? = nil,
-        workoutTemplateManager: WorkoutTemplateManager? = nil
+        planName: String? = nil
     ) -> TrainingPlan {
         let weeks: [TrainingWeek] = template.weekTemplates.map { weekTemplate -> TrainingWeek in
             let scheduledWorkouts: [ScheduledWorkout] = weekTemplate.workoutSchedule.compactMap { mapping -> ScheduledWorkout? in
@@ -129,10 +130,7 @@ class ProgramTemplateManager {
                     return nil
                 }
                 
-                let workoutName = resolveWorkoutName(
-                    from: mapping,
-                    using: workoutTemplateManager
-                )
+                let workoutName = resolveWorkoutName(from: mapping)
                 
                 return ScheduledWorkout(
                     workoutTemplateId: mapping.workoutTemplateId,
@@ -175,15 +173,12 @@ class ProgramTemplateManager {
     
     // MARK: - Helper Methods
     
-    private func resolveWorkoutName(
-        from mapping: DayWorkoutMapping,
-        using workoutTemplateManager: WorkoutTemplateManager?
-    ) -> String? {
+    private func resolveWorkoutName(from mapping: DayWorkoutMapping) -> String? {
         if let name = mapping.workoutName {
             return name
         }
-        guard let manager = workoutTemplateManager,
-              let template = try? manager.getLocalWorkoutTemplate(id: mapping.workoutTemplateId) else {
+        guard let resolver = workoutTemplateResolver,
+              let template = try? resolver.getLocalWorkoutTemplate(id: mapping.workoutTemplateId) else {
             return nil
         }
         return template.name

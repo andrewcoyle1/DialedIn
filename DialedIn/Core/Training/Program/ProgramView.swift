@@ -32,7 +32,7 @@ struct ProgramView: View {
         }
         .sheet(isPresented: $viewModel.showAddGoalSheet) {
             if let plan = viewModel.currentTrainingPlan {
-                AddGoalView(viewModel: AddGoalViewModel(container: container), plan: plan)
+                AddGoalView(viewModel: AddGoalViewModel(interactor: CoreInteractor(container: container)), plan: plan)
             }
         }
         .showCustomAlert(alert: $viewModel.showAlert)
@@ -161,7 +161,7 @@ struct ProgramView: View {
                         if workout.isCompleted {
                             WorkoutSummaryCardView(
                                 viewModel: WorkoutSummaryCardViewModel(
-                                    container: container,
+                                    interactor: CoreInteractor(container: container),
                                     scheduledWorkout: workout,
                                     onTap: {
                                         viewModel.openCompletedSession(for: workout)
@@ -171,7 +171,7 @@ struct ProgramView: View {
                             .id(workout.id)
                         } else {
                             TodaysWorkoutCardView(
-                                viewModel: TodaysWorkoutCardViewModel(container: container,
+                                viewModel: TodaysWorkoutCardViewModel(interactor: CoreInteractor(container: container),
                                 scheduledWorkout: workout,
                                 onStart: {
                                     Task {
@@ -191,8 +191,9 @@ struct ProgramView: View {
     private var calendarSection: some View {
         WorkoutCalendarView(
             viewModel: WorkoutCalendarViewModel(
-                container: container,
-                onSessionSelectionChanged: { session in
+                interactor: CoreInteractor(
+                    container: container
+                ), onSessionSelectionChanged: { session in
                     viewModel.selectedHistorySession = session
                 },
                 onWorkoutStartRequested: viewModel.handleWorkoutStartRequest
@@ -225,7 +226,7 @@ struct ProgramView: View {
                 if workout.isCompleted {
                     WorkoutSummaryCardView(
                         viewModel: WorkoutSummaryCardViewModel(
-                            container: container,
+                            interactor: CoreInteractor(container: container),
                             scheduledWorkout: workout,
                             onTap: {
                                 viewModel.openCompletedSession(for: workout)
@@ -236,6 +237,7 @@ struct ProgramView: View {
                 } else {
                     ScheduledWorkoutRowView(
                         viewModel: ScheduledWorkoutRowViewModel(
+                            interactor: CoreInteractor(container: container),
                             scheduledWorkout: workout
                         )
                     )
@@ -356,7 +358,7 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: emptyTrainingPlanManager)
     
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
     }
     .previewEnvironment()
 }
@@ -374,7 +376,7 @@ struct ProgramView: View {
     )
     
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
     }
     .previewEnvironment()
 }
@@ -385,7 +387,7 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: lowAdherenceManager)
     
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
     }
     .previewEnvironment()
 }
@@ -396,7 +398,7 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: todaysWorkoutManager)
     
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
     }
     .previewEnvironment()
 }
@@ -407,7 +409,7 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: completedWorkoutManager)
     
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
     }
     .previewEnvironment()
 }
@@ -418,7 +420,7 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: multipleWorkoutsManager)
     
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
     }
     .previewEnvironment()
 }
@@ -429,7 +431,7 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: noGoalsManager)
     
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
     }
     .previewEnvironment()
 }
@@ -440,14 +442,14 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: nearEndManager)
     
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(container: container, onActiveSheetChanged: nil))
+        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
     }
     .previewEnvironment()
 }
 
 #Preview("Mid-Program Progress") {
     NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(container: DevPreview.shared.container, onActiveSheetChanged: nil))
+        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: DevPreview.shared.container), onActiveSheetChanged: nil))
     }
     .previewEnvironment()
 }

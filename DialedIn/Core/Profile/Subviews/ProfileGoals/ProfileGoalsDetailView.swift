@@ -34,7 +34,7 @@ struct ProfileGoalsDetailView: View {
             toolbarContent
         }
         .sheet(isPresented: $viewModel.showLogWeightSheet) {
-            LogWeightView(viewModel: LogWeightViewModel(container: container))
+            LogWeightView(viewModel: LogWeightViewModel(interactor: CoreInteractor(container: container)))
         }
         .task {
             await viewModel.getActiveGoal()
@@ -608,7 +608,7 @@ enum TrackingStatus {
 #Preview {
     NavigationStack {
         ProfileGoalsDetailView(
-            viewModel: ProfileGoalsDetailViewModel(container: DevPreview.shared.container)
+            viewModel: ProfileGoalsDetailViewModel(interactor: CoreInteractor(container: DevPreview.shared.container))
         )
     }
     .previewEnvironment()

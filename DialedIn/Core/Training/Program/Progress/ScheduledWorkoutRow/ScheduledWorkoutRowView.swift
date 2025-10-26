@@ -41,7 +41,7 @@ struct ScheduledWorkoutRowView: View {
 
 #Preview {
     List {
-        ScheduledWorkoutRowView(viewModel: ScheduledWorkoutRowViewModel(scheduledWorkout: ScheduledWorkout.mocksWeek1.first!)
+        ScheduledWorkoutRowView(viewModel: ScheduledWorkoutRowViewModel(interactor: CoreInteractor(container: DevPreview.shared.container), scheduledWorkout: ScheduledWorkout.mocksWeek1.first!)
         )
     }
 }

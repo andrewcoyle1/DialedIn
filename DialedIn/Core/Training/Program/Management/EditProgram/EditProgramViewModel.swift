@@ -7,12 +7,21 @@
 
 import SwiftUI
 
+protocol EditProgramInteractor {
+    func deletePlan(id: String) async throws
+    func updatePlan(_ plan: TrainingPlan) async throws
+    func getAll() -> [ProgramTemplateModel]
+    func get(id: String) -> ProgramTemplateModel?
+    func fetchTemplateFromRemote(id: String) async throws -> ProgramTemplateModel
+    func getLocalWorkoutTemplate(id: String) throws -> WorkoutTemplateModel
+}
+
+extension CoreInteractor: EditProgramInteractor { }
+
 @Observable
 @MainActor
 class EditProgramViewModel {
-    private let workoutTemplateManager: WorkoutTemplateManager
-    private let trainingPlanManager: TrainingPlanManager
-    private let programTemplateManager: ProgramTemplateManager
+    private let interactor: EditProgramInteractor
     
     var name: String = ""
     var description: String = ""
@@ -27,11 +36,9 @@ class EditProgramViewModel {
     var originalStartDate: Date = .now
     
     init(
-        container: DependencyContainer
+        interactor: EditProgramInteractor
     ) {
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
-        self.programTemplateManager = container.resolve(ProgramTemplateManager.self)!
+        self.interactor = interactor
         
         // Initialize with default values - will be set by the view
         self.name = ""
@@ -61,7 +68,7 @@ class EditProgramViewModel {
         defer { isSaving = false }
         
         do {
-            try await trainingPlanManager.deletePlan(id: plan.planId)
+            try await interactor.deletePlan(id: plan.planId)
             onDismiss()
         } catch {
             print("Error deleting active plan: \(error)")
@@ -143,7 +150,7 @@ class EditProgramViewModel {
     
     func sendUpdatedPlan(updatedPlan: TrainingPlan, onDismiss: @escaping @MainActor () -> Void) async {
         do {
-            try await trainingPlanManager.updatePlan(updatedPlan)
+            try await interactor.updatePlan(updatedPlan)
             onDismiss()
         } catch {
             print("Error updating plan: \(error)")
@@ -211,7 +218,7 @@ class EditProgramViewModel {
         programTemplateId: String?
     ) async throws -> [TrainingWeek] {
         // Debug: List all available templates
-        let allTemplates = programTemplateManager.getAll()
+        let allTemplates = interactor.getAll()
         for template in allTemplates {
             print("  - \(template.id): \(template.name)")
         }
@@ -240,12 +247,12 @@ class EditProgramViewModel {
         }
         
         // Try to get template locally first
-        var template = programTemplateManager.get(id: templateId)
+        var template = interactor.get(id: templateId)
         
         // If not found locally, try to fetch from Firebase
         if template == nil {
             do {
-                template = try await programTemplateManager.fetchTemplateFromRemote(id: templateId)
+                template = try await interactor.fetchTemplateFromRemote(id: templateId)
             } catch {
                 return nil
             }
@@ -305,7 +312,7 @@ class EditProgramViewModel {
     }
     
     private func getWorkoutName(for workoutTemplateId: String) -> String? {
-        if let template = try? workoutTemplateManager.getLocalWorkoutTemplate(id: workoutTemplateId) {
+        if let template = try? interactor.getLocalWorkoutTemplate(id: workoutTemplateId) {
             return template.name
         }
         return nil

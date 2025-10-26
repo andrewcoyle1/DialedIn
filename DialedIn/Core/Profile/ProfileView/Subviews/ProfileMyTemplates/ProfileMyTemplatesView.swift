@@ -28,7 +28,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             NavigationLink {
-                ExerciseTemplateListView(viewModel: ExerciseTemplateListViewModel(container: container), templateIds: templateIds)
+                ExerciseTemplateListView(viewModel: ExerciseTemplateListViewModel(interactor: CoreInteractor(container: container)), templateIds: templateIds)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Exercise Templates")
@@ -48,7 +48,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             NavigationLink {
-                WorkoutTemplateListView(viewModel: WorkoutTemplateListViewModel(container: container), templateIds: templateIds)
+                WorkoutTemplateListView(viewModel: WorkoutTemplateListViewModel(interactor: CoreInteractor(container: container)), templateIds: templateIds)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Workout Templates")
@@ -68,7 +68,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             NavigationLink {
-                RecipeTemplateListView(templateIds: templateIds)
+                RecipeTemplateListView(viewModel: RecipeTemplateListViewModel(interactor: CoreInteractor(container: container), templateIds: templateIds))
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Recipe Templates")
@@ -88,7 +88,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             NavigationLink {
-                IngredientTemplateListView(templateIds: templateIds)
+                IngredientTemplateListView(viewModel: IngredientTemplateListViewModel(interactor: CoreInteractor(container: container), templateIds: templateIds))
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Ingredient Templates")
@@ -106,7 +106,7 @@ struct ProfileMyTemplatesView: View {
 #Preview {
     NavigationStack {
         List {
-            ProfileMyTemplatesView(viewModel: ProfileMyTemplatesViewModel(container: DevPreview.shared.container))
+            ProfileMyTemplatesView(viewModel: ProfileMyTemplatesViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         }
     }
     .previewEnvironment()

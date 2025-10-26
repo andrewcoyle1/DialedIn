@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+protocol DayScheduleScheetInteractor {
+    func getWorkoutSession(id: String) async throws -> WorkoutSessionModel
+}
+
+extension CoreInteractor: DayScheduleScheetInteractor { }
+
 @Observable
 @MainActor
 class DayScheduleSheetViewModel {
-    let workoutSessionManager: WorkoutSessionManager
+    let interactor: DayScheduleScheetInteractor
     let date: Date
     let scheduledWorkouts: [ScheduledWorkout]
     let onStartWorkout: (ScheduledWorkout) async throws -> Void
@@ -18,12 +24,12 @@ class DayScheduleSheetViewModel {
     var showAlert: AnyAppAlert?
     
     init(
-        container: DependencyContainer,
+        interactor: DayScheduleScheetInteractor,
         date: Date,
         scheduledWorkouts: [ScheduledWorkout],
         onStartWorkout: @escaping (ScheduledWorkout) async throws -> Void
     ) {
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
+        self.interactor = interactor
         self.date = date
         self.scheduledWorkouts = scheduledWorkouts
         self.onStartWorkout = onStartWorkout
@@ -32,7 +38,7 @@ class DayScheduleSheetViewModel {
     func openCompletedSession(for workout: ScheduledWorkout) async {
         guard let sessionId = workout.completedSessionId else { return }
         do {
-            let session = try await workoutSessionManager.getWorkoutSession(id: sessionId)
+            let session = try await interactor.getWorkoutSession(id: sessionId)
             await MainActor.run {
                 sessionToShow = session
             }

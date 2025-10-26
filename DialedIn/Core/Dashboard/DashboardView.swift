@@ -9,19 +9,8 @@ import SwiftUI
 
 struct DashboardView: View {
     @Environment(DependencyContainer.self) private var container
-
+    @State var viewModel: DashboardViewModel
     @Environment(\.layoutMode) private var layoutMode
-    @Environment(LogManager.self) private var logManager
-    @Environment(NutritionManager.self) private var nutritionManager
-    @State private var showNotifications: Bool = false
-    @State private var isShowingInspector: Bool = false
-
-    #if DEBUG || MOCK
-    @State private var showDebugView: Bool = false
-    #endif
-    
-    @State private var contributionChartData: [Double] = []
-    @State private var chartEndDate: Date = Date()
     
     var body: some View {
         Group {
@@ -33,7 +22,7 @@ struct DashboardView: View {
                 contentView
             }
         }
-        .modifier(InspectorIfCompact(isPresented: $isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView))
+        .modifier(InspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView))
     }
     
     private var contentView: some View {
@@ -50,31 +39,22 @@ struct DashboardView: View {
             toolbarContent
         }
         #if DEBUG || MOCK
-        .sheet(isPresented: $showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+        .sheet(isPresented: $viewModel.showDebugView) {
+            DevSettingsView(
+                viewModel: DevSettingsViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
         }
         #endif
-        .sheet(isPresented: $showNotifications) {
-            NotificationsView()
+        .sheet(isPresented: $viewModel.showNotifications) {
+            NotificationsView(viewModel: NotificationsViewModel(interactor: CoreInteractor(container: container)))
         }
         .onOpenURL { url in
-            handleDeepLink(url: url)
+            viewModel.handleDeepLink(url: url)
         }
-    }
-    
-    private func handleDeepLink(url: URL) {
-        
-        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              let queryItems = components.queryItems else {
-            // no query items
-            print("NO QUERY ITEMS!")
-            return
-        }
-        
-        for queryItem in queryItems {
-            print(queryItem.name)
-        }
-        
     }
     
     private var inspectorContent: some View {
@@ -96,7 +76,7 @@ struct DashboardView: View {
     
     private var nutritionTargetSection: some View {
         Section {
-            NutritionTargetChartView()
+            NutritionTargetChartView(viewModel: NutritionTargetChartViewModel(interactor: CoreInteractor(container: container)))
         } header: {
             Text("Nutrition & Targets")
         }
@@ -105,12 +85,12 @@ struct DashboardView: View {
     private var contributionChartSection: some View {
         Section {
             ContributionChartView(
-                data: contributionChartData,
+                data: viewModel.contributionChartData,
                 rows: 7,
                 columns: 16,
                 targetValue: 1.0,
                 blockColor: .accent,
-                endDate: chartEndDate
+                endDate: viewModel.chartEndDate
             )
             .frame(height: 220)
         } header: {
@@ -123,7 +103,7 @@ struct DashboardView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                showDebugView = true
+                viewModel.showDebugView = true
             } label: {
                 Image(systemName: "info")
             }
@@ -132,70 +112,15 @@ struct DashboardView: View {
 
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                onPushNotificationsPressed()
+                viewModel.onPushNotificationsPressed()
             } label: {
                 Image(systemName: "bell")
             }
         }
-        
-//        #if os(iOS)
-//        if UIDevice.current.userInterfaceIdiom != .phone {
-//            ToolbarSpacer(placement: .topBarTrailing)
-//            ToolbarItem(placement: .topBarTrailing) {
-//                Button {
-//                    isShowingInspector.toggle()
-//                } label: {
-//                    Image(systemName: "info")
-//                }
-//            }
-//        }
-//        #else
-//        ToolbarSpacer(placement: .topBarTrailing)
-//        ToolbarItem(placement: .topBarTrailing) {
-//            Button {
-//                isShowingInspector.toggle()
-//            } label: {
-//                Image(systemName: "info")
-//            }
-//        }
-//        #endif
     }
 }
 
 #Preview {
-    DashboardView()
+    DashboardView(viewModel: DashboardViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
-}
-
-extension DashboardView {
-    
-    private func onPushNotificationsPressed() {
-        logManager.trackEvent(event: Event.onNotificationsPressed)
-        showNotifications = true
-    }
-    
-    enum Event: LoggableEvent {
-        case onNotificationsPressed
-
-        var eventName: String {
-            switch self {
-            case .onNotificationsPressed:   return "Dashboard_NotificationsPressed"
-            }
-        }
-
-        var parameters: [String: Any]? {
-            switch self {
-            default:
-                return nil
-            }
-        }
-
-        var type: LogType {
-            switch self {
-            default:
-                return .analytic
-
-            }
-        }
-    }
 }

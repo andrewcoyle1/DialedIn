@@ -8,13 +8,24 @@
 import SwiftUI
 import PhotosUI
 
+protocol CreateWorkoutInteractor {
+    var currentUser: UserModel? { get }
+    func updateWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws
+    func createWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws
+    func addCreatedWorkoutTemplate(workoutId: String) async throws
+    func addBookmarkedWorkoutTemplate(workoutId: String) async throws
+    func bookmarkWorkoutTemplate(id: String, isBookmarked: Bool) async throws
+    func trackEvent(eventName: String, parameters: [String: Any]?, type: LogType)
+    func generateImage(input: String) async throws -> UIImage
+}
+
+extension CoreInteractor: CreateWorkoutInteractor { }
+
 @Observable
 @MainActor
 class CreateWorkoutViewModel {
-    private let userManager: UserManager
-    private let workoutTemplateManager: WorkoutTemplateManager
-    private let aiManager: AIManager
-    private let logManager: LogManager
+    
+    private let interactor: CreateWorkoutInteractor
     
     // Optional template for edit mode
     var workoutTemplate: WorkoutTemplateModel?
@@ -46,13 +57,10 @@ class CreateWorkoutViewModel {
     }
     
     init(
-        container: DependencyContainer,
+        interactor: CreateWorkoutInteractor,
         workoutTemplate: WorkoutTemplateModel? = nil
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
-        self.aiManager = container.resolve(AIManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
+        self.interactor = interactor
         self.workoutTemplate = workoutTemplate
     }
     
@@ -78,7 +86,7 @@ class CreateWorkoutViewModel {
         isSaving = true
         
         do {
-            guard let userId = userManager.currentUser?.userId else {
+            guard let userId = interactor.currentUser?.userId else {
                 isSaving = false
                 return
             }
@@ -114,10 +122,10 @@ class CreateWorkoutViewModel {
         
         #if canImport(UIKit)
         let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
-        try await workoutTemplateManager.updateWorkoutTemplate(workout: updatedWorkout, image: uiImage)
+        try await interactor.updateWorkoutTemplate(workout: updatedWorkout, image: uiImage)
         #elseif canImport(AppKit)
         let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-        try await workoutTemplateManager.updateWorkoutTemplate(workout: updatedWorkout, image: nsImage)
+        try await interactor.updateWorkoutTemplate(workout: updatedWorkout, image: nsImage)
         #endif
     }
     
@@ -135,17 +143,17 @@ class CreateWorkoutViewModel {
         
         #if canImport(UIKit)
         let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
-        try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: uiImage)
+        try await interactor.createWorkoutTemplate(workout: newWorkout, image: uiImage)
         #elseif canImport(AppKit)
         let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-        try await workoutTemplateManager.createWorkoutTemplate(workout: newWorkout, image: nsImage)
+        try await interactor.createWorkoutTemplate(workout: newWorkout, image: nsImage)
         #endif
         
         // Track created template on the user document
-        try await userManager.addCreatedWorkoutTemplate(workoutId: newWorkout.id)
+        try await interactor.addCreatedWorkoutTemplate(workoutId: newWorkout.id)
         // Auto-bookmark authored templates
-        try await userManager.addBookmarkedWorkoutTemplate(workoutId: newWorkout.id)
-        try await workoutTemplateManager.bookmarkWorkoutTemplate(id: newWorkout.id, isBookmarked: true)
+        try await interactor.addBookmarkedWorkoutTemplate(workoutId: newWorkout.id)
+        try await interactor.bookmarkWorkoutTemplate(id: newWorkout.id, isBookmarked: true)
     }
     
     func onAddExercisePressed() {
@@ -156,10 +164,10 @@ class CreateWorkoutViewModel {
         isGenerating = true
         Task {
             do {
-                logManager.trackEvent(eventName: "AI_Image_Generate_Start", parameters: [
+                interactor.trackEvent(eventName: "AI_Image_Generate_Start", parameters: [
                     "subject": "workout",
                     "has_name": !workoutName.isEmpty
-                ])
+                ], type: .analytic)
                 let imageDescriptionBuilder = ImageDescriptionBuilder(
                     subject: .workout,
                     mode: .marketingConcise,
@@ -172,10 +180,10 @@ class CreateWorkoutViewModel {
                     framingNotes: ""
                 )
                 let prompt = imageDescriptionBuilder.build()
-                generatedImage = try await aiManager.generateImage(input: prompt)
-                logManager.trackEvent(eventName: "AI_Image_Generate_Success")
+                generatedImage = try await interactor.generateImage(input: prompt)
+                interactor.trackEvent(eventName: "AI_Image_Generate_Success", parameters: [:], type: .analytic)
             } catch {
-                logManager.trackEvent(eventName: "AI_Image_Generate_Fail", parameters: error.eventParameters, type: .severe)
+                interactor.trackEvent(eventName: "AI_Image_Generate_Fail", parameters: error.eventParameters, type: .severe)
                 alert = AnyAppAlert(error: error)
             }
             isGenerating = false

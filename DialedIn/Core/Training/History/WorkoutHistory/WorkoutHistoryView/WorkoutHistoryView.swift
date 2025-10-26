@@ -89,7 +89,7 @@ struct WorkoutHistoryView: View {
     NavigationStack {
         WorkoutHistoryView(
             viewModel: WorkoutHistoryViewModel(
-                container: DevPreview.shared.container
+                interactor: CoreInteractor(container: DevPreview.shared.container)
             )
         )
         .navigationTitle("Workout History")
@@ -102,7 +102,7 @@ struct WorkoutHistoryView: View {
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
     return NavigationStack {
         WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(container: container)
+            viewModel: WorkoutHistoryViewModel(interactor: CoreInteractor(container: container))
         )
         .navigationTitle("Workout History")
     }
@@ -114,7 +114,7 @@ struct WorkoutHistoryView: View {
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(sessions: [])))
     return NavigationStack {
         WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(container: container)
+            viewModel: WorkoutHistoryViewModel(interactor: CoreInteractor(container: container))
         )
         .navigationTitle("Workout History")
     }
@@ -127,7 +127,7 @@ struct WorkoutHistoryView: View {
     
     return NavigationStack {
         WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(container: container)
+            viewModel: WorkoutHistoryViewModel(interactor: CoreInteractor(container: container))
         )
         .navigationTitle("Workout History")
     }
@@ -141,7 +141,7 @@ struct WorkoutHistoryView: View {
     
     return NavigationStack {
         WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(container: container)
+            viewModel: WorkoutHistoryViewModel(interactor: CoreInteractor(container: container))
         )
         .navigationTitle("Workout History")
     }

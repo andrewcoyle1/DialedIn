@@ -235,7 +235,14 @@ struct WorkoutHeatmapView: View {
         exerciseTemplateManager: exerciseTemplateManager
     )
     
-    return WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(container: DevPreview.shared.container, progressAnalytics: analytics))
+    return WorkoutHeatmapView(
+        viewModel: WorkoutHeatmapViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            ),
+            progressAnalytics: analytics
+        )
+    )
         .previewEnvironment()
 }
 
@@ -247,7 +254,9 @@ struct WorkoutHeatmapView: View {
         exerciseTemplateManager: exerciseTemplateManager
     )
     
-    return WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(container: DevPreview.shared.container, progressAnalytics: analytics))
+    return WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(interactor: CoreInteractor(
+        container: DevPreview.shared.container
+    ), progressAnalytics: analytics))
         .previewEnvironment()
 }
 
@@ -259,6 +268,8 @@ struct WorkoutHeatmapView: View {
         exerciseTemplateManager: exerciseTemplateManager
     )
     
-    return WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(container: DevPreview.shared.container, progressAnalytics: analytics))
+    return WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(interactor: CoreInteractor(
+        container: DevPreview.shared.container
+    ), progressAnalytics: analytics))
         .previewEnvironment()
 }

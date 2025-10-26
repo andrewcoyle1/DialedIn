@@ -63,6 +63,6 @@ struct WorkoutTemplateListView: View {
 }
  
 #Preview {
-    WorkoutTemplateListView(viewModel: WorkoutTemplateListViewModel(container: DevPreview.shared.container))
+    WorkoutTemplateListView(viewModel: WorkoutTemplateListViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }

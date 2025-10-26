@@ -7,27 +7,30 @@
 
 import SwiftUI
 
+protocol ProfilePhysicalMetricsInteractor {
+    var currentUser: UserModel? { get }
+    var currentGoal: WeightGoal? { get }
+}
+
+extension CoreInteractor: ProfilePhysicalMetricsInteractor { }
+
 @Observable
 @MainActor
 class ProfilePhysicalMetricsViewModel {
-    private let userManager: UserManager
-    private let userWeightManager: UserWeightManager
-    private let goalManager: GoalManager
+    private let interactor: ProfilePhysicalMetricsInteractor
     
     var currentUser: UserModel? {
-        userManager.currentUser
+        interactor.currentUser
     }
     
     var currentGoal: WeightGoal? {
-        goalManager.currentGoal
+        interactor.currentGoal
     }
     
     init(
-        container: DependencyContainer
+        interactor: ProfilePhysicalMetricsInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.userWeightManager = container.resolve(UserWeightManager.self)!
-        self.goalManager = container.resolve(GoalManager.self)!
+        self.interactor = interactor
     }
     
     func formatHeight(_ heightCm: Double, unit: LengthUnitPreference) -> String {

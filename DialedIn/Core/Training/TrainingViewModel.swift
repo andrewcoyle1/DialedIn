@@ -11,52 +11,16 @@ protocol TrainingInteractor {
     var currentTrainingPlan: TrainingPlan? { get }
     func getTodaysWorkouts() -> [ScheduledWorkout]
     func getUpcomingWorkouts(limit: Int) -> [ScheduledWorkout]
-    
-    func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel?
+    func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel
 }
 
-struct ProdTrainingInteractor: TrainingInteractor {
-    
-    private let authManager: AuthManager
-    private let exerciseTemplateManager: ExerciseTemplateManager
-    private let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
-    private let workoutTemplateManager: WorkoutTemplateManager
-    private let workoutSessionManager: WorkoutSessionManager
-    private let trainingPlanManager: TrainingPlanManager
-    private let logManager: LogManager
-    
-    var currentTrainingPlan: TrainingPlan? {
-        trainingPlanManager.currentTrainingPlan
-    }
-    
-    init(container: DependencyContainer) {
-        self.authManager = container.resolve(AuthManager.self)!
-        self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
-        self.exerciseUnitPreferenceManager = container.resolve(ExerciseUnitPreferenceManager.self)!
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
-    }
-    
-    func getTodaysWorkouts() -> [ScheduledWorkout] {
-        trainingPlanManager.getTodaysWorkouts()
-    }
-    
-    func getUpcomingWorkouts(limit: Int) -> [ScheduledWorkout] {
-        trainingPlanManager.getUpcomingWorkouts(limit: limit)
-    }
-    
-    func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel? {
-        try await workoutTemplateManager.getWorkoutTemplate(id: id)
-    }
-}
+extension CoreInteractor: TrainingInteractor { }
 
 @Observable
 @MainActor
 class TrainingViewModel {
     
-    let interactor: TrainingInteractor
+    private let interactor: TrainingInteractor
     
     private(set) var searchExerciseTask: Task<Void, Never>?
     private(set) var searchWorkoutTask: Task<Void, Never>?
@@ -79,9 +43,7 @@ class TrainingViewModel {
     var showDebugView: Bool = false
     #endif
     
-    init(
-        interactor: TrainingInteractor
-    ) {
+    init(interactor: TrainingInteractor) {
         self.interactor = interactor
     }
     
@@ -103,7 +65,8 @@ class TrainingViewModel {
     }
     
     var navigationSubtitle: String {
-        if presentationMode == .program, let plan = interactor.currentTrainingPlan {
+        if presentationMode == .program,
+            let plan = interactor.currentTrainingPlan {
             let todaysWorkouts = interactor.getTodaysWorkouts()
             if !todaysWorkouts.isEmpty {
                 let completedCount = todaysWorkouts.filter { $0.isCompleted }.count

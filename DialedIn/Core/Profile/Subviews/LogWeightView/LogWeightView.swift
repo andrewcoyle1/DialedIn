@@ -159,7 +159,7 @@ struct LogWeightView: View {
 }
 
 #Preview {
-    LogWeightView(viewModel: LogWeightViewModel(container: DevPreview.shared.container))
+    LogWeightView(viewModel: LogWeightViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }
 

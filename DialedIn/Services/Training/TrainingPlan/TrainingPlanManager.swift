@@ -15,16 +15,18 @@ class TrainingPlanManager {
     private let remote: RemoteTrainingPlanService
     private var userId: String?
     private var plansListener: (() -> Void)?
+    private let workoutTemplateResolver: WorkoutTemplateResolver?
     
     private(set) var currentTrainingPlan: TrainingPlan?
     private(set) var allPlans: [TrainingPlan] = []
     private(set) var isLoading: Bool = false
     private(set) var error: Error?
     
-    init(services: TrainingPlanServices, userId: String? = nil) {
+    init(services: TrainingPlanServices, userId: String? = nil, workoutTemplateResolver: WorkoutTemplateResolver? = nil) {
         self.remote = services.remote
         self.local = services.local
         self.userId = userId
+        self.workoutTemplateResolver = workoutTemplateResolver
         self.currentTrainingPlan = local.getCurrentTrainingPlan()
         self.allPlans = local.getAllPlans()
         
@@ -146,11 +148,10 @@ class TrainingPlanManager {
         startDate: Date,
         endDate: Date? = nil,
         userId: String,
-        planName: String? = nil,
-        workoutTemplateManager: WorkoutTemplateManager? = nil
+        planName: String? = nil
     ) async throws -> TrainingPlan {
         // Use ProgramTemplateManager to instantiate
-        let plan = instantiatePlanFromTemplate(template, userId: userId, startDate: startDate, endDate: endDate, planName: planName, workoutTemplateManager: workoutTemplateManager)
+        let plan = instantiatePlanFromTemplate(template, userId: userId, startDate: startDate, endDate: endDate, planName: planName)
         try await createPlan(plan)
         return plan
     }
@@ -337,8 +338,7 @@ class TrainingPlanManager {
         userId: String,
         startDate: Date,
         endDate: Date? = nil,
-        planName: String?,
-        workoutTemplateManager: WorkoutTemplateManager? = nil
+        planName: String?
     ) -> TrainingPlan {
         let weeks: [TrainingWeek] = template.weekTemplates.map { weekTemplate -> TrainingWeek in
             let scheduledWorkouts: [ScheduledWorkout] = weekTemplate.workoutSchedule.compactMap { mapping -> ScheduledWorkout? in
@@ -354,10 +354,7 @@ class TrainingPlanManager {
                     return nil
                 }
                 
-                let workoutName = resolveWorkoutName(
-                    from: mapping,
-                    using: workoutTemplateManager
-                )
+                let workoutName = resolveWorkoutName(from: mapping)
                 
                 return ScheduledWorkout(
                     workoutTemplateId: mapping.workoutTemplateId,
@@ -398,15 +395,12 @@ class TrainingPlanManager {
         )
     }
     
-    private func resolveWorkoutName(
-        from mapping: DayWorkoutMapping,
-        using workoutTemplateManager: WorkoutTemplateManager?
-    ) -> String? {
+    private func resolveWorkoutName(from mapping: DayWorkoutMapping) -> String? {
         if let name = mapping.workoutName {
             return name
         }
-        guard let manager = workoutTemplateManager,
-              let template = try? manager.getLocalWorkoutTemplate(id: mapping.workoutTemplateId) else {
+        guard let resolver = workoutTemplateResolver,
+              let template = try? resolver.getLocalWorkoutTemplate(id: mapping.workoutTemplateId) else {
             return nil
         }
         return template.name

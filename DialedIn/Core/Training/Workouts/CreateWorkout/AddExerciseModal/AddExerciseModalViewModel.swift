@@ -7,11 +7,19 @@
 
 import SwiftUI
 
+protocol AddExerciseInteractor {
+    func getSystemExerciseTemplates() throws -> [ExerciseTemplateModel]
+    func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseTemplateModel]
+    func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel]
+    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseTemplateModel]
+}
+
+extension CoreInteractor: AddExerciseInteractor { }
+
 @Observable
 @MainActor
 class AddExerciseModalViewModel {
-    private let exerciseTemplateManager: ExerciseTemplateManager
-    private let logManager: LogManager
+    private let interactor: AddExerciseInteractor
     
     private(set) var exercises: [ExerciseTemplateModel] = []
     var searchText: String = ""
@@ -34,11 +42,10 @@ class AddExerciseModalViewModel {
     }
     
     init(
-        container: DependencyContainer,
+        interactor: AddExerciseInteractor,
         selectedExercises: Binding<[ExerciseTemplateModel]>
     ) {
-        self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
+        self.interactor = interactor
         self.selectedExercises = selectedExercises
     }
     
@@ -56,11 +63,11 @@ class AddExerciseModalViewModel {
         errorMessage = nil
         
         // Always load system exercises from local storage
-        let systemExercises = (try? exerciseTemplateManager.getSystemExerciseTemplates()) ?? []
+        let systemExercises = (try? interactor.getSystemExerciseTemplates()) ?? []
         
         do {
             // Load top exercises from remote
-            let trendingExercises = try await exerciseTemplateManager.getTopExerciseTemplatesByClicks(limitTo: 50)
+            let trendingExercises = try await interactor.getTopExerciseTemplatesByClicks(limitTo: 50)
             
             // Combine system exercises and trending exercises
             // System exercises first, then trending (deduplicated)
@@ -74,7 +81,7 @@ class AddExerciseModalViewModel {
         } catch {
             // Fallback to all local exercises if remote fails
             do {
-                let localExercises = try exerciseTemplateManager.getAllLocalExerciseTemplates()
+                let localExercises = try interactor.getAllLocalExerciseTemplates()
                 await MainActor.run {
                     exercises = localExercises
                     isLoading = false
@@ -105,11 +112,11 @@ class AddExerciseModalViewModel {
         guard query.count >= 2 else { return }
         
         // Always include system exercises in search
-        let systemExercises = (try? exerciseTemplateManager.getSystemExerciseTemplates()) ?? []
+        let systemExercises = (try? interactor.getSystemExerciseTemplates()) ?? []
         
         do {
             // Search remote exercises
-            let remoteResults = try await exerciseTemplateManager.getExerciseTemplatesByName(name: query)
+            let remoteResults = try await interactor.getExerciseTemplatesByName(name: query)
             
             // Combine system exercises and remote results (deduplicated)
             let systemIds = Set(systemExercises.map { $0.id })

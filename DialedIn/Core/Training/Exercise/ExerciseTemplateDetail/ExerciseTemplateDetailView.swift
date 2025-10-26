@@ -71,7 +71,13 @@ struct ExerciseTemplateDetailView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+            DevSettingsView(
+                viewModel: DevSettingsViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
         }
         #endif
     }
@@ -388,7 +394,7 @@ struct ExerciseTemplateDetailView: View {
 
 #Preview("About Section") {
     NavigationStack {
-        ExerciseTemplateDetailView(viewModel: ExerciseTemplateDetailViewModel(container: DevPreview.shared.container), exerciseTemplate: ExerciseTemplateModel.mocks[0])
+        ExerciseTemplateDetailView(viewModel: ExerciseTemplateDetailViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), exerciseTemplate: ExerciseTemplateModel.mocks[0])
     }
     .previewEnvironment()
 }

@@ -490,6 +490,12 @@ struct DevSettingsView: View {
 
 #Preview {
     let container = DevPreview.shared.container
-    DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+    DevSettingsView(
+        viewModel: DevSettingsViewModel(
+            interactor: CoreInteractor(
+                container: container
+            )
+        )
+    )
         .previewEnvironment()
 }

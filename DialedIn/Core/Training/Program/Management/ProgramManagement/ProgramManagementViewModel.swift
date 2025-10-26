@@ -7,12 +7,19 @@
 
 import SwiftUI
 
+protocol ProgramManagementInteractor {
+    var currentTrainingPlan: TrainingPlan? { get }
+    var allPlans: [TrainingPlan] { get }
+    func setActivePlan(_ plan: TrainingPlan)
+    func deletePlan(id: String) async throws
+}
+
+extension CoreInteractor: ProgramManagementInteractor { }
+
 @Observable
 @MainActor
 class ProgramManagementViewModel {
-    private let authManager: AuthManager
-    private let trainingPlanManager: TrainingPlanManager
-    private let programTemplateManager: ProgramTemplateManager
+    private let interactor: ProgramManagementInteractor
     
     private(set) var isLoading = false
 
@@ -22,26 +29,24 @@ class ProgramManagementViewModel {
     var showDeleteAlert: AnyAppAlert?
     
     var activePlan: TrainingPlan? {
-        trainingPlanManager.currentTrainingPlan
+        interactor.currentTrainingPlan
     }
     
     var trainingPlans: [TrainingPlan] {
-        trainingPlanManager.allPlans
+        interactor.allPlans
     }
     
     init(
-        container: DependencyContainer
+        interactor: ProgramManagementInteractor
     ) {
-        self.authManager = container.resolve(AuthManager.self)!
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
-        self.programTemplateManager = container.resolve(ProgramTemplateManager.self)!
+        self.interactor = interactor
     }
     
     func setActivePlan(_ plan: TrainingPlan) async {
         isLoading = true
         defer { isLoading = false }
         
-        trainingPlanManager.setActivePlan(plan)
+        interactor.setActivePlan(plan)
     }
     
     func deletePlan(_ plan: TrainingPlan) async {
@@ -49,7 +54,7 @@ class ProgramManagementViewModel {
         defer { isLoading = false }
         
         do {
-            try await trainingPlanManager.deletePlan(id: plan.planId)
+            try await interactor.deletePlan(id: plan.planId)
         } catch {
             print("Error deleting plan: \(error)")
         }

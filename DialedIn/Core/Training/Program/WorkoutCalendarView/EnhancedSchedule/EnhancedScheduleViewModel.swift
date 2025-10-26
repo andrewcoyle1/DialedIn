@@ -7,9 +7,16 @@
 
 import SwiftUI
 
+protocol EnhancedScheduleInteractor {
+    
+}
+
+extension CoreInteractor: EnhancedScheduleInteractor { }
+
 @Observable
 @MainActor
 class EnhancedScheduleViewModel {
+    let interactor: EnhancedScheduleInteractor
     let getScheduledWorkouts: () -> [ScheduledWorkout]
     let onDateSelected: (Date) -> Void
     let onDateTapped: (Date) -> Void
@@ -23,11 +30,12 @@ class EnhancedScheduleViewModel {
     }
     
     init(
-        container: DependencyContainer,
+        interactor: EnhancedScheduleInteractor,
         getScheduledWorkouts: @escaping () -> [ScheduledWorkout],
         onDateSelected: @escaping (Date) -> Void,
         onDateTapped: @escaping (Date) -> Void
     ) {
+        self.interactor = interactor
         self.getScheduledWorkouts = getScheduledWorkouts
         self.onDateSelected = onDateSelected
         self.onDateTapped = onDateTapped

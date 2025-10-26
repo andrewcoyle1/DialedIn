@@ -7,27 +7,25 @@
 
 import SwiftUI
 
+protocol WorkoutStartInteractor {
+    var currentUser: UserModel? { get }
+    var currentTrainingPlan: TrainingPlan? { get }
+    var activeSession: WorkoutSessionModel? { get }
+    func addLocalWorkoutSession(session: WorkoutSessionModel) throws
+    func startActiveSession(_ session: WorkoutSessionModel)
+}
+
+extension CoreInteractor: WorkoutStartInteractor { }
+
 @Observable
 @MainActor
 class WorkoutStartViewModel {
-    private let userManager: UserManager
-    private let exerciseHistoryManager: ExerciseHistoryManager
-    private let workoutSessionManager: WorkoutSessionManager
-#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-    private let liveActivityManager: LiveActivityManager
-#endif
-    private let trainingPlanManager: TrainingPlanManager
+    private let interactor: WorkoutStartInteractor
     
     init(
-        container: DependencyContainer
+        interactor: WorkoutStartInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
-        self.exerciseHistoryManager = container.resolve(ExerciseHistoryManager.self)!
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
-#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        self.liveActivityManager = container.resolve(LiveActivityManager.self)!
-#endif
+        self.interactor = interactor
     }
 
     var workoutNotes = ""
@@ -36,15 +34,15 @@ class WorkoutStartViewModel {
     private(set) var createdSession: WorkoutSessionModel?
     
     var activeSession: WorkoutSessionModel? {
-        workoutSessionManager.activeSession
+        interactor.activeSession
     }
     
     var currentTrainingPlan: TrainingPlan? {
-        trainingPlanManager.currentTrainingPlan
+        interactor.currentTrainingPlan
     }
     
     var currentUser: UserModel? {
-        userManager.currentUser
+        interactor.currentUser
     }
     
     func estimatedTime(template: WorkoutTemplateModel) -> String {
@@ -89,7 +87,7 @@ class WorkoutStartViewModel {
                 )
                 
                 // Save locally first (MainActor-isolated)
-                try workoutSessionManager.addLocalWorkoutSession(session: session)
+                try interactor.addLocalWorkoutSession(session: session)
                 
                 await MainActor.run {
                     createdSession = session
@@ -100,7 +98,7 @@ class WorkoutStartViewModel {
                 try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
                 
                 await MainActor.run {
-                    workoutSessionManager.startActiveSession(session)
+                    interactor.startActiveSession(session)
                     showingTracker = true
                 }
                 

@@ -12,7 +12,7 @@ import SwiftUI
 extension WorkoutTrackerViewModel {
     func addSelectedExercises() {
         let templates = self.pendingSelectedTemplates
-        guard !templates.isEmpty, let userId = userManager.currentUser?.userId else { return }
+        guard !templates.isEmpty, let userId = interactor.currentUser?.userId else { return }
         var updated = workoutSession.exercises
         let startIndex = updated.count
         for (offset, template) in templates.enumerated() {
@@ -42,11 +42,11 @@ extension WorkoutTrackerViewModel {
         saveWorkoutProgress()
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        liveActivityManager.updateLiveActivity(
+        interactor.updateLiveActivity(
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: hkWorkoutManager.restEndTime,
+            restEndsAt: interactor.restEndTime,
             statusMessage: isRestActive ? "Resting" : nil,
             totalVolumeKg: computeTotalVolumeKg(),
             elapsedTime: elapsedTime
@@ -67,11 +67,11 @@ extension WorkoutTrackerViewModel {
         saveWorkoutProgress()
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        liveActivityManager.updateLiveActivity(
+        interactor.updateLiveActivity(
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: hkWorkoutManager.restEndTime,
+            restEndsAt: interactor.restEndTime,
             statusMessage: isRestActive ? "Resting" : nil,
             totalVolumeKg: computeTotalVolumeKg(),
             elapsedTime: elapsedTime
@@ -85,11 +85,11 @@ extension WorkoutTrackerViewModel {
         applyReorderedExercises(updated, movedFrom: source.first, movedTo: destination)
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        liveActivityManager.updateLiveActivity(
+        interactor.updateLiveActivity(
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: hkWorkoutManager.restEndTime,
+            restEndsAt: interactor.restEndTime,
             statusMessage: isRestActive ? "Resting" : nil,
             totalVolumeKg: computeTotalVolumeKg(),
             elapsedTime: elapsedTime

@@ -51,7 +51,7 @@ struct CreateAccountView: View {
     NavigationStack {
         Text("Hello")
             .sheet(isPresented: Binding.constant(true)) {
-                CreateAccountView(viewModel: CreateAccountViewModel(container: DevPreview.shared.container))
+                CreateAccountView(viewModel: CreateAccountViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
             }
             .presentationDetents([.fraction(0.25)])
     }

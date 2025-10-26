@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+protocol EditableExerciseCardWrapperInteractor {
+    
+}
+
+extension CoreInteractor: EditableExerciseCardWrapperInteractor { }
+
 @Observable
 @MainActor
 class EditableExerciseCardWrapperViewModel {
-    
+    private let interactor: EditableExerciseCardWrapperInteractor
     let exercise: WorkoutExerciseModel
     let index: Int
     let weightUnit: ExerciseWeightUnit
@@ -24,7 +30,7 @@ class EditableExerciseCardWrapperViewModel {
     var localExercise: WorkoutExerciseModel
     
     init(
-        container: DependencyContainer,
+        interactor: EditableExerciseCardWrapperInteractor,
         exercise: WorkoutExerciseModel,
         index: Int,
         weightUnit: ExerciseWeightUnit,
@@ -35,6 +41,7 @@ class EditableExerciseCardWrapperViewModel {
         onWeightUnitChange: @escaping (ExerciseWeightUnit) -> Void,
         onDistanceUnitChange: @escaping (ExerciseDistanceUnit) -> Void
     ) {
+        self.interactor = interactor
         self.exercise = exercise
         self.index = index
         self.weightUnit = weightUnit

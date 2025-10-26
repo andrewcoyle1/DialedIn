@@ -31,7 +31,7 @@ struct ProfilePhysicalStatsView: View {
             toolbarContent
         }
         .sheet(isPresented: $viewModel.showLogWeightSheet) {
-            LogWeightView(viewModel: LogWeightViewModel(container: container))
+            LogWeightView(viewModel: LogWeightViewModel(interactor: CoreInteractor(container: container)))
         }
         .task {
             await viewModel.loadWeights()
@@ -252,7 +252,7 @@ struct ProfilePhysicalStatsView: View {
 
 #Preview {
     NavigationStack {
-        ProfilePhysicalStatsView(viewModel: ProfilePhysicalStatsViewModel(container: DevPreview.shared.container))
+        ProfilePhysicalStatsView(viewModel: ProfilePhysicalStatsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .environment(
         UserManager(

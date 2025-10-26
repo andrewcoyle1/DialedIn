@@ -57,7 +57,7 @@ struct AuthOptionsView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
         }
         #endif
     }

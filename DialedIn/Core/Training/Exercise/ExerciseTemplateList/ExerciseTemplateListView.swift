@@ -56,6 +56,6 @@ struct ExerciseTemplateListView: View {
 }
 
 #Preview {
-    ExerciseTemplateListView(viewModel: ExerciseTemplateListViewModel(container: DevPreview.shared.container), templateIds: [])
+    ExerciseTemplateListView(viewModel: ExerciseTemplateListViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), templateIds: [])
         .previewEnvironment()
 }

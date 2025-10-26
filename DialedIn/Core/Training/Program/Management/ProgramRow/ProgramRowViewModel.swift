@@ -7,9 +7,16 @@
 
 import SwiftUI
 
+protocol ProgramRowInteractor {
+    
+}
+
+extension CoreInteractor: ProgramRowInteractor { }
+
 @Observable
 @MainActor
 class ProgramRowViewModel {
+    private let interactor: ProgramRowInteractor
     let plan: TrainingPlan
     let isActive: Bool
     let onActivate: () -> Void
@@ -17,13 +24,14 @@ class ProgramRowViewModel {
     let onDelete: () -> Void
     
     init(
-        container: DependencyContainer,
+        interactor: ProgramRowInteractor,
         plan: TrainingPlan,
         isActive: Bool,
         onActivate: @escaping () -> Void = { },
         onEdit: @escaping () -> Void = { },
         onDelete: @escaping () -> Void = { }
     ) {
+        self.interactor = interactor
         self.plan = plan
         self.isActive = isActive
         self.onActivate = onActivate

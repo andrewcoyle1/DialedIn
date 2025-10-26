@@ -7,17 +7,25 @@
 
 import SwiftUI
 
+protocol ProgramGoalsInteractor {
+    
+}
+
+extension CoreInteractor: ProgramGoalsInteractor { }
+
 @Observable
 @MainActor
 class ProgramGoalsViewModel {
+    private let interactor: ProgramGoalsInteractor
     
     private(set) var plan: TrainingPlan
     var showAddGoal: Bool = false
     
     init(
-        container: DependencyContainer,
+        interactor: ProgramGoalsInteractor,
         plan: TrainingPlan
     ) {
+        self.interactor = interactor
         self.plan = plan
     }
 }

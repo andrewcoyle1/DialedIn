@@ -117,7 +117,7 @@ struct EditProgramView: View {
                 
                 Section {
                     NavigationLink {
-                        ProgramGoalsView(viewModel: ProgramGoalsViewModel(container: container, plan: plan))
+                        ProgramGoalsView(viewModel: ProgramGoalsViewModel(interactor: CoreInteractor(container: container), plan: plan))
                     } label: {
                         HStack {
                             Label("Manage Goals", systemImage: "target")
@@ -206,6 +206,6 @@ struct EditProgramView: View {
 }
 
 #Preview {
-    EditProgramView(viewModel: EditProgramViewModel(container: DevPreview.shared.container), plan: TrainingPlan.mock)
+    EditProgramView(viewModel: EditProgramViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), plan: TrainingPlan.mock)
         .previewEnvironment()
 }

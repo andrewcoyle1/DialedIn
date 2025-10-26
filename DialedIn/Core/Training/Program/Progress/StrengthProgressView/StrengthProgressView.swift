@@ -230,16 +230,16 @@ struct StrengthProgressView: View {
 }
 
 #Preview("Main State") {
-    StrengthProgressView(viewModel: StrengthProgressViewModel(container: DevPreview.shared.container))
+    StrengthProgressView(viewModel: StrengthProgressViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }
 
 #Preview("Is Loading") {
-    StrengthProgressView(viewModel: StrengthProgressViewModel(container: DevPreview.shared.container))
+    StrengthProgressView(viewModel: StrengthProgressViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }
 
 #Preview("No Data") {
-    StrengthProgressView(viewModel: StrengthProgressViewModel(container: DevPreview.shared.container))
+    StrengthProgressView(viewModel: StrengthProgressViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }

@@ -79,7 +79,7 @@ struct TodaysWorkoutCardView: View {
     List {
         TodaysWorkoutCardView(
             viewModel: TodaysWorkoutCardViewModel(
-                container: DevPreview.shared.container,
+                interactor: CoreInteractor(container: DevPreview.shared.container),
                 scheduledWorkout: ScheduledWorkout.mocksWeek1.first!,
                 onStart: { }
             )

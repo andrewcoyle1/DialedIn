@@ -7,27 +7,32 @@
 
 import SwiftUI
 
+protocol ProfileGoalSectionInteractor {
+    var currentUser: UserModel? { get }
+    var currentGoal: WeightGoal? { get }
+}
+
+extension CoreInteractor: ProfileGoalSectionInteractor { }
+
 @Observable
 @MainActor
 class ProfileGoalSectionViewModel {
-    private let userManager: UserManager
-    private let goalManager: GoalManager
+    private let interactor: ProfileGoalSectionInteractor
 
     var showSetGoalSheet: Bool = false
 
     var currentUser: UserModel? {
-        userManager.currentUser
+        interactor.currentUser
     }
     
     var currentGoal: WeightGoal? {
-        goalManager.currentGoal
+        interactor.currentGoal
     }
     
     init(
-        container: DependencyContainer
+        interactor: ProfileGoalSectionInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.goalManager = container.resolve(GoalManager.self)!
+        self.interactor = interactor
     }
     
     func formatWeight(_ weightKg: Double, unit: WeightUnitPreference) -> String {

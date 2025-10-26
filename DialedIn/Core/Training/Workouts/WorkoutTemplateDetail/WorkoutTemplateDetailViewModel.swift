@@ -7,12 +7,25 @@
 
 import SwiftUI
 
+protocol WorkoutTemplateDetailInteractor {
+    var currentUser: UserModel? { get }
+    var activeSession: WorkoutSessionModel? { get }
+    func favouriteWorkoutTemplate(id: String, isFavourited: Bool) async throws
+    func removeFavouritedWorkoutTemplate(workoutId: String) async throws
+    func bookmarkWorkoutTemplate(id: String, isBookmarked: Bool) async throws
+    func addBookmarkedWorkoutTemplate(workoutId: String) async throws
+    func removeBookmarkedWorkoutTemplate(workoutId: String) async throws
+    func addFavouritedWorkoutTemplate(workoutId: String) async throws
+    func removeCreatedWorkoutTemplate(workoutId: String) async throws
+    func deleteWorkoutTemplate(id: String) async throws
+}
+
+extension CoreInteractor: WorkoutTemplateDetailInteractor { }
+
 @Observable
 @MainActor
 class WorkoutTemplateDetailViewModel {
-    private let userManager: UserManager
-    private let workoutTemplateManager: WorkoutTemplateManager
-    private let workoutSessionManager: WorkoutSessionManager
+    private let interactor: WorkoutTemplateDetailInteractor
     
     private(set) var isDeleting: Bool = false
 
@@ -28,15 +41,15 @@ class WorkoutTemplateDetailViewModel {
     #endif
     
     var currentUser: UserModel? {
-        userManager.currentUser
+        interactor.currentUser
     }
     
-    init(
-        container: DependencyContainer
-    ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
+    var activeSession: WorkoutSessionModel? {
+        interactor.activeSession
+    }
+    
+    init(interactor: WorkoutTemplateDetailInteractor) {
+        self.interactor = interactor
     }
     
     func loadInitialState(template: WorkoutTemplateModel) {
@@ -52,16 +65,16 @@ class WorkoutTemplateDetailViewModel {
         do {
             // If unbookmarking and currently favourited, unfavourite first to enforce rule
             if !newState && isFavourited {
-                try await workoutTemplateManager.favouriteWorkoutTemplate(id: template.id, isFavourited: false)
+                try await interactor.favouriteWorkoutTemplate(id: template.id, isFavourited: false)
                 isFavourited = false
                 // Remove from user's favourited list
-                try await userManager.removeFavouritedWorkoutTemplate(workoutId: template.id)
+                try await interactor.removeFavouritedWorkoutTemplate(workoutId: template.id)
             }
-            try await workoutTemplateManager.bookmarkWorkoutTemplate(id: template.id, isBookmarked: newState)
+            try await interactor.bookmarkWorkoutTemplate(id: template.id, isBookmarked: newState)
             if newState {
-                try await userManager.addBookmarkedWorkoutTemplate(workoutId: template.id)
+                try await interactor.addBookmarkedWorkoutTemplate(workoutId: template.id)
             } else {
-                try await userManager.removeBookmarkedWorkoutTemplate(workoutId: template.id)
+                try await interactor.removeBookmarkedWorkoutTemplate(workoutId: template.id)
             }
             isBookmarked = newState
         } catch {
@@ -74,15 +87,15 @@ class WorkoutTemplateDetailViewModel {
         do {
             // If favouriting and not bookmarked, bookmark first to enforce rule
             if newState && !isBookmarked {
-                try await workoutTemplateManager.bookmarkWorkoutTemplate(id: template.id, isBookmarked: true)
-                try await userManager.addBookmarkedWorkoutTemplate(workoutId: template.id)
+                try await interactor.bookmarkWorkoutTemplate(id: template.id, isBookmarked: true)
+                try await interactor.addBookmarkedWorkoutTemplate(workoutId: template.id)
                 isBookmarked = true
             }
-            try await workoutTemplateManager.favouriteWorkoutTemplate(id: template.id, isFavourited: newState)
+            try await interactor.favouriteWorkoutTemplate(id: template.id, isFavourited: newState)
             if newState {
-                try await userManager.addFavouritedWorkoutTemplate(workoutId: template.id)
+                try await interactor.addFavouritedWorkoutTemplate(workoutId: template.id)
             } else {
-                try await userManager.removeFavouritedWorkoutTemplate(workoutId: template.id)
+                try await interactor.removeFavouritedWorkoutTemplate(workoutId: template.id)
             }
             isFavourited = newState
         } catch {
@@ -94,20 +107,20 @@ class WorkoutTemplateDetailViewModel {
         isDeleting = true
         do {
             // Remove from user's created templates list
-            try await userManager.removeCreatedWorkoutTemplate(workoutId: template.id)
+            try await interactor.removeCreatedWorkoutTemplate(workoutId: template.id)
             
             // Remove from bookmarked if bookmarked
             if isBookmarked {
-                try await userManager.removeBookmarkedWorkoutTemplate(workoutId: template.id)
+                try await interactor.removeBookmarkedWorkoutTemplate(workoutId: template.id)
             }
             
             // Remove from favourited if favourited
             if isFavourited {
-                try await userManager.removeFavouritedWorkoutTemplate(workoutId: template.id)
+                try await interactor.removeFavouritedWorkoutTemplate(workoutId: template.id)
             }
             
             // Delete the workout template
-            try await workoutTemplateManager.deleteWorkoutTemplate(id: template.id)
+            try await interactor.deleteWorkoutTemplate(id: template.id)
             
             // Dismiss the view after successful deletion
             onDismiss()

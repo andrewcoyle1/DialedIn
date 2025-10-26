@@ -49,7 +49,7 @@ struct WorkoutStartView: View {
             }
         }, content: {
             if let session = viewModel.createdSession {
-                WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(container: container, workoutSession: session), initialWorkoutSession: session)
+                WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(interactor: CoreInteractor(container: container), workoutSession: session), initialWorkoutSession: session)
             }
         })
     }
@@ -176,6 +176,6 @@ extension ExerciseCategory {
 }
 
 #Preview {
-    WorkoutStartView(viewModel: WorkoutStartViewModel(container: DevPreview.shared.container), template: WorkoutTemplateModel.mock)
+    WorkoutStartView(viewModel: WorkoutStartViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), template: WorkoutTemplateModel.mock)
         .previewEnvironment()
 }

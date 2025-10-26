@@ -9,7 +9,7 @@ import SwiftUI
 
 @MainActor
 @Observable
-class WorkoutTemplateManager {
+class WorkoutTemplateManager: WorkoutTemplateResolver {
     
     private let local: LocalWorkoutTemplatePersistence
     private let remote: RemoteWorkoutTemplateService

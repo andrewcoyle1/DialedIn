@@ -7,20 +7,25 @@
 
 import SwiftUI
 
+protocol WorkoutTemplateListInteractor {
+    func getWorkoutTemplates(ids: [String], limitTo: Int) async throws -> [WorkoutTemplateModel]
+    func getTopWorkoutTemplatesByClicks(limitTo: Int) async throws -> [WorkoutTemplateModel]
+}
+
+extension CoreInteractor: WorkoutTemplateListInteractor { }
+
 @Observable
 @MainActor
 class WorkoutTemplateListViewModel {
-    private let workoutTemplateManager: WorkoutTemplateManager
+    private let interactor: WorkoutTemplateListInteractor
     
     private(set) var isLoading: Bool = false
     private(set) var templates: [WorkoutTemplateModel] = []
 
     var showAlert: AnyAppAlert?
     
-    init(
-        container: DependencyContainer
-    ) {
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
+    init(interactor: WorkoutTemplateListInteractor) {
+        self.interactor = interactor
     }
     
     func loadTemplates(templateIds: [String]?) async {
@@ -33,11 +38,11 @@ class WorkoutTemplateListViewModel {
                     isLoading = false
                     return
                 }
-                let fetchedTemplates = try await workoutTemplateManager.getWorkoutTemplates(ids: templateIds, limitTo: templateIds.count)
+                let fetchedTemplates = try await interactor.getWorkoutTemplates(ids: templateIds, limitTo: templateIds.count)
                 templates = fetchedTemplates.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
             } else {
                 // Load top templates
-                let top = try await workoutTemplateManager.getTopWorkoutTemplatesByClicks(limitTo: 20)
+                let top = try await interactor.getTopWorkoutTemplatesByClicks(limitTo: 20)
                 templates = top
             }
         } catch {

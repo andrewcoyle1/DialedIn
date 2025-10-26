@@ -39,7 +39,7 @@ struct CustomProgramBuilderView: View {
             }
         }
         .sheet(item: $viewModel.startConfigTemplate) { template in
-            ProgramStartConfigView(viewModel: ProgramStartConfigViewModel(container: container), template: template) { startDate, endDate, customName in
+            ProgramStartConfigView(viewModel: ProgramStartConfigViewModel(interactor: CoreInteractor(container: container)), template: template) { startDate, endDate, customName in
                 Task { await viewModel.startProgram(template: template, startDate: startDate, endDate: endDate, customName: customName, onDismiss: { dismiss() }) }
             }
         }
@@ -207,7 +207,7 @@ struct CustomProgramBuilderView: View {
 
 #Preview {
     NavigationStack {
-        CustomProgramBuilderView(viewModel: CustomProgramBuilderViewModel(container: DevPreview.shared.container))
+        CustomProgramBuilderView(viewModel: CustomProgramBuilderViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .previewEnvironment()
 }

@@ -8,18 +8,68 @@
 import SwiftUI
 import Observation
 
-struct SplitViewContainer: View {
-    @Environment(DependencyContainer.self) private var container
-    @Environment(WorkoutSessionManager.self) private var workoutSessionManager
-    @Environment(AppNavigationModel.self) private var appNavigation
-    @State private var preferredColumn: NavigationSplitViewColumn = .sidebar
+protocol SplitViewContainerInteractor {
+    var activeSession: WorkoutSessionModel? { get }
+    var isTrackerPresented: Bool { get }
+    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
+}
 
-    @Environment(DetailNavigationModel.self) private var detail
+extension CoreInteractor: SplitViewContainerInteractor { }
+
+@Observable
+@MainActor
+class SplitViewContainerViewModel {
+    private let interactor: SplitViewContainerInteractor
+    private let workoutSessionManager: WorkoutSessionManager
+    
+    var preferredColumn: NavigationSplitViewColumn = .sidebar
+
+    var activeSession: WorkoutSessionModel? {
+        get {
+            workoutSessionManager.activeSession
+        }
+        set {
+            workoutSessionManager.activeSession = newValue
+        }
+    }
+    
+    var isTrackerPresented: Bool {
+        get {
+            workoutSessionManager.isTrackerPresented
+        }
+        set {
+            workoutSessionManager.isTrackerPresented = newValue
+        }
+    }
+    
+    init(
+        interactor: SplitViewContainerInteractor,
+        workoutSessionManager: WorkoutSessionManager
+    ) {
+        self.interactor = interactor
+        self.workoutSessionManager = workoutSessionManager
+    }
+    
+    init(
+        container: DependencyContainer
+    ) {
+        self.interactor = CoreInteractor(container: container)
+        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
+    }
+    
+    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel? {
+        try interactor.getActiveLocalWorkoutSession()
+    }
+}
+
+struct SplitViewContainer: View {
+    @State var viewModel: SplitViewContainerViewModel
+    @Environment(DependencyContainer.self) private var container
+    @Bindable var detail: DetailNavigationModel
+    @Bindable var appNavigation: AppNavigationModel
 
     var body: some View {
-        @Bindable var detail = detail
-        @Bindable var appNavigation = appNavigation
-        NavigationSplitView(columnVisibility: .constant(.all), preferredCompactColumn: $preferredColumn) {
+        NavigationSplitView(columnVisibility: .constant(.all), preferredCompactColumn: $viewModel.preferredColumn) {
             // Sidebar
             List(selection: $appNavigation.selectedSection) {
                 SwiftUI.Section {
@@ -31,8 +81,8 @@ struct SplitViewContainer: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                if let active = workoutSessionManager.activeSession, !workoutSessionManager.isTrackerPresented {
-                    TabViewAccessoryView(viewModel: TabViewAccessoryViewModel(container: container), active: active)
+                if let active = viewModel.activeSession, !viewModel.isTrackerPresented {
+                    TabViewAccessoryView(viewModel: TabViewAccessoryViewModel(interactor: CoreInteractor(container: container)), active: active)
                         .padding()
                         .buttonStyle(.bordered)
                 }
@@ -68,18 +118,18 @@ struct SplitViewContainer: View {
         }
         .navigationSplitViewStyle(.balanced)
         .sheet(isPresented: Binding(get: {
-            workoutSessionManager.isTrackerPresented
+            viewModel.isTrackerPresented
         }, set: { newValue in
-            workoutSessionManager.isTrackerPresented = newValue
+            viewModel.isTrackerPresented = newValue
         })) {
-            if let session = workoutSessionManager.activeSession {
-                WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(container: container, workoutSession: session), initialWorkoutSession: session)
+            if let session = viewModel.activeSession {
+                WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(interactor: CoreInteractor(container: container), workoutSession: session), initialWorkoutSession: session)
             }
         }
         .task {
             // Load any active session from local storage when the SplitView appears
-            if let active = try? workoutSessionManager.getActiveLocalWorkoutSession() {
-                workoutSessionManager.activeSession = active
+            if let active = try? viewModel.getActiveLocalWorkoutSession() {
+                viewModel.activeSession = active
             }
         }
         .onChange(of: appNavigation.selectedSection) { _, _ in
@@ -89,8 +139,16 @@ struct SplitViewContainer: View {
 }
 
 #Preview {
-    SplitViewContainer()
-        .previewEnvironment()
+    let container = DevPreview.shared.container
+    SplitViewContainer(
+        viewModel: SplitViewContainerViewModel(
+            interactor: CoreInteractor(container: container),
+            workoutSessionManager: container.resolve(WorkoutSessionManager.self)!
+        ),
+        detail: DetailNavigationModel(),
+        appNavigation: AppNavigationModel()
+    )
+    .previewEnvironment()
 }
 
 private extension SplitViewContainer {

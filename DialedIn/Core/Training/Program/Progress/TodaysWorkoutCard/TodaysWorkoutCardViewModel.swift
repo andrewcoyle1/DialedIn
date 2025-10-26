@@ -7,11 +7,18 @@
 
 import SwiftUI
 
+protocol TodaysWorkoutCardInteractor {
+    func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel
+    func trackEvent(event: LoggableEvent)
+}
+
+extension CoreInteractor: TodaysWorkoutCardInteractor { }
+
 @Observable
 @MainActor
 class TodaysWorkoutCardViewModel {
-    private let logManager: LogManager
-    private let workoutTemplateManager: WorkoutTemplateManager
+    private let interactor: TodaysWorkoutCardInteractor
+
     let scheduledWorkout: ScheduledWorkout
     let onStart: () -> Void
     
@@ -20,26 +27,25 @@ class TodaysWorkoutCardViewModel {
     var showAlert: AnyAppAlert?
     
     init(
-        container: DependencyContainer,
+        interactor: TodaysWorkoutCardInteractor,
         scheduledWorkout: ScheduledWorkout,
         onStart: @escaping () -> Void
     ) {
-        self.logManager = container.resolve(LogManager.self)!
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
+        self.interactor = interactor
         self.scheduledWorkout = scheduledWorkout
         self.onStart = onStart
     }
     
     func loadWorkoutDetails() async {
-        logManager.trackEvent(event: Event.loadWorkoutStart)
+        interactor.trackEvent(event: Event.loadWorkoutStart)
         do {
-            let template = try await workoutTemplateManager.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
+            let template = try await interactor.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
                 templateName = template.name
                 exerciseCount = template.exercises.count
-            logManager.trackEvent(event: Event.loadWorkoutSuccess)
+            interactor.trackEvent(event: Event.loadWorkoutSuccess)
 
         } catch {
-            logManager.trackEvent(event: Event.loadWorkoutFailure(error: error))
+            interactor.trackEvent(event: Event.loadWorkoutFailure(error: error))
             self.showAlert = AnyAppAlert(error: error)
         }
     }

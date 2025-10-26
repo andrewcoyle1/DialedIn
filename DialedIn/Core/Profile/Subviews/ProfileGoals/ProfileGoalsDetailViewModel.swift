@@ -7,38 +7,43 @@
 
 import SwiftUI
 
+protocol ProfileGoalsDetailInteractor {
+    var currentUser: UserModel? { get }
+    var currentGoal: WeightGoal? { get }
+    func getActiveGoal(userId: String) async throws -> WeightGoal?
+    func getWeightHistory(userId: String, limit: Int?) async throws -> [WeightEntry]
+}
+
+extension CoreInteractor: ProfileGoalsDetailInteractor { }
+
 @Observable
 @MainActor
 class ProfileGoalsDetailViewModel {
-    private let userManager: UserManager
-    private let userWeightManager: UserWeightManager
-    private let goalManager: GoalManager
+    private let interactor: ProfileGoalsDetailInteractor
     
     private(set) var realWeightHistory: [WeightEntry] = []
     var showLogWeightSheet: Bool = false
 
     var currentUser: UserModel? {
-        userManager.currentUser
+        interactor.currentUser
     }
     
     var currentGoal: WeightGoal? {
-        goalManager.currentGoal
+        interactor.currentGoal
     }
     
     init(
-        container: DependencyContainer
+        interactor: ProfileGoalsDetailInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.userWeightManager = container.resolve(UserWeightManager.self)!
-        self.goalManager = container.resolve(GoalManager.self)!
+        self.interactor = interactor
     }
     
     func getActiveGoal() async {
         if let user = currentUser {
             // Load active goal
-            _ = try? await goalManager.getActiveGoal(userId: user.userId)
+            _ = try? await interactor.getActiveGoal(userId: user.userId)
             // Load weight history
-            realWeightHistory = (try? await userWeightManager.getWeightHistory(userId: user.userId, limit: 10)) ?? []
+            realWeightHistory = (try? await interactor.getWeightHistory(userId: user.userId, limit: 10)) ?? []
         }
     }
     

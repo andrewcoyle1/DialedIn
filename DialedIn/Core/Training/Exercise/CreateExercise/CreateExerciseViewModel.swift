@@ -8,13 +8,22 @@
 import SwiftUI
 import PhotosUI
 
+protocol CreateExerciseInteractor {
+    var currentUser: UserModel? { get }
+    func createExerciseTemplate(exercise: ExerciseTemplateModel, image: PlatformImage?) async throws
+    func addCreatedExerciseTemplate(exerciseId: String) async throws
+    func addBookmarkedExerciseTemplate(exerciseId: String) async throws
+    func bookmarkExerciseTemplate(id: String, isBookmarked: Bool) async throws
+    func generateImage(input: String) async throws -> UIImage
+    func trackEvent(event: LoggableEvent)
+}
+
+extension CoreInteractor: CreateExerciseInteractor { }
+
 @Observable
 @MainActor
 class CreateExerciseViewModel {
-    private let userManager: UserManager
-    private let exerciseTemplateManager: ExerciseTemplateManager
-    private let aiManager: AIManager
-    private let logManager: LogManager
+    private let interactor: CreateExerciseInteractor
     
     var selectedPhotoItem: PhotosPickerItem?
     private(set) var selectedImageData: Data?
@@ -39,17 +48,14 @@ class CreateExerciseViewModel {
     }
     
     init(
-        container: DependencyContainer
+        interactor: CreateExerciseInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
-        self.aiManager = container.resolve(AIManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
+        self.interactor = interactor
     }
     
     func onImageSelectorPressed() {
         // Show the image picker sheet for selecting an image
-        logManager.trackEvent(event: Event.imageSelectorStart)
+        interactor.trackEvent(event: Event.imageSelectorStart)
         isImagePickerPresented = true
     }
 
@@ -58,16 +64,16 @@ class CreateExerciseViewModel {
             if let data = try await newItem.loadTransferable(type: Data.self) {
                 await MainActor.run {
                     selectedImageData = data
-                    logManager.trackEvent(event: Event.imageSelectorSuccess)
+                    interactor.trackEvent(event: Event.imageSelectorSuccess)
                 }
             } else {
                 await MainActor.run {
-                    logManager.trackEvent(event: Event.imageSelectorCancel)
+                    interactor.trackEvent(event: Event.imageSelectorCancel)
                 }
             }
         } catch {
             await MainActor.run {
-                logManager.trackEvent(event: Event.imageSelectorFail(error: error))
+                interactor.trackEvent(event: Event.imageSelectorFail(error: error))
             }
         }
     }
@@ -77,8 +83,8 @@ class CreateExerciseViewModel {
         isSaving = true
         
         do {
-            logManager.trackEvent(event: Event.createExerciseStart)
-            guard let userId = userManager.currentUser?.userId else {
+            interactor.trackEvent(event: Event.createExerciseStart)
+            guard let userId = interactor.currentUser?.userId else {
                 return
             }
             
@@ -97,19 +103,19 @@ class CreateExerciseViewModel {
             
             #if canImport(UIKit)
             let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
-            try await exerciseTemplateManager.createExerciseTemplate(exercise: newExercise, image: uiImage)
+            try await interactor.createExerciseTemplate(exercise: newExercise, image: uiImage)
             #elseif canImport(AppKit)
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            try await exerciseTemplateManager.createExerciseTemplate(exercise: newExercise, image: nsImage)
+            try await interactor.createExerciseTemplate(exercise: newExercise, image: nsImage)
             #endif
             // Track created template on the user document
-            try await userManager.addCreatedExerciseTemplate(exerciseId: newExercise.id)
+            try await interactor.addCreatedExerciseTemplate(exerciseId: newExercise.id)
             // Auto-bookmark authored templates
-            try await userManager.addBookmarkedExerciseTemplate(exerciseId: newExercise.id)
-            try await exerciseTemplateManager.bookmarkExerciseTemplate(id: newExercise.id, isBookmarked: true)
-            logManager.trackEvent(event: Event.createExerciseSuccess)
+            try await interactor.addBookmarkedExerciseTemplate(exerciseId: newExercise.id)
+            try await interactor.bookmarkExerciseTemplate(id: newExercise.id, isBookmarked: true)
+            interactor.trackEvent(event: Event.createExerciseSuccess)
         } catch {
-            logManager.trackEvent(event: Event.createExerciseFail(error: error))
+            interactor.trackEvent(event: Event.createExerciseFail(error: error))
             alert = AnyAppAlert(title: "Unable to save exercise", subtitle: "Please check your internet connection and try again.")
             isSaving = false
             return
@@ -122,7 +128,7 @@ class CreateExerciseViewModel {
         isGenerating = true
         Task {
             do {
-                logManager.trackEvent(event: Event.exerciseGenerateImageStart)
+                interactor.trackEvent(event: Event.exerciseGenerateImageStart)
                 let imageDescriptionBuilder = ImageDescriptionBuilder(
                     subject: .exercise,
                     mode: .marketingConcise,
@@ -137,10 +143,10 @@ class CreateExerciseViewModel {
 
                 let prompt = imageDescriptionBuilder.build()
 
-                generatedImage = try await aiManager.generateImage(input: prompt)
-                logManager.trackEvent(event: Event.exerciseGenerateImageSuccess)
+                generatedImage = try await interactor.generateImage(input: prompt)
+                interactor.trackEvent(event: Event.exerciseGenerateImageSuccess)
             } catch {
-                logManager.trackEvent(event: Event.exerciseGenerateImageFail(error: error))
+                interactor.trackEvent(event: Event.exerciseGenerateImageFail(error: error))
                 alert = AnyAppAlert(title: "Unable to generate image", subtitle: "Please try again later.")
             }
             isGenerating = false

@@ -7,12 +7,20 @@
 
 import SwiftUI
 
+protocol WorkoutHistoryInteractor {
+    var auth: UserAuthInfo? { get }
+    func getLocalWorkoutSessionsForAuthor(authorId: String, limitTo: Int) throws -> [WorkoutSessionModel]
+    func syncWorkoutSessionsFromRemote(authorId: String, limitTo: Int) async throws
+    func trackEvent(event: LoggableEvent)
+}
+
+extension CoreInteractor: WorkoutHistoryInteractor { }
+
 @Observable
 @MainActor
 class WorkoutHistoryViewModel {
-    private let authManager: AuthManager
-    private let workoutSessionManager: WorkoutSessionManager
-    private let logManager: LogManager
+    private let interactor: WorkoutHistoryInteractor
+
     private let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
     
     private(set) var sessions: [WorkoutSessionModel] = []
@@ -22,12 +30,10 @@ class WorkoutHistoryViewModel {
     var showAlert: AnyAppAlert?
 
     init(
-        container: DependencyContainer,
+        interactor: WorkoutHistoryInteractor,
         onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil
     ) {
-        self.authManager = container.resolve(AuthManager.self)!
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
+        self.interactor = interactor
         self.onSessionSelectionChanged = onSessionSelectionChanged
     }
     
@@ -39,23 +45,23 @@ class WorkoutHistoryViewModel {
     func loadInitialSessions() {
         guard !isLoading else { return }
         isLoading = true
-        logManager.trackEvent(event: Event.loadInitialSessionsStart)
+        interactor.trackEvent(event: Event.loadInitialSessionsStart)
         defer { isLoading = false }
         
         do {
-            guard let userId = authManager.auth?.uid else { return }
+            guard let userId = interactor.auth?.uid else { return }
             
             // Load from local storage (limitTo: 0 means no limit)
-            let fetchedSessions = try workoutSessionManager.getLocalWorkoutSessionsForAuthor(
+            let fetchedSessions = try interactor.getLocalWorkoutSessionsForAuthor(
                 authorId: userId,
                 limitTo: 0
             )
-            logManager.trackEvent(event: Event.loadInitialSessionsSuccess)
+            interactor.trackEvent(event: Event.loadInitialSessionsSuccess)
             // Filter to only completed sessions (with endedAt)
             sessions = fetchedSessions.filter { $0.endedAt != nil }
                 .sorted { ($0.dateCreated) > ($1.dateCreated) }
         } catch {
-            logManager.trackEvent(event: Event.loadInitialSessionsFail(error: error))
+            interactor.trackEvent(event: Event.loadInitialSessionsFail(error: error))
             showAlert = AnyAppAlert(
                 title: "We couldn't retrieve your sessions.",
                 subtitle: "Please try again later."
@@ -68,18 +74,18 @@ class WorkoutHistoryViewModel {
         defer {
             isLoading = false
         }
-        guard let userId = authManager.auth?.uid else { return }
-        logManager.trackEvent(event: Event.syncSessionsStart)
+        guard let userId = interactor.auth?.uid else { return }
+        interactor.trackEvent(event: Event.syncSessionsStart)
         do {
             // Fetch from remote and merge into local
-            try await workoutSessionManager.syncWorkoutSessionsFromRemote(authorId: userId)
-            logManager.trackEvent(event: Event.syncSessionsSuccess)
+            try await interactor.syncWorkoutSessionsFromRemote(authorId: userId, limitTo: 100)
+            interactor.trackEvent(event: Event.syncSessionsSuccess)
 
             // Reload from local
             loadInitialSessions()
 
         } catch {
-            logManager.trackEvent(event: Event.syncSessionsFail(error: error))
+            interactor.trackEvent(event: Event.syncSessionsFail(error: error))
             showAlert = AnyAppAlert(
                 title: "We couldn't retrieve your sessions.",
                 subtitle: "Please check your internet connection and try again."

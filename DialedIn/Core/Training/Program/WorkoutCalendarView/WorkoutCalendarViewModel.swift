@@ -7,13 +7,21 @@
 
 import SwiftUI
 
+protocol WorkoutCalendarInteractor {
+    var currentTrainingPlan: TrainingPlan? { get }
+    func trackEvent(event: LoggableEvent)
+    func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel
+    func getWorkoutSession(id: String) async throws -> WorkoutSessionModel
+}
+
+extension CoreInteractor: WorkoutCalendarInteractor { }
+
 @Observable
 @MainActor
 class WorkoutCalendarViewModel {
-    private let logManager: LogManager
-    private let workoutTemplateManager: WorkoutTemplateManager
-    private let workoutSessionManager: WorkoutSessionManager
-    private let trainingPlanManager: TrainingPlanManager
+    
+    private let interactor: WorkoutCalendarInteractor
+    
     private let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
     private let onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)?
 
@@ -26,18 +34,15 @@ class WorkoutCalendarViewModel {
     var showAlert: AnyAppAlert?
     
     var trainingPlan: TrainingPlan? {
-        trainingPlanManager.currentTrainingPlan
+        interactor.currentTrainingPlan
     }
     
     init(
-        container: DependencyContainer,
+        interactor: WorkoutCalendarInteractor,
         onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil,
         onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)? = nil
     ) {
-        self.logManager = container.resolve(LogManager.self)!
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
+        self.interactor = interactor
         self.onSessionSelectionChanged = onSessionSelectionChanged
         self.onWorkoutStartRequested = onWorkoutStartRequested
     }
@@ -49,7 +54,7 @@ class WorkoutCalendarViewModel {
     }
     
     func loadScheduledWorkouts() {
-        guard let plan = trainingPlanManager.currentTrainingPlan else {
+        guard let plan = interactor.currentTrainingPlan else {
             scheduledWorkouts = []
             return
         }
@@ -91,34 +96,34 @@ class WorkoutCalendarViewModel {
     }
     
     func startWorkout(_ scheduledWorkout: ScheduledWorkout) async {
-        logManager.trackEvent(event: Event.startWorkoutStart)
+        interactor.trackEvent(event: Event.startWorkoutStart)
         do {
-            let template = try await workoutTemplateManager.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
+            let template = try await interactor.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
             
             // Small delay to ensure any pending presentations complete
             try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
             
             // Notify parent to show WorkoutStartView
             onWorkoutStartRequested?(template, scheduledWorkout)
-            logManager.trackEvent(event: Event.startWorkoutSuccess)
+            interactor.trackEvent(event: Event.startWorkoutSuccess)
         } catch {
             showAlert = AnyAppAlert(error: error)
-            logManager.trackEvent(event: Event.startWorkoutFail(error: error))
+            interactor.trackEvent(event: Event.startWorkoutFail(error: error))
         }
     }
     
     func openCompletedSession(for scheduledWorkout: ScheduledWorkout) async {
         guard let sessionId = scheduledWorkout.completedSessionId else { return }
-        logManager.trackEvent(event: Event.openCompletedSessionStart)
+        interactor.trackEvent(event: Event.openCompletedSessionStart)
         do {
-            let session = try await workoutSessionManager.getWorkoutSession(id: sessionId)
+            let session = try await interactor.getWorkoutSession(id: sessionId)
             await MainActor.run {
                 onSessionSelectionChanged?(session)
-                logManager.trackEvent(event: Event.openCompletedSessionSuccess)
+                interactor.trackEvent(event: Event.openCompletedSessionSuccess)
             }
         } catch {
             showAlert = AnyAppAlert(error: error)
-            logManager.trackEvent(event: Event.openCompletedSessionFail(error: error))
+            interactor.trackEvent(event: Event.openCompletedSessionFail(error: error))
         }
     }
     

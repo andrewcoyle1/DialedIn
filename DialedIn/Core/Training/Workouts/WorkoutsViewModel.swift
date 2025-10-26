@@ -7,12 +7,25 @@
 
 import SwiftUI
 
+protocol WorkoutsInteractor {
+    var currentUser: UserModel? { get }
+    func trackEvent(event: LoggableEvent)
+    func incrementWorkoutTemplateInteraction(id: String) async throws
+    func getWorkoutTemplatesByName(name: String) async throws -> [WorkoutTemplateModel]
+    func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel]
+    func getWorkoutTemplatesForAuthor(authorId: String) async throws -> [WorkoutTemplateModel]
+    func getTopWorkoutTemplatesByClicks(limitTo: Int) async throws -> [WorkoutTemplateModel]
+    func getWorkoutTemplates(ids: [String], limitTo: Int) async throws -> [WorkoutTemplateModel]
+}
+
+extension CoreInteractor: WorkoutsInteractor { }
+
 @Observable
 @MainActor
 class WorkoutsViewModel {
-    private let userManager: UserManager
-    private let workoutTemplateManager: WorkoutTemplateManager
-    private let logManager: LogManager
+    
+    private let interactor: WorkoutsInteractor
+    
     private let onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)?
 
     private(set) var isLoading: Bool = false
@@ -30,7 +43,7 @@ class WorkoutsViewModel {
     var selectedWorkoutTemplate: WorkoutTemplateModel?
     
     var currentUser: UserModel? {
-        userManager.currentUser
+        interactor.currentUser
     }
     
     var myWorkoutIds: Set<String> {
@@ -63,17 +76,15 @@ class WorkoutsViewModel {
     }
     
     init(
-        container: DependencyContainer,
+        interactor: WorkoutsInteractor,
         onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)? = nil
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
+        self.interactor = interactor
         self.onWorkoutSelectionChanged = onWorkoutSelectionChanged
     }
     
     func onAddWorkoutPressed() {
-        logManager.trackEvent(event: Event.onAddWorkoutPressed)
+        interactor.trackEvent(event: Event.onAddWorkoutPressed)
         showCreateWorkout = true
     }
 
@@ -82,12 +93,12 @@ class WorkoutsViewModel {
         // System workouts (IDs starting with "system-") are read-only
         if !workout.id.hasPrefix("system-") {
             Task {
-                logManager.trackEvent(event: Event.incrementWorkoutStart)
+                interactor.trackEvent(event: Event.incrementWorkoutStart)
                 do {
-                    try await workoutTemplateManager.incrementWorkoutTemplateInteraction(id: workout.id)
-                    logManager.trackEvent(event: Event.incrementWorkoutSuccess)
+                    try await interactor.incrementWorkoutTemplateInteraction(id: workout.id)
+                    interactor.trackEvent(event: Event.incrementWorkoutSuccess)
                 } catch {
-                    logManager.trackEvent(event: Event.incrementWorkoutFail(error: error))
+                    interactor.trackEvent(event: Event.incrementWorkoutFail(error: error))
                 }
             }
         }
@@ -97,22 +108,22 @@ class WorkoutsViewModel {
     }
 
     func onWorkoutPressedFromFavourites(workout: WorkoutTemplateModel) {
-        logManager.trackEvent(event: Event.onWorkoutPressedFromFavourites)
+        interactor.trackEvent(event: Event.onWorkoutPressedFromFavourites)
         onWorkoutPressed(workout: workout)
     }
 
     func onWorkoutPressedFromBookmarked(workout: WorkoutTemplateModel) {
-        logManager.trackEvent(event: Event.onWorkoutPressedFromBookmarked)
+        interactor.trackEvent(event: Event.onWorkoutPressedFromBookmarked)
         onWorkoutPressed(workout: workout)
     }
 
     func onWorkoutPressedFromTrending(workout: WorkoutTemplateModel) {
-        logManager.trackEvent(event: Event.onWorkoutPressedFromTrending)
+        interactor.trackEvent(event: Event.onWorkoutPressedFromTrending)
         onWorkoutPressed(workout: workout)
     }
 
     func onWorkoutPressedFromMyTemplates(workout: WorkoutTemplateModel) {
-        logManager.trackEvent(event: Event.onWorkoutPressedFromMyTemplates)
+        interactor.trackEvent(event: Event.onWorkoutPressedFromMyTemplates)
         onWorkoutPressed(workout: workout)
     }
 
@@ -131,22 +142,22 @@ class WorkoutsViewModel {
     }
 
     func handleSearchCleared() {
-        logManager.trackEvent(event: Event.searchCleared)
+        interactor.trackEvent(event: Event.searchCleared)
         Task { await loadTopWorkoutsIfNeeded() }
     }
 
     func startFreshSearch(for query: String) {
         isLoading = true
-        logManager.trackEvent(event: Event.performWorkoutSearchStart)
+        interactor.trackEvent(event: Event.performWorkoutSearchStart)
 
-        searchWorkoutTask = Task { [workoutTemplateManager] in
+        searchWorkoutTask = Task {
             do {
                 // Debounce the search
                 try? await Task.sleep(for: .milliseconds(350))
                 guard !Task.isCancelled else { return }
 
                 // Perform the actual search
-                let results = try await workoutTemplateManager.getWorkoutTemplatesByName(name: query)
+                let results = try await interactor.getWorkoutTemplatesByName(name: query)
 
                 // Update UI on main thread
                 await MainActor.run {
@@ -166,14 +177,14 @@ class WorkoutsViewModel {
         isLoading = false
 
         if results.isEmpty {
-            logManager.trackEvent(event: Event.performWorkoutSearchEmptyResults(query: query))
+            interactor.trackEvent(event: Event.performWorkoutSearchEmptyResults(query: query))
         } else {
-            logManager.trackEvent(event: Event.performWorkoutSearchSuccess(query: query, resultCount: results.count))
+            interactor.trackEvent(event: Event.performWorkoutSearchSuccess(query: query, resultCount: results.count))
         }
     }
 
     func handleSearchError(_ error: Error) {
-        logManager.trackEvent(event: Event.performWorkoutSearchFail(error: error))
+        interactor.trackEvent(event: Event.performWorkoutSearchFail(error: error))
         isLoading = false
         workouts = []
 
@@ -186,24 +197,24 @@ class WorkoutsViewModel {
     func loadSystemWorkouts() async {
         // Load seeded system workouts from local storage
         do {
-            let allLocal = try workoutTemplateManager.getAllLocalWorkoutTemplates()
+            let allLocal = try interactor.getAllLocalWorkoutTemplates()
             systemWorkouts = allLocal.filter { $0.isSystemWorkout }
-            logManager.trackEvent(event: Event.loadSystemWorkoutsSuccess(count: systemWorkouts.count))
+            interactor.trackEvent(event: Event.loadSystemWorkoutsSuccess(count: systemWorkouts.count))
         } catch {
-            logManager.trackEvent(event: Event.loadSystemWorkoutsFail(error: error))
+            interactor.trackEvent(event: Event.loadSystemWorkoutsFail(error: error))
             systemWorkouts = []
         }
     }
     
     func loadMyWorkoutsIfNeeded() async {
-        guard let userId = userManager.currentUser?.userId else { return }
-        logManager.trackEvent(event: Event.loadMyWorkoutsStart)
+        guard let userId = interactor.currentUser?.userId else { return }
+        interactor.trackEvent(event: Event.loadMyWorkoutsStart)
         do {
-            let mine = try await workoutTemplateManager.getWorkoutTemplatesForAuthor(authorId: userId)
+            let mine = try await interactor.getWorkoutTemplatesForAuthor(authorId: userId)
             myWorkouts = mine
-            logManager.trackEvent(event: Event.loadMyWorkoutsSuccess(count: mine.count))
+            interactor.trackEvent(event: Event.loadMyWorkoutsSuccess(count: mine.count))
         } catch {
-            logManager.trackEvent(event: Event.loadMyWorkoutsFail(error: error))
+            interactor.trackEvent(event: Event.loadMyWorkoutsFail(error: error))
             showAlert = AnyAppAlert(
                 title: "Unable to Load Your Workouts",
                 subtitle: "We couldn't retrieve your custom workout templates. Please check your connection or try again later."
@@ -214,15 +225,15 @@ class WorkoutsViewModel {
     func loadTopWorkoutsIfNeeded() async {
         guard searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         isLoading = true
-        logManager.trackEvent(event: Event.loadTopWorkoutsStart)
+        interactor.trackEvent(event: Event.loadTopWorkoutsStart)
         do {
-            let top = try await workoutTemplateManager.getTopWorkoutTemplatesByClicks(limitTo: 10)
+            let top = try await interactor.getTopWorkoutTemplatesByClicks(limitTo: 10)
             workouts = top
             isLoading = false
-            logManager.trackEvent(event: Event.loadTopWorkoutsSuccess(count: top.count))
+            interactor.trackEvent(event: Event.loadTopWorkoutsSuccess(count: top.count))
         } catch {
             isLoading = false
-            logManager.trackEvent(event: Event.loadTopWorkoutsFail(error: error))
+            interactor.trackEvent(event: Event.loadTopWorkoutsFail(error: error))
             showAlert = AnyAppAlert(
                 title: "Unable to Load Trending Templates",
                 subtitle: "We couldn't load top workout templates. Please try again later."
@@ -231,9 +242,9 @@ class WorkoutsViewModel {
     }
 
     func syncSavedWorkoutsFromUser() async {
-        logManager.trackEvent(event: Event.syncWorkoutsFromCurrentUserStart)
-        guard let user = userManager.currentUser else {
-            logManager.trackEvent(event: Event.syncWorkoutsFromCurrentUserNoUid)
+        interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserStart)
+        guard let user = interactor.currentUser else {
+            interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserNoUid)
             favouriteWorkouts = []
             bookmarkedWorkouts = []
             return
@@ -243,23 +254,23 @@ class WorkoutsViewModel {
         if bookmarkedIds.isEmpty && favouritedIds.isEmpty {
             favouriteWorkouts = []
             bookmarkedWorkouts = []
-            logManager.trackEvent(event: Event.syncWorkoutsFromCurrentUserSuccess(favouriteCount: 0, bookmarkedCount: 0))
+            interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserSuccess(favouriteCount: 0, bookmarkedCount: 0))
             return
         }
         do {
             var favs: [WorkoutTemplateModel] = []
             var bookmarks: [WorkoutTemplateModel] = []
             if !favouritedIds.isEmpty {
-                favs = try await workoutTemplateManager.getWorkoutTemplates(ids: favouritedIds, limitTo: favouritedIds.count)
+                favs = try await interactor.getWorkoutTemplates(ids: favouritedIds, limitTo: favouritedIds.count)
             }
             if !bookmarkedIds.isEmpty {
-                bookmarks = try await workoutTemplateManager.getWorkoutTemplates(ids: bookmarkedIds, limitTo: bookmarkedIds.count)
+                bookmarks = try await interactor.getWorkoutTemplates(ids: bookmarkedIds, limitTo: bookmarkedIds.count)
             }
             favouriteWorkouts = favs
             bookmarkedWorkouts = bookmarks
-            logManager.trackEvent(event: Event.syncWorkoutsFromCurrentUserSuccess(favouriteCount: favs.count, bookmarkedCount: bookmarks.count))
+            interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserSuccess(favouriteCount: favs.count, bookmarkedCount: bookmarks.count))
         } catch {
-            logManager.trackEvent(event: Event.syncWorkoutsFromCurrentUserFail(error: error))
+            interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserFail(error: error))
             showAlert = AnyAppAlert(
                 title: "Unable to Load Saved Workouts",
                 subtitle: "We couldn't retrieve your saved workouts. Please try again later."
@@ -268,27 +279,27 @@ class WorkoutsViewModel {
     }
     
     func favouritesSectionViewed() {
-        logManager.trackEvent(event: Event.favouritesSectionViewed(count: favouriteWorkouts.count))
+        interactor.trackEvent(event: Event.favouritesSectionViewed(count: favouriteWorkouts.count))
     }
     
     func bookmarkedSectionViewed() {
-        logManager.trackEvent(event: Event.bookmarkedSectionViewed(count: bookmarkedOnlyWorkouts.count))
+        interactor.trackEvent(event: Event.bookmarkedSectionViewed(count: bookmarkedOnlyWorkouts.count))
     }
     
     func trendingSectionViewed() {
-        logManager.trackEvent(event: Event.trendingSectionViewed(count: visibleWorkoutTemplates.count))
+        interactor.trackEvent(event: Event.trendingSectionViewed(count: visibleWorkoutTemplates.count))
     }
     
     func emptyStateShown() {
-        logManager.trackEvent(event: Event.emptyStateShown)
+        interactor.trackEvent(event: Event.emptyStateShown)
     }
 
     func myTemplatesSectionViewed() {
-        logManager.trackEvent(event: Event.myTemplatesSectionViewed(count: myWorkoutsVisible.count))
+        interactor.trackEvent(event: Event.myTemplatesSectionViewed(count: myWorkoutsVisible.count))
     }
     
     func systemTemplatesSectionViewed() {
-        logManager.trackEvent(event: Event.systemTemplatesSectionViewed(count: systemWorkouts.count))
+        interactor.trackEvent(event: Event.systemTemplatesSectionViewed(count: systemWorkouts.count))
     }
     
     enum Event: LoggableEvent {

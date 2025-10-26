@@ -53,22 +53,31 @@ struct WorkoutScheduleRowView: View {
             ForEach(ScheduledWorkout.mocksWeek1) { workout in
                 WorkoutScheduleRowView(
                     viewModel: WorkoutScheduleRowViewModel(
-                        container: DevPreview.shared.container,
-                        workout: workout)
+                        interactor: CoreInteractor(
+                            container: DevPreview.shared.container
+                        ),
+                        workout: workout
+                    )
                 )
             }
             ForEach(ScheduledWorkout.mocksWeek2) { workout in
                 WorkoutScheduleRowView(
                     viewModel: WorkoutScheduleRowViewModel(
-                        container: DevPreview.shared.container,
-                        workout: workout)
+                        interactor: CoreInteractor(
+                            container: DevPreview.shared.container
+                        ),
+                        workout: workout
+                    )
                 )
             }
             ForEach(ScheduledWorkout.mocksWeek2) { workout in
                 WorkoutScheduleRowView(
                     viewModel: WorkoutScheduleRowViewModel(
-                        container: DevPreview.shared.container,
-                        workout: workout)
+                        interactor: CoreInteractor(
+                            container: DevPreview.shared.container
+                        ),
+                        workout: workout
+                    )
                 )
             }
         } header: {

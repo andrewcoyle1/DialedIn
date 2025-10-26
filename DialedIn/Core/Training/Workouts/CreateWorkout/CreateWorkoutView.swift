@@ -75,13 +75,14 @@ struct CreateWorkoutView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView, content: {
-                DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+                DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
             })
             #endif
             .sheet(isPresented: $viewModel.showAddExerciseModal) {
                 AddExerciseModalView(
                     viewModel: AddExerciseModalViewModel(
-                        container: container,
+                        interactor: CoreInteractor(
+                        container: container),
                         selectedExercises: $viewModel.exercises)
                 )
             }
@@ -212,8 +213,8 @@ struct CreateWorkoutView: View {
     }
     .sheet(isPresented: $showingSheet) {
         CreateWorkoutView(
-            viewModel: CreateWorkoutViewModel(
-                container: DevPreview.shared.container,
+            viewModel: CreateWorkoutViewModel(interactor: CoreInteractor(
+                container: DevPreview.shared.container),
                 workoutTemplate: WorkoutTemplateModel.mock
             )
         )
@@ -229,7 +230,8 @@ struct CreateWorkoutView: View {
     .sheet(isPresented: $showingSheet) {
         CreateWorkoutView(
             viewModel: CreateWorkoutViewModel(
-                container: DevPreview.shared.container
+                interactor: CoreInteractor(
+                container: DevPreview.shared.container)
             )
         )
     }

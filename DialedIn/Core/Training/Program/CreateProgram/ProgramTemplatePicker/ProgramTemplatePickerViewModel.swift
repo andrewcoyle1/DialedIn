@@ -7,13 +7,25 @@
 
 import SwiftUI
 
+protocol ProgramTemplatePickerInteractor {
+    var auth: UserAuthInfo? { get }
+    func getBuiltInTemplates() -> [ProgramTemplateModel]
+    func isBuiltIn(_ template: ProgramTemplateModel) -> Bool
+    func createPlanFromTemplate(
+        _ template: ProgramTemplateModel,
+        startDate: Date,
+        endDate: Date?,
+        userId: String,
+        planName: String?
+    ) async throws -> TrainingPlan
+}
+
+extension CoreInteractor: ProgramTemplatePickerInteractor { }
+
 @Observable
 @MainActor
 class ProgramTemplatePickerViewModel {
-    private let authManager: AuthManager
-    private let workoutTemplateManager: WorkoutTemplateManager
-    private let trainingPlanManager: TrainingPlanManager
-    private let programTemplateManager: ProgramTemplateManager
+    private let interactor: ProgramTemplatePickerInteractor
     
     var selectedTemplate: ProgramTemplateModel?
     private(set) var showStartDate = false
@@ -23,39 +35,39 @@ class ProgramTemplatePickerViewModel {
     var showAlert: AnyAppAlert?
     
     var uid: String? {
-        authManager.auth?.uid
+        interactor.auth?.uid
     }
     
     var programTemplates: [ProgramTemplateModel] {
-        programTemplateManager.getBuiltInTemplates()
+        interactor.getBuiltInTemplates()
     }
     
     func isBuiltIn(_ template: ProgramTemplateModel) -> Bool {
-        programTemplateManager.isBuiltIn(template)
+        interactor.isBuiltIn(template)
     }
     
     init(
-        container: DependencyContainer
+        interactor: ProgramTemplatePickerInteractor
     ) {
-        self.authManager = container.resolve(AuthManager.self)!
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
-        self.programTemplateManager = container.resolve(ProgramTemplateManager.self)!
+        self.interactor = interactor
+    }
+    
+    init(container: DependencyContainer) {
+        self.interactor = CoreInteractor(container: container)
     }
     
     func createPlanFromTemplate(_ template: ProgramTemplateModel, startDate: Date, endDate: Date?, customName: String?, onDismiss: () -> Void) async {
-        guard let userId = authManager.auth?.uid else { return }
+        guard let userId = interactor.auth?.uid else { return }
         
         isCreatingPlan = true
         
         do {
-            _ = try await trainingPlanManager.createPlanFromTemplate(
+            _ = try await interactor.createPlanFromTemplate(
                 template,
                 startDate: startDate,
                 endDate: endDate,
                 userId: userId,
-                planName: customName,
-                workoutTemplateManager: workoutTemplateManager
+                planName: customName
             )
             onDismiss()
         } catch {

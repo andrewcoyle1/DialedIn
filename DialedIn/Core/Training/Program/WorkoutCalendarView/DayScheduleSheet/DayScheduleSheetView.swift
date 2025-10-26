@@ -27,7 +27,7 @@ struct DayScheduleSheetView: View {
                             if workout.isCompleted {
                                 WorkoutSummaryCardView(
                                     viewModel: WorkoutSummaryCardViewModel(
-                                        container: container,
+                                        interactor: CoreInteractor(container: container),
                                         scheduledWorkout: workout,
                                         onTap: {
                                             Task {
@@ -38,7 +38,7 @@ struct DayScheduleSheetView: View {
                                 )
                             } else {
                                 TodaysWorkoutCardView(
-                                    viewModel: TodaysWorkoutCardViewModel(container: container,
+                                    viewModel: TodaysWorkoutCardViewModel(interactor: CoreInteractor(container: container),
                                     scheduledWorkout: workout,
                                     onStart: {
                                         Task {
@@ -70,7 +70,7 @@ struct DayScheduleSheetView: View {
             .sheet(item: $viewModel.sessionToShow) { session in
                 WorkoutSessionDetailView(
                     viewModel: WorkoutSessionDetailViewModel(
-                        container: container,
+                        interactor: CoreInteractor(container: container),
                         session: session
                     )
                 )
@@ -83,7 +83,7 @@ struct DayScheduleSheetView: View {
 #Preview {
     DayScheduleSheetView(
         viewModel: DayScheduleSheetViewModel(
-            container: DevPreview.shared.container,
+            interactor: CoreInteractor(container: DevPreview.shared.container),
             date: Date(),
             scheduledWorkouts: ScheduledWorkout.mocksWeek1,
             onStartWorkout: { _ in }
@@ -95,7 +95,7 @@ struct DayScheduleSheetView: View {
 #Preview("No Workouts Scheduled") {
     DayScheduleSheetView(
         viewModel: DayScheduleSheetViewModel(
-            container: DevPreview.shared.container,
+            interactor: CoreInteractor(container: DevPreview.shared.container),
             date: Date(),
             scheduledWorkouts: [],
             onStartWorkout: { _ in }

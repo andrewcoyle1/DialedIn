@@ -7,26 +7,24 @@
 
 import SwiftUI
 
+protocol ProfileMyTemplatesInteractor {
+    var currentUser: UserModel? { get }
+}
+
+extension CoreInteractor: ProfileMyTemplatesInteractor { }
+
 @Observable
 @MainActor
 class ProfileMyTemplatesViewModel {
-    private let userManager: UserManager
-    private let exerciseTemplateManager: ExerciseTemplateManager
-    private let workoutTemplateManager: WorkoutTemplateManager
-    private let ingredientTemplateManager: IngredientTemplateManager
-    private let recipeTemplateManager: RecipeTemplateManager
+    private let interactor: ProfileMyTemplatesInteractor
     
     var currentUser: UserModel? {
-        userManager.currentUser
+        interactor.currentUser
     }
     
     init(
-        container: DependencyContainer
+        interactor: ProfileMyTemplatesInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
-        self.ingredientTemplateManager = container.resolve(IngredientTemplateManager.self)!
-        self.recipeTemplateManager = container.resolve(RecipeTemplateManager.self)!
+        self.interactor = interactor
     }
 }

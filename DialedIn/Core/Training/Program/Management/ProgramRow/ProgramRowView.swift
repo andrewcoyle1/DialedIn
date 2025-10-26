@@ -115,7 +115,7 @@ struct ProgramRowView: View {
     List {
         ProgramRowView(
             viewModel: ProgramRowViewModel(
-                container: DevPreview.shared.container,
+                interactor: CoreInteractor(container: DevPreview.shared.container),
                 plan: TrainingPlan.mock,
                 isActive: false
             ) {

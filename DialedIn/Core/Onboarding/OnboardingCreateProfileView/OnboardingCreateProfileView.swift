@@ -57,7 +57,7 @@ struct OnboardingCreateProfileView: View {
             }
         }
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
         }
         #endif
         .onAppear(perform: prefillFromCurrentUser)

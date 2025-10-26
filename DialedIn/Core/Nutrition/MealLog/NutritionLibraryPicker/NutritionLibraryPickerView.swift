@@ -8,46 +8,29 @@
 import SwiftUI
 
 struct NutritionLibraryPickerView: View {
+    @State var viewModel: NutritionLibraryPickerViewModel
     @Environment(\.dismiss) private var dismiss
-    @Environment(IngredientTemplateManager.self) private var ingredientTemplateManager
-    @Environment(LogManager.self) private var logManager
-    @Environment(RecipeTemplateManager.self) private var recipeTemplateManager
-    
-    let onPick: (MealItemModel) -> Void
-    
-    @State private var mode: PickerMode = .ingredients
-    @State private var searchText: String = ""
-    @State private var isLoading: Bool = false
-    @State private var showAlert: AnyAppAlert?
-    
-    @State private var ingredients: [IngredientTemplateModel] = []
-    @State private var recipes: [RecipeTemplateModel] = []
-    
-    enum PickerMode: String, CaseIterable, Hashable {
-        case ingredients
-        case recipes
-    }
     
     var body: some View {
         NavigationStack {
             List {
                 Section {
-                    Picker("Type", selection: $mode) {
-                        Text("Ingredients").tag(PickerMode.ingredients)
-                        Text("Recipes").tag(PickerMode.recipes)
+                    Picker("Type", selection: $viewModel.mode) {
+                        Text("Ingredients").tag(NutritionLibraryPickerViewModel.PickerMode.ingredients)
+                        Text("Recipes").tag(NutritionLibraryPickerViewModel.PickerMode.recipes)
                     }
                     .pickerStyle(.segmented)
                 }
                 .listSectionSpacing(0)
                 .removeListRowFormatting()
                 
-                if isLoading {
+                if viewModel.isLoading {
                     Section {
                         ProgressView()
                             .frame(maxWidth: .infinity)
                     }
                 } else {
-                    switch mode {
+                    switch viewModel.mode {
                     case .ingredients:
                         ingredientsSection
                     case .recipes:
@@ -57,17 +40,17 @@ struct NutritionLibraryPickerView: View {
             }
             .navigationTitle("Add Item")
             .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $searchText)
-            .onChange(of: searchText) { _, newValue in
-                Task { await performSearch(query: newValue) }
+            .searchable(text: $viewModel.searchText)
+            .onChange(of: viewModel.searchText) { _, newValue in
+                Task { await viewModel.performSearch(query: newValue) }
             }
             .task {
-                await loadInitial()
+                await viewModel.loadInitial()
             }
             .toolbar {
                 toolbarContent
             }
-            .showCustomAlert(alert: $showAlert)
+            .showCustomAlert(alert: $viewModel.showAlert)
         }
     }
     
@@ -93,14 +76,14 @@ struct NutritionLibraryPickerView: View {
     
     private var ingredientsSection: some View {
         Section {
-            if ingredients.isEmpty {
-                Text(searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No ingredients to show yet" : "No results")
+            if viewModel.ingredients.isEmpty {
+                Text(viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No ingredients to show yet" : "No results")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(ingredients) { ingredient in
+                ForEach(viewModel.ingredients) { ingredient in
                     NavigationLink {
                         IngredientAmountView(ingredient: ingredient) { item in
-                            onPick(item)
+                            viewModel.onPick(item)
                         }
                     } label: {
                         CustomListCellView(
@@ -117,14 +100,14 @@ struct NutritionLibraryPickerView: View {
     
     private var recipesSection: some View {
         Section {
-            if recipes.isEmpty {
-                Text(searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No recipes to show yet" : "No results")
+            if viewModel.recipes.isEmpty {
+                Text(viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No recipes to show yet" : "No results")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(recipes) { recipe in
+                ForEach(viewModel.recipes) { recipe in
                     NavigationLink {
                         RecipeAmountView(recipe: recipe) { item in
-                            onPick(item)
+                            viewModel.onPick(item)
                         }
                     } label: {
                         CustomListCellView(
@@ -136,40 +119,6 @@ struct NutritionLibraryPickerView: View {
                     }
                 }
             }
-        }
-    }
-    
-    private func loadInitial() async {
-        isLoading = true
-        defer { isLoading = false }
-        do {
-            async let topIngredients = ingredientTemplateManager.getTopIngredientTemplatesByClicks(limitTo: 20)
-            async let topRecipes = recipeTemplateManager.getTopRecipeTemplatesByClicks(limitTo: 20)
-            let (ings, recs) = try await (topIngredients, topRecipes)
-            ingredients = ings
-            recipes = recs
-        } catch {
-            showAlert = AnyAppAlert(error: error)
-        }
-    }
-    
-    private func performSearch(query: String) async {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        isLoading = true
-        defer { isLoading = false }
-        do {
-            if trimmed.isEmpty {
-                await loadInitial()
-                return
-            }
-            switch mode {
-            case .ingredients:
-                ingredients = try await ingredientTemplateManager.getIngredientTemplatesByName(name: trimmed)
-            case .recipes:
-                recipes = try await recipeTemplateManager.getRecipeTemplatesByName(name: trimmed)
-            }
-        } catch {
-            showAlert = AnyAppAlert(error: error)
         }
     }
 }
@@ -373,8 +322,8 @@ private struct RecipeAmountView: View {
 }
 
 #Preview {
-    NutritionLibraryPickerView { item in
+    NutritionLibraryPickerView(viewModel: NutritionLibraryPickerViewModel(interactor: CoreInteractor(container: DevPreview.shared.container), onPick: { item in
         print(item.displayName)
-    }
+    }))
     .previewEnvironment()
 }

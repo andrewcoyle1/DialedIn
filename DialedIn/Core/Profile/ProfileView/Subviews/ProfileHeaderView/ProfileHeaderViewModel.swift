@@ -7,18 +7,24 @@
 
 import SwiftUI
 
+protocol ProfileHeaderInteractor {
+    var currentUser: UserModel? { get }
+}
+
+extension CoreInteractor: ProfileHeaderInteractor { }
+
 @Observable
 @MainActor
 class ProfileHeaderViewModel {
-    private let userManager: UserManager
+    private let interactor: ProfileHeaderInteractor
 
     var currentUser: UserModel? {
-        userManager.currentUser
+        interactor.currentUser
     }
     
     init(
-        container: DependencyContainer
+        interactor: ProfileHeaderInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
+        self.interactor = interactor
     }
 }

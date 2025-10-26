@@ -7,57 +7,64 @@
 
 import SwiftUI
 
+protocol CreateAccountInteractor {
+    func trackEvent(event: LoggableEvent)
+    func signInApple() async throws -> UserAuthInfo?
+    func signInGoogle() async throws -> UserAuthInfo
+    func logIn(auth: UserAuthInfo, image: PlatformImage?) async throws
+}
+
+extension CoreInteractor: CreateAccountInteractor { }
+
 @Observable
 @MainActor
 class CreateAccountViewModel {
-    private let authManager: AuthManager
-    private let userManager: UserManager
-    private let logManager: LogManager
-    
+    private let interactor: CreateAccountInteractor
+
     var title: String = "Create Account?"
     var subtitle: String = "Don't lose your data! Connect to an SSO provider to save your account."
     var onDidSignIn: ((_ isNewUser: Bool) -> Void)?
     
     init(
-        container: DependencyContainer
+        interactor: CreateAccountInteractor
     ) {
-        self.authManager = container.resolve(AuthManager.self)!
-        self.userManager = container.resolve(UserManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
+        self.interactor = interactor
     }
     
     func onSignInApplePressed(onDismiss: @escaping () -> Void) {
-        logManager.trackEvent(event: Event.appleAuthStart)
+        interactor.trackEvent(event: Event.appleAuthStart)
         Task {
             do {
-                let result = try await authManager.signInApple()
-                logManager.trackEvent(event: Event.appleAuthSuccess(user: result))
+                guard let result = try await interactor.signInApple() else {
+                    return
+                }
+                interactor.trackEvent(event: Event.appleAuthSuccess(user: result))
 
-                try await userManager.logIn(auth: result)
-                logManager.trackEvent(event: Event.appleAuthLoginSuccess(user: result))
+                try await interactor.logIn(auth: result, image: nil)
+                interactor.trackEvent(event: Event.appleAuthLoginSuccess(user: result))
 
                 onDidSignIn?(result.isNewUser)
                 onDismiss()
             } catch {
-                logManager.trackEvent(event: Event.appleAuthFail(error: error))
+                interactor.trackEvent(event: Event.appleAuthFail(error: error))
             }
         }
     }
     
     func onSignInGooglePressed(onDismiss: @escaping () -> Void) {
-        logManager.trackEvent(event: Event.googleAuthStart)
+        interactor.trackEvent(event: Event.googleAuthStart)
         Task {
             do {
-                let result = try await authManager.signInGoogle()
-                logManager.trackEvent(event: Event.googleAuthSuccess(user: result))
+                let result = try await interactor.signInGoogle()
+                interactor.trackEvent(event: Event.googleAuthSuccess(user: result))
 
-                try await userManager.logIn(auth: result)
-                logManager.trackEvent(event: Event.googleAuthLoginSuccess(user: result))
+                try await interactor.logIn(auth: result, image: nil)
+                interactor.trackEvent(event: Event.googleAuthLoginSuccess(user: result))
 
                 onDidSignIn?(result.isNewUser)
                 onDismiss()
             } catch {
-                logManager.trackEvent(event: Event.googleAuthFail(error: error))
+                interactor.trackEvent(event: Event.googleAuthFail(error: error))
             }
         }
     }

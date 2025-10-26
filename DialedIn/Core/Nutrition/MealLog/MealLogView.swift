@@ -8,36 +8,18 @@
 import SwiftUI
 
 struct MealLogView: View {
-    
-    @Environment(MealLogManager.self) private var mealLogManager
-    @Environment(UserManager.self) private var userManager
-    @Environment(NutritionManager.self) private var nutritionManager
-    
+    @Environment(DependencyContainer.self) private var container
+    @State var viewModel: MealLogViewModel
+
     @Binding var isShowingInspector: Bool
     @Binding var selectedIngredientTemplate: IngredientTemplateModel?
     @Binding var selectedRecipeTemplate: RecipeTemplateModel?
-    
-    @State private var selectedDate: Date = Date()
-    @State private var meals: [MealLogModel] = []
-    @State private var dailyTotals: DailyMacroTarget?
-    @State private var dailyTarget: DailyMacroTarget?
-    @State private var isLoading: Bool = false
-    @State private var showAddMealSheet: Bool = false
-    @State private var selectedMealType: MealType = .breakfast
-    @State private var showAlert: AnyAppAlert?
-    
-    @State private var navigateToMealDetailView: Bool = false
-    @State private var selectedMeal: MealLogModel?
-    
-    private var dayKey: String {
-        selectedDate.dayKey
-    }
     
     var body: some View {
         Group {
             datePickerSection
             
-            if isLoading {
+            if viewModel.isLoading {
                 Section {
                     ProgressView()
                         .frame(maxWidth: .infinity)
@@ -50,33 +32,38 @@ struct MealLogView: View {
                 addMealSection
             }
         }
-        .navigationDestination(isPresented: $navigateToMealDetailView) {
-            if let selectedMeal {
+        .navigationDestination(isPresented: $viewModel.navigateToMealDetailView) {
+            if let selectedMeal = viewModel.selectedMeal {
                 MealDetailView(meal: selectedMeal)
             } else {
                 EmptyView()
             }
         }
         .task {
-            await loadMeals()
+            await viewModel.loadMeals()
         }
-        .onChange(of: selectedDate) { _, _ in
+        .onChange(of: viewModel.selectedDate) { _, _ in
             Task {
-                await loadMeals()
+                await viewModel.loadMeals()
             }
         }
-        .sheet(isPresented: $showAddMealSheet) {
+        .sheet(isPresented: $viewModel.showAddMealSheet) {
             AddMealSheet(
-                selectedDate: selectedDate,
-                mealType: selectedMealType,
-                onSave: { meal in
-                    Task {
-                        await saveMeal(meal)
+                viewModel: AddMealSheetViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    ),
+                    selectedDate: viewModel.selectedDate,
+                    mealType: viewModel.selectedMealType,
+                    onSave: { meal in
+                        Task {
+                            await viewModel.saveMeal(meal)
+                        }
                     }
-                }
+                )
             )
         }
-        .showCustomAlert(alert: $showAlert)
+        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     // MARK: - Date Picker Section
@@ -85,7 +72,7 @@ struct MealLogView: View {
         Section {
             HStack {
                 Button {
-                    selectedDate = selectedDate.addingDays(-1)
+                    viewModel.selectedDate = viewModel.selectedDate.addingDays(-1)
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.title2)
@@ -96,7 +83,7 @@ struct MealLogView: View {
                 
                 DatePicker(
                     "",
-                    selection: $selectedDate,
+                    selection: $viewModel.selectedDate,
                     displayedComponents: .date
                 )
                 .datePickerStyle(.compact)
@@ -105,7 +92,7 @@ struct MealLogView: View {
                 Spacer()
                 
                 Button {
-                    selectedDate = selectedDate.addingDays(1)
+                    viewModel.selectedDate = viewModel.selectedDate.addingDays(1)
                 } label: {
                     Image(systemName: "chevron.right")
                         .font(.title2)
@@ -125,15 +112,15 @@ struct MealLogView: View {
                 HStack(spacing: 12) {
                     MacroStatCard(
                         title: "Calories",
-                        current: dailyTotals?.calories ?? 0,
-                        target: dailyTarget?.calories,
+                        current: viewModel.dailyTotals?.calories ?? 0,
+                        target: viewModel.dailyTarget?.calories,
                         unit: "kcal"
                     )
                     
                     MacroStatCard(
                         title: "Protein",
-                        current: dailyTotals?.proteinGrams ?? 0,
-                        target: dailyTarget?.proteinGrams,
+                        current: viewModel.dailyTotals?.proteinGrams ?? 0,
+                        target: viewModel.dailyTarget?.proteinGrams,
                         unit: "g"
                     )
                 }
@@ -141,15 +128,15 @@ struct MealLogView: View {
                 HStack(spacing: 12) {
                     MacroStatCard(
                         title: "Carbs",
-                        current: dailyTotals?.carbGrams ?? 0,
-                        target: dailyTarget?.carbGrams,
+                        current: viewModel.dailyTotals?.carbGrams ?? 0,
+                        target: viewModel.dailyTarget?.carbGrams,
                         unit: "g"
                     )
                     
                     MacroStatCard(
                         title: "Fat",
-                        current: dailyTotals?.fatGrams ?? 0,
-                        target: dailyTarget?.fatGrams,
+                        current: viewModel.dailyTotals?.fatGrams ?? 0,
+                        target: viewModel.dailyTarget?.fatGrams,
                         unit: "g"
                     )
                 }
@@ -165,13 +152,13 @@ struct MealLogView: View {
     
     private var mealsSection: some View {
         ForEach(MealType.allCases, id: \.self) { mealType in
-            let mealsForType = meals.filter { $0.mealType == mealType }
+            let mealsForType = viewModel.meals.filter { $0.mealType == mealType }
             
             Section {
                 if mealsForType.isEmpty {
                     Button {
-                        selectedMealType = mealType
-                        showAddMealSheet = true
+                        viewModel.selectedMealType = mealType
+                        viewModel.showAddMealSheet = true
                     } label: {
                         HStack {
                             Text("Add \(mealType.rawValue.capitalized)")
@@ -186,13 +173,13 @@ struct MealLogView: View {
                         MealLogRowView(meal: meal)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                selectedMeal = meal
-                                navigateToMealDetailView = true
+                                viewModel.selectedMeal = meal
+                                viewModel.navigateToMealDetailView = true
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
                                     Task {
-                                        await deleteMeal(meal)
+                                        await viewModel.deleteMeal(meal)
                                     }
                                 } label: {
                                     Label("Delete", systemImage: "trash")
@@ -213,10 +200,10 @@ struct MealLogView: View {
             Menu {
                 ForEach(MealType.allCases, id: \.self) { mealType in
                     Button {
-                        selectedMealType = mealType
-                        showAddMealSheet = true
+                        viewModel.selectedMealType = mealType
+                        viewModel.showAddMealSheet = true
                     } label: {
-                        Label(mealType.rawValue.capitalized, systemImage: mealTypeIcon(mealType))
+                        Label(mealType.rawValue.capitalized, systemImage: viewModel.mealTypeIcon(mealType))
                     }
                 }
             } label: {
@@ -230,67 +217,13 @@ struct MealLogView: View {
             }
         }
     }
-    
-    // MARK: - Helper Functions
-    
-    private func mealTypeIcon(_ mealType: MealType) -> String {
-        switch mealType {
-        case .breakfast:
-            return "sunrise.fill"
-        case .lunch:
-            return "sun.max.fill"
-        case .dinner:
-            return "moon.stars.fill"
-        case .snack:
-            return "fork.knife"
-        }
-    }
-    
-    private func loadMeals() async {
-        isLoading = true
-        defer { isLoading = false }
-        
-        do {
-            meals = try mealLogManager.getMeals(for: dayKey).sorted(by: { $0.date < $1.date })
-            dailyTotals = try mealLogManager.getDailyTotals(dayKey: dayKey)
-            
-            // Load target for the day (if diet plan exists)
-            if let user = userManager.currentUser {
-                dailyTarget = try await nutritionManager.getDailyTarget(for: selectedDate, userId: user.userId)
-            }
-        } catch {
-            showAlert = AnyAppAlert(error: error)
-        }
-    }
-    
-    private func saveMeal(_ meal: MealLogModel) async {
-        do {
-            try await mealLogManager.addMeal(meal)
-            await loadMeals()
-            showAddMealSheet = false
-        } catch {
-            showAlert = AnyAppAlert(error: error)
-        }
-    }
-    
-    private func deleteMeal(_ meal: MealLogModel) async {
-        do {
-            try await mealLogManager.deleteMealAndSync(
-                id: meal.mealId,
-                dayKey: meal.dayKey,
-                authorId: meal.authorId
-            )
-            await loadMeals()
-        } catch {
-            showAlert = AnyAppAlert(error: error)
-        }
-    }
 }
 
 #Preview {
     NavigationStack {
         List {
             MealLogView(
+                viewModel: MealLogViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)),
                 isShowingInspector: Binding.constant(false),
                 selectedIngredientTemplate: Binding.constant(nil),
                 selectedRecipeTemplate: Binding.constant(nil)

@@ -58,7 +58,8 @@ struct WorkoutTrackerView: View {
                 content: {
                     AddExerciseModalView(
                         viewModel: AddExerciseModalViewModel(
-                            container: container,
+                            interactor: CoreInteractor(
+                            container: container),
                             selectedExercises: $viewModel.pendingSelectedTemplates
                         )
                     )
@@ -121,7 +122,8 @@ struct WorkoutTrackerView: View {
                 let weightUnit = preference?.weightUnit ?? .kilograms
                 let distanceUnit = preference?.distanceUnit ?? .meters
                 let previousSets = viewModel.buildPreviousLookup(for: exercise)
-                ExerciseTrackerCard(
+                ExerciseTrackerCardView(
+                    viewModel: ExerciseTrackerCardViewModel(interactor: CoreInteractor(container: container),
                     exercise: exercise,
                     exerciseIndex: index,
                     isCurrentExercise: index == viewModel.currentExerciseIndex,
@@ -140,7 +142,7 @@ struct WorkoutTrackerView: View {
                     onRequestRestPicker: { setId, current in
                         viewModel.openRestPicker(for: setId, currentValue: current)
                         viewModel.isRestPickerOpen = true
-                    },
+                    }),
                     isExpanded: Binding(
                         get: { viewModel.expandedExerciseIds.contains(exercise.id) },
                         set: { newValue in
@@ -335,8 +337,8 @@ struct WorkoutTrackerView: View {
 
 #Preview("Tracker View") {
     WorkoutTrackerView(
-        viewModel: WorkoutTrackerViewModel(
-            container: DevPreview.shared.container,
+        viewModel: WorkoutTrackerViewModel(interactor: CoreInteractor(
+            container: DevPreview.shared.container),
             workoutSession: WorkoutSessionModel.mock
         ),
         initialWorkoutSession: WorkoutSessionModel.mock

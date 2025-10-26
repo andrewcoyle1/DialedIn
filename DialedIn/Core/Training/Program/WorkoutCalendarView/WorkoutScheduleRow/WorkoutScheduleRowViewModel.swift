@@ -7,20 +7,26 @@
 
 import SwiftUI
 
+protocol WorkoutScheduleRowInteractor {
+    func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel
+}
+
+extension CoreInteractor: WorkoutScheduleRowInteractor { }
+
 @Observable
 @MainActor
 class WorkoutScheduleRowViewModel {
-    private let workoutTemplateManager: WorkoutTemplateManager
+    private let interactor: WorkoutScheduleRowInteractor
     
     let workout: ScheduledWorkout
     var showAlert: AnyAppAlert?
     private(set) var templateName: String = "Workout"
     
     init(
-        container: DependencyContainer,
+        interactor: WorkoutScheduleRowInteractor,
         workout: ScheduledWorkout
     ) {
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
+        self.interactor = interactor
         self.workout = workout
     }
     
@@ -45,6 +51,6 @@ class WorkoutScheduleRowViewModel {
     }
     
     func loadTemplateName() async throws {
-        templateName = try await workoutTemplateManager.getWorkoutTemplate(id: workout.workoutTemplateId).name
+        templateName = try await interactor.getWorkoutTemplate(id: workout.workoutTemplateId).name
     }
 }

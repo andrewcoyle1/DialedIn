@@ -8,11 +8,18 @@
 import SwiftUI
 import PhotosUI
 
+protocol ProfileEditInteractor {
+    var currentUser: UserModel? { get }
+    func saveUser(user: UserModel, image: PlatformImage?) async throws
+    func trackEvent(eventName: String, parameters: [String: Any]?, type: LogType)
+}
+
+extension CoreInteractor: ProfileEditInteractor { }
+
 @Observable
 @MainActor
 class ProfileEditViewModel {
-    private let userManager: UserManager
-    private let logManager: LogManager
+    private let interactor: ProfileEditInteractor
     
     private(set) var isSaving: Bool = false
 
@@ -26,7 +33,7 @@ class ProfileEditViewModel {
     var showAlert: AnyAppAlert?
     
     var currentUser: UserModel? {
-        userManager.currentUser
+        interactor.currentUser
     }
     
     var canSave: Bool {
@@ -34,10 +41,9 @@ class ProfileEditViewModel {
     }
     
     init(
-        container: DependencyContainer
+        interactor: ProfileEditInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
+        self.interactor = interactor
     }
     
     func presentImagePicker() {
@@ -45,15 +51,15 @@ class ProfileEditViewModel {
     }
     
     func trackPhotoSelected() {
-        logManager.trackEvent(eventName: "profile_photo_selected")
+        interactor.trackEvent(eventName: "profile_photo_selected", parameters: [:], type: .analytic)
     }
     
     func trackPhotoLoadFailed(error: Error) {
-        logManager.trackEvent(eventName: "profile_photo_load_failed", parameters: ["error": String(describing: error)])
+        interactor.trackEvent(eventName: "profile_photo_load_failed", parameters: ["error": String(describing: error)], type: .analytic)
     }
     
     func prefillFromCurrentUser() {
-        guard let user = userManager.currentUser else { return }
+        guard let user = currentUser else { return }
         firstName = user.firstName ?? ""
         lastName = user.lastName ?? ""
         if let dob = user.dateOfBirth {
@@ -67,8 +73,8 @@ class ProfileEditViewModel {
         isSaving = true
         
         do {
-            guard let userId = userManager.currentUser?.userId else {
-                logManager.trackEvent(eventName: "profile_edit_save_failed", parameters: ["error": "Missing current user ID"])
+            guard let userId = currentUser?.userId else {
+                interactor.trackEvent(eventName: "profile_edit_save_failed", parameters: ["error": "Missing current user ID"], type: .analytic)
                 isSaving = false
                 return
             }
@@ -78,8 +84,8 @@ class ProfileEditViewModel {
             
             let user = UserModel(
                 userId: userId,
-                email: userManager.currentUser?.email,
-                isAnonymous: userManager.currentUser?.isAnonymous,
+                email: currentUser?.email,
+                isAnonymous: currentUser?.isAnonymous,
                 firstName: trimmedFirst,
                 lastName: trimmedLast.isEmpty ? nil : trimmedLast,
                 dateOfBirth: dateOfBirth,
@@ -88,16 +94,16 @@ class ProfileEditViewModel {
             
             #if canImport(UIKit)
             let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
-            try await userManager.saveUser(user: user, image: uiImage)
+            try await interactor.saveUser(user: user, image: uiImage)
             #elseif canImport(AppKit)
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            try await userManager.saveUser(user: user, image: nsImage)
+            try await interactor.saveUser(user: user, image: nsImage)
             #endif
             
-            logManager.trackEvent(eventName: "profile_edit_save_success")
+            interactor.trackEvent(eventName: "profile_edit_save_success", parameters: [:], type: .analytic)
             onDismiss()
         } catch {
-            logManager.trackEvent(eventName: "profile_edit_save_failed", parameters: ["error": String(describing: error)])
+            interactor.trackEvent(eventName: "profile_edit_save_failed", parameters: ["error": String(describing: error)], type: .analytic)
             showAlert = AnyAppAlert(
                 title: "Unable to save",
                 subtitle: "Please check your internet connection and try again."

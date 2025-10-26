@@ -67,7 +67,7 @@ struct OnboardingWeightView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
         }
         #endif
         .navigationDestination(isPresented: Binding(

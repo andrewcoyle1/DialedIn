@@ -5,11 +5,18 @@
 //  Created by Andrew Coyle on 22/10/2025.
 //
 
+protocol WorkoutHeatmapInteractor {
+    
+}
+
+extension CoreInteractor: WorkoutHeatmapInteractor { }
+
 import SwiftUI
 
 @Observable
 @MainActor
 class WorkoutHeatmapViewModel {
+    private let interactor: WorkoutHeatmapInteractor
     let calendar = Calendar.current
     let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
     
@@ -20,9 +27,10 @@ class WorkoutHeatmapViewModel {
     var selectedMonth: Date = Date()
     
     init(
-        container: DependencyContainer,
+        interactor: WorkoutHeatmapInteractor,
         progressAnalytics: ProgressAnalyticsService
     ) {
+        self.interactor = interactor
         self.progressAnalytics = progressAnalytics
     }
     

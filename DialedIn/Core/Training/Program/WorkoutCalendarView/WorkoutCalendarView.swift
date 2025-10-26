@@ -60,7 +60,7 @@ struct WorkoutCalendarView: View {
         .onAppear {
             if scheduleViewModel == nil {
                 scheduleViewModel = EnhancedScheduleViewModel(
-                    container: container,
+                    interactor: CoreInteractor(container: container),
                     getScheduledWorkouts: { viewModel.scheduledWorkouts },
                     onDateSelected: { date in
                         viewModel.selectedDate = date
@@ -81,7 +81,13 @@ struct WorkoutCalendarView: View {
 
 #Preview {
     List {
-        WorkoutCalendarView(viewModel: WorkoutCalendarViewModel(container: DevPreview.shared.container))
+        WorkoutCalendarView(
+            viewModel: WorkoutCalendarViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            )
+        )
     }
     .previewEnvironment()
 }

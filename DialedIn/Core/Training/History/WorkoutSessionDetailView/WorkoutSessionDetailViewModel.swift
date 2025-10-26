@@ -7,12 +7,22 @@
 
 import SwiftUI
 
+protocol WorkoutSessionDetailInteractor {
+    var currentUser: UserModel? { get }
+    func updateLocalWorkoutSession(session: WorkoutSessionModel) throws
+    func updateWorkoutSession(session: WorkoutSessionModel) async throws
+    func getPreference(templateId: String) -> ExerciseUnitPreference
+    func setPreference(weightUnit: ExerciseWeightUnit?, distanceUnit: ExerciseDistanceUnit?, for templateId: String)
+    func deleteLocalWorkoutSession(id: String) throws
+    func deleteWorkoutSession(id: String) async throws
+}
+
+extension CoreInteractor: WorkoutSessionDetailInteractor { }
+
 @Observable
 @MainActor
 class WorkoutSessionDetailViewModel {
-    private let userManager: UserManager
-    private let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
-    private let workoutSessionManager: WorkoutSessionManager
+    private let interactor: WorkoutSessionDetailInteractor
     
     var showDeleteConfirmation = false
     var showAlert: AnyAppAlert?
@@ -35,12 +45,10 @@ class WorkoutSessionDetailViewModel {
     }
     
     init(
-        container: DependencyContainer,
+        interactor: WorkoutSessionDetailInteractor,
         session: WorkoutSessionModel
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.exerciseUnitPreferenceManager = container.resolve(ExerciseUnitPreferenceManager.self)!
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
+        self.interactor = interactor
         self.session = session
         self.editedSession = session
     }
@@ -90,10 +98,10 @@ class WorkoutSessionDetailViewModel {
             sessionToSave.updateExercises(sessionToSave.exercises)
             
             // Save to local first
-            try workoutSessionManager.updateLocalWorkoutSession(session: sessionToSave)
+            try interactor.updateLocalWorkoutSession(session: sessionToSave)
             
             // Save to Firebase
-            try await workoutSessionManager.updateWorkoutSession(session: sessionToSave)
+            try await interactor.updateWorkoutSession(session: sessionToSave)
             
             isEditMode = false
             
@@ -119,7 +127,7 @@ class WorkoutSessionDetailViewModel {
     
     func addSet(to exerciseId: String) {
         guard let exerciseIndex = editedSession.exercises.firstIndex(where: { $0.id == exerciseId }),
-              let userId = userManager.currentUser?.userId else {
+              let userId = interactor.currentUser?.userId else {
             return
         }
         
@@ -178,7 +186,7 @@ class WorkoutSessionDetailViewModel {
     }
     
     func addSelectedExercises() {
-        guard !selectedExerciseTemplates.isEmpty, let userId = userManager.currentUser?.userId else {
+        guard !selectedExerciseTemplates.isEmpty, let userId = interactor.currentUser?.userId else {
             return
         }
         
@@ -213,7 +221,7 @@ class WorkoutSessionDetailViewModel {
     
     func loadUnitPreferences() {
         for exercise in editedSession.exercises {
-            let preference = exerciseUnitPreferenceManager.getPreference(for: exercise.templateId)
+            let preference = interactor.getPreference(templateId: exercise.templateId)
             exerciseUnitPreferences[exercise.templateId] = (
                 weightUnit: preference.weightUnit,
                 distanceUnit: preference.distanceUnit
@@ -225,7 +233,7 @@ class WorkoutSessionDetailViewModel {
         if let cached = exerciseUnitPreferences[templateId] {
             return cached
         }
-        let preference = exerciseUnitPreferenceManager.getPreference(for: templateId)
+        let preference = interactor.getPreference(templateId: templateId)
         let result = (weightUnit: preference.weightUnit, distanceUnit: preference.distanceUnit)
         exerciseUnitPreferences[templateId] = result
         return result
@@ -235,14 +243,14 @@ class WorkoutSessionDetailViewModel {
         var current = getUnitPreference(for: templateId)
         current.weightUnit = unit
         exerciseUnitPreferences[templateId] = current
-        exerciseUnitPreferenceManager.setPreference(weightUnit: unit, distanceUnit: current.distanceUnit, for: templateId)
+        interactor.setPreference(weightUnit: unit, distanceUnit: current.distanceUnit, for: templateId)
     }
     
     func updateDistanceUnit(_ unit: ExerciseDistanceUnit, for templateId: String) {
         var current = getUnitPreference(for: templateId)
         current.distanceUnit = unit
         exerciseUnitPreferences[templateId] = current
-        exerciseUnitPreferenceManager.setPreference(weightUnit: current.weightUnit, distanceUnit: unit, for: templateId)
+        interactor.setPreference(weightUnit: current.weightUnit, distanceUnit: unit, for: templateId)
     }
     
     // MARK: - Delete Session
@@ -253,10 +261,10 @@ class WorkoutSessionDetailViewModel {
         
         do {
             // Delete from local first for instant feedback
-            try workoutSessionManager.deleteLocalWorkoutSession(id: session.id)
+            try interactor.deleteLocalWorkoutSession(id: session.id)
             
             // Delete from remote in background
-            try await workoutSessionManager.deleteWorkoutSession(id: session.id)
+            try await interactor.deleteWorkoutSession(id: session.id)
             
             // Dismiss view after successful deletion
             onDismiss()

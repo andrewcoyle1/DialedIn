@@ -7,7 +7,7 @@
 
 import SwiftUI
 import Firebase
-// import FirebaseCore
+import FirebaseCore
 import FirebaseAnalytics
 import FirebaseAppCheck
 import GoogleSignIn
@@ -64,7 +64,7 @@ struct DialedInApp: App {
     
     var body: some Scene {
         WindowGroup {
-            AppView()
+            AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: delegate.dependencies.container)))
                 .environment(delegate.dependencies.container)
                 .environment(delegate.dependencies.exerciseTemplateManager)
                 .environment(delegate.dependencies.exerciseUnitPreferenceManager)
@@ -260,8 +260,8 @@ struct Dependencies {
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices(logManager: logs))
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
-            trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices())
-            programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()))
+            trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices(), workoutTemplateResolver: workoutTemplateManager)
+            programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()), workoutTemplateResolver: workoutTemplateManager)
             
             // Link managers for auto-completion
             workoutSessionManager.trainingPlanManager = trainingPlanManager
@@ -297,8 +297,8 @@ struct Dependencies {
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices(logManager: logs))
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
-            trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices())
-            programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()))
+            trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices(), workoutTemplateResolver: workoutTemplateManager)
+            programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()), workoutTemplateResolver: workoutTemplateManager)
             
             // Link managers for auto-completion
             workoutSessionManager.trainingPlanManager = trainingPlanManager

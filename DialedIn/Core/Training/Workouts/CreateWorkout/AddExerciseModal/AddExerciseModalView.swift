@@ -85,7 +85,7 @@ struct AddExerciseModalView: View {
     .sheet(isPresented: $showModal) {
         AddExerciseModalView(
             viewModel: AddExerciseModalViewModel(
-                container: DevPreview.shared.container,
+                interactor: CoreInteractor(container: DevPreview.shared.container),
                 selectedExercises: $selectedExercises
             )
         )

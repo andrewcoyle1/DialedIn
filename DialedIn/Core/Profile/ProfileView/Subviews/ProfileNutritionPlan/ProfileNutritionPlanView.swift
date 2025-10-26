@@ -15,7 +15,7 @@ struct ProfileNutritionPlanView: View {
         Section {
             if let plan = viewModel.currentDietPlan {
                 NavigationLink {
-                    ProfileNutritionDetailView(viewModel: ProfileNutritionDetailViewModel(container: container))
+                    ProfileNutritionDetailView(viewModel: ProfileNutritionDetailViewModel(interactor: CoreInteractor(container: container)))
                 } label: {
                     ProfileSectionCard(
                         icon: "fork.knife",
@@ -88,5 +88,5 @@ struct ProfileNutritionPlanView: View {
 }
 
 #Preview {
-    ProfileNutritionPlanView(viewModel: ProfileNutritionPlanViewModel(container: DevPreview.shared.container))
+    ProfileNutritionPlanView(viewModel: ProfileNutritionPlanViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
 }

@@ -7,38 +7,46 @@
 
 import SwiftUI
 
+protocol TabViewAccessoryInteractor {
+    var activeSession: WorkoutSessionModel? { get }
+    var restEndTime: Date? { get }
+    func reopenActiveSession()
+}
+
+extension CoreInteractor: TabViewAccessoryInteractor { }
+
 @Observable
 @MainActor
 class TabViewAccessoryViewModel {
-    private let workoutSessionManager: WorkoutSessionManager
+    private let interactor: TabViewAccessoryInteractor
     
     init(
-        container: DependencyContainer
+        interactor: TabViewAccessoryInteractor
     ) {
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
+        self.interactor = interactor
     }
     
     var progress: Double {
-        guard let active = workoutSessionManager.activeSession else { return 0 }
+        guard let active = interactor.activeSession else { return 0 }
         return Double(completedSetsCount(active)) / Double(totalSetsCount(active))
     }
 
     var progressLabel: String {
-        guard let active = workoutSessionManager.activeSession else { return "" }
+        guard let active = interactor.activeSession else { return "" }
         return "\(completedSetsCount(active))/\(totalSetsCount(active)) sets"
     }
     
     var isRestActive: Bool {
-        guard let end = workoutSessionManager.restEndTime else { return false }
+        guard let end = interactor.restEndTime else { return false }
         return Date() < end
     }
     
     var restEndTime: Date? {
-        workoutSessionManager.restEndTime
+        interactor.restEndTime
     }
     
     func reopenActiveSession() {
-        workoutSessionManager.reopenActiveSession()
+        interactor.reopenActiveSession()
     }
 
     func completedSetsCount(_ session: WorkoutSessionModel) -> Int {

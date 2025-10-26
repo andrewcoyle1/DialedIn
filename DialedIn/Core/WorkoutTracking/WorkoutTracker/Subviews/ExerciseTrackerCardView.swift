@@ -7,8 +7,17 @@
 
 import SwiftUI
 
-struct ExerciseTrackerCard: View {
-    @Environment(DependencyContainer.self) private var container
+protocol ExerciseTrackerCardInteractor {
+    
+}
+
+extension CoreInteractor: ExerciseTrackerCardInteractor { }
+
+@Observable
+@MainActor
+class ExerciseTrackerCardViewModel {
+    private let interactor: ExerciseTrackerCardInteractor
+    
     let exercise: WorkoutExerciseModel
     let exerciseIndex: Int
     let isCurrentExercise: Bool
@@ -27,28 +36,32 @@ struct ExerciseTrackerCard: View {
     let onRestBeforeChange: (String, Int?) -> Void
     let onRequestRestPicker: (String, Int?) -> Void
     
-    @Binding var isExpanded: Bool
-    @State private var notesDraft: String = ""
+    var notesDraft: String = ""
 
+    var completedSetsCount: Int {
+        exercise.sets.filter { $0.completedAt != nil }.count
+    }
+    
     init(
+        interactor: ExerciseTrackerCardInteractor,
         exercise: WorkoutExerciseModel,
         exerciseIndex: Int,
         isCurrentExercise: Bool,
-        weightUnit: ExerciseWeightUnit = .kilograms,
-        distanceUnit: ExerciseDistanceUnit = .meters,
-        previousSetsByIndex: [Int: WorkoutSetModel] = [:],
+        weightUnit: ExerciseWeightUnit,
+        distanceUnit: ExerciseDistanceUnit,
+        previousSetsByIndex: [Int: WorkoutSetModel],
         onSetUpdate: @escaping (WorkoutSetModel) -> Void,
         onAddSet: @escaping () -> Void,
         onDeleteSet: @escaping (String) -> Void,
         onHeaderLongPress: @escaping () -> Void,
         onNotesChange: @escaping (String) -> Void,
-        onWeightUnitChange: @escaping (ExerciseWeightUnit) -> Void = { _ in },
-        onDistanceUnitChange: @escaping (ExerciseDistanceUnit) -> Void = { _ in },
+        onWeightUnitChange: @escaping (ExerciseWeightUnit) -> Void,
+        onDistanceUnitChange: @escaping (ExerciseDistanceUnit) -> Void,
         restBeforeSecForSet: @escaping (String) -> Int?,
         onRestBeforeChange: @escaping (String, Int?) -> Void,
-        onRequestRestPicker: @escaping (String, Int?) -> Void,
-        isExpanded: Binding<Bool>
+        onRequestRestPicker: @escaping (String, Int?) -> Void
     ) {
+        self.interactor = interactor
         self.exercise = exercise
         self.exerciseIndex = exerciseIndex
         self.isCurrentExercise = isCurrentExercise
@@ -65,10 +78,14 @@ struct ExerciseTrackerCard: View {
         self.restBeforeSecForSet = restBeforeSecForSet
         self.onRestBeforeChange = onRestBeforeChange
         self.onRequestRestPicker = onRequestRestPicker
-        self._isExpanded = isExpanded
-        // Initialize local draft from model notes if available
-        self._notesDraft = State(initialValue: exercise.notes ?? "")
     }
+}
+
+struct ExerciseTrackerCardView: View {
+    @Environment(DependencyContainer.self) private var container
+    @State var viewModel: ExerciseTrackerCardViewModel
+
+    @Binding var isExpanded: Bool
     
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
@@ -80,18 +97,18 @@ struct ExerciseTrackerCard: View {
     
     private var exerciseHeader: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text("\(exerciseIndex + 1).")
+            Text("\(viewModel.exerciseIndex + 1).")
                 .font(.headline)
                 .foregroundColor(.secondary)
             
-            Text(exercise.name)
+            Text(viewModel.exercise.name)
                 .font(.headline)
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.leading)
             
-            Text("\(completedSetsCount)/\(exercise.sets.count) sets")
+            Text("\(viewModel.completedSetsCount)/\(viewModel.exercise.sets.count) sets")
                 .font(.caption)
-                .foregroundColor(completedSetsCount == exercise.sets.count ? .green : .secondary)
+                .foregroundColor(viewModel.completedSetsCount == viewModel.exercise.sets.count ? .green : .secondary)
             
             Spacer()
             
@@ -100,7 +117,7 @@ struct ExerciseTrackerCard: View {
         }
         .tappableBackground()
         .onLongPressGesture(minimumDuration: 0.4) {
-            onHeaderLongPress()
+            viewModel.onHeaderLongPress()
         }
         .listRowInsets(.vertical, .zero)
     }
@@ -109,15 +126,15 @@ struct ExerciseTrackerCard: View {
     private var unitPreferenceMenu: some View {
         Menu {
             // Show weight options for exercises that track weight
-            if exercise.trackingMode == .weightReps {
+            if viewModel.exercise.trackingMode == .weightReps {
                 Menu {
                     ForEach(ExerciseWeightUnit.allCases, id: \.self) { unit in
                         Button {
-                            onWeightUnitChange(unit)
+                            viewModel.onWeightUnitChange(unit)
                         } label: {
                             HStack {
                                 Text(unit.displayName)
-                                if unit == weightUnit {
+                                if unit == viewModel.weightUnit {
                                     Image(systemName: "checkmark")
                                 }
                             }
@@ -129,15 +146,15 @@ struct ExerciseTrackerCard: View {
             }
             
             // Show distance options for exercises that track distance
-            if exercise.trackingMode == .distanceTime {
+            if viewModel.exercise.trackingMode == .distanceTime {
                 Menu {
                     ForEach(ExerciseDistanceUnit.allCases, id: \.self) { unit in
                         Button {
-                            onDistanceUnitChange(unit)
+                            viewModel.onDistanceUnitChange(unit)
                         } label: {
                             HStack {
                                 Text(unit.displayName)
-                                if unit == distanceUnit {
+                                if unit == viewModel.distanceUnit {
                                     Image(systemName: "checkmark")
                                 }
                             }
@@ -160,38 +177,38 @@ struct ExerciseTrackerCard: View {
         // Rows (each row is its own view to keep swipe actions per-row)
         Group {
             ZStack(alignment: .topLeading) {
-                if notesDraft.isEmpty {
+                if viewModel.notesDraft.isEmpty {
                         Text("Add notes here...")
                             .foregroundStyle(.secondary)
                             .padding(.top, 8)
                             .padding(.leading, 6)
                 }
-                TextEditor(text: $notesDraft)
+                TextEditor(text: $viewModel.notesDraft)
                     .scrollContentBackground(.hidden)
                     .textInputAutocapitalization(.sentences)
-                    .onChange(of: notesDraft) { _, newValue in
-                        onNotesChange(newValue)
+                    .onChange(of: viewModel.notesDraft) { _, newValue in
+                        viewModel.onNotesChange(newValue)
                     }
             }
 
-            ForEach(exercise.sets) { set in
+            ForEach(viewModel.exercise.sets) { set in
                 SetTrackerRowView(
                     viewModel: SetTrackerRowViewModel(
                         container: container,
                         set: set,
-                        trackingMode: exercise.trackingMode,
-                        weightUnit: weightUnit,
-                        distanceUnit: distanceUnit,
-                        previousSet: previousSetsByIndex[set.index],
-                        restBeforeSec: restBeforeSecForSet(set.id),
-                        onRestBeforeChange: { onRestBeforeChange(set.id, $0) },
-                        onRequestRestPicker: { _, _ in onRequestRestPicker(set.id, restBeforeSecForSet(set.id)) },
-                        onUpdate: onSetUpdate
+                        trackingMode: viewModel.exercise.trackingMode,
+                        weightUnit: viewModel.weightUnit,
+                        distanceUnit: viewModel.distanceUnit,
+                        previousSet: viewModel.previousSetsByIndex[set.index],
+                        restBeforeSec: viewModel.restBeforeSecForSet(set.id),
+                        onRestBeforeChange: { viewModel.onRestBeforeChange(set.id, $0) },
+                        onRequestRestPicker: { _, _ in viewModel.onRequestRestPicker(set.id, viewModel.restBeforeSecForSet(set.id)) },
+                        onUpdate: viewModel.onSetUpdate
                     )
                 )
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button(role: .destructive) {
-                        onDeleteSet(set.id)
+                        viewModel.onDeleteSet(set.id)
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
@@ -202,7 +219,7 @@ struct ExerciseTrackerCard: View {
 
             // Add set button
             Button {
-                onAddSet()
+                viewModel.onAddSet()
             } label: {
                 HStack {
                     Image(systemName: "plus.circle.fill")
@@ -223,11 +240,6 @@ struct ExerciseTrackerCard: View {
         }
         .listRowInsets(.vertical, .zero)
         .listRowInsets(.leading, .zero)
-    }
-    
-    // MARK: - Computed Properties
-    private var completedSetsCount: Int {
-        exercise.sets.filter { $0.completedAt != nil }.count
     }
 }
 
@@ -275,34 +287,54 @@ private struct ExerciseTrackerCardPreviewContainer: View {
     var body: some View {
         List {
             // Current exercise styled card
-            ExerciseTrackerCard(
-                exercise: exercise,
-                exerciseIndex: 0,
-                isCurrentExercise: true,
-                onSetUpdate: handleUpdate,
-                onAddSet: handleAdd,
-                onDeleteSet: handleDelete,
-                onHeaderLongPress: {},
-                onNotesChange: { exercise.notes = $0 },
-                restBeforeSecForSet: { _ in nil },
-                onRestBeforeChange: { _, _ in },
-                onRequestRestPicker: { _, _ in },
+            ExerciseTrackerCardView(
+                viewModel: ExerciseTrackerCardViewModel(
+                    interactor: CoreInteractor(
+                        container: DevPreview.shared.container
+                    ),
+                    exercise: exercise,
+                    exerciseIndex: 0,
+                    isCurrentExercise: true,
+                    weightUnit: .kilograms,
+                    distanceUnit: .meters,
+                    previousSetsByIndex: [:],
+                    onSetUpdate: handleUpdate,
+                    onAddSet: handleAdd,
+                    onDeleteSet: handleDelete,
+                    onHeaderLongPress: {},
+                    onNotesChange: { exercise.notes = $0 },
+                    onWeightUnitChange: { _ in },
+                    onDistanceUnitChange: { _ in },
+                    restBeforeSecForSet: { _ in nil },
+                    onRestBeforeChange: { _, _ in },
+                    onRequestRestPicker: { _, _ in }
+                ),
                 isExpanded: $isExpandedCurrent
             )
-
+            
             // Non-current exercise styled card
-            ExerciseTrackerCard(
-                exercise: exercise,
-                exerciseIndex: 1,
-                isCurrentExercise: false,
-                onSetUpdate: handleUpdate,
-                onAddSet: handleAdd,
-                onDeleteSet: handleDelete,
-                onHeaderLongPress: {},
-                onNotesChange: { exercise.notes = $0 },
-                restBeforeSecForSet: { _ in nil },
-                onRestBeforeChange: { _, _ in },
-                onRequestRestPicker: { _, _ in },
+            ExerciseTrackerCardView(
+                viewModel: ExerciseTrackerCardViewModel(
+                    interactor: CoreInteractor(
+                        container: DevPreview.shared.container
+                    ),
+                    exercise: exercise,
+                    exerciseIndex: 1,
+                    isCurrentExercise: false,
+                    weightUnit: .kilograms,
+                    distanceUnit: .meters,
+                    previousSetsByIndex: [:],
+                    onSetUpdate: handleUpdate,
+                    onAddSet: handleAdd,
+                    onDeleteSet: handleDelete,
+                    onHeaderLongPress: {},
+                    onNotesChange: { exercise.notes = $0 },
+                    onWeightUnitChange: { _ in },
+                    onDistanceUnitChange: { _ in },
+                    restBeforeSecForSet: { _ in nil },
+                    onRestBeforeChange: { _, _ in },
+                    onRequestRestPicker: { _, _ in }
+                ),
                 isExpanded: $isExpandedOther
             )
         }

@@ -29,12 +29,12 @@ struct ProfileView: View {
         List {
             if let user = viewModel.currentUser,
                let firstName = user.firstName, !firstName.isEmpty {
-                ProfileHeaderView(viewModel: ProfileHeaderViewModel(container: container))
-                ProfilePhysicalMetricsView(viewModel: ProfilePhysicalMetricsViewModel(container: container))
-                ProfileGoalSection(viewModel: ProfileGoalSectionViewModel(container: container))
-                ProfileNutritionPlanView(viewModel: ProfileNutritionPlanViewModel(container: container))
-                ProfilePreferencesView(viewModel: ProfilePreferencesViewModel(container: container))
-                ProfileMyTemplatesView(viewModel: ProfileMyTemplatesViewModel(container: container))
+                ProfileHeaderView(viewModel: ProfileHeaderViewModel(interactor: CoreInteractor(container: container)))
+                ProfilePhysicalMetricsView(viewModel: ProfilePhysicalMetricsViewModel(interactor: CoreInteractor(container: container)))
+                ProfileGoalSection(viewModel: ProfileGoalSectionViewModel(interactor: CoreInteractor(container: container)))
+                ProfileNutritionPlanView(viewModel: ProfileNutritionPlanViewModel(interactor: CoreInteractor(container: container)))
+                ProfilePreferencesView(viewModel: ProfilePreferencesViewModel(interactor: CoreInteractor(container: container)))
+                ProfileMyTemplatesView(viewModel: ProfileMyTemplatesViewModel(interactor: CoreInteractor(container: container)))
             } else {
                 createProfileSection
             }
@@ -44,17 +44,17 @@ struct ProfileView: View {
         .navigationBarTitleDisplayMode(.large)
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView, content: {
-            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
         })
         #endif
         .sheet(isPresented: $viewModel.showCreateProfileSheet) {
-            CreateAccountView(viewModel: CreateAccountViewModel(container: container))
+            CreateAccountView(viewModel: CreateAccountViewModel(interactor: CoreInteractor(container: container)))
                 .presentationDetents([
                     .fraction(0.4)
                 ])
         }
         .sheet(isPresented: $viewModel.showNotifications) {
-            NotificationsView()
+            NotificationsView(viewModel: NotificationsViewModel(interactor: CoreInteractor(container: container)))
         }
         .sheet(isPresented: $viewModel.showSetGoalSheet) {
             SetGoalFlowView()
@@ -108,7 +108,7 @@ struct ProfileView: View {
         }
         ToolbarItem(placement: .topBarTrailing) {
             NavigationLink {
-                SettingsView(viewModel: SettingsViewModel(container: container))
+                SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: container)))
             } label: {
                 Image(systemName: "gear")
             }
@@ -122,11 +122,11 @@ struct ProfileView: View {
 
 // MARK: - Previews
 #Preview("User Has Profile") {
-    return ProfileView(viewModel: ProfileViewModel(container: DevPreview.shared.container))
+    return ProfileView(viewModel: ProfileViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }
 
 #Preview("User No Profile") {
-    ProfileView(viewModel: ProfileViewModel(container: DevPreview.shared.container))
+    ProfileView(viewModel: ProfileViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }

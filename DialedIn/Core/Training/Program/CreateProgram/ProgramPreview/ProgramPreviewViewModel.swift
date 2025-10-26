@@ -7,11 +7,23 @@
 
 import SwiftUI
 
+protocol ProgramPreviewInteractor {
+    var auth: UserAuthInfo? { get }
+    func instantiateTemplate(
+        _ template: ProgramTemplateModel,
+        for userId: String,
+        startDate: Date,
+        endDate: Date?,
+        planName: String?
+    ) -> TrainingPlan
+}
+
+extension CoreInteractor: ProgramPreviewInteractor { }
+
 @Observable
 @MainActor
 class ProgramPreviewViewModel {
-    private let authManager: AuthManager
-    private let programTemplateManager: ProgramTemplateManager
+    private let interactor: ProgramPreviewInteractor
     
     private(set) var previewPlan: TrainingPlan?
     private(set) var template: ProgramTemplateModel?
@@ -22,10 +34,9 @@ class ProgramPreviewViewModel {
     }
     
     init(
-        container: DependencyContainer
+        interactor: ProgramPreviewInteractor
     ) {
-        self.authManager = container.resolve(AuthManager.self)!
-        self.programTemplateManager = container.resolve(ProgramTemplateManager.self)!
+        self.interactor = interactor
     }
     
     func setTemplate(_ template: ProgramTemplateModel) {
@@ -37,12 +48,13 @@ class ProgramPreviewViewModel {
     }
     
     func generatePreview() {
-        guard let userId = authManager.auth?.uid else { return }
+        guard let userId = interactor.auth?.uid else { return }
         guard let template else { return }
-        previewPlan = programTemplateManager.instantiateTemplate(
+        previewPlan = interactor.instantiateTemplate(
             template,
             for: userId,
             startDate: currentStartDate,
+            endDate: nil,
             planName: nil
         )
     }

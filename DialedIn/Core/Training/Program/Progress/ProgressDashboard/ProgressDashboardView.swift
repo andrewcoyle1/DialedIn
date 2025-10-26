@@ -228,6 +228,6 @@ struct ProgressDashboardView: View {
 }
 
 #Preview {
-    return ProgressDashboardView(viewModel: ProgressDashboardViewModel(container: DevPreview.shared.container))
+    return ProgressDashboardView(viewModel: ProgressDashboardViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }

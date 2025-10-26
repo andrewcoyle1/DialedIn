@@ -7,14 +7,24 @@
 
 import SwiftUI
 
+protocol CustomProgramBuilderInteractor {
+    var auth: UserAuthInfo? { get }
+    func create(_ template: ProgramTemplateModel) async throws
+    func createPlanFromTemplate(
+        _ template: ProgramTemplateModel,
+        startDate: Date,
+        endDate: Date?,
+        userId: String,
+        planName: String?
+    ) async throws -> TrainingPlan
+}
+
+extension CoreInteractor: CustomProgramBuilderInteractor { }
+
 @Observable
 @MainActor
 class CustomProgramBuilderViewModel {
-    private let authManager: AuthManager
-    private let userManager: UserManager
-    private let workoutTemplateManager: WorkoutTemplateManager
-    private let trainingPlanManager: TrainingPlanManager
-    private let programTemplateManager: ProgramTemplateManager
+    private let interactor: CustomProgramBuilderInteractor
     
     private(set) var isSaving: Bool = false
     private(set) var isStarting: Bool = false
@@ -35,13 +45,9 @@ class CustomProgramBuilderViewModel {
     }
     
     init(
-        container: DependencyContainer
+        interactor: CustomProgramBuilderInteractor
     ) {
-        self.authManager = container.resolve(AuthManager.self)!
-        self.userManager = container.resolve(UserManager.self)!
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
-        self.programTemplateManager = container.resolve(ProgramTemplateManager.self)!
+        self.interactor = interactor
     }
     
     func resizeWeeks(to count: Int) {
@@ -93,7 +99,7 @@ class CustomProgramBuilderViewModel {
             focusAreas: Array(selectedFocusAreas).sorted { $0.rawValue < $1.rawValue },
             weekTemplates: weekTemplates,
             isPublic: false,
-            authorId: authManager.auth?.uid
+            authorId: interactor.auth?.uid
         )
     }
     
@@ -102,7 +108,7 @@ class CustomProgramBuilderViewModel {
         isSaving = true
         defer { isSaving = false }
         do {
-            try await programTemplateManager.create(template)
+            try await interactor.create(template)
             onDismiss()
         } catch {
             showAlert = AnyAppAlert(error: error)
@@ -110,17 +116,16 @@ class CustomProgramBuilderViewModel {
     }
     
     func startProgram(template: ProgramTemplateModel, startDate: Date, endDate: Date?, customName: String?, onDismiss: @escaping () -> Void) async {
-        guard let userId = authManager.auth?.uid else { return }
+        guard let userId = interactor.auth?.uid else { return }
         isStarting = true
         defer { isStarting = false }
         do {
-            _ = try await trainingPlanManager.createPlanFromTemplate(
+            _ = try await interactor.createPlanFromTemplate(
                 template,
                 startDate: startDate,
                 endDate: endDate,
                 userId: userId,
-                planName: customName,
-                workoutTemplateManager: workoutTemplateManager
+                planName: customName
             )
             onDismiss()
         } catch {

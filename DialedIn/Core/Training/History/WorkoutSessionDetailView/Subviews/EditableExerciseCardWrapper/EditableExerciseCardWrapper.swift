@@ -41,7 +41,7 @@ struct EditableExerciseCardWrapper: View {
     List {
         EditableExerciseCardWrapper(
             viewModel: EditableExerciseCardWrapperViewModel(
-                container: DevPreview.shared.container,
+                interactor: CoreInteractor(container: DevPreview.shared.container),
                 exercise: WorkoutExerciseModel.mock,
                 index: 1,
                 weightUnit: ExerciseWeightUnit.kilograms,

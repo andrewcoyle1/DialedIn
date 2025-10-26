@@ -17,7 +17,7 @@ struct ProfileGoalSection: View {
             if let goal = viewModel.currentGoal,
                let user = viewModel.currentUser {
                 NavigationLink {
-                    ProfileGoalsDetailView(viewModel: ProfileGoalsDetailViewModel(container: container))
+                    ProfileGoalsDetailView(viewModel: ProfileGoalsDetailViewModel(interactor: CoreInteractor(container: container)))
                 } label: {
                     ProfileSectionCard(
                         icon: "target",
@@ -99,6 +99,6 @@ struct ProfileGoalSection: View {
 }
 
 #Preview {
-    ProfileGoalSection(viewModel: ProfileGoalSectionViewModel(container: DevPreview.shared.container))
+    ProfileGoalSection(viewModel: ProfileGoalSectionViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }

@@ -43,7 +43,7 @@ struct ProgramManagementView: View {
                 ProgramTemplatePickerView(viewModel: ProgramTemplatePickerViewModel(container: container))
             }
             .sheet(item: $viewModel.editingPlan) { plan in
-                EditProgramView(viewModel: EditProgramViewModel(container: container), plan: plan)
+                EditProgramView(viewModel: EditProgramViewModel(interactor: CoreInteractor(container: container)), plan: plan)
             }
             .showCustomAlert(alert: $viewModel.showDeleteAlert)
             .overlay {
@@ -63,7 +63,7 @@ struct ProgramManagementView: View {
                 Section {
                     ProgramRowView(
                         viewModel: ProgramRowViewModel(
-                            container: container,
+                            interactor: CoreInteractor(container: container),
                             plan: activePlan,
                             isActive: true,
                             onActivate: {},
@@ -107,7 +107,7 @@ struct ProgramManagementView: View {
                     ForEach(inactivePlans) { plan in
                         ProgramRowView(
                             viewModel: ProgramRowViewModel(
-                                container: container,
+                                interactor: CoreInteractor(container: container),
                                 plan: plan,
                                 isActive: false,
                                 onActivate: {
@@ -162,6 +162,6 @@ struct ProgramManagementView: View {
 }
 
 #Preview {
-    ProgramManagementView(viewModel: ProgramManagementViewModel(container: DevPreview.shared.container))
+    ProgramManagementView(viewModel: ProgramManagementViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }

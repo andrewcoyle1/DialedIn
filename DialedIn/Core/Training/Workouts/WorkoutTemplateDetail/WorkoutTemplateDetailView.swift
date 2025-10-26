@@ -11,17 +11,13 @@ struct WorkoutTemplateDetailView: View {
     @Environment(DependencyContainer.self) private var container
 
     @State var viewModel: WorkoutTemplateDetailViewModel
-    
-    @Environment(UserManager.self) private var userManager
-    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
-    @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.editMode) private var editMode
     
     let workoutTemplate: WorkoutTemplateModel
     
     private var isAuthor: Bool {
-        userManager.currentUser?.userId == workoutTemplate.authorId
+        viewModel.currentUser?.userId == workoutTemplate.authorId
     }
     
     var body: some View {
@@ -42,7 +38,7 @@ struct WorkoutTemplateDetailView: View {
         .showCustomAlert(alert: $viewModel.showAlert)
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
         }
         #endif
         .toolbar {
@@ -56,13 +52,13 @@ struct WorkoutTemplateDetailView: View {
             viewModel.isFavourited = user?.favouritedWorkoutTemplateIds?.contains(workoutTemplate.id) ?? false
         }
         .sheet(isPresented: $viewModel.showStartSessionSheet) {
-            WorkoutStartView(viewModel: WorkoutStartViewModel(container: container), template: workoutTemplate)
-                .environment(userManager)
+            WorkoutStartView(viewModel: WorkoutStartViewModel(interactor: CoreInteractor(container: container)), template: workoutTemplate)
         }
         .sheet(isPresented: $viewModel.showEditSheet) {
             CreateWorkoutView(
                 viewModel: CreateWorkoutViewModel(
-                    container: container,
+                    interactor: CoreInteractor(
+                    container: container),
                     workoutTemplate: workoutTemplate)
             )
         }
@@ -107,10 +103,10 @@ struct WorkoutTemplateDetailView: View {
             } label: {
                 Image(systemName: viewModel.isFavourited ? "heart.fill" : "heart")
             }
-            .disabled(workoutSessionManager.activeSession != nil)
+            .disabled(viewModel.activeSession != nil)
         }
         // Hide bookmark button when the current user is the author
-        if userManager.currentUser?.userId != nil && userManager.currentUser?.userId != workoutTemplate.authorId {
+        if viewModel.currentUser?.userId != nil && viewModel.currentUser?.userId != workoutTemplate.authorId {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
@@ -191,7 +187,7 @@ struct WorkoutTemplateDetailView: View {
 
 #Preview {
     NavigationStack {
-        WorkoutTemplateDetailView(viewModel: WorkoutTemplateDetailViewModel(container: DevPreview.shared.container), workoutTemplate: WorkoutTemplateModel.mock)
+        WorkoutTemplateDetailView(viewModel: WorkoutTemplateDetailViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), workoutTemplate: WorkoutTemplateModel.mock)
     }
     .previewEnvironment()
 }

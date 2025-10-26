@@ -7,25 +7,31 @@
 
 import SwiftUI
 
+protocol GoalRowInteractor {
+    func removeGoal(id: String) async throws
+}
+
+extension CoreInteractor: GoalRowInteractor { }
+
 @Observable
 @MainActor
 class GoalRowViewModel {
-    private let trainingPlanManager: TrainingPlanManager
+    private let interactor: GoalRowInteractor
     
     let goal: TrainingGoal
     let plan: TrainingPlan
     
     init(
-        container: DependencyContainer,
+        interactor: GoalRowInteractor,
         goal: TrainingGoal,
         plan: TrainingPlan
     ) {
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
+        self.interactor = interactor
         self.goal = goal
         self.plan = plan
     }
     
     func removeGoal() async {
-        try? await trainingPlanManager.removeGoal(id: goal.id)
+        try? await interactor.removeGoal(id: goal.id)
     }
 }

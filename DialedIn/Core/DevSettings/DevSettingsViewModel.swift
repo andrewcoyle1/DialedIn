@@ -8,17 +8,32 @@
 import SwiftUI
 import SwiftfulUtilities
 
+protocol DevSettingsInteractor {
+    var auth: UserAuthInfo? { get }
+    var currentUser: UserModel? { get }
+    var currentTrainingPlan: TrainingPlan? { get }
+    var activeSession: WorkoutSessionModel? { get }
+    func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel]
+    func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel]
+    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
+    func getCurrentWeek() -> TrainingWeek?
+    func getTodaysWorkouts() -> [ScheduledWorkout]
+    func getAllLocalWorkoutSessions() throws -> [WorkoutSessionModel]
+    func updatePlan(_ plan: TrainingPlan) async throws
+    func trackEvent(event: LoggableEvent)
+    func getWorkoutSession(id: String) async throws -> WorkoutSessionModel
+    func clearAllTrainingPlanLocalData() throws
+    func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws
+    func logOut()
+    func signOut() throws
+}
+
+extension CoreInteractor: DevSettingsInteractor { }
+
 @Observable
 @MainActor
 class DevSettingsViewModel {
-    
-    private let authManager: AuthManager
-    private let userManager: UserManager
-    private let exerciseTemplateManager: ExerciseTemplateManager
-    private let workoutTemplateManager: WorkoutTemplateManager
-    private let workoutSessionManager: WorkoutSessionManager
-    private let trainingPlanManager: TrainingPlanManager
-    private let logManager: LogManager
+    private let interactor: DevSettingsInteractor
     
     private(set) var isReseeding = false
     private(set) var reseedingMessage = ""
@@ -29,23 +44,17 @@ class DevSettingsViewModel {
     var testSessionId = ""
 
     init(
-        container: DependencyContainer
+        interactor: DevSettingsInteractor
     ) {
-        self.authManager = container.resolve(AuthManager.self)!
-        self.userManager = container.resolve(UserManager.self)!
-        self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
+        self.interactor = interactor
     }
     
     func authParams() -> [(key: String, value: Any)] {
-        authManager.auth?.eventParameters.asAlphabeticalArray ?? []
+        interactor.auth?.eventParameters.asAlphabeticalArray ?? []
     }
     
     func userParams() -> [(key: String, value: Any)] {
-        userManager.currentUser?.eventParameters.asAlphabeticalArray ?? []
+        interactor.currentUser?.eventParameters.asAlphabeticalArray ?? []
     }
     
     func deviceParams() -> [(key: String, value: Any)] {
@@ -53,35 +62,35 @@ class DevSettingsViewModel {
     }
     
     func getLocalExercises() -> [ExerciseTemplateModel] {
-        (try? exerciseTemplateManager.getAllLocalExerciseTemplates()) ?? []
+        (try? interactor.getAllLocalExerciseTemplates()) ?? []
     }
     
     func getLocalWorkoutTemplates() -> [WorkoutTemplateModel] {
-        (try? workoutTemplateManager.getAllLocalWorkoutTemplates()) ?? []
+        (try? interactor.getAllLocalWorkoutTemplates()) ?? []
     }
     
     func getLocalTrainingPlan() -> TrainingPlan? {
-        trainingPlanManager.currentTrainingPlan
+        interactor.currentTrainingPlan
     }
     
     func getCurrentTrainingPlanWeek() -> TrainingWeek? {
-        trainingPlanManager.getCurrentWeek()
+        interactor.getCurrentWeek()
     }
     
     func getTodaysWorkouts() -> [ScheduledWorkout] {
-        trainingPlanManager.getTodaysWorkouts()
+        interactor.getTodaysWorkouts()
     }
     
     func getActiveSession() -> WorkoutSessionModel? {
-        workoutSessionManager.activeSession
+        interactor.activeSession
     }
     
     func getActiveLocalWorkoutSession() -> WorkoutSessionModel? {
-        try? workoutSessionManager.getActiveLocalWorkoutSession()
+        try? interactor.getActiveLocalWorkoutSession()
     }
     
     func getRecentWorkoutSessions() -> [WorkoutSessionModel] {
-        (try? workoutSessionManager.getAllLocalWorkoutSessions()) ?? []
+        (try? interactor.getAllLocalWorkoutSessions()) ?? []
     }
     
     func dismiss(_ dismiss: ()) {
@@ -137,7 +146,7 @@ class DevSettingsViewModel {
         isReseeding = true
         reseedingMessage = "Resetting today's workouts..."
         
-        guard var plan = trainingPlanManager.currentTrainingPlan else {
+        guard var plan = interactor.currentTrainingPlan else {
             reseedingMessage = "No active plan"
             try? await Task.sleep(nanoseconds: 1_000_000_000)
             isReseeding = false
@@ -169,7 +178,7 @@ class DevSettingsViewModel {
         }
         
         // Save updated plan
-        try? await trainingPlanManager.updatePlan(plan)
+        try? await interactor.updatePlan(plan)
         
         reseedingMessage = "Reset complete!"
         
@@ -184,7 +193,7 @@ class DevSettingsViewModel {
         fetchedSession = nil
         
         do {
-            let session = try await workoutSessionManager.getWorkoutSession(id: testSessionId)
+            let session = try await interactor.getWorkoutSession(id: testSessionId)
             await MainActor.run {
                 fetchedSession = session
                 isFetchingSession = false
@@ -198,37 +207,37 @@ class DevSettingsViewModel {
     }
     
     func onForceFreshAnonUser() {
-        logManager.trackEvent(event: Event.forceSignOutStart)
+        interactor.trackEvent(event: Event.forceSignOutStart)
         Task {
-            guard let userId = userManager.currentUser?.userId else {
+            guard let userId = interactor.currentUser?.userId else {
                 // No user, just sign out
                 signOutAuth()
                 return
             }
             
             // 1. Stop all listeners FIRST to prevent permission errors
-            logManager.trackEvent(event: Event.clearTrainingPlansStart)
+            interactor.trackEvent(event: Event.clearTrainingPlansStart)
             do {
                 // Stop TrainingPlanManager listener
                 try
-                trainingPlanManager.clearAllLocalData()
-                logManager.trackEvent(event: Event.clearTrainingPlansSuccess)
+                interactor.clearAllTrainingPlanLocalData()
+                interactor.trackEvent(event: Event.clearTrainingPlansSuccess)
             } catch {
-                logManager.trackEvent(event: Event.clearTrainingPlansFail(error: error))
+                interactor.trackEvent(event: Event.clearTrainingPlansFail(error: error))
             }
             
             // 2. Clear ALL local data
             // Clear workout sessions
-            logManager.trackEvent(event: Event.clearWorkoutSessionsStart)
+            interactor.trackEvent(event: Event.clearWorkoutSessionsStart)
             do {
-                try workoutSessionManager.deleteAllLocalWorkoutSessionsForAuthor(authorId: userId)
-                logManager.trackEvent(event: Event.clearWorkoutSessionsSuccess)
+                try interactor.deleteAllLocalWorkoutSessionsForAuthor(authorId: userId)
+                interactor.trackEvent(event: Event.clearWorkoutSessionsSuccess)
             } catch {
-                logManager.trackEvent(event: Event.clearWorkoutSessionsFail(error: error))
+                interactor.trackEvent(event: Event.clearWorkoutSessionsFail(error: error))
             }
             
             // Clear user data and stop UserManager listener
-            userManager.logOut()
+            interactor.logOut()
             
             // 3. Sign out (account remains intact in Firebase)
             signOutAuth()
@@ -238,12 +247,12 @@ class DevSettingsViewModel {
     }
     
     func signOutAuth() {
-        logManager.trackEvent(event: Event.authSignOutStart)
+        interactor.trackEvent(event: Event.authSignOutStart)
         do {
-            try authManager.signOut()
-            logManager.trackEvent(event: Event.authSignOutSuccess)
+            try interactor.signOut()
+            interactor.trackEvent(event: Event.authSignOutSuccess)
         } catch {
-            logManager.trackEvent(event: Event.authSignOutFail(error: error))
+            interactor.trackEvent(event: Event.authSignOutFail(error: error))
         }
     }
     

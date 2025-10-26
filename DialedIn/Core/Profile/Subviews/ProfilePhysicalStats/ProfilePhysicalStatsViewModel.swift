@@ -7,33 +7,39 @@
 
 import SwiftUI
 
+protocol ProfilePhysicalStatsInteractor {
+    var currentUser: UserModel? { get }
+    var weightHistory: [WeightEntry] { get }
+    func getWeightHistory(userId: String, limit: Int?) async throws -> [WeightEntry]
+}
+
+extension CoreInteractor: ProfilePhysicalStatsInteractor { }
+
 @Observable
 @MainActor
 class ProfilePhysicalStatsViewModel {
-    private let userManager: UserManager
-    private let userWeightManager: UserWeightManager
+    private let interactor: ProfilePhysicalStatsInteractor
     
     private(set) var weights: [WeightEntry] = []
 
     var showLogWeightSheet: Bool = false
 
     var currentUser: UserModel? {
-        userManager.currentUser
+        interactor.currentUser
     }
     
     var weightHistory: [WeightEntry] {
-        userWeightManager.weightHistory
+        interactor.weightHistory
     }
     init(
-        container: DependencyContainer
+        interactor: ProfilePhysicalStatsInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
-        self.userWeightManager = container.resolve(UserWeightManager.self)!
+        self.interactor = interactor
     }
     
     func loadWeights() async {
         if let user = currentUser {
-            weights = (try? await userWeightManager.getWeightHistory(userId: user.userId, limit: 5)) ?? []
+            weights = (try? await interactor.getWeightHistory(userId: user.userId, limit: 5)) ?? []
         }
     }
     

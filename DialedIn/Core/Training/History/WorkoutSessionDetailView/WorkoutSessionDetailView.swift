@@ -93,7 +93,8 @@ struct WorkoutSessionDetailView: View {
         .sheet(isPresented: $viewModel.showAddExerciseSheet, onDismiss: viewModel.addSelectedExercises) {
             AddExerciseModalView(
                 viewModel: AddExerciseModalViewModel(
-                    container: container,
+                    interactor: CoreInteractor(
+                    container: container),
                     selectedExercises: $viewModel.selectedExerciseTemplates
                 )
             )
@@ -173,7 +174,7 @@ struct WorkoutSessionDetailView: View {
                     let preference = viewModel.getUnitPreference(for: exercise.templateId)
                     EditableExerciseCardWrapper(
                         viewModel: EditableExerciseCardWrapperViewModel(
-                            container: container,
+                            interactor: CoreInteractor(container: container),
                         exercise: exercise,
                         index: index + 1,
                         weightUnit: preference.weightUnit,
@@ -259,7 +260,7 @@ struct WorkoutSessionDetailView: View {
     NavigationStack {
         WorkoutSessionDetailView(
             viewModel: WorkoutSessionDetailViewModel(
-                container: DevPreview.shared.container,
+                interactor: CoreInteractor(container: DevPreview.shared.container),
                 session: .mock
             )
         )

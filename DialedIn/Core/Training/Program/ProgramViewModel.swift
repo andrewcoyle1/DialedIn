@@ -7,17 +7,29 @@
 
 import SwiftUI
 
+protocol ProgramInteractor {
+    var currentTrainingPlan: TrainingPlan? { get }
+    func getAdherenceRate() -> Double
+    func getCurrentWeek() -> TrainingWeek?
+    func getUpcomingWorkouts(limit: Int) -> [ScheduledWorkout]
+    func getTodaysWorkouts() -> [ScheduledWorkout]
+    func trackEvent(event: LoggableEvent)
+    func getWeeklyProgress(for weekNumber: Int) -> WeekProgress
+    func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel
+    func getLocalWorkoutSession(id: String) throws -> WorkoutSessionModel
+    func getAuthId() throws -> String
+    func setUserId(_ userId: String)
+    func syncFromRemote() async throws
+}
+
+extension CoreInteractor: ProgramInteractor { }
+
 @Observable
 @MainActor
 class ProgramViewModel {
     
-    private let authManager: AuthManager
-    private let logManager: LogManager
-    private let exerciseTemplateManager: ExerciseTemplateManager
-    private let workoutTemplateManager: WorkoutTemplateManager
-    private let workoutSessionManager: WorkoutSessionManager
-    private let trainingPlanManager: TrainingPlanManager
-    private let programTemplateManager: ProgramTemplateManager
+    private let interactor: ProgramInteractor
+    
     private let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
     private let onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)?
     private let onActiveSheetChanged: ((ActiveSheet?) -> Void)?
@@ -31,28 +43,28 @@ class ProgramViewModel {
     var showAlert: AnyAppAlert?
     
     var currentTrainingPlan: TrainingPlan? {
-        trainingPlanManager.currentTrainingPlan
+        interactor.currentTrainingPlan
     }
     
     var adherenceRate: Double {
-        trainingPlanManager.getAdherenceRate()
+        interactor.getAdherenceRate()
     }
     
     var currentWeek: TrainingWeek? {
-        trainingPlanManager.getCurrentWeek()
+        interactor.getCurrentWeek()
     }
     
     var upcomingWorkouts: [ScheduledWorkout] {
-        trainingPlanManager.getUpcomingWorkouts()
+        interactor.getUpcomingWorkouts(limit: 5)
     }
     
     var todaysWorkouts: [ScheduledWorkout] {
-        trainingPlanManager.getTodaysWorkouts()
+        interactor.getTodaysWorkouts()
     }
     
     var navigationSubtitle: String {
-        if let plan = trainingPlanManager.currentTrainingPlan {
-            let todaysWorkouts = trainingPlanManager.getTodaysWorkouts()
+        if let plan = interactor.currentTrainingPlan {
+            let todaysWorkouts = interactor.getTodaysWorkouts()
             if !todaysWorkouts.isEmpty {
                 let completedCount = todaysWorkouts.filter { $0.isCompleted }.count
                 if completedCount == todaysWorkouts.count {
@@ -62,7 +74,7 @@ class ProgramViewModel {
                 }
             }
             
-            let upcomingCount = trainingPlanManager.getUpcomingWorkouts(limit: 1).count
+            let upcomingCount = interactor.getUpcomingWorkouts(limit: 1).count
             if upcomingCount > 0 {
                 return "\(plan.name) • Next workout scheduled"
             } else {
@@ -72,18 +84,12 @@ class ProgramViewModel {
         return ""
     }
     init(
-        container: DependencyContainer,
+        interactor: ProgramInteractor,
         onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil,
         onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)? = nil,
         onActiveSheetChanged: ((ActiveSheet?) -> Void)? = nil
     ) {
-        self.authManager = container.resolve(AuthManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
-        self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
-        self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
-        self.programTemplateManager = container.resolve(ProgramTemplateManager.self)!
+        self.interactor = interactor
         self.onSessionSelectionChanged = onSessionSelectionChanged
         self.onWorkoutStartRequested = onWorkoutStartRequested
         self.onActiveSheetChanged = onActiveSheetChanged
@@ -92,16 +98,16 @@ class ProgramViewModel {
     func setActiveSheet(_ activeSheet: ActiveSheet) {
         self.activeSheet = activeSheet
         onActiveSheetChanged?(activeSheet)
-        logManager.trackEvent(event: Event.setActiveSheet(sheet: activeSheet))
+        interactor.trackEvent(event: Event.setActiveSheet(sheet: activeSheet))
     }
     
     func getWeeklyProgress(weekNumber: Int) -> WeekProgress {
-        logManager.trackEvent(event: Event.getWeeklyProgress)
-        return trainingPlanManager.getWeeklyProgress(for: weekNumber)
+        interactor.trackEvent(event: Event.getWeeklyProgress)
+        return interactor.getWeeklyProgress(for: weekNumber)
     }
     
     func getWorkoutsForDay(_ day: Date, calendar: Calendar) -> [ScheduledWorkout] {
-        (trainingPlanManager.currentTrainingPlan?.weeks.flatMap { $0.scheduledWorkouts } ?? [])
+        (interactor.currentTrainingPlan?.weeks.flatMap { $0.scheduledWorkouts } ?? [])
             .filter { workout in
                 guard let scheduled = workout.scheduledDate else { return false }
                 return calendar.isDate(scheduled, inSameDayAs: day)
@@ -147,34 +153,34 @@ class ProgramViewModel {
     }
     
     func startWorkout(_ scheduledWorkout: ScheduledWorkout) async {
-        logManager.trackEvent(event: Event.startWorkoutRequestedStart)
+        interactor.trackEvent(event: Event.startWorkoutRequestedStart)
         do {
-            let template = try await workoutTemplateManager.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
+            let template = try await interactor.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
             
             // Small delay to ensure any pending presentations complete
             try? await Task.sleep(for: .seconds(0.1))
             
             // Notify parent to show WorkoutStartView
             onWorkoutStartRequested?(template, scheduledWorkout)
-            logManager.trackEvent(event: Event.startWorkoutRequestedSuccess)
+            interactor.trackEvent(event: Event.startWorkoutRequestedSuccess)
 
         } catch {
-            logManager.trackEvent(event: Event.startWorkoutRequestedFail(error: error))
+            interactor.trackEvent(event: Event.startWorkoutRequestedFail(error: error))
             self.showAlert = AnyAppAlert(error: error)
         }
     }
 
     func openCompletedSession(for scheduledWorkout: ScheduledWorkout) {
         guard let sessionId = scheduledWorkout.completedSessionId else { return }
-        logManager.trackEvent(event: Event.openCompletedSessionStart)
+        interactor.trackEvent(event: Event.openCompletedSessionStart)
         do {
-            let session = try workoutSessionManager.getLocalWorkoutSession(id: sessionId)
+            let session = try interactor.getLocalWorkoutSession(id: sessionId)
                 selectedHistorySession = session
                 onSessionSelectionChanged?(session)
-                logManager.trackEvent(event: Event.openCompletedSessionSuccess)
+            interactor.trackEvent(event: Event.openCompletedSessionSuccess)
         } catch {
             showAlert = AnyAppAlert(error: error)
-            logManager.trackEvent(event: Event.openCompletedSessionFail(error: error))
+            interactor.trackEvent(event: Event.openCompletedSessionFail(error: error))
         }
     }
     
@@ -182,30 +188,30 @@ class ProgramViewModel {
     
     private func ensureUserIdIsSet() {
         // Ensure userId is set in trainingPlanManager before syncing
-        if let userId = try? authManager.getAuthId() {
-            trainingPlanManager.setUserId(userId)
+        if let userId = try? interactor.getAuthId() {
+            interactor.setUserId(userId)
         }
     }
     
     func loadData() async {
         ensureUserIdIsSet()
-        logManager.trackEvent(event: Event.loadDataStart)
+        interactor.trackEvent(event: Event.loadDataStart)
         do {
-            try await trainingPlanManager.syncFromRemote()
-            logManager.trackEvent(event: Event.loadDataSuccess)
+            try await interactor.syncFromRemote()
+            interactor.trackEvent(event: Event.loadDataSuccess)
         } catch {
-            logManager.trackEvent(event: Event.loadDataFail(error: error))
+            interactor.trackEvent(event: Event.loadDataFail(error: error))
         }
     }
     
     func refreshData() async {
         ensureUserIdIsSet()
-        logManager.trackEvent(event: Event.refreshDataStart)
+        interactor.trackEvent(event: Event.refreshDataStart)
         do {
-            try await trainingPlanManager.syncFromRemote()
-            logManager.trackEvent(event: Event.refreshDataSuccess)
+            try await interactor.syncFromRemote()
+            interactor.trackEvent(event: Event.refreshDataSuccess)
         } catch {
-            logManager.trackEvent(event: Event.refreshDataFail(error: error))
+            interactor.trackEvent(event: Event.refreshDataFail(error: error))
             showAlert = AnyAppAlert(error: error)
         }
     }

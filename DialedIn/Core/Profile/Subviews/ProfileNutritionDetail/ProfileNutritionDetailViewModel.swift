@@ -7,17 +7,23 @@
 
 import Foundation
 
+protocol ProfileNutritionDetailInteractor {
+    var currentDietPlan: DietPlan? { get }
+}
+
+extension CoreInteractor: ProfileNutritionDetailInteractor { }
+
 @Observable
 @MainActor
 class ProfileNutritionDetailViewModel {
-    private let nutritionManager: NutritionManager
+    private let interactor: ProfileNutritionDetailInteractor
     
     var currentDietPlan: DietPlan? {
-        nutritionManager.currentDietPlan
+        interactor.currentDietPlan
     }
     init(
-        container: DependencyContainer
+        interactor: ProfileNutritionDetailInteractor
     ) {
-        self.nutritionManager = container.resolve(NutritionManager.self)!
+        self.interactor = interactor
     }
 }

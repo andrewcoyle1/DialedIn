@@ -40,7 +40,7 @@ struct OnboardingWelcomeView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $showDebugView) {
-                DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+                DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
             }
             #endif
             .screenAppearAnalytics(name: "Welcome")

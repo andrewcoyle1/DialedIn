@@ -72,7 +72,7 @@ struct ProgramPreviewView: View {
 #Preview {
     NavigationStack {
         ProgramPreviewView(
-            viewModel: ProgramPreviewViewModel(container: DevPreview.shared.container),
+            viewModel: ProgramPreviewViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)),
             template: .pushPullLegs,
             startDate: Date()
         )

@@ -15,10 +15,12 @@ struct AdaptiveMainView: View {
 
     var body: some View {
         #if targetEnvironment(macCatalyst)
-        SplitViewContainer()
-            .environment(detail)
-            .environment(appNavigation)
-            .layoutMode(.splitView)
+        SplitViewContainer(
+            viewModel: SplitViewContainerViewModel(container: container),
+            detail: detail,
+            appNavigation: appNavigation
+        )
+        .layoutMode(.splitView)
         #else
         if horizontalSizeClass == .compact {
 //            if UIDevice.current.userInterfaceIdiom == .phone || horizontalSizeClass == .compact {
@@ -27,10 +29,12 @@ struct AdaptiveMainView: View {
                 .environment(appNavigation)
                 .layoutMode(.tabBar)
         } else {
-            SplitViewContainer()
-                .environment(detail)
-                .environment(appNavigation)
-                .layoutMode(.splitView)
+            SplitViewContainer(
+                viewModel: SplitViewContainerViewModel(container: container),
+                detail: detail,
+                appNavigation: appNavigation
+            )
+            .layoutMode(.splitView)
         }
         #endif
     }

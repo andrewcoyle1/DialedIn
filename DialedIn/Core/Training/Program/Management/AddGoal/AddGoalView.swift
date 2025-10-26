@@ -76,6 +76,6 @@ struct AddGoalView: View {
 }
 
 #Preview {
-    AddGoalView(viewModel: AddGoalViewModel(container: DevPreview.shared.container), plan: TrainingPlan.mock)
+    AddGoalView(viewModel: AddGoalViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), plan: TrainingPlan.mock)
         .previewEnvironment()
 }

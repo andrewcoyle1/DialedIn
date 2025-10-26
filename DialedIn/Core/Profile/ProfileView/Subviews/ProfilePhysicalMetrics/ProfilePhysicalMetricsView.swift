@@ -15,7 +15,7 @@ struct ProfilePhysicalMetricsView: View {
         Section {
             if let user = viewModel.currentUser {
                 NavigationLink {
-                    ProfilePhysicalStatsView(viewModel: ProfilePhysicalStatsViewModel(container: container))
+                    ProfilePhysicalStatsView(viewModel: ProfilePhysicalStatsViewModel(interactor: CoreInteractor(container: container)))
                 } label: {
                     ProfileSectionCard(
                         icon: "figure.walk",
@@ -74,6 +74,6 @@ struct ProfilePhysicalMetricsView: View {
 
 #Preview {
     List {
-        ProfilePhysicalMetricsView(viewModel: ProfilePhysicalMetricsViewModel(container: DevPreview.shared.container))
+        ProfilePhysicalMetricsView(viewModel: ProfilePhysicalMetricsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
 }

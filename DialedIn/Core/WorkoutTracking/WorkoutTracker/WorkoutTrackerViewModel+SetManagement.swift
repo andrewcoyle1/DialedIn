@@ -46,11 +46,11 @@ extension WorkoutTrackerViewModel {
         }
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        liveActivityManager.updateLiveActivity(
+        interactor.updateLiveActivity(
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: hkWorkoutManager.restEndTime,
+            restEndsAt: interactor.restEndTime,
             statusMessage: isRestActive ? "Resting" : nil,
             totalVolumeKg: computeTotalVolumeKg(),
             elapsedTime: elapsedTime
@@ -60,7 +60,7 @@ extension WorkoutTrackerViewModel {
     
     func addSet(to exerciseId: String) {
         guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }),
-              let userId = userManager.currentUser?.userId else {
+              let userId = interactor.currentUser?.userId else {
             return
         }
         
@@ -91,11 +91,11 @@ extension WorkoutTrackerViewModel {
         saveWorkoutProgress()
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        liveActivityManager.updateLiveActivity(
+        interactor.updateLiveActivity(
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: hkWorkoutManager.restEndTime,
+            restEndsAt: interactor.restEndTime,
             statusMessage: isRestActive ? "Resting" : nil,
             totalVolumeKg: computeTotalVolumeKg(),
             elapsedTime: elapsedTime
@@ -120,11 +120,11 @@ extension WorkoutTrackerViewModel {
         saveWorkoutProgress()
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        liveActivityManager.updateLiveActivity(
+        interactor.updateLiveActivity(
             session: workoutSession,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: hkWorkoutManager.restEndTime,
+            restEndsAt: interactor.restEndTime,
             statusMessage: isRestActive ? "Resting" : nil,
             totalVolumeKg: computeTotalVolumeKg(),
             elapsedTime: elapsedTime

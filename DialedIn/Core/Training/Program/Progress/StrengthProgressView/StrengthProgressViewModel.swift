@@ -7,11 +7,17 @@
 
 import SwiftUI
 
+protocol StrengthProgressInteractor {
+    func getProgressSnapshot(for period: DateInterval) async throws -> ProgressSnapshot
+    func getStrengthProgression(for exerciseId: String, in period: DateInterval) async throws -> StrengthProgression?
+}
+
+extension CoreInteractor: StrengthProgressInteractor { }
+
 @Observable
 @MainActor
 class StrengthProgressViewModel {
-    private let exerciseTemplateManager: ExerciseTemplateManager
-    private let trainingAnalyticsManager: TrainingAnalyticsManager
+    private let interactor: StrengthProgressInteractor
     
     private(set) var strengthMetrics: StrengthMetrics?
     private(set) var isLoading = false
@@ -20,10 +26,9 @@ class StrengthProgressViewModel {
     var exerciseProgression: StrengthProgression?
 
     init(
-        container: DependencyContainer
+        interactor: StrengthProgressInteractor
     ) {
-        self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
-        self.trainingAnalyticsManager = container.resolve(TrainingAnalyticsManager.self)!
+        self.interactor = interactor
     }
     
     func loadStrengthData() async {
@@ -31,7 +36,7 @@ class StrengthProgressViewModel {
         defer { isLoading = false }
         
         do {
-            let snapshot = try await trainingAnalyticsManager.getProgressSnapshot(for: selectedPeriod.dateInterval)
+            let snapshot = try await interactor.getProgressSnapshot(for: selectedPeriod.dateInterval)
             strengthMetrics = snapshot.strengthMetrics
             
             // Auto-select first PR if available
@@ -45,7 +50,7 @@ class StrengthProgressViewModel {
     
     func loadExerciseProgression(_ exerciseId: String) async {
         do {
-            let progression = try await trainingAnalyticsManager.getStrengthProgression(
+            let progression = try await interactor.getStrengthProgression(
                 for: exerciseId,
                 in: selectedPeriod.dateInterval
             )

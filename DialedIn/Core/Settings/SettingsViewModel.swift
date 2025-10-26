@@ -8,12 +8,23 @@
 import SwiftUI
 import SwiftfulUtilities
 
+protocol SettingsInteractor {
+    var auth: UserAuthInfo? { get }
+    func signOut() throws
+    func logOut()
+    func deleteCurrentUser() async throws
+    func deleteUserProfile()
+    func deleteAccount() async throws
+    func reauthenticateApple() async throws
+    func trackEvent(event: LoggableEvent)
+}
+
+extension CoreInteractor: SettingsInteractor { }
+
 @Observable
 @MainActor
 class SettingsViewModel {
-    private let authManager: AuthManager
-    private let userManager: UserManager
-    private let logManager: LogManager
+    private let interactor: SettingsInteractor
     
     private(set) var isAnonymousUser: Bool = false
     private(set) var isPremium: Bool = false
@@ -26,31 +37,29 @@ class SettingsViewModel {
     var showAlert: AnyAppAlert?
     
     init(
-        container: DependencyContainer
+        interactor: SettingsInteractor
     ) {
-        self.authManager = container.resolve(AuthManager.self)!
-        self.userManager = container.resolve(UserManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
+        self.interactor = interactor
     }
     
     func onRatingsButtonPressed() {
-        logManager.trackEvent(event: Event.ratingsPressed)
+        interactor.trackEvent(event: Event.ratingsPressed)
         showRatingsModal = true
     }
 
     func onEnjoyingAppYesPressed() {
-        logManager.trackEvent(event: Event.ratingsYesPressed)
+        interactor.trackEvent(event: Event.ratingsYesPressed)
         showRatingsModal = false
         AppStoreRatingsHelper.requestRatingsReview()
     }
 
     func onEnjoyingAppNoPressed() {
-        logManager.trackEvent(event: Event.ratingsNoPressed)
+        interactor.trackEvent(event: Event.ratingsNoPressed)
         showRatingsModal = false
     }
 
     func onContactUsPressed() {
-        logManager.trackEvent(event: Event.contactUsPressed)
+        interactor.trackEvent(event: Event.contactUsPressed)
         let email = "andrewcoyle.1@outlook.com"
         let emailString = "mailto:\(email)"
         guard let url = URL(string: emailString), UIApplication.shared.canOpenURL(url) else {
@@ -59,7 +68,80 @@ class SettingsViewModel {
 
         UIApplication.shared.open(url)
     }
+    
+    /// Business Logic
+    
+    func setAnonymousAccountStatus() {
+        isAnonymousUser = interactor.auth?.isAnonymous == true
+    }
+    
+    func onSignOutPressed(onDismiss: @escaping () -> Void) {
+        interactor.trackEvent(event: Event.signOutStart)
+        Task {
+            do {
+                try interactor.signOut()
+                interactor.logOut()
+                interactor.trackEvent(event: Event.signOutSuccess)
 
+                onDismiss()
+            } catch {
+                interactor.trackEvent(event: Event.signOutFail(error: error))
+
+                showAlert = AnyAppAlert(error: error)
+            }
+        }
+    }
+    
+    private func dismissScreen(onDismiss: @escaping () -> Void) async {
+        onDismiss()
+    }
+    
+    func onDeleteAccountPressed(onDismiss: @escaping () -> Void) {
+        interactor.trackEvent(event: Event.deleteAccountStart)
+        nonisolated(unsafe) let onDismissCopy = onDismiss
+
+        showAlert = AnyAppAlert(
+            title: "Delete Account?",
+            subtitle: "This action is permanent and cannot be undone. Your data will be deleted from our server forever.",
+            buttons: {
+                AnyView(
+                    Button("Delete", role: .destructive, action: {
+                        self.onDeleteAccountConfirmed(onDismiss: onDismissCopy)
+                    })
+                )
+            }
+        )
+    }
+    
+    private func onDeleteAccountConfirmed(onDismiss: @escaping () -> Void) {
+        interactor.trackEvent(event: Event.deleteAccountStartConfirm)
+
+        Task {
+            do {
+                // Require recent authentication before destructive deletion
+                try await interactor.reauthenticateApple()
+                // Ensure app-side data removal completes while auth still valid,
+                // then remove auth account.
+                try await interactor.deleteCurrentUser()
+                try await interactor.deleteAccount()
+                
+                interactor.deleteUserProfile()
+                interactor.trackEvent(event: Event.deleteAccountSuccess)
+
+                onDismiss()
+            } catch {
+                interactor.trackEvent(event: Event.deleteAccountFail(error: error))
+                showAlert = AnyAppAlert(error: error)
+            }
+        }
+    }
+    
+    func onCreateAccountPressed() {
+        interactor.trackEvent(event: Event.createAccountPressed)
+
+        showCreateAccountView = true
+    }
+    
     /// Logger Events
     enum Event: LoggableEvent {
         case signOutStart
@@ -110,78 +192,5 @@ class SettingsViewModel {
                 
             }
         }
-    }
-    
-    /// Business Logic
-    
-    func setAnonymousAccountStatus() {
-        isAnonymousUser = authManager.auth?.isAnonymous == true
-    }
-    
-    func onSignOutPressed(onDismiss: @escaping () -> Void) {
-        logManager.trackEvent(event: Event.signOutStart)
-        Task {
-            do {
-                try authManager.signOut()
-                userManager.logOut()
-                logManager.trackEvent(event: Event.signOutSuccess)
-
-                onDismiss()
-            } catch {
-                logManager.trackEvent(event: Event.signOutFail(error: error))
-
-                showAlert = AnyAppAlert(error: error)
-            }
-        }
-    }
-    
-    private func dismissScreen(onDismiss: @escaping () -> Void) async {
-        onDismiss()
-    }
-    
-    func onDeleteAccountPressed(onDismiss: @escaping () -> Void) {
-        logManager.trackEvent(event: Event.deleteAccountStart)
-        nonisolated(unsafe) let onDismissCopy = onDismiss
-
-        showAlert = AnyAppAlert(
-            title: "Delete Account?",
-            subtitle: "This action is permanent and cannot be undone. Your data will be deleted from our server forever.",
-            buttons: {
-                AnyView(
-                    Button("Delete", role: .destructive, action: {
-                        self.onDeleteAccountConfirmed(onDismiss: onDismissCopy)
-                    })
-                )
-            }
-        )
-    }
-    
-    private func onDeleteAccountConfirmed(onDismiss: @escaping () -> Void) {
-        logManager.trackEvent(event: Event.deleteAccountStartConfirm)
-
-        Task {
-            do {
-                // Require recent authentication before destructive deletion
-                try await authManager.reauthenticateWithApple()
-                // Ensure app-side data removal completes while auth still valid,
-                // then remove auth account.
-                try await userManager.deleteCurrentUser()
-                try await authManager.deleteAccount()
-                
-                logManager.deleteUserProfile()
-                logManager.trackEvent(event: Event.deleteAccountSuccess)
-
-                onDismiss()
-            } catch {
-                logManager.trackEvent(event: Event.deleteAccountFail(error: error))
-                showAlert = AnyAppAlert(error: error)
-            }
-        }
-    }
-    
-    func onCreateAccountPressed() {
-        logManager.trackEvent(event: Event.createAccountPressed)
-
-        showCreateAccountView = true
     }
 }

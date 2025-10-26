@@ -145,7 +145,7 @@ struct ProfileEditView: View {
 
 #Preview {
     NavigationStack {
-        ProfileEditView(viewModel: ProfileEditViewModel(container: DevPreview.shared.container))
+        ProfileEditView(viewModel: ProfileEditViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .previewEnvironment()
 }

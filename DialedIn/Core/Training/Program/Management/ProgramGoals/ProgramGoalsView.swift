@@ -22,7 +22,7 @@ struct ProgramGoalsView: View {
                 )
             } else {
                 ForEach(viewModel.plan.goals) { goal in
-                    GoalRow(viewModel: GoalRowViewModel(container: container, goal: goal, plan: viewModel.plan))
+                    GoalRow(viewModel: GoalRowViewModel(interactor: CoreInteractor(container: container), goal: goal, plan: viewModel.plan))
                 }
             }
         }
@@ -38,12 +38,12 @@ struct ProgramGoalsView: View {
             }
         }
         .sheet(isPresented: $viewModel.showAddGoal) {
-            AddGoalView(viewModel: AddGoalViewModel(container: container), plan: viewModel.plan)
+            AddGoalView(viewModel: AddGoalViewModel(interactor: CoreInteractor(container: container)), plan: viewModel.plan)
         }
     }
 }
 
 #Preview {
-    ProgramGoalsView(viewModel: ProgramGoalsViewModel(container: DevPreview.shared.container, plan: TrainingPlan.mock))
+    ProgramGoalsView(viewModel: ProgramGoalsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container), plan: TrainingPlan.mock))
         .previewEnvironment()
 }

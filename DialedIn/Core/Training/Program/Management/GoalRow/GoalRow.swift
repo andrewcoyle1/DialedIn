@@ -51,7 +51,7 @@ struct GoalRow: View {
 #Preview {
     GoalRow(
         viewModel: GoalRowViewModel(
-            container: DevPreview.shared.container,
+            interactor: CoreInteractor(container: DevPreview.shared.container),
             goal: TrainingGoal.mocks.first!,
             plan: TrainingPlan.mock
         )

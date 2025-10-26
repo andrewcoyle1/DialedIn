@@ -12,42 +12,9 @@ import UIKit
 
 struct NutritionView: View {
     @Environment(DependencyContainer.self) private var container
-
+    @State var viewModel: NutritionViewModel
     @Environment(\.layoutMode) private var layoutMode
     @Environment(DetailNavigationModel.self) private var detail
-    @State private var presentationMode: NutritionPresentationMode = .log
-
-    @State private var isLoading: Bool = false
-    @State private var searchText: String = ""
-    @State private var showAlert: AnyAppAlert?
-    @State private var isShowingInspector: Bool = false
-    
-    @State private var searchIngredientTask: Task<Void, Never>?
-    @State private var myIngredients: [IngredientTemplateModel] = []
-    @State private var favouriteIngredients: [IngredientTemplateModel] = []
-    @State private var bookmarkedIngredients: [IngredientTemplateModel] = []
-    @State private var ingredients: [IngredientTemplateModel] = []
-    @State private var selectedIngredientTemplate: IngredientTemplateModel?
-    @State private var showCreateIngredient: Bool = false
-
-    @State private var searchRecipeTask: Task<Void, Never>?
-    @State private var myRecipes: [RecipeTemplateModel] = []
-    @State private var favouriteRecipes: [RecipeTemplateModel] = []
-    @State private var bookmarkedRecipes: [RecipeTemplateModel] = []
-    @State private var recipes: [RecipeTemplateModel] = []
-    @State private var selectedRecipeTemplate: RecipeTemplateModel?
-    @State private var showCreateRecipe: Bool = false
-
-    #if DEBUG || MOCK
-    @State private var showDebugView: Bool = false
-    #endif
-    @State private var showNotifications: Bool = false
-    
-    enum NutritionPresentationMode {
-        case log
-        case recipes
-        case ingredients
-    }
     
     var body: some View {
         Group {
@@ -60,12 +27,12 @@ struct NutritionView: View {
             }
         }
         // Only show inspector in compact/tabBar modes; not in split view where detail is used
-        .modifier(InspectorIfCompact(isPresented: $isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView))
-        .onChange(of: selectedIngredientTemplate) { _, ing in
+        .modifier(InspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView))
+        .onChange(of: viewModel.selectedIngredientTemplate) { _, ing in
             guard layoutMode == .splitView else { return }
             if let ing { detail.path = [.ingredientTemplateDetail(template: ing)] }
         }
-        .onChange(of: selectedRecipeTemplate) { _, rec in
+        .onChange(of: viewModel.selectedRecipeTemplate) { _, rec in
             guard layoutMode == .splitView else { return }
             if let rec { detail.path = [.recipeTemplateDetail(template: rec)] }
         }
@@ -78,20 +45,20 @@ struct NutritionView: View {
                 listContents
             }
             .scrollIndicators(.hidden)
-            .showCustomAlert(alert: $showAlert)
+            .showCustomAlert(alert: $viewModel.showAlert)
             #if DEBUG || MOCK
-            .sheet(isPresented: $showDebugView) {
-                DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+            .sheet(isPresented: $viewModel.showDebugView) {
+                DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
             }
             #endif
-            .sheet(isPresented: $showNotifications) {
-                NotificationsView()
+            .sheet(isPresented: $viewModel.showNotifications) {
+                NotificationsView(viewModel: NotificationsViewModel(interactor: CoreInteractor(container: container)))
             }
-            .sheet(isPresented: $showCreateIngredient) {
-                CreateIngredientView()
+            .sheet(isPresented: $viewModel.showCreateIngredient) {
+                CreateIngredientView(viewModel: CreateIngredientViewModel(interactor: CoreInteractor(container: container)))
             }
-            .sheet(isPresented: $showCreateRecipe) {
-                CreateRecipeView()
+            .sheet(isPresented: $viewModel.showCreateRecipe) {
+                CreateRecipeView(viewModel: CreateRecipeViewModel(interactor: CoreInteractor(container: container)))
             }
         }
         .navigationTitle("Nutrition")
@@ -104,10 +71,10 @@ struct NutritionView: View {
 
     private var pickerSection: some View {
         Section {
-            Picker("Section", selection: $presentationMode) {
-                Text("Meal Log").tag(NutritionPresentationMode.log)
-                Text("Recipes").tag(NutritionPresentationMode.recipes)
-                Text("Ingredients").tag(NutritionPresentationMode.ingredients)
+            Picker("Section", selection: $viewModel.presentationMode) {
+                Text("Meal Log").tag(NutritionViewModel.NutritionPresentationMode.log)
+                Text("Recipes").tag(NutritionViewModel.NutritionPresentationMode.recipes)
+                Text("Ingredients").tag(NutritionViewModel.NutritionPresentationMode.ingredients)
             }
             .pickerStyle(.segmented)
         }
@@ -117,25 +84,29 @@ struct NutritionView: View {
     
     private var listContents: some View {
         Group {
-            switch presentationMode {
+            switch viewModel.presentationMode {
             case .log:
-                MealLogView(isShowingInspector: $isShowingInspector,
-                            selectedIngredientTemplate: $selectedIngredientTemplate,
-                            selectedRecipeTemplate: $selectedRecipeTemplate)
+                MealLogView(
+                    viewModel: MealLogViewModel(interactor: CoreInteractor(container: container)),
+                    isShowingInspector: $viewModel.isShowingInspector,
+                    selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
+                    selectedRecipeTemplate: $viewModel.selectedRecipeTemplate
+                )
             case .recipes:
                 RecipesView(
-                    isShowingInspector: $isShowingInspector,
-                    selectedIngredientTemplate: $selectedIngredientTemplate,
-                    selectedRecipeTemplate: $selectedRecipeTemplate,
-                    showCreateRecipe: $showCreateRecipe
+                    viewModel: RecipesViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
                 )
             case .ingredients:
-                // ingredientsSection
                 IngredientsView(
-                    isShowingInspector: $isShowingInspector,
-                    selectedIngredientTemplate: $selectedIngredientTemplate,
-                    selectedRecipeTemplate: $selectedRecipeTemplate,
-                    showCreateIngredient: $showCreateIngredient
+                    viewModel: IngredientsViewModel(interactor: CoreInteractor(container: container)),
+                    isShowingInspector: $viewModel.isShowingInspector,
+                    selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
+                    selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
+                    showCreateIngredient: $viewModel.showCreateIngredient
                 )
             }
         }
@@ -143,13 +114,13 @@ struct NutritionView: View {
     
     private var inspectorContent: some View {
         Group {
-            if let ingredient = selectedIngredientTemplate {
+            if let ingredient = viewModel.selectedIngredientTemplate {
                 NavigationStack {
-                    IngredientDetailView(ingredientTemplate: ingredient)
+                    IngredientDetailView(viewModel: IngredientDetailViewModel(interactor: CoreInteractor(container: container), ingredientTemplate: ingredient))
                 }
-            } else if let recipe = selectedRecipeTemplate {
+            } else if let recipe = viewModel.selectedRecipeTemplate {
                 NavigationStack {
-                    RecipeDetailView(recipeTemplate: recipe)
+                    RecipeDetailView(viewModel: RecipeDetailViewModel(interactor: CoreInteractor(container: container), recipeTemplate: recipe))
                 }
             } else {
                 Text("Select an item")
@@ -165,7 +136,7 @@ struct NutritionView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                showDebugView = true
+                viewModel.showDebugView = true
             } label: {
                 Image(systemName: "info")
             }
@@ -174,45 +145,21 @@ struct NutritionView: View {
         
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                onNotificationsPressed()
+                viewModel.onNotificationsPressed()
             } label: {
                 Image(systemName: "bell")
             }
         }
-        
-//        #if os(iOS)
-//        if UIDevice.current.userInterfaceIdiom != .phone {
-//            ToolbarSpacer(placement: .topBarTrailing)
-//            ToolbarItem(placement: .topBarTrailing) {
-//                Button {
-//                    isShowingInspector.toggle()
-//                } label: {
-//                    Image(systemName: "info")
-//                }
-//            }
-//        }
-//        #else
-//        ToolbarSpacer(placement: .topBarTrailing)
-//        ToolbarItem(placement: .topBarTrailing) {
-//            Button {
-//                isShowingInspector.toggle()
-//            } label: {
-//                Image(systemName: "info")
-//            }
-//        }
-//        #endif
     }
 }
 
 #Preview {
-    NutritionView()
-        .previewEnvironment()
-}
-
-extension NutritionView {
-    
-    private func onNotificationsPressed() {
-        showNotifications = true
-    }
-    
+    NutritionView(
+        viewModel: NutritionViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        )
+    )
+    .previewEnvironment()
 }

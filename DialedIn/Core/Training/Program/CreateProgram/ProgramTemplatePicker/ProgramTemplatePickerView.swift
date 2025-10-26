@@ -27,7 +27,7 @@ struct ProgramTemplatePickerView: View {
             }
             .navigationDestination(item: $viewModel.selectedTemplate) { template in
                 ProgramStartConfigView(
-                    viewModel: ProgramStartConfigViewModel(container: container),
+                    viewModel: ProgramStartConfigViewModel(interactor: CoreInteractor(container: container)),
                     template: template,
                     onStart: { startDate, endDate, customName in
                         Task {
@@ -105,7 +105,7 @@ struct ProgramTemplatePickerView: View {
     private var customOptionSection: some View {
         Section {
             NavigationLink {
-                CustomProgramBuilderView(viewModel: CustomProgramBuilderViewModel(container: container))
+                CustomProgramBuilderView(viewModel: CustomProgramBuilderViewModel(interactor: CoreInteractor(container: container)))
             } label: {
                 Label("Create Custom Program", systemImage: "plus.circle.fill")
             }

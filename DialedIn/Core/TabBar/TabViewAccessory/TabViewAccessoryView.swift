@@ -94,7 +94,7 @@ struct TabViewAccessoryView: View {
         }
     }
     .tabViewBottomAccessory {
-        TabViewAccessoryView(viewModel: TabViewAccessoryViewModel(container: DevPreview.shared.container), active: .mock)
+        TabViewAccessoryView(viewModel: TabViewAccessoryViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), active: .mock)
     }
     .previewEnvironment()
 }

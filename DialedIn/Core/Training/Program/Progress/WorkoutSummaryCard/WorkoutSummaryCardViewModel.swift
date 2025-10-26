@@ -7,11 +7,18 @@
 
 import SwiftUI
 
+protocol WorkoutSummaryCardInteractor {
+    func trackEvent(event: LoggableEvent)
+    func getWorkoutSessionWithFallback(id: String) async throws -> WorkoutSessionModel
+}
+
+extension CoreInteractor: WorkoutSummaryCardInteractor { }
+
 @Observable
 @MainActor
 class WorkoutSummaryCardViewModel {
-    private let logManager: LogManager
-    private let workoutSessionManager: WorkoutSessionManager
+    private let interactor: WorkoutSummaryCardInteractor
+    
     let scheduledWorkout: ScheduledWorkout
     let onTap: () -> Void
     
@@ -19,12 +26,11 @@ class WorkoutSummaryCardViewModel {
     private(set) var isLoading = true
     var showAlert: AnyAppAlert?
     init(
-        container: DependencyContainer,
+        interactor: WorkoutSummaryCardInteractor,
         scheduledWorkout: ScheduledWorkout,
         onTap: @escaping () -> Void
     ) {
-        self.logManager = container.resolve(LogManager.self)!
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
+        self.interactor = interactor
         self.scheduledWorkout = scheduledWorkout
         self.onTap = onTap
     }
@@ -56,16 +62,16 @@ class WorkoutSummaryCardViewModel {
             return
         }
         
-        logManager.trackEvent(event: Event.loadSessionStart)
+        interactor.trackEvent(event: Event.loadSessionStart)
         do {
-            let fetchedSession = try await workoutSessionManager.getWorkoutSessionWithFallback(id: sessionId)
+            let fetchedSession = try await interactor.getWorkoutSessionWithFallback(id: sessionId)
             await MainActor.run {
                 self.session = fetchedSession
                 self.isLoading = false
-                logManager.trackEvent(event: Event.loadSessionSuccess)
+                interactor.trackEvent(event: Event.loadSessionSuccess)
             }
         } catch {
-            logManager.trackEvent(event: Event.loadSessionFail(error: error))
+            interactor.trackEvent(event: Event.loadSessionFail(error: error))
             await MainActor.run {
                 self.isLoading = false
                 self.showAlert = AnyAppAlert(error: error)

@@ -7,21 +7,25 @@
 
 import SwiftUI
 
+protocol ProgressDashboardInteractor {
+    func getProgressSnapshot(for period: DateInterval) async throws -> ProgressSnapshot
+}
+
+extension CoreInteractor: ProgressDashboardInteractor { }
+
 @Observable
 @MainActor
 class ProgressDashboardViewModel {
-    private let trainingPlanManager: TrainingPlanManager
-    private let trainingAnalyticsManager: TrainingAnalyticsManager
+    private let interactor: ProgressDashboardInteractor
     
     var selectedPeriod: TimePeriod = .lastMonth
     private(set) var progressSnapshot: ProgressSnapshot?
     private(set) var isLoading = false
     
     init(
-        container: DependencyContainer
+        interactor: ProgressDashboardInteractor
     ) {
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
-        self.trainingAnalyticsManager = container.resolve(TrainingAnalyticsManager.self)!
+        self.interactor = interactor
     }
     
     func loadProgressData() async {
@@ -29,7 +33,7 @@ class ProgressDashboardViewModel {
         defer { isLoading = false }
         
         do {
-            let snapshot = try await trainingAnalyticsManager.getProgressSnapshot(for: selectedPeriod.dateInterval)
+            let snapshot = try await interactor.getProgressSnapshot(for: selectedPeriod.dateInterval)
             progressSnapshot = snapshot
         } catch {
             print("Error loading progress: \(error)")

@@ -257,7 +257,7 @@ struct ExercisesView: View {
 
 #Preview {
     NavigationStack {
-        ExercisesView(viewModel: ExercisesViewModel(container: DevPreview.shared.container))
+        ExercisesView(viewModel: ExercisesViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .previewEnvironment()
 }

@@ -7,18 +7,25 @@
 
 import SwiftUI
 
+protocol ProfilePreferencesInteractor {
+    var currentUser: UserModel? { get }
+}
+
+extension CoreInteractor: ProfilePreferencesInteractor { }
+
 @Observable
 @MainActor
 class ProfilePreferencesViewModel {
-    private let userManager: UserManager
+    private let interactor: ProfilePreferencesInteractor
     
     var currentUser: UserModel? {
-        userManager.currentUser
+        interactor.currentUser
     }
+    
     init(
-        container: DependencyContainer
+        interactor: ProfilePreferencesInteractor
     ) {
-        self.userManager = container.resolve(UserManager.self)!
+        self.interactor = interactor
     }
     
     func formatUnitPreferences(length: LengthUnitPreference?, weight: WeightUnitPreference?) -> String {

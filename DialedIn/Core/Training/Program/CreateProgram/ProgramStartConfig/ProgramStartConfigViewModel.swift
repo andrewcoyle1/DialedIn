@@ -7,9 +7,16 @@
 
 import SwiftUI
 
+protocol ProgramStartConfigInteractor {
+    
+}
+
+extension CoreInteractor: ProgramStartConfigInteractor { }
+
 @Observable
 @MainActor
 class ProgramStartConfigViewModel {
+    private let interactor: ProgramStartConfigInteractor
     
     var startDate = Date()
     var hasEndDate = false
@@ -21,9 +28,9 @@ class ProgramStartConfigViewModel {
     private(set) var onStart: ((Date, Date?, String?) -> Void)!
     
     init(
-        container: DependencyContainer
+        interactor: ProgramStartConfigInteractor
     ) {
-        
+        self.interactor = interactor
     }
     
     func setTemplate(_ template: ProgramTemplateModel) {

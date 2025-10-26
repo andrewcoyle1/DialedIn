@@ -135,7 +135,7 @@ struct MetricView: View {
     List {
         WorkoutSummaryCardView(
             viewModel: WorkoutSummaryCardViewModel(
-                container: DevPreview.shared.container,
+                interactor: CoreInteractor(container: DevPreview.shared.container),
                 scheduledWorkout: scheduledWorkout,
                 onTap: {
                     print("Row tapped.")
@@ -162,7 +162,7 @@ struct MetricView: View {
     return List {
         WorkoutSummaryCardView(
             viewModel: WorkoutSummaryCardViewModel(
-                container: container,
+                interactor: CoreInteractor(container: DevPreview.shared.container),
                 scheduledWorkout: scheduledWorkout,
                 onTap: {
                     print("Row tapped.")

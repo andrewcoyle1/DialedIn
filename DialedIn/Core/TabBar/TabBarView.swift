@@ -18,19 +18,19 @@ struct TabBarView: View {
         @Bindable var appNavigation = appNavigation
         TabView(selection: $appNavigation.selectedSection) {
             Tab("Dashboard", systemImage: "house", value: AppSection.dashboard) {
-                DashboardView()
+                DashboardView(viewModel: DashboardViewModel(interactor: CoreInteractor(container: container)))
             }
             
             Tab("Training", systemImage: "dumbbell", value: AppSection.training) {
-                TrainingView(viewModel: TrainingViewModel(interactor: ProdTrainingInteractor(container: container)))
+                TrainingView(viewModel: TrainingViewModel(interactor: CoreInteractor(container: container)))
             }
             
             Tab("Nutrition", systemImage: "carrot", value: AppSection.nutrition) {
-                NutritionView()
+                NutritionView(viewModel: NutritionViewModel(interactor: CoreInteractor(container: container)))
             }
             
             Tab("Profile", systemImage: "person.fill", value: AppSection.profile) {
-                ProfileView(viewModel: ProfileViewModel(container: container))
+                ProfileView(viewModel: ProfileViewModel(interactor: CoreInteractor(container: container)))
             }
             
             Tab(value: AppSection.search, role: .search) {
@@ -41,7 +41,7 @@ struct TabBarView: View {
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory {
             if let active = viewModel.active, !viewModel.trackerPresented {
-                TabViewAccessoryView(viewModel: TabViewAccessoryViewModel(container: container), active: active)
+                TabViewAccessoryView(viewModel: TabViewAccessoryViewModel(interactor: CoreInteractor(container: container)), active: active)
             }
         }
         .fullScreenCover(isPresented: Binding(get: {
@@ -50,7 +50,7 @@ struct TabBarView: View {
             workoutSessionManager.isTrackerPresented = newValue
         })) {
             if let session = workoutSessionManager.activeSession {
-                WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(container: container, workoutSession: session), initialWorkoutSession: session)
+                WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(interactor: CoreInteractor(container: container), workoutSession: session), initialWorkoutSession: session)
             }
         }
         .task {

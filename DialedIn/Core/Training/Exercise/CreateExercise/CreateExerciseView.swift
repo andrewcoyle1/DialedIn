@@ -69,7 +69,13 @@ struct CreateExerciseView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView) {
-                DevSettingsView(viewModel: DevSettingsViewModel(container: container))
+                DevSettingsView(
+                    viewModel: DevSettingsViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             }
             #endif
             .showCustomAlert(alert: $viewModel.alert)
@@ -201,7 +207,7 @@ struct CreateExerciseView: View {
         Text("Present")
     }
     .sheet(isPresented: $isPresented) {
-        CreateExerciseView(viewModel: CreateExerciseViewModel(container: DevPreview.shared.container))
+        CreateExerciseView(viewModel: CreateExerciseViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .previewEnvironment()
 }
@@ -214,7 +220,7 @@ struct CreateExerciseView: View {
         Text("Present")
     }
     .sheet(isPresented: $isPresented) {
-        CreateExerciseView(viewModel: CreateExerciseViewModel(container: DevPreview.shared.container))
+        CreateExerciseView(viewModel: CreateExerciseViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .previewEnvironment()
 }
@@ -227,7 +233,7 @@ struct CreateExerciseView: View {
         Text("Present")
     }
     .fullScreenCover(isPresented: $isPresented) {
-        CreateExerciseView(viewModel: CreateExerciseViewModel(container: DevPreview.shared.container))
+        CreateExerciseView(viewModel: CreateExerciseViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .previewEnvironment()
     

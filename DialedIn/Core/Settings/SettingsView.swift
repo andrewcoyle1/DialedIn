@@ -25,7 +25,7 @@ struct SettingsView: View {
             .sheet(isPresented: $viewModel.showCreateAccountView, onDismiss: {
                 viewModel.setAnonymousAccountStatus()
             }, content: {
-                CreateAccountView(viewModel: CreateAccountViewModel(container: container))
+                CreateAccountView(viewModel: CreateAccountViewModel(interactor: CoreInteractor(container: container)))
                     .presentationDetents([.medium])
             })
             .onAppear {
@@ -135,19 +135,19 @@ fileprivate extension View {
 }
 
 #Preview("No auth") {
-    SettingsView(viewModel: SettingsViewModel(container: DevPreview.shared.container))
+    SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }
 #Preview("Anonymous") {
-    SettingsView(viewModel: SettingsViewModel(container: DevPreview.shared.container))
+    SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }
 #Preview("Not anonymous") {
-    SettingsView(viewModel: SettingsViewModel(container: DevPreview.shared.container))
+    SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }
 
 #Preview("Premium") {
-    SettingsView(viewModel: SettingsViewModel(container: DevPreview.shared.container))
+    SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }
