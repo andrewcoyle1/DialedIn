@@ -33,7 +33,7 @@ class ProgressAnalyticsService {
             return cached
         }
         
-        let sessions = await getCompletedSessions(in: period)
+        let sessions = await getCompletedSessionsInternal(in: period)
         
         let volumeMetrics = try await calculateVolumeMetrics(sessions: sessions, period: period)
         let strengthMetrics = try await calculateStrengthMetrics(sessions: sessions, period: period)
@@ -100,7 +100,7 @@ class ProgressAnalyticsService {
     }
     
     func getVolumeTrend(for period: DateInterval, interval: Calendar.Component = .weekOfYear) async -> VolumeTrend {
-        let sessions = await getCompletedSessions(in: period)
+        let sessions = await getCompletedSessionsInternal(in: period)
         let calendar = Calendar.current
         
         // Group sessions by interval
@@ -237,7 +237,7 @@ class ProgressAnalyticsService {
     }
     
     func getStrengthProgression(for exerciseId: String, in period: DateInterval) async throws -> StrengthProgression? {
-        let sessions = await getCompletedSessions(in: period)
+        let sessions = await getCompletedSessionsInternal(in: period)
         
         var dataPoints: [StrengthDataPoint] = []
         
@@ -401,11 +401,31 @@ class ProgressAnalyticsService {
     
     // MARK: - Helper Methods
     
-    private func getCompletedSessions(in period: DateInterval) async -> [WorkoutSessionModel] {
-        // This would typically fetch from WorkoutSessionManager
-        // For now, return empty array as placeholder
-        // In production, you'd call workoutSessionManager.fetchSessions(in: period)
-        return []
+    // MARK: - Public API
+    
+    func getCompletedSessions(in period: DateInterval) async -> [WorkoutSessionModel] {
+        await getCompletedSessionsInternal(in: period)
+    }
+    
+    private func getCompletedSessionsInternal(in period: DateInterval) async -> [WorkoutSessionModel] {
+        do {
+            // Fetch all local workout sessions
+            let allSessions = try workoutSessionManager.getAllLocalWorkoutSessions()
+            
+            // Filter for completed sessions within the period
+            let completedSessions = allSessions.filter { session in
+                // Must be completed (has endedAt)
+                guard let endedAt = session.endedAt else { return false }
+                
+                // Must be within the specified period
+                return period.contains(endedAt)
+            }
+            
+            return completedSessions
+        } catch {
+            // Return empty array if fetching fails
+            return []
+        }
     }
     
     func invalidateCache() {

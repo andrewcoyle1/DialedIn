@@ -6,9 +6,8 @@
 //
 
 import Foundation
-import IdentifiableByString
 
-struct ExerciseTemplateModel: Identifiable, Codable, StringIdentifiable, Hashable {
+struct ExerciseTemplateModel: Identifiable, Codable, Hashable {
     var id: String {
         exerciseId
     }

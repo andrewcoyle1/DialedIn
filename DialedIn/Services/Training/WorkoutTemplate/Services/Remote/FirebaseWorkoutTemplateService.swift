@@ -6,7 +6,6 @@
 //
 
 import FirebaseFirestore
-import SwiftfulFirestore
 
 struct FirebaseWorkoutTemplateService: RemoteWorkoutTemplateService {
     
@@ -75,7 +74,8 @@ struct FirebaseWorkoutTemplateService: RemoteWorkoutTemplateService {
     }
     
     func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel {
-        try await collection.getDocument(id: id)
+        let document = try await collection.document(id).getDocument()
+        return try document.data(as: WorkoutTemplateModel.self)
     }
     
     func getWorkoutTemplates(ids: [String], limitTo: Int = 20) async throws -> [WorkoutTemplateModel] {
@@ -84,7 +84,8 @@ struct FirebaseWorkoutTemplateService: RemoteWorkoutTemplateService {
         
         for id in ids {
             do {
-                let workout = try await collection.getDocument(id: id) as WorkoutTemplateModel
+                let document = try await collection.document(id).getDocument()
+                let workout = try document.data(as: WorkoutTemplateModel.self)
                 workouts.append(workout)
             } catch {
                 // Skip documents that don't exist or fail to decode
@@ -101,26 +102,32 @@ struct FirebaseWorkoutTemplateService: RemoteWorkoutTemplateService {
     func getWorkoutTemplatesByName(name: String) async throws -> [WorkoutTemplateModel] {
         let lower = name.lowercased()
         // Case-insensitive prefix search using range on a lowercased field
-        return try await collection
+        let snapshot = try await collection
             .order(by: "name_lower")
             .start(at: [lower])
             .end(at: [lower + "\u{f8ff}"])
             .limit(to: 25)
-            .getAllDocuments()
+            .getDocuments()
+        
+        return try snapshot.documents.compactMap { try $0.data(as: WorkoutTemplateModel.self) }
     }
     
     func getWorkoutTemplatesForAuthor(authorId: String) async throws -> [WorkoutTemplateModel] {
-        try await collection
+        let snapshot = try await collection
             .whereField(ExerciseTemplateModel.CodingKeys.authorId.rawValue, isEqualTo: authorId)
             .order(by: ExerciseTemplateModel.CodingKeys.dateCreated.rawValue, descending: true)
-            .getAllDocuments()
+            .getDocuments()
+        
+        return try snapshot.documents.compactMap { try $0.data(as: WorkoutTemplateModel.self) }
     }
     
     func getTopWorkoutTemplatesByClicks(limitTo: Int) async throws -> [WorkoutTemplateModel] {
-        try await collection
+        let snapshot = try await collection
             .order(by: WorkoutTemplateModel.CodingKeys.clickCount.rawValue, descending: true)
             .limit(to: limitTo)
-            .getAllDocuments()
+            .getDocuments()
+        
+        return try snapshot.documents.compactMap { try $0.data(as: WorkoutTemplateModel.self) }
     }
     
     func incrementWorkoutTemplateInteraction(id: String) async throws {

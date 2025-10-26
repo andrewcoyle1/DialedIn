@@ -11,7 +11,7 @@ import SwiftUI
 struct DialedInWatchApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            WatchAppView()
         }
     }
 }

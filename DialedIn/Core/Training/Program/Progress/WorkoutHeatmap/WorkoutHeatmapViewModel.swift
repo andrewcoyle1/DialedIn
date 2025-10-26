@@ -88,17 +88,16 @@ class WorkoutHeatmapViewModel {
             let snapshot = try await progressAnalytics.getProgressSnapshot(for: monthInterval)
             performanceMetrics = snapshot.performanceMetrics
             
-            // For now, create mock heatmap data
-            // In production, this would come from actual workout sessions
+            // Fetch actual workout sessions for this period
+            let sessions = await progressAnalytics.getCompletedSessions(in: monthInterval)
+            
+            // Build heatmap data by grouping sessions by day
             var data: [Date: Int] = [:]
-            for day in 0..<30 {
-                if let date = calendar.date(byAdding: .day, value: day, to: monthInterval.start) {
-                    let workoutCount = Int.random(in: 0...2)
-                    if workoutCount > 0 {
-                        data[calendar.startOfDay(for: date)] = workoutCount
-                    }
-                }
+            for session in sessions {
+                let dayKey = calendar.startOfDay(for: session.dateCreated)
+                data[dayKey, default: 0] += 1
             }
+            
             heatmapData = data
         } catch {
             print("Error loading heatmap data: \(error)")

@@ -6,9 +6,8 @@
 //
 
 import Foundation
-import IdentifiableByString
 
-struct WorkoutSetModel: Identifiable, Codable, StringIdentifiable, Hashable {
+struct WorkoutSetModel: Identifiable, Codable, Hashable {
     let id: String
     let authorId: String
     var index: Int
