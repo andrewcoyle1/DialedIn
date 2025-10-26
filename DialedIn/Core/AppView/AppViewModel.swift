@@ -11,7 +11,6 @@ import SwiftfulUtilities
 protocol AppInteractor {
     var auth: UserAuthInfo? { get }
     var currentUser: UserModel? { get }
-    func setUserId(_ userId: String)
     func schedulePushNotificationsForNextWeek()
     func trackEvent(event: LoggableEvent)
     func logIn(auth: UserAuthInfo, image: PlatformImage?) async throws
@@ -36,10 +35,6 @@ class AppViewModel {
         interactor: AppInteractor
     ) {
         self.interactor = interactor
-    }
-    
-    func setUserId(_ userId: String) {
-        interactor.setUserId(userId)
     }
     
     func schedulePushNotifications() {

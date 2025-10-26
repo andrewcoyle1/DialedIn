@@ -84,7 +84,8 @@ protocol WorkoutTrackerInteractor {
         statusMessage: String?
     )
 
-    /// Update live activity status and metrics for widgets/external presentation.
+    // Update live activity status and metrics for widgets/external presentation.
+    // swiftlint:disable:next function_parameter_count
     func updateLiveActivity(
         session: WorkoutSessionModel,
         isActive: Bool,

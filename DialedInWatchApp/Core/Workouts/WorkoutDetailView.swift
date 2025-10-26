@@ -72,7 +72,6 @@ struct WorkoutDetailView: View {
     }
     
     private func startWorkout() async {
-        // TODO: Get actual author ID
         try? await Task.sleep(for: .seconds(1))
         print("Start workout")
     }

@@ -52,11 +52,6 @@ struct AppView: View {
                 .onFirstAppear {
                     viewModel.schedulePushNotifications()
                 }
-                .onChange(of: viewModel.currentUser?.userId) { _, newUserId in
-                    if let userId = newUserId {
-                        viewModel.setUserId(userId)
-                    }
-                }
             })
     }
 }

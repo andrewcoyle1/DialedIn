@@ -13,7 +13,6 @@ class TrainingPlanManager {
     
     private let local: LocalTrainingPlanPersistence
     private let remote: RemoteTrainingPlanService
-    private var userId: String?
     private var plansListener: (() -> Void)?
     private let workoutTemplateResolver: WorkoutTemplateResolver?
     
@@ -22,44 +21,19 @@ class TrainingPlanManager {
     private(set) var isLoading: Bool = false
     private(set) var error: Error?
     
-    init(services: TrainingPlanServices, userId: String? = nil, workoutTemplateResolver: WorkoutTemplateResolver? = nil) {
+    init(services: TrainingPlanServices, workoutTemplateResolver: WorkoutTemplateResolver? = nil) {
         self.remote = services.remote
         self.local = services.local
-        self.userId = userId
         self.workoutTemplateResolver = workoutTemplateResolver
         self.currentTrainingPlan = local.getCurrentTrainingPlan()
         self.allPlans = local.getAllPlans()
-        
-        // Start listening to remote changes if userId is available
-        if userId != nil {
-            startSyncListener()
-        }
-    }
-    
-    // MARK: - User Management
-    
-    func setUserId(_ userId: String) {
-        guard self.userId != userId else { return }
-        
-        // Stop existing listener
-        stopSyncListener()
-        
-        // Set new userId
-        self.userId = userId
-        
-        // Start new listener
-        startSyncListener()
-        
-        // Sync from remote
-        Task {
-            try? await syncFromRemote()
-        }
     }
     
     // MARK: - Sync Listener
     
-    private func startSyncListener() {
-        guard let userId = userId else { return }
+    func startSyncListener(userId: String) {
+        // Stop existing listener if any
+        stopSyncListener()
         
         plansListener = remote.addPlansListener(userId: userId) { [weak self] remotePlans in
             guard let self = self else { return }
@@ -69,7 +43,7 @@ class TrainingPlanManager {
         }
     }
     
-    private func stopSyncListener() {
+    func stopSyncListener() {
         plansListener?()
         plansListener = nil
     }
@@ -88,7 +62,6 @@ class TrainingPlanManager {
         // Clear state
         currentTrainingPlan = nil
         allPlans = []
-        userId = nil
     }
     
     @MainActor
@@ -447,11 +420,7 @@ class TrainingPlanManager {
     
     // MARK: - Sync Operations
     
-    func syncFromRemote() async throws {
-        guard let userId = userId else {
-            throw TrainingPlanError.noUserId
-        }
-        
+    func syncFromRemote(userId: String) async throws {
         isLoading = true
         error = nil
         

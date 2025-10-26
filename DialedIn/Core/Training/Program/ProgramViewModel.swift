@@ -18,7 +18,6 @@ protocol ProgramInteractor {
     func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel
     func getLocalWorkoutSession(id: String) throws -> WorkoutSessionModel
     func getAuthId() throws -> String
-    func setUserId(_ userId: String)
     func syncFromRemote() async throws
 }
 
@@ -186,15 +185,7 @@ class ProgramViewModel {
     
     // MARK: - Data Loading
     
-    private func ensureUserIdIsSet() {
-        // Ensure userId is set in trainingPlanManager before syncing
-        if let userId = try? interactor.getAuthId() {
-            interactor.setUserId(userId)
-        }
-    }
-    
     func loadData() async {
-        ensureUserIdIsSet()
         interactor.trackEvent(event: Event.loadDataStart)
         do {
             try await interactor.syncFromRemote()
@@ -205,7 +196,6 @@ class ProgramViewModel {
     }
     
     func refreshData() async {
-        ensureUserIdIsSet()
         interactor.trackEvent(event: Event.refreshDataStart)
         do {
             try await interactor.syncFromRemote()

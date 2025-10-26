@@ -160,6 +160,10 @@ struct CoreInteractor {
     
     func logIn(auth: UserAuthInfo, image: PlatformImage? = nil) async throws {
         try await userManager.logIn(auth: auth, image: image)
+        
+        // Start the sync listener for training plans
+        let userId = try userManager.currentUserId()
+        trainingPlanManager.startSyncListener(userId: userId)
     }
     
     func saveUser(user: UserModel, image: PlatformImage? = nil) async throws {
@@ -193,6 +197,9 @@ struct CoreInteractor {
     }
     
     func logOut() {
+        // Stop the sync listener for training plans
+        trainingPlanManager.stopSyncListener()
+        
         userManager.logOut()
     }
     
@@ -754,10 +761,6 @@ struct CoreInteractor {
         trainingPlanManager.allPlans
     }
     
-    func setUserId(_ userId: String) {
-        trainingPlanManager.setUserId(userId)
-    }
-    
     @MainActor
     func clearAllTrainingPlanLocalData() throws {
         try trainingPlanManager.clearAllLocalData()
@@ -846,7 +849,8 @@ struct CoreInteractor {
     // Sync Operations
     
     func syncFromRemote() async throws {
-        try await trainingPlanManager.syncFromRemote()
+        let userId = try userManager.currentUserId()
+        try await trainingPlanManager.syncFromRemote(userId: userId)
     }
     
     // MARK: ProgramTemplateManager
