@@ -218,7 +218,6 @@ class DevSettingsViewModel {
             // 1. Stop all listeners FIRST to prevent permission errors
             interactor.trackEvent(event: Event.clearTrainingPlansStart)
             do {
-                // Stop TrainingPlanManager listener
                 try
                 interactor.clearAllTrainingPlanLocalData()
                 interactor.trackEvent(event: Event.clearTrainingPlansSuccess)
@@ -236,7 +235,6 @@ class DevSettingsViewModel {
                 interactor.trackEvent(event: Event.clearWorkoutSessionsFail(error: error))
             }
             
-            // Clear user data and stop UserManager listener
             interactor.logOut()
             
             // 3. Sign out (account remains intact in Firebase)

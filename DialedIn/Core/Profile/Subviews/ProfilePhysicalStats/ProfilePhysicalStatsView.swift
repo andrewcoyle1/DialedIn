@@ -254,27 +254,5 @@ struct ProfilePhysicalStatsView: View {
     NavigationStack {
         ProfilePhysicalStatsView(viewModel: ProfilePhysicalStatsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
-    .environment(
-        UserManager(
-            services: MockUserServices(
-                user: UserModel(
-                    userId: UUID().uuidString,
-                    email: "user@example.com",
-                    isAnonymous: false,
-                    firstName: "Alice",
-                    lastName: "Cooper",
-                    dateOfBirth: Calendar.current.date(from: DateComponents(year: 1990, month: 5, day: 15)),
-                    gender: .female,
-                    heightCentimeters: 165,
-                    weightKilograms: 60,
-                    exerciseFrequency: .threeToFour,
-                    dailyActivityLevel: .moderate,
-                    cardioFitnessLevel: .intermediate,
-                    lengthUnitPreference: .centimeters,
-                    weightUnitPreference: .kilograms
-                )
-            )
-        )
-    )
     .previewEnvironment()
 }

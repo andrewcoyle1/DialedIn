@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct WorkoutTemplateListView: View {
-    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: WorkoutTemplateListViewModel

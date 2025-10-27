@@ -9,6 +9,7 @@ import SwiftUI
 
 struct NutritionLibraryPickerView: View {
     @State var viewModel: NutritionLibraryPickerViewModel
+    @Environment(DependencyContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -82,9 +83,9 @@ struct NutritionLibraryPickerView: View {
             } else {
                 ForEach(viewModel.ingredients) { ingredient in
                     NavigationLink {
-                        IngredientAmountView(ingredient: ingredient) { item in
+                        IngredientAmountView(viewModel: IngredientAmountViewModel(interactor: CoreInteractor(container: container), ingredient: ingredient) { item in
                             viewModel.onPick(item)
-                        }
+                        })
                     } label: {
                         CustomListCellView(
                             imageName: ingredient.imageURL,
@@ -120,97 +121,6 @@ struct NutritionLibraryPickerView: View {
                 }
             }
         }
-    }
-}
-
-private struct IngredientAmountView: View {
-    @Environment(IngredientTemplateManager.self) private var ingredientTemplateManager
-    
-    let ingredient: IngredientTemplateModel
-    let onConfirm: (MealItemModel) -> Void
-    
-    @State private var amountText: String = "100"
-    
-    private var unitLabel: String {
-        switch ingredient.measurementMethod {
-        case .weight: return "g"
-        case .volume: return "ml"
-        }
-    }
-    
-    private var amountValue: Double { Double(amountText) ?? 0 }
-    private var scale: Double { max(amountValue, 0) / 100.0 }
-    
-    private var calories: Double? { ingredient.calories.map { $0 * scale } }
-    private var protein: Double? { ingredient.protein.map { $0 * scale } }
-    private var carbs: Double? { ingredient.carbs.map { $0 * scale } }
-    private var fat: Double? { ingredient.fatTotal.map { $0 * scale } }
-    
-    var body: some View {
-        Form {
-            Section("Amount") {
-                HStack {
-                    TextField("Amount", text: $amountText)
-                        .keyboardType(.decimalPad)
-                    Text(unitLabel)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            
-            Section("Estimated Macros") {
-                HStack {
-                    Text("Calories")
-                    Spacer()
-                    Text(calories.map { String(Int(round($0))) } ?? "-")
-                        .foregroundStyle(.secondary)
-                }
-                HStack {
-                    Text("Protein")
-                    Spacer()
-                    Text(protein.map { String(format: "%.1f g", $0) } ?? "-")
-                        .foregroundStyle(.secondary)
-                }
-                HStack {
-                    Text("Carbs")
-                    Spacer()
-                    Text(carbs.map { String(format: "%.1f g", $0) } ?? "-")
-                        .foregroundStyle(.secondary)
-                }
-                HStack {
-                    Text("Fat")
-                    Spacer()
-                    Text(fat.map { String(format: "%.1f g", $0) } ?? "-")
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-        .navigationTitle(ingredient.name)
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Add") { add() }
-                    .disabled((Double(amountText) ?? 0) <= 0)
-            }
-        }
-    }
-    
-    private func add() {
-        let resolvedGrams = ingredient.measurementMethod == .weight ? amountValue : nil
-        let resolvedMl = ingredient.measurementMethod == .volume ? amountValue : nil
-        let item = MealItemModel(
-            itemId: UUID().uuidString,
-            sourceType: .ingredient,
-            sourceId: ingredient.ingredientId,
-            displayName: ingredient.name,
-            amount: amountValue,
-            unit: unitLabel,
-            resolvedGrams: resolvedGrams,
-            resolvedMilliliters: resolvedMl,
-            calories: calories,
-            proteinGrams: protein,
-            carbGrams: carbs,
-            fatGrams: fat
-        )
-        onConfirm(item)
     }
 }
 

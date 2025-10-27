@@ -155,6 +155,4 @@ private extension Array {
     NavigationStack {
         ProfileNutritionDetailView(viewModel: ProfileNutritionDetailViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
-    .environment(NutritionManager(services: MockNutritionServices()))
-    .previewEnvironment()
 }

@@ -10,10 +10,6 @@ import PhotosUI
 
 struct CreateExerciseView: View {
     @Environment(DependencyContainer.self) private var container
-    @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
-    @Environment(AIManager.self) private var aiManager
-    @Environment(UserManager.self) private var userManager
-    @Environment(LogManager.self) private var logManager
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: CreateExerciseViewModel
