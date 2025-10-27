@@ -403,14 +403,21 @@ struct SignInView: View {
 
 struct NavigationDestinationsModifier: ViewModifier {
     @Binding var navigationDestination: NavigationDestination?
-    
+    @Environment(DependencyContainer.self) private var container
+
     func body(content: Content) -> some View {
         content
             .navigationDestination(isPresented: Binding(
                 get: { navigationDestination == .emailVerification },
                 set: { if !$0 { navigationDestination = nil } }
             )) {
-                EmailVerificationView()
+                EmailVerificationView(
+                    viewModel: EmailVerificationViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             }
             .navigationDestination(isPresented: Binding(
                 get: { navigationDestination == .subscription },

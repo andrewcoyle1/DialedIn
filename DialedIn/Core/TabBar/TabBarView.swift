@@ -11,7 +11,6 @@ struct TabBarView: View {
     
     @State var viewModel: TabBarViewModel
     @Environment(DependencyContainer.self) private var container
-    @Environment(WorkoutSessionManager.self) private var workoutSessionManager
     @Environment(AppNavigationModel.self) private var appNavigation
     
     var body: some View {
@@ -45,11 +44,11 @@ struct TabBarView: View {
             }
         }
         .fullScreenCover(isPresented: Binding(get: {
-            workoutSessionManager.isTrackerPresented
+            viewModel.isTrackerPresented
         }, set: { newValue in
-            workoutSessionManager.isTrackerPresented = newValue
+            viewModel.isTrackerPresented = newValue
         })) {
-            if let session = workoutSessionManager.activeSession {
+            if let session = viewModel.activeSession {
                 WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(interactor: CoreInteractor(container: container), workoutSession: session), initialWorkoutSession: session)
             }
         }
@@ -60,13 +59,11 @@ struct TabBarView: View {
 }
 
 #Preview("Has No Active Session") {
-    TabBarView(viewModel: TabBarViewModel(container: DevPreview.shared.container))
-        .environment(WorkoutSessionManager(services: MockWorkoutSessionServices(hasActiveSession: false)))
+    TabBarView(viewModel: TabBarViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }
 
 #Preview("Has Active Session") {
-    TabBarView(viewModel: TabBarViewModel(container: DevPreview.shared.container))
-        .environment(WorkoutSessionManager(services: MockWorkoutSessionServices(hasActiveSession: true)))
+    TabBarView(viewModel: TabBarViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }

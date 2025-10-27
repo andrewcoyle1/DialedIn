@@ -7,12 +7,22 @@
 
 import SwiftUI
 
+protocol AuthOptionsInteractor {
+    var currentUser: UserModel? { get }
+    func signInApple() async throws -> UserAuthInfo
+    func signInGoogle() async throws -> UserAuthInfo
+    func logIn(auth: UserAuthInfo, image: PlatformImage?) async throws
+    func trackEvent(event: LoggableEvent)
+    func handleAuthError(_ error: Error, operation: String, provider: String?) -> AuthErrorInfo
+    func handleUserLoginError(_ error: Error) -> AuthErrorInfo
+}
+
+extension CoreInteractor: AuthOptionsInteractor { }
+
 @Observable
 @MainActor
 class AuthOptionsViewModel {
-    private let authManager: AuthManager
-    private let userManager: UserManager
-    private let logManager: LogManager
+    private let interactor: AuthOptionsInteractor
     
     private(set) var didTriggerLogin: Bool = false
     private(set) var currentAuthTask: Task<Void, Never>?
@@ -26,11 +36,9 @@ class AuthOptionsViewModel {
     #endif
     
     init(
-        container: DependencyContainer
+        interactor: AuthOptionsInteractor
     ) {
-        self.authManager = container.resolve(AuthManager.self)!
-        self.userManager = container.resolve(UserManager.self)!
-        self.logManager = container.resolve(LogManager.self)!
+        self.interactor = interactor
     }
     
     func endTask() {
@@ -50,12 +58,12 @@ class AuthOptionsViewModel {
             }
 
             // Begin auth
-            logManager.trackEvent(event: Event.appleAuthStart)
+            interactor.trackEvent(event: Event.appleAuthStart)
             do {
                 // Get UserAuthInfo
-                let result = try await authManager.signInApple()
-                logManager.trackEvent(event: Event.appleAuthSuccess)
-                
+                let result = try await interactor.signInApple()
+                interactor.trackEvent(event: Event.appleAuthSuccess)
+
                 // Proceed immediately to signing in the user on success
                 handleOnAuthSuccess(user: result)
             } catch {
@@ -83,10 +91,10 @@ class AuthOptionsViewModel {
             }
             
             // Begin auth
-            logManager.trackEvent(event: Event.googleAuthStart)
+            interactor.trackEvent(event: Event.googleAuthStart)
             do {
-                let result = try await authManager.signInGoogle()
-                logManager.trackEvent(event: Event.googleAuthSuccess)
+                let result = try await interactor.signInGoogle()
+                interactor.trackEvent(event: Event.googleAuthSuccess)
 
                 // Proceed immediately to signing in the user on success
                 handleOnAuthSuccess(user: result)
@@ -117,12 +125,12 @@ class AuthOptionsViewModel {
             }
             
             // Begin user login
-            logManager.trackEvent(event: Event.userLoginStart)
+            interactor.trackEvent(event: Event.userLoginStart)
             do {
                 // Log in user
-                try await userManager.logIn(auth: user)
-                logManager.trackEvent(event: Event.userLoginSuccess)
-                
+                try await interactor.logIn(auth: user, image: nil)
+                interactor.trackEvent(event: Event.userLoginSuccess)
+
                 // Navigate to appropriate view
                 handleNavigation()
             } catch {
@@ -140,7 +148,7 @@ class AuthOptionsViewModel {
     
     func handleNavigation() {
         // Navigate based on user's current onboarding step
-        let destination = getNavigationDestination(for: userManager.currentUser?.onboardingStep ?? .auth)
+        let destination = getNavigationDestination(for: interactor.currentUser?.onboardingStep ?? .auth)
         navigationDestination = destination
     }
     
@@ -177,7 +185,7 @@ class AuthOptionsViewModel {
     
     /// Standardized error handling for auth operations
     func handleAuthError(_ error: Error, provider: String, retryAction: @escaping @Sendable () -> Void) {
-        let errorInfo = AuthErrorHandler.handle(error, operation: "sign in", provider: provider, logManager: logManager)
+        let errorInfo = interactor.handleAuthError(error, operation: "sign in", provider: provider)
         
         showAlert = AnyAppAlert(
             title: errorInfo.title,
@@ -199,7 +207,7 @@ class AuthOptionsViewModel {
     
     /// Standardized error handling for user login operations
     func handleUserLoginError(_ error: Error, retryAction: @escaping @Sendable () -> Void) {
-        let errorInfo = AuthErrorHandler.handleUserLoginError(error, logManager: logManager)
+        let errorInfo = interactor.handleUserLoginError(error)
         
         showAlert = AnyAppAlert(
             title: errorInfo.title,

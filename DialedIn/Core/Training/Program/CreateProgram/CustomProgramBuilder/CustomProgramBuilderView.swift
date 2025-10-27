@@ -25,15 +25,24 @@ struct CustomProgramBuilderView: View {
             if let day = viewModel.editingDayOfWeek {
                 NavigationStack {
                     WorkoutPickerSheet(
-                        onSelect: { workout in
-                            viewModel.assign(workout: workout, to: day, inWeek: viewModel.selectedWeek)
-                            viewModel.showingWorkoutPicker = false
-                            viewModel.editingDayOfWeek = nil
-                        },
-                        onCancel: {
-                            viewModel.showingWorkoutPicker = false
-                            viewModel.editingDayOfWeek = nil
-                        }
+                        viewModel: WorkoutPickerSheetViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            ),
+                            onSelect: { workout in
+                                viewModel.assign(
+                                    workout: workout,
+                                    to: day,
+                                    inWeek: viewModel.selectedWeek
+                                )
+                                viewModel.showingWorkoutPicker = false
+                                viewModel.editingDayOfWeek = nil
+                            },
+                            onCancel: {
+                                viewModel.showingWorkoutPicker = false
+                                viewModel.editingDayOfWeek = nil
+                            }
+                        )
                     )
                 }
             }
@@ -260,131 +269,4 @@ private struct WrappingChips<Item: Hashable>: View {
             }
         }
     }
-}
-
-// MARK: - Workout Picker Sheet
-
-private struct WorkoutPickerSheet: View {
-    @Environment(WorkoutTemplateManager.self) private var workoutTemplateManager
-    @Environment(AuthManager.self) private var authManager
-    
-    let onSelect: (WorkoutTemplateModel) -> Void
-    let onCancel: () -> Void
-    
-    @State private var searchText: String = ""
-    @State private var officialResults: [WorkoutTemplateModel] = []
-    @State private var userResults: [WorkoutTemplateModel] = []
-    @State private var isLoading: Bool = false
-    @State private var error: AnyAppAlert?
-    
-    var body: some View {
-        List {
-            if isLoading {
-                Section { ProgressView().frame(maxWidth: .infinity) }
-            }
-            if !userResults.isEmpty {
-                Section {
-                    ForEach(userResults, id: \.id) { workout in
-                        Button { onSelect(workout) } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(workout.name).font(.body)
-                                if let desc = workout.description, !desc.isEmpty {
-                                    Text(desc).font(.caption).foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Your Workouts")
-                }
-            }
-            if !officialResults.isEmpty {
-                Section {
-                    ForEach(officialResults, id: \.id) { workout in
-                        Button { onSelect(workout) } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(workout.name).font(.body)
-                                if let desc = workout.description, !desc.isEmpty {
-                                    Text(desc).font(.caption).foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Official Workouts")
-                }
-            }
-            if !isLoading && userResults.isEmpty && officialResults.isEmpty {
-                Section {
-                    Text("No workouts found")
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-        .navigationTitle("Select Workout")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Cancel", action: onCancel) }
-        }
-        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-        .onSubmit(of: .search) {
-            Task { await runSearch() }
-        }
-        .task {
-            await loadTopWorkouts()
-        }
-        .showCustomAlert(alert: $error)
-    }
-    
-    private func loadTopWorkouts() async {
-        isLoading = true
-        defer { isLoading = false }
-        // Include local and remote workouts
-        let localAll = (try? workoutTemplateManager.getAllLocalWorkoutTemplates()) ?? []
-        let uid = authManager.auth?.uid
-        let remoteTop = (try? await workoutTemplateManager.getTopWorkoutTemplatesByClicks(limitTo: 15)) ?? []
-        var remoteUser: [WorkoutTemplateModel] = []
-        if let id = uid {
-            remoteUser = (try? await workoutTemplateManager.getWorkoutTemplatesForAuthor(authorId: id)) ?? []
-        }
-        let combined = mergeUnique(localAll + remoteTop + remoteUser)
-        userResults = combined.filter { $0.authorId == uid }
-        officialResults = combined.filter { $0.authorId != uid }
-    }
-    
-    private func runSearch() async {
-        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { await loadTopWorkouts(); return }
-        isLoading = true
-        defer { isLoading = false }
-        // Local and remote search
-        let localAll = (try? workoutTemplateManager.getAllLocalWorkoutTemplates()) ?? []
-        let uid = authManager.auth?.uid
-        let localMatches = localAll.filter { tmpl in
-            tmpl.name.localizedCaseInsensitiveContains(query)
-        }
-        let remoteFound = (try? await workoutTemplateManager.getWorkoutTemplatesByName(name: query)) ?? []
-        var remoteUser: [WorkoutTemplateModel] = []
-        if let id = uid {
-            remoteUser = (try? await workoutTemplateManager.getWorkoutTemplatesForAuthor(authorId: id)) ?? []
-        }
-        let combined = mergeUnique(localMatches + remoteFound + remoteUser)
-        userResults = combined.filter { $0.authorId == uid }
-        officialResults = combined.filter { $0.authorId != uid }
-    }
-    
-    private func mergeUnique(_ items: [WorkoutTemplateModel]) -> [WorkoutTemplateModel] {
-        var seen = Set<String>()
-        var merged: [WorkoutTemplateModel] = []
-        for item in items where !seen.contains(item.workoutId) {
-            seen.insert(item.workoutId)
-            merged.append(item)
-        }
-        return merged
-    }
-}
-
-#Preview {
-    WorkoutPickerSheet(onSelect: {_ in}, onCancel: {})
-        .previewEnvironment()
 }

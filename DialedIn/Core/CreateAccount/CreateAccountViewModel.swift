@@ -9,7 +9,7 @@ import SwiftUI
 
 protocol CreateAccountInteractor {
     func trackEvent(event: LoggableEvent)
-    func signInApple() async throws -> UserAuthInfo?
+    func signInApple() async throws -> UserAuthInfo
     func signInGoogle() async throws -> UserAuthInfo
     func logIn(auth: UserAuthInfo, image: PlatformImage?) async throws
 }
@@ -35,9 +35,7 @@ class CreateAccountViewModel {
         interactor.trackEvent(event: Event.appleAuthStart)
         Task {
             do {
-                guard let result = try await interactor.signInApple() else {
-                    return
-                }
+                let result = try await interactor.signInApple()
                 interactor.trackEvent(event: Event.appleAuthSuccess(user: result))
 
                 try await interactor.logIn(auth: result, image: nil)

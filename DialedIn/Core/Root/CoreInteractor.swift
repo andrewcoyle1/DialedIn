@@ -84,7 +84,7 @@ struct CoreInteractor {
         try authManager.getAuthId()
     }
     
-    func createUser(email: String, password: String) async throws -> UserAuthInfo? {
+    func createUser(email: String, password: String) async throws -> UserAuthInfo {
         try await authManager.createUser(email: email, password: password)
     }
     
@@ -120,7 +120,7 @@ struct CoreInteractor {
         try await authManager.signInAnonymously()
     }
     
-    func signInApple() async throws -> UserAuthInfo? {
+    func signInApple() async throws -> UserAuthInfo {
         try await authManager.signInApple()
     }
     
@@ -561,6 +561,14 @@ struct CoreInteractor {
     
     var sessionLastModified: Date? {
         workoutSessionManager.sessionsLastModified
+    }
+    
+    func setActiveSession(_ session: WorkoutSessionModel?) {
+        workoutSessionManager.activeSession = session
+    }
+    
+    func setIsTrackerPresented(_ presented: Bool) {
+        workoutSessionManager.isTrackerPresented = presented
     }
     
     func startActiveSession(_ session: WorkoutSessionModel) {
@@ -1236,6 +1244,18 @@ struct CoreInteractor {
     
     func trackScreenEvent(event: LoggableEvent) {
         logManager.trackScreenEvent(event: event)
+    }
+    
+    func handleAuthError(_ error: Error, operation: String, provider: String?) -> AuthErrorInfo {
+        AuthErrorHandler.handle(error, operation: operation, provider: provider, logManager: logManager)
+    }
+    
+    func handleAuthError(_ error: Error, operation: String) -> AuthErrorInfo {
+        AuthErrorHandler.handle(error, operation: operation, provider: nil, logManager: logManager)
+    }
+    
+    func handleUserLoginError(_ error: Error) -> AuthErrorInfo {
+        AuthErrorHandler.handleUserLoginError(error, logManager: logManager)
     }
     
     // ReportManager

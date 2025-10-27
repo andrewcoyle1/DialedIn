@@ -61,7 +61,7 @@ struct OnboardingWelcomeView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             NavigationLink {
-                AuthOptionsView(viewModel: AuthOptionsViewModel(container: container))
+                AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: container)))
             } label: {
                 Image(systemName: "chevron.right")
             }

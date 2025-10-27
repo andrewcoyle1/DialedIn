@@ -107,9 +107,16 @@ struct NutritionLibraryPickerView: View {
             } else {
                 ForEach(viewModel.recipes) { recipe in
                     NavigationLink {
-                        RecipeAmountView(recipe: recipe) { item in
+                        RecipeAmountView(
+                            viewModel: RecipeAmountViewModel(
+                                interactor: CoreInteractor(
+                                    container: container
+                                ),
+                                recipe: recipe, onConfirm:
+                             { item in
                             viewModel.onPick(item)
                         }
+                                         ))
                     } label: {
                         CustomListCellView(
                             imageName: nil,
@@ -121,113 +128,6 @@ struct NutritionLibraryPickerView: View {
                 }
             }
         }
-    }
-}
-
-private struct RecipeAmountView: View {
-    let recipe: RecipeTemplateModel
-    let onConfirm: (MealItemModel) -> Void
-    
-    @State private var servingsText: String = "1"
-    
-    // Simple estimate: sum ingredient macros using their per-100g values and amounts.
-    private var baseCalories: Double? {
-        aggregate { $0.calories }
-    }
-    private var baseProtein: Double? {
-        aggregate { $0.protein }
-    }
-    private var baseCarbs: Double? {
-        aggregate { $0.carbs }
-    }
-    private var baseFat: Double? {
-        aggregate { $0.fatTotal }
-    }
-    
-    private var servings: Double { max(Double(servingsText) ?? 0, 0) }
-    
-    private func aggregate(_ keyPath: (IngredientTemplateModel) -> Double?) -> Double? {
-        var total: Double = 0
-        var hasValue = false
-        for recipeIngredient in recipe.ingredients {
-            guard let per100 = keyPath(recipeIngredient.ingredient) else { continue }
-            hasValue = true
-            let grams: Double
-            switch recipeIngredient.unit {
-            case .grams:
-                grams = recipeIngredient.amount
-            case .milliliters:
-                grams = recipeIngredient.amount // approximation
-            case .units:
-                grams = recipeIngredient.amount * 100 // rough fallback
-            }
-            total += per100 * (grams / 100.0)
-        }
-        return hasValue ? total : nil
-    }
-    
-    var body: some View {
-        Form {
-            Section("Servings") {
-                TextField("Servings", text: $servingsText)
-                    .keyboardType(.decimalPad)
-            }
-            Section("Estimated Macros (per serving)") {
-                HStack {
-                    Text("Calories")
-                    Spacer()
-                    Text(baseCalories.map { String(Int(round($0))) } ?? "-")
-                        .foregroundStyle(.secondary)
-                }
-                HStack {
-                    Text("Protein")
-                    Spacer()
-                    Text(baseProtein.map { String(format: "%.1f g", $0) } ?? "-")
-                        .foregroundStyle(.secondary)
-                }
-                HStack {
-                    Text("Carbs")
-                    Spacer()
-                    Text(baseCarbs.map { String(format: "%.1f g", $0) } ?? "-")
-                        .foregroundStyle(.secondary)
-                }
-                HStack {
-                    Text("Fat")
-                    Spacer()
-                    Text(baseFat.map { String(format: "%.1f g", $0) } ?? "-")
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-        .navigationTitle(recipe.name)
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Add") { add() }
-                    .disabled(servings <= 0)
-            }
-        }
-    }
-    
-    private func add() {
-        let calories = baseCalories.map { $0 * servings }
-        let protein = baseProtein.map { $0 * servings }
-        let carbs = baseCarbs.map { $0 * servings }
-        let fat = baseFat.map { $0 * servings }
-        let item = MealItemModel(
-            itemId: UUID().uuidString,
-            sourceType: .recipe,
-            sourceId: recipe.recipeId,
-            displayName: recipe.name,
-            amount: servings,
-            unit: "serving",
-            resolvedGrams: nil,
-            resolvedMilliliters: nil,
-            calories: calories,
-            proteinGrams: protein,
-            carbGrams: carbs,
-            fatGrams: fat
-        )
-        onConfirm(item)
     }
 }
 

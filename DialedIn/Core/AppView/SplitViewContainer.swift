@@ -12,6 +12,8 @@ protocol SplitViewContainerInteractor {
     var activeSession: WorkoutSessionModel? { get }
     var isTrackerPresented: Bool { get }
     func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
+    func setActiveSession(_ session: WorkoutSessionModel?)
+    func setIsTrackerPresented(_ presented: Bool)
 }
 
 extension CoreInteractor: SplitViewContainerInteractor { }
@@ -20,41 +22,31 @@ extension CoreInteractor: SplitViewContainerInteractor { }
 @MainActor
 class SplitViewContainerViewModel {
     private let interactor: SplitViewContainerInteractor
-    private let workoutSessionManager: WorkoutSessionManager
     
     var preferredColumn: NavigationSplitViewColumn = .sidebar
 
     var activeSession: WorkoutSessionModel? {
         get {
-            workoutSessionManager.activeSession
+            interactor.activeSession
         }
         set {
-            workoutSessionManager.activeSession = newValue
+            interactor.setActiveSession(newValue)
         }
     }
     
     var isTrackerPresented: Bool {
         get {
-            workoutSessionManager.isTrackerPresented
+            interactor.isTrackerPresented
         }
         set {
-            workoutSessionManager.isTrackerPresented = newValue
+            interactor.setIsTrackerPresented(newValue)
         }
     }
     
     init(
         interactor: SplitViewContainerInteractor,
-        workoutSessionManager: WorkoutSessionManager
     ) {
         self.interactor = interactor
-        self.workoutSessionManager = workoutSessionManager
-    }
-    
-    init(
-        container: DependencyContainer
-    ) {
-        self.interactor = CoreInteractor(container: container)
-        self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
     }
     
     func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel? {
@@ -142,8 +134,7 @@ struct SplitViewContainer: View {
     let container = DevPreview.shared.container
     SplitViewContainer(
         viewModel: SplitViewContainerViewModel(
-            interactor: CoreInteractor(container: container),
-            workoutSessionManager: container.resolve(WorkoutSessionManager.self)!
+            interactor: CoreInteractor(container: container)
         ),
         detail: DetailNavigationModel(),
         appNavigation: AppNavigationModel()
