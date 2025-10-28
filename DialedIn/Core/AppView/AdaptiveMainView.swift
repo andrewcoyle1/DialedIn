@@ -23,18 +23,29 @@ struct AdaptiveMainView: View {
         .layoutMode(.splitView)
         #else
         if horizontalSizeClass == .compact {
-//            if UIDevice.current.userInterfaceIdiom == .phone || horizontalSizeClass == .compact {
-            TabBarView(viewModel: TabBarViewModel(interactor: CoreInteractor(container: container)))
-                .environment(detail)
-                .environment(appNavigation)
-                .layoutMode(.tabBar)
+            TabBarView(
+                viewModel: TabBarViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
+            .environment(detail)
+            .environment(appNavigation)
+            .layoutMode(.tabBar)
         } else {
             SplitViewContainer(
-                viewModel: SplitViewContainerViewModel(interactor: CoreInteractor(container: container)),
+                viewModel: SplitViewContainerViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                ),
                 detail: detail,
                 appNavigation: appNavigation
             )
-            .layoutMode(.splitView)
+            .layoutMode(
+                .splitView
+            )
         }
         #endif
     }

@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 protocol LocalMealLogPersistence {
     func addLocalMeal(_ meal: MealLogModel) throws
     func updateLocalMeal(_ meal: MealLogModel) throws

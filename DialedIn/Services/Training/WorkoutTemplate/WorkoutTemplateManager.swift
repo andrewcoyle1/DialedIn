@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-@MainActor
 @Observable
 class WorkoutTemplateManager: BaseTemplateManager<WorkoutTemplateModel>, WorkoutTemplateResolver {
     

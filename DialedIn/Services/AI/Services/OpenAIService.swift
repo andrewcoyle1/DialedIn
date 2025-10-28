@@ -1,6 +1,6 @@
 //
 //  OpenAIService.swift
-//  AIChatCourse
+//  DialedIn
 //
 //  Created by Andrew Coyle on 10/15/24.
 //

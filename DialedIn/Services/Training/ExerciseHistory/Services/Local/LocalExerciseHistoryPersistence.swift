@@ -5,7 +5,6 @@
 //  Created by Andrew Coyle on 27/09/2025.
 //
 
-@MainActor
 protocol LocalExerciseHistoryPersistence {
     func addLocalExerciseHistory(entry: ExerciseHistoryEntryModel) throws
     func updateLocalExerciseHistory(entry: ExerciseHistoryEntryModel) throws

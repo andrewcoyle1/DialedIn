@@ -94,7 +94,6 @@ struct FirebaseAuthService: AuthService {
         return result.asAuthInfo
     }
     
-    @MainActor
     func signInApple() async throws -> UserAuthInfo {
         let helper = SignInWithAppleHelper()
         let response = try await helper.signIn()
@@ -137,7 +136,6 @@ struct FirebaseAuthService: AuthService {
         return result.asAuthInfo
     }
 
-    @MainActor
     func signInGoogle() async throws -> UserAuthInfo {
         // Find a presenting view controller using a scene-aware approach (iOS 15+)
         let presentingViewController: UIViewController? = {
@@ -211,7 +209,6 @@ struct FirebaseAuthService: AuthService {
         try Auth.auth().signOut()
     }
     
-    @MainActor
     func reauthenticateWithApple() async throws {
         guard let user = Auth.auth().currentUser else {
             throw AuthError.userNotFound

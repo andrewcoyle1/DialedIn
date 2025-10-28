@@ -10,7 +10,6 @@ import Foundation
 import HealthKit
 
 @Observable
-@MainActor
 class HKWorkoutManager: NSObject {
     struct SessionStateChange {
         let newState: HKWorkoutSessionState
@@ -78,7 +77,7 @@ class HKWorkoutManager: NSObject {
         super.init()
         
         // Kick off stream consumption task
-        Task { @MainActor in
+        Task {
             for await value in self.asyncStreamTuple.stream {
                 await self.consumeSessionStateChange(value)
             }
@@ -361,7 +360,6 @@ extension HKWorkoutManager: HKLiveWorkoutBuilderDelegate {
 // MARK: - Rest Timer Management
 extension HKWorkoutManager {
     /// Sync rest end time from shared storage (called by timer to pick up widget changes)
-    @MainActor
     func syncRestEndTimeFromSharedStorage() {
         let sharedRestEndTime = SharedWorkoutStorage.restEndTime
         
@@ -434,7 +432,6 @@ extension HKWorkoutManager {
     }
 
     /// Cancel any pending rest and clear countdown from Live Activity.
-    @MainActor
     func cancelRest() {
         restTimer?.cancel()
         restTimer = nil
@@ -453,7 +450,6 @@ extension HKWorkoutManager {
     }
 
     /// Called automatically when the scheduled rest end time is reached.
-    @MainActor
     func endRest() {
         restTimer?.cancel()
         restTimer = nil

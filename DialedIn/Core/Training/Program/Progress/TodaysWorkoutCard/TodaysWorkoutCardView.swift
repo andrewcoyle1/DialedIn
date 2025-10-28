@@ -11,26 +11,7 @@ struct TodaysWorkoutCardView: View {
     @State var viewModel: TodaysWorkoutCardViewModel
     
     var body: some View {
-        HStack(spacing: 16) {
-            // Status indicator
-            VStack(spacing: 4) {
-                if viewModel.scheduledWorkout.isCompleted {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(.green)
-                    Text("Done")
-                        .font(.caption2)
-                        .foregroundStyle(.green)
-                } else {
-                    Image(systemName: "play.circle.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(.blue)
-                    Text("Ready")
-                        .font(.caption2)
-                        .foregroundStyle(.blue)
-                }
-            }
-            
+        HStack(spacing: 16) {            
             // Workout info
             VStack(alignment: .leading, spacing: 6) {
                 Text(viewModel.templateName)

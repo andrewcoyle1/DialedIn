@@ -8,7 +8,6 @@
 import SwiftData
 import SwiftUI
 
-@MainActor
 class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     private var container: ModelContainer
     private let storeURL: URL

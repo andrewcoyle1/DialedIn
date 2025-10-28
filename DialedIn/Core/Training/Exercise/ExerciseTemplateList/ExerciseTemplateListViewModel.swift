@@ -18,15 +18,19 @@ extension CoreInteractor: ExerciseTemplateListInteractor { }
 class ExerciseTemplateListViewModel {
     private let interactor: ExerciseTemplateListInteractor
     
+    let templateIds: [String]?
+
     private(set) var templates: [ExerciseTemplateModel] = []
     private(set) var isLoading: Bool = false
     var path: [NavigationPathOption] = []
     var showAlert: AnyAppAlert?
     
     init(
-        interactor: ExerciseTemplateListInteractor
+        interactor: ExerciseTemplateListInteractor,
+        templateIds: [String]?
     ) {
         self.interactor = interactor
+        self.templateIds = templateIds
     }
     
     func loadTemplates(templateIds: [String]) async {

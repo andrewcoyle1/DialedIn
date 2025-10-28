@@ -1,6 +1,6 @@
 //
 //  LogService.swift
-//  AIChatCourse
+//  DialedIn
 //
 //  Created by Andrew Coyle on 10/23/24.
 //

@@ -1,6 +1,6 @@
 //
 //  Array+EXT.swift
-//  AIChatCourse
+//  DialedIn
 //
 //  Created by Andrew Coyle on 10/19/24.
 //

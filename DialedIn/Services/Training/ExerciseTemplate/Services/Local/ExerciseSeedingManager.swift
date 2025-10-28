@@ -9,7 +9,6 @@ import Foundation
 import SwiftData
 
 /// Manages seeding of pre-built exercise templates into SwiftData
-@MainActor
 class ExerciseSeedingManager {
     
     private let modelContext: ModelContext

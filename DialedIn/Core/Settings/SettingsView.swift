@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  AIChatCourse
+//  DialedIn
 //
 //  Created by Andrew Coyle on 10/6/24.
 //

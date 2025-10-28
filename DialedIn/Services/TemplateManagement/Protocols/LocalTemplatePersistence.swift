@@ -7,7 +7,6 @@
 
 /// Generic protocol for local template persistence
 /// Provides a common interface for working with local storage of templates
-@MainActor
 protocol LocalTemplatePersistence {
     associatedtype Model: TemplateModel
     

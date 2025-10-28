@@ -8,20 +8,11 @@
 import SwiftUI
 
 struct WorkoutTemplateListView: View {
-    @Environment(\.dismiss) private var dismiss
-
     @State var viewModel: WorkoutTemplateListViewModel
-    
-    let templateIds: [String]?
-    @State private var path: [NavigationPathOption] = []
-
-    init(viewModel: WorkoutTemplateListViewModel, templateIds: [String]? = nil) {
-        self.viewModel = viewModel
-        self.templateIds = templateIds
-    }
-    
+    @Environment(\.dismiss) private var dismiss
+        
     var body: some View {
-        NavigationStack(path: $path) {
+        NavigationStack(path: $viewModel.path) {
             Group {
                 if viewModel.isLoading {
                     ProgressView()
@@ -29,7 +20,7 @@ struct WorkoutTemplateListView: View {
                     ContentUnavailableView(
                         "No Workouts",
                         systemImage: "figure.run",
-                        description: Text(templateIds != nil ? "You haven't created any workout templates yet." : "No workout templates available.")
+                        description: Text(viewModel.templateIds != nil ? "You haven't created any workout templates yet." : "No workout templates available.")
                     )
                 } else {
                     List {
@@ -40,28 +31,42 @@ struct WorkoutTemplateListView: View {
                                 subtitle: template.description
                             )
                             .anyButton(.highlight) {
-                                path.append(.workoutTemplateDetail(template: template))
+                                viewModel.path.append(.workoutTemplateDetail(template: template))
                             }
                             .removeListRowFormatting()
                         }
                     }
                 }
             }
-            .navigationTitle(templateIds != nil ? "My Workouts" : "Workout Templates")
+            .navigationTitle(viewModel.templateIds != nil ? "My Workouts" : "Workout Templates")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button { dismiss() } label: { Image(systemName: "chevron.left") }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                    }
                 }
             }
-            .task { await viewModel.loadTemplates(templateIds: templateIds ?? []) }
+            .task {
+                await viewModel.loadTemplates(
+                    templateIds: viewModel.templateIds ?? []
+                )
+            }
             .showCustomAlert(alert: $viewModel.showAlert)
-            .navigationDestinationForCoreModule(path: $path)
+            .navigationDestinationForCoreModule(path: $viewModel.path)
         }
     }
 }
  
 #Preview {
-    WorkoutTemplateListView(viewModel: WorkoutTemplateListViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    WorkoutTemplateListView(
+        viewModel: WorkoutTemplateListViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            ),
+            templateIds: []
+        )
+    )
 }

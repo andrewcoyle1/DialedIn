@@ -11,7 +11,6 @@ import ActivityKit
 // Models used to populate attributes live within the same target
 
 @Observable
-@MainActor
 class LiveActivityManager: LiveActivityUpdating {
     
     // Track active state internally instead of setting it on HKWorkoutManager
@@ -203,7 +202,7 @@ class LiveActivityManager: LiveActivityUpdating {
 		
 		lastContentState = updatedState
 
-        Task { @MainActor in
+        Task {
             defer {
                 self.activityViewState?.updateControlDisabled = false
             }
@@ -271,7 +270,7 @@ class LiveActivityManager: LiveActivityUpdating {
 		// Use different dismissal policies based on completion state
 		let dismissalPolicy: ActivityUIDismissalPolicy = isCompleted ? .default : .immediate
 
-        Task { @MainActor in
+        Task {
             await self.endActivity(with: finalState, dismissalPolicy: dismissalPolicy)
         }
 	}

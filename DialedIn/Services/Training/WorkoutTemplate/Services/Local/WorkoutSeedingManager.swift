@@ -9,7 +9,6 @@ import Foundation
 import SwiftData
 
 /// Manages seeding of pre-built workout templates into SwiftData
-@MainActor
 class WorkoutSeedingManager {
     
     private let modelContext: ModelContext
@@ -169,7 +168,6 @@ private struct PrebuiltWorkoutDTO: Codable {
     let isSystemWorkout: Bool
     let exerciseIds: [String]
     
-    @MainActor
     func toModel(exerciseManager: ExerciseTemplateManager) async throws -> WorkoutTemplateModel {
         // Fetch actual exercise templates from LOCAL storage (where they were seeded)
         var exercises: [ExerciseTemplateModel] = []

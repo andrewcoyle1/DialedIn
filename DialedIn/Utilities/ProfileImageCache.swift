@@ -8,7 +8,6 @@
 import Foundation
 import SwiftUI
 
-@MainActor
 class ProfileImageCache {
     static let shared = ProfileImageCache()
     

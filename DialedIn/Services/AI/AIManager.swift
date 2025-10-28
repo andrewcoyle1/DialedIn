@@ -1,12 +1,11 @@
 //
 //  AIManager.swift
-//  AIChatCourse
+//  DialedIn
 //
 //  Created by Andrew Coyle on 10/15/24.
 //
 import SwiftUI
 
-@MainActor
 @Observable
 class AIManager {
     

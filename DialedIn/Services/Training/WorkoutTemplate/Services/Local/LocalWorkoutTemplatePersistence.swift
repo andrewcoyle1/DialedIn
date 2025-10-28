@@ -5,7 +5,6 @@
 //  Created by Andrew Coyle on 24/09/2025.
 //
 
-@MainActor
 protocol LocalWorkoutTemplatePersistence {
     func addLocalWorkoutTemplate(workout: WorkoutTemplateModel) throws
     func getLocalWorkoutTemplate(id: String) throws -> WorkoutTemplateModel

@@ -9,7 +9,6 @@ import SwiftData
 import SwiftUI
 import Foundation
 
-@MainActor
 struct SwiftExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
     private let container: ModelContainer
     

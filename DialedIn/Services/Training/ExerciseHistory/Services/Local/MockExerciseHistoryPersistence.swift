@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 struct MockExerciseHistoryPersistence: LocalExerciseHistoryPersistence {
     
     var entries: [ExerciseHistoryEntryModel]

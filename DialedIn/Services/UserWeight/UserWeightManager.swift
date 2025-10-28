@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 @Observable
 class UserWeightManager {
     private let remote: RemoteUserWeightService
@@ -113,14 +112,12 @@ struct MockUserWeightServices: UserWeightServices {
     let remote: RemoteUserWeightService
     let local: LocalUserWeightService
     
-    @MainActor
     init(delay: Double = 0, showError: Bool = false) {
         self.remote = MockRemoteUserWeightService(delay: delay, showError: showError)
         self.local = MockLocalUserWeightService(delay: delay, showError: showError)
     }
 }
 
-@MainActor
 struct ProductionUserWeightServices: UserWeightServices {
     let remote: RemoteUserWeightService = ProductionRemoteUserWeightService()
     let local: LocalUserWeightService = ProductionLocalUserWeightService()

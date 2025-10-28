@@ -9,7 +9,6 @@ import SwiftUI
 
 /// Base class for template managers that provides default implementations
 /// for common CRUD operations to reduce code duplication
-@MainActor
 class BaseTemplateManager<Model: Identifiable & Hashable> where Model.ID == String {
     
     // MARK: - Stored operation closures

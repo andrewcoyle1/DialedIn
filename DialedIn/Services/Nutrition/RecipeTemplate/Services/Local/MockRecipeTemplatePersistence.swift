@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 struct MockRecipeTemplatePersistence: LocalRecipeTemplatePersistence {
     
     var recipeTemplates: [RecipeTemplateModel]

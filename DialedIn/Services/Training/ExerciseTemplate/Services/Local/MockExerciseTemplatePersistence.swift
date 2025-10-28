@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 struct MockExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
     
     var exerciseTemplates: [ExerciseTemplateModel]

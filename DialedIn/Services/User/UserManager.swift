@@ -1,13 +1,12 @@
 //
 //  UserManager.swift
-//  AIChatCourse
+//  DialedIn
 //
 //  Created by Andrew Coyle on 10/14/24.
 //
 import SwiftUI
 import SwiftfulUtilities
 
-@MainActor
 @Observable
 class UserManager {
     

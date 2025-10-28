@@ -8,7 +8,6 @@
 import SwiftUI
 import SwiftData
 
-@MainActor
 struct SwiftTrainingPlanPersistence: LocalTrainingPlanPersistence {
     private let container: ModelContainer
     private let storeURL: URL

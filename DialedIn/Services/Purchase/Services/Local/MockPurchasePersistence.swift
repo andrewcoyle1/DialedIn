@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 class MockPurchasePersistence: LocalPurchasePersistence {
     
     var showError: Bool

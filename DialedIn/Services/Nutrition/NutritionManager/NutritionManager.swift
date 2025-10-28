@@ -24,7 +24,6 @@ extension CalorieFloor {
     }
 }
 
-@MainActor
 @Observable
 class NutritionManager {
     

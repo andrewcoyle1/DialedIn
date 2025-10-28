@@ -1,13 +1,12 @@
 //
 //  AuthManager.swift
-//  AIChatCourse
+//  DialedIn
 //
 //  Created by Andrew Coyle on 10/13/24.
 //
 import SwiftUI
 import SwiftfulUtilities
 
-@MainActor
 @Observable
 class AuthManager {
     
@@ -23,6 +22,7 @@ class AuthManager {
         self.addAuthListener()
     }
     
+    @MainActor
     private func addAuthListener() {
         logManager?.trackEvent(event: Event.authListenerStart)
         Task {

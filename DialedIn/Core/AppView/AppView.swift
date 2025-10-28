@@ -52,7 +52,8 @@ struct AppView: View {
                 .onFirstAppear {
                     viewModel.schedulePushNotifications()
                 }
-            })
+            }
+        )
     }
 }
 

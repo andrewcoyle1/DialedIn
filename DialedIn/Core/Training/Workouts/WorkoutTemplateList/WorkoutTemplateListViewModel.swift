@@ -18,14 +18,20 @@ extension CoreInteractor: WorkoutTemplateListInteractor { }
 @MainActor
 class WorkoutTemplateListViewModel {
     private let interactor: WorkoutTemplateListInteractor
-    
+    let templateIds: [String]?
+
     private(set) var isLoading: Bool = false
     private(set) var templates: [WorkoutTemplateModel] = []
 
+    var path: [NavigationPathOption] = []
     var showAlert: AnyAppAlert?
     
-    init(interactor: WorkoutTemplateListInteractor) {
+    init(
+        interactor: WorkoutTemplateListInteractor,
+        templateIds: [String]?
+    ) {
         self.interactor = interactor
+        self.templateIds = templateIds
     }
     
     func loadTemplates(templateIds: [String]?) async {

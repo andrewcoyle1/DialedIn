@@ -8,7 +8,6 @@
 import Foundation
 import UserNotifications
 
-@MainActor
 @Observable
 class PushManager {
 

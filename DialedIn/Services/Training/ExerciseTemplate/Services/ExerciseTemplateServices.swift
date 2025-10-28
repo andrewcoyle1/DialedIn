@@ -14,7 +14,6 @@ struct MockExerciseTemplateServices: ExerciseTemplateServices {
     let remote: RemoteExerciseTemplateService
     let local: LocalExerciseTemplatePersistence
     
-    @MainActor
     init(exercises: [ExerciseTemplateModel] = ExerciseTemplateModel.mocks, delay: Double = 0, showError: Bool = false) {
         self.remote = MockExerciseTemplateService(exercises: exercises, delay: delay, showError: showError)
         self.local = MockExerciseTemplatePersistence(exercises: exercises, showError: showError)
@@ -25,7 +24,6 @@ struct ProductionExerciseTemplateServices: ExerciseTemplateServices {
     let remote: RemoteExerciseTemplateService
     let local: LocalExerciseTemplatePersistence
     
-    @MainActor
     init() {
         self.remote = FirebaseExerciseTemplateService()
         self.local = SwiftExerciseTemplatePersistence()

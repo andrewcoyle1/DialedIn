@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 @Observable
 class ABTestManager {
     private let remote: RemoteABTestService

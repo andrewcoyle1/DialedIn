@@ -5,8 +5,7 @@
 //  Created by Andrew Coyle on 18/10/2025.
 //
 
-import SwiftUI
-import Observation
+import Foundation
 
 enum AppSection: String, Hashable, CaseIterable, Identifiable {
     case dashboard

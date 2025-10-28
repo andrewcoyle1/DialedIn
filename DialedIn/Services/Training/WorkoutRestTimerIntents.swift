@@ -245,6 +245,7 @@ struct CompleteSetIntent: LiveActivityIntent {
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
 @MainActor
 fileprivate extension CompleteSetIntent {
+
     func updateLoading(activity: Activity<WorkoutActivityAttributes>, state: WorkoutActivityAttributes.ContentState) async {
         var loadingState = state
         loadingState.isProcessingIntent = true

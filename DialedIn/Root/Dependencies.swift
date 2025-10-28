@@ -1,190 +1,48 @@
 //
-//  DialedInApp.swift
+//  Dependencies.swift
 //  DialedIn
 //
-//  Created by Andrew Coyle on 19/08/2025.
+//  Created by Andrew Coyle on 28/10/2025.
 //
 
 import SwiftUI
-import SwiftfulUtilities
-import Firebase
-import FirebaseCore
-import FirebaseAnalytics
-import FirebaseAppCheck
-import GoogleSignIn
-
-@main
-struct AppEntryPoint {
-    
-    static func main() {
-        if SwiftfulUtilities.Utilities.isUnitTesting {
-            TestingApp.main()
-        } else {
-            DialedInApp.main()
-        }
-    }
-}
-
-struct TestingApp: App {
-    
-    @State var isLoading = false
-    
-    var body: some Scene {
-        WindowGroup {
-            VStack {
-                Text("Testing")
-                HStack {
-                    Circle()
-                        .fill(Color.orange)
-                        .frame(width: 10, height: 10)
-                        .scaleEffect(isLoading ? 1.5 : 0.5)
-                        .animation(.easeInOut(duration: 0.2).repeatForever(autoreverses: true), value: isLoading)
-                    Circle()
-                        .fill(Color.orange)
-                        .frame(width: 10, height: 10)
-                        .scaleEffect(isLoading ? 1.5 : 0.5)
-                        .animation(.easeInOut(duration: 0.2).repeatForever(autoreverses: true).delay(0.1), value: isLoading)
-                    Circle()
-                        .fill(Color.orange)
-                        .frame(width: 10, height: 10)
-                        .scaleEffect(isLoading ? 1.5 : 0.5)
-                        .animation(.easeInOut(duration: 0.2).repeatForever(autoreverses: true).delay(0.2), value: isLoading)
-                }
-            }
-            .onAppear {
-                isLoading = true
-            }
-        }
-    }
-}
-
-struct DialedInApp: App {
-    
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    
-    var body: some Scene {
-        WindowGroup {
-            AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: delegate.dependencies.container)))
-                .environment(delegate.dependencies.container)
-                .environment(delegate.dependencies.detailNavigationModel)
-                .environment(delegate.dependencies.logManager)
-                .onOpenURL { url in
-                    _ = GIDSignIn.sharedInstance.handle(url)
-                }
-        }
-    }
-}
-
-class AppDelegate: NSObject, UIApplicationDelegate {
-    var dependencies: Dependencies!
-
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        
-        let config: BuildConfiguration
-        
-        #if MOCK
-        config = .mock(isSignedIn: true)
-        #elseif DEBUG
-        config = .dev
-        #else
-        config = .prod
-        #endif
-        
-        config.configure()
-        dependencies = Dependencies(config: config)
-        return true
-    }
-    
-}
-
-enum BuildConfiguration {
-    case mock(isSignedIn: Bool), dev, prod
-    
-    func configure() {
-        switch self {
-        case .mock:
-            // Mock build does not run Firebase
-            break
-        case .dev:
-            let plist = Bundle.main.path(forResource: "GoogleService-Info-Dev", ofType: "plist")!
-            let options = FirebaseOptions(contentsOfFile: plist)!
-            let providerFactory = MyAppCheckProviderFactory()
-            AppCheck.setAppCheckProviderFactory(providerFactory)
-            FirebaseApp.configure(options: options)
-            Analytics.setAnalyticsCollectionEnabled(true)
-            
-            // Configure Google Sign-In
-            guard let clientId = options.clientID else { fatalError("No client ID found in Firebase options") }
-            GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
-        case .prod:
-            let plist = Bundle.main.path(forResource: "GoogleService-Info-Prod", ofType: "plist")!
-            let options = FirebaseOptions(contentsOfFile: plist)!
-            let providerFactory = MyAppCheckProviderFactory()
-            AppCheck.setAppCheckProviderFactory(providerFactory)
-            FirebaseApp.configure(options: options)
-            Analytics.setAnalyticsCollectionEnabled(true)
-            
-            // Configure Google Sign-In
-            guard let clientId = options.clientID else { fatalError("No client ID found in Firebase options") }
-            GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
-        }
-    }
-}
-
-@Observable
-@MainActor
-class DependencyContainer {
-    private var services: [String: Any] = [:]
-    
-    func register<T>(_ type: T.Type, service: T) {
-        let key = "\(type)"
-        services[key] = service
-    }
-    
-    func register<T>(_ type: T.Type, service: () -> T) {
-        let key = "\(type)"
-        services[key] = service()
-    }
-    
-    func resolve<T>(_ type: T.Type) -> T? {
-        let key = "\(type)"
-        return services[key] as? T
-    }
-}
 
 @MainActor
 struct Dependencies {
     let container: DependencyContainer
-    let authManager: AuthManager
-    let userManager: UserManager
-    let purchaseManager: PurchaseManager
-    let exerciseTemplateManager: ExerciseTemplateManager
-    let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
-    let workoutTemplateManager: WorkoutTemplateManager
-    let workoutSessionManager: WorkoutSessionManager
-    let exerciseHistoryManager: ExerciseHistoryManager
-    let trainingPlanManager: TrainingPlanManager
-    let programTemplateManager: ProgramTemplateManager
-    let ingredientTemplateManager: IngredientTemplateManager
-    let recipeTemplateManager: RecipeTemplateManager
-    let nutritionManager: NutritionManager
-    let mealLogManager: MealLogManager
-    let pushManager: PushManager
-    let aiManager: AIManager
     let logManager: LogManager
-    let reportManager: ReportManager
-    let healthKitManager: HealthKitManager
-    let trainingAnalyticsManager: TrainingAnalyticsManager
-    let detailNavigationModel: DetailNavigationModel
-    let userWeightManager: UserWeightManager
-    let goalManager: GoalManager
-    #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-    let hkWorkoutManager: HKWorkoutManager
-    let liveActivityManager: LiveActivityManager
-    #endif
 
     // swiftlint:disable:next function_body_length
     init(config: BuildConfiguration) {
+        
+        let authManager: AuthManager
+        let userManager: UserManager
+        let purchaseManager: PurchaseManager
+        let exerciseTemplateManager: ExerciseTemplateManager
+        let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
+        let workoutTemplateManager: WorkoutTemplateManager
+        let workoutSessionManager: WorkoutSessionManager
+        let exerciseHistoryManager: ExerciseHistoryManager
+        let trainingPlanManager: TrainingPlanManager
+        let programTemplateManager: ProgramTemplateManager
+        let ingredientTemplateManager: IngredientTemplateManager
+        let recipeTemplateManager: RecipeTemplateManager
+        let nutritionManager: NutritionManager
+        let mealLogManager: MealLogManager
+        let pushManager: PushManager
+        let aiManager: AIManager
+        
+        let reportManager: ReportManager
+        let healthKitManager: HealthKitManager
+        let trainingAnalyticsManager: TrainingAnalyticsManager
+        let detailNavigationModel: DetailNavigationModel
+        let userWeightManager: UserWeightManager
+        let goalManager: GoalManager
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        let hkWorkoutManager: HKWorkoutManager
+        let liveActivityManager: LiveActivityManager
+        #endif
+        
         switch config {
         case .mock(isSignedIn: let isSignedIn):
             authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil))
@@ -332,45 +190,8 @@ struct Dependencies {
 
 extension View {
     func previewEnvironment(isSignedIn: Bool = true) -> some View {
-        let logManager = LogManager(services: [ConsoleService(printParameters: false)])
-        let userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        let hkWorkoutManager = HKWorkoutManager()
-        let liveActivityManager = LiveActivityManager()
-        hkWorkoutManager.liveActivityUpdater = liveActivityManager
-        #endif
-        
         return self
-            .environment(userManager)
-            .environment(logManager)
-            .environment(AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil), logManager: logManager))
-            .environment(AppState())
-            .environment(DetailNavigationModel())
-            .environment(ReportManager(service: MockReportService(), userManager: userManager))
-            .environment(ExerciseTemplateManager(services: MockExerciseTemplateServices()))
-            .environment(ExerciseUnitPreferenceManager(userManager: userManager))
-            .environment(WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: ExerciseTemplateManager(services: MockExerciseTemplateServices())))
-            .environment(WorkoutSessionManager(services: MockWorkoutSessionServices()))
-            .environment(ExerciseHistoryManager(services: MockExerciseHistoryServices()))
-            .environment(TrainingPlanManager(services: MockTrainingPlanServices()))
-            .environment(ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: MockProgramTemplateService())))
-            .environment(TrainingAnalyticsManager(services: MockTrainingAnalyticsServices()))
-            #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-            .environment(hkWorkoutManager)
-            .environment(liveActivityManager)
-            #endif
-            .environment(UserWeightManager(services: MockUserWeightServices()))
-            .environment(GoalManager(services: MockGoalServices()))
-            .environment(PurchaseManager(services: MockPurchaseServices()))
-            .environment(IngredientTemplateManager(services: MockIngredientTemplateServices()))
-            .environment(RecipeTemplateManager(services: MockRecipeTemplateServices()))
-            .environment(NutritionManager(services: MockNutritionServices()))
-            .environment(MealLogManager(services: MockMealLogServices(mealsByDay: MealLogModel.previewWeekMealsByDay)))
-            .environment(AIManager(service: MockAIService()))
-            .environment(PushManager(services: MockPushServices(), logManager: nil))
-            .environment(HealthKitManager(service: MockHealthService()))
-            .environment(DevPreview.shared.container)
-            .environment(AppNavigationModel())
+            .environment(LogManager(services: [ConsoleService(printParameters: false)]))
     }
 }
 

@@ -8,7 +8,8 @@
 import Testing
 import Foundation
 
-@MainActor struct ExerciseTemplateManagerTests {
+// swiftlint:disable:next type_body_length
+struct ExerciseTemplateManagerTests {
     
     // MARK: - Local Operations Tests
     

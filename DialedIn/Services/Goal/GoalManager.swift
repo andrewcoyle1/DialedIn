@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 @Observable
 class GoalManager {
     private let remote: RemoteGoalService

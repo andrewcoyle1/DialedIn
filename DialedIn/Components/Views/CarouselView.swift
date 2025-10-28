@@ -1,6 +1,6 @@
 //
 //  CarouselView.swift
-//  AIChatCourse
+//  DialedIn
 //
 //  Created by Andrew Coyle on 10/7/24.
 //

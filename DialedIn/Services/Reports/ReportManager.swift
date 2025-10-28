@@ -51,7 +51,6 @@ struct ReportSubmission: Codable {
     let createdAt: Date
 }
 
-@MainActor
 @Observable
 class ReportManager {
     private let remote: RemoteReportService

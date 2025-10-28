@@ -8,7 +8,6 @@
 import SwiftData
 import SwiftUI
 
-@MainActor
 struct SwiftWorkoutTemplatePersistence: LocalWorkoutTemplatePersistence {
     private let container: ModelContainer
     private let storeURL: URL

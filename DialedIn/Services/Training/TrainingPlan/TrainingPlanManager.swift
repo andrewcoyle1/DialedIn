@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 @Observable
 class TrainingPlanManager {
     
@@ -37,7 +36,7 @@ class TrainingPlanManager {
         
         plansListener = remote.addPlansListener(userId: userId) { [weak self] remotePlans in
             guard let self = self else { return }
-            Task { @MainActor in
+            Task { // @MainActor in
                 self.mergeRemotePlans(remotePlans)
             }
         }
@@ -48,7 +47,6 @@ class TrainingPlanManager {
         plansListener = nil
     }
     
-    @MainActor
     func clearAllLocalData() throws {
         // Stop listener
         stopSyncListener()
@@ -64,7 +62,6 @@ class TrainingPlanManager {
         allPlans = []
     }
     
-    @MainActor
     private func mergeRemotePlans(_ remotePlans: [TrainingPlan]) {
         // Get local plans
         let localPlans = local.getAllPlans()

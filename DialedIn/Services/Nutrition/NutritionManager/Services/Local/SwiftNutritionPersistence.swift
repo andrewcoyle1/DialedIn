@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-@MainActor
 struct SwiftNutritionPersistence: LocalNutritionPersistence {
     private let key = "local_diet_plan"
     

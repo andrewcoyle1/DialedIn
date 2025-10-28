@@ -8,7 +8,6 @@
 import Testing
 import Foundation
 
-@MainActor
 struct ExerciseTemplateEntityTests {
 
     // MARK: - Entity Initialization Tests

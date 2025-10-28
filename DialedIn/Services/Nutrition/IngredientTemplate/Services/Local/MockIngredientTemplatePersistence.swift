@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 struct MockIngredientTemplatePersistence: LocalIngredientTemplatePersistence {
     
     var ingredientTemplates: [IngredientTemplateModel]

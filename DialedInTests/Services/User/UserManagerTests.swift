@@ -8,7 +8,6 @@
 import Testing
 import Foundation
 
-@MainActor
 struct UserManagerTests {
     
     // MARK: - Initialization Tests

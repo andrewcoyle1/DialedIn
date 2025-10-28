@@ -1,6 +1,6 @@
 //
 //  Error+EXT.swift
-//  AIChatCourse
+//  DialedIn
 //
 //  Created by Andrew Coyle on 20/07/2025.
 //

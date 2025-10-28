@@ -7,7 +7,6 @@
 
 import XCTest
 
-@MainActor
 final class DialedInUITests: XCTestCase {
 
     override func setUpWithError() throws {
@@ -18,7 +17,6 @@ final class DialedInUITests: XCTestCase {
 
     }
 
-    @MainActor
     func testExample() throws {
         // UI tests must launch the application that they test.
         let app = XCUIApplication()

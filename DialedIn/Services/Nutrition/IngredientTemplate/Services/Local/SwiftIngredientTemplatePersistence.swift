@@ -8,7 +8,6 @@
 import SwiftData
 import SwiftUI
 
-@MainActor
 struct SwiftIngredientTemplatePersistence: LocalIngredientTemplatePersistence {
     private let container: ModelContainer
     

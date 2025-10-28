@@ -5,7 +5,6 @@
 //  Created by Andrew Coyle on 24/09/2025.
 //
 
-@MainActor
 protocol LocalIngredientTemplatePersistence {
     func addLocalIngredientTemplate(ingredient: IngredientTemplateModel) throws
     func getLocalIngredientTemplate(id: String) throws -> IngredientTemplateModel

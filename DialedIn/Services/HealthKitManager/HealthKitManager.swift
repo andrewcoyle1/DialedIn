@@ -12,7 +12,6 @@ import os
 import HealthKit
 
 @Observable
-@MainActor
 class HealthKitManager: NSObject {
     
     private let service: HealthService

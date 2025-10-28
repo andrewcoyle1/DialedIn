@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 struct MockMealLogPersistence: LocalMealLogPersistence {
     private var store: [String: [MealLogModel]]
     private let showError: Bool

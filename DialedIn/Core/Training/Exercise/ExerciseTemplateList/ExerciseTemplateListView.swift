@@ -11,8 +11,6 @@ struct ExerciseTemplateListView: View {
     @State var viewModel: ExerciseTemplateListViewModel
     @Environment(\.dismiss) private var dismiss
     
-    let templateIds: [String]
-    
     var body: some View {
         NavigationStack(path: $viewModel.path) {
             Group {
@@ -40,14 +38,22 @@ struct ExerciseTemplateListView: View {
                     }
                 }
             }
-            .navigationTitle("My Exercises")
+            .navigationTitle(viewModel.templateIds != nil ? "My Exercises" : "Exercise Templates")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button { dismiss() } label: { Image(systemName: "chevron.left") }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                    }
                 }
             }
-            .task { await viewModel.loadTemplates(templateIds: templateIds) }
+            .task {
+                await viewModel.loadTemplates(
+                    templateIds: viewModel.templateIds ?? []
+                )
+            }
             .showCustomAlert(alert: $viewModel.showAlert)
             .navigationDestinationForCoreModule(path: $viewModel.path)
         }
@@ -55,6 +61,12 @@ struct ExerciseTemplateListView: View {
 }
 
 #Preview {
-    ExerciseTemplateListView(viewModel: ExerciseTemplateListViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), templateIds: [])
-        .previewEnvironment()
+    ExerciseTemplateListView(
+        viewModel: ExerciseTemplateListViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            ),
+            templateIds: []
+        )
+    )
 }

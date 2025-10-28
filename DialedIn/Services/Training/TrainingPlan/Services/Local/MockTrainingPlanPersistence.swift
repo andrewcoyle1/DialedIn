@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 class MockTrainingPlanPersistence: LocalTrainingPlanPersistence {
     
     var showError: Bool

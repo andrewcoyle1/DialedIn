@@ -7,7 +7,6 @@
 
 import Foundation
 
-@MainActor
 struct MockWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     
     var workoutSessions: [WorkoutSessionModel]
