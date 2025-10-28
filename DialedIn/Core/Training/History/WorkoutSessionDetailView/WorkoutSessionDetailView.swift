@@ -14,15 +14,10 @@ struct WorkoutSessionDetailView: View {
     
     var body: some View {
         List {
-            // Header section
             if let endedAt = viewModel.currentSession.endedAt {
                 headerSection(endedAt: endedAt)
             }
-            
-            // Summary stats
             summarySection
-            
-            // Exercises
             exercisesSection
         }
         .navigationTitle(viewModel.currentSession.name)

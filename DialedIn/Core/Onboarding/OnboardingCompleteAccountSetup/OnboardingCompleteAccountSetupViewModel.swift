@@ -11,7 +11,7 @@ protocol OnboardingCompleteAccountSetupInteractor {
     var currentUser: UserModel? { get }
     func updateOnboardingStep(step: OnboardingStep) async throws
     func canRequestHealthDataAuthorisation() -> Bool
-    func canRequestAuthorisation() async -> Bool
+    func canRequestNotificationAuthorisation() async -> Bool
 }
 
 extension CoreInteractor: OnboardingCompleteAccountSetupInteractor { }
@@ -78,7 +78,7 @@ class OnboardingCompleteAccountSetupViewModel {
         interactor.canRequestHealthDataAuthorisation()
     }
     
-    func canRequestAuthorisation() async -> Bool {
-        await interactor.canRequestAuthorisation()
+    func canRequestNotificationAuthorisation() async -> Bool {
+        await interactor.canRequestNotificationAuthorisation()
     }
 }

@@ -12,16 +12,19 @@ import UIKit
 
 struct NutritionView: View {
     @Environment(DependencyContainer.self) private var container
-    @State var viewModel: NutritionViewModel
-    @Environment(\.layoutMode) private var layoutMode
     @Environment(DetailNavigationModel.self) private var detail
+    @Environment(\.layoutMode) private var layoutMode
+
+    @State var viewModel: NutritionViewModel
+    @State private var path: [NavigationPathOption] = []
     
     var body: some View {
         Group {
             if layoutMode == .tabBar {
-                NavigationStack {
+                NavigationStack(path: $path) {
                     contentView
                 }
+                .navigationDestinationForCoreModule(path: $path)
             } else {
                 contentView
             }
@@ -97,7 +100,10 @@ struct NutritionView: View {
                     viewModel: RecipesViewModel(
                         interactor: CoreInteractor(
                             container: container
-                        )
+                        ), showCreateRecipe: $viewModel.showCreateRecipe,
+                        selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
+                        selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
+                        isShowingInspector: $viewModel.isShowingInspector
                     )
                 )
             case .ingredients:

@@ -8,8 +8,8 @@
 import Foundation
 
 protocol OnboardingHealthDataInteractor {
-    func canRequestAuthorisation() async -> Bool
-    func requestAuthorisation() async throws
+    func canRequestHealthDataAuthorisation() async -> Bool
+    func requestHealthKitAuthorisation() async throws
     func trackEvent(event: LoggableEvent)
 }
 
@@ -42,9 +42,9 @@ class OnboardingHealthDataViewModel {
         Task {
             interactor.trackEvent(event: Event.enableHealthKitStart)
             do {
-                try await interactor.requestAuthorisation()
+                try await interactor.requestHealthKitAuthorisation()
                 interactor.trackEvent(event: Event.enableHealthKitSuccess)
-                let canRequest = await interactor.canRequestAuthorisation()
+                let canRequest = await interactor.canRequestHealthDataAuthorisation()
                 navigationDestination = canRequest ? .notifications : .gender
             } catch {
                 interactor.trackEvent(event: Event.enableHealthKitFail(error: error))

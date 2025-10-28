@@ -13,39 +13,34 @@ protocol IngredientTemplateListInteractor {
 
 extension CoreInteractor: IngredientTemplateListInteractor { }
 
-@Observable
-@MainActor
-class IngredientTemplateListViewModel {
-    private let interactor: IngredientTemplateListInteractor
-    private let templateIds: [String]
+// Typealias for backward compatibility
+typealias IngredientTemplateListViewModel = GenericTemplateListViewModel<IngredientTemplateModel>
 
-    private(set) var templates: [IngredientTemplateModel] = []
-    var path: [NavigationPathOption] = []
-    private(set) var isLoading: Bool = false
-    var showAlert: AnyAppAlert?
-    
-    init(
+extension GenericTemplateListViewModel where Template == IngredientTemplateModel {
+    static func create(
         interactor: IngredientTemplateListInteractor,
-        templateIds: [String]
-    ) {
-        self.interactor = interactor
-        self.templateIds = templateIds
+        templateIds: [String]?
+    ) -> IngredientTemplateListViewModel {
+        return GenericTemplateListViewModel<IngredientTemplateModel>(
+            configuration: .ingredient,
+            templateIds: templateIds,
+            fetchTemplatesByIds: { ids, limit in
+                try await interactor.getIngredientTemplates(ids: ids, limitTo: limit)
+            }
+        )
     }
     
-    func loadTemplates() async {
-        guard !templateIds.isEmpty else { return }
-        isLoading = true
-        
-        do {
-            let fetchedTemplates = try await interactor.getIngredientTemplates(ids: templateIds, limitTo: templateIds.count)
-            templates = fetchedTemplates.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-        } catch {
-            showAlert = AnyAppAlert(
-                title: "Unable to load ingredients",
-                subtitle: "Please check your internet connection and try again."
-            )
-        }
-        
-        isLoading = false
+    // Convenience create for non-optional templateIds (backward compatibility)
+    static func create(
+        interactor: IngredientTemplateListInteractor,
+        templateIds: [String]
+    ) -> IngredientTemplateListViewModel {
+        return GenericTemplateListViewModel<IngredientTemplateModel>(
+            configuration: .ingredient,
+            templateIds: templateIds,
+            fetchTemplatesByIds: { ids, limit in
+                try await interactor.getIngredientTemplates(ids: ids, limitTo: limit)
+            }
+        )
     }
 }

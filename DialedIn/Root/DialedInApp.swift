@@ -67,6 +67,7 @@ struct DialedInApp: App {
             AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: delegate.dependencies.container)))
                 .environment(delegate.dependencies.container)
                 .environment(delegate.dependencies.logManager)
+                .environment(delegate.dependencies.detailNavigationModel)
                 .onOpenURL { url in
                     _ = GIDSignIn.sharedInstance.handle(url)
                 }

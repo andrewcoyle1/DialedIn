@@ -335,6 +335,39 @@ struct WorkoutTrackerView: View {
     }
 }
 
+struct WorkoutNotesView: View {
+    @Binding var notes: String
+    @Environment(\.dismiss) private var dismiss
+    let onSave: () -> Void
+    
+    var body: some View {
+        NavigationStack {
+            VStack {
+                TextEditor(text: $notes)
+                    .padding()
+                
+                Spacer()
+            }
+            .navigationTitle("Workout Notes")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Save") {
+                        onSave()
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
 #Preview("Tracker View") {
     WorkoutTrackerView(
         viewModel: WorkoutTrackerViewModel(interactor: CoreInteractor(

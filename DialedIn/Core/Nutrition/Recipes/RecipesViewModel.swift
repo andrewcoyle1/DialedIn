@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 26/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol RecipesInteractor {
     var currentUser: UserModel? { get }
@@ -33,10 +33,10 @@ class RecipesViewModel {
     private(set) var recipes: [RecipeTemplateModel] = []
 
     var showAlert: AnyAppAlert?
-    var showCreateRecipe: Bool = false
-    var selectedIngredientTemplate: IngredientTemplateModel?
-    var selectedRecipeTemplate: RecipeTemplateModel?
-    var isShowingInspector: Bool = false
+    var showCreateRecipe: Binding<Bool>
+    var selectedIngredientTemplate: Binding<IngredientTemplateModel?>
+    var selectedRecipeTemplate: Binding<RecipeTemplateModel?>
+    var isShowingInspector: Binding<Bool>
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -72,9 +72,17 @@ class RecipesViewModel {
     }
     
     init(
-        interactor: RecipesInteractor
+        interactor: RecipesInteractor,
+        showCreateRecipe: Binding<Bool>,
+        selectedIngredientTemplate: Binding<IngredientTemplateModel?>,
+        selectedRecipeTemplate: Binding<RecipeTemplateModel?>,
+        isShowingInspector: Binding<Bool>
     ) {
         self.interactor = interactor
+        self.showCreateRecipe = showCreateRecipe
+        self.selectedIngredientTemplate = selectedIngredientTemplate
+        self.selectedRecipeTemplate = selectedRecipeTemplate
+        self.isShowingInspector = isShowingInspector
     }
     
     func favouritesSectionViewed() {
@@ -99,7 +107,7 @@ class RecipesViewModel {
     
     func onAddRecipePressed() {
         interactor.trackEvent(event: Event.onAddRecipePressed)
-        showCreateRecipe = true
+        showCreateRecipe.wrappedValue = true
     }
 
     func onRecipePressed(recipe: RecipeTemplateModel) {
@@ -112,9 +120,9 @@ class RecipesViewModel {
                 interactor.trackEvent(event: Event.incrementRecipeFail(error: error))
             }
         }
-        selectedIngredientTemplate = nil
-        selectedRecipeTemplate = recipe
-        isShowingInspector = true
+        selectedIngredientTemplate.wrappedValue = nil
+        selectedRecipeTemplate.wrappedValue = recipe
+        isShowingInspector.wrappedValue = true
     }
 
     func onRecipePressedFromFavourites(recipe: RecipeTemplateModel) {

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RecipeTemplateModel: Identifiable, Codable, Hashable {
+struct RecipeTemplateModel: @MainActor TemplateModel {
     var id: String {
         recipeId
     }

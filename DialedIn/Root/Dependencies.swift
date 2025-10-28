@@ -11,6 +11,7 @@ import SwiftUI
 struct Dependencies {
     let container: DependencyContainer
     let logManager: LogManager
+    let detailNavigationModel: DetailNavigationModel
 
     // swiftlint:disable:next function_body_length
     init(config: BuildConfiguration) {
@@ -35,7 +36,6 @@ struct Dependencies {
         let reportManager: ReportManager
         let healthKitManager: HealthKitManager
         let trainingAnalyticsManager: TrainingAnalyticsManager
-        let detailNavigationModel: DetailNavigationModel
         let userWeightManager: UserWeightManager
         let goalManager: GoalManager
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ExerciseTemplateModel: Identifiable, Codable, Hashable {
+struct ExerciseTemplateModel: @MainActor TemplateModel {
     var id: String {
         exerciseId
     }
@@ -296,7 +296,18 @@ struct ExerciseTemplateModel: Identifiable, Codable, Hashable {
     }
 }
 
-enum ExerciseCategory: String, Codable, CaseIterable {
+extension ExerciseTemplateModel: Sendable {}
+
+extension ExerciseTemplateModel: Hashable {
+    nonisolated static func == (lhs: ExerciseTemplateModel, rhs: ExerciseTemplateModel) -> Bool {
+        lhs.exerciseId == rhs.exerciseId
+    }
+    nonisolated func hash(into hasher: inout Hasher) {
+        hasher.combine(exerciseId)
+    }
+}
+
+enum ExerciseCategory: String, Codable, CaseIterable, Sendable {
     case barbell
     case dumbbell
     case kettlebell
@@ -340,7 +351,7 @@ enum ExerciseCategory: String, Codable, CaseIterable {
     }
 }
 
-enum MuscleGroup: String, Codable, CaseIterable {
+enum MuscleGroup: String, Codable, CaseIterable, Sendable {
     case chest
     case shoulders
     case back

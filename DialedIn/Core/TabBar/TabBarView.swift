@@ -43,6 +43,36 @@ struct TabBarView: View {
                 TabViewAccessoryView(viewModel: TabViewAccessoryViewModel(interactor: CoreInteractor(container: container)), active: active)
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            HStack {
+                Spacer()
+                Menu {
+                    Button {
+                        
+                    } label: {
+                        Label("Log Meal", systemImage: "tray.fill")
+                            .tint(.accent)
+                    }
+                    Button {
+                        
+                    } label: {
+                        Label("Log Weight", systemImage: "scalemass.fill")
+                            .tint(.accent)
+                    }
+                } label: {
+                    Circle()
+                        .foregroundStyle(.accent)
+                        .frame(width: 40, height: 50)
+                        .overlay(alignment: .center) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 30))
+                                .fontWeight(.semibold)
+                        }
+                }
+                .buttonStyle(.glassProminent)
+            }
+            .padding()
+        }
         .fullScreenCover(isPresented: Binding(get: {
             viewModel.isTrackerPresented
         }, set: { newValue in

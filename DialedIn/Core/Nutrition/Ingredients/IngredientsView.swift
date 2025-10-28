@@ -69,7 +69,6 @@ struct IngredientsView: View {
         }
         .onAppear {
             viewModel.favouriteIngredientsShown()
-            
         }
     }
 
@@ -206,11 +205,23 @@ struct IngredientsView: View {
 #Preview("Ingredients View") {
     List {
         IngredientsView(
-            viewModel: IngredientsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)),
-            isShowingInspector: Binding.constant(false),
-            selectedIngredientTemplate: Binding.constant(nil),
-            selectedRecipeTemplate: Binding.constant(nil),
-            showCreateIngredient: Binding.constant(false)
+            viewModel: IngredientsViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            ),
+            isShowingInspector: Binding.constant(
+                false
+            ),
+            selectedIngredientTemplate: Binding.constant(
+                nil
+            ),
+            selectedRecipeTemplate: Binding.constant(
+                nil
+            ),
+            showCreateIngredient: Binding.constant(
+                false
+            )
         )
     }
     .previewEnvironment()

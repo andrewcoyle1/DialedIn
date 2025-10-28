@@ -32,20 +32,6 @@ struct MealLogView: View {
                 addMealSection
             }
         }
-        .navigationDestination(isPresented: $viewModel.navigateToMealDetailView) {
-            if let selectedMeal = viewModel.selectedMeal {
-                MealDetailView(
-                    viewModel: MealDetailViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        meal: selectedMeal
-                    )
-                )
-            } else {
-                EmptyView()
-            }
-        }
         .task {
             await viewModel.loadMeals()
         }
@@ -177,21 +163,18 @@ struct MealLogView: View {
                     }
                 } else {
                     ForEach(mealsForType) { meal in
-                        MealLogRowView(meal: meal)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                viewModel.selectedMeal = meal
-                                viewModel.navigateToMealDetailView = true
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button(role: .destructive) {
-                                    Task {
-                                        await viewModel.deleteMeal(meal)
-                                    }
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
+                        NavigationLink(value: NavigationPathOption.mealDetail(meal: meal)) {
+                            MealLogRowView(meal: meal)
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                Task {
+                                    await viewModel.deleteMeal(meal)
                                 }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
                             }
+                        }
                     }
                 }
             } header: {

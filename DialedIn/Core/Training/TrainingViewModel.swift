@@ -54,13 +54,13 @@ class TrainingViewModel {
     var currentMenuIcon: String {
         switch presentationMode {
         case .program:
-            return "calendar.circle.fill"
+            return "calendar"
         case .workouts:
-            return "dumbbell.fill"
+            return "dumbbell"
         case .exercises:
-            return "list.bullet.rectangle.portrait.fill"
+            return "list.bullet.rectangle.portrait"
         case .history:
-            return "clock.fill"
+            return "clock"
         }
     }
     

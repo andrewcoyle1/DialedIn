@@ -13,8 +13,11 @@ enum IngredientAmountUnit: String, Codable, CaseIterable, Sendable {
     case units
 }
 
-struct RecipeIngredientModel: Identifiable, Codable, Hashable {
+struct RecipeIngredientModel: @MainActor TemplateModel {
     var id: String { ingredient.ingredientId }
+    var name: String { ingredient.name }
+    var description: String? { ingredient.description }
+    var imageURL: String? { ingredient.imageURL }
     let ingredient: IngredientTemplateModel
     var amount: Double
     var unit: IngredientAmountUnit

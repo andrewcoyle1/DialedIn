@@ -4,17 +4,40 @@
 //
 //  Created by Andrew Coyle on 10/12/24.
 //
+
 import SwiftUI
 import Foundation
 
-enum NavigationPathOption: Hashable {
+enum NavigationPathOption: Hashable, Sendable {
     case exerciseTemplate(exerciseTemplate: ExerciseTemplateModel)
     case workoutTemplateList
     case workoutTemplateDetail(template: WorkoutTemplateModel)
     case ingredientTemplateDetail(template: IngredientTemplateModel)
     case recipeTemplateDetail(template: RecipeTemplateModel)
     case workoutSessionDetail(session: WorkoutSessionModel)
+    case mealDetail(meal: MealLogModel)
 }
+//
+// extension NavigationPathOption: Equatable {
+//    static func == (lhs: NavigationPathOption, rhs: NavigationPathOption) -> Bool {
+//        switch (lhs, rhs) {
+//        case let (.exerciseTemplate(a), .exerciseTemplate(b)):
+//            return a == b
+//        case (.workoutTemplateList, .workoutTemplateList):
+//            return true
+//        case let (.workoutTemplateDetail(a), .workoutTemplateDetail(b)):
+//            return a == b
+//        case let (.ingredientTemplateDetail(a), .ingredientTemplateDetail(b)):
+//            return a == b
+//        case let (.recipeTemplateDetail(a), .recipeTemplateDetail(b)):
+//            return a == b
+//        case let (.workoutSessionDetail(a), .workoutSessionDetail(b)):
+//            return a == b
+//        default:
+//            return false
+//        }
+//    }
+// }
 
 enum NavigationOptions: Equatable, Hashable, Identifiable {
     case dashboard
@@ -78,7 +101,7 @@ struct NavDestinationForCoreModuleViewModifier: ViewModifier {
                 case .exerciseTemplate(exerciseTemplate: let exerciseTemplate):
                     ExerciseTemplateDetailView(viewModel: ExerciseTemplateDetailViewModel(interactor: CoreInteractor(container: container)), exerciseTemplate: exerciseTemplate)
                 case .workoutTemplateList:
-                    WorkoutTemplateListView(viewModel: WorkoutTemplateListViewModel(interactor: CoreInteractor(container: container)))
+                    WorkoutTemplateListView(interactor: CoreInteractor(container: container), templateIds: nil)
                 case .workoutTemplateDetail(template: let template):
                     WorkoutTemplateDetailView(viewModel: WorkoutTemplateDetailViewModel(interactor: CoreInteractor(container: container)), workoutTemplate: template)
                 case .ingredientTemplateDetail(template: let template):
@@ -87,6 +110,13 @@ struct NavDestinationForCoreModuleViewModifier: ViewModifier {
                     RecipeDetailView(viewModel: RecipeDetailViewModel(interactor: CoreInteractor(container: container), recipeTemplate: template))
                 case .workoutSessionDetail(session: let session):
                     WorkoutSessionDetailView(viewModel: WorkoutSessionDetailViewModel(interactor: CoreInteractor(container: container), session: session))
+                case .mealDetail(meal: let meal):
+                    MealDetailView(
+                        viewModel: MealDetailViewModel(
+                            interactor: CoreInteractor(container: container),
+                            meal: meal
+                        )
+                    )
                 }
             }
     }

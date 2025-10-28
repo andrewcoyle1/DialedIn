@@ -9,51 +9,38 @@ import SwiftUI
 
 struct IngredientTemplateListView: View {
     @State var viewModel: IngredientTemplateListViewModel
-    @Environment(\.dismiss) private var dismiss
+    
+    init(viewModel: IngredientTemplateListViewModel) {
+        self.viewModel = viewModel
+    }
+    
+    init(interactor: IngredientTemplateListInteractor, templateIds: [String]?) {
+        self.viewModel = IngredientTemplateListViewModel.create(
+            interactor: interactor,
+            templateIds: templateIds
+        )
+    }
+    
+    // Convenience init for non-optional templateIds (backward compatibility)
+    init(interactor: IngredientTemplateListInteractor, templateIds: [String]) {
+        self.viewModel = IngredientTemplateListViewModel.create(
+            interactor: interactor,
+            templateIds: templateIds
+        )
+    }
     
     var body: some View {
-        NavigationStack(path: $viewModel.path) {
-            List {
-                if viewModel.isLoading {
-                    ProgressView()
-                } else if viewModel.templates.isEmpty {
-                    ContentUnavailableView(
-                        "No Ingredients",
-                        systemImage: "carrot",
-                        description: Text("You haven't created any ingredient templates yet.")
-                    )
-                    .removeListRowFormatting()
-                } else {
-                    ForEach(viewModel.templates) { template in
-                        CustomListCellView(
-                            imageName: template.imageURL,
-                            title: template.name,
-                            subtitle: template.description
-                        )
-                        .anyButton(.highlight) {
-                            viewModel.path.append(.ingredientTemplateDetail(template: template))
-                        }
-                        .removeListRowFormatting()
-                    }
-                }
-            }
-            .navigationTitle("My Ingredients")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { dismiss() } label: { Image(systemName: "chevron.left") }
-                }
-            }
-            .task { await viewModel.loadTemplates() }
-            .refreshable {
-                await viewModel.loadTemplates()
-            }
-            .showCustomAlert(alert: $viewModel.showAlert)
-            .navigationDestinationForCoreModule(path: $viewModel.path)
-        }
+        GenericTemplateListView(
+            viewModel: viewModel,
+            configuration: .ingredient,
+            supportsRefresh: true
+        )
     }
 }
 
 #Preview {
-    IngredientTemplateListView(viewModel: IngredientTemplateListViewModel(interactor: CoreInteractor(container: DevPreview.shared.container), templateIds: []))
+    IngredientTemplateListView(
+        interactor: CoreInteractor(container: DevPreview.shared.container),
+        templateIds: []
+    )
 }

@@ -133,7 +133,7 @@ struct OnboardingCompleteAccountSetupView: View {
                 Task {
                     // Ensure we have the latest authorization status
                     if viewModel.canRequestNotificationsAuthorisation == nil {
-                        viewModel.canRequestNotificationsAuthorisation = await viewModel.canRequestAuthorisation()
+                        viewModel.canRequestNotificationsAuthorisation = await viewModel.canRequestNotificationAuthorisation()
                     }
                     
                     if viewModel.canRequestHealthDataAuthorisation == true {

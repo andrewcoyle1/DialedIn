@@ -13,39 +13,34 @@ protocol RecipeTemplateListInteractor {
 
 extension CoreInteractor: RecipeTemplateListInteractor { }
 
-@Observable
-@MainActor
-class RecipeTemplateListViewModel {
-    private let interactor: RecipeTemplateListInteractor
-    private let templateIds: [String]
+// Typealias for backward compatibility
+typealias RecipeTemplateListViewModel = GenericTemplateListViewModel<RecipeTemplateModel>
 
-    private(set) var templates: [RecipeTemplateModel] = []
-    var path: [NavigationPathOption] = []
-    private(set) var isLoading: Bool = false
-    var showAlert: AnyAppAlert?
-    
-    init(
+extension GenericTemplateListViewModel where Template == RecipeTemplateModel {
+    static func create(
         interactor: RecipeTemplateListInteractor,
-        templateIds: [String]
-    ) {
-        self.interactor = interactor
-        self.templateIds = templateIds
+        templateIds: [String]?
+    ) -> RecipeTemplateListViewModel {
+        return GenericTemplateListViewModel<RecipeTemplateModel>(
+            configuration: .recipe,
+            templateIds: templateIds,
+            fetchTemplatesByIds: { ids, limit in
+                try await interactor.getRecipeTemplates(ids: ids, limitTo: limit)
+            }
+        )
     }
     
-    func loadTemplates() async {
-        guard !templateIds.isEmpty else { return }
-        isLoading = true
-        
-        do {
-            let fetchedTemplates = try await interactor.getRecipeTemplates(ids: templateIds, limitTo: templateIds.count)
-            templates = fetchedTemplates.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-        } catch {
-            showAlert = AnyAppAlert(
-                title: "Unable to load recipes",
-                subtitle: "Please check your internet connection and try again."
-            )
-        }
-        
-        isLoading = false
+    // Convenience create for non-optional templateIds (backward compatibility)
+    static func create(
+        interactor: RecipeTemplateListInteractor,
+        templateIds: [String]
+    ) -> RecipeTemplateListViewModel {
+        return GenericTemplateListViewModel<RecipeTemplateModel>(
+            configuration: .recipe,
+            templateIds: templateIds,
+            fetchTemplatesByIds: { ids, limit in
+                try await interactor.getRecipeTemplates(ids: ids, limitTo: limit)
+            }
+        )
     }
 }

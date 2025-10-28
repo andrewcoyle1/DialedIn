@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WorkoutTemplateModel: Identifiable, Codable, Hashable {
+struct WorkoutTemplateModel: @MainActor TemplateModel {
     var id: String {
         workoutId
     }

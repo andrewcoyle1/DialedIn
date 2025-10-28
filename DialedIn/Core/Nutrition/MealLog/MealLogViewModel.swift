@@ -29,9 +29,7 @@ class MealLogViewModel {
     private(set) var dailyTarget: DailyMacroTarget?
     private(set) var isLoading: Bool = false
     var selectedMealType: MealType = .breakfast
-    var selectedMeal: MealLogModel?
-
-    var navigateToMealDetailView: Bool = false
+    
     var showAlert: AnyAppAlert?
     var showAddMealSheet: Bool = false
 

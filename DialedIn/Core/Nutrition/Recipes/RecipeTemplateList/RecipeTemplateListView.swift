@@ -9,51 +9,38 @@ import SwiftUI
 
 struct RecipeTemplateListView: View {
     @State var viewModel: RecipeTemplateListViewModel
-    @Environment(\.dismiss) private var dismiss
+    
+    init(viewModel: RecipeTemplateListViewModel) {
+        self.viewModel = viewModel
+    }
+    
+    init(interactor: RecipeTemplateListInteractor, templateIds: [String]?) {
+        self.viewModel = RecipeTemplateListViewModel.create(
+            interactor: interactor,
+            templateIds: templateIds
+        )
+    }
+    
+    // Convenience init for non-optional templateIds (backward compatibility)
+    init(interactor: RecipeTemplateListInteractor, templateIds: [String]) {
+        self.viewModel = RecipeTemplateListViewModel.create(
+            interactor: interactor,
+            templateIds: templateIds
+        )
+    }
     
     var body: some View {
-        NavigationStack(path: $viewModel.path) {
-            List {
-                if viewModel.isLoading {
-                    ProgressView()
-                } else if viewModel.templates.isEmpty {
-                    ContentUnavailableView(
-                        "No Recipes",
-                        systemImage: "fork.knife",
-                        description: Text("You haven't created any recipe templates yet.")
-                    )
-                    .removeListRowFormatting()
-                } else {
-                    ForEach(viewModel.templates) { template in
-                        CustomListCellView(
-                            imageName: template.imageURL,
-                            title: template.name,
-                            subtitle: template.description
-                        )
-                        .anyButton(.highlight) {
-                            viewModel.path.append(.recipeTemplateDetail(template: template))
-                        }
-                        .removeListRowFormatting()
-                    }
-                }
-            }
-            .navigationTitle("My Recipes")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { dismiss() } label: { Image(systemName: "chevron.left") }
-                }
-            }
-            .task { await viewModel.loadTemplates() }
-            .refreshable {
-                await viewModel.loadTemplates()
-            }
-            .showCustomAlert(alert: $viewModel.showAlert)
-            .navigationDestinationForCoreModule(path: $viewModel.path)
-        }
+        GenericTemplateListView(
+            viewModel: viewModel,
+            configuration: .recipe,
+            supportsRefresh: true
+        )
     }
 }
 
 #Preview {
-    RecipeTemplateListView(viewModel: RecipeTemplateListViewModel(interactor: CoreInteractor(container: DevPreview.shared.container), templateIds: []))
+    RecipeTemplateListView(
+        interactor: CoreInteractor(container: DevPreview.shared.container),
+        templateIds: []
+    )
 }

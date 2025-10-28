@@ -33,7 +33,12 @@ struct RecipesView: View {
             }
         }
         .screenAppearAnalytics(name: "RecipesView")
-        .task {
+        .onFirstTask {
+            await viewModel.loadMyRecipesIfNeeded()
+            await viewModel.loadTopRecipesIfNeeded()
+            await viewModel.syncSavedRecipesFromUser()
+        }
+        .refreshable {
             await viewModel.loadMyRecipesIfNeeded()
             await viewModel.loadTopRecipesIfNeeded()
             await viewModel.syncSavedRecipesFromUser()
@@ -151,7 +156,7 @@ struct RecipesView: View {
                 Text("My Templates")
                 Spacer()
                 Button {
-                    viewModel.showCreateRecipe = true
+                    viewModel.onAddRecipePressed()
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20))
@@ -166,7 +171,17 @@ struct RecipesView: View {
 
 #Preview("Recipes View") {
     List {
-        RecipesView(viewModel: RecipesViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        RecipesView(
+            viewModel: RecipesViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                ),
+                showCreateRecipe: Binding.constant(false),
+                selectedIngredientTemplate: Binding.constant(nil),
+                selectedRecipeTemplate: Binding.constant(nil),
+                isShowingInspector: Binding.constant(false)
+            )
+        )
     }
     .previewEnvironment()
 }

@@ -195,6 +195,7 @@ struct ProgramView: View {
                     container: container
                 ), onSessionSelectionChanged: { session in
                     viewModel.selectedHistorySession = session
+                    viewModel.handleSessionSelectionChanged(session)
                 },
                 onWorkoutStartRequested: viewModel.handleWorkoutStartRequest
             )

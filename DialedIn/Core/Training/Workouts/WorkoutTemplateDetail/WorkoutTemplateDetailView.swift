@@ -9,10 +9,10 @@ import SwiftUI
 
 struct WorkoutTemplateDetailView: View {
     @Environment(DependencyContainer.self) private var container
-
-    @State var viewModel: WorkoutTemplateDetailViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.editMode) private var editMode
+
+    @State var viewModel: WorkoutTemplateDetailViewModel
     
     let workoutTemplate: WorkoutTemplateModel
     
@@ -35,6 +35,7 @@ struct WorkoutTemplateDetailView: View {
         .navigationTitle(workoutTemplate.name)
         .navigationSubtitle(workoutTemplate.description ?? "")
         .navigationBarTitleDisplayMode(.large)
+        .scrollIndicators(.hidden)
         .showCustomAlert(alert: $viewModel.showAlert)
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
@@ -187,7 +188,14 @@ struct WorkoutTemplateDetailView: View {
 
 #Preview {
     NavigationStack {
-        WorkoutTemplateDetailView(viewModel: WorkoutTemplateDetailViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), workoutTemplate: WorkoutTemplateModel.mock)
+        WorkoutTemplateDetailView(
+            viewModel: WorkoutTemplateDetailViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            ),
+            workoutTemplate: WorkoutTemplateModel.mock
+        )
     }
     .previewEnvironment()
 }

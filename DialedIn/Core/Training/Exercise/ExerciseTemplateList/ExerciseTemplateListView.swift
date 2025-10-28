@@ -9,64 +9,34 @@ import SwiftUI
 
 struct ExerciseTemplateListView: View {
     @State var viewModel: ExerciseTemplateListViewModel
-    @Environment(\.dismiss) private var dismiss
+    let config: TemplateListConfiguration<ExerciseTemplateModel>
+    
+    init(viewModel: ExerciseTemplateListViewModel) {
+        self.viewModel = viewModel
+        self.config = viewModel.templateIds != nil ? .exercise : .exercise(customTitle: "Exercise Templates")
+    }
+    
+    init(interactor: ExerciseTemplateListInteractor, templateIds: [String]?) {
+        self.config = templateIds != nil ? .exercise : .exercise(customTitle: "Exercise Templates")
+        self.viewModel = ExerciseTemplateListViewModel.create(
+            interactor: interactor,
+            templateIds: templateIds
+        )
+    }
     
     var body: some View {
-        NavigationStack(path: $viewModel.path) {
-            Group {
-                if viewModel.isLoading {
-                    ProgressView()
-                } else if viewModel.templates.isEmpty {
-                    ContentUnavailableView(
-                        "No Exercises",
-                        systemImage: "figure.strengthtraining.traditional",
-                        description: Text("You haven't created any exercise templates yet.")
-                    )
-                } else {
-                    List {
-                        ForEach(viewModel.templates) { template in
-                            CustomListCellView(
-                                imageName: template.imageURL,
-                                title: template.name,
-                                subtitle: template.description
-                            )
-                            .anyButton(.highlight) {
-                                viewModel.path.append(.exerciseTemplate(exerciseTemplate: template))
-                            }
-                            .removeListRowFormatting()
-                        }
-                    }
-                }
-            }
-            .navigationTitle(viewModel.templateIds != nil ? "My Exercises" : "Exercise Templates")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                    }
-                }
-            }
-            .task {
-                await viewModel.loadTemplates(
-                    templateIds: viewModel.templateIds ?? []
-                )
-            }
-            .showCustomAlert(alert: $viewModel.showAlert)
-            .navigationDestinationForCoreModule(path: $viewModel.path)
-        }
+        GenericTemplateListView(
+            viewModel: viewModel,
+            configuration: config
+        )
     }
 }
 
 #Preview {
     ExerciseTemplateListView(
-        viewModel: ExerciseTemplateListViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            ),
-            templateIds: []
-        )
+        interactor: CoreInteractor(
+            container: DevPreview.shared.container
+        ),
+        templateIds: []
     )
 }

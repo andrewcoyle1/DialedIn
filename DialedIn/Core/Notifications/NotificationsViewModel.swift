@@ -9,8 +9,8 @@ import SwiftUI
 import UserNotifications
 
 protocol NotificationsInteractor {
-    func getAuthorizationStatus() async -> UNAuthorizationStatus
-    func requestAuthorisation() async throws
+    func getNotificationAuthorisationStatus() async -> UNAuthorizationStatus
+    func requestPushAuthorisation() async throws -> Bool
     func getDeliveredNotifications() async -> [UNNotification]
     func removeDeliveredNotification(identifier: String) async
 }
@@ -36,7 +36,7 @@ class NotificationsViewModel {
         isLoading = true
         
         // Get authorization status
-        authorizationStatus = await interactor.getAuthorizationStatus()
+        authorizationStatus = await interactor.getNotificationAuthorisationStatus()
         
         // Load notifications if authorized
         if authorizationStatus == .authorized {
@@ -59,7 +59,7 @@ class NotificationsViewModel {
     func onRequestNotificationsPressed() {
         Task {
             do {
-                _ = try await interactor.requestAuthorisation()
+                _ = try await interactor.requestPushAuthorisation()
                 await loadNotifications()
             } catch {
                 // Handle error silently or show alert

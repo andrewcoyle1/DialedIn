@@ -9,7 +9,6 @@ import SwiftUI
 
 struct WorkoutsView: View {
     @Environment(DependencyContainer.self) private var container
-    @Environment(\.layoutMode) private var layoutMode
     @State var viewModel: WorkoutsViewModel
 
     var body: some View {
@@ -59,6 +58,9 @@ struct WorkoutsView: View {
             Task {
                 await viewModel.syncSavedWorkoutsFromUser()
             }
+        }
+        .sheet(isPresented: $viewModel.showCreateWorkout) {
+            CreateWorkoutView(viewModel: CreateWorkoutViewModel(interactor: CoreInteractor(container: container)))
         }
     }
 
@@ -212,7 +214,13 @@ struct WorkoutsView: View {
 
 #Preview {
     NavigationStack {
-        WorkoutsView(viewModel: WorkoutsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        WorkoutsView(
+            viewModel: WorkoutsViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            )
+        )
     }
     .previewEnvironment()
 }

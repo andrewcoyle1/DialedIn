@@ -151,6 +151,10 @@ class ProgramViewModel {
         onWorkoutStartRequested?(template, scheduledWorkout)
     }
     
+    func handleSessionSelectionChanged(_ session: WorkoutSessionModel) {
+        onSessionSelectionChanged?(session)
+    }
+    
     func startWorkout(_ scheduledWorkout: ScheduledWorkout) async {
         interactor.trackEvent(event: Event.startWorkoutRequestedStart)
         do {

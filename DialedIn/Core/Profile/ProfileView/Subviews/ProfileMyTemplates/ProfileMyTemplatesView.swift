@@ -28,7 +28,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             NavigationLink {
-                ExerciseTemplateListView(viewModel: ExerciseTemplateListViewModel(interactor: CoreInteractor(container: container)), templateIds: templateIds)
+                ExerciseTemplateListView(interactor: CoreInteractor(container: container), templateIds: templateIds)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Exercise Templates")
@@ -48,7 +48,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             NavigationLink {
-                WorkoutTemplateListView(viewModel: WorkoutTemplateListViewModel(interactor: CoreInteractor(container: container)), templateIds: templateIds)
+                WorkoutTemplateListView(interactor: CoreInteractor(container: container), templateIds: templateIds)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Workout Templates")
@@ -68,7 +68,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             NavigationLink {
-                RecipeTemplateListView(viewModel: RecipeTemplateListViewModel(interactor: CoreInteractor(container: container), templateIds: templateIds))
+                RecipeTemplateListView(interactor: CoreInteractor(container: container), templateIds: templateIds)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Recipe Templates")
@@ -88,7 +88,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             NavigationLink {
-                IngredientTemplateListView(viewModel: IngredientTemplateListViewModel(interactor: CoreInteractor(container: container), templateIds: templateIds))
+                IngredientTemplateListView(interactor: CoreInteractor(container: container), templateIds: templateIds)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Ingredient Templates")

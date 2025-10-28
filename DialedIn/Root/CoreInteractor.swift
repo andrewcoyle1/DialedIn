@@ -1174,7 +1174,7 @@ struct CoreInteractor {
         try await pushManager.requestAuthorisation()
     }
     
-    func canRequestAuthorisation() async -> Bool {
+    func canRequestNotificationAuthorisation() async -> Bool {
         await pushManager.canRequestAuthorisation()
     }
     
@@ -1202,7 +1202,7 @@ struct CoreInteractor {
         await pushManager.removePendingNotifications(withIdentifiers: identifiers)
     }
     
-    func getAuthorizationStatus() async -> UNAuthorizationStatus {
+    func getNotificationAuthorisationStatus() async -> UNAuthorizationStatus {
         await pushManager.getAuthorizationStatus()
     }
     
@@ -1273,7 +1273,7 @@ struct CoreInteractor {
         healthKitManager.canRequestAuthorisation()
     }
     
-    func requestAuthorisation() async throws {
+    func requestHealthKitAuthorisation() async throws {
         try await healthKitManager.requestAuthorisation()
     }
     

@@ -148,6 +148,7 @@
 				Services/Nutrition/RecipeTemplate/Services/Remote/MockRecipeTemplateService.swift,
 				Services/Nutrition/RecipeTemplate/Services/Remote/RemoteRecipeTemplateService.swift,
 				Services/TemplateManagement/BaseTemplateManager.swift,
+				Services/TemplateManagement/Protocols/TemplateModel.swift,
 				Services/Training/ExerciseHistory/ExerciseHistoryManager.swift,
 				Services/Training/ExerciseHistory/Models/ExerciseHistoryEntryEntity.swift,
 				Services/Training/ExerciseHistory/Models/ExerciseHistoryEntryModel.swift,
@@ -241,6 +242,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Services/Auth/Models/UserAuthInfo.swift,
+				Services/TemplateManagement/Protocols/TemplateModel.swift,
 				Services/Training/ExerciseTemplate/Models/ExerciseTemplateModel.swift,
 				Services/Training/WorkoutExercises/Models/WorkoutExerciseModel.swift,
 				Services/Training/Workouts/Models/WorkoutModels.swift,

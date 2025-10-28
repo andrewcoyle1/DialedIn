@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct IngredientTemplateModel: Identifiable, Codable, Hashable {
+struct IngredientTemplateModel: @MainActor TemplateModel {
     var id: String {
         ingredientId
     }
@@ -446,3 +446,5 @@ struct IngredientTemplateModel: Identifiable, Codable, Hashable {
         ]
     }
 }
+
+extension IngredientTemplateModel: Sendable {}

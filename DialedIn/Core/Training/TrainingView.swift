@@ -27,36 +27,6 @@ struct TrainingView: View {
                 contentView
             }
         }
-        .safeAreaInset(edge: .bottom) {
-            HStack {
-                Spacer()
-                Menu {
-                    Button {
-                        
-                    } label: {
-                        Label("Log Meal", systemImage: "tray.fill")
-                            .tint(.accent)
-                    }
-                    Button {
-                        
-                    } label: {
-                        Label("Log Weight", systemImage: "scalemass.fill")
-                            .tint(.accent)
-                    }
-                } label: {
-                    Circle()
-                        .foregroundStyle(.accent)
-                        .frame(width: 40, height: 50)
-                        .overlay(alignment: .center) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 30))
-                                .fontWeight(.semibold)
-                        }
-                }
-                .buttonStyle(.glassProminent)
-            }
-            .padding()
-        }
         // Only show inspector in compact/tabBar modes; not in split view where detail is used
         .modifier(
             InspectorIfCompact(
@@ -130,11 +100,21 @@ struct TrainingView: View {
             }
             #endif
             .sheet(isPresented: $viewModel.showNotificationsView) {
-                NotificationsView(viewModel: NotificationsViewModel(interactor: CoreInteractor(container: container)))
+                NotificationsView(
+                    viewModel: NotificationsViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             }
             .sheet(item: $viewModel.workoutToStart) { template in
                 WorkoutStartView(
-                    viewModel: WorkoutStartViewModel(interactor: CoreInteractor(container: container)),
+                    viewModel: WorkoutStartViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    ),
                     template: template,
                     scheduledWorkout: viewModel.scheduledWorkoutToStart
                 )
@@ -142,19 +122,44 @@ struct TrainingView: View {
             .sheet(item: $viewModel.programActiveSheet) { sheet in
                 switch sheet {
                 case .programPicker:
-                    ProgramManagementView(viewModel: ProgramManagementViewModel(interactor: CoreInteractor(container: container)))
+                    ProgramManagementView(
+                        viewModel: ProgramManagementViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            )
+                        )
+                    )
                 case .progressDashboard:
-                    ProgressDashboardView(viewModel: ProgressDashboardViewModel(interactor: CoreInteractor(container: container)))
+                    ProgressDashboardView(
+                        viewModel: ProgressDashboardViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            )
+                        )
+                    )
                 case .strengthProgress:
-                    StrengthProgressView(viewModel: StrengthProgressViewModel(interactor: CoreInteractor(container: container)))
+                    StrengthProgressView(
+                        viewModel: StrengthProgressViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            )
+                        )
+                    )
                 case .workoutHeatmap:
-                    WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ), progressAnalytics: ProgressAnalyticsService(
-                        workoutSessionManager: container.resolve(WorkoutSessionManager.self)!,
-                        exerciseTemplateManager: container.resolve(ExerciseTemplateManager.self)!
-                    ))
+                    WorkoutHeatmapView(
+                        viewModel: WorkoutHeatmapViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            ),
+                            progressAnalytics: ProgressAnalyticsService(
+                                workoutSessionManager: container.resolve(
+                                    WorkoutSessionManager.self
+                                )!,
+                                exerciseTemplateManager: container.resolve(
+                                    ExerciseTemplateManager.self
+                                )!
+                            )
+                        )
                     )
                 case .addGoal:
                     // This case is handled by the ProgramView's sheet modifier
@@ -166,12 +171,6 @@ struct TrainingView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 toolbarContent
-            }
-            .sheet(isPresented: $viewModel.showCreateExercise) {
-                CreateExerciseView(viewModel: CreateExerciseViewModel(interactor: CoreInteractor(container: container)))
-            }
-            .sheet(isPresented: $viewModel.showCreateWorkout) {
-                CreateWorkoutView(viewModel: CreateWorkoutViewModel(interactor: CoreInteractor(container: container)))
             }
         }
     }
@@ -193,40 +192,58 @@ struct TrainingView: View {
         Group {
             switch viewModel.presentationMode {
             case .program:
-                ProgramView(viewModel: ProgramViewModel(
-                    interactor: CoreInteractor(container: container),
-                    onSessionSelectionChanged: { session in
-                        viewModel.selectedHistorySession = session
-                    },
-                    onWorkoutStartRequested: { template, scheduledWorkout in
-                        viewModel.handleWorkoutStartRequest(template: template, scheduledWorkout: scheduledWorkout)
-                    },
-                    onActiveSheetChanged: { sheet in
-                        viewModel.programActiveSheet = sheet
-                    }
-                ))
+                ProgramView(
+                    viewModel: ProgramViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        ),
+                        onSessionSelectionChanged: { session in
+                            viewModel.selectedHistorySession = session
+                        },
+                        onWorkoutStartRequested: { template, scheduledWorkout in
+                            viewModel.handleWorkoutStartRequest(
+                                template: template,
+                                scheduledWorkout: scheduledWorkout
+                            )
+                        },
+                        onActiveSheetChanged: { sheet in
+                            viewModel.programActiveSheet = sheet
+                        }
+                    )
+                )
             case .workouts:
-                WorkoutsView(viewModel: WorkoutsViewModel(
-                    interactor: CoreInteractor(
-                    container: container),
-                    onWorkoutSelectionChanged: { workout in
-                        viewModel.selectedWorkoutTemplate = workout
-                    }
-                ))
+                WorkoutsView(
+                    viewModel: WorkoutsViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        ),
+                        onWorkoutSelectionChanged: { workout in
+                            viewModel.selectedWorkoutTemplate = workout
+                        }
+                    )
+                )
             case .exercises:
-                ExercisesView(viewModel: ExercisesViewModel(
-                    interactor: CoreInteractor(container: container),
-                    onExerciseSelectionChanged: { exercise in
-                        viewModel.selectedExerciseTemplate = exercise
-                    }
-                ))
+                ExercisesView(
+                    viewModel: ExercisesViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        ),
+                        onExerciseSelectionChanged: { exercise in
+                            viewModel.selectedExerciseTemplate = exercise
+                        }
+                    )
+                )
             case .history:
-                WorkoutHistoryView(viewModel: WorkoutHistoryViewModel(
-                    interactor: CoreInteractor(container: container),
-                    onSessionSelectionChanged: { session in
-                        viewModel.selectedHistorySession = session
-                    }
-                ))
+                WorkoutHistoryView(
+                    viewModel: WorkoutHistoryViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        ),
+                        onSessionSelectionChanged: { session in
+                            viewModel.selectedHistorySession = session
+                        }
+                    )
+                )
             }
         }
     }
@@ -259,34 +276,37 @@ struct TrainingView: View {
                     Label {
                         Text("Program")
                     } icon: {
-                        Image(systemName: viewModel.presentationMode == .program ? "calendar.circle.fill" : "calendar")
+                        Image(systemName: "calendar")
                     }
                 }
+                
                 Button {
                     viewModel.presentationMode = TrainingPresentationMode.workouts
                 } label: {
                     Label {
                         Text("Workouts")
                     } icon: {
-                        Image(systemName: viewModel.presentationMode == .workouts ? "dumbbell.fill" : "dumbbell")
+                        Image(systemName: "dumbbell")
                     }
                 }
+                
                 Button {
                     viewModel.presentationMode = TrainingPresentationMode.exercises
                 } label: {
                     Label {
                         Text("Exercises")
                     } icon: {
-                        Image(systemName: viewModel.presentationMode == .exercises ? "list.bullet.rectangle.portrait.fill" : "list.bullet.rectangle.portrait")
+                        Image(systemName: "list.bullet.rectangle.portrait")
                     }
                 }
+                
                 Button {
                     viewModel.presentationMode = TrainingPresentationMode.history
                 } label: {
                     Label {
                         Text("History")
                     } icon: {
-                        Image(systemName: viewModel.presentationMode == .history ? "clock.fill" : "clock")
+                        Image(systemName: "clock")
                     }
                 }
             } label: {

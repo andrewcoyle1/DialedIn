@@ -60,6 +60,15 @@ struct ExercisesView: View {
                 await viewModel.syncSavedExercisesFromUser()
             }
         }
+        .sheet(isPresented: $viewModel.showCreateExercise) {
+            CreateExerciseView(
+                viewModel: CreateExerciseViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
+        }
     }
     
     private var favouriteExerciseTemplatesSection: some View {

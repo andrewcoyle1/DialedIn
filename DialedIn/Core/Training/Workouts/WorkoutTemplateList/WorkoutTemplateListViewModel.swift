@@ -14,47 +14,26 @@ protocol WorkoutTemplateListInteractor {
 
 extension CoreInteractor: WorkoutTemplateListInteractor { }
 
-@Observable
-@MainActor
-class WorkoutTemplateListViewModel {
-    private let interactor: WorkoutTemplateListInteractor
-    let templateIds: [String]?
+// Typealias for backward compatibility
+typealias WorkoutTemplateListViewModel = GenericTemplateListViewModel<WorkoutTemplateModel>
 
-    private(set) var isLoading: Bool = false
-    private(set) var templates: [WorkoutTemplateModel] = []
-
-    var path: [NavigationPathOption] = []
-    var showAlert: AnyAppAlert?
-    
-    init(
+extension GenericTemplateListViewModel where Template == WorkoutTemplateModel {
+    static func create(
         interactor: WorkoutTemplateListInteractor,
         templateIds: [String]?
-    ) {
-        self.interactor = interactor
-        self.templateIds = templateIds
-    }
-    
-    func loadTemplates(templateIds: [String]?) async {
-        isLoading = true
-        
-        do {
-            if let templateIds = templateIds {
-                // Load user's specific templates
-                guard !templateIds.isEmpty else {
-                    isLoading = false
-                    return
-                }
-                let fetchedTemplates = try await interactor.getWorkoutTemplates(ids: templateIds, limitTo: templateIds.count)
-                templates = fetchedTemplates.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-            } else {
-                // Load top templates
-                let top = try await interactor.getTopWorkoutTemplatesByClicks(limitTo: 20)
-                templates = top
+    ) -> WorkoutTemplateListViewModel {
+        let config: TemplateListConfiguration<WorkoutTemplateModel> = templateIds != nil 
+            ? .workout 
+            : .workout(customTitle: "Workout Templates", customEmptyDescription: "No workout templates available.")
+        return GenericTemplateListViewModel<WorkoutTemplateModel>(
+            configuration: config,
+            templateIds: templateIds,
+            fetchTemplatesByIds: { ids, limit in
+                try await interactor.getWorkoutTemplates(ids: ids, limitTo: limit)
+            },
+            fetchTopTemplates: { limit in
+                try await interactor.getTopWorkoutTemplatesByClicks(limitTo: limit)
             }
-        } catch {
-            showAlert = AnyAppAlert(title: "Unable to Load Workouts", subtitle: "Please try again later.")
-        }
-        
-        isLoading = false
+        )
     }
 }
