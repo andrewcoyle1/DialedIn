@@ -11,11 +11,6 @@ import Foundation
 @MainActor
 struct UserWeightManagerTests {
     
-    init() {
-        // Clear mock storage before each test
-        MockUserWeightServices.clearAllStorage()
-    }
-    
     // MARK: - Initialization Tests
     
     @Test("Test Initialization With Mock Services")
@@ -53,15 +48,12 @@ struct UserWeightManagerTests {
         let services = MockUserWeightServices(delay: 0.1)
         let manager = UserWeightManager(services: services)
         
-        Task {
+        let task = Task {
             try await manager.logWeight(75.5, userId: "testUser")
         }
         
-        // Give it a moment to start
-        try await Task.sleep(nanoseconds: 10_000_000)
-        
-        // Loading should be false after completion (due to defer)
-        try await Task.sleep(nanoseconds: 150_000_000)
+        // Wait for the operation to finish, then isLoading should be false (defer)
+        try await task.value
         #expect(manager.isLoading == false)
     }
     

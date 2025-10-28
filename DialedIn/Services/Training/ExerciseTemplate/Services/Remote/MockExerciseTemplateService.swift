@@ -43,21 +43,24 @@ struct MockExerciseTemplateService: RemoteExerciseTemplateService {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
         
-        return exercises.shuffled()
+        return exercises
+            .filter { ids.contains($0.id) }
+            .prefix(limitTo)
+            .map { $0 }
     }
     
     func getExerciseTemplatesByName(name: String) async throws -> [ExerciseTemplateModel] {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
         
-        return exercises.shuffled()
+        return exercises.filter { $0.name.localizedCaseInsensitiveContains(name) }
     }
     
     func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseTemplateModel] {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
         
-        return exercises.shuffled()
+        return exercises.filter { $0.authorId == authorId }
     }
     
     func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseTemplateModel] {

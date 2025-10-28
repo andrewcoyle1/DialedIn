@@ -7,9 +7,11 @@
 
 import Foundation
 
-struct MockLocalUserWeightService: LocalUserWeightService {
+final class MockLocalUserWeightService: LocalUserWeightService {
     let delay: Double
     let showError: Bool
+    
+    private var entriesByUser: [String: [WeightEntry]] = [:]
     
     private func tryShowError() throws {
         if showError {
@@ -17,28 +19,40 @@ struct MockLocalUserWeightService: LocalUserWeightService {
         }
     }
     
+    init(delay: Double, showError: Bool) {
+        self.delay = delay
+        self.showError = showError
+    }
+    
     func saveWeightEntry(_ entry: WeightEntry) async throws {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
-        // Mock implementation - in production this would use UserDefaults or Core Data
+        var list = entriesByUser[entry.userId, default: []]
+        // Upsert by id to avoid duplicates when refreshing
+        list.removeAll { $0.id == entry.id }
+        list.append(entry)
+        entriesByUser[entry.userId] = list
     }
     
     func getWeightHistory(userId: String, limit: Int?) async throws -> [WeightEntry] {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
-        // Mock implementation returns empty, forcing fetch from remote
-        return []
+        let list = entriesByUser[userId, default: []].sorted { $0.date > $1.date }
+        if let limit = limit { return Array(list.prefix(limit)) }
+        return list
     }
     
     func deleteWeightEntry(id: String, userId: String) async throws {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
-        // Mock implementation
+        var list = entriesByUser[userId, default: []]
+        list.removeAll { $0.id == id }
+        entriesByUser[userId] = list
     }
     
     func clearCache(userId: String) async throws {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
-        // Mock implementation
+        entriesByUser[userId] = []
     }
 }

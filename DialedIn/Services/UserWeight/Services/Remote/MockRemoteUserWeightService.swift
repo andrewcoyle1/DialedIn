@@ -7,11 +7,11 @@
 
 import Foundation
 
-struct MockRemoteUserWeightService: RemoteUserWeightService {
+final class MockRemoteUserWeightService: RemoteUserWeightService {
     let delay: Double
     let showError: Bool
     
-    private var mockEntries: [WeightEntry] = WeightEntry.mocks
+    private var entriesByUser: [String: [WeightEntry]] = [:]
     
     init(delay: Double, showError: Bool) {
         self.delay = delay
@@ -27,25 +27,24 @@ struct MockRemoteUserWeightService: RemoteUserWeightService {
     func saveWeightEntry(_ entry: WeightEntry) async throws {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
-        // In a real implementation, this would persist
+        var list = entriesByUser[entry.userId, default: []]
+        list.append(entry)
+        entriesByUser[entry.userId] = list
     }
     
     func getWeightHistory(userId: String, limit: Int?) async throws -> [WeightEntry] {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
-        
-        let sorted = mockEntries.sorted { $0.date > $1.date }
-        
-        if let limit = limit {
-            return Array(sorted.prefix(limit))
-        }
-        
-        return sorted
+        let list = entriesByUser[userId, default: []].sorted { $0.date > $1.date }
+        if let limit = limit { return Array(list.prefix(limit)) }
+        return list
     }
     
     func deleteWeightEntry(id: String, userId: String) async throws {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
-        // In a real implementation, this would delete
+        var list = entriesByUser[userId, default: []]
+        list.removeAll { $0.id == id }
+        entriesByUser[userId] = list
     }
 }
