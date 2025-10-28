@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ExerciseTemplateListView: View {
     @State var viewModel: ExerciseTemplateListViewModel
-    @Environment(ExerciseTemplateManager.self) private var exerciseTemplateManager
     @Environment(\.dismiss) private var dismiss
     
     let templateIds: [String]

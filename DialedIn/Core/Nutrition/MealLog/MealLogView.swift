@@ -34,7 +34,14 @@ struct MealLogView: View {
         }
         .navigationDestination(isPresented: $viewModel.navigateToMealDetailView) {
             if let selectedMeal = viewModel.selectedMeal {
-                MealDetailView(meal: selectedMeal)
+                MealDetailView(
+                    viewModel: MealDetailViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        ),
+                        meal: selectedMeal
+                    )
+                )
             } else {
                 EmptyView()
             }

@@ -9,7 +9,9 @@ import SwiftUI
 
 protocol TabBarInteractor {
     var activeSession: WorkoutSessionModel? { get }
+    func setActiveSession(_ session: WorkoutSessionModel?)
     var isTrackerPresented: Bool { get }
+    func setIsTrackerPresented(_ presented: Bool)
     func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
 }
 
@@ -23,16 +25,28 @@ class TabBarViewModel {
 
     var presentTracker: Bool = false
 
+    var activeSession: WorkoutSessionModel? {
+        get {
+            interactor.activeSession
+        }
+        set {
+            interactor.setActiveSession(newValue)
+        }
+    }
+
+    var isTrackerPresented: Bool {
+        get {
+            interactor.isTrackerPresented
+        }
+        set {
+            interactor.setIsTrackerPresented(newValue)
+        }
+    }
+
     init(
         interactor: TabBarInteractor
     ) {
         self.interactor = interactor
-    }
-    
-    init(
-        container: DependencyContainer
-    ) {
-        self.interactor = CoreInteractor(container: container)
     }
 
     var active: WorkoutSessionModel? {

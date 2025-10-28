@@ -78,7 +78,7 @@ struct AuthOptionsView: View {
 
     private var signUpButtonSection: some View {
         NavigationLink {
-            SignUpView()
+            SignUpView(viewModel: SignUpViewModel(interactor: CoreInteractor(container: container)))
         } label: {
             HStack {
                 Text("Sign Up With Email")
@@ -121,35 +121,35 @@ struct AuthOptionsView: View {
 
 #Preview("Functioning Auth") {
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(container: DevPreview.shared.container))
+        AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .previewEnvironment()
 }
 
 #Preview("Slow Auth") {
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(container: DevPreview.shared.container))
+        AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .previewEnvironment()
 }
 
 #Preview("Failing Auth") {
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(container: DevPreview.shared.container))
+        AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .previewEnvironment()
 }
 
 #Preview("Slow Login") {
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(container: DevPreview.shared.container))
+        AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .previewEnvironment()
 }
 
 #Preview("Failing Login") {
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(container: DevPreview.shared.container))
+        AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
     }
     .previewEnvironment()
 }
