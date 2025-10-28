@@ -6,7 +6,6 @@
 //
 
 import FirebaseFirestore
-import SwiftfulFirestore
 
 struct FirebaseNutritionService: RemoteNutritionService {
     var collection: CollectionReference {

@@ -88,7 +88,16 @@ struct FirebaseAnalyticsService: LogService {
             }
         }
         
-        parameters.first(upTo: 25)
+        // Limit to 25 parameters
+        var limited: [String: Any] = [:]
+        limited.reserveCapacity(min(parameters.count, 25))
+        var count = 0
+        for (key, value) in parameters {
+            limited[key] = value
+            count += 1
+            if count >= 25 { break }
+        }
+        parameters = limited
         
         let name = event.eventName.clean(maxCharacters: 40)
         Analytics.logEvent(name, parameters: parameters.isEmpty ? nil : parameters)

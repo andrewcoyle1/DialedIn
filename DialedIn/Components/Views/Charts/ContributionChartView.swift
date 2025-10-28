@@ -1,6 +1,6 @@
 //
 //  ContributionChartView.swift
-//  BrainBolt
+//  DialedIn
 //
 //  Created by Andrew Coyle on 14/08/2025.
 //

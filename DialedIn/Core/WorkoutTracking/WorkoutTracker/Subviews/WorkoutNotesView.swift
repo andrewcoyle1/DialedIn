@@ -2,7 +2,7 @@
 //  WorkoutNotesView.swift
 //  DialedIn
 //
-//  Created by AI Assistant on 21/10/2025.
+//  Created by Andrew Coyle on 21/10/2025.
 //
 
 import SwiftUI

@@ -50,9 +50,9 @@ struct FirebaseExerciseTemplateService: RemoteExerciseTemplateService {
             }
         }
         
-        return exercises
+        return Array(exercises
             .shuffled()
-            .first(upTo: limitTo) ?? []
+            .prefix(limitTo))
     }
     
     func getExerciseTemplatesByName(name: String) async throws -> [ExerciseTemplateModel] {

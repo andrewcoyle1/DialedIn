@@ -6,7 +6,6 @@
 //
 
 import FirebaseFirestore
-import SwiftfulFirestore
 
 struct FirebaseTrainingPlanService: RemoteTrainingPlanService {
     var collection: CollectionReference {

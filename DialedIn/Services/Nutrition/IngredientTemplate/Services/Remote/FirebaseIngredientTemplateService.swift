@@ -6,7 +6,6 @@
 //
 
 import FirebaseFirestore
-import SwiftfulFirestore
 
 struct FirebaseIngredientTemplateService: RemoteIngredientTemplateService {
     
@@ -15,24 +14,37 @@ struct FirebaseIngredientTemplateService: RemoteIngredientTemplateService {
     }
     
     func createIngredientTemplate(ingredient: IngredientTemplateModel, image: PlatformImage?) async throws {
-        // Work on a mutable copy so any image URL updates are persisted
-        var ingredientToSave = ingredient
-        
-        if let image {
-            // Upload the image
-            let path = "ingredient_templates/\(ingredient.id)/image.jpg"
-            let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
+        #if DEBUG
+        print("[FirebaseIngredientTemplateService] create start id=\(ingredient.id) hasImage=\(image != nil)")
+        #endif
+        do {
+            // Work on a mutable copy so any image URL updates are persisted
+            var ingredientToSave = ingredient
             
-            // Persist the download URL on the ingredient that will be saved
-            ingredientToSave.updateImageURL(imageUrl: url.absoluteString)
+            if let image {
+                // Upload the image
+                let path = "ingredient_templates/\(ingredient.id)/image.jpg"
+                let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
+                
+                // Persist the download URL on the ingredient that will be saved
+                ingredientToSave.updateImageURL(imageUrl: url.absoluteString)
+            }
+            
+            // Upload the (possibly updated) ingredient
+            try collection.document(ingredientToSave.id).setData(from: ingredientToSave, merge: true)
+            // Also persist lowercased name for case-insensitive prefix search
+            try await collection.document(ingredientToSave.id).setData([
+                "name_lower": ingredientToSave.name.lowercased()
+            ], merge: true)
+            #if DEBUG
+            print("[FirebaseIngredientTemplateService] create success id=\(ingredient.id)")
+            #endif
+        } catch {
+            #if DEBUG
+            print("[FirebaseIngredientTemplateService] create fail id=\(ingredient.id) error=\(error)")
+            #endif
+            throw error
         }
-        
-        // Upload the (possibly updated) ingredient
-        try collection.document(ingredientToSave.id).setData(from: ingredientToSave, merge: true)
-        // Also persist lowercased name for case-insensitive prefix search
-        try await collection.document(ingredientToSave.id).setData([
-            "name_lower": ingredientToSave.name.lowercased()
-        ], merge: true)
     }
     
     func getIngredientTemplate(id: String) async throws -> IngredientTemplateModel {
@@ -40,10 +52,10 @@ struct FirebaseIngredientTemplateService: RemoteIngredientTemplateService {
     }
     
     func getIngredientTemplates(ids: [String], limitTo: Int = 20) async throws -> [IngredientTemplateModel] {
-        try await collection
-            .getDocuments(ids: ids)
+        let documents: [IngredientTemplateModel] = try await collection.getDocuments(ids: ids)
+        return Array(documents
             .shuffled()
-            .first(upTo: limitTo) ?? []
+            .prefix(limitTo))
     }
     
     func getIngredientTemplatesByName(name: String) async throws -> [IngredientTemplateModel] {

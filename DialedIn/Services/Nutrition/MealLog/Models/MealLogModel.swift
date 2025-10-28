@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import IdentifiableByString
 
 enum MealType: String, Codable, CaseIterable, Sendable {
     case breakfast
@@ -20,7 +19,7 @@ enum MealItemSourceType: String, Codable, CaseIterable, Sendable {
     case recipe
 }
 
-struct MealItemModel: Identifiable, Codable, StringIdentifiable, Hashable {
+struct MealItemModel: Identifiable, Codable, Hashable {
     var id: String { itemId }
     let itemId: String
     let sourceType: MealItemSourceType
@@ -39,7 +38,7 @@ struct MealItemModel: Identifiable, Codable, StringIdentifiable, Hashable {
     let fatGrams: Double?
 }
 
-struct MealLogModel: Identifiable, Codable, StringIdentifiable, Hashable {
+struct MealLogModel: Identifiable, Codable, Hashable {
     var id: String { mealId }
     let mealId: String
     let authorId: String

@@ -95,18 +95,7 @@ struct RowCellViewBuilder: View {
     private func streamItems() async {
         guard !didStartStreaming else { return }
         didStartStreaming = true
-        
-        // Commented out streaming logic due to lack of model info and dependencies
-        // This is placeholder code to keep structure
-//         do {
-//             for try await updated in deckManager.streamDecksForCollection(collectionId: "", onListenerConfigured: { registration in
-//                 stopListening = { registration.remove() }
-//             }) {
-//                 items = updated
-//             }
-//         } catch {
-//             // Swallow errors for UI
-//         }
+
     }
 }
 

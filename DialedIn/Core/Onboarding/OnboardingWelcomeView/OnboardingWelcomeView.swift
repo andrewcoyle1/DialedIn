@@ -1,6 +1,6 @@
 //
 //  OnboardingWelcomeView.swift
-//  BrainBolt
+//  DialedIn
 //
 //  Created by Andrew Coyle on 13/08/2025.
 //
@@ -8,24 +8,15 @@
 import SwiftUI
 
 struct OnboardingWelcomeView: View {
-
     @Environment(DependencyContainer.self) private var container
     @Environment(AppState.self) private var root
-    @Environment(AuthManager.self) private var authManager
-    @Environment(UserManager.self) private var userManager
-    @Environment(LogManager.self) private var logManager
+    @State var viewModel: OnboardingWelcomeViewModel
     @Environment(\.dismiss) private var dismiss
-    @State var imageName: String = Constants.randomImage
-    @State private var showSignInView: Bool = false
-
-    #if DEBUG || MOCK
-    @State private var showDebugView: Bool = false
-    #endif
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 8) {
-                ImageLoaderView(urlString: imageName)
+                ImageLoaderView(urlString: viewModel.imageName)
                     .ignoresSafeArea()
                 titleSection
                     .padding(.top, 8)
@@ -39,7 +30,7 @@ struct OnboardingWelcomeView: View {
                 toolbarContent
             }
             #if DEBUG || MOCK
-            .sheet(isPresented: $showDebugView) {
+            .sheet(isPresented: $viewModel.showDebugView) {
                 DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
             }
             #endif
@@ -52,7 +43,7 @@ struct OnboardingWelcomeView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                showDebugView = true
+                viewModel.showDebugView = true
             } label: {
                 Image(systemName: "info")
             }
@@ -103,18 +94,12 @@ struct OnboardingWelcomeView: View {
 }
 
 #Preview("Functioning") {
-    OnboardingWelcomeView()
-        .previewEnvironment()
-}
-
-#Preview("Slow Loading") {
-    OnboardingWelcomeView()
-        .environment(AuthManager(service: MockAuthService(delay: 3)))
-        .previewEnvironment()
-}
-
-#Preview("Auth Failure") {
-    OnboardingWelcomeView()
-        .environment(AuthManager(service: MockAuthService(user: nil, showError: true)))
-        .previewEnvironment()
+    OnboardingWelcomeView(
+        viewModel: OnboardingWelcomeViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        )
+    )
+    .previewEnvironment()
 }

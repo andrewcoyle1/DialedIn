@@ -2,7 +2,7 @@
 //  ExerciseUnitPreferenceManager.swift
 //  DialedIn
 //
-//  Created by AI Assistant on 19/10/2025.
+//  Created by Andrew Coyle on 19/10/2025.
 //
 
 import Foundation

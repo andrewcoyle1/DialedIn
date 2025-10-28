@@ -2,7 +2,7 @@
 //  WorkoutTemplateListView.swift
 //  DialedIn
 //
-//  Created by AI Assistant on 23/09/2025.
+//  Created by Andrew Coyle on 23/09/2025.
 //
 
 import SwiftUI

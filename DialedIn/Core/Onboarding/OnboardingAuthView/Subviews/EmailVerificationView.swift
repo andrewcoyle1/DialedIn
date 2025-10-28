@@ -24,7 +24,6 @@ struct EmailVerificationView: View {
     }
     
     var body: some View {
-        let dismissAction: @Sendable () -> Void = { dismiss() }
         List {
             Section {
                 Text("Check your inbox and click the link we sent you to activate your account before you continue. If you don't see it, check your spam folder.")
@@ -99,7 +98,14 @@ struct EmailVerificationView: View {
                     .padding(.top)
                     .allowsHitTesting(!viewModel.isLoadingCheck && !viewModel.isLoadingResend)
                     .anyButton(.press) {
-                        viewModel.onResendPressed(onDismiss: dismissAction)
+                        viewModel.startSendVerificationEmail(
+                            isInitial: false,
+                            onDismiss: {
+                                Task { @MainActor in
+                                    dismiss()
+                                }
+                            }
+                        )
                     }
             }
         }

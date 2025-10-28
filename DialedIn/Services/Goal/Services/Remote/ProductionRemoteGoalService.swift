@@ -7,7 +7,6 @@
 
 import Foundation
 import FirebaseFirestore
-import SwiftfulFirestore
 
 struct ProductionRemoteGoalService: RemoteGoalService {
     

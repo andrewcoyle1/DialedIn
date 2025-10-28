@@ -1,14 +1,14 @@
 //
 //  AppView.swift
-//  BrainBolt
+//  DialedIn
 //
 //  Created by Andrew Coyle on 13/08/2025.
 //
 
 import SwiftUI
-// @preconcurrency import FirebaseFunctions
 
 struct AppView: View {
+    @Environment(DependencyContainer.self) private var container
     @State var viewModel: AppViewModel
     @State var appState: AppState = AppState()
         
@@ -38,7 +38,7 @@ struct AppView: View {
                         AdaptiveMainView()
                     },
                     onboardingView: {
-                        OnboardingRouterView()
+                        OnboardingRouterView(viewModel: OnboardingRouterViewModel(interactor: CoreInteractor(container: container)))
                     }
                 )
                 .environment(appState)
@@ -65,43 +65,5 @@ struct AppView: View {
 // MARK: - Onboarding Step Previews
 
 #Preview("1️⃣ Not Authenticated") {
-    AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), appState: AppState(showTabBar: false))
-}
-
-#Preview("2️⃣ Loading User Data") {
-    AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), appState: AppState(showTabBar: false))
-}
-
-#Preview("3️⃣ Subscription Step") {
-    AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), appState: AppState(showTabBar: false))
-}
-
-#Preview("4️⃣ Complete Account Setup") {
-    AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), appState: AppState(showTabBar: false))
-}
-
-#Preview("5️⃣ Health Disclaimer") {
-    AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), appState: AppState(showTabBar: false))
-}
-
-#Preview("6️⃣ Goal Setting") {
-    AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), appState: AppState(showTabBar: false))
-}
-
-#Preview("7️⃣ Customise Program") {
-    AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), appState: AppState(showTabBar: false))
-}
-
-#Preview("8️⃣ Diet Plan") {
-    AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), appState: AppState(showTabBar: false))
-}
-
-// MARK: - Error State Previews
-
-#Preview("❌ Auth Failure") {
-    AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), appState: AppState(showTabBar: false))
-}
-
-#Preview("❌ User Load Failure") {
     AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), appState: AppState(showTabBar: false))
 }

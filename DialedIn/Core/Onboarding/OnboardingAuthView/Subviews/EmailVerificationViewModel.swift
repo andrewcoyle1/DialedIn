@@ -157,7 +157,12 @@ class EmailVerificationViewModel {
                     AnyView(
                         VStack {
                             Button("Resend Email") {
-                                self.onResendPressed(onDismiss: { onDismiss() })
+                                self.startSendVerificationEmail(
+                                    isInitial: false,
+                                    onDismiss: {
+                                        onDismiss()
+                                    }
+                                )
                             }
                             Button("Check Again") {
                                 self.onDonePressed(onDismiss: { onDismiss() })
@@ -168,15 +173,6 @@ class EmailVerificationViewModel {
                 }
             )
         }
-    }
-
-    func onResendPressed(onDismiss: @escaping @Sendable () -> Void) {
-        startSendVerificationEmail(
-            isInitial: false,
-            onDismiss: {
-                onDismiss()
-            }
-        )
     }
 
     // MARK: - Timeout Helper
@@ -275,7 +271,6 @@ class EmailVerificationViewModel {
 
     // MARK: - Helper Methods
 
-    /// Maps UserManager.OnboardingStep to NavigationDestination
     func getNavigationDestination(for step: OnboardingStep?) -> NavigationDestination? {
         switch step {
         case nil:

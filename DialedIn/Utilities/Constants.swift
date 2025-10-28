@@ -1,6 +1,6 @@
 //
 //  Constants.swift
-//  BrainBolt
+//  DialedIn
 //
 //  Created by Andrew Coyle on 13/08/2025.
 //

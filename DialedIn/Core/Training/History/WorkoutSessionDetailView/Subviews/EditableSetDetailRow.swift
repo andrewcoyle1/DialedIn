@@ -2,7 +2,7 @@
 //  EditableSetDetailRow.swift
 //  DialedIn
 //
-//  Created by AI Assistant
+//  Created by Andrew Coyle
 //
 
 import SwiftUI

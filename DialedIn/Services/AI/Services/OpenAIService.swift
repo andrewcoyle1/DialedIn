@@ -134,18 +134,3 @@ enum AIChatRole: String, Codable {
         }
     }
 }
-
-/*
- public var role: Role { get {
-     switch self {
-     case .system(let systemMessage):
-         return systemMessage.role
-     case .user(let userMessage):
-         return userMessage.role
-     case .assistant(let assistantMessage):
-         return assistantMessage.role
-     case .tool(let toolMessage):
-         return toolMessage.role
-     }
- }}
- */

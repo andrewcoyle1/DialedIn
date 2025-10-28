@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct OnboardingRouterView: View {
-    @Environment(AuthManager.self) private var authManager
-    @Environment(UserManager.self) private var userManager
-    
+    @Environment(DependencyContainer.self) private var container
+    @State var viewModel: OnboardingRouterViewModel
+
     var body: some View {
         Group {
             // Default to WelcomeView if not authenticated or is anonymous
-            if let auth = authManager.auth, !auth.isAnonymous {
+            if let auth = viewModel.auth, !auth.isAnonymous {
                 // User is authenticated (not anonymous), check onboarding step
-                if let currentUser = userManager.currentUser {
+                if let currentUser = viewModel.currentUser {
                     routeToOnboardingStep(currentUser.onboardingStep)
                 } else {
                     // User is authenticated but no user model yet, show loading
@@ -24,32 +24,79 @@ struct OnboardingRouterView: View {
                 }
             } else {
                 // User is not authenticated or is anonymous, show WelcomeView
-                OnboardingWelcomeView()
+                OnboardingWelcomeView(
+                    viewModel: OnboardingWelcomeViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             }
         }
     }
-    
-    @ViewBuilder
-    private func routeToOnboardingStep(_ step: OnboardingStep?) -> some View {
+    // swiftlint:disable:next function_body_length
+    @ViewBuilder private func routeToOnboardingStep(_ step: OnboardingStep?) -> some View {
         NavigationStack {
             switch step {
             case .auth, nil:
                 // User hasn't completed auth step or step is nil
-                OnboardingWelcomeView()
+                OnboardingWelcomeView(
+                    viewModel: OnboardingWelcomeViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             case .subscription:
-                OnboardingSubscriptionView()
+                OnboardingSubscriptionView(
+                    viewModel: OnboardingSubscriptionViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             case .completeAccountSetup:
-                OnboardingCompleteAccountSetupView()
+                OnboardingCompleteAccountSetupView(viewModel: OnboardingCompleteAccountSetupViewModel(interactor: CoreInteractor(container: container)))
             case .healthDisclaimer:
-                OnboardingHealthDisclaimerView()
+                OnboardingHealthDisclaimerView(
+                    viewModel: OnboardingHealthDisclaimerViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             case .goalSetting:
-                OnboardingGoalSettingView()
+                OnboardingGoalSettingView(
+                    viewModel: OnboardingGoalSettingViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             case .customiseProgram:
-                OnboardingCustomisingProgramView()
+                OnboardingCustomisingProgramView(
+                    viewModel: OnboardingCustomisingProgramViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             case .diet:
-                OnboardingDietPlanView()
+                OnboardingDietPlanView(
+                    viewModel: OnboardingDietPlanViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             case .complete:
-                OnboardingCompletedView()
+                OnboardingCompletedView(
+                    viewModel: OnboardingCompletedViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             }
         }
     }
@@ -69,64 +116,12 @@ struct OnboardingRouterView: View {
 // MARK: - Previews
 
 #Preview("Not Authenticated") {
-    OnboardingRouterView()
-        .environment(UserManager(services: MockUserServices(user: nil)))
-        .environment(AuthManager(service: MockAuthService(user: nil)))
-        .previewEnvironment()
-}
-
-#Preview("Anonymous User") {
-    OnboardingRouterView()
-        .environment(UserManager(services: MockUserServices(user: nil)))
-        .environment(AuthManager(service: MockAuthService(user: .mock(isAnonymous: true))))
-        .previewEnvironment()
-}
-
-#Preview("Subscription Step") {
-    OnboardingRouterView()
-        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.subscription))))
-        .environment(AuthManager(service: MockAuthService(user: .mock(isAnonymous: false))))
-        .previewEnvironment()
-}
-
-#Preview("Complete Account Setup Step") {
-    OnboardingRouterView()
-        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.completeAccountSetup))))
-        .environment(AuthManager(service: MockAuthService(user: .mock(isAnonymous: false))))
-        .previewEnvironment()
-}
-
-#Preview("Health Disclaimer Step") {
-    OnboardingRouterView()
-        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.healthDisclaimer))))
-        .environment(AuthManager(service: MockAuthService(user: .mock(isAnonymous: false))))
-        .previewEnvironment()
-}
-
-#Preview("Goal Setting Step") {
-    OnboardingRouterView()
-        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.goalSetting))))
-        .environment(AuthManager(service: MockAuthService(user: .mock(isAnonymous: false))))
-        .previewEnvironment()
-}
-
-#Preview("Customise Program Step") {
-    OnboardingRouterView()
-        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.customiseProgram))))
-        .environment(AuthManager(service: MockAuthService(user: .mock(isAnonymous: false))))
-        .previewEnvironment()
-}
-
-#Preview("Diet Step") {
-    OnboardingRouterView()
-        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.diet))))
-        .environment(AuthManager(service: MockAuthService(user: .mock(isAnonymous: false))))
-        .previewEnvironment()
-}
-
-#Preview("Complete Step") {
-    OnboardingRouterView()
-        .environment(UserManager(services: MockUserServices(user: .mockWithStep(.complete))))
-        .environment(AuthManager(service: MockAuthService(user: .mock(isAnonymous: false))))
-        .previewEnvironment()
+    OnboardingRouterView(
+        viewModel: OnboardingRouterViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        )
+    )
+    .previewEnvironment()
 }

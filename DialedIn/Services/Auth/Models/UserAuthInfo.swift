@@ -63,3 +63,28 @@ struct UserAuthInfo: Sendable, Codable, Equatable {
     }
     
 }
+
+// MARK: - Equatable (millisecond precision for Date fields)
+extension UserAuthInfo {
+    static func == (lhs: UserAuthInfo, rhs: UserAuthInfo) -> Bool {
+        return lhs.uid == rhs.uid
+        && lhs.email == rhs.email
+        && lhs.isAnonymous == rhs.isAnonymous
+        && lhs.isNewUser == rhs.isNewUser
+        && datesEqualToMilliseconds(lhs.creationDate, rhs.creationDate)
+        && datesEqualToMilliseconds(lhs.lastSignInDate, rhs.lastSignInDate)
+    }
+    
+    private static func datesEqualToMilliseconds(_ aDate: Date?, _ bDate: Date?) -> Bool {
+        switch (aDate, bDate) {
+        case (nil, nil):
+            return true
+        case let (aDate?, bDate?):
+            let msA = Int64((aDate.timeIntervalSince1970 * 1000.0).rounded())
+            let msB = Int64((bDate.timeIntervalSince1970 * 1000.0).rounded())
+            return msA == msB
+        default:
+            return false
+        }
+    }
+}

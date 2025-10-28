@@ -149,6 +149,10 @@ class UserManager {
         try await remote.saveUser(user: user, image: image)
         logManager?.trackEvent(event: Event.logInSuccess(user: user))
         
+        // Optimistically set current user immediately; stream will keep it updated
+        self.currentUser = user
+        self.saveCurrentUserLocally()
+        
         addCurrentUserListener(userId: auth.uid)
         // Refresh onboarding step from persisted user if available
     }
@@ -484,6 +488,13 @@ class UserManager {
     
     enum UserManagerError: LocalizedError {
         case noUserId
+        
+        var errorDescription: String? {
+            switch self {
+            case .noUserId:
+                return "No user id available"
+            }
+        }
     }
     
     enum Event: LoggableEvent {

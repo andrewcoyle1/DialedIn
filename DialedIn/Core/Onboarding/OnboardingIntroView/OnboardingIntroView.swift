@@ -1,6 +1,6 @@
 //
 //  OnboardingIntroView.swift
-//  BrainBolt
+//  DialedIn
 //
 //  Created by Andrew Coyle on 13/08/2025.
 //
@@ -8,16 +8,9 @@
 import SwiftUI
 
 struct OnboardingIntroView: View {
-
     @Environment(DependencyContainer.self) private var container
-    @Environment(AuthManager.self) private var authManager
-    @Environment(UserManager.self) private var userManager
-    @Environment(LogManager.self) private var logManager
+    @State var viewModel: OnboardingIntroViewModel
     
-    #if DEBUG || MOCK
-    @State private var showDebugView: Bool = false
-    #endif
-
     var body: some View {
         List {
             trainingSection
@@ -25,7 +18,7 @@ struct OnboardingIntroView: View {
             nutritionSection
             
             weightTracking
-           
+            
         }
         .safeAreaInset(edge: .bottom, content: {
             buttonSection
@@ -39,16 +32,22 @@ struct OnboardingIntroView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    showDebugView = true
+                    viewModel.showDebugView = true
                 } label: {
                     Image(systemName: "info")
                 }
             }
         }
-        .sheet(isPresented: $showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+        .sheet(isPresented: $viewModel.showDebugView) {
+            DevSettingsView(
+                viewModel: DevSettingsViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
         }
-        #endif
+#endif
         .screenAppearAnalytics(name: "OnboardingIntro")
     }
     
@@ -133,8 +132,14 @@ struct OnboardingIntroView: View {
 }
 
 #Preview {
-    let container = DevPreview.shared.container
-    NavigationStack { OnboardingIntroView() }
-        .previewEnvironment()
-        .environment(container)
+    NavigationStack {
+        OnboardingIntroView(
+            viewModel: OnboardingIntroViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            )
+        )
+    }
+    .previewEnvironment()
 }

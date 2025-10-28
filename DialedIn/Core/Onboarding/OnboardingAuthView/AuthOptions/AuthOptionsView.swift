@@ -93,7 +93,13 @@ struct AuthOptionsView: View {
 
     private var signInButtonSection: some View {
         NavigationLink {
-            SignInView()
+            SignInView(
+                viewModel: SignInViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
         } label: {
             HStack {
                 Text("Sign In With Email")

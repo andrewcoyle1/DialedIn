@@ -8,18 +8,26 @@
 import SwiftUI
 
 struct SetGoalFlowView: View {
+    @Environment(DependencyContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationStack {
-            OnboardingOverarchingObjectiveView(isStandaloneMode: true)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") {
-                            dismiss()
-                        }
+            OnboardingOverarchingObjectiveView(
+                viewModel: OnboardingOverarchingObjectiveViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    ),
+                    isStandaloneMode: true
+                )
+            )
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
                     }
                 }
+            }
         }
         .environment(\.goalFlowDismissAction, { dismiss() })
     }

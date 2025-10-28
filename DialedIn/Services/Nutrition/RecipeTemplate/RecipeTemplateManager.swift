@@ -9,74 +9,91 @@ import SwiftUI
 
 @MainActor
 @Observable
-class RecipeTemplateManager {
-    
-    private let local: LocalRecipeTemplatePersistence
-    private let remote: RemoteRecipeTemplateService
+class RecipeTemplateManager: BaseTemplateManager<RecipeTemplateModel> {
     
     init(services: RecipeTemplateServices) {
-        self.remote = services.remote
-        self.local = services.local
+        super.init(
+            addLocal: { try services.local.addLocalRecipeTemplate(recipe: $0) },
+            getLocal: { try services.local.getLocalRecipeTemplate(id: $0) },
+            getLocalMany: { try services.local.getLocalRecipeTemplates(ids: $0) },
+            getAllLocal: { try services.local.getAllLocalRecipeTemplates() },
+            deleteLocal: nil,
+            createRemote: { try await services.remote.createRecipeTemplate(recipe: $0, image: $1) },
+            updateRemote: nil,
+            deleteRemote: nil,
+            getRemote: { try await services.remote.getRecipeTemplate(id: $0) },
+            getRemoteMany: { try await services.remote.getRecipeTemplates(ids: $0, limitTo: $1) },
+            getByNameRemote: { try await services.remote.getRecipeTemplatesByName(name: $0) },
+            getForAuthorRemote: { try await services.remote.getRecipeTemplatesForAuthor(authorId: $0) },
+            getTopByClicksRemote: { try await services.remote.getTopRecipeTemplatesByClicks(limitTo: $0) },
+            incrementRemote: { try await services.remote.incrementRecipeTemplateInteraction(id: $0) },
+            removeAuthorIdRemote: { try await services.remote.removeAuthorIdFromRecipeTemplate(id: $0) },
+            removeAuthorIdFromAllRemote: { try await services.remote.removeAuthorIdFromAllRecipeTemplates(id: $0) },
+            bookmarkRemote: { try await services.remote.bookmarkRecipeTemplate(id: $0, isBookmarked: $1) },
+            favouriteRemote: { try await services.remote.favouriteRecipeTemplate(id: $0, isFavourited: $1) }
+        )
     }
     
+    // MARK: - Method Aliases for Backward Compatibility
+    
     func addLocalRecipeTemplate(recipe: RecipeTemplateModel) async throws {
-        try local.addLocalRecipeTemplate(recipe: recipe)
-        try await remote.incrementRecipeTemplateInteraction(id: recipe.id)
+        try await addLocalTemplate(recipe)
     }
     
     func getLocalRecipeTemplate(id: String) throws -> RecipeTemplateModel {
-        try local.getLocalRecipeTemplate(id: id)
+        try getLocalTemplate(id: id)
     }
     
     func getLocalRecipeTemplates(ids: [String]) throws -> [RecipeTemplateModel] {
-        try local.getLocalRecipeTemplates(ids: ids)
+        try getLocalTemplates(ids: ids)
     }
     
     func getAllLocalRecipeTemplates() throws -> [RecipeTemplateModel] {
-        try local.getAllLocalRecipeTemplates()
+        try getAllLocalTemplates()
     }
     
     func createRecipeTemplate(recipe: RecipeTemplateModel, image: PlatformImage?) async throws {
-        try await remote.createRecipeTemplate(recipe: recipe, image: image)
+        try await createTemplate(recipe, image: image)
     }
     
     func getRecipeTemplate(id: String) async throws -> RecipeTemplateModel {
-        try await remote.getRecipeTemplate(id: id)
+        try await getTemplate(id: id)
     }
     
     func getRecipeTemplates(ids: [String], limitTo: Int = 20) async throws -> [RecipeTemplateModel] {
-        try await remote.getRecipeTemplates(ids: ids, limitTo: limitTo)
+        try await getTemplates(ids: ids, limitTo: limitTo)
     }
     
     func getRecipeTemplatesByName(name: String) async throws -> [RecipeTemplateModel] {
-        try await remote.getRecipeTemplatesByName(name: name)
+        try await getTemplatesByName(name: name)
     }
     
     func getRecipeTemplatesForAuthor(authorId: String) async throws -> [RecipeTemplateModel] {
-        try await remote.getRecipeTemplatesForAuthor(authorId: authorId)
+        try await getTemplatesForAuthor(authorId: authorId)
     }
     
     func getTopRecipeTemplatesByClicks(limitTo: Int = 10) async throws -> [RecipeTemplateModel] {
-        try await remote.getTopRecipeTemplatesByClicks(limitTo: limitTo)
+        try await getTopTemplatesByClicks(limitTo: limitTo)
     }
     
     func incrementRecipeTemplateInteraction(id: String) async throws {
-        try await remote.incrementRecipeTemplateInteraction(id: id)
+        try await incrementTemplateInteraction(id: id)
     }
     
     func removeAuthorIdFromRecipeTemplate(id: String) async throws {
-        try await remote.removeAuthorIdFromRecipeTemplate(id: id)
+        try await removeAuthorIdFromTemplate(id: id)
     }
     
     func removeAuthorIdFromAllRecipeTemplates(id: String) async throws {
-        try await remote.removeAuthorIdFromAllRecipeTemplates(id: id)
+        try await removeAuthorIdFromAllTemplates(id: id)
     }
     
     func bookmarkRecipeTemplate(id: String, isBookmarked: Bool) async throws {
-        try await remote.bookmarkRecipeTemplate(id: id, isBookmarked: isBookmarked)
+        try await bookmarkTemplate(id: id, isBookmarked: isBookmarked)
     }
     
     func favouriteRecipeTemplate(id: String, isFavourited: Bool) async throws {
-        try await remote.favouriteRecipeTemplate(id: id, isFavourited: isFavourited)
+        try await favouriteTemplate(id: id, isFavourited: isFavourited)
     }
 }
+ 

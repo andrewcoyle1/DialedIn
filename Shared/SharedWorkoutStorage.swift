@@ -2,7 +2,7 @@
 //  SharedWorkoutStorage.swift
 //  DialedIn
 //
-//  Created by AI Assistant on 17/10/2025.
+//  Created by Andrew Coyle on 17/10/2025.
 //
 
 import Foundation

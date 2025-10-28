@@ -96,7 +96,7 @@ struct CoreInteractor {
         try await authManager.checkEmailVerification()
     }
     
-    func signInUser(email: String, password: String) async throws -> UserAuthInfo? {
+    func signInUser(email: String, password: String) async throws -> UserAuthInfo {
         try await authManager.signInUser(email: email, password: password)
     }
     
@@ -1170,7 +1170,7 @@ struct CoreInteractor {
     
     // MARK: PushManager
     
-    func requestAuthorisation() async throws -> Bool {
+    func requestPushAuthorisation() async throws -> Bool {
         try await pushManager.requestAuthorisation()
     }
     
@@ -1269,7 +1269,7 @@ struct CoreInteractor {
         healthKitManager.isAuthorized
     }
     
-    func canRequestAuthorisation() -> Bool {
+    func canRequestHealthDataAuthorisation() -> Bool {
         healthKitManager.canRequestAuthorisation()
     }
     

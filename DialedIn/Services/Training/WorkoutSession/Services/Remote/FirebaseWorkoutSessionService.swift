@@ -6,7 +6,6 @@
 //
 
 import FirebaseFirestore
-import SwiftfulFirestore
 
 /// Enhanced Firebase service that stores workout sessions with sets as subcollections
 /// This provides better scalability and query performance for large workout sessions

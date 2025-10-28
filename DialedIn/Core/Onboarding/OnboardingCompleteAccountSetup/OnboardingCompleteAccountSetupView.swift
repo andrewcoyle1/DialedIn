@@ -9,27 +9,7 @@ import SwiftUI
 
 struct OnboardingCompleteAccountSetupView: View {
     @Environment(DependencyContainer.self) private var container
-
-    @Environment(UserManager.self) private var userManager
-    @Environment(PushManager.self) private var pushManager
-    @Environment(HealthKitManager.self) private var healthManager
-    @State private var navigationDestination: NavigationDestination?
-    
-    @State private var canRequestNotificationsAuthorisation: Bool?
-    @State private var canRequestHealthDataAuthorisation: Bool?
-    
-    @State private var showAlert: AnyAppAlert?
-    
-    enum NavigationDestination {
-        case healthData
-        case notifications
-        case namePhoto
-        case gender
-    }
-    
-    #if DEBUG || MOCK
-    @State private var showDebugView: Bool = false
-    #endif
+    @State var viewModel: OnboardingCompleteAccountSetupViewModel
         
     var body: some View {
         List {
@@ -41,66 +21,90 @@ struct OnboardingCompleteAccountSetupView: View {
             toolbarContent
         }
         .task {
-            await updateOnboardingStep()
+            await viewModel.updateOnboardingStep()
         }
         .onAppear {
-            canRequestHealthDataAuthorisation = healthManager.canRequestAuthorisation()
+            viewModel.canRequestHealthDataAuthorisation = viewModel.checkHealthDataAuthorisationStatus()
         }
-        .showCustomAlert(alert: $showAlert)
+        .showCustomAlert(alert: $viewModel.showAlert)
         .navigationDestination(
             isPresented: Binding(
                 get: {
-                    navigationDestination == .healthData
+                    viewModel.navigationDestination == .healthData
                 }, set: {
                     if !$0 {
-                        navigationDestination = nil
+                        viewModel.navigationDestination = nil
                     }
                 }
             )
         ) {
-            OnboardingHealthDataView()
+            OnboardingHealthDataView(
+                viewModel: OnboardingHealthDataViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
         }
         .navigationDestination(
             isPresented: Binding(
                 get: {
-                    navigationDestination == .notifications
+                    viewModel.navigationDestination == .notifications
                 }, set: {
                     if !$0 {
-                        navigationDestination = nil
+                        viewModel.navigationDestination = nil
                     }
                 }
             )
         ) {
-            OnboardingNotificationsView()
+            OnboardingNotificationsView(
+                viewModel: OnboardingNotificationsViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
         }
         .navigationDestination(
             isPresented: Binding(
                 get: {
-                    navigationDestination == .namePhoto
+                    viewModel.navigationDestination == .namePhoto
                 }, set: {
                     if !$0 {
-                        navigationDestination = nil
+                        viewModel.navigationDestination = nil
                     }
                 }
             )
         ) {
-            OnboardingNamePhotoView()
+            OnboardingNamePhotoView(
+                viewModel: OnboardingNamePhotoViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
         }
         .navigationDestination(
             isPresented: Binding(
                 get: {
-                    navigationDestination == .gender
+                    viewModel.navigationDestination == .gender
                 }, set: {
                     if !$0 {
-                        navigationDestination = nil
+                        viewModel.navigationDestination = nil
                     }
                 }
             )
         ) {
-            OnboardingGenderView()
+            OnboardingGenderView(
+                viewModel: OnboardingGenderViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
         }
         #if DEBUG || MOCK
-        .sheet(isPresented: $showDebugView) {
+        .sheet(isPresented: $viewModel.showDebugView) {
             DevSettingsView(
                 viewModel: DevSettingsViewModel(
                     interactor: CoreInteractor(
@@ -112,39 +116,12 @@ struct OnboardingCompleteAccountSetupView: View {
         #endif
     }
     
-    private func updateOnboardingStep() async {
-        let target: OnboardingStep = .completeAccountSetup
-        if let current = userManager.currentUser?.onboardingStep, current.orderIndex >= target.orderIndex {
-            return
-        }
-        do {
-            try await userManager.updateOnboardingStep(step: target)
-        } catch {
-            showAlert = AnyAppAlert(title: "Internet Connection Failed", subtitle: "Please check your internet connection and try again.") {
-                AnyView(
-                    HStack {
-                        Button(role: .close) {
-                            
-                        }
-                        Button {
-                            Task {
-                                await updateOnboardingStep()
-                            }
-                        } label: {
-                            Text("Try again")
-                        }
-                    }
-                )
-            }
-        }
-    }
-    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                showDebugView = true
+                viewModel.showDebugView = true
             } label: {
                 Image(systemName: "info")
             }
@@ -155,16 +132,16 @@ struct OnboardingCompleteAccountSetupView: View {
             Button {
                 Task {
                     // Ensure we have the latest authorization status
-                    if canRequestNotificationsAuthorisation == nil {
-                        canRequestNotificationsAuthorisation = await pushManager.canRequestAuthorisation()
+                    if viewModel.canRequestNotificationsAuthorisation == nil {
+                        viewModel.canRequestNotificationsAuthorisation = await viewModel.canRequestAuthorisation()
                     }
                     
-                    if canRequestHealthDataAuthorisation == true {
-                        navigationDestination = .healthData
-                    } else if canRequestNotificationsAuthorisation == true {
-                        navigationDestination = .notifications
+                    if viewModel.canRequestHealthDataAuthorisation == true {
+                        viewModel.navigationDestination = .healthData
+                    } else if viewModel.canRequestNotificationsAuthorisation == true {
+                        viewModel.navigationDestination = .notifications
                     } else {
-                        navigationDestination = .namePhoto
+                        viewModel.navigationDestination = .namePhoto
                     }
                 }
             } label: {
@@ -177,36 +154,13 @@ struct OnboardingCompleteAccountSetupView: View {
 
 #Preview("To Health Permissions") {
     NavigationStack {
-        OnboardingCompleteAccountSetupView()
+        OnboardingCompleteAccountSetupView(
+            viewModel: OnboardingCompleteAccountSetupViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            )
+        )
     }
-    .environment(HealthKitManager(service: MockHealthService(canRequestAuthorisation: true)))
-    .environment(PushManager(services: MockPushServices(canRequestAuthorisation: false)))
-    .previewEnvironment()
-}
-
-#Preview("To Notification Permissions") {
-    NavigationStack {
-        OnboardingCompleteAccountSetupView()
-    }
-    .environment(HealthKitManager(service: MockHealthService(canRequestAuthorisation: false)))
-    .environment(PushManager(services: MockPushServices(canRequestAuthorisation: true)))
-    .previewEnvironment()
-}
-
-#Preview("To Health & Notifications Permissions") {
-    NavigationStack {
-        OnboardingCompleteAccountSetupView()
-    }
-    .environment(HealthKitManager(service: MockHealthService(canRequestAuthorisation: true)))
-    .environment(PushManager(services: MockPushServices(canRequestAuthorisation: true)))
-    .previewEnvironment()
-}
-
-#Preview("To Gender") {
-    NavigationStack {
-        OnboardingCompleteAccountSetupView()
-    }
-    .environment(HealthKitManager(service: MockHealthService(canRequestAuthorisation: false)))
-    .environment(PushManager(services: MockPushServices(canRequestAuthorisation: false)))
     .previewEnvironment()
 }

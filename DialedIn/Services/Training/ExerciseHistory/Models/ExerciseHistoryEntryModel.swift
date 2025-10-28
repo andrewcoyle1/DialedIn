@@ -2,13 +2,12 @@
 //  ExerciseHistoryEntryModel.swift
 //  DialedIn
 //
-//  Created by AI Assistant on 27/09/2025.
+//  Created by Andrew Coyle on 27/09/2025.
 //
 
 import Foundation
-import IdentifiableByString
 
-struct ExerciseHistoryEntryModel: Identifiable, Codable, StringIdentifiable, Hashable {
+struct ExerciseHistoryEntryModel: Identifiable, Codable, Hashable {
     let id: String
     let authorId: String
     let templateId: String

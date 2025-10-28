@@ -1,11 +1,11 @@
 //
 //  FirebaseUserService.swift
-//  AIChatCourse
+//  DialedIn
 //
 //  Created by Andrew Coyle on 10/15/24.
 //
-import FirebaseFirestore
-import SwiftfulFirestore
+
+@preconcurrency import FirebaseFirestore
 
 struct FirebaseUserService: RemoteUserService {
     
@@ -270,15 +270,38 @@ struct FirebaseUserService: RemoteUserService {
     
     // MARK: - User Streaming
     
-//    func streamUser(userId: String, onListenerConfigured: @escaping (@escaping () -> Void) -> Void) -> AsyncThrowingStream<UserModel, Error> {
-        func streamUser(userId: String) -> AsyncThrowingStream<UserModel, Error> {
-//        collection.streamDocument(id: userId, onListenerConfigured: { listener in
-//            onListenerConfigured({ listener.remove() })
-//        })
-        collection.streamDocument(id: userId)
-
+    func streamUser(userId: String) -> AsyncThrowingStream<UserModel, Error> {
+        AsyncThrowingStream { continuation in
+            
+            let listener = collection.document(userId).addSnapshotListener { snapshot, error in
+                if let error = error {
+                    continuation.finish(throwing: error)
+                    return
+                }
+                
+                guard let snapshot = snapshot, snapshot.exists else {
+                    continuation.finish(throwing: NSError(
+                        domain: "FirestoreExtension",
+                        code: 404,
+                        userInfo: [NSLocalizedDescriptionKey: "Document not found"]
+                    ))
+                    return
+                }
+                
+                do {
+                    let value = try snapshot.data(as: UserModel.self)
+                    continuation.yield(value)
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            
+            continuation.onTermination = { _ in
+                listener.remove()
+            }
+        }
     }
-
+    
     // MARK: - Consents
     func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
         let data: [String: Any] = [

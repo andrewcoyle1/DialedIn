@@ -94,9 +94,9 @@ struct FirebaseWorkoutTemplateService: RemoteWorkoutTemplateService {
             }
         }
         
-        return workouts
+        return Array(workouts
             .shuffled()
-            .first(upTo: limitTo) ?? []
+            .prefix(limitTo))
     }
     
     func getWorkoutTemplatesByName(name: String) async throws -> [WorkoutTemplateModel] {

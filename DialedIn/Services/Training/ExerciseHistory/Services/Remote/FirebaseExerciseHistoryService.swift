@@ -2,11 +2,10 @@
 //  FirebaseExerciseHistoryService.swift
 //  DialedIn
 //
-//  Created by AI Assistant on 27/09/2025.
+//  Created by Andrew Coyle on 27/09/2025.
 //
 
 import FirebaseFirestore
-import SwiftfulFirestore
 
 struct FirebaseExerciseHistoryService: RemoteExerciseHistoryService {
     

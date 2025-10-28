@@ -10,30 +10,7 @@ import PhotosUI
 
 struct OnboardingCreateProfileView: View {
     @Environment(DependencyContainer.self) private var container
-
-    @Environment(UserManager.self) private var userManager
-    @Environment(LogManager.self) private var logManager
-    
-    @State private var firstName: String = ""
-    @State private var lastName: String = ""
-    @State private var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
-    @State private var selectedGender: Gender?
-    @State private var email: String = ""
-    @State private var phoneNumber: String = ""
-    @State private var selectedPhotoItem: PhotosPickerItem?
-    @State private var selectedImageData: Data?
-    @State private var isImagePickerPresented: Bool = false
-    
-    @State private var isSaving: Bool = false
-    @State private var navigateNext: Bool = false
-
-    #if DEBUG || MOCK
-    @State private var showDebugView: Bool = false
-    #endif
-    
-    private var canSave: Bool {
-        !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
+    @State var viewModel: OnboardingCreateProfileViewModel
     
     var body: some View {
         List {
@@ -50,43 +27,32 @@ struct OnboardingCreateProfileView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    showDebugView = true
+                    viewModel.showDebugView = true
                 } label: {
                     Image(systemName: "info")
                 }
             }
         }
-        .sheet(isPresented: $showDebugView) {
+        .sheet(isPresented: $viewModel.showDebugView) {
             DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
         }
         #endif
-        .onAppear(perform: prefillFromCurrentUser)
-        .navigationDestination(isPresented: $navigateNext) {
-            OnboardingHealthDataView()
+        .onAppear(perform: viewModel.prefillFromCurrentUser)
+        .navigationDestination(isPresented: $viewModel.navigateNext) {
+            OnboardingHealthDataView(
+                viewModel: OnboardingHealthDataViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
         }
         .safeAreaInset(edge: .bottom) {
             buttonSection
         }
-        .onChange(of: selectedPhotoItem) {
-            guard let newItem = selectedPhotoItem else { return }
-            
+        .onChange(of: viewModel.selectedPhotoItem) {
             Task {
-                do {
-                    if let data = try await newItem.loadTransferable(type: Data.self) {
-                        await MainActor.run {
-                            selectedImageData = data
-                            logManager.trackEvent(eventName: "profile_photo_selected")
-                        }
-                    } else {
-                        await MainActor.run {
-                            logManager.trackEvent(eventName: "profile_photo_load_empty")
-                        }
-                    }
-                } catch {
-                    await MainActor.run {
-                        logManager.trackEvent(eventName: "profile_photo_load_failed", parameters: ["error": String(describing: error)])
-                    }
-                }
+                await viewModel.handlePhotoSelection()
             }
         }
     }
@@ -96,13 +62,13 @@ struct OnboardingCreateProfileView: View {
             HStack {
                 Spacer()
                 Button {
-                    onImageSelectorPressed()
+                    viewModel.onImageSelectorPressed()
                 } label: {
                     ZStack {
                         Rectangle()
                             .fill(Color.secondary.opacity(0.001))
                         Group {
-                            if let data = selectedImageData {
+                            if let data = viewModel.selectedImageData {
                                 #if canImport(UIKit)
                                 if let uiImage = UIImage(data: data) {
                                     Image(uiImage: uiImage)
@@ -127,7 +93,7 @@ struct OnboardingCreateProfileView: View {
                     .cornerRadius(60)
                     .clipped()
                 }
-                .photosPicker(isPresented: $isImagePickerPresented, selection: $selectedPhotoItem, matching: .images)
+                .photosPicker(isPresented: $viewModel.isImagePickerPresented, selection: $viewModel.selectedPhotoItem, matching: .images)
             Spacer()
             }
         }
@@ -136,10 +102,10 @@ struct OnboardingCreateProfileView: View {
     
     private var profileSection: some View {
         Section("Profile") {
-            TextField("First name", text: $firstName)
+            TextField("First name", text: $viewModel.firstName)
                 .textContentType(.givenName)
                 .autocapitalization(.words)
-            TextField("Last name (optional)", text: $lastName)
+            TextField("Last name (optional)", text: $viewModel.lastName)
                 .textContentType(.familyName)
                 .autocapitalization(.words)
         }
@@ -147,8 +113,8 @@ struct OnboardingCreateProfileView: View {
     
     private var personalSection: some View {
         Section("Personal details") {
-            DatePicker("Date of birth (optional)", selection: $dateOfBirth, displayedComponents: .date)
-            Picker("Gender (optional)", selection: $selectedGender) {
+            DatePicker("Date of birth (optional)", selection: $viewModel.dateOfBirth, displayedComponents: .date)
+            Picker("Gender (optional)", selection: $viewModel.selectedGender) {
                 Text("Male").tag(Gender.male)
                 Text("Female").tag(Gender.female)
             }
@@ -158,12 +124,12 @@ struct OnboardingCreateProfileView: View {
     private var buttonSection: some View {
         VStack(spacing: 12) {
             Button {
-                Task { await saveProfile() }
+                Task { await viewModel.saveProfile() }
             } label: {
                 ZStack {
-                    Text(isSaving ? "Saving..." : "Save Profile")
-                        .opacity(isSaving ? 0 : 1)
-                    if isSaving {
+                    Text(viewModel.isSaving ? "Saving..." : "Save Profile")
+                        .opacity(viewModel.isSaving ? 0 : 1)
+                    if viewModel.isSaving {
                         ProgressView()
                     }
                 }
@@ -171,9 +137,17 @@ struct OnboardingCreateProfileView: View {
                 .frame(height: 40)
             }
             .buttonStyle(.glassProminent)
-            .disabled(isSaving || !canSave)
+            .disabled(viewModel.isSaving || !viewModel.canSave)
 
-            NavigationLink { OnboardingCompletedView() } label: {
+            NavigationLink {
+                OnboardingCompletedView(
+                    viewModel: OnboardingCompletedViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
+            } label: {
                 Text("Not now")
                     .frame(maxWidth: .infinity)
             }
@@ -181,82 +155,17 @@ struct OnboardingCreateProfileView: View {
         }
         .padding(.horizontal)
     }
-    
-    private func onImageSelectorPressed() {
-        // Show the image picker sheet for selecting a profile image
-        isImagePickerPresented = true
-    }
-
-    private func prefillFromCurrentUser() {
-        guard let user = userManager.currentUser else { return }
-        firstName = user.firstName ?? firstName
-        lastName = user.lastName ?? lastName
-        if let existingEmail = user.email { email = existingEmail }
-        if let dob = user.dateOfBirth { dateOfBirth = dob }
-        if let gender = user.gender { selectedGender = gender }
-    }
-    
-    private func saveProfile() async {
-        guard canSave else { return }
-        isSaving = true
-        
-        do {
-            guard let userId = userManager.currentUser?.userId else {
-                logManager.trackEvent(eventName: "profile_save_failed", parameters: ["error": "Missing current user ID"])
-                return
-            }
-
-            let trimmedFirst = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
-            let trimmedLast = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
-            let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
-
-            let user = UserModel(
-                userId: userId,
-                email: trimmedEmail.isEmpty ? userManager.currentUser?.email : trimmedEmail,
-                firstName: trimmedFirst,
-                lastName: trimmedLast.isEmpty ? nil : trimmedLast,
-                dateOfBirth: dateOfBirth,
-                gender: selectedGender
-            )
-
-            #if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
-            try await userManager.saveUser(user: user, image: uiImage)
-            #elseif canImport(AppKit)
-            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            try await userManager.saveUser(user: user, image: nsImage)
-            #endif
-
-            logManager.trackEvent(eventName: "profile_save_success")
-            // Proceed to health data step; onboarding completion is finalized on the last step
-            navigateNext = true
-        } catch {
-            logManager.trackEvent(eventName: "profile_save_failed", parameters: ["error": String(describing: error)])
-        }
-        isSaving = false
-    }
 }
 
 #Preview("Functioning") {
     NavigationStack {
-        OnboardingCreateProfileView()
+        OnboardingCreateProfileView(
+            viewModel: OnboardingCreateProfileViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            )
+        )
     }
-    .environment(UserManager(services: MockUserServices(user: .mock)))
-    .previewEnvironment()
-}
-
-#Preview("Slow Loading") {
-    NavigationStack {
-        OnboardingCreateProfileView()
-    }
-    .environment(UserManager(services: MockUserServices(user: .mock, delay: 3)))
-    .previewEnvironment()
-}
-
-#Preview("Upload Failure") {
-    NavigationStack {
-        OnboardingCreateProfileView()
-    }
-    .environment(UserManager(services: MockUserServices(user: .mock, delay: 1, showError: true)))
     .previewEnvironment()
 }

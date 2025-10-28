@@ -6,7 +6,6 @@
 //
 
 import FirebaseFirestore
-import SwiftfulFirestore
 
 struct FirebaseRecipeTemplateService: RemoteRecipeTemplateService {
     
@@ -41,10 +40,10 @@ struct FirebaseRecipeTemplateService: RemoteRecipeTemplateService {
     }
     
     func getRecipeTemplates(ids: [String], limitTo: Int = 20) async throws -> [RecipeTemplateModel] {
-        try await collection
-            .getDocuments(ids: ids)
+        let documents: [RecipeTemplateModel] = try await collection.getDocuments(ids: ids)
+        return Array(documents
             .shuffled()
-            .first(upTo: limitTo) ?? []
+            .prefix(limitTo))
     }
     
     func getRecipeTemplatesByName(name: String) async throws -> [RecipeTemplateModel] {

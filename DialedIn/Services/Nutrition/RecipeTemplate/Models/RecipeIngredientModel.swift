@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import IdentifiableByString
 
 enum IngredientAmountUnit: String, Codable, CaseIterable, Sendable {
     case grams
@@ -14,7 +13,7 @@ enum IngredientAmountUnit: String, Codable, CaseIterable, Sendable {
     case units
 }
 
-struct RecipeIngredientModel: Identifiable, Codable, Hashable, StringIdentifiable {
+struct RecipeIngredientModel: Identifiable, Codable, Hashable {
     var id: String { ingredient.ingredientId }
     let ingredient: IngredientTemplateModel
     var amount: Double

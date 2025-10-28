@@ -10,7 +10,6 @@
 		D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0B9D2E8EA0F00027C662 /* Mixpanel */; };
 		D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA02E8EA1050027C662 /* OpenAI */; };
 		D05D0BA42E8EA1180027C662 /* SignInAppleAsync in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA32E8EA1180027C662 /* SignInAppleAsync */; };
-		D05D0BA72E8EA13A0027C662 /* SwiftfulFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA62E8EA13A0027C662 /* SwiftfulFirestore */; };
 		D05D0BAA2E8EA15E0027C662 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA92E8EA15E0027C662 /* FirebaseAnalytics */; };
 		D05D0BAC2E8EA15E0027C662 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BAB2E8EA15E0027C662 /* FirebaseAppCheck */; };
 		D05D0BAE2E8EA15E0027C662 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BAD2E8EA15E0027C662 /* FirebaseAuth */; };
@@ -112,23 +111,127 @@
 		D012F02E2EACD6100014C602 /* Exceptions for "DialedIn" folder in "DialedInTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"Extensions/Error+EXT.swift",
+				"Extensions/FileManager+EXT.swift",
+				"Extensions/Firestore+EXT.swift",
 				Services/Auth/AuthManager.swift,
 				Services/Auth/Models/UserAuthInfo.swift,
 				"Services/Auth/Models/UserAuthInfo+Firebase.swift",
 				Services/Auth/Services/AuthService.swift,
 				Services/Auth/Services/MockAuthService.swift,
 				Services/Goal/Models/WeightGoal.swift,
+				Services/ImageUpload/Services/FirebaseImageUploadService.swift,
 				Services/Logs/LogManager.swift,
 				Services/Logs/Models/LoggableEvent.swift,
 				Services/Logs/Services/ConsoleService.swift,
 				Services/Logs/Services/LogService.swift,
+				Services/Nutrition/IngredientTemplate/IngredientTemplateManager.swift,
 				Services/Nutrition/IngredientTemplate/Models/IngredientTemplateEntity.swift,
 				Services/Nutrition/IngredientTemplate/Models/IngredientTemplateModel.swift,
+				Services/Nutrition/IngredientTemplate/Services/IngredientTemplateServices.swift,
+				Services/Nutrition/IngredientTemplate/Services/Local/LocalIngredientTemplatePersistence.swift,
+				Services/Nutrition/IngredientTemplate/Services/Local/MockIngredientTemplatePersistence.swift,
+				Services/Nutrition/IngredientTemplate/Services/Local/SwiftIngredientTemplatePersistence.swift,
+				Services/Nutrition/IngredientTemplate/Services/Remote/FirebaseIngredientTemplateService.swift,
+				Services/Nutrition/IngredientTemplate/Services/Remote/MockIngredientTemplateService.swift,
+				Services/Nutrition/IngredientTemplate/Services/Remote/RemoteIngredientTemplateService.swift,
 				Services/Nutrition/NutritionTypes.swift,
+				Services/Nutrition/RecipeTemplate/Models/RecipeIngredientModel.swift,
+				Services/Nutrition/RecipeTemplate/Models/RecipeTemplateEntity.swift,
+				Services/Nutrition/RecipeTemplate/Models/RecipeTemplateModel.swift,
+				Services/Nutrition/RecipeTemplate/RecipeTemplateManager.swift,
+				Services/Nutrition/RecipeTemplate/Services/Local/LocalRecipeTemplatePersistence.swift,
+				Services/Nutrition/RecipeTemplate/Services/Local/MockRecipeTemplatePersistence.swift,
+				Services/Nutrition/RecipeTemplate/Services/Local/SwiftRecipeTemplatePersistence.swift,
+				Services/Nutrition/RecipeTemplate/Services/RecipeTemplateServices.swift,
+				Services/Nutrition/RecipeTemplate/Services/Remote/FirebaseRecipeTemplateService.swift,
+				Services/Nutrition/RecipeTemplate/Services/Remote/MockRecipeTemplateService.swift,
+				Services/Nutrition/RecipeTemplate/Services/Remote/RemoteRecipeTemplateService.swift,
+				Services/TemplateManagement/BaseTemplateManager.swift,
+				Services/Training/ExerciseHistory/ExerciseHistoryManager.swift,
+				Services/Training/ExerciseHistory/Models/ExerciseHistoryEntryEntity.swift,
+				Services/Training/ExerciseHistory/Models/ExerciseHistoryEntryModel.swift,
+				Services/Training/ExerciseHistory/Models/ExerciseHistorySetEntity.swift,
+				Services/Training/ExerciseHistory/Services/ExerciseHistoryServices.swift,
+				Services/Training/ExerciseHistory/Services/Local/LocalExerciseHistoryPersistence.swift,
+				Services/Training/ExerciseHistory/Services/Local/MockExerciseHistoryPersistence.swift,
+				Services/Training/ExerciseHistory/Services/Local/SwiftExerciseHistoryPersistence.swift,
+				Services/Training/ExerciseHistory/Services/Remote/FirebaseExerciseHistoryService.swift,
+				Services/Training/ExerciseHistory/Services/Remote/MockExerciseHistoryService.swift,
+				Services/Training/ExerciseHistory/Services/Remote/RemoteExerciseHistoryService.swift,
+				Services/Training/ExerciseTemplate/ExerciseTemplateManager.swift,
+				Services/Training/ExerciseTemplate/Models/ExerciseTemplateEntity.swift,
+				Services/Training/ExerciseTemplate/Models/ExerciseTemplateModel.swift,
+				Services/Training/ExerciseTemplate/Services/ExerciseTemplateServices.swift,
+				Services/Training/ExerciseTemplate/Services/Local/ExerciseSeedingManager.swift,
+				Services/Training/ExerciseTemplate/Services/Local/LocalExerciseTemplatePersistence.swift,
+				Services/Training/ExerciseTemplate/Services/Local/MockExerciseTemplatePersistence.swift,
+				Services/Training/ExerciseTemplate/Services/Local/SwiftExerciseTemplatePersistence.swift,
+				Services/Training/ExerciseTemplate/Services/Remote/FirebaseExerciseTemplateService.swift,
+				Services/Training/ExerciseTemplate/Services/Remote/MockExerciseTemplateService.swift,
+				Services/Training/ExerciseTemplate/Services/Remote/RemoteExerciseTemplateService.swift,
+				Services/Training/ProgramTemplate/Models/ProgramTemplateModel.swift,
+				Services/Training/TrainingPlan/Models/TrainingPlan.swift,
+				Services/Training/TrainingPlan/Models/TrainingPlanEntity.swift,
+				Services/Training/TrainingPlan/Services/Local/LocalTrainingPlanPersistence.swift,
+				Services/Training/TrainingPlan/Services/Local/MockTrainingPlanPersistence.swift,
+				Services/Training/TrainingPlan/Services/Local/SwiftTrainingPlanPersistence.swift,
+				Services/Training/TrainingPlan/Services/Remote/FirebaseTrainingPlanService.swift,
+				Services/Training/TrainingPlan/Services/Remote/MockTrainingPlanService.swift,
+				Services/Training/TrainingPlan/Services/Remote/RemoteTrainingPlanService.swift,
+				Services/Training/TrainingPlan/Services/TrainingPlanServices.swift,
+				Services/Training/TrainingPlan/TrainingPlanManager.swift,
+				"Services/Training/TrainingPlan/TrainingPlanManager+WorkoutManagement.swift",
+				Services/Training/WorkoutExercises/Models/WorkoutExerciseModel.swift,
+				Services/Training/WorkoutExercises/Models/WorkoutExerciseRecord.swift,
+				Services/Training/Workouts/Models/WorkoutModels.swift,
+				Services/Training/WorkoutSession/Models/Records/WorkoutSetRecord.swift,
+				Services/Training/WorkoutSession/Models/WorkoutSession/WorkoutSessionEntity.swift,
+				Services/Training/WorkoutSession/Models/WorkoutSession/WorkoutSessionModel.swift,
+				Services/Training/WorkoutSession/Models/WorkoutSet/WorkoutSetEntity.swift,
+				Services/Training/WorkoutSession/Models/WorkoutSet/WorkoutSetModel.swift,
+				Services/Training/WorkoutSession/Services/Local/LocalWorkoutSessionPersistence.swift,
+				Services/Training/WorkoutSession/Services/Local/MockWorkoutSessionPersistence.swift,
+				Services/Training/WorkoutSession/Services/Local/SwiftWorkoutSessionPersistence.swift,
+				Services/Training/WorkoutSession/Services/Remote/FirebaseWorkoutSessionService.swift,
+				Services/Training/WorkoutSession/Services/Remote/MockWorkoutSessionService.swift,
+				Services/Training/WorkoutSession/Services/Remote/RemoteWorkoutSessionService.swift,
+				Services/Training/WorkoutSession/Services/WorkoutSessionServices.swift,
+				Services/Training/WorkoutSession/WorkoutSessionManager.swift,
+				Services/Training/WorkoutTemplate/Models/WorkoutTemplateEntity.swift,
 				Services/Training/WorkoutTemplate/Models/WorkoutTemplateModel.swift,
+				Services/Training/WorkoutTemplate/Services/Local/LocalWorkoutTemplatePersistence.swift,
+				Services/Training/WorkoutTemplate/Services/Local/MockWorkoutTemplatePersistence.swift,
+				Services/Training/WorkoutTemplate/Services/Local/SwiftWorkoutTemplatePersistence.swift,
+				Services/Training/WorkoutTemplate/Services/Local/WorkoutSeedingManager.swift,
+				Services/Training/WorkoutTemplate/Services/Remote/FirebaseWorkoutTemplateService.swift,
+				Services/Training/WorkoutTemplate/Services/Remote/MockWorkoutTemplateService.swift,
+				Services/Training/WorkoutTemplate/Services/Remote/RemoteWorkoutTemplateService.swift,
+				Services/Training/WorkoutTemplate/Services/WorkoutTemplateServices.swift,
+				Services/Training/WorkoutTemplate/WorkoutTemplateManager.swift,
+				Services/Training/WorkoutTemplate/WorkoutTemplateResolver.swift,
 				Services/User/Models/UserModel.swift,
+				Services/User/Services/Local/FileManagerUserPersistence.swift,
+				Services/User/Services/Local/LocalUserPersistence.swift,
+				Services/User/Services/Local/MockUserPersistence.swift,
+				Services/User/Services/Remote/FirebaseUserService.swift,
+				Services/User/Services/Remote/MockUserService.swift,
+				Services/User/Services/Remote/RemoteUserService.swift,
+				Services/User/Services/UserServices.swift,
+				Services/User/UserManager.swift,
+				"Services/User/UserManager+TemplateManagement.swift",
 				Services/UserWeight/Models/WeightEntry.swift,
+				Services/UserWeight/Services/Local/LocalUserWeightService.swift,
+				Services/UserWeight/Services/Local/MockLocalUserWeightService.swift,
+				Services/UserWeight/Services/Local/ProductionLocalUserWeightService.swift,
+				Services/UserWeight/Services/Remote/MockRemoteUserWeightService.swift,
+				Services/UserWeight/Services/Remote/ProductionRemoteUserWeightService.swift,
+				Services/UserWeight/Services/Remote/RemoteUserWeightService.swift,
+				Services/UserWeight/Services/UserWeightServices.swift,
+				Services/UserWeight/UserWeightManager.swift,
 				Utilities/Constants.swift,
+				Utilities/ProfileImageCache.swift,
+				Utilities/Utilities.swift,
 			);
 			target = D012F0192EACD46C0014C602 /* DialedInTests */;
 		};
@@ -193,8 +296,8 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				D08F585F2E8BF636001D3980 /* Exceptions for "DialedIn" folder in "DialedIn" target */,
-				D0BC0E372EA28EB5008A1E22 /* Exceptions for "DialedIn" folder in "WorkoutSessionActivityExtension" target */,
 				D012F02E2EACD6100014C602 /* Exceptions for "DialedIn" folder in "DialedInTests" target */,
+				D0BC0E372EA28EB5008A1E22 /* Exceptions for "DialedIn" folder in "WorkoutSessionActivityExtension" target */,
 				D058B9612EAEC57F00F0EADB /* Exceptions for "DialedIn" folder in "DialedInWatchApp" target */,
 			);
 			path = DialedIn;
@@ -237,7 +340,6 @@
 			files = (
 				D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */,
 				D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */,
-				D05D0BA72E8EA13A0027C662 /* SwiftfulFirestore in Frameworks */,
 				D05D0BCB2E8FDE0B0027C662 /* GoogleSignInSwift in Frameworks */,
 				D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */,
 				D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */,
@@ -408,7 +510,6 @@
 				D05D0B9D2E8EA0F00027C662 /* Mixpanel */,
 				D05D0BA02E8EA1050027C662 /* OpenAI */,
 				D05D0BA32E8EA1180027C662 /* SignInAppleAsync */,
-				D05D0BA62E8EA13A0027C662 /* SwiftfulFirestore */,
 				D05D0BA92E8EA15E0027C662 /* FirebaseAnalytics */,
 				D05D0BAB2E8EA15E0027C662 /* FirebaseAppCheck */,
 				D05D0BAD2E8EA15E0027C662 /* FirebaseAuth */,
@@ -490,7 +591,6 @@
 				D05D0B9C2E8EA0F00027C662 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 				D05D0B9F2E8EA1050027C662 /* XCRemoteSwiftPackageReference "OpenAI" */,
 				D05D0BA22E8EA1180027C662 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */,
-				D05D0BA52E8EA13A0027C662 /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */,
 				D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				D05D0BB72E8EA1710027C662 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */,
@@ -502,9 +602,9 @@
 			projectRoot = "";
 			targets = (
 				D0A2993C2E54AEA700DA64F7 /* DialedIn */,
-				D08F58472E8BF61B001D3980 /* WorkoutSessionActivityExtension */,
 				D012F0192EACD46C0014C602 /* DialedInTests */,
 				D012F0742EAD20760014C602 /* DialedInUITests */,
+				D08F58472E8BF61B001D3980 /* WorkoutSessionActivityExtension */,
 				D0CE844C2EAAC4E900C3CCBE /* DialedInWatchApp */,
 			);
 		};
@@ -1493,14 +1593,6 @@
 				minimumVersion = 1.0.2;
 			};
 		};
-		D05D0BA52E8EA13A0027C662 /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulFirestore";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 11.0.3;
-			};
-		};
 		D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -1550,11 +1642,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BA22E8EA1180027C662 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */;
 			productName = SignInAppleAsync;
-		};
-		D05D0BA62E8EA13A0027C662 /* SwiftfulFirestore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D05D0BA52E8EA13A0027C662 /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */;
-			productName = SwiftfulFirestore;
 		};
 		D05D0BA92E8EA15E0027C662 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;

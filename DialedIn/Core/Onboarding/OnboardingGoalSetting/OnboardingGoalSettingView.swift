@@ -9,17 +9,8 @@ import SwiftUI
 
 struct OnboardingGoalSettingView: View {
     @Environment(DependencyContainer.self) private var container
+    @State var viewModel: OnboardingGoalSettingViewModel
 
-    @Environment(UserManager.self) private var userManager
-    @Environment(LogManager.self) private var logManager
-    
-    @State private var showAlert: AnyAppAlert?
-    @State private var isLoading: Bool = false
-
-    #if DEBUG || MOCK
-    @State private var showDebugView: Bool = false
-    #endif
-        
     var body: some View {
         List {
             goalSettingSection
@@ -30,18 +21,18 @@ struct OnboardingGoalSettingView: View {
             toolbarContent
         }
         #if DEBUG || MOCK
-        .sheet(isPresented: $showDebugView) {
+        .sheet(isPresented: $viewModel.showDebugView) {
             DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
         }
         #endif
         .task {
-            await updateOnboardingStep()
+            await viewModel.updateOnboardingStep()
         }
-        .showModal(showModal: $isLoading) {
+        .showModal(showModal: $viewModel.isLoading) {
             ProgressView()
                 .tint(.white)
         }
-        .showCustomAlert(alert: $showAlert)
+        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     private var goalSettingSection: some View {
@@ -54,47 +45,12 @@ struct OnboardingGoalSettingView: View {
         }
     }
     
-    private func updateOnboardingStep() async {
-        let target: OnboardingStep = .goalSetting
-        if let current = userManager.currentUser?.onboardingStep, current.orderIndex >= target.orderIndex {
-            return
-        }
-        isLoading = true
-        logManager.trackEvent(event: Event.updateOnboardingStepStart)
-        do {
-            try await userManager.updateOnboardingStep(step: target)
-            logManager.trackEvent(event: Event.updateOnboardingStepSuccess)
-        } catch {
-            showAlert = AnyAppAlert(title: "Unable to update your progress", subtitle: "Please check your internet connection and try again.", buttons: {
-                AnyView(
-                    HStack {
-                        Button {
-                            
-                        } label: {
-                            Text("Dismiss")
-                        }
-                        
-                        Button {
-                            Task {
-                                await updateOnboardingStep()
-                            }
-                        } label: {
-                            Text("Try again")
-                        }
-                    }
-                )
-            })
-            logManager.trackEvent(event: Event.updateOnboardingStepFail(error: error))
-        }
-        isLoading = false
-    }
-    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                showDebugView = true
+                viewModel.showDebugView = true
             } label: {
                 Image(systemName: "info")
             }
@@ -103,51 +59,30 @@ struct OnboardingGoalSettingView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             NavigationLink {
-                OnboardingOverarchingObjectiveView()
+                OnboardingOverarchingObjectiveView(
+                    viewModel: OnboardingOverarchingObjectiveViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
         }
     }
-    
-    enum Event: LoggableEvent {
-        case updateOnboardingStepStart
-        case updateOnboardingStepSuccess
-        case updateOnboardingStepFail(error: Error)
-        
-        var eventName: String {
-            switch self {
-            case .updateOnboardingStepStart:    return "update_onboarding_step_start"
-            case .updateOnboardingStepSuccess:  return "update_onboarding_step_success"
-            case .updateOnboardingStepFail:     return "update_onboarding_step_fail"
-            }
-        }
-        
-        var parameters: [String: Any]? {
-            switch self {
-            case .updateOnboardingStepFail(error: let error):
-                return error.eventParameters
-            default:
-                return nil
-            }
-        }
-        
-        var type: LogType {
-            switch self {
-            case .updateOnboardingStepFail:
-                return .severe
-            default:
-                return .analytic
-                
-            }
-        }
-    }
 }
 
 #Preview {
     NavigationStack {
-        OnboardingGoalSettingView()
+        OnboardingGoalSettingView(
+            viewModel: OnboardingGoalSettingViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            )
+        )
     }
     .previewEnvironment()
 }

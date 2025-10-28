@@ -6,9 +6,8 @@
 //
 
 import Foundation
-import IdentifiableByString
 
-struct RecipeTemplateModel: Identifiable, Codable, StringIdentifiable, Hashable {
+struct RecipeTemplateModel: Identifiable, Codable, Hashable {
     var id: String {
         recipeId
     }

@@ -2,7 +2,7 @@
 //  ImageDescriptionBuilder.swift
 //  DialedIn
 //
-//  Created by AI Assistant on 09/28/2025.
+//  Created by Andrew Coyle on 09/28/2025.
 //
 
 import Foundation

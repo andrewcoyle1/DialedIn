@@ -6,12 +6,12 @@
 //
 
 import SwiftUI
+import SwiftfulUtilities
 import Firebase
 import FirebaseCore
 import FirebaseAnalytics
 import FirebaseAppCheck
 import GoogleSignIn
-import SwiftfulUtilities
 
 @main
 struct AppEntryPoint {
@@ -66,33 +66,8 @@ struct DialedInApp: App {
         WindowGroup {
             AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: delegate.dependencies.container)))
                 .environment(delegate.dependencies.container)
-                .environment(delegate.dependencies.exerciseTemplateManager)
-                .environment(delegate.dependencies.exerciseUnitPreferenceManager)
-                .environment(delegate.dependencies.workoutTemplateManager)
-                .environment(delegate.dependencies.workoutSessionManager)
-                .environment(delegate.dependencies.exerciseHistoryManager)
-                .environment(delegate.dependencies.trainingPlanManager)
-                .environment(delegate.dependencies.programTemplateManager)
                 .environment(delegate.dependencies.detailNavigationModel)
-                #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-                .environment(delegate.dependencies.hkWorkoutManager)
-                .environment(delegate.dependencies.liveActivityManager)
-                #endif
-                .environment(delegate.dependencies.userWeightManager)
-                .environment(delegate.dependencies.goalManager)
-                .environment(delegate.dependencies.ingredientTemplateManager)
-                .environment(delegate.dependencies.recipeTemplateManager)
-                .environment(delegate.dependencies.nutritionManager)
-                .environment(delegate.dependencies.mealLogManager)
-                .environment(delegate.dependencies.aiManager)
                 .environment(delegate.dependencies.logManager)
-                .environment(delegate.dependencies.reportManager)
-                .environment(delegate.dependencies.healthKitManager)
-                .environment(delegate.dependencies.pushManager)
-                .environment(delegate.dependencies.purchaseManager)
-                .environment(delegate.dependencies.trainingAnalyticsManager)
-                .environment(delegate.dependencies.userManager)
-                .environment(delegate.dependencies.authManager)
                 .onOpenURL { url in
                     _ = GIDSignIn.sharedInstance.handle(url)
                 }

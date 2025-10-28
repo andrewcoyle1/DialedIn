@@ -2,7 +2,7 @@
 //  WorkoutExerciseRecord.swift
 //  DialedIn
 //
-//  Created by AI Assistant on 28/09/2025.
+//  Created by Andrew Coyle on 28/09/2025.
 //
 
 import Foundation

@@ -9,16 +9,7 @@ import SwiftUI
 
 struct OnboardingCustomisingProgramView: View {
     @Environment(DependencyContainer.self) private var container
-
-    @Environment(UserManager.self) private var userManager
-    @Environment(LogManager.self) private var logManager
-
-    @State private var showAlert: AnyAppAlert?
-    @State private var isLoading: Bool = false
-
-    #if DEBUG || MOCK
-    @State private var showDebugView: Bool = false
-    #endif
+    @State var viewModel: OnboardingCustomisingProgramViewModel
         
     var body: some View {
         List {
@@ -29,53 +20,18 @@ struct OnboardingCustomisingProgramView: View {
             toolbarContent
         }
         #if DEBUG || MOCK
-        .sheet(isPresented: $showDebugView) {
+        .sheet(isPresented: $viewModel.showDebugView) {
             DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
         }
         #endif
         .task {
-            await updateOnboardingStep()
+            await viewModel.updateOnboardingStep()
         }
-        .showModal(showModal: $isLoading) {
+        .showModal(showModal: $viewModel.isLoading) {
             ProgressView()
                 .tint(.white)
         }
-        .showCustomAlert(alert: $showAlert)
-    }
-    
-    private func updateOnboardingStep() async {
-        let target: OnboardingStep = .customiseProgram
-        if let current = userManager.currentUser?.onboardingStep, current.orderIndex >= target.orderIndex {
-            return
-        }
-        isLoading = true
-        logManager.trackEvent(event: Event.updateOnboardingStepStart)
-        do {
-            try await userManager.updateOnboardingStep(step: target)
-            logManager.trackEvent(event: Event.updateOnboardingStepSuccess)
-        } catch {
-            showAlert = AnyAppAlert(title: "Unable to update your progress", subtitle: "Please check your internet connection and try again.", buttons: {
-                AnyView(
-                    HStack {
-                        Button {
-                            
-                        } label: {
-                            Text("Dismiss")
-                        }
-                        
-                        Button {
-                            Task {
-                                await updateOnboardingStep()
-                            }
-                        } label: {
-                            Text("Try again")
-                        }
-                    }
-                )
-            })
-            logManager.trackEvent(event: Event.updateOnboardingStepFail(error: error))
-        }
-        isLoading = false
+        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     private var dietSection: some View {
@@ -98,7 +54,7 @@ struct OnboardingCustomisingProgramView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                showDebugView = true
+                viewModel.showDebugView = true
             } label: {
                 Image(systemName: "info")
             }
@@ -107,51 +63,30 @@ struct OnboardingCustomisingProgramView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             NavigationLink {
-                OnboardingPreferredDietView()
+                OnboardingPreferredDietView(
+                    viewModel: OnboardingPreferredDietViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    )
+                )
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
         }
     }
-    
-    enum Event: LoggableEvent {
-        case updateOnboardingStepStart
-        case updateOnboardingStepSuccess
-        case updateOnboardingStepFail(error: Error)
-        
-        var eventName: String {
-            switch self {
-            case .updateOnboardingStepStart:    return "update_onboarding_step_start"
-            case .updateOnboardingStepSuccess:  return "update_onboarding_step_success"
-            case .updateOnboardingStepFail:     return "update_onboarding_step_fail"
-            }
-        }
-        
-        var parameters: [String: Any]? {
-            switch self {
-            case .updateOnboardingStepFail(error: let error):
-                return error.eventParameters
-            default:
-                return nil
-            }
-        }
-        
-        var type: LogType {
-            switch self {
-            case .updateOnboardingStepFail:
-                return .severe
-            default:
-                return .analytic
-                
-            }
-        }
-    }
 }
 
 #Preview {
     NavigationStack {
-        OnboardingCustomisingProgramView()
+        OnboardingCustomisingProgramView(
+            viewModel: OnboardingCustomisingProgramViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            )
+        )
     }
     .previewEnvironment()
 }

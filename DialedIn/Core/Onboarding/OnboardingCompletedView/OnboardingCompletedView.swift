@@ -1,6 +1,6 @@
 //
 //  OnboardingCompletedView.swift
-//  BrainBolt
+//  DialedIn
 //
 //  Created by Andrew Coyle on 13/08/2025.
 //
@@ -9,14 +9,8 @@ import SwiftUI
 
 struct OnboardingCompletedView: View {
     @Environment(DependencyContainer.self) private var container
-
     @Environment(AppState.self) private var root
-    
-    @State private var isCompletingProfileSetup: Bool = false
-
-    #if DEBUG || MOCK
-    @State private var showDebugView: Bool = false
-    #endif
+    @State var viewModel: OnboardingCompletedViewModel
 
     var body: some View {
         VStack {
@@ -36,14 +30,20 @@ struct OnboardingCompletedView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    showDebugView = true
+                    viewModel.showDebugView = true
                 } label: {
                     Image(systemName: "info")
                 }
             }
         }
-        .sheet(isPresented: $showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+        .sheet(isPresented: $viewModel.showDebugView) {
+            DevSettingsView(
+                viewModel: DevSettingsViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
         }
         #endif
     }
@@ -70,10 +70,10 @@ struct OnboardingCompletedView: View {
     
     private var buttonSection: some View {
         Button {
-            onFinishButtonPressed()
+            viewModel.onFinishButtonPressed()
         } label: {
             ZStack {
-                if !isCompletingProfileSetup {
+                if !viewModel.isCompletingProfileSetup {
                     Text("Start Training")
                 } else {
                     ProgressView()
@@ -84,27 +84,17 @@ struct OnboardingCompletedView: View {
             .frame(height: 40)
         }
         .buttonStyle(.glassProminent)
-        .disabled(isCompletingProfileSetup)
-    }
-    
-    @Environment(UserManager.self) private var userManager
-    
-    func onFinishButtonPressed() {
-        isCompletingProfileSetup = true
-        Task {
-            isCompletingProfileSetup = false
-            // other logic to complete onboarding
-            do {
-                try await userManager.updateOnboardingStep(step: .complete)
-            } catch {
-                // Proceed even if saving goal fails
-            }
-            // AppView will switch to main automatically once onboardingStep is .complete
-        }
+        .disabled(viewModel.isCompletingProfileSetup)
     }
 }
 
 #Preview {
-    OnboardingCompletedView()
-        .previewEnvironment()
+    OnboardingCompletedView(
+        viewModel: OnboardingCompletedViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        )
+    )
+    .previewEnvironment()
 }

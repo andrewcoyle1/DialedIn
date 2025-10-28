@@ -154,7 +154,6 @@ class AuthOptionsViewModel {
     
     // MARK: - Helper Methods
     
-    /// Maps UserManager.OnboardingStep to NavigationDestination
     func getNavigationDestination(for step: OnboardingStep) -> NavigationDestination? {
         switch step {
         case .auth:

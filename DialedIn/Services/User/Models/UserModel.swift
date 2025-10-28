@@ -7,7 +7,7 @@
 import Foundation
 import SwiftUI
 
-struct UserModel: Codable, Equatable {
+struct UserModel: Codable, Equatable, Sendable {
     
     // User
     let userId: String
@@ -399,7 +399,7 @@ struct UserModel: Codable, Equatable {
     }
 }
 
-enum Gender: String, Codable {
+enum Gender: String, Codable, Sendable {
     case male
     case female
     var description: String {
@@ -410,7 +410,7 @@ enum Gender: String, Codable {
     }
 }
 
-enum ProfileExerciseFrequency: String, Codable {
+enum ProfileExerciseFrequency: String, Codable, Sendable {
     case never
     case oneToTwo = "1-2"
     case threeToFour = "3-4"
@@ -418,7 +418,7 @@ enum ProfileExerciseFrequency: String, Codable {
     case daily
 }
 
-enum ProfileDailyActivityLevel: String, Codable {
+enum ProfileDailyActivityLevel: String, Codable, Sendable {
     case sedentary
     case light
     case moderate
@@ -426,7 +426,7 @@ enum ProfileDailyActivityLevel: String, Codable {
     case veryActive = "very_active"
 }
 
-enum ProfileCardioFitnessLevel: String, Codable {
+enum ProfileCardioFitnessLevel: String, Codable, Sendable {
     case beginner
     case novice
     case intermediate
@@ -434,17 +434,17 @@ enum ProfileCardioFitnessLevel: String, Codable {
     case elite
 }
 
-enum LengthUnitPreference: String, Codable {
+enum LengthUnitPreference: String, Codable, Sendable {
     case centimeters
     case inches
 }
 
-enum WeightUnitPreference: String, Codable {
+enum WeightUnitPreference: String, Codable, Sendable {
     case kilograms
     case pounds
 }
 
-enum OnboardingStep: String, Codable {
+enum OnboardingStep: String, Codable, Sendable {
     case auth
     case subscription
     case completeAccountSetup
