@@ -36,5 +36,7 @@ final class DialedInUITests: XCTestCase {
         app/*@START_MENU_TOKEN@*/.buttons["chevron.right"]/*[[".otherElements[\"chevron.right\"].buttons",".otherElements",".buttons[\"Forward\"]",".buttons[\"chevron.right\"]"],[[[-1,3],[-1,2],[-1,1,1],[-1,0]],[[-1,3],[-1,2]]],[0]]@END_MENU_TOKEN@*/.firstMatch.tap()
         app/*@START_MENU_TOKEN@*/.buttons["Continue with Apple"]/*[[".otherElements.buttons[\"Continue with Apple\"]",".buttons[\"Continue with Apple\"]"],[[[-1,1],[-1,0]]],[0]]@END_MENU_TOKEN@*/.firstMatch.tap()
         
+        let dashboardExists = app.navigationBars["Dashboard"].waitForExistence(timeout: 5)
+        XCTAssertTrue(dashboardExists)
     }
 }
