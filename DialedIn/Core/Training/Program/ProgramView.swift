@@ -104,28 +104,28 @@ struct ProgramView: View {
                     
                     // Quick stats
                     HStack(spacing: 20) {
-                        StatBadge(
+                        StatCard(
                             value: "\(Int(viewModel.adherenceRate*100))%",
                             label: "Adherence",
-                            systemImage: "checkmark.circle.fill",
+                            icon: "checkmark.circle.fill",
                             color: viewModel.adherenceColor(viewModel.adherenceRate)
                         )
                         
                         if let currentWeek = viewModel.currentWeek {
                             let progress = viewModel.getWeeklyProgress(weekNumber: currentWeek.weekNumber)
-                            StatBadge(
+                            StatCard(
                                 value: "\(progress.completedWorkouts)/\(progress.totalWorkouts)",
                                 label: "This Week",
-                                systemImage: "calendar",
+                                icon: "calendar",
                                 color: .blue
                             )
                         }
                         
                         let upcomingCount = viewModel.upcomingWorkouts.count
-                        StatBadge(
+                        StatCard(
                             value: "\(upcomingCount)",
                             label: "Upcoming",
-                            systemImage: "clock",
+                            icon: "clock",
                             color: .orange
                         )
                     }

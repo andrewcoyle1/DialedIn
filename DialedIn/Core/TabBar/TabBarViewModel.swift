@@ -58,6 +58,10 @@ class TabBarViewModel {
     }
     
     func checkForActiveSession() -> WorkoutSessionModel? {
-        try? interactor.getActiveLocalWorkoutSession()
+        if let session = try? interactor.getActiveLocalWorkoutSession() {
+            activeSession = session
+            return session
+        }
+        return nil
     }
 }

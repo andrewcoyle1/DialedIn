@@ -99,10 +99,19 @@ struct WorkoutTrackerView: View {
                 
                 // Quick stats
                 HStack(spacing: 20) {
-                    StatItem(title: "Exercise", value: "\(viewModel.currentExerciseIndex + 1)/\(viewModel.workoutSession.exercises.count)")
-                    StatItem(title: "Volume", value: viewModel.formattedVolume)
+                    StatCard(
+                        value: "\(viewModel.currentExerciseIndex + 1)/\(viewModel.workoutSession.exercises.count)",
+                        label: "Exercise",
+                    )
+                    StatCard(
+                        value: viewModel.formattedVolume,
+                        label: "Volume"
+                    )
                     if !viewModel.workoutNotes.isEmpty {
-                        StatItem(title: "Notes", value: "Added")
+                        StatCard(
+                            value: "Added",
+                            label: "Notes"
+                        )
                     }
                 }
             }
@@ -122,6 +131,7 @@ struct WorkoutTrackerView: View {
                 let weightUnit = preference?.weightUnit ?? .kilograms
                 let distanceUnit = preference?.distanceUnit ?? .meters
                 let previousSets = viewModel.buildPreviousLookup(for: exercise)
+                let exerciseId = exercise.id
                 ExerciseTrackerCardView(
                     viewModel: ExerciseTrackerCardViewModel(interactor: CoreInteractor(container: container),
                     exercise: exercise,
@@ -130,11 +140,11 @@ struct WorkoutTrackerView: View {
                     weightUnit: weightUnit,
                     distanceUnit: distanceUnit,
                     previousSetsByIndex: previousSets,
-                    onSetUpdate: { updatedSet in viewModel.updateSet(updatedSet, in: exercise.id) },
-                    onAddSet: { viewModel.addSet(to: exercise.id) },
-                    onDeleteSet: { setId in viewModel.deleteSet(setId, from: exercise.id) },
+                    onSetUpdate: { updatedSet in viewModel.updateSet(updatedSet, in: exerciseId) },
+                    onAddSet: { viewModel.addSet(to: exerciseId) },
+                    onDeleteSet: { setId in viewModel.deleteSet(setId, from: exerciseId) },
                     onHeaderLongPress: { /* no-op: reordering via drag on header */ },
-                    onNotesChange: { notes in viewModel.updateExerciseNotes(notes, for: exercise.id) },
+                    onNotesChange: { notes in viewModel.updateExerciseNotes(notes, for: exerciseId) },
                     onWeightUnitChange: { unit in viewModel.updateWeightUnit(unit, for: exercise.templateId) },
                     onDistanceUnitChange: { unit in viewModel.updateDistanceUnit(unit, for: exercise.templateId) },
                     restBeforeSecForSet: { setId in viewModel.getRestBeforeSet(setId: setId) },
@@ -142,6 +152,9 @@ struct WorkoutTrackerView: View {
                     onRequestRestPicker: { setId, current in
                         viewModel.openRestPicker(for: setId, currentValue: current)
                         viewModel.isRestPickerOpen = true
+                    },
+                    getLatestExercise: {
+                        viewModel.workoutSession.exercises.first(where: { $0.id == exerciseId })
                     }),
                     isExpanded: Binding(
                         get: { viewModel.expandedExerciseIds.contains(exercise.id) },

@@ -23,65 +23,13 @@ struct WorkoutSessionDetailView: View {
         .navigationTitle(viewModel.currentSession.name)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                if viewModel.isEditMode {
-                    Button("Save") {
-                        Task { await viewModel.saveChanges(onDismiss: {
-                            dismiss()
-                        }) }
-                    }
-                    .disabled(viewModel.isSaving)
-                    .fontWeight(.semibold)
-                } else {
-                    Button(role: .destructive) {
-                        viewModel.showDeleteConfirmation = true
-                    } label: {
-                        Image(systemName: "trash")
-                    }
-                    .disabled(viewModel.isDeleting)
-                }
-            }
-            
-            ToolbarItem(placement: .topBarLeading) {
-                if viewModel.isEditMode {
-                    Button("Cancel") {
-                        if viewModel.hasUnsavedChanges {
-                            viewModel.showDiscardConfirmation = true
-                        } else {
-                            viewModel.cancelEditing()
-                        }
-                    }
-                    .disabled(viewModel.isSaving)
-                } else {
-                    Button("Edit") {
-                        viewModel.enterEditMode()
-                    }
-                }
-            }
+            toolbarContent
         }
-        .alert("Delete Workout?", isPresented: $viewModel.showDeleteConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
-                Task { await viewModel.deleteSession(session: viewModel.session, onDismiss: {
-                    dismiss()
-                }) }
-            }
-        } message: {
-            Text("This workout session will be permanently deleted. This action cannot be undone.")
+        .onAppear {
+            viewModel.loadUnitPreferences()
         }
-        .alert("Discard Changes?", isPresented: $viewModel.showDiscardConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Discard", role: .destructive) {
-                viewModel.cancelEditing()
-            }
-        } message: {
-            Text("You have unsaved changes. Are you sure you want to discard them?")
-        }
-        .showModal(showModal: $viewModel.isDeleting) {
-            ProgressView()
-                .tint(.white)
-        }
-        .showModal(showModal: $viewModel.isSaving) {
+        .showCustomAlert(alert: $viewModel.showAlert)
+        .showModal(showModal: Binding(get: { viewModel.isLoading }, set: { _ in })) {
             ProgressView()
                 .tint(.white)
         }
@@ -93,10 +41,6 @@ struct WorkoutSessionDetailView: View {
                     selectedExercises: $viewModel.selectedExerciseTemplates
                 )
             )
-        }
-        .showCustomAlert(alert: $viewModel.showAlert)
-        .onAppear {
-            viewModel.loadUnitPreferences()
         }
     }
     
@@ -135,21 +79,21 @@ struct WorkoutSessionDetailView: View {
     private var summarySection: some View {
         Section {
             HStack(spacing: 12) {
-                SummaryStatCard(
+                StatCard(
                     value: "\(viewModel.currentSession.exercises.count)",
                     label: "Exercises",
                     icon: "list.bullet",
                     color: .blue
                 )
                 
-                SummaryStatCard(
+                StatCard(
                     value: "\(viewModel.totalSets)",
                     label: "Sets",
                     icon: "square.stack.3d.up",
                     color: .purple
                 )
                 
-                SummaryStatCard(
+                StatCard(
                     value: viewModel.volumeFormatted,
                     label: "Volume",
                     icon: "scalemass",
@@ -208,6 +152,49 @@ struct WorkoutSessionDetailView: View {
             }
         } header: {
             Text("Exercises")
+        }
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            if viewModel.isEditMode {
+                Button("Save") {
+                    Task { await viewModel.saveChanges(onDismiss: {
+                        dismiss()
+                    }) }
+                }
+                .disabled(viewModel.isSaving)
+                .fontWeight(.semibold)
+            } else {
+                Button(role: .destructive) {
+                    viewModel.onDeletePressed(
+                        onDismiss: {
+                            dismiss()
+                        }
+                    )
+                } label: {
+                    Image(systemName: "trash")
+                }
+                .disabled(viewModel.isDeleting)
+            }
+        }
+        
+        ToolbarItem(placement: .topBarLeading) {
+            if viewModel.isEditMode {
+                Button("Cancel") {
+                    if viewModel.hasUnsavedChanges {
+                        viewModel.showDiscardChangesAlert()
+                    } else {
+                        viewModel.cancelEditing()
+                    }
+                }
+                .disabled(viewModel.isSaving)
+            } else {
+                Button("Edit") {
+                    viewModel.enterEditMode()
+                }
+            }
         }
     }
     

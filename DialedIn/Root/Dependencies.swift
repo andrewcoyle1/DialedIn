@@ -189,9 +189,68 @@ struct Dependencies {
 }
 
 extension View {
+    // swiftlint:disable:next function_body_length
     func previewEnvironment(isSignedIn: Bool = true) -> some View {
+        let logManager = LogManager(services: [ConsoleService(printParameters: true)])
+        let authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil), logManager: logManager)
+        let userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
+        let purchaseManager = PurchaseManager(services: MockPurchaseServices())
+        let exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
+        let exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
+        let workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: ExerciseTemplateManager(services: MockExerciseTemplateServices()))
+        let workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
+        let exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())
+        let trainingPlanManager = TrainingPlanManager(services: MockTrainingPlanServices())
+        let programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: MockProgramTemplateService()))
+        let ingredientTemplateManager = IngredientTemplateManager(services: MockIngredientTemplateServices())
+        let recipeTemplateManager = RecipeTemplateManager(services: MockRecipeTemplateServices())
+        let nutritionManager = NutritionManager(services: MockNutritionServices())
+        let mealLogManager = MealLogManager(services: MockMealLogServices(mealsByDay: MealLogModel.previewWeekMealsByDay))
+        let aiManager = AIManager(service: MockAIService())
+        let pushManager = PushManager(services: MockPushServices(), logManager: logManager)
+        let reportManager = ReportManager(service: MockReportService(), userManager: userManager)
+        let healthKitManager = HealthKitManager(service: MockHealthService())
+        let trainingAnalyticsManager = TrainingAnalyticsManager(services: MockTrainingAnalyticsServices())
+        let detailNavigationModel = DetailNavigationModel()
+        let userWeightManager = UserWeightManager(services: MockUserWeightServices())
+        let goalManager = GoalManager(services: MockGoalServices())
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        let hkWorkoutManager = HKWorkoutManager()
+        let liveActivityManager = LiveActivityManager()
+        hkWorkoutManager.liveActivityUpdater = liveActivityManager
+        #endif
+        
+        let container = DependencyContainer()
+        container.register(AuthManager.self, service: authManager)
+        container.register(UserManager.self, service: userManager)
+        container.register(PurchaseManager.self, service: purchaseManager)
+        container.register(ExerciseTemplateManager.self, service: exerciseTemplateManager)
+        container.register(ExerciseUnitPreferenceManager.self, service: exerciseUnitPreferenceManager)
+        container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
+        container.register(WorkoutSessionManager.self, service: workoutSessionManager)
+        container.register(ExerciseHistoryManager.self, service: exerciseHistoryManager)
+        container.register(TrainingPlanManager.self, service: trainingPlanManager)
+        container.register(ProgramTemplateManager.self, service: programTemplateManager)
+        container.register(IngredientTemplateManager.self, service: ingredientTemplateManager)
+        container.register(RecipeTemplateManager.self, service: recipeTemplateManager)
+        container.register(NutritionManager.self, service: nutritionManager)
+        container.register(MealLogManager.self, service: mealLogManager)
+        container.register(PushManager.self, service: pushManager)
+        container.register(AIManager.self, service: aiManager)
+        container.register(LogManager.self, service: logManager)
+        container.register(ReportManager.self, service: reportManager)
+        container.register(HealthKitManager.self, service: healthKitManager)
+        container.register(TrainingAnalyticsManager.self, service: trainingAnalyticsManager)
+        container.register(DetailNavigationModel.self, service: detailNavigationModel)
+        container.register(UserWeightManager.self, service: userWeightManager)
+        container.register(GoalManager.self, service: goalManager)
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        container.register(HKWorkoutManager.self, service: hkWorkoutManager)
+        container.register(LiveActivityManager.self, service: liveActivityManager)
+        #endif
         return self
             .environment(LogManager(services: [ConsoleService(printParameters: false)]))
+            .environment(container)
     }
 }
 

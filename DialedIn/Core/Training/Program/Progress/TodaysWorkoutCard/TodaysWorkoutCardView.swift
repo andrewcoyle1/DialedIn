@@ -17,7 +17,7 @@ struct TodaysWorkoutCardView: View {
                 Text(viewModel.templateName)
                     .font(.headline)
                 
-                HStack(spacing: 12) {
+                HStack {
                     Label("\(viewModel.exerciseCount) exercises", systemImage: "figure.strengthtraining.traditional")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -30,9 +30,9 @@ struct TodaysWorkoutCardView: View {
                 }
                 .lineLimit(1)
             }
-            
-            Spacer()
-            
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .loadingRedaction(isLoading: viewModel.isLoading)
+
             // Start button
             if !viewModel.scheduledWorkout.isCompleted {
                 Button {
@@ -56,13 +56,45 @@ struct TodaysWorkoutCardView: View {
     }
 }
 
-#Preview {
+#Preview("Functioning") {
     List {
         TodaysWorkoutCardView(
             viewModel: TodaysWorkoutCardViewModel(
                 interactor: CoreInteractor(container: DevPreview.shared.container),
                 scheduledWorkout: ScheduledWorkout.mocksWeek1.first!,
-                onStart: { }
+                onStart: {
+                    print("Start workout")
+                }
+            )
+        )
+    }
+    .previewEnvironment()
+}
+
+#Preview("Slow Loading") {
+    List {
+        TodaysWorkoutCardView(
+            viewModel: TodaysWorkoutCardViewModel(
+                interactor: CoreInteractor(container: DevPreview.shared.container),
+                scheduledWorkout: ScheduledWorkout.mocksWeek2.first!,
+                onStart: {
+                    print("Start workout")
+                }
+            )
+        )
+    }
+    .previewEnvironment()
+}
+
+#Preview("Failure") {
+    List {
+        TodaysWorkoutCardView(
+            viewModel: TodaysWorkoutCardViewModel(
+                interactor: CoreInteractor(container: DevPreview.shared.container),
+                scheduledWorkout: ScheduledWorkout.mocksWeek3.first!,
+                onStart: {
+                    print("Start workout")
+                }
             )
         )
     }

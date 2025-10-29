@@ -19,6 +19,12 @@ struct ExerciseTrackerCardView: View {
         } label: {
             exerciseHeader
         }
+        .onChange(of: isExpanded) { _, newValue in
+            if newValue {
+                // Refresh exercise data when card expands
+                viewModel.refreshExercise()
+            }
+        }
     }
     
     private var exerciseHeader: some View {
@@ -233,7 +239,8 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                     onDistanceUnitChange: { _ in },
                     restBeforeSecForSet: { _ in nil },
                     onRestBeforeChange: { _, _ in },
-                    onRequestRestPicker: { _, _ in }
+                    onRequestRestPicker: { _, _ in },
+                    getLatestExercise: { exercise }
                 ),
                 isExpanded: $isExpandedCurrent
             )
@@ -259,7 +266,8 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                     onDistanceUnitChange: { _ in },
                     restBeforeSecForSet: { _ in nil },
                     onRestBeforeChange: { _, _ in },
-                    onRequestRestPicker: { _, _ in }
+                    onRequestRestPicker: { _, _ in },
+                    getLatestExercise: { exercise }
                 ),
                 isExpanded: $isExpandedOther
             )

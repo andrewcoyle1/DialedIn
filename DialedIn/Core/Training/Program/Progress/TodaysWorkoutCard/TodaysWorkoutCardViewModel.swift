@@ -24,6 +24,8 @@ class TodaysWorkoutCardViewModel {
     
     private(set) var templateName: String = "Workout"
     private(set) var exerciseCount: Int = 0
+    private(set) var isLoading: Bool = true
+    
     var showAlert: AnyAppAlert?
     
     init(
@@ -43,7 +45,7 @@ class TodaysWorkoutCardViewModel {
                 templateName = template.name
                 exerciseCount = template.exercises.count
             interactor.trackEvent(event: Event.loadWorkoutSuccess)
-
+            isLoading = false
         } catch {
             interactor.trackEvent(event: Event.loadWorkoutFailure(error: error))
             self.showAlert = AnyAppAlert(error: error)

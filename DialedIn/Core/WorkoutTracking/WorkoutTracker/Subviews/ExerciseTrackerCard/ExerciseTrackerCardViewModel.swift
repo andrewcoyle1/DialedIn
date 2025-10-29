@@ -18,7 +18,7 @@ extension CoreInteractor: ExerciseTrackerCardInteractor { }
 class ExerciseTrackerCardViewModel {
     private let interactor: ExerciseTrackerCardInteractor
     
-    let exercise: WorkoutExerciseModel
+    var exercise: WorkoutExerciseModel
     let exerciseIndex: Int
     let isCurrentExercise: Bool
     let weightUnit: ExerciseWeightUnit
@@ -35,6 +35,8 @@ class ExerciseTrackerCardViewModel {
     let restBeforeSecForSet: (String) -> Int?
     let onRestBeforeChange: (String, Int?) -> Void
     let onRequestRestPicker: (String, Int?) -> Void
+    // Closure to get the latest exercise data from parent
+    let getLatestExercise: () -> WorkoutExerciseModel?
     
     var notesDraft: String = ""
 
@@ -59,7 +61,8 @@ class ExerciseTrackerCardViewModel {
         onDistanceUnitChange: @escaping (ExerciseDistanceUnit) -> Void,
         restBeforeSecForSet: @escaping (String) -> Int?,
         onRestBeforeChange: @escaping (String, Int?) -> Void,
-        onRequestRestPicker: @escaping (String, Int?) -> Void
+        onRequestRestPicker: @escaping (String, Int?) -> Void,
+        getLatestExercise: @escaping () -> WorkoutExerciseModel?
     ) {
         self.interactor = interactor
         self.exercise = exercise
@@ -78,5 +81,15 @@ class ExerciseTrackerCardViewModel {
         self.restBeforeSecForSet = restBeforeSecForSet
         self.onRestBeforeChange = onRestBeforeChange
         self.onRequestRestPicker = onRequestRestPicker
+        self.getLatestExercise = getLatestExercise
+        self.notesDraft = exercise.notes ?? ""
+    }
+    
+    func refreshExercise() {
+        if let latest = getLatestExercise() {
+            exercise = latest
+            // Sync notes draft with updated exercise notes
+            notesDraft = latest.notes ?? ""
+        }
     }
 }

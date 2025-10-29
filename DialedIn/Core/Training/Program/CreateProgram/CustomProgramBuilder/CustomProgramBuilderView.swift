@@ -25,24 +25,22 @@ struct CustomProgramBuilderView: View {
             if let day = viewModel.editingDayOfWeek {
                 NavigationStack {
                     WorkoutPickerSheet(
-                        viewModel: WorkoutPickerSheetViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            onSelect: { workout in
-                                viewModel.assign(
-                                    workout: workout,
-                                    to: day,
-                                    inWeek: viewModel.selectedWeek
-                                )
-                                viewModel.showingWorkoutPicker = false
-                                viewModel.editingDayOfWeek = nil
-                            },
-                            onCancel: {
-                                viewModel.showingWorkoutPicker = false
-                                viewModel.editingDayOfWeek = nil
-                            }
-                        )
+                        interactor: CoreInteractor(
+                            container: container
+                        ),
+                        onSelect: { workout in
+                            viewModel.assign(
+                                workout: workout,
+                                to: day,
+                                inWeek: viewModel.selectedWeek
+                            )
+                            viewModel.showingWorkoutPicker = false
+                            viewModel.editingDayOfWeek = nil
+                        },
+                        onCancel: {
+                            viewModel.showingWorkoutPicker = false
+                            viewModel.editingDayOfWeek = nil
+                        }
                     )
                 }
             }

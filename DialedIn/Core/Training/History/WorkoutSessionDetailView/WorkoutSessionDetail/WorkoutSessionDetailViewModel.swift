@@ -24,17 +24,19 @@ extension CoreInteractor: WorkoutSessionDetailInteractor { }
 class WorkoutSessionDetailViewModel {
     private let interactor: WorkoutSessionDetailInteractor
     
-    var showDeleteConfirmation = false
+    private(set) var isEditMode = false
+    private(set) var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
+    
     var showAlert: AnyAppAlert?
     var isDeleting = false
-    private(set) var isEditMode = false
     var session: WorkoutSessionModel
     var editedSession: WorkoutSessionModel
     var isSaving = false
-    var showDiscardConfirmation = false
     var showAddExerciseSheet = false
+    var isLoading: Bool {
+        isSaving || isDeleting
+    }
     var selectedExerciseTemplates: [ExerciseTemplateModel] = []
-    private(set) var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
     
     var currentSession: WorkoutSessionModel {
         isEditMode ? editedSession : session
@@ -85,7 +87,26 @@ class WorkoutSessionDetailViewModel {
     func cancelEditing() {
         editedSession = session
         isEditMode = false
-        showDiscardConfirmation = false
+    }
+    
+    func showDiscardChangesAlert() {
+        showAlert = AnyAppAlert(
+            title: "Discard changes?",
+            subtitle: "You have unsaved changes. This will discard them.",
+            buttons: {
+                AnyView(
+                    VStack {
+                        Button("Discard Changes", role: .destructive) {
+                            self.cancelEditing()
+                            self.showAlert = nil
+                        }
+                        Button("Keep Editing", role: .cancel) {
+                            self.showAlert = nil
+                        }
+                    }
+                )
+            }
+        )
     }
     
     func saveChanges(onDismiss: @escaping @MainActor () -> Void) async {
@@ -255,7 +276,14 @@ class WorkoutSessionDetailViewModel {
     
     // MARK: - Delete Session
     
-    func deleteSession(session: WorkoutSessionModel, onDismiss: @escaping @MainActor () -> Void) async {
+    func onDeletePressed(onDismiss: () -> Void) {
+        Task {
+            await deleteSession(session: self.session)
+        }
+        onDismiss()
+    }
+    
+    func deleteSession(session: WorkoutSessionModel) async {
         isDeleting = true
         defer { isDeleting = false }
         
@@ -265,9 +293,6 @@ class WorkoutSessionDetailViewModel {
             
             // Delete from remote in background
             try await interactor.deleteWorkoutSession(id: session.id)
-            
-            // Dismiss view after successful deletion
-            onDismiss()
         } catch {
             showAlert = AnyAppAlert(
                 title: "Delete Failed",
@@ -277,7 +302,11 @@ class WorkoutSessionDetailViewModel {
                         HStack {
                             Button("Cancel") { }
                             Button("Try Again") {
-                                Task { await self.deleteSession(session: session, onDismiss: onDismiss) }
+                                Task {
+                                    await self.deleteSession(
+                                        session: session
+                                    )
+                                }
                             }
                         }
                     )

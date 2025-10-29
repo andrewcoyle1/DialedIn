@@ -58,9 +58,22 @@ struct WorkoutStartView: View {
         Section {
             // Stats
             HStack(spacing: 20) {
-                StatCard(title: "Exercises", value: "\(template.exercises.count)")
-                StatCard(title: "Est. Time", value: viewModel.estimatedTime(template: template))
-                StatCard(title: "Focus", value: viewModel.primaryMuscleGroup(template: template))
+                StatCard(
+                    value: "\(template.exercises.count)",
+                    label: "Exercises",
+                )
+                StatCard(
+                    value: viewModel.estimatedTime(
+                        template: template
+                    ),
+                    label: "Est. Time"
+                )
+                StatCard(
+                    value: viewModel.primaryMuscleGroup(
+                        template: template
+                    ),
+                    label: "Focus"
+                )
             }
         } header: {
             Text("Workout Overview")
