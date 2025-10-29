@@ -30,3 +30,38 @@ class OnboardingPreferredDietViewModel {
         self.interactor = interactor
     }
 }
+
+enum PreferredDiet: String, CaseIterable, Identifiable {
+    case balanced
+    case lowFat
+    case lowCarb
+    case keto
+
+    var id: String { rawValue }
+    
+    var description: String {
+        switch self {
+        case .balanced:
+            return "Balanced"
+        case .lowFat:
+            return "Low Fat"
+        case .lowCarb:
+            return "Low Carb"
+        case .keto:
+            return "Keto"
+        }
+    }
+    
+    var detailedDescription: String {
+        switch self {
+        case .balanced:
+            return "Standard distribution of carbs and fat."
+        case .lowFat:
+            return "Fat will be reduced to prioritize carb and protein intake."
+        case .lowCarb:
+            return "Carbs will be reduced to prioritize fat and protein intake."
+        case .keto:
+            return "Carbs will be very restricted to allow for higher fat intake."
+        }
+    }
+}

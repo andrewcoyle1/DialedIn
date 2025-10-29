@@ -85,41 +85,6 @@ struct OnboardingProteinIntakeView: View {
     }
 }
 
-enum ProteinIntake: String, CaseIterable, Identifiable {
-    case low
-    case moderate
-    case high
-    case veryHigh
-    
-    var id: String { rawValue }
-    
-    var description: String {
-        switch self {
-        case .low:
-            return "Low"
-        case .moderate:
-            return "Moderate"
-        case .high:
-            return "High"
-        case .veryHigh:
-            return "Very High"
-        }
-    }
-    
-    var detailedDescription: String {
-        switch self {
-        case .low:
-            return "On the low side of the optimal range."
-        case .moderate:
-            return "In the middle of the optimal range."
-        case .high:
-            return "On the high end of the optimal range."
-        case .veryHigh:
-            return "Highest recommended intake."
-        }
-    }
-}
-
 #Preview {
     NavigationStack {
         OnboardingProteinIntakeView(

@@ -19,7 +19,9 @@ class AuthManager {
         self.service = service
         self.logManager = logManager
         self.auth = service.getAuthenticatedUser()
-        self.addAuthListener()
+        Task { @MainActor in
+            self.addAuthListener()
+        }
     }
     
     @MainActor

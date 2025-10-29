@@ -65,7 +65,7 @@ class WorkoutStartViewModel {
             .mapValues { $0.count }
         
         let mostCommon = categoryFrequency.max(by: { $0.value < $1.value })?.key
-        return mostCommon?.displayName ?? "Mixed"
+        return mostCommon?.description ?? "Mixed"
     }
     
     func startWorkout(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout?) {

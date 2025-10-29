@@ -14,7 +14,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         
-        let config: BuildConfiguration
+        var config: BuildConfiguration
         
         #if MOCK
         config = .mock(isSignedIn: true)
@@ -23,6 +23,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         #else
         config = .prod
         #endif
+        
+        if ProcessInfo.processInfo.arguments.contains("UI_TESTING") {
+            let isSignedIn = ProcessInfo.processInfo.arguments.contains("SIGNED_IN")
+            UserDefaults.showTabBarView = isSignedIn
+            config = .mock(isSignedIn: isSignedIn)
+        }
         
         config.configure()
         dependencies = Dependencies(config: config)

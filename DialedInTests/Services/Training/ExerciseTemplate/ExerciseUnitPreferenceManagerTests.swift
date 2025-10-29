@@ -27,8 +27,8 @@ struct ExerciseUnitPreferenceManagerTests {
         UserModel(
             userId: "testUser123",
             email: "test@example.com",
-            weightUnitPreference: weightUnit,
-            lengthUnitPreference: lengthUnit
+            lengthUnitPreference: lengthUnit,
+            weightUnitPreference: weightUnit
         )
     }
     
@@ -126,7 +126,7 @@ struct ExerciseUnitPreferenceManagerTests {
     @Test("Test Get Preference Loads From User Defaults When Available")
     func testGetPreferenceLoadsFromUserDefaultsWhenAvailable() {
         let user = createUserWithPreferences(weightUnit: .kilograms, lengthUnit: .centimeters)
-        let (manager, userDefaults) = createManager(user: user)
+        let (_, userDefaults) = createManager(user: user)
         
         // Manually save a preference to UserDefaults
         let savedPreference = ExerciseUnitPreference(
@@ -555,8 +555,8 @@ struct ExerciseUnitPreferenceManagerTests {
     
     @Test("Test Different Users Have Different Preference Keys")
     func testDifferentUsersHaveDifferentPreferenceKeys() {
-        let user1 = UserModel(userId: "user1", weightUnitPreference: .kilograms, lengthUnitPreference: .centimeters)
-        let user2 = UserModel(userId: "user2", weightUnitPreference: .pounds, lengthUnitPreference: .inches)
+        let user1 = UserModel(userId: "user1", lengthUnitPreference: .centimeters, weightUnitPreference: .kilograms)
+        let user2 = UserModel(userId: "user2", lengthUnitPreference: .inches, weightUnitPreference: .pounds)
         
         let userDefaults = UserDefaults(suiteName: "test_\(UUID().uuidString)")!
         

@@ -454,30 +454,3 @@ struct ProgramView: View {
     }
     .previewEnvironment()
 }
-
-enum ActiveSheet: Identifiable {
-    case programPicker
-    case progressDashboard
-    case strengthProgress
-    case workoutHeatmap
-    case addGoal
-    
-    var id: String {
-        switch self {
-        case .programPicker: return "programPicker"
-        case .progressDashboard: return "progressDashboard"
-        case .strengthProgress: return "strengthProgress"
-        case .workoutHeatmap: return "workoutHeatmap"
-        case .addGoal: return "addGoal"
-        }
-    }
-    
-    var eventParameters: [String: Any] {
-        let sheet = self
-        let params: [String: Any] = [
-            "program_sheet": sheet.id
-        ]
-        
-        return params
-    }
-}

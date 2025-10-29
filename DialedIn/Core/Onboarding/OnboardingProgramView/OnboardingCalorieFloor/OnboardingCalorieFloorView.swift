@@ -106,31 +106,6 @@ struct OnboardingCalorieFloorView: View {
     }
 }
 
-enum CalorieFloor: String, CaseIterable, Identifiable {
-    case standard
-    case low
-    
-    var id: String { rawValue }
-    
-    var description: String {
-        switch self {
-        case .standard:
-            return "Standard Floor (Recommended)"
-        case .low:
-            return "Low Floor"
-        }
-    }
-    
-    var detailedDescription: String {
-        switch self {
-        case .standard:
-            return "Your recommendations will never go below 1200 calories per day, even if your TDEE is lower."
-        case .low:
-            return "Your recommendations will never go below 800 calories per day. Proceed with caution."
-        }
-    }
-}
-
 #Preview {
     NavigationStack {
         OnboardingCalorieFloorView(

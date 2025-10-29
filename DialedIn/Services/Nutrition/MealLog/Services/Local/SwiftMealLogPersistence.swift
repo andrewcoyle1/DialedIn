@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 struct SwiftMealLogPersistence: LocalMealLogPersistence {
     private let mealsKey = "local_meal_logs_v1"
     private let queue = DispatchQueue(label: "SwiftMealLogPersistence.queue")

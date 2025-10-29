@@ -108,3 +108,8 @@ class LogWeightViewModel {
         }
     }
 }
+
+enum UnitOfWeight {
+    case kilograms
+    case pounds
+}

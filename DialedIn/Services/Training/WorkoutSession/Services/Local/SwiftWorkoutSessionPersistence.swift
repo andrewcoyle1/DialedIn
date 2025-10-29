@@ -8,11 +8,13 @@
 import SwiftData
 import SwiftUI
 
+@MainActor
 class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     private var container: ModelContainer
     private let storeURL: URL
     private let activeSessionDefaultsKey = "activeWorkoutSessionId"
     
+    @MainActor
     private var mainContext: ModelContext {
         container.mainContext
     }
@@ -34,6 +36,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
            
     }
 
+    @MainActor
     private func rebuildContainer() {
         // Remove the existing store file to resolve missing table/schema mismatches
         try? FileManager.default.removeItem(at: storeURL)
@@ -55,6 +58,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         return false
     }
     
+    @MainActor
     func addLocalWorkoutSession(session: WorkoutSessionModel) throws {
         do {
             let entity = WorkoutSessionEntity(from: session)
@@ -72,6 +76,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         }
     }
     
+    @MainActor
     func updateLocalWorkoutSession(session: WorkoutSessionModel) throws {
         // Avoid capturing non-Sendable 'session' in the predicate closure
         let id = session.id
@@ -101,6 +106,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         }
     }
     
+    @MainActor
     func upsertLocalWorkoutSession(session: WorkoutSessionModel) throws {
         // Check if session exists locally
         let id = session.id
@@ -126,6 +132,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         }
     }
     
+    @MainActor
     func endLocalWorkoutSession(id: String, at endedAt: Date) throws {
         do {
             let predicate = #Predicate<WorkoutSessionEntity> { $0.workoutSessionId == id }
@@ -146,6 +153,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         }
     }
     
+    @MainActor
     func getLocalWorkoutSession(id: String) throws -> WorkoutSessionModel {
         do {
             let predicate = #Predicate<WorkoutSessionEntity> { $0.workoutSessionId == id }
@@ -164,6 +172,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         }
     }
     
+    @MainActor
     func getLocalWorkoutSessions(ids: [String]) throws -> [WorkoutSessionModel] {
         do {
             let predicate = #Predicate<WorkoutSessionEntity> { ids.contains($0.workoutSessionId) }
@@ -179,6 +188,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         }
     }
     
+    @MainActor
     func getLocalWorkoutSessionsForAuthor(authorId: String, limitTo: Int) throws -> [WorkoutSessionModel] {
         do {
             let predicate = #Predicate<WorkoutSessionEntity> { $0.authorId == authorId }
@@ -195,6 +205,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         }
     }
     
+    @MainActor
     func getAllLocalWorkoutSessions() throws -> [WorkoutSessionModel] {
         do {
             let descriptor = FetchDescriptor<WorkoutSessionEntity>(sortBy: [SortDescriptor(\.dateCreated, order: .forward)])
@@ -209,6 +220,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         }
     }
     
+    @MainActor
     func deleteLocalWorkoutSession(id: String) throws {
         do {
             let predicate = #Predicate<WorkoutSessionEntity> { $0.workoutSessionId == id }
@@ -228,6 +240,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         }
     }
     
+    @MainActor
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws {
         do {
             let predicate = #Predicate<WorkoutSessionEntity> { $0.authorId == authorId }
@@ -245,6 +258,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     }
     
     // MARK: - Active Session Persistence (UserDefaults + SwiftData fallback)
+    @MainActor
     func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel? {
         if let sessionId = UserDefaults.standard.string(forKey: activeSessionDefaultsKey) {
             return try? getLocalWorkoutSession(id: sessionId)
@@ -252,6 +266,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
         return nil
     }
     
+    @MainActor
     func setActiveLocalWorkoutSession(_ session: WorkoutSessionModel?) throws {
         if let session {
             UserDefaults.standard.set(session.id, forKey: activeSessionDefaultsKey)
@@ -259,5 +274,4 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
             UserDefaults.standard.removeObject(forKey: activeSessionDefaultsKey)
         }
     }
-    
 }

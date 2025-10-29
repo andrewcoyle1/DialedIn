@@ -144,26 +144,3 @@ struct OnboardingExerciseFrequencyView: View {
     }
     .previewEnvironment()
 }
-
-enum ExerciseFrequency: String, CaseIterable {
-    case never = "never"
-    case oneToTwo = "1-2"
-    case threeToFour = "3-4"
-    case fiveToSix = "5-6"
-    case daily = "daily"
-    
-    var description: String {
-        switch self {
-        case .never:
-            return "Never"
-        case .oneToTwo:
-            return "1-2 times per week"
-        case .threeToFour:
-            return "3-4 times per week"
-        case .fiveToSix:
-            return "5-6 times per week"
-        case .daily:
-            return "Daily"
-        }
-    }
-}

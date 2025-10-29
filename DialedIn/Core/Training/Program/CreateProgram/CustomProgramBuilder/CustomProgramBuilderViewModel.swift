@@ -133,3 +133,16 @@ class CustomProgramBuilderViewModel {
         }
     }
 }
+
+struct WeekScheduleState: Identifiable, Hashable {
+    var id: Int { weekNumber }
+    let weekNumber: Int
+    var mappings: [Int: SelectedWorkout] = [:]
+    var notes: String = ""
+    var isDeloadWeek: Bool = false
+}
+
+struct SelectedWorkout: Hashable {
+    let id: String
+    let name: String
+}

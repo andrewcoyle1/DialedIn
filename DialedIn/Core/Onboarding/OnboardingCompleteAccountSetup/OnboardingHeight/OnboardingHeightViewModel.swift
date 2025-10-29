@@ -91,3 +91,8 @@ class OnboardingHeightViewModel {
         selectedCentimeters = Int(Double(totalInches) * 2.54)
     }
 }
+
+enum UnitOfLength {
+    case centimeters
+    case inches
+}

@@ -10,6 +10,7 @@ import SwiftData
 // Note: Keep SwiftData predicates scoped to entity properties and plain values.
 // Mixing model key paths into predicates can cause Sendable/key path issues in macro-generated code.
 
+@MainActor
 class SwiftProgramTemplatePersistence: LocalProgramTemplatePersistence {
     
     private let modelContext: ModelContext

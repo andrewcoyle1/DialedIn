@@ -143,8 +143,3 @@ struct OnboardingHeightView: View {
     }
     .previewEnvironment()
 }
-
-enum UnitOfLength {
-    case centimeters
-    case inches
-}

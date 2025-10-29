@@ -40,3 +40,31 @@ class OnboardingOverarchingObjectiveViewModel {
         self.isStandaloneMode = isStandaloneMode
     }
 }
+
+enum OverarchingObjective: CaseIterable {
+    case loseWeight
+    case maintain
+    case gainWeight
+    
+    var description: String {
+        switch self {
+        case .loseWeight:
+            "Lose weight"
+        case .maintain:
+            "Maintain"
+        case .gainWeight:
+            "Gain weight"
+        }
+    }
+    
+    var detailedDescription: String {
+        switch self {
+        case .loseWeight:
+            "Goal of losing weight"
+        case .maintain:
+            "Goal of maintaining weight"
+        case .gainWeight:
+            "Goal of gaining weight"
+        }
+    }
+}

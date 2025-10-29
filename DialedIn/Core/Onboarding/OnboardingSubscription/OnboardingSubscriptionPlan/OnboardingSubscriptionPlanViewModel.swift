@@ -104,3 +104,34 @@ class OnboardingSubscriptionPlanViewModel {
         }
     }
 }
+
+enum Plan: String, CaseIterable, Identifiable {
+    case monthly
+    case annual
+    case lifetime
+    
+    var id: String { rawValue }
+    
+    var title: String {
+        switch self {
+        case .monthly: return "Monthly"
+        case .annual: return "Annual"
+        case .lifetime: return "Lifetime"
+        }
+    }
+    
+    var subtitle: String {
+        switch self {
+        case .monthly: return "$9.99 / month"
+        case .annual: return "$69.99 / year (save 40%)"
+        case .lifetime: return "$199.99 one-time"
+        }
+    }
+    
+    var badge: String? {
+        switch self {
+        case .annual: return "Best Value"
+        default: return nil
+        }
+    }
+}

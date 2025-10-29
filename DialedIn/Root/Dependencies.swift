@@ -43,6 +43,8 @@ struct Dependencies {
         let liveActivityManager: LiveActivityManager
         #endif
         
+        let imageUploadManager: ImageUploadManager
+        
         switch config {
         case .mock(isSignedIn: let isSignedIn):
             authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil))
@@ -76,6 +78,8 @@ struct Dependencies {
             liveActivityManager = LiveActivityManager()
             hkWorkoutManager.liveActivityUpdater = liveActivityManager
             #endif
+            imageUploadManager = ImageUploadManager(service: MockImageUploadService())
+            pushManager = PushManager(services: MockPushServices(), logManager: logManager)
 
         case .dev:
             let logs = LogManager(services: [
@@ -114,6 +118,8 @@ struct Dependencies {
             liveActivityManager = LiveActivityManager()
             hkWorkoutManager.liveActivityUpdater = liveActivityManager
             #endif
+            imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
+            pushManager = PushManager(services: ProductionPushServices(), logManager: logs)
 
         case .prod:
             let logs = LogManager(services: [
@@ -151,9 +157,11 @@ struct Dependencies {
             liveActivityManager = LiveActivityManager()
             hkWorkoutManager.liveActivityUpdater = liveActivityManager
             #endif
+            imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
+            pushManager = PushManager(services: ProductionPushServices(), logManager: logs)
+
         }
         detailNavigationModel = DetailNavigationModel()
-        pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
         healthKitManager = HealthKitManager(service: HealthKitService())
         
         let container = DependencyContainer()
@@ -184,6 +192,7 @@ struct Dependencies {
         container.register(HKWorkoutManager.self, service: hkWorkoutManager)
         container.register(LiveActivityManager.self, service: liveActivityManager)
         #endif
+        container.register(ImageUploadManager.self, service: imageUploadManager)
         self.container = container
     }
 }
@@ -220,6 +229,8 @@ extension View {
         hkWorkoutManager.liveActivityUpdater = liveActivityManager
         #endif
         
+        let imageUploadManager = ImageUploadManager(service: MockImageUploadService())
+
         let container = DependencyContainer()
         container.register(AuthManager.self, service: authManager)
         container.register(UserManager.self, service: userManager)
@@ -248,6 +259,9 @@ extension View {
         container.register(HKWorkoutManager.self, service: hkWorkoutManager)
         container.register(LiveActivityManager.self, service: liveActivityManager)
         #endif
+
+        container.register(ImageUploadManager.self, service: imageUploadManager)
+
         return self
             .environment(LogManager(services: [ConsoleService(printParameters: false)]))
             .environment(container)
@@ -287,6 +301,8 @@ class DevPreview {
         container.register(HKWorkoutManager.self, service: hkWorkoutManager)
         container.register(LiveActivityManager.self, service: liveActivityManager)
         #endif
+        
+        container.register(ImageUploadManager.self, service: imageUploadManager)
         return container
     }
     
@@ -317,6 +333,8 @@ class DevPreview {
     let hkWorkoutManager: HKWorkoutManager
     let liveActivityManager: LiveActivityManager
     #endif
+    
+    let imageUploadManager: ImageUploadManager
     
     init(isSignedIn: Bool = true) {
         let logManager = LogManager(services: [ConsoleService(printParameters: true)])
@@ -353,5 +371,6 @@ class DevPreview {
         self.liveActivityManager = LiveActivityManager()
         self.hkWorkoutManager.liveActivityUpdater = liveActivityManager
         #endif
+        self.imageUploadManager = ImageUploadManager(service: MockImageUploadService())
     }
 }

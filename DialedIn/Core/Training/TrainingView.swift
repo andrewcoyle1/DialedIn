@@ -344,10 +344,3 @@ struct TrainingView: View {
     )
     .previewEnvironment()
 }
-
-enum TrainingPresentationMode {
-    case program
-    case workouts
-    case exercises
-    case history
-}

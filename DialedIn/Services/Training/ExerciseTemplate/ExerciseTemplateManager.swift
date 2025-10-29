@@ -12,7 +12,6 @@ class ExerciseTemplateManager: BaseTemplateManager<ExerciseTemplateModel> {
     
     private let local: LocalExerciseTemplatePersistence
     private let remote: RemoteExerciseTemplateService
-    private var seedingManager: ExerciseSeedingManager?
     
     init(services: ExerciseTemplateServices) {
         self.local = services.local
@@ -38,16 +37,6 @@ class ExerciseTemplateManager: BaseTemplateManager<ExerciseTemplateModel> {
             bookmarkRemote: { try await services.remote.bookmarkExerciseTemplate(id: $0, isBookmarked: $1) },
             favouriteRemote: { try await services.remote.favouriteExerciseTemplate(id: $0, isFavourited: $1) }
         )
-        
-        // Initialize seeding manager if using production services
-        if let swiftPersistence = services.local as? SwiftExerciseTemplatePersistence {
-            self.seedingManager = ExerciseSeedingManager(modelContext: swiftPersistence.modelContext)
-            
-            // Seed exercises on initialization
-            Task {
-                try? await self.seedingManager?.seedExercisesIfNeeded()
-            }
-        }
     }
     
     // MARK: - Specialized Methods

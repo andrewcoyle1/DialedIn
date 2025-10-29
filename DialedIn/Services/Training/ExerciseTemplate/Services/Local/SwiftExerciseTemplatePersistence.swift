@@ -9,14 +9,17 @@ import SwiftData
 import SwiftUI
 import Foundation
 
+@MainActor
 struct SwiftExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
     private let container: ModelContainer
     
+    @MainActor
     private var mainContext: ModelContext {
         container.mainContext
     }
     
     /// Expose model context for seeding operations
+    @MainActor
     var modelContext: ModelContext {
         mainContext
     }
@@ -43,12 +46,14 @@ struct SwiftExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
         self.container = try! ModelContainer(for: ExerciseTemplateEntity.self, configurations: configuration)
     }
     
+    @MainActor
     func addLocalExerciseTemplate(exercise: ExerciseTemplateModel) throws {
         let entity = ExerciseTemplateEntity(from: exercise)
         mainContext.insert(entity)
         try mainContext.save()
     }
     
+    @MainActor
     func getLocalExerciseTemplate(id: String) throws -> ExerciseTemplateModel {
         let predicate = #Predicate<ExerciseTemplateEntity> { $0.exerciseTemplateId == id }
         let descriptor = FetchDescriptor<ExerciseTemplateEntity>(predicate: predicate)
@@ -59,6 +64,7 @@ struct SwiftExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
         return entity.toModel()
     }
     
+    @MainActor
     func getLocalExerciseTemplates(ids: [String]) throws -> [ExerciseTemplateModel] {
         let predicate = #Predicate<ExerciseTemplateEntity> { ids.contains($0.exerciseTemplateId) }
         let descriptor = FetchDescriptor<ExerciseTemplateEntity>(predicate: predicate, sortBy: [SortDescriptor(\.dateCreated, order: .reverse)])
@@ -66,6 +72,7 @@ struct SwiftExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
         return entities.map { $0.toModel() }
     }
     
+    @MainActor
     func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel] {
         let descriptor = FetchDescriptor<ExerciseTemplateEntity>(sortBy: [SortDescriptor(\.name, order: .forward)])
         
@@ -73,6 +80,7 @@ struct SwiftExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
         return entities.map { $0.toModel() }
     }
     
+    @MainActor
     func getSystemExerciseTemplates() throws -> [ExerciseTemplateModel] {
         let predicate = #Predicate<ExerciseTemplateEntity> { $0.isSystemExercise == true }
         let descriptor = FetchDescriptor<ExerciseTemplateEntity>(predicate: predicate, sortBy: [SortDescriptor(\.name, order: .forward)])
@@ -81,6 +89,7 @@ struct SwiftExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
         return entities.map { $0.toModel() }
     }
     
+    @MainActor
     func bookmarkExerciseTemplate(id: String, isBookmarked: Bool) throws {
         let predicate = #Predicate<ExerciseTemplateEntity> { $0.exerciseTemplateId == id }
         let descriptor = FetchDescriptor<ExerciseTemplateEntity>(predicate: predicate)
@@ -92,6 +101,7 @@ struct SwiftExerciseTemplatePersistence: LocalExerciseTemplatePersistence {
         try mainContext.save()
     }
     
+    @MainActor
     func favouriteExerciseTemplate(id: String, isFavourited: Bool) throws {
         let predicate = #Predicate<ExerciseTemplateEntity> { $0.exerciseTemplateId == id }
         let descriptor = FetchDescriptor<ExerciseTemplateEntity>(predicate: predicate)

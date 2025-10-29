@@ -8,16 +8,19 @@
 import SwiftData
 import SwiftUI
 
+@MainActor
 struct SwiftWorkoutTemplatePersistence: LocalWorkoutTemplatePersistence {
     private let container: ModelContainer
     private let storeURL: URL
     let exerciseManager: ExerciseTemplateManager
     
+    @MainActor
     private var mainContext: ModelContext {
         container.mainContext
     }
     
     /// Expose model context for seeding operations
+    @MainActor
     var modelContext: ModelContext {
         mainContext
     }
@@ -48,12 +51,14 @@ struct SwiftWorkoutTemplatePersistence: LocalWorkoutTemplatePersistence {
         self.container = try! ModelContainer(for: WorkoutTemplateEntity.self, configurations: configuration)
     }
     
+    @MainActor
     func addLocalWorkoutTemplate(workout: WorkoutTemplateModel) throws {
         let entity = WorkoutTemplateEntity(from: workout)
         mainContext.insert(entity)
         try mainContext.save()
     }
     
+    @MainActor
     func getLocalWorkoutTemplate(id: String) throws -> WorkoutTemplateModel {
         let predicate = #Predicate<WorkoutTemplateEntity> { $0.workoutTemplateId == id }
         let descriptor = FetchDescriptor<WorkoutTemplateEntity>(predicate: predicate)
@@ -64,6 +69,7 @@ struct SwiftWorkoutTemplatePersistence: LocalWorkoutTemplatePersistence {
         return entity.toModel(exerciseManager: exerciseManager)
     }
     
+    @MainActor
     func getLocalWorkoutTemplates(ids: [String]) throws -> [WorkoutTemplateModel] {
         let predicate = #Predicate<WorkoutTemplateEntity> { ids.contains($0.workoutTemplateId) }
         let descriptor = FetchDescriptor<WorkoutTemplateEntity>(predicate: predicate, sortBy: [SortDescriptor(\.dateCreated, order: .reverse)])
@@ -71,6 +77,7 @@ struct SwiftWorkoutTemplatePersistence: LocalWorkoutTemplatePersistence {
         return entities.map { $0.toModel(exerciseManager: exerciseManager) }
     }
     
+    @MainActor
     func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel] {
         let descriptor = FetchDescriptor<WorkoutTemplateEntity>(sortBy: [SortDescriptor(\.name, order: .forward)])
         
@@ -78,6 +85,7 @@ struct SwiftWorkoutTemplatePersistence: LocalWorkoutTemplatePersistence {
         return entities.map { $0.toModel(exerciseManager: exerciseManager) }
     }
     
+    @MainActor
     func bookmarkWorkoutTemplate(id: String, isBookmarked: Bool) throws {
         let predicate = #Predicate<WorkoutTemplateEntity> { $0.workoutTemplateId == id }
         let descriptor = FetchDescriptor<WorkoutTemplateEntity>(predicate: predicate)
@@ -89,6 +97,7 @@ struct SwiftWorkoutTemplatePersistence: LocalWorkoutTemplatePersistence {
         try mainContext.save()
     }
     
+    @MainActor
     func favouriteWorkoutTemplate(id: String, isFavourited: Bool) throws {
         let predicate = #Predicate<WorkoutTemplateEntity> { $0.workoutTemplateId == id }
         let descriptor = FetchDescriptor<WorkoutTemplateEntity>(predicate: predicate)
@@ -100,6 +109,7 @@ struct SwiftWorkoutTemplatePersistence: LocalWorkoutTemplatePersistence {
         try mainContext.save()
     }
     
+    @MainActor
     func deleteLocalWorkoutTemplate(id: String) throws {
         let predicate = #Predicate<WorkoutTemplateEntity> { $0.workoutTemplateId == id }
         let descriptor = FetchDescriptor<WorkoutTemplateEntity>(predicate: predicate)

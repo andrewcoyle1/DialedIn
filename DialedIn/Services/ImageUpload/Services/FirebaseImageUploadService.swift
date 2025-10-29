@@ -7,10 +7,6 @@
 @preconcurrency import FirebaseStorage
 import SwiftUI
 
-protocol ImageUploadService {
-    func uploadImage(image: PlatformImage, path: String) async throws -> URL
-}
-
 struct FirebaseImageUploadService: ImageUploadService {
 
     func uploadImage(image: PlatformImage, path: String) async throws -> URL {

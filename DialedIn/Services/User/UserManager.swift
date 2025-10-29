@@ -104,7 +104,7 @@ class UserManager {
     // MARK: - User
     
     func logIn(auth: UserAuthInfo, image: PlatformImage? = nil) async throws {
-        let creationVersion = auth.isNewUser ? SwiftfulUtilities.Utilities.appVersion : nil
+        let creationVersion = auth.isNewUser ? Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String : nil
         var user = UserModel(auth: auth, creationVersion: creationVersion)
         // Only initialize onboarding step for brand new users; otherwise preserve existing remote value
         if auth.isNewUser {
@@ -397,58 +397,77 @@ class UserManager {
     
     // MARK: - User deletion
     
-    func deleteCurrentUser() async throws {
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
+    func deleteCurrentUser(
+        workoutSessionManager: WorkoutSessionManager? = nil,
+        exerciseHistoryManager: ExerciseHistoryManager? = nil,
+        exerciseTemplateManager: ExerciseTemplateManager? = nil,
+        workoutTemplateManager: WorkoutTemplateManager? = nil,
+        ingredientTemplateManager: IngredientTemplateManager? = nil,
+        recipeTemplateManager: RecipeTemplateManager? = nil,
+        imageUploadManager: ImageUploadManager? = nil
+    ) async throws {
         logManager?.trackEvent(event: Event.deleteAccountStart)
         
         let uid = try currentUserId()
 
         // 1) Delete/anonymize LOCAL data first (best-effort)
-        do {
-            let workoutSessions = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
-            try workoutSessions.deleteAllLocalWorkoutSessionsForAuthor(authorId: uid)
-        } catch { /* ignore local errors */ }
-        do {
-            let exerciseHistory = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
-            try exerciseHistory.deleteAllLocalExerciseHistoryForAuthor(authorId: uid)
-        } catch { /* ignore local errors */ }
+        if let workoutSessions = workoutSessionManager {
+            do {
+                try workoutSessions.deleteAllLocalWorkoutSessionsForAuthor(authorId: uid)
+            } catch { /* ignore local errors */ }
+        }
+        if let exerciseHistory = exerciseHistoryManager {
+            do {
+                try exerciseHistory.deleteAllLocalExerciseHistoryForAuthor(authorId: uid)
+            } catch { /* ignore local errors */ }
+        }
 
         // 2) Delete/anonymize REMOTE data in parallel while auth is still valid
         try await withThrowingTaskGroup(of: Void.self) { group in
             // Profile image in Storage (best-effort; ignore if missing)
-            let exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
-            group.addTask {
-                do {
-                    try await FirebaseImageUploadService().deleteImage(path: "users/\(uid)/profile.jpg")
-                } catch {
-                    /* ignore storage deletion errors */
+            if let imageService = imageUploadManager {
+                let imagePath = "users/\(uid)/profile.jpg"
+                group.addTask { @Sendable in
+                    do {
+                        try await imageService.deleteImage(path: imagePath)
+                    } catch {
+                        /* ignore storage deletion errors */
+                    }
                 }
             }
             // Workout Sessions
-            group.addTask {
-                let manager = await WorkoutSessionManager(services: ProductionWorkoutSessionServices())
-                try await manager.deleteAllWorkoutSessionsForAuthor(authorId: uid)
+            if let manager = workoutSessionManager {
+                group.addTask {
+                    try await manager.deleteAllWorkoutSessionsForAuthor(authorId: uid)
+                }
             }
             // Exercise History
-            group.addTask {
-                let manager = await ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
-                try await manager.deleteAllExerciseHistoryForAuthor(authorId: uid)
+            if let manager = exerciseHistoryManager {
+                group.addTask {
+                    try await manager.deleteAllExerciseHistoryForAuthor(authorId: uid)
+                }
             }
             // Templates: remove author_id to anonymize authored content
-            group.addTask {
-                let manager = await ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
-                try await manager.removeAuthorIdFromAllExerciseTemplates(id: uid)
+            if let manager = exerciseTemplateManager {
+                group.addTask {
+                    try await manager.removeAuthorIdFromAllExerciseTemplates(id: uid)
+                }
             }
-            group.addTask {
-                let manager = await WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
-                try await manager.removeAuthorIdFromAllWorkoutTemplates(id: uid)
+            if let manager = workoutTemplateManager {
+                group.addTask {
+                    try await manager.removeAuthorIdFromAllWorkoutTemplates(id: uid)
+                }
             }
-            group.addTask {
-                let manager = await IngredientTemplateManager(services: ProductionIngredientTemplateServices())
-                try await manager.removeAuthorIdFromAllIngredientTemplates(id: uid)
+            if let manager = ingredientTemplateManager {
+                group.addTask {
+                    try await manager.removeAuthorIdFromAllIngredientTemplates(id: uid)
+                }
             }
-            group.addTask {
-                let manager = await RecipeTemplateManager(services: ProductionRecipeTemplateServices())
-                try await manager.removeAuthorIdFromAllRecipeTemplates(id: uid)
+            if let manager = recipeTemplateManager {
+                group.addTask {
+                    try await manager.removeAuthorIdFromAllRecipeTemplates(id: uid)
+                }
             }
             try await group.waitForAll()
         }

@@ -12,7 +12,6 @@ class WorkoutTemplateManager: BaseTemplateManager<WorkoutTemplateModel>, Workout
     
     private let local: LocalWorkoutTemplatePersistence
     private let remote: RemoteWorkoutTemplateService
-    private var seedingManager: WorkoutSeedingManager?
     private let exerciseManager: ExerciseTemplateManager
     
     init(services: WorkoutTemplateServices, exerciseManager: ExerciseTemplateManager) {
@@ -39,19 +38,6 @@ class WorkoutTemplateManager: BaseTemplateManager<WorkoutTemplateModel>, Workout
             bookmarkRemote: { try await services.remote.bookmarkWorkoutTemplate(id: $0, isBookmarked: $1) },
             favouriteRemote: { try await services.remote.favouriteWorkoutTemplate(id: $0, isFavourited: $1) }
         )
-        
-        // Initialize seeding manager if using production services
-        if let swiftPersistence = services.local as? SwiftWorkoutTemplatePersistence {
-            self.seedingManager = WorkoutSeedingManager(
-                modelContext: swiftPersistence.modelContext,
-                exerciseManager: exerciseManager
-            )
-            
-            // Seed workouts on initialization
-            Task {
-                try? await self.seedingManager?.seedWorkoutsIfNeeded()
-            }
-        }
     }
     
     // MARK: - Override for special get behavior

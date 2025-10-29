@@ -41,6 +41,7 @@ struct CoreInteractor {
     private let hkWorkoutManager: HKWorkoutManager
     private let liveActivityManager: LiveActivityManager
 #endif
+    private let imageUploadManager: ImageUploadManager
     
     init(
         container: DependencyContainer
@@ -72,6 +73,7 @@ struct CoreInteractor {
         self.hkWorkoutManager = container.resolve(HKWorkoutManager.self)!
         self.liveActivityManager = container.resolve(LiveActivityManager.self)!
 #endif
+        self.imageUploadManager = container.resolve(ImageUploadManager.self)!
     }
     
     // MARK: AuthManager
@@ -266,7 +268,15 @@ struct CoreInteractor {
     // User deletion
     
     func deleteCurrentUser() async throws {
-        try await userManager.deleteCurrentUser()
+        try await userManager.deleteCurrentUser(
+            workoutSessionManager: workoutSessionManager,
+            exerciseHistoryManager: exerciseHistoryManager,
+            exerciseTemplateManager: exerciseTemplateManager,
+            workoutTemplateManager: workoutTemplateManager,
+            ingredientTemplateManager: ingredientTemplateManager,
+            recipeTemplateManager: recipeTemplateManager,
+            imageUploadManager: imageUploadManager
+        )
     }
     
     // Template Management

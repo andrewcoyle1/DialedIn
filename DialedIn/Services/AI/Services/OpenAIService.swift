@@ -59,28 +59,9 @@ struct OpenAIService: AIService {
     }
 }
 
-struct AIChatModel: Codable {
-    let role: AIChatRole
-    let message: String
-    
-    init(role: AIChatRole, content: String) {
-        self.role = role
-        self.message = content
-    }
-    
-    enum CodingKeys: String, CodingKey {
-        case role
-        case message
-    }
-    
-    var eventParameters: [String: Any] {
-        let dict: [String: Any?] = [
-            "aiChat_\(CodingKeys.role.rawValue)": role,
-            "aiChat_\(CodingKeys.message.rawValue)": message
-        ]
-        return dict.compactMapValues({ $0 })
-    }
-    
+// MARK: - OpenAI-Specific Extensions
+
+extension AIChatModel {
     init?(chat: ChatResult.Choice.ChatCompletionMessage) {
         self.role = AIChatRole(role: chat.role)
         
@@ -105,9 +86,7 @@ struct AIChatModel: Codable {
     }
 }
 
-enum AIChatRole: String, Codable {
-    case system, user, assistant, tool
-    
+extension AIChatRole {
     init(role: ChatQuery.ChatCompletionMessageParam.Role) {
         switch role {
         case .system:

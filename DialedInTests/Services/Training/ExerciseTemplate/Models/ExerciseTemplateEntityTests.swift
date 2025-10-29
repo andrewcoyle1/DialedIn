@@ -122,7 +122,7 @@ struct ExerciseTemplateEntityTests {
         )
         
         let entity = ExerciseTemplateEntity(from: originalModel)
-        let convertedModel = entity.toModel()
+        let convertedModel = await entity.toModel()
         
         #expect(convertedModel.exerciseId == randomExerciseId)
         #expect(convertedModel.authorId == randomAuthorId)
@@ -166,7 +166,7 @@ struct ExerciseTemplateEntityTests {
         
         // Convert to entity and back to model
         let entity = ExerciseTemplateEntity(from: originalModel)
-        let convertedModel = entity.toModel()
+        let convertedModel = await entity.toModel()
         
         // Should be identical
         #expect(convertedModel.exerciseId == originalModel.exerciseId)
@@ -209,7 +209,7 @@ struct ExerciseTemplateEntityTests {
         )
         
         let entity = ExerciseTemplateEntity(from: originalModel)
-        let convertedModel = entity.toModel()
+        let convertedModel = await entity.toModel()
         
         #expect(convertedModel.exerciseId == originalModel.exerciseId)
         #expect(convertedModel.authorId == originalModel.authorId)
@@ -238,7 +238,7 @@ struct ExerciseTemplateEntityTests {
             )
             
             let entity = ExerciseTemplateEntity(from: model)
-            let convertedModel = entity.toModel()
+            let convertedModel = await entity.toModel()
             
             #expect(entity.type == exerciseType)
             #expect(convertedModel.type == exerciseType)
@@ -265,7 +265,7 @@ struct ExerciseTemplateEntityTests {
             )
             
             let entity = ExerciseTemplateEntity(from: model)
-            let convertedModel = entity.toModel()
+            let convertedModel = await entity.toModel()
             
             #expect(entity.muscleGroups == muscleGroups)
             #expect(convertedModel.muscleGroups == muscleGroups)
@@ -291,7 +291,7 @@ struct ExerciseTemplateEntityTests {
         )
         
         let entity = ExerciseTemplateEntity(from: model)
-        let convertedModel = entity.toModel()
+        let convertedModel = await entity.toModel()
         
         #expect(entity.instructions == complexInstructions)
         #expect(convertedModel.instructions == complexInstructions)
@@ -302,7 +302,7 @@ struct ExerciseTemplateEntityTests {
         let mock = ExerciseTemplateModel.mock
         
         let entity = ExerciseTemplateEntity(from: mock)
-        let convertedModel = entity.toModel()
+        let convertedModel = await entity.toModel()
         
         #expect(entity.name == "Bench Press")
         #expect(entity.type == .barbell)
@@ -316,7 +316,7 @@ struct ExerciseTemplateEntityTests {
         
         for mock in mocks {
             let entity = ExerciseTemplateEntity(from: mock)
-            let convertedModel = entity.toModel()
+            let convertedModel = await entity.toModel()
             
             #expect(convertedModel.exerciseId == mock.exerciseId)
             #expect(convertedModel.name == mock.name)

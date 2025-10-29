@@ -6,6 +6,7 @@
 //
 import SwiftUI
 
+@MainActor
 struct FileManagerUserPersistence: LocalUserPersistence {
     private let userDocumentKey = "current_user"
     

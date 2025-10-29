@@ -162,20 +162,3 @@ class GoalManager {
         currentGoal = goal
     }
 }
-
-// MARK: - Service Implementations
-
-struct MockGoalServices: GoalServices {
-    let remote: RemoteGoalService
-    let local: LocalGoalService
-    
-    init(delay: Double = 0, showError: Bool = false) {
-        self.remote = MockRemoteGoalService(delay: delay, showError: showError)
-        self.local = MockLocalGoalService(delay: delay, showError: showError)
-    }
-}
-
-struct ProductionGoalServices: GoalServices {
-    let remote: RemoteGoalService = ProductionRemoteGoalService()
-    let local: LocalGoalService = ProductionLocalGoalService()
-}

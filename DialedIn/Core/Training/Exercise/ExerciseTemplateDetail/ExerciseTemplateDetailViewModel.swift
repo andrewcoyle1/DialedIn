@@ -169,3 +169,10 @@ class ExerciseTemplateDetailViewModel {
         }
     }
 }
+
+enum CustomSection: Hashable {
+    case description
+    case history
+    case charts
+    case records
+}

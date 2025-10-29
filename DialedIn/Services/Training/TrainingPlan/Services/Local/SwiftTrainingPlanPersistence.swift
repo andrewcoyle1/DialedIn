@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+@MainActor
 struct SwiftTrainingPlanPersistence: LocalTrainingPlanPersistence {
     private let container: ModelContainer
     private let storeURL: URL
@@ -17,6 +18,7 @@ struct SwiftTrainingPlanPersistence: LocalTrainingPlanPersistence {
     private let legacyPlansKey = "local_training_plans"
     private let migrationCompleteKey = "training_plans_migrated_to_swiftdata"
     
+    @MainActor
     private var mainContext: ModelContext {
         container.mainContext
     }

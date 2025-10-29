@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 struct SwiftPurchasePersistence: LocalPurchasePersistence {
 
     func markAsPurchased() throws {

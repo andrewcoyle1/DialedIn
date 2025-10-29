@@ -162,8 +162,3 @@ struct LogWeightView: View {
     LogWeightView(viewModel: LogWeightViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
         .previewEnvironment()
 }
-
-enum UnitOfWeight {
-    case kilograms
-    case pounds
-}
