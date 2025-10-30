@@ -10,7 +10,8 @@ import SwiftUI
 struct OnboardingActivityView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingActivityViewModel
-    
+    @Binding var path: [OnboardingPathOption]
+
     enum NavigationDestination {
         case cardioFitness(gender: Gender, dateOfBirth: Date, height: Double, weight: Double, exerciseFrequency: ExerciseFrequency, activityLevel: ActivityLevel, lengthUnitPreference: LengthUnitPreference, weightUnitPreference: WeightUnitPreference)
     }
@@ -62,24 +63,8 @@ struct OnboardingActivityView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                if let activityLevel = viewModel.selectedActivityLevel {
-                    OnboardingCardioFitnessView(
-                        viewModel: OnboardingCardioFitnessViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            gender: viewModel.gender,
-                            dateOfBirth: viewModel.dateOfBirth,
-                            height: viewModel.height,
-                            weight: viewModel.weight,
-                            exerciseFrequency: viewModel.exerciseFrequency,
-                            activityLevel: activityLevel,
-                            lengthUnitPreference: viewModel.lengthUnitPreference,
-                            weightUnitPreference: viewModel.weightUnitPreference
-                        )
-                    )
-                }
+            Button {
+                viewModel.navigateToCardioFitness(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -114,6 +99,7 @@ struct OnboardingActivityView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingActivityView(
             viewModel: OnboardingActivityViewModel(
@@ -127,7 +113,7 @@ struct OnboardingActivityView: View {
                 exerciseFrequency: .threeToFour,
                 lengthUnitPreference: .centimeters,
                 weightUnitPreference: .kilograms
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

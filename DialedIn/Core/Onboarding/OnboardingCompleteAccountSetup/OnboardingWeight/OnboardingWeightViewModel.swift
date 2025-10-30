@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingWeightInteractor {
     
@@ -88,5 +88,9 @@ class OnboardingWeightViewModel {
         self.dateOfBirth = dateOfBirth
         self.height = height
         self.lengthUnitPreference = lengthUnitPreference
+    }
+    
+    func navigateToExerciseFrequency(path: Binding<[OnboardingPathOption]>) {
+        path.wrappedValue.append(.exerciseFrequency(gender: gender, dateOfBirth: dateOfBirth, height: height, weight: weight, lengthUnitPreference: lengthUnitPreference, weightUnitPreference: preference))
     }
 }

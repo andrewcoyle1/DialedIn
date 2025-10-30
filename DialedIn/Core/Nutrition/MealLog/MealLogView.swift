@@ -163,7 +163,7 @@ struct MealLogView: View {
                     }
                 } else {
                     ForEach(mealsForType) { meal in
-                        NavigationLink(value: NavigationPathOption.mealDetail(meal: meal)) {
+                        NavigationLink(value: TabBarPathOption.mealDetail(meal: meal)) {
                             MealLogRowView(meal: meal)
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {

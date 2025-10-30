@@ -240,7 +240,12 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                     restBeforeSecForSet: { _ in nil },
                     onRestBeforeChange: { _, _ in },
                     onRequestRestPicker: { _, _ in },
-                    getLatestExercise: { exercise }
+                    getLatestExercise: { exercise },
+                    getLatestExerciseIndex: { 0 },
+                    getLatestIsCurrentExercise: { true },
+                    getLatestWeightUnit: { .kilograms },
+                    getLatestDistanceUnit: { .meters },
+                    getLatestPreviousSets: { [:] }
                 ),
                 isExpanded: $isExpandedCurrent
             )
@@ -267,7 +272,12 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                     restBeforeSecForSet: { _ in nil },
                     onRestBeforeChange: { _, _ in },
                     onRequestRestPicker: { _, _ in },
-                    getLatestExercise: { exercise }
+                    getLatestExercise: { exercise },
+                    getLatestExerciseIndex: { 1 },
+                    getLatestIsCurrentExercise: { false },
+                    getLatestWeightUnit: { .kilograms },
+                    getLatestDistanceUnit: { .meters },
+                    getLatestPreviousSets: { [:] }
                 ),
                 isExpanded: $isExpandedOther
             )

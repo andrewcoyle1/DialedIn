@@ -10,7 +10,8 @@ import SwiftUI
 struct OnboardingPreferredDietView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingPreferredDietViewModel
-    
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             ForEach(PreferredDiet.allCases) { diet in
@@ -63,17 +64,8 @@ struct OnboardingPreferredDietView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                if let diet = viewModel.selectedDiet {
-                    OnboardingCalorieFloorView(
-                        viewModel: OnboardingCalorieFloorViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            preferredDiet: diet
-                        )
-                    )
-                }
+            Button {
+                viewModel.navigateToCalorieFloor(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -84,13 +76,14 @@ struct OnboardingPreferredDietView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingPreferredDietView(
             viewModel: OnboardingPreferredDietViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

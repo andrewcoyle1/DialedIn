@@ -11,12 +11,12 @@ import PhotosUI
 struct OnboardingNamePhotoView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingNamePhotoViewModel
-    
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             imageSection
             nameSection
-            descriptionSection
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Create Profile")
@@ -46,95 +46,74 @@ struct OnboardingNamePhotoView: View {
             ProgressView()
                 .tint(.white)
         }
-        .navigationDestination(isPresented: $viewModel.navigateToGender) {
-            OnboardingGenderView(
-                viewModel: OnboardingGenderViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
-        }
     }
     
     private var imageSection: some View {
-        Section {
-            HStack {
-                Spacer()
-                Button {
-                    viewModel.isImagePickerPresented = true
-                } label: {
-                    ZStack {
-                        Rectangle()
-                            .fill(Color.secondary.opacity(0.001))
-                        Group {
-                            if let data = viewModel.selectedImageData {
-                                #if canImport(UIKit)
-                                if let uiImage = UIImage(data: data) {
-                                    Image(uiImage: uiImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                }
-                                #elseif canImport(AppKit)
-                                if let nsImage = NSImage(data: data) {
-                                    Image(nsImage: nsImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                }
-                                #endif
-                            } else if let user = viewModel.currentUser,
-                                      let cachedImage = ProfileImageCache.shared.getCachedImage(userId: user.userId) {
-                                // Show cached image if available
-                                #if canImport(UIKit)
-                                Image(uiImage: cachedImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                #elseif canImport(AppKit)
-                                Image(nsImage: cachedImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                #endif
-                            } else {
-                                VStack(spacing: 8) {
-                                    Image(systemName: "person.crop.circle")
-                                        .font(.system(size: 80))
-                                        .foregroundStyle(.accent)
-                                    Text("Add Photo (Optional)")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
+        Button {
+            viewModel.isImagePickerPresented = true
+        } label: {
+            ZStack {
+                Rectangle()
+                    .fill(Color.secondary.opacity(0.001))
+                Group {
+                    if let data = viewModel.selectedImageData {
+                        #if canImport(UIKit)
+                        if let uiImage = UIImage(data: data) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                        }
+                        #elseif canImport(AppKit)
+                        if let nsImage = NSImage(data: data) {
+                            Image(nsImage: nsImage)
+                                .resizable()
+                                .scaledToFill()
+                        }
+                        #endif
+                    } else if let user = viewModel.currentUser,
+                              let cachedImage = ProfileImageCache.shared.getCachedImage(userId: user.userId) {
+                        // Show cached image if available
+                        #if canImport(UIKit)
+                        Image(uiImage: cachedImage)
+                            .resizable()
+                            .scaledToFill()
+                        #elseif canImport(AppKit)
+                        Image(nsImage: cachedImage)
+                            .resizable()
+                            .scaledToFill()
+                        #endif
+                    } else {
+                        VStack(spacing: 8) {
+                            Image(systemName: "person.crop.circle")
+                                .font(.system(size: 80))
+                                .foregroundStyle(.accent)
+                            Text("Add Photo (Optional)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
-                    .frame(width: 120, height: 120)
-                    .cornerRadius(60)
-                    .clipped()
                 }
-                .photosPicker(isPresented: $viewModel.isImagePickerPresented, selection: $viewModel.selectedPhotoItem, matching: .images)
-                Spacer()
             }
+            .frame(maxWidth: .infinity)
+            .frame(height: 120)
         }
+        .photosPicker(isPresented: $viewModel.isImagePickerPresented, selection: $viewModel.selectedPhotoItem, matching: .images)
         .removeListRowFormatting()
     }
     
     private var nameSection: some View {
-        Section("Your Name") {
+        Section {
             TextField("First name", text: $viewModel.firstName)
                 .textContentType(.givenName)
                 .autocapitalization(.words)
             TextField("Last name (optional)", text: $viewModel.lastName)
                 .textContentType(.familyName)
                 .autocapitalization(.words)
-        }
-    }
-    
-    private var descriptionSection: some View {
-        Section {
+        } header: {
+            Text("Your Name")
+        } footer: {
             Text("Help us personalize your experience by providing your name. You can also add a profile photo if you'd like.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
         }
-        .removeListRowFormatting()
     }
     
     @ToolbarContentBuilder
@@ -152,7 +131,7 @@ struct OnboardingNamePhotoView: View {
         ToolbarItem(placement: .bottomBar) {
             Button {
                 Task {
-                    await viewModel.saveAndContinue()
+                    await viewModel.saveAndContinue(path: $path)
                 }
             } label: {
                 Image(systemName: "chevron.right")
@@ -164,13 +143,14 @@ struct OnboardingNamePhotoView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingNamePhotoView(
             viewModel: OnboardingNamePhotoViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

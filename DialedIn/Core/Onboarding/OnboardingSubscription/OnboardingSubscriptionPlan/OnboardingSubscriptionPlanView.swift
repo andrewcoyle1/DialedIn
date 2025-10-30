@@ -10,7 +10,7 @@ import SwiftUI
 struct OnboardingSubscriptionPlanView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingSubscriptionPlanViewModel
-    
+    @Binding var path: [OnboardingPathOption]
     var body: some View {
         List {
             choosePlanSection
@@ -28,7 +28,7 @@ struct OnboardingSubscriptionPlanView: View {
                     interactor: CoreInteractor(
                         container: container
                     )
-                )
+                ), path: $path
             )
         }
         .showModal(showModal: $viewModel.isPurchasing, content: {
@@ -63,7 +63,7 @@ struct OnboardingSubscriptionPlanView: View {
         #endif
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onPurchase()
+                viewModel.onPurchase(path: $path)
             } label: {
                 Text("Restore Purchases")
             }
@@ -71,7 +71,7 @@ struct OnboardingSubscriptionPlanView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onPurchase()
+                viewModel.onPurchase(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -164,13 +164,14 @@ struct OnboardingSubscriptionPlanView: View {
 }
 
 #Preview("Functioning") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingSubscriptionPlanView(
             viewModel: OnboardingSubscriptionPlanViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

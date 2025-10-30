@@ -162,6 +162,12 @@ struct ProgramManagementView: View {
 }
 
 #Preview {
-    ProgramManagementView(viewModel: ProgramManagementViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    ProgramManagementView(
+        viewModel: ProgramManagementViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        )
+    )
+    .previewEnvironment()
 }

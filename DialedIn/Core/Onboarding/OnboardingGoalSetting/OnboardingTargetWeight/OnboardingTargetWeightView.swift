@@ -10,7 +10,8 @@ import SwiftUI
 struct OnboardingTargetWeightView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingTargetWeightViewModel
-    
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             if viewModel.didInitialize && viewModel.weightUnit == .kilograms {
@@ -54,17 +55,8 @@ struct OnboardingTargetWeightView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                OnboardingWeightRateView(
-                    viewModel: OnboardingWeightRateViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        objective: viewModel.objective,
-                        targetWeight: viewModel.targetWeight,
-                        isStandaloneMode: viewModel.isStandaloneMode
-                    )
-                )
+            Button {
+                viewModel.navigateToWeightRate(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -122,6 +114,7 @@ struct OnboardingTargetWeightView: View {
 }
 
 #Preview("Gain Weight") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingTargetWeightView(
             viewModel: OnboardingTargetWeightViewModel(
@@ -129,13 +122,14 @@ struct OnboardingTargetWeightView: View {
                     container: DevPreview.shared.container
                 ),
                 objective: .gainWeight
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()
 }
 
 #Preview("Lose Weight") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingTargetWeightView(
             viewModel: OnboardingTargetWeightViewModel(
@@ -143,7 +137,7 @@ struct OnboardingTargetWeightView: View {
                     container: DevPreview.shared.container
                 ),
                 objective: .loseWeight
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

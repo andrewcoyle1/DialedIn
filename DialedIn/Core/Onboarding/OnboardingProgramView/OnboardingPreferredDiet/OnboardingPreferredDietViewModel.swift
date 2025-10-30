@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingPreferredDietInteractor {
     
@@ -28,6 +28,12 @@ class OnboardingPreferredDietViewModel {
         interactor: OnboardingPreferredDietInteractor
     ) {
         self.interactor = interactor
+    }
+    
+    func navigateToCalorieFloor(path: Binding<[OnboardingPathOption]>) {
+        if let diet = selectedDiet {
+            path.wrappedValue.append(.calorieFloor(preferredDiet: diet))
+        }
     }
 }
 

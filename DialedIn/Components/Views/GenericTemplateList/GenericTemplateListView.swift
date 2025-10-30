@@ -71,7 +71,7 @@ struct GenericTemplateListView<Template: TemplateModel>: View {
                 }
             }
             .showCustomAlert(alert: $viewModel.showAlert)
-            .navigationDestinationForCoreModule(path: $viewModel.path)
+            .navDestinationForTabBarModule(path: $viewModel.path)
         }
     }
 }

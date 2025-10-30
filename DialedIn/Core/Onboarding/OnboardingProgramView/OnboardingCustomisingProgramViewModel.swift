@@ -33,6 +33,10 @@ class OnboardingCustomisingProgramViewModel {
         self.interactor = interactor
     }
     
+    func navigateToPreferredDiet(path: Binding<[OnboardingPathOption]>) {
+        path.wrappedValue.append(.preferredDiet)
+    }
+    
     func updateOnboardingStep() async {
         let target: OnboardingStep = .customiseProgram
         if let current = interactor.currentUser?.onboardingStep, current.orderIndex >= target.orderIndex {

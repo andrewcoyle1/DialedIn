@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingDateOfBirthView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingDateOfBirthViewModel
+    @Binding var path: [OnboardingPathOption]
 
     var body: some View {
         List {
@@ -22,27 +23,6 @@ struct OnboardingDateOfBirthView: View {
         .navigationTitle("Date of birth")
         .toolbar {
             toolbarContent
-        }
-        .navigationDestination(isPresented: Binding(
-            get: {
-                if case .height = viewModel.navigationDestination { return true }
-                return false
-            },
-            set: { if !$0 { viewModel.navigationDestination = nil } }
-        )) {
-            if case let .height(gender, dateOfBirth) = viewModel.navigationDestination {
-                OnboardingHeightView(
-                    viewModel: OnboardingHeightViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                    gender: gender,
-                    dateOfBirth: dateOfBirth
-                    )
-                )
-            } else {
-                EmptyView()
-            }
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
@@ -64,16 +44,8 @@ struct OnboardingDateOfBirthView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                OnboardingHeightView(
-                    viewModel: OnboardingHeightViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        gender: viewModel.gender,
-                        dateOfBirth: viewModel.dateOfBirth
-                    )
-                )
+            Button {
+                viewModel.navigateToOnboardingHeight(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -83,6 +55,7 @@ struct OnboardingDateOfBirthView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingDateOfBirthView(
             viewModel: OnboardingDateOfBirthViewModel(
@@ -90,7 +63,7 @@ struct OnboardingDateOfBirthView: View {
                     container: DevPreview.shared.container
                 ),
                 gender: .male
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

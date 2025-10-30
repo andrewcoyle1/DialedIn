@@ -48,7 +48,7 @@ struct UserModel: Codable, Equatable, Sendable {
     
     // Onboarding
     let didCompleteOnboarding: Bool?
-    let onboardingStep: OnboardingStep?
+    let onboardingStep: OnboardingStep
     
     // Exercise Templates
     let createdExerciseTemplateIds: [String]?
@@ -94,7 +94,7 @@ struct UserModel: Codable, Equatable, Sendable {
         creationVersion: String? = nil,
         lastSignInDate: Date? = nil,
         didCompleteOnboarding: Bool? = nil,
-        onboardingStep: OnboardingStep? = nil,
+        onboardingStep: OnboardingStep = .auth,
         createdExerciseTemplateIds: [String]? = nil,
         bookmarkedExerciseTemplateIds: [String]? = nil,
         favouritedExerciseTemplateIds: [String]? = nil,
@@ -218,7 +218,7 @@ struct UserModel: Codable, Equatable, Sendable {
             "user_\(CodingKeys.creationVersion.rawValue)": creationVersion,
             "user_\(CodingKeys.lastSignInDate.rawValue)": lastSignInDate,
             "user_\(CodingKeys.didCompleteOnboarding.rawValue)": didCompleteOnboarding,
-            "user_\(CodingKeys.onboardingStep.rawValue)": onboardingStep?.rawValue,
+            "user_\(CodingKeys.onboardingStep.rawValue)": onboardingStep.rawValue,
             "user_\(CodingKeys.profileImageUrl.rawValue)": profileImageUrl,
             "user_\(CodingKeys.createdExerciseTemplateIds.rawValue)": createdExerciseTemplateIds,
             "user_\(CodingKeys.bookmarkedExerciseTemplateIds.rawValue)": bookmarkedExerciseTemplateIds,
@@ -241,7 +241,7 @@ struct UserModel: Codable, Equatable, Sendable {
         mocks[0]
     }
     
-    static func mockWithStep(_ step: OnboardingStep?) -> Self {
+    static func mockWithStep(_ step: OnboardingStep) -> Self {
         let now = Date()
         return UserModel(
             userId: "mockUser",
@@ -453,6 +453,19 @@ enum OnboardingStep: String, Codable, Sendable {
     case customiseProgram
     case diet
     case complete
+    
+    var onboardingPathOption: OnboardingPathOption {
+        switch self {
+        case .auth: return .authOptions
+        case .subscription: return .subscriptionInfo
+        case .completeAccountSetup: return .completeAccount
+        case .healthDisclaimer: return .healthDisclaimer
+        case .goalSetting: return .goalSetting
+        case .customiseProgram: return .customiseProgram
+        case .diet: return .dietPlan
+        case .complete: return .dietPlan
+        }
+    }
 }
 
 extension OnboardingStep {

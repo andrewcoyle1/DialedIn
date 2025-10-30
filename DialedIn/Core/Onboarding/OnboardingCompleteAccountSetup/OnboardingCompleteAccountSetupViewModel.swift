@@ -47,6 +47,16 @@ class OnboardingCompleteAccountSetupViewModel {
         self.interactor = interactor
     }
     
+    func setup() async {
+        canRequestHealthDataAuthorisation = checkHealthDataAuthorisationStatus()
+        await updateOnboardingStep()
+    }
+    
+    func onContinuePressed(path: Binding<[OnboardingPathOption]>) {
+        
+        path.wrappedValue.append(.namePhoto)
+    }
+    
     func updateOnboardingStep() async {
         let target: OnboardingStep = .completeAccountSetup
         if let current = interactor.currentUser?.onboardingStep, current.orderIndex >= target.orderIndex {

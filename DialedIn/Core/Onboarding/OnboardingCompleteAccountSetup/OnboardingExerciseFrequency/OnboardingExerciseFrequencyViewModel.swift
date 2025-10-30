@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingExerciseFrequencyInteractor {
     
@@ -56,6 +56,12 @@ class OnboardingExerciseFrequencyViewModel {
         self.weight = weight
         self.lengthUnitPreference = lengthUnitPreference
         self.weightUnitPreference = weightUnitPreference
+    }
+    
+    func navigateToOnboardingActivity(path: Binding<[OnboardingPathOption]>) {
+        if let frequency = selectedFrequency {
+            path.wrappedValue.append(.activityLevel(gender: gender, dateOfBirth: dateOfBirth, height: height, weight: weight, exerciseFrequency: frequency, lengthUnitPreference: lengthUnitPreference, weightUnitPreference: weightUnitPreference))
+        }
     }
 }
 

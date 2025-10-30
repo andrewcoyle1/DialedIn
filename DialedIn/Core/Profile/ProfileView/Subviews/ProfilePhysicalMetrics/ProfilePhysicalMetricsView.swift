@@ -17,10 +17,7 @@ struct ProfilePhysicalMetricsView: View {
                 NavigationLink {
                     ProfilePhysicalStatsView(viewModel: ProfilePhysicalStatsViewModel(interactor: CoreInteractor(container: container)))
                 } label: {
-                    ProfileSectionCard(
-                        icon: "figure.walk",
-                        title: "Physical Metrics"
-                    ) {
+                    
                         VStack(spacing: 8) {
                             if let height = user.heightCentimeters {
                                 MetricRow(
@@ -65,8 +62,20 @@ struct ProfilePhysicalMetricsView: View {
                                 )
                             }
                         }
-                    }
+                    
                 }
+            }
+        } header: {
+            HStack(spacing: 8) {
+                Image(systemName: "figure.walk")
+                    .font(.title3)
+                    .foregroundStyle(.accent)
+                    .frame(width: 28)
+                
+                Text("Physical Metrics")
+                    .font(.headline)
+                
+                Spacer()
             }
         }
     }

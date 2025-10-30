@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingTargetWeightInteractor {
     var currentUser: UserModel? { get }
@@ -118,6 +118,10 @@ class OnboardingTargetWeightViewModel {
     func updateFromPounds() {
         targetWeight = Double(selectedPounds) / 2.20462
         selectedKilograms = Int(targetWeight.rounded())
+    }
+    
+    func navigateToWeightRate(path: Binding<[OnboardingPathOption]>) {
+        path.wrappedValue.append(.weightRate(objective: objective, targetWeight: targetWeight))
     }
     
     private func clamp(initial: Int, within range: ClosedRange<Int>) -> Int {

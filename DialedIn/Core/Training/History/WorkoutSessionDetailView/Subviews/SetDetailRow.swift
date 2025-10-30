@@ -68,20 +68,14 @@ struct SetDetailRow: View {
                 
                 if set.isWarmup {
                     Text("W")
-                        .font(.caption2)
+                        .font(.caption)
                         .fontWeight(.medium)
                         .foregroundStyle(.orange)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(.orange.opacity(0.2))
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .cornerRadius(4)
                 }
-                
-//                if set.completedAt != nil {
-//                    Image(systemName: "checkmark.circle.fill")
-//                        .font(.caption)
-//                        .foregroundStyle(.green)
-//                }
             }
         }
         .font(.subheadline)

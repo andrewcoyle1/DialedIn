@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingWeightRateInteractor {
     var currentUser: UserModel? { get }
@@ -76,6 +76,10 @@ class OnboardingWeightRateViewModel {
         self.objective = objective
         self.targetWeight = targetWeight
         self.isStandaloneMode = isStandaloneMode
+    }
+    
+    func navigateToGoalSummary(path: Binding<[OnboardingPathOption]>) {
+        path.wrappedValue.append(.goalSummary(objective: objective, targetWeight: targetWeight, weightRate: weightChangeRate))
     }
     
     var canContinue: Bool { weightChangeRate > 0 }

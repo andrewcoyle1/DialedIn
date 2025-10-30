@@ -60,7 +60,7 @@ class OnboardingHealthDisclaimerViewModel {
         showModal = false
     }
     
-    func onConfirmPressed() {
+    func onConfirmPressed(path: Binding<[OnboardingPathOption]>) {
         showModal = false
         isLoading = true
         let disclaimerVersion = "2025.10.05"
@@ -72,7 +72,7 @@ class OnboardingHealthDisclaimerViewModel {
                 try await interactor.updateHealthConsents(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: now)
                 interactor.trackEvent(event: Event.consentHealthConfirmSuccess(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: now))
                 isLoading = false
-                navigationDestination = .goalSetting
+                path.wrappedValue.append(.goalSetting)
             } catch {
                 interactor.trackEvent(event: Event.consentHealthConfirmFail(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, error: error))
                 isLoading = false

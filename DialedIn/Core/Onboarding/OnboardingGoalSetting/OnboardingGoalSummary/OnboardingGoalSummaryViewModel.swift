@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingGoalSummaryInteractor {
     var currentUser: UserModel? { get }
@@ -54,6 +54,10 @@ class OnboardingGoalSummaryViewModel {
         self.targetWeight = targetWeight
         self.weightRate = weightRate
         self.isStandaloneMode = isStandaloneMode
+    }
+    
+    func navigateToCustomisingProgram(path: Binding<[OnboardingPathOption]>) {
+        path.wrappedValue.append(.customiseProgram)
     }
     
     func uploadGoalSettings() async {

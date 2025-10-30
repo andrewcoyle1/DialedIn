@@ -35,7 +35,6 @@ class SignUpViewModel {
 
     var showAlert: AnyAppAlert?
     var currentAuthTask: Task<Void, Never>?
-    var navigationDestination: NavigationDestination?
 
     #if DEBUG || MOCK
     var showDebugView: Bool = false
@@ -47,7 +46,7 @@ class SignUpViewModel {
         self.interactor = interactor
     }
 
-    func onSignUpPressed() {
+    func onSignUpPressed(path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent race conditions
         currentAuthTask?.cancel()
         isLoadingAuth = true
@@ -62,7 +61,7 @@ class SignUpViewModel {
             do {
                 try await performAuthWithTimeout {
                     let auth = try await self.interactor.createUser(email: self.email, password: self.password)
-                    await self.handleOnAuthSuccess(user: auth)
+                    await self.handleOnAuthSuccess(user: auth, path: path)
                 }
 
                 interactor.trackEvent(event: Event.signUpSuccess)
@@ -71,7 +70,7 @@ class SignUpViewModel {
                 if !Task.isCancelled {
                     handleAuthError(error, operation: "sign up") {
                         Task { @MainActor in
-                            self.onSignUpPressed()
+                            self.onSignUpPressed(path: path)
                         }
                     }
                 }
@@ -79,7 +78,7 @@ class SignUpViewModel {
         }
     }
 
-    func handleOnAuthSuccess(user: UserAuthInfo) {
+    func handleOnAuthSuccess(user: UserAuthInfo, path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent conflicts
         currentAuthTask?.cancel()
 
@@ -99,19 +98,27 @@ class SignUpViewModel {
 
                 // Only navigate if task wasn't cancelled
                 if !Task.isCancelled {
-                    navigationDestination = .emailVerification
+                    path.wrappedValue.append(.emailVerification)
                 }
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
                     handleUserLoginError(error) {
                         Task { @MainActor in
-                            self.handleOnAuthSuccess(user: user)
+                            self.handleOnAuthSuccess(user: user, path: path)
                         }
                     }
                 }
             }
         }
+    }
+    
+    func cleanup() {
+        // Clean up any ongoing tasks and reset loading states
+        currentAuthTask?.cancel()
+        currentAuthTask = nil
+        isLoadingAuth = false
+        isLoadingUser = false
     }
 
     @discardableResult

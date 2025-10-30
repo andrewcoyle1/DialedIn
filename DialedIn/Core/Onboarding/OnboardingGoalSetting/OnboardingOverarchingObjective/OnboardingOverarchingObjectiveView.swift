@@ -10,7 +10,8 @@ import SwiftUI
 struct OnboardingOverarchingObjectiveView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingOverarchingObjectiveViewModel
-    
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             objectiveSection
@@ -76,32 +77,8 @@ struct OnboardingOverarchingObjectiveView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                if let objective = viewModel.selectedObjective, let weight = viewModel.userWeight {
-                    if objective != .maintain {
-                        OnboardingTargetWeightView(
-                            viewModel: OnboardingTargetWeightViewModel(
-                                interactor: CoreInteractor(
-                                    container: container
-                                ),
-                                objective: objective,
-                                isStandaloneMode: viewModel.isStandaloneMode
-                            )
-                        )
-                    } else {
-                        OnboardingGoalSummaryView(
-                            viewModel: OnboardingGoalSummaryViewModel(
-                                interactor: CoreInteractor(
-                                    container: container
-                                ),
-                                objective: objective,
-                                targetWeight: weight,
-                                weightRate: 0,
-                                isStandaloneMode: viewModel.isStandaloneMode
-                            )
-                        )
-                    }
-                }
+            Button {
+                viewModel.navigateToNextStep(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -112,6 +89,7 @@ struct OnboardingOverarchingObjectiveView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingOverarchingObjectiveView(
             viewModel: OnboardingOverarchingObjectiveViewModel(
@@ -119,7 +97,7 @@ struct OnboardingOverarchingObjectiveView: View {
                     container: DevPreview.shared.container
                 ),
                 isStandaloneMode: false
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

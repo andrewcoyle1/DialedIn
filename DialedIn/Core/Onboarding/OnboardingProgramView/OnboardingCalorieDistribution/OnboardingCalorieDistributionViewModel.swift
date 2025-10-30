@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingCalorieDistributionInteractor {
     
@@ -38,6 +38,12 @@ class OnboardingCalorieDistributionViewModel {
         self.preferredDiet = preferredDiet
         self.calorieFloor = calorieFloor
         self.trainingType = trainingType
+    }
+    
+    func navigateToProteinIntake(path: Binding<[OnboardingPathOption]>) {
+        if let calorieDistribution = selectedCalorieDistribution {
+            path.wrappedValue.append(.proteinIntake(preferredDiet: preferredDiet, calorieFloor: calorieFloor, trainingType: trainingType, calorieDistribution: calorieDistribution))
+        }
     }
 }
 

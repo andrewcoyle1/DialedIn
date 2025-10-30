@@ -91,7 +91,7 @@ class EmailVerificationViewModel {
         }
     }
 
-    func onDonePressed(onDismiss: @escaping @Sendable () -> Void = {}) {
+    func onDonePressed(path: Binding<[OnboardingPathOption]>, onDismiss: @escaping @Sendable () -> Void = {}) {
         // If user is not signed in, show recovery alert
         guard interactor.auth != nil else {
             self.showNotSignedInAlert(onDismiss: onDismiss)
@@ -113,7 +113,7 @@ class EmailVerificationViewModel {
                     return try await self.interactor.checkVerificationEmail()
                 }
                 interactor.trackEvent(event: Event.checkEmailVerificationSuccess(isVerified: isVerified))
-                handleDidCheckEmailVerification(isVerified: isVerified, onDismiss: onDismiss)
+                handleDidCheckEmailVerification(isVerified: isVerified, path: path, onDismiss: onDismiss)
             } catch {
                 if !Task.isCancelled {
                     interactor.trackEvent(event: Event.checkEmailVerificationFail(error: error))
@@ -127,7 +127,7 @@ class EmailVerificationViewModel {
                                     Button("Cancel") { }
                                     if errorInfo.isRetryable {
                                         Button("Try Again") {
-                                            self.onDonePressed(onDismiss: onDismiss)
+                                            self.onDonePressed(path: path, onDismiss: onDismiss)
                                         }
                                     }
                                 }
@@ -139,15 +139,17 @@ class EmailVerificationViewModel {
         }
     }
 
-    func handleDidCheckEmailVerification(isVerified: Bool, onDismiss: @escaping @Sendable () -> Void) {
+    func handleDidCheckEmailVerification(isVerified: Bool, path: Binding<[OnboardingPathOption]>, onDismiss: @escaping @Sendable () -> Void) {
         if isVerified && !Task.isCancelled {
             // Navigate based on user's current onboarding step
-            let step = interactor.currentUser?.onboardingStep
-            let destination = getNavigationDestination(for: step)
-            navigationDestination = destination
-            // Stop polling on success
-            currentPollingTask?.cancel()
-            currentPollingTask = nil
+            if let step = interactor.currentUser?.onboardingStep {
+                path.wrappedValue.append(step.onboardingPathOption)
+                let destination = getNavigationDestination(for: step)
+                navigationDestination = destination
+                // Stop polling on success
+                currentPollingTask?.cancel()
+                currentPollingTask = nil
+            }
         } else if !Task.isCancelled {
             // Show alert if not verified
             showAlert = AnyAppAlert(
@@ -165,7 +167,7 @@ class EmailVerificationViewModel {
                                 )
                             }
                             Button("Check Again") {
-                                self.onDonePressed(onDismiss: { onDismiss() })
+                                self.onDonePressed(path: path, onDismiss: { onDismiss() })
                             }
                             Button("Cancel") { }
                         }

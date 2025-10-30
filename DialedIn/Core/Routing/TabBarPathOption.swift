@@ -1,5 +1,5 @@
 //
-//  NavigationPathOption.swift
+//  TabBarPathOption.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 10/12/24.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum NavigationPathOption: Hashable, Sendable {
+enum TabBarPathOption: Hashable, Sendable {
     case exerciseTemplate(exerciseTemplate: ExerciseTemplateModel)
     case workoutTemplateList
     case workoutTemplateDetail(template: WorkoutTemplateModel)
@@ -16,36 +16,15 @@ enum NavigationPathOption: Hashable, Sendable {
     case workoutSessionDetail(session: WorkoutSessionModel)
     case mealDetail(meal: MealLogModel)
 }
-//
-// extension NavigationPathOption: Equatable {
-//    static func == (lhs: NavigationPathOption, rhs: NavigationPathOption) -> Bool {
-//        switch (lhs, rhs) {
-//        case let (.exerciseTemplate(a), .exerciseTemplate(b)):
-//            return a == b
-//        case (.workoutTemplateList, .workoutTemplateList):
-//            return true
-//        case let (.workoutTemplateDetail(a), .workoutTemplateDetail(b)):
-//            return a == b
-//        case let (.ingredientTemplateDetail(a), .ingredientTemplateDetail(b)):
-//            return a == b
-//        case let (.recipeTemplateDetail(a), .recipeTemplateDetail(b)):
-//            return a == b
-//        case let (.workoutSessionDetail(a), .workoutSessionDetail(b)):
-//            return a == b
-//        default:
-//            return false
-//        }
-//    }
-// }
 
-enum NavigationOptions: Equatable, Hashable, Identifiable {
+enum TabBarOption: Equatable, Hashable, Identifiable {
     case dashboard
     case nutrition
     case training
     case profile
     case search
     
-    static let mainPages: [NavigationOptions] = [.dashboard, .nutrition, .training, .profile]
+    static let mainPages: [TabBarOption] = [.dashboard, .nutrition, .training, .profile]
     var id: String {
         switch self {
         case .dashboard: return "Dashboard"

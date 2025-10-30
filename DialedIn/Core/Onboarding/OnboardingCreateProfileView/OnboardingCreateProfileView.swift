@@ -11,7 +11,8 @@ import PhotosUI
 struct OnboardingCreateProfileView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingCreateProfileViewModel
-    
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             imageSection
@@ -21,6 +22,7 @@ struct OnboardingCreateProfileView: View {
         .scrollIndicators(.hidden)
         .navigationTitle("Create a Profile")
         .navigationBarTitleDisplayMode(.large)
+        .screenAppearAnalytics(name: "OnboardingCreateProfile")
         #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
         #else
@@ -38,15 +40,6 @@ struct OnboardingCreateProfileView: View {
         }
         #endif
         .onAppear(perform: viewModel.prefillFromCurrentUser)
-        .navigationDestination(isPresented: $viewModel.navigateNext) {
-            OnboardingHealthDataView(
-                viewModel: OnboardingHealthDataViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
-        }
         .safeAreaInset(edge: .bottom) {
             buttonSection
         }
@@ -124,7 +117,7 @@ struct OnboardingCreateProfileView: View {
     private var buttonSection: some View {
         VStack(spacing: 12) {
             Button {
-                Task { await viewModel.saveProfile() }
+                Task { await viewModel.saveProfile(path: $path) }
             } label: {
                 ZStack {
                     Text(viewModel.isSaving ? "Saving..." : "Save Profile")
@@ -139,14 +132,8 @@ struct OnboardingCreateProfileView: View {
             .buttonStyle(.glassProminent)
             .disabled(viewModel.isSaving || !viewModel.canSave)
 
-            NavigationLink {
-                OnboardingCompletedView(
-                    viewModel: OnboardingCompletedViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    )
-                )
+            Button {
+                viewModel.markOnboardingComplete()
             } label: {
                 Text("Not now")
                     .frame(maxWidth: .infinity)
@@ -158,13 +145,14 @@ struct OnboardingCreateProfileView: View {
 }
 
 #Preview("Functioning") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingCreateProfileView(
             viewModel: OnboardingCreateProfileViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

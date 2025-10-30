@@ -16,7 +16,7 @@ struct NutritionView: View {
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: NutritionViewModel
-    @State private var path: [NavigationPathOption] = []
+    @State private var path: [TabBarPathOption] = []
     
     var body: some View {
         Group {
@@ -24,7 +24,7 @@ struct NutritionView: View {
                 NavigationStack(path: $path) {
                     contentView
                 }
-                .navigationDestinationForCoreModule(path: $path)
+                .navDestinationForTabBarModule(path: $path)
             } else {
                 contentView
             }

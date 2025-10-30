@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingExpenditureView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingExpenditureViewModel
+    @Binding var path: [OnboardingPathOption]
 
     var body: some View {
         List {
@@ -52,14 +53,8 @@ struct OnboardingExpenditureView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                OnboardingHealthDisclaimerView(
-                    viewModel: OnboardingHealthDisclaimerViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    )
-                )
+            Button {
+                viewModel.navigateToHealthDisclaimer(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -166,6 +161,7 @@ struct OnboardingExpenditureView: View {
 }
 
 #Preview("Functioning") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingExpenditureView(
             viewModel: OnboardingExpenditureViewModel(
@@ -181,7 +177,7 @@ struct OnboardingExpenditureView: View {
                 lengthUnitPreference: .centimeters,
                 weightUnitPreference: .kilograms,
                 selectedCardioFitness: .intermediate
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

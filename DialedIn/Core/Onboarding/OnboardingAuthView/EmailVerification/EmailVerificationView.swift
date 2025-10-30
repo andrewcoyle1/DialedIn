@@ -12,6 +12,7 @@ struct EmailVerificationView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: EmailVerificationViewModel
+    @Binding var path: [OnboardingPathOption]
 
     enum NavigationDestination {
         case subscription
@@ -48,7 +49,6 @@ struct EmailVerificationView: View {
         }
         .navigationTitle("Email Verification")
         .showCustomAlert(alert: $viewModel.showAlert)
-        // Destinations temporarily commented out to reduce type-checking load
         .showModal(showModal: Binding(
             get: { viewModel.isLoadingCheck || viewModel.isLoadingResend },
             set: { _ in }
@@ -91,7 +91,7 @@ struct EmailVerificationView: View {
                     }
                     .allowsHitTesting(!viewModel.isLoadingCheck && !viewModel.isLoadingResend)
                     .anyButton(.press) {
-                        viewModel.onDonePressed()
+                        viewModel.onDonePressed(path: $path)
                     }
                 Text("Resend Email")
                     .foregroundStyle(Color.secondary)
@@ -133,91 +133,98 @@ struct EmailVerificationView: View {
 // MARK: - Previews
 
 #Preview("Default") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         EmailVerificationView(
             viewModel: EmailVerificationViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()
 }
 
 #Preview("Initial Send - Success") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         EmailVerificationView(
             viewModel: EmailVerificationViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()
 }
 
 #Preview("Initial Send - Slow") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         EmailVerificationView(
             viewModel: EmailVerificationViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()
 }
 
 #Preview("Initial Send - Failure") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         EmailVerificationView(
             viewModel: EmailVerificationViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()
 }
 
 #Preview("Check - Not Verified") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         EmailVerificationView(
             viewModel: EmailVerificationViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()
 }
 
 #Preview("Check - Verified") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         EmailVerificationView(
             viewModel: EmailVerificationViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()
 }
 
 #Preview("No Current User - Error") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         EmailVerificationView(
             viewModel: EmailVerificationViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

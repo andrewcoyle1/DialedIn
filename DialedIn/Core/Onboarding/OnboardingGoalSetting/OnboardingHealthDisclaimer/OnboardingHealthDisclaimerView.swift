@@ -10,7 +10,8 @@ import SwiftUI
 struct OnboardingHealthDisclaimerView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingHealthDisclaimerViewModel
-        
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             disclaimerSection
@@ -34,21 +35,6 @@ struct OnboardingHealthDisclaimerView: View {
             toolbarContent
         }
         .showCustomAlert(alert: $viewModel.showAlert)
-        .navigationDestination(isPresented: Binding(
-            get: {
-                if case .goalSetting = viewModel.navigationDestination { return true }
-                return false
-            },
-            set: { if !$0 { viewModel.navigationDestination = nil } }
-        )) {
-            OnboardingGoalSettingView(
-                viewModel: OnboardingGoalSettingViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
-        }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
             DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
@@ -90,7 +76,7 @@ struct OnboardingHealthDisclaimerView: View {
             You understand DialedIn does not provide medical advice and is for educational use only. You can review these terms at any time in Settings.
             """,
             primaryButtonTitle: "I Agree & Continue",
-            primaryButtonAction: { viewModel.onConfirmPressed() },
+            primaryButtonAction: { viewModel.onConfirmPressed(path: $path) },
             secondaryButtonTitle: "Go Back",
             secondaryButtonAction: { viewModel.onCancelPressed() }
         )
@@ -124,13 +110,14 @@ struct OnboardingHealthDisclaimerView: View {
 }
 
 #Preview("Health Disclaimer") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingHealthDisclaimerView(
             viewModel: OnboardingHealthDisclaimerViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

@@ -22,10 +22,11 @@ struct WorkoutHistoryView: View {
                 listContents
             }
         }
-        .screenAppearAnalytics(name: "WorkoutHistoryView")
-        .scrollIndicators(.hidden)
         .navigationTitle("Workout Sessions")
         .navigationBarTitleDisplayMode(.large)
+        .screenAppearAnalytics(name: "WorkoutHistoryView")
+        .scrollIndicators(.hidden)
+        .showCustomAlert(alert: $viewModel.showAlert)
         .onAppear {
             viewModel.loadInitialSessions()
         }
@@ -35,7 +36,6 @@ struct WorkoutHistoryView: View {
         .refreshable {
             await viewModel.syncSessions()
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     private var loadingState: some View {

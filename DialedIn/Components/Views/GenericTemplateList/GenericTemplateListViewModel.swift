@@ -19,7 +19,7 @@ class GenericTemplateListViewModel<Template: TemplateModel> {
     
     private(set) var templates: [Template] = []
     private(set) var isLoading: Bool = false
-    var path: [NavigationPathOption] = []
+    var path: [TabBarPathOption] = []
     var showAlert: AnyAppAlert?
     
     init(
@@ -65,7 +65,7 @@ class GenericTemplateListViewModel<Template: TemplateModel> {
         templateIds != nil ? configuration.title : configuration.title
     }
     
-    func navigationDestination(for template: Template) -> NavigationPathOption {
+    func navigationDestination(for template: Template) -> TabBarPathOption {
         configuration.navigationDestination(template)
     }
 }

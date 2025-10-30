@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CustomProgramBuilderView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: CustomProgramBuilderViewModel
     
@@ -20,6 +21,7 @@ struct CustomProgramBuilderView: View {
         }
         .navigationTitle("Custom Program")
         .navigationBarTitleDisplayMode(.large)
+        .scrollIndicators(.hidden)
         .toolbar { toolbarContent }
         .sheet(isPresented: $viewModel.showingWorkoutPicker) {
             if let day = viewModel.editingDayOfWeek {
@@ -45,9 +47,43 @@ struct CustomProgramBuilderView: View {
                 }
             }
         }
+        .sheet(isPresented: $viewModel.showingCopyWeekPicker) {
+            CopyWeekPickerSheet(
+                availableWeeks: (1..<viewModel.selectedWeek).map { $0 },
+                onSelect: { sourceWeek in
+                    let success = viewModel.copySchedule(from: sourceWeek, to: viewModel.selectedWeek)
+                    viewModel.showingCopyWeekPicker = false
+                    if !success {
+                        viewModel.showAlert = AnyAppAlert(
+                            title: "Error",
+                            subtitle: "Failed to copy schedule. Please try again."
+                        )
+                    }
+                },
+                onCancel: {
+                    viewModel.showingCopyWeekPicker = false
+                }
+            )
+        }
         .sheet(item: $viewModel.startConfigTemplate) { template in
-            ProgramStartConfigView(viewModel: ProgramStartConfigViewModel(interactor: CoreInteractor(container: container)), template: template) { startDate, endDate, customName in
-                Task { await viewModel.startProgram(template: template, startDate: startDate, endDate: endDate, customName: customName, onDismiss: { dismiss() }) }
+            ProgramStartConfigView(
+                viewModel: ProgramStartConfigViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                ),
+                template: template
+            ) { startDate, endDate, customName in
+                Task {
+                    await viewModel.startProgram(
+                        template: template,
+                        startDate: startDate,
+                        endDate: endDate,
+                        customName: customName,
+                        onDismiss: {
+                            dismiss()
+                        })
+                }
             }
         }
         .onChange(of: viewModel.durationWeeks) { _, newValue in
@@ -62,26 +98,33 @@ struct CustomProgramBuilderView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
-            Button("Cancel") { dismiss() }
-        }
-        ToolbarItem(placement: .confirmationAction) {
-            Menu {
-                Button {
-                    Task { await viewModel.saveTemplate(onDismiss: { dismiss() }) }
-                } label: { Label("Save", systemImage: "square.and.arrow.down") }
-                
-                Button {
-                    guard let template = viewModel.buildTemplate() else { return }
-                    viewModel.startConfigTemplate = template
-                } label: { Label("Start…", systemImage: "play.circle.fill") }
-                    .disabled(!viewModel.canContinue)
-            } label: {
-                if viewModel.isSaving || viewModel.isStarting {
-                    ProgressView()
-                } else {
-                    Text("Actions")
-                }
+            Button("Cancel") {
+                dismiss()
             }
+        }
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                Task {
+                    await viewModel.saveTemplate(onDismiss: {
+                        dismiss()
+                    })
+                }
+            } label: {
+                Label("Save", systemImage: "square.and.arrow.down")
+            }
+            .disabled(!viewModel.canContinue)
+        }
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                guard let template = viewModel.buildTemplate() else { return }
+                viewModel.startConfigTemplate = template
+            } label: {
+                Label("Start…", systemImage: "play.fill")
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(!viewModel.canContinue)
         }
     }
     
@@ -100,11 +143,8 @@ struct CustomProgramBuilderView: View {
             }
             Picker("Difficulty", selection: $viewModel.difficulty) {
                 ForEach(DifficultyLevel.allCases, id: \.self) { level in
-                    HStack {
-                        Image(systemName: level.systemImage)
-                        Text(level.description)
-                    }
-                    .tag(level)
+                    Label(level.description, systemImage: level.systemImage)
+                        .tag(level)
                 }
             }
             .pickerStyle(.segmented)
@@ -112,103 +152,119 @@ struct CustomProgramBuilderView: View {
     }
     
     private var focusAreasSection: some View {
-        Section("Focus Areas") {
-            VStack(alignment: .leading, spacing: 12) {
-                WrappingChips(
-                    items: FocusArea.allCases,
-                    isSelected: { viewModel.selectedFocusAreas.contains($0) },
-                    toggle: { area in
-                        if viewModel.selectedFocusAreas.contains(area) {
-                            viewModel.selectedFocusAreas.remove(area)
-                        } else {
-                            viewModel.selectedFocusAreas.insert(area)
-                        }
-                    },
-                    label: { area in
-                        HStack(spacing: 6) {
-                            Image(systemName: area.systemImage)
-                            Text(area.description)
-                        }
+        Section {
+            WrappingChips(
+                items: FocusArea.allCases,
+                isSelected: { viewModel.selectedFocusAreas.contains($0) },
+                toggle: { area in
+                    if viewModel.selectedFocusAreas.contains(area) {
+                        viewModel.selectedFocusAreas.remove(area)
+                    } else {
+                        viewModel.selectedFocusAreas.insert(area)
                     }
-                )
-                .padding(.vertical, 4)
-                
-                if viewModel.selectedFocusAreas.isEmpty {
-                    Text("Choose one or more areas to emphasize")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                },
+                label: { area in
+                    HStack(spacing: 6) {
+                        Image(systemName: area.systemImage)
+                        Text(area.description)
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-            }
-            .padding(.vertical, 4)
+            )
+            .removeListRowFormatting()
+        } header: {
+            Text("Focus Areas")
+        } footer: {
+            Text("Choose one or more areas to emphasize")
         }
     }
     
     private var scheduleSection: some View {
-        Section("Schedule") {
-            VStack(alignment: .leading, spacing: 12) {
-                if viewModel.weeks.count > 1 {
-                    Picker("Week", selection: $viewModel.selectedWeek) {
-                        ForEach(1...viewModel.weeks.count, id: \.self) { week in
-                            Text("Week \(week)").tag(week)
-                        }
-                    }
-                    .pickerStyle(.segmented)
+        Section {
+            CarouselView(items: viewModel.weeks) { week in
+                weekSchedule(week: week)
+            } onSelectionChange: { selectedWeek in
+                if let selectedWeek = selectedWeek {
+                    viewModel.selectedWeek = selectedWeek.weekNumber
                 }
-                
-                let days: [(Int, String)] = [
-                    (1, "Sunday"), (2, "Monday"), (3, "Tuesday"), (4, "Wednesday"),
-                    (5, "Thursday"), (6, "Friday"), (7, "Saturday")
-                ]
-                
-                ForEach(days, id: \.0) { (day, label) in
-                    HStack {
-                        Text(label)
-                        Spacer()
-                        if let selection = viewModel.weeks[safe: viewModel.selectedWeek - 1]?.mappings[day] {
-                            Button {
-                                viewModel.editingDayOfWeek = day
-                                viewModel.showingWorkoutPicker = true
-                            } label: {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "dumbbell.fill")
-                                    Text(selection.name)
-                                }
-                            }
-                            .buttonStyle(.borderless)
-                        } else {
-                            Button {
-                                viewModel.editingDayOfWeek = day
-                                viewModel.showingWorkoutPicker = true
-                            } label: {
-                                Label("Select Workout", systemImage: "plus.circle")
-                                    .foregroundStyle(.blue)
-                            }
-                            .buttonStyle(.borderless)
-                        }
-                    }
-                }
-                
-                Toggle("Deload week", isOn: Binding(
-                    get: { viewModel.weeks[safe: viewModel.selectedWeek - 1]?.isDeloadWeek ?? false },
-                    set: { newValue in
-                        if let index = viewModel.weeks.firstIndex(where: { $0.weekNumber == viewModel.selectedWeek }) {
-                            viewModel.weeks[index].isDeloadWeek = newValue
-                        }
-                    }
-                ))
-                
-                TextField("Notes (optional)", text: Binding(
-                    get: { viewModel.weeks[safe: viewModel.selectedWeek - 1]?.notes ?? "" },
-                    set: { newValue in
-                        if let index = viewModel.weeks.firstIndex(where: { $0.weekNumber == viewModel.selectedWeek }) {
-                            viewModel.weeks[index].notes = newValue
-                        }
-                    }
-                ), axis: .vertical)
-                .lineLimit(1...3)
             }
-            .padding(.vertical, 4)
+            .removeListRowFormatting()
+        } header: {
+            HStack {
+                Text("Schedule")
+                Spacer()
+                if viewModel.selectedWeek > 1 {
+                    Button {
+                        viewModel.showingCopyWeekPicker = true
+                    } label: {
+                        Label("Copy", systemImage: "doc.on.doc")
+                            .font(.subheadline)
+                    }
+                    .buttonStyle(.borderless)
+                }
+                Text("Week \(viewModel.selectedWeek)")
+                    .font(.subheadline)
+            }
         }
+    }
+    
+    // swiftlint:disable:next function_body_length
+    private func weekSchedule(week: WeekScheduleState) -> some View {
+        VStack(spacing: 12) {
+            let days: [(Int, String)] = [
+                (1, "Sunday"), (2, "Monday"), (3, "Tuesday"), (4, "Wednesday"),
+                (5, "Thursday"), (6, "Friday"), (7, "Saturday")
+            ]
+            
+            ForEach(days, id: \.0) { (day, label) in
+                HStack {
+                    Text(label)
+                    Spacer()
+                    if let selection = viewModel.weeks[safe: viewModel.selectedWeek - 1]?.mappings[day] {
+                        Button {
+                            viewModel.editingDayOfWeek = day
+                            viewModel.showingWorkoutPicker = true
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "dumbbell.fill")
+                                Text(selection.name)
+                            }
+                        }
+                        .buttonStyle(.borderless)
+                    } else {
+                        Button {
+                            viewModel.editingDayOfWeek = day
+                            viewModel.showingWorkoutPicker = true
+                        } label: {
+                            Label("Select Workout", systemImage: "plus.circle")
+                                .foregroundStyle(.blue)
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+            }
+            
+            Toggle("Deload week", isOn: Binding(
+                get: { viewModel.weeks[safe: viewModel.selectedWeek - 1]?.isDeloadWeek ?? false },
+                set: { newValue in
+                    if let index = viewModel.weeks.firstIndex(where: { $0.weekNumber == viewModel.selectedWeek }) {
+                        viewModel.weeks[index].isDeloadWeek = newValue
+                    }
+                }
+            ))
+            
+            TextField("Notes (optional)", text: Binding(
+                get: { viewModel.weeks[safe: viewModel.selectedWeek - 1]?.notes ?? "" },
+                set: { newValue in
+                    if let index = viewModel.weeks.firstIndex(where: { $0.weekNumber == viewModel.selectedWeek }) {
+                        viewModel.weeks[index].notes = newValue
+                    }
+                }
+            ), axis: .vertical)
+            .lineLimit(1...3)
+        }
+        .padding()
     }
 }
 

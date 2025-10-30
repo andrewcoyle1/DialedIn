@@ -37,6 +37,7 @@ class CustomProgramBuilderViewModel {
     var selectedWeek: Int = 1
     var editingDayOfWeek: Int?
     var showingWorkoutPicker: Bool = false
+    var showingCopyWeekPicker: Bool = false
     var startConfigTemplate: ProgramTemplateModel?
     var showAlert: AnyAppAlert?
     
@@ -68,6 +69,28 @@ class CustomProgramBuilderViewModel {
     func assign(workout: WorkoutTemplateModel, to dayOfWeek: Int, inWeek weekNumber: Int) {
         guard let index = weeks.firstIndex(where: { $0.weekNumber == weekNumber }) else { return }
         weeks[index].mappings[dayOfWeek] = SelectedWorkout(id: workout.workoutId, name: workout.name)
+    }
+    
+    func copySchedule(from sourceWeek: Int, to targetWeek: Int) -> Bool {
+        // Validate that both weeks exist and are different
+        guard sourceWeek != targetWeek,
+              sourceWeek >= 1,
+              targetWeek >= 1,
+              sourceWeek <= weeks.count,
+              targetWeek <= weeks.count else {
+            return false
+        }
+        
+        // Find source week
+        guard let sourceIndex = weeks.firstIndex(where: { $0.weekNumber == sourceWeek }),
+              let targetIndex = weeks.firstIndex(where: { $0.weekNumber == targetWeek }) else {
+            return false
+        }
+        
+        // Copy only the mappings dictionary (creates a copy since Dictionary is a value type)
+        weeks[targetIndex].mappings = weeks[sourceIndex].mappings
+        
+        return true
     }
     
     // MARK: - Build/Save/Start

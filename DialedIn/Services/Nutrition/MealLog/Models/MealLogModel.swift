@@ -2,7 +2,7 @@
 //  MealLogModel.swift
 //  DialedIn
 //
-//  Created by AI on 13/10/2025.
+//  Created by Andrew Coyle on 13/10/2025.
 //
 
 import Foundation

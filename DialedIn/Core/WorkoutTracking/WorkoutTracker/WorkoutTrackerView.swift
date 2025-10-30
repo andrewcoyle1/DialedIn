@@ -155,6 +155,33 @@ struct WorkoutTrackerView: View {
                     },
                     getLatestExercise: {
                         viewModel.workoutSession.exercises.first(where: { $0.id == exerciseId })
+                    },
+                    getLatestExerciseIndex: {
+                        viewModel.workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) ?? 0
+                    },
+                    getLatestIsCurrentExercise: {
+                        let currentIndex = viewModel.workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) ?? 0
+                        return currentIndex == viewModel.currentExerciseIndex
+                    },
+                    getLatestWeightUnit: {
+                        guard let latestExercise = viewModel.workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
+                            return .kilograms
+                        }
+                        let preference = viewModel.exerciseUnitPreferences[latestExercise.templateId]
+                        return preference?.weightUnit ?? .kilograms
+                    },
+                    getLatestDistanceUnit: {
+                        guard let latestExercise = viewModel.workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
+                            return .meters
+                        }
+                        let preference = viewModel.exerciseUnitPreferences[latestExercise.templateId]
+                        return preference?.distanceUnit ?? .meters
+                    },
+                    getLatestPreviousSets: {
+                        guard let latestExercise = viewModel.workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
+                            return [:]
+                        }
+                        return viewModel.buildPreviousLookup(for: latestExercise)
                     }),
                     isExpanded: Binding(
                         get: { viewModel.expandedExerciseIds.contains(exercise.id) },

@@ -12,7 +12,8 @@ struct OnboardingGenderView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: OnboardingGenderViewModel
-    
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             Section {
@@ -27,28 +28,9 @@ struct OnboardingGenderView: View {
             }
         }
         .navigationTitle("About You")
+        .screenAppearAnalytics(name: "OnboardingSelectGender")
         .toolbar {
             toolbarContent
-        }
-        .navigationDestination(isPresented: Binding(
-            get: {
-                if case .dateOfBirth = viewModel.navigationDestination { return true }
-                return false
-            },
-            set: { if !$0 { viewModel.navigationDestination = nil } }
-        )) {
-            if case let .dateOfBirth(gender) = viewModel.navigationDestination {
-                OnboardingDateOfBirthView(
-                    viewModel: OnboardingDateOfBirthViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        gender: gender
-                    )
-                )
-            } else {
-                EmptyView()
-            }
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
@@ -70,17 +52,8 @@ struct OnboardingGenderView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                if let gender = viewModel.selectedGender {
-                    OnboardingDateOfBirthView(
-                        viewModel: OnboardingDateOfBirthViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            gender: gender
-                        )
-                    )
-                }
+            Button {
+                viewModel.navigateToDateOfBirth(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -112,13 +85,14 @@ struct OnboardingGenderView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingGenderView(
             viewModel: OnboardingGenderViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

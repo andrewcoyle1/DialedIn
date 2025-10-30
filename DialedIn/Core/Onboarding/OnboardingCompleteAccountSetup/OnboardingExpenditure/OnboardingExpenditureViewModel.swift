@@ -164,6 +164,10 @@ class OnboardingExpenditureViewModel {
         let color: Color
     }
 
+    func navigateToHealthDisclaimer(path: Binding<[OnboardingPathOption]>) {
+        path.wrappedValue.append(.healthDisclaimer)
+    }
+    
     func progress(for item: Breakdown) -> Double {
         guard totalExpenditureKcal > 0 else { return 0 }
         return Double(item.calories) / Double(totalExpenditureKcal)

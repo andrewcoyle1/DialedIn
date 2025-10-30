@@ -1,5 +1,5 @@
 //
-//  NavigationPathOption+ViewForPage.swift
+//  TabBarPathOption+ViewForPage.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 29/10/2025.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-extension NavigationOptions {
+extension TabBarOption {
     /// A view builder that the split view uses to show a view for the selected navigation option.
     @MainActor @ViewBuilder func viewForPage(container: DependencyContainer) -> some View {
         switch self {

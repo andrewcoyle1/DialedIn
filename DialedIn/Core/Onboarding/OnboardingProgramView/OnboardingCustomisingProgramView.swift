@@ -10,7 +10,8 @@ import SwiftUI
 struct OnboardingCustomisingProgramView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingCustomisingProgramViewModel
-        
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             dietSection
@@ -62,14 +63,8 @@ struct OnboardingCustomisingProgramView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                OnboardingPreferredDietView(
-                    viewModel: OnboardingPreferredDietViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    )
-                )
+            Button {
+                viewModel.navigateToPreferredDiet(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -79,13 +74,14 @@ struct OnboardingCustomisingProgramView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingCustomisingProgramView(
             viewModel: OnboardingCustomisingProgramViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

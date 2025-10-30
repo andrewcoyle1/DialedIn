@@ -19,11 +19,11 @@ class ExerciseTrackerCardViewModel {
     private let interactor: ExerciseTrackerCardInteractor
     
     var exercise: WorkoutExerciseModel
-    let exerciseIndex: Int
-    let isCurrentExercise: Bool
-    let weightUnit: ExerciseWeightUnit
-    let distanceUnit: ExerciseDistanceUnit
-    let previousSetsByIndex: [Int: WorkoutSetModel]
+    var exerciseIndex: Int
+    var isCurrentExercise: Bool
+    var weightUnit: ExerciseWeightUnit
+    var distanceUnit: ExerciseDistanceUnit
+    var previousSetsByIndex: [Int: WorkoutSetModel]
     let onSetUpdate: (WorkoutSetModel) -> Void
     let onAddSet: () -> Void
     let onDeleteSet: (String) -> Void
@@ -37,6 +37,12 @@ class ExerciseTrackerCardViewModel {
     let onRequestRestPicker: (String, Int?) -> Void
     // Closure to get the latest exercise data from parent
     let getLatestExercise: () -> WorkoutExerciseModel?
+    // Closures to get latest values for dynamic properties
+    let getLatestExerciseIndex: () -> Int
+    let getLatestIsCurrentExercise: () -> Bool
+    let getLatestWeightUnit: () -> ExerciseWeightUnit
+    let getLatestDistanceUnit: () -> ExerciseDistanceUnit
+    let getLatestPreviousSets: () -> [Int: WorkoutSetModel]
     
     var notesDraft: String = ""
 
@@ -62,7 +68,12 @@ class ExerciseTrackerCardViewModel {
         restBeforeSecForSet: @escaping (String) -> Int?,
         onRestBeforeChange: @escaping (String, Int?) -> Void,
         onRequestRestPicker: @escaping (String, Int?) -> Void,
-        getLatestExercise: @escaping () -> WorkoutExerciseModel?
+        getLatestExercise: @escaping () -> WorkoutExerciseModel?,
+        getLatestExerciseIndex: @escaping () -> Int,
+        getLatestIsCurrentExercise: @escaping () -> Bool,
+        getLatestWeightUnit: @escaping () -> ExerciseWeightUnit,
+        getLatestDistanceUnit: @escaping () -> ExerciseDistanceUnit,
+        getLatestPreviousSets: @escaping () -> [Int: WorkoutSetModel]
     ) {
         self.interactor = interactor
         self.exercise = exercise
@@ -82,6 +93,11 @@ class ExerciseTrackerCardViewModel {
         self.onRestBeforeChange = onRestBeforeChange
         self.onRequestRestPicker = onRequestRestPicker
         self.getLatestExercise = getLatestExercise
+        self.getLatestExerciseIndex = getLatestExerciseIndex
+        self.getLatestIsCurrentExercise = getLatestIsCurrentExercise
+        self.getLatestWeightUnit = getLatestWeightUnit
+        self.getLatestDistanceUnit = getLatestDistanceUnit
+        self.getLatestPreviousSets = getLatestPreviousSets
         self.notesDraft = exercise.notes ?? ""
     }
     
@@ -91,5 +107,11 @@ class ExerciseTrackerCardViewModel {
             // Sync notes draft with updated exercise notes
             notesDraft = latest.notes ?? ""
         }
+        // Refresh all other properties with latest values
+        exerciseIndex = getLatestExerciseIndex()
+        isCurrentExercise = getLatestIsCurrentExercise()
+        weightUnit = getLatestWeightUnit()
+        distanceUnit = getLatestDistanceUnit()
+        previousSetsByIndex = getLatestPreviousSets()
     }
 }

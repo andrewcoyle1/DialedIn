@@ -22,7 +22,7 @@ class OnboardingGoalSettingViewModel {
     
     var showAlert: AnyAppAlert?
     var isLoading: Bool = false
-
+    
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
@@ -31,6 +31,10 @@ class OnboardingGoalSettingViewModel {
         interactor: OnboardingGoalSettingInteractor
     ) {
         self.interactor = interactor
+    }
+    
+    func navigateToOverarchingObjective(path: Binding<[OnboardingPathOption]>) {
+        path.wrappedValue.append(.overarchingObjective)
     }
     
     func updateOnboardingStep() async {

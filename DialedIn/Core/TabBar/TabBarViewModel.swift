@@ -23,6 +23,8 @@ class TabBarViewModel {
     
     private let interactor: TabBarInteractor
 
+    var appNavigation: AppNavigationModel
+    
     var presentTracker: Bool = false
 
     var activeSession: WorkoutSessionModel? {
@@ -44,9 +46,11 @@ class TabBarViewModel {
     }
 
     init(
-        interactor: TabBarInteractor
+        interactor: TabBarInteractor,
+        appNavigation: AppNavigationModel
     ) {
         self.interactor = interactor
+        self.appNavigation = appNavigation
     }
 
     var active: WorkoutSessionModel? {

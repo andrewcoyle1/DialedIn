@@ -28,7 +28,6 @@ class OnboardingNamePhotoViewModel {
     var isImagePickerPresented: Bool = false
     var isSaving: Bool = false
     var showAlert: AnyAppAlert?
-    var navigateToGender: Bool = false
     
     #if DEBUG || MOCK
     var showDebugView: Bool = false
@@ -55,14 +54,17 @@ class OnboardingNamePhotoViewModel {
         // Note: We don't prefill the image as it would require fetching from URL
     }
     
-    func saveAndContinue() async {
+    func saveAndContinue(path: Binding<[OnboardingPathOption]>) async {
         guard canContinue else { return }
         isSaving = true
+        
+        defer {
+            isSaving = false
+        }
         
         do {
             guard let userId = interactor.currentUser?.userId else {
                 interactor.trackEvent(eventName: "name_photo_save_failed", parameters: ["error": "Missing current user ID"], type: .analytic)
-                isSaving = false
                 return
             }
             
@@ -86,15 +88,13 @@ class OnboardingNamePhotoViewModel {
             #endif
             
             interactor.trackEvent(eventName: "name_photo_save_success", parameters: [:], type: .analytic)
-            isSaving = false
-            navigateToGender = true
+            path.wrappedValue.append(.gender)
         } catch {
             interactor.trackEvent(eventName: "name_photo_save_failed", parameters: ["error": String(describing: error)], type: .analytic)
             showAlert = AnyAppAlert(
                 title: "Unable to save",
                 subtitle: "Please check your internet connection and try again."
             )
-            isSaving = false
         }
     }
     

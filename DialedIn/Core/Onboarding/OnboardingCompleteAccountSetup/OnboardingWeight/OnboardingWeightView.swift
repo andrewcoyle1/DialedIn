@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingWeightView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingWeightViewModel
+    @Binding var path: [OnboardingPathOption]
 
     var body: some View {
         List {
@@ -36,31 +37,6 @@ struct OnboardingWeightView: View {
             )
         }
         #endif
-        .navigationDestination(isPresented: Binding(
-            get: {
-                if case .exerciseFrequency = viewModel.navigationDestination { return true }
-                return false
-            },
-            set: { if !$0 { viewModel.navigationDestination = nil } }
-        )) {
-            if case let .exerciseFrequency(gender, dateOfBirth, height, weight, lengthUnitPreference, weightUnitPreference) = viewModel.navigationDestination {
-                OnboardingExerciseFrequencyView(
-                    viewModel: OnboardingExerciseFrequencyViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        gender: gender,
-                        dateOfBirth: dateOfBirth,
-                        height: height,
-                        weight: weight,
-                        lengthUnitPreference: lengthUnitPreference,
-                        weightUnitPreference: weightUnitPreference
-                    )
-                )
-            } else {
-                EmptyView()
-            }
-        }
     }
     
     private var pickerSection: some View {
@@ -125,20 +101,8 @@ struct OnboardingWeightView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                OnboardingExerciseFrequencyView(
-                    viewModel: OnboardingExerciseFrequencyViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        gender: viewModel.gender,
-                        dateOfBirth: viewModel.dateOfBirth,
-                        height: viewModel.height,
-                        weight: viewModel.weight,
-                        lengthUnitPreference: viewModel.lengthUnitPreference,
-                        weightUnitPreference: viewModel.preference
-                )
-                )
+            Button {
+                viewModel.navigateToExerciseFrequency(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -148,6 +112,7 @@ struct OnboardingWeightView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingWeightView(
             viewModel: OnboardingWeightViewModel(
@@ -158,7 +123,7 @@ struct OnboardingWeightView: View {
                 dateOfBirth: Date(),
                 height: 175,
                 lengthUnitPreference: .centimeters
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

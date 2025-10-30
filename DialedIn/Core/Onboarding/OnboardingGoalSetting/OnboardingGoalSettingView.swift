@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingGoalSettingView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingGoalSettingViewModel
+    @Binding var path: [OnboardingPathOption]
 
     var body: some View {
         List {
@@ -58,14 +59,8 @@ struct OnboardingGoalSettingView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                OnboardingOverarchingObjectiveView(
-                    viewModel: OnboardingOverarchingObjectiveViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    )
-                )
+            Button {
+                viewModel.navigateToOverarchingObjective(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -75,13 +70,14 @@ struct OnboardingGoalSettingView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingGoalSettingView(
             viewModel: OnboardingGoalSettingViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

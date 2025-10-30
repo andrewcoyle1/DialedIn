@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingNotificationsInteractor {
     func requestPushAuthorisation() async throws -> Bool
@@ -19,7 +19,6 @@ extension CoreInteractor: OnboardingNotificationsInteractor { }
 class OnboardingNotificationsViewModel {
     private let interactor: OnboardingNotificationsInteractor
     
-    var navigationDestination: NavigationDestination?
     var showEnablePushNotificationsModal: Bool = false
     
     #if DEBUG || MOCK
@@ -41,14 +40,14 @@ class OnboardingNotificationsViewModel {
         interactor.trackEvent(event: Event.pushNotificationsModalShow)
     }
     
-    func onEnablePushNotificationsPressed() {
+    func onEnablePushNotificationsPressed(path: Binding<[OnboardingPathOption]>) {
         showEnablePushNotificationsModal = false
         interactor.trackEvent(event: Event.enableNotificationsStart)
         Task {
             do {
                 let isAuthorised = try await interactor.requestPushAuthorisation()
                 interactor.trackEvent(event: Event.enableNotificationsSuccess(isAuthorised: isAuthorised))
-                navigationDestination = .gender
+                path.wrappedValue.append(.gender)
 
             } catch {
                 interactor.trackEvent(event: Event.enableNotficiationsFail(error: error))
@@ -61,9 +60,9 @@ class OnboardingNotificationsViewModel {
         showEnablePushNotificationsModal = false
     }
 
-    func onSkipForNowPressed() {
+    func onSkipForNowPressed(path: Binding<[OnboardingPathOption]>) {
         interactor.trackEvent(event: Event.skipForNow)
-        navigationDestination = .gender
+        path.wrappedValue.append(.gender)
     }
 
     enum Event: LoggableEvent {

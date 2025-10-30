@@ -46,7 +46,7 @@ class SignInViewModel {
         self.interactor = interactor
     }
     
-    func onSignInPressed() {
+    func onSignInPressed(path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent race conditions
         currentAuthTask?.cancel()
         
@@ -64,12 +64,13 @@ class SignInViewModel {
                     await self.handleOnAuthSuccess(user: auth)
                 }
                 interactor.trackEvent(event: Event.signInSuccess)
+                path.wrappedValue.append(.subscriptionInfo)
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
                     handleAuthError(error, operation: "sign in") {
                         Task { @MainActor in
-                            self.onSignInPressed()
+                            self.onSignInPressed(path: path)
                         }
                     }
                 }

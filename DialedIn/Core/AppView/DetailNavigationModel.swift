@@ -10,7 +10,7 @@ import Observation
 
 @Observable
 final class DetailNavigationModel {
-    var path: [NavigationPathOption] = []
+    var path: [TabBarPathOption] = []
 
     func clear() {
         path.removeAll()

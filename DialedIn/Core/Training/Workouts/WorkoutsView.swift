@@ -43,16 +43,10 @@ struct WorkoutsView: View {
         .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
         .onFirstTask {
-            await viewModel.loadSystemWorkouts()
-            await viewModel.loadMyWorkoutsIfNeeded()
-            await viewModel.loadTopWorkoutsIfNeeded()
-            await viewModel.syncSavedWorkoutsFromUser()
+            await viewModel.loadAllWorkouts()
         }
         .refreshable {
-            await viewModel.loadSystemWorkouts()
-            await viewModel.loadMyWorkoutsIfNeeded()
-            await viewModel.loadTopWorkoutsIfNeeded()
-            await viewModel.syncSavedWorkoutsFromUser()
+            await viewModel.loadAllWorkouts()
         }
         .onChange(of: viewModel.currentUser) {
             Task {

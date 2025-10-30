@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingOverarchingObjectiveInteractor {
     var currentUser: UserModel? { get }
@@ -38,6 +38,16 @@ class OnboardingOverarchingObjectiveViewModel {
     ) {
         self.interactor = interactor
         self.isStandaloneMode = isStandaloneMode
+    }
+    
+    func navigateToNextStep(path: Binding<[OnboardingPathOption]>) {
+        if let objective = selectedObjective, let weight = userWeight {
+            if objective != .maintain {
+                path.wrappedValue.append(.targetWeight(objective: objective))
+            } else {
+                path.wrappedValue.append(.goalSummary(objective: objective, targetWeight: weight, weightRate: 0))
+            }
+        }
     }
 }
 

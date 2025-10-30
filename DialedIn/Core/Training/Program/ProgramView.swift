@@ -24,6 +24,7 @@ struct ProgramView: View {
         .navigationTitle("Training")
         .navigationSubtitle(viewModel.navigationSubtitle)
         .navigationBarTitleDisplayMode(.large)
+        .showCustomAlert(alert: $viewModel.showAlert)
         .onFirstTask {
             await viewModel.loadData()
         }
@@ -35,7 +36,6 @@ struct ProgramView: View {
                 AddGoalView(viewModel: AddGoalViewModel(interactor: CoreInteractor(container: container)), plan: plan)
             }
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     private var activeProgramView: some View {

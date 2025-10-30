@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingNotificationsView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingNotificationsViewModel
+    @Binding var path: [OnboardingPathOption]
 
     var body: some View {
         List {
@@ -28,12 +29,6 @@ struct OnboardingNotificationsView: View {
         #endif
         .toolbar {
             toolbarContent
-        }
-        .navigationDestination(isPresented: Binding(
-            get: { viewModel.navigationDestination == .gender },
-            set: { if !$0 { viewModel.navigationDestination = nil } }
-        )) {
-            OnboardingGenderView(viewModel: OnboardingGenderViewModel(interactor: CoreInteractor(container: container)))
         }
         .screenAppearAnalytics(name: "OnboardingNotifications")
         .showModal(showModal: $viewModel.showEnablePushNotificationsModal) {
@@ -64,14 +59,8 @@ struct OnboardingNotificationsView: View {
         }
         ToolbarSpacer(.fixed)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                OnboardingGenderView(
-                    viewModel: OnboardingGenderViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    )
-                )
+            Button {
+                viewModel.onSkipForNowPressed(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -128,7 +117,7 @@ struct OnboardingNotificationsView: View {
             .buttonStyle(.glassProminent)
 
             Button {
-                viewModel.onSkipForNowPressed()
+                viewModel.onSkipForNowPressed(path: $path)
             } label: {
                 Text("Not now")
                     .frame(maxWidth: .infinity)
@@ -144,7 +133,7 @@ struct OnboardingNotificationsView: View {
             subtitle: "We will send you reminders and updates",
             primaryButtonTitle: "Enable",
             primaryButtonAction: {
-                viewModel.onEnablePushNotificationsPressed()
+                viewModel.onEnablePushNotificationsPressed(path: $path)
             },
             secondaryButtonTitle: "Cancel",
             secondaryButtonAction: {
@@ -155,13 +144,14 @@ struct OnboardingNotificationsView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingNotificationsView(
             viewModel: OnboardingNotificationsViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

@@ -10,7 +10,8 @@ import SwiftUI
 struct OnboardingCardioFitnessView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingCardioFitnessViewModel
-    
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             cardioFitnessSection
@@ -74,25 +75,8 @@ struct OnboardingCardioFitnessView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                if let cardioFitnessLevel = viewModel.selectedCardioFitness {
-                    OnboardingExpenditureView(
-                        viewModel: OnboardingExpenditureViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            gender: viewModel.gender,
-                            dateOfBirth: viewModel.dateOfBirth,
-                            height: viewModel.height,
-                            weight: viewModel.weight,
-                            exerciseFrequency: viewModel.exerciseFrequency,
-                            activityLevel: viewModel.activityLevel,
-                            lengthUnitPreference: viewModel.lengthUnitPreference,
-                            weightUnitPreference: viewModel.weightUnitPreference,
-                            selectedCardioFitness: cardioFitnessLevel
-                        )
-                    )
-                }
+            Button {
+                viewModel.navigateToExpenditure(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -127,6 +111,7 @@ struct OnboardingCardioFitnessView: View {
 }
 
 #Preview("Default - Ready to submit") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingCardioFitnessView(
             viewModel: OnboardingCardioFitnessViewModel(
@@ -141,7 +126,7 @@ struct OnboardingCardioFitnessView: View {
                 activityLevel: .moderate,
                 lengthUnitPreference: .centimeters,
                 weightUnitPreference: .kilograms
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingCardioFitnessInteractor {
     
@@ -65,6 +65,25 @@ class OnboardingCardioFitnessViewModel {
         self.activityLevel = activityLevel
         self.lengthUnitPreference = lengthUnitPreference
         self.weightUnitPreference = weightUnitPreference
+    }
+    
+    func navigateToExpenditure(path: Binding<[OnboardingPathOption]>) {
+        if let cardioFitness = selectedCardioFitness {
+            path.wrappedValue
+                .append(
+                    .expenditure(
+                        gender: gender,
+                        dateOfBirth: dateOfBirth,
+                        height: height,
+                        weight: weight,
+                        exerciseFrequency: exerciseFrequency,
+                        activityLevel: activityLevel,
+                        lengthUnitPreference: lengthUnitPreference,
+                        weightUnitPreference: weightUnitPreference,
+                        selectedCardioFitness: cardioFitness
+                    )
+                )
+        }
     }
 }
 

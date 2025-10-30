@@ -2,7 +2,7 @@
 //  Firestore+EXT.swift
 //  DialedIn
 //
-//  Created by Cursor on 28/10/2025.
+//  Created by Andrew Coyle on 28/10/2025.
 //
 
 @preconcurrency import FirebaseFirestore

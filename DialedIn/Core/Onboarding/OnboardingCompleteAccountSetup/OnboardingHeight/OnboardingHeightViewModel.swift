@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingHeightInteractor {
     
@@ -78,6 +78,10 @@ class OnboardingHeightViewModel {
         case .inches:
             return (3...8).contains(selectedFeet) && (0...11).contains(selectedInches)
         }
+    }
+    
+    func navigateToWeightView(path: Binding<[OnboardingPathOption]>) {
+        path.wrappedValue.append(.weight(gender: gender, dateOfBirth: dateOfBirth, height: height, lengthUnitPreference: preference))
     }
     
     func updateImperialFromCentimeters() {

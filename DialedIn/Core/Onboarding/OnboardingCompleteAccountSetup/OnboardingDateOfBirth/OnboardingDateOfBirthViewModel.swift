@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingDateOfBirthInteractor {
     
@@ -37,5 +37,9 @@ class OnboardingDateOfBirthViewModel {
     ) {
         self.interactor = interactor
         self.gender = gender
+    }
+    
+    func navigateToOnboardingHeight(path: Binding<[OnboardingPathOption]>) {
+        path.wrappedValue.append(.height(gender: gender, dateOfBirth: dateOfBirth))
     }
 }

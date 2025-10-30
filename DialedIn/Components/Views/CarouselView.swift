@@ -12,10 +12,12 @@ struct CarouselView<Content: View, T: Hashable>: View {
     var items: [T]
     var showsPageCounter: Bool = false
     var showsPageCounterOnlyWhileInteracting: Bool = true
+    var height: CGFloat = 200
     @ViewBuilder var content: (T) -> Content
     @State private var selection: T?
     @State private var isInteracting: Bool = false
     @State private var counterHideWorkItem: DispatchWorkItem?
+    var onSelectionChange: ((T?) -> Void)?
     
     var body: some View {
         VStack(spacing: 12) {
@@ -32,7 +34,7 @@ struct CarouselView<Content: View, T: Hashable>: View {
                     }
                 }
             }
-            .frame(height: 200)
+            .frame(minHeight: height)
             .scrollIndicators(.hidden)
             .scrollTargetLayout()
             .scrollTargetBehavior(.paging)
@@ -61,8 +63,12 @@ struct CarouselView<Content: View, T: Hashable>: View {
             .onChange(of: items.count, { _, _ in
                 updateSelectionIfNeeded()
             })
+            .onChange(of: selection) { _, newValue in
+                onSelectionChange?(newValue)
+            }
             .onAppear {
                 updateSelectionIfNeeded()
+                onSelectionChange?(selection)
             }
             slidingDotsIndicator()
         }

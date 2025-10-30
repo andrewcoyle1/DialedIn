@@ -11,6 +11,7 @@ import PhotosUI
 protocol OnboardingCreateProfileInteractor {
     var currentUser: UserModel? { get }
     func saveUser(user: UserModel, image: PlatformImage?) async throws
+    func updateOnboardingStep(step: OnboardingStep) async throws
     func trackEvent(eventName: String, parameters: [String: Any]?, type: LogType)
 }
 
@@ -61,7 +62,13 @@ class OnboardingCreateProfileViewModel {
         if let gender = user.gender { selectedGender = gender }
     }
     
-    func saveProfile() async {
+    func markOnboardingComplete() {
+        Task {
+            try? await interactor.updateOnboardingStep(step: .complete)
+        }
+    }
+    
+    func saveProfile(path: Binding<[OnboardingPathOption]>) async {
         guard canSave else { return }
         isSaving = true
         
@@ -94,7 +101,7 @@ class OnboardingCreateProfileViewModel {
 
             interactor.trackEvent(eventName: "profile_save_success", parameters: [:], type: .analytic)
             // Proceed to health data step; onboarding completion is finalized on the last step
-            navigateNext = true
+            path.wrappedValue.append(.healthData)
         } catch {
             interactor.trackEvent(eventName: "profile_save_failed", parameters: ["error": String(describing: error)], type: .analytic)
         }

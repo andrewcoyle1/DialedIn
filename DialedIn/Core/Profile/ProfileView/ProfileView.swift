@@ -41,6 +41,7 @@ struct ProfileView: View {
         }
         .navigationTitle("Profile")
         .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
+        .scrollIndicators(.hidden)
         .navigationBarTitleDisplayMode(.large)
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView, content: {

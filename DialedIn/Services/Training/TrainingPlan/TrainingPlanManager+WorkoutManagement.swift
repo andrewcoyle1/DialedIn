@@ -161,6 +161,39 @@ extension TrainingPlanManager {
         throw TrainingPlanError.workoutNotFound
     }
     
+    /// Marks a scheduled workout as incomplete if its completedSessionId matches the provided sessionId
+    /// This is called when a workout session is deleted to unmark the scheduled workout
+    func markWorkoutIncompleteIfSessionDeleted(scheduledWorkoutId: String, sessionId: String) async throws {
+        guard var plan = currentTrainingPlan else {
+            throw TrainingPlanError.noActivePlan
+        }
+        
+        for (weekIndex, week) in plan.weeks.enumerated() {
+            if let workoutIndex = week.scheduledWorkouts.firstIndex(where: { $0.id == scheduledWorkoutId }) {
+                let scheduledWorkout = week.scheduledWorkouts[workoutIndex]
+                
+                // Only mark incomplete if this session was the one that completed it
+                guard scheduledWorkout.completedSessionId == sessionId else {
+                    return
+                }
+                
+                let updatedWorkout = ScheduledWorkout(
+                    id: scheduledWorkout.id,
+                    workoutTemplateId: scheduledWorkout.workoutTemplateId,
+                    workoutName: scheduledWorkout.workoutName,
+                    dayOfWeek: scheduledWorkout.dayOfWeek,
+                    scheduledDate: scheduledWorkout.scheduledDate,
+                    completedSessionId: nil,
+                    isCompleted: false,
+                    notes: scheduledWorkout.notes
+                )
+                plan.weeks[weekIndex].scheduledWorkouts[workoutIndex] = updatedWorkout
+                try await updatePlan(plan)
+                return
+            }
+        }
+    }
+    
     /// Syncs scheduled workout completion status with completed workout sessions
     /// This is useful for reconciling state after retroactive fixes or data migrations
     func syncScheduledWorkoutsWithCompletedSessions(completedSessions: [WorkoutSessionModel]) async throws {

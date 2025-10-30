@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingGenderInteractor {
     
@@ -19,11 +19,6 @@ class OnboardingGenderViewModel {
     private let interactor: OnboardingGenderInteractor
     
     var selectedGender: Gender?
-    var navigationDestination: NavigationDestination?
-    
-    enum NavigationDestination {
-        case dateOfBirth(gender: Gender)
-    }
     
     #if DEBUG || MOCK
     var showDebugView: Bool = false
@@ -34,8 +29,14 @@ class OnboardingGenderViewModel {
     }
     
     init(
-        interactor: OnboardingGenderInteractor
+        interactor: OnboardingGenderInteractor,
     ) {
         self.interactor = interactor
+    }
+    
+    func navigateToDateOfBirth(path: Binding<[OnboardingPathOption]>) {
+        if let gender = selectedGender {
+            path.wrappedValue.append(.dateOfBirth(gender: gender))
+        }
     }
 }

@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingCalorieFloorInteractor {
     
@@ -19,13 +19,7 @@ class OnboardingCalorieFloorViewModel {
     private let interactor: OnboardingCalorieFloorInteractor
     
     let preferredDiet: PreferredDiet
-    
-    var navigationDestination: NavigationDestination?
     var selectedFloor: CalorieFloor?
-
-    enum NavigationDestination {
-        case trainingType
-    }
     
     #if DEBUG || MOCK
     var showDebugView: Bool = false
@@ -37,6 +31,12 @@ class OnboardingCalorieFloorViewModel {
     ) {
         self.interactor = interactor
         self.preferredDiet = preferredDiet
+    }
+    
+    func navigateToTrainingType(path: Binding<[OnboardingPathOption]>) {
+        if let floor = selectedFloor {
+            path.wrappedValue.append(.trainingType(preferredDiet: preferredDiet, calorieFloor: floor))
+        }
     }
 }
 

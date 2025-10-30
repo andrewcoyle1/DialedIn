@@ -19,52 +19,47 @@ struct ProfileGoalSection: View {
                 NavigationLink {
                     ProfileGoalsDetailView(viewModel: ProfileGoalsDetailViewModel(interactor: CoreInteractor(container: container)))
                 } label: {
-                    ProfileSectionCard(
-                        icon: "target",
-                        iconColor: .green,
-                        title: "Current Goal"
-                    ) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(goal.objective.capitalized)
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                            
-                            if let currentWeight = user.weightKilograms {
-                                let unit = user.weightUnitPreference ?? .kilograms
-                                HStack(spacing: 8) {
-                                    Text(viewModel.formatWeight(currentWeight, unit: unit))
-                                    Image(systemName: "arrow.right")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                    Text(viewModel.formatWeight(goal.targetWeightKg, unit: unit))
-                                }
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            }
-                            
-                            if goal.weeklyChangeKg > 0 {
-                                let unit = user.weightUnitPreference ?? .kilograms
-                                Text("Weekly rate: \(viewModel.formatWeight(goal.weeklyChangeKg, unit: unit))/week")
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(goal.objective.capitalized)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                        
+                        if let currentWeight = user.weightKilograms {
+                            let unit = user.weightUnitPreference ?? .kilograms
+                            HStack(spacing: 8) {
+                                Text(viewModel.formatWeight(currentWeight, unit: unit))
+                                Image(systemName: "arrow.right")
                                     .font(.caption)
-                                    .foregroundStyle(.tertiary)
+                                    .foregroundStyle(.secondary)
+                                Text(viewModel.formatWeight(goal.targetWeightKg, unit: unit))
                             }
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        }
+                        
+                        if goal.weeklyChangeKg > 0 {
+                            let unit = user.weightUnitPreference ?? .kilograms
+                            Text("Weekly rate: \(viewModel.formatWeight(goal.weeklyChangeKg, unit: unit))/week")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        
+                        // Progress indicator
+                        if let currentWeight = user.weightKilograms, goal.weeklyChangeKg > 0 {
+                            let progress = goal.calculateProgress(currentWeight: currentWeight)
+                            let weeks = Int(ceil(abs(goal.targetWeightKg - currentWeight) / goal.weeklyChangeKg))
                             
-                            // Progress indicator
-                            if let currentWeight = user.weightKilograms, goal.weeklyChangeKg > 0 {
-                                let progress = goal.calculateProgress(currentWeight: currentWeight)
-                                let weeks = Int(ceil(abs(goal.targetWeightKg - currentWeight) / goal.weeklyChangeKg))
-                                
-                                Divider()
-                                
-                                HStack {
-                                    Text("Progress: \(Int(progress * 100))%")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                    Spacer()
-                                    Text("~\(weeks) weeks")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
+                            Divider()
+                            
+                            HStack {
+                                Text("Progress: \(Int(progress * 100))%")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                                Text("~\(weeks) weeks")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -73,26 +68,32 @@ struct ProfileGoalSection: View {
                 Button {
                     viewModel.showSetGoalSheet = true
                 } label: {
-                    ProfileSectionCard(
-                        icon: "target",
-                        iconColor: .green,
-                        title: "Set a Goal"
-                    ) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Define your weight goal to start tracking progress")
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Define your weight goal to start tracking progress")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        
+                        HStack {
+                            Image(systemName: "arrow.right.circle.fill")
+                                .foregroundStyle(.green)
+                            Text("Get Started")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            
-                            HStack {
-                                Image(systemName: "arrow.right.circle.fill")
-                                    .foregroundStyle(.green)
-                                Text("Get Started")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                            }
+                                .fontWeight(.semibold)
                         }
                     }
                 }
+            }
+        } header: {
+            HStack(spacing: 8) {
+                Image(systemName: "target")
+                    .font(.title3)
+                    .foregroundStyle(.green)
+                    .frame(width: 28)
+                
+                Text("Current Goal")
+                    .font(.headline)
+                
+                Spacer()
             }
         }
     }

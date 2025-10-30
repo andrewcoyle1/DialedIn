@@ -22,16 +22,16 @@ struct WorkoutSessionDetailView: View {
         }
         .navigationTitle(viewModel.currentSession.name)
         .navigationBarTitleDisplayMode(.large)
+        .showCustomAlert(alert: $viewModel.showAlert)
+        .showModal(showModal: Binding(get: { viewModel.isLoading }, set: { _ in })) {
+            ProgressView()
+                .tint(.white)
+        }.scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }
         .onAppear {
             viewModel.loadUnitPreferences()
-        }
-        .showCustomAlert(alert: $viewModel.showAlert)
-        .showModal(showModal: Binding(get: { viewModel.isLoading }, set: { _ in })) {
-            ProgressView()
-                .tint(.white)
         }
         .sheet(isPresented: $viewModel.showAddExerciseSheet, onDismiss: viewModel.addSelectedExercises) {
             AddExerciseModalView(
@@ -43,7 +43,21 @@ struct WorkoutSessionDetailView: View {
             )
         }
     }
-    
+}
+
+#Preview {
+    NavigationStack {
+        WorkoutSessionDetailView(
+            viewModel: WorkoutSessionDetailViewModel(
+                interactor: CoreInteractor(container: DevPreview.shared.container),
+                session: .mock
+            )
+        )
+    }
+    .previewEnvironment()
+}
+
+extension WorkoutSessionDetailView {
     private func headerSection(endedAt: Date) -> some View {
         Section {
             HStack {
@@ -236,16 +250,4 @@ struct WorkoutSessionDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }
-}
-
-#Preview {
-    NavigationStack {
-        WorkoutSessionDetailView(
-            viewModel: WorkoutSessionDetailViewModel(
-                interactor: CoreInteractor(container: DevPreview.shared.container),
-                session: .mock
-            )
-        )
-    }
-    .previewEnvironment()
 }

@@ -10,21 +10,13 @@ import SwiftUI
 struct OnboardingProteinIntakeView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingProteinIntakeViewModel
- 
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             pickerSection
         }
         .navigationTitle("Protein Intake")
-        .navigationDestination(isPresented: $viewModel.navigateToNextStep) {
-            OnboardingDietPlanView(
-                viewModel: OnboardingDietPlanViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
-        }
         .toolbar {
             toolbarContent
         }
@@ -75,7 +67,7 @@ struct OnboardingProteinIntakeView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.createPlan()
+                viewModel.createPlan(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -86,6 +78,7 @@ struct OnboardingProteinIntakeView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingProteinIntakeView(
             viewModel: OnboardingProteinIntakeViewModel(
@@ -96,7 +89,7 @@ struct OnboardingProteinIntakeView: View {
                 calorieFloor: .standard,
                 trainingType: .weightlifting,
                 calorieDistribution: .even
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

@@ -10,7 +10,8 @@ import SwiftUI
 struct OnboardingSubscriptionView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingSubscriptionViewModel
-
+    @Binding var path: [OnboardingPathOption]
+    
     var body: some View {
         List {
             whySubscribeSection
@@ -41,8 +42,8 @@ struct OnboardingSubscriptionView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                OnboardingSubscriptionPlanView(viewModel: OnboardingSubscriptionPlanViewModel(interactor: CoreInteractor(container: container)))
+            Button {
+                viewModel.navigateToSubscriptionPlan(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -103,13 +104,14 @@ struct OnboardingSubscriptionView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingSubscriptionView(
             viewModel: OnboardingSubscriptionViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

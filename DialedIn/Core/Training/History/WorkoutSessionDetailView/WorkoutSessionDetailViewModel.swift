@@ -15,6 +15,7 @@ protocol WorkoutSessionDetailInteractor {
     func setPreference(weightUnit: ExerciseWeightUnit?, distanceUnit: ExerciseDistanceUnit?, for templateId: String)
     func deleteLocalWorkoutSession(id: String) throws
     func deleteWorkoutSession(id: String) async throws
+    func markWorkoutIncompleteIfSessionDeleted(scheduledWorkoutId: String, sessionId: String) async throws
 }
 
 extension CoreInteractor: WorkoutSessionDetailInteractor { }
@@ -288,6 +289,15 @@ class WorkoutSessionDetailViewModel {
         defer { isDeleting = false }
         
         do {
+            // If this session is linked to a scheduled workout, unmark it as complete
+            // Only if this session was the one that completed it
+            if let scheduledWorkoutId = session.scheduledWorkoutId {
+                try? await interactor.markWorkoutIncompleteIfSessionDeleted(
+                    scheduledWorkoutId: scheduledWorkoutId,
+                    sessionId: session.id
+                )
+            }
+            
             // Delete from local first for instant feedback
             try interactor.deleteLocalWorkoutSession(id: session.id)
             

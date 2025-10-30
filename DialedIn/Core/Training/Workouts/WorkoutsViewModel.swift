@@ -193,6 +193,13 @@ class WorkoutsViewModel {
             subtitle: "We couldn't find any workout templates matching your search. Please try a different name or check your connection."
         )
     }
+    
+    func loadAllWorkouts() async {
+        await loadSystemWorkouts()
+        await loadMyWorkoutsIfNeeded()
+        await loadTopWorkoutsIfNeeded()
+        await syncSavedWorkoutsFromUser()
+    }
 
     func loadSystemWorkouts() async {
         // Load seeded system workouts from local storage

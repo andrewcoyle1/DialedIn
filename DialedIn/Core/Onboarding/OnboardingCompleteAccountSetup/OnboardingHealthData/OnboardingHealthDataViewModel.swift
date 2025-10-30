@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingHealthDataInteractor {
     func canRequestHealthDataAuthorisation() async -> Bool
@@ -51,6 +51,10 @@ class OnboardingHealthDataViewModel {
                 showAlert = AnyAppAlert(error: error)
             }
         }
+    }
+    
+    func navigateToGender(path: Binding<[OnboardingPathOption]>) {
+        path.wrappedValue.append(.gender)
     }
 
     enum Event: LoggableEvent {

@@ -11,6 +11,7 @@ struct OnboardingHealthDataView: View {
     @Environment(DependencyContainer.self) private var container
 
     @State var viewModel: OnboardingHealthDataViewModel
+    @Binding var path: [OnboardingPathOption]
 
     var body: some View {
         List {
@@ -19,6 +20,7 @@ struct OnboardingHealthDataView: View {
             yourControlSection
         }
         .navigationTitle("Health Data")
+        .screenAppearAnalytics(name: "OnboardingHealthData")
         .navigationBarTitleDisplayMode(.large)
         .showCustomAlert(alert: $viewModel.showAlert)
         #if !DEBUG && !MOCK
@@ -37,31 +39,6 @@ struct OnboardingHealthDataView: View {
         .toolbar {
             toolbarContent
         }
-        .navigationDestination(isPresented: Binding(
-            get: { viewModel.navigationDestination == .notifications },
-            set: { if !$0 { viewModel.navigationDestination = nil } }
-        )) {
-            OnboardingNotificationsView(
-                viewModel: OnboardingNotificationsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
-        }
-        .navigationDestination(isPresented: Binding(
-            get: { viewModel.navigationDestination == .gender },
-            set: { if !$0 { viewModel.navigationDestination = nil } }
-        )) {
-            OnboardingGenderView(
-                viewModel: OnboardingGenderViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
-        }
-        .screenAppearAnalytics(name: "OnboardingHealthData")
     }
     
     @ToolbarContentBuilder
@@ -88,14 +65,8 @@ struct OnboardingHealthDataView: View {
         }
         ToolbarSpacer(.fixed, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                OnboardingGenderView(
-                    viewModel: OnboardingGenderViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    )
-                )
+            Button {
+                viewModel.navigateToGender(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -153,13 +124,14 @@ struct OnboardingHealthDataView: View {
 }
 
 #Preview("Proceed to Notifications") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingHealthDataView(
             viewModel: OnboardingHealthDataViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

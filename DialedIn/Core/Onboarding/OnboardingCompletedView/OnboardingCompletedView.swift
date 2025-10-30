@@ -11,12 +11,12 @@ struct OnboardingCompletedView: View {
     @Environment(DependencyContainer.self) private var container
     @Environment(AppState.self) private var root
     @State var viewModel: OnboardingCompletedViewModel
+    @Binding var path: [OnboardingPathOption]
 
     var body: some View {
         VStack {
             Spacer()
             content
-            
             Spacer()
             
         }
@@ -89,12 +89,13 @@ struct OnboardingCompletedView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     OnboardingCompletedView(
         viewModel: OnboardingCompletedViewModel(
             interactor: CoreInteractor(
                 container: DevPreview.shared.container
             )
-        )
+        ), path: $path
     )
     .previewEnvironment()
 }

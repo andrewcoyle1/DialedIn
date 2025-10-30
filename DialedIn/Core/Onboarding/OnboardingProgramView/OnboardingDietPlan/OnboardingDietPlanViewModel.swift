@@ -69,7 +69,7 @@ class OnboardingDietPlanViewModel {
         isLoading = false
     }
     
-    func onContinuePressed() {
+    func onContinuePressed(path: Binding<[OnboardingPathOption]>) {
         isLoading = true
         Task {
             interactor.trackEvent(event: Event.finishOnboardingStart)

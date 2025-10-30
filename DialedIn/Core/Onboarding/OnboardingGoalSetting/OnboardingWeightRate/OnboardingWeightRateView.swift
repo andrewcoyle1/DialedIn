@@ -10,7 +10,8 @@ import SwiftUI
 struct OnboardingWeightRateView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingWeightRateViewModel
-    
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             if viewModel.didInitialize {
@@ -56,18 +57,8 @@ struct OnboardingWeightRateView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                OnboardingGoalSummaryView(
-                    viewModel: OnboardingGoalSummaryViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        objective: viewModel.objective,
-                        targetWeight: viewModel.targetWeight,
-                        weightRate: viewModel.weightChangeRate,
-                        isStandaloneMode: viewModel.isStandaloneMode
-                    )
-                )
+            Button {
+                viewModel.navigateToGoalSummary(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -166,6 +157,7 @@ struct OnboardingWeightRateView: View {
 }
 
 #Preview("Gain Weight") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingWeightRateView(
             viewModel: OnboardingWeightRateViewModel(
@@ -174,13 +166,14 @@ struct OnboardingWeightRateView: View {
                 ),
                 objective: .gainWeight,
                 targetWeight: 80
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()
 }
 
 #Preview("Lose Weight") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingWeightRateView(
             viewModel: OnboardingWeightRateViewModel(
@@ -189,7 +182,7 @@ struct OnboardingWeightRateView: View {
                 ),
                 objective: .loseWeight,
                 targetWeight: 60
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

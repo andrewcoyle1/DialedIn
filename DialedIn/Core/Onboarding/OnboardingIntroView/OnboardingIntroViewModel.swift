@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingIntroInteractor {
     
@@ -26,5 +26,9 @@ class OnboardingIntroViewModel {
         interactor: OnboardingIntroInteractor
     ) {
         self.interactor = interactor
+    }
+    
+    func navigateToAuthOptions(path: Binding<[OnboardingPathOption]>) {
+        path.wrappedValue.append(.authOptions)
     }
 }

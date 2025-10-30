@@ -11,7 +11,8 @@ struct OnboardingDietPlanView: View {
     @Environment(DependencyContainer.self) private var container
     @Environment(AppState.self) private var appState
     @State var viewModel: OnboardingDietPlanViewModel
-        
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             if let plan = viewModel.plan {
@@ -107,7 +108,7 @@ struct OnboardingDietPlanView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onContinuePressed()
+                viewModel.onContinuePressed(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -127,13 +128,14 @@ struct OnboardingDietPlanView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingDietPlanView(
             viewModel: OnboardingDietPlanViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

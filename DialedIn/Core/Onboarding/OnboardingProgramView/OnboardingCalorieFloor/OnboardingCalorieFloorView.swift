@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingCalorieFloorView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingCalorieFloorViewModel
+    @Binding var path: [OnboardingPathOption]
 
     var body: some View {
         List {
@@ -49,27 +50,6 @@ struct OnboardingCalorieFloorView: View {
             )
         }
         #endif
-        .navigationDestination(isPresented: Binding(
-            get: {
-                if case .trainingType = viewModel.navigationDestination { return true }
-                return false
-            },
-            set: { if !$0 { viewModel.navigationDestination = nil } }
-        )) {
-            Group {
-                if let selectedFloor = viewModel.selectedFloor {
-                    OnboardingTrainingTypeView(
-                        viewModel: OnboardingTrainingTypeViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                        preferredDiet: viewModel.preferredDiet,
-                        calorieFloor: selectedFloor
-                        )
-                    )
-                }
-            }
-        }
     }
     
     @ToolbarContentBuilder
@@ -85,18 +65,8 @@ struct OnboardingCalorieFloorView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                if let floor = viewModel.selectedFloor {
-                    OnboardingTrainingTypeView(
-                        viewModel: OnboardingTrainingTypeViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            preferredDiet: viewModel.preferredDiet,
-                            calorieFloor: floor
-                        )
-                    )
-                }
+            Button {
+                viewModel.navigateToTrainingType(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -107,6 +77,7 @@ struct OnboardingCalorieFloorView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingCalorieFloorView(
             viewModel: OnboardingCalorieFloorViewModel(
@@ -114,7 +85,7 @@ struct OnboardingCalorieFloorView: View {
                     container: DevPreview.shared.container
                 ),
                 preferredDiet: .balanced
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

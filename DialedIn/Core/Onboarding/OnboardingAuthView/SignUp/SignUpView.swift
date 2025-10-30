@@ -10,10 +10,7 @@ import SwiftUI
 struct SignUpView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: SignUpViewModel
-
-    enum NavigationDestination {
-        case emailVerification
-    }
+    @Binding var path: [OnboardingPathOption]
     
     var body: some View {
         List {
@@ -36,23 +33,13 @@ struct SignUpView: View {
             )
         }
         #endif
-        .navigationDestination(isPresented: Binding(
-            get: { viewModel.navigationDestination == .emailVerification },
-            set: { if !$0 { viewModel.navigationDestination = nil } }
-        )) {
-            EmailVerificationView(viewModel: EmailVerificationViewModel(interactor: CoreInteractor(container: container)))
-        }
         .showCustomAlert(alert: $viewModel.showAlert)
         .showModal(showModal: $viewModel.isLoadingUser) {
             ProgressView()
                 .tint(.white)
         }
         .onDisappear {
-            // Clean up any ongoing tasks and reset loading states
-            viewModel.currentAuthTask?.cancel()
-            viewModel.currentAuthTask = nil
-            viewModel.isLoadingAuth = false
-            viewModel.isLoadingUser = false
+            viewModel.cleanup()
         }
     }
     
@@ -125,7 +112,7 @@ struct SignUpView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onSignUpPressed()
+                viewModel.onSignUpPressed(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -135,8 +122,15 @@ struct SignUpView: View {
 }
 
 #Preview("Sign Up") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
-        SignUpView(viewModel: SignUpViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        SignUpView(
+            viewModel: SignUpViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            ), path: $path
+        )
     }
     .previewEnvironment()
 }

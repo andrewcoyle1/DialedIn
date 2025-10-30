@@ -85,18 +85,18 @@ struct SplitViewContainer: View {
                 if let selectedSection = appNavigation.selectedSection {
                     switch selectedSection {
                     case .dashboard:
-                        NavigationOptions.dashboard.viewForPage(container: container)
+                        TabBarOption.dashboard.viewForPage(container: container)
                     case .training:
-                        NavigationOptions.training.viewForPage(container: container)
+                        TabBarOption.training.viewForPage(container: container)
                     case .nutrition:
-                        NavigationOptions.nutrition.viewForPage(container: container)
+                        TabBarOption.nutrition.viewForPage(container: container)
                     case .profile:
-                        NavigationOptions.profile.viewForPage(container: container)
+                        TabBarOption.profile.viewForPage(container: container)
                     case .search:
-                        NavigationOptions.search.viewForPage(container: container)
+                        TabBarOption.search.viewForPage(container: container)
                     }
                 } else {
-                    NavigationOptions.dashboard.viewForPage(container: container)
+                    TabBarOption.dashboard.viewForPage(container: container)
                 }
             }
             .background(
@@ -106,7 +106,7 @@ struct SplitViewContainer: View {
             NavigationStack(path: $detail.path) {
                 detailPlaceholder
             }
-            .navigationDestinationForCoreModule(path: $detail.path)
+            .navDestinationForTabBarModule(path: $detail.path)
         }
         .navigationSplitViewStyle(.balanced)
         .sheet(isPresented: Binding(get: {

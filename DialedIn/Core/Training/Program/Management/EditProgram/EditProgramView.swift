@@ -128,7 +128,14 @@ struct EditProgramView: View {
                     }
                     
                     NavigationLink {
-                        ProgramScheduleView(plan: plan)
+                        ProgramScheduleView(
+                            viewModel: ProgramScheduleViewModel(
+                                interactor: CoreInteractor(
+                                    container: container
+                                )
+                            ),
+                            plan: plan
+                        )
                     } label: {
                         Label("View Schedule", systemImage: "calendar")
                     }

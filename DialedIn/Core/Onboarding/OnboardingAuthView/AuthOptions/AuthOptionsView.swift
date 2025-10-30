@@ -11,14 +11,15 @@ struct AuthOptionsView: View {
     @Environment(DependencyContainer.self) private var container
 
     @State var viewModel: AuthOptionsViewModel
+    @Binding var path: [OnboardingPathOption]
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         VStack {
             imageSection
             Group {
-                SignInWithAppleButtonView { viewModel.onSignInApplePressed() }
-                SignInWithGoogleButtonView { viewModel.onSignInGooglePressed() }
+                SignInWithAppleButtonView { viewModel.onSignInApplePressed(path: $path) }
+                SignInWithGoogleButtonView { viewModel.onSignInGooglePressed(path: $path) }
                 signUpButtonSection
                 signInButtonSection
             }
@@ -40,7 +41,6 @@ struct AuthOptionsView: View {
             }
         }
         #endif
-        .modifier(NavigationDestinationsModifier(navigationDestination: $viewModel.navigationDestination))
         .showCustomAlert(alert: $viewModel.showAlert)
         .safeAreaInset(edge: .bottom) {
             tsAndCsSection
@@ -52,12 +52,16 @@ struct AuthOptionsView: View {
         }
         .onDisappear {
             viewModel.cleanUp()
-            // Clean up any ongoing tasks and reset loading states
-            
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            DevSettingsView(
+                viewModel: DevSettingsViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
         }
         #endif
     }
@@ -77,8 +81,8 @@ struct AuthOptionsView: View {
     }
 
     private var signUpButtonSection: some View {
-        NavigationLink {
-            SignUpView(viewModel: SignUpViewModel(interactor: CoreInteractor(container: container)))
+        Button {
+            viewModel.signUpPressed(path: $path)
         } label: {
             HStack {
                 Text("Sign Up With Email")
@@ -92,14 +96,8 @@ struct AuthOptionsView: View {
     }
 
     private var signInButtonSection: some View {
-        NavigationLink {
-            SignInView(
-                viewModel: SignInViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+        Button {
+            viewModel.signInPressed(path: $path)
         } label: {
             HStack {
                 Text("Sign In With Email")
@@ -126,36 +124,71 @@ struct AuthOptionsView: View {
 // Note: AuthConstants and AuthTimeoutError are now defined in AuthErrorHandler.swift
 
 #Preview("Functioning Auth") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        AuthOptionsView(
+            viewModel: AuthOptionsViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            ), path: $path
+        )
     }
     .previewEnvironment()
 }
 
 #Preview("Slow Auth") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        AuthOptionsView(
+            viewModel: AuthOptionsViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            ), path: $path
+        )
     }
     .previewEnvironment()
 }
 
 #Preview("Failing Auth") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        AuthOptionsView(
+            viewModel: AuthOptionsViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            ), path: $path
+        )
     }
     .previewEnvironment()
 }
 
 #Preview("Slow Login") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        AuthOptionsView(
+            viewModel: AuthOptionsViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            ), path: $path
+        )
     }
     .previewEnvironment()
 }
 
 #Preview("Failing Login") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
-        AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        AuthOptionsView(
+            viewModel: AuthOptionsViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            ), path: $path
+        )
     }
     .previewEnvironment()
 }

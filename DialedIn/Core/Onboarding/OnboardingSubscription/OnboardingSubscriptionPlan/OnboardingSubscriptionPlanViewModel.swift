@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingSubscriptionPlanInteractor {
     var currentUser: UserModel? { get }
@@ -57,14 +57,14 @@ class OnboardingSubscriptionPlanViewModel {
         showRestoreAlert = true
     }
     
-    func onPurchase() {
+    func onPurchase(path: Binding<[OnboardingPathOption]>) {
         // Placeholder flow to simulate purchase
         isPurchasing = true
         Task {
             defer { isPurchasing = false }
             do {
                 try await interactor.purchase()
-                navigateToCompleteAccountSetup = true
+                path.wrappedValue.append(.completeAccount)
             } catch {
                 showAlert = AnyAppAlert(title: "Subscription Failed", subtitle: "We were unable to setup your subscription. Please try again.")
             }

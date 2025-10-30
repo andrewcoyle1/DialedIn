@@ -11,6 +11,7 @@ struct OnboardingGoalSummaryView: View {
     @Environment(DependencyContainer.self) private var container
     @Environment(\.goalFlowDismissAction) private var dismissFlow
     @State var viewModel: OnboardingGoalSummaryViewModel
+    @Binding var path: [OnboardingPathOption]
 
     var body: some View {
         List {
@@ -63,14 +64,8 @@ struct OnboardingGoalSummaryView: View {
                 .buttonStyle(.glassProminent)
                 .disabled(viewModel.isLoading || !viewModel.goalCreated)
             } else {
-                NavigationLink {
-                    OnboardingCustomisingProgramView(
-                        viewModel: OnboardingCustomisingProgramViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        )
-                    )
+                Button {
+                    viewModel.navigateToCustomisingProgram(path: $path)
                 } label: {
                     Image(systemName: "chevron.right")
                 }
@@ -230,6 +225,7 @@ struct OnboardingGoalSummaryView: View {
 }
 
 #Preview("Normal") {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingGoalSummaryView(
             viewModel: OnboardingGoalSummaryViewModel(
@@ -239,7 +235,7 @@ struct OnboardingGoalSummaryView: View {
                 objective: .gainWeight,
                 targetWeight: 82,
                 weightRate: 0.5
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

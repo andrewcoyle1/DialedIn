@@ -14,7 +14,7 @@ struct OnboardingWelcomeView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $viewModel.path) {
             VStack(spacing: 8) {
                 ImageLoaderView(urlString: viewModel.imageName)
                     .ignoresSafeArea()
@@ -35,6 +35,7 @@ struct OnboardingWelcomeView: View {
             }
             #endif
             .screenAppearAnalytics(name: "Welcome")
+            .navigationDestinationOnboardingModule(path: $viewModel.path)
         }
     }
     
@@ -51,8 +52,8 @@ struct OnboardingWelcomeView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: container)))
+            Button {
+                viewModel.navToAppropriateView()
             } label: {
                 Image(systemName: "chevron.right")
             }

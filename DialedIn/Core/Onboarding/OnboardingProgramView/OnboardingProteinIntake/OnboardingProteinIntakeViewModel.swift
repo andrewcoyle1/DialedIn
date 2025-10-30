@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingProteinIntakeInteractor {
     var currentUser: UserModel? { get }
@@ -47,7 +47,7 @@ class OnboardingProteinIntakeViewModel {
         self.calorieDistribution = calorieDistribution
     }
     
-    func createPlan() {
+    func createPlan(path: Binding<[OnboardingPathOption]>) {
         showModal = true
         interactor.trackEvent(event: Event.createPlanStart)
         Task {
@@ -65,7 +65,7 @@ class OnboardingProteinIntakeViewModel {
                         configuration: configuration
                     )
                     interactor.trackEvent(event: Event.createPlanSuccess)
-                    navigateToNextStep = true
+                    path.wrappedValue.append(.dietPlan)
                 }
             } catch {
                 interactor.trackEvent(event: Event.createPlanFail(error: error))
@@ -73,7 +73,7 @@ class OnboardingProteinIntakeViewModel {
             showModal = false
         }
     }
-    
+        
     enum Event: LoggableEvent {
         case createPlanStart
         case createPlanSuccess

@@ -15,7 +15,7 @@ struct TemplateListConfiguration<Template: TemplateModel> {
     let emptyStateDescription: String
     let errorTitle: String
     let errorSubtitle: String
-    let navigationDestination: (Template) -> NavigationPathOption
+    let navigationDestination: (Template) -> TabBarPathOption
     
     init(
         title: String,
@@ -24,7 +24,7 @@ struct TemplateListConfiguration<Template: TemplateModel> {
         emptyStateDescription: String,
         errorTitle: String = "Unable to Load",
         errorSubtitle: String = "Please check your internet connection and try again.",
-        navigationDestination: @escaping (Template) -> NavigationPathOption
+        navigationDestination: @escaping (Template) -> TabBarPathOption
     ) {
         self.title = title
         self.emptyStateTitle = emptyStateTitle

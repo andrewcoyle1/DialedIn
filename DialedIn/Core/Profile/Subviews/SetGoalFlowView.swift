@@ -10,6 +10,7 @@ import SwiftUI
 struct SetGoalFlowView: View {
     @Environment(DependencyContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
+    @State var path: [OnboardingPathOption] = []
     
     var body: some View {
         NavigationStack {
@@ -19,7 +20,7 @@ struct SetGoalFlowView: View {
                         container: container
                     ),
                     isStandaloneMode: true
-                )
+                ), path: $path
             )
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

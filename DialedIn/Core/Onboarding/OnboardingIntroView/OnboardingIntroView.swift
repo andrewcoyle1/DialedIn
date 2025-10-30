@@ -10,7 +10,8 @@ import SwiftUI
 struct OnboardingIntroView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingIntroViewModel
-    
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             trainingSection
@@ -119,8 +120,8 @@ struct OnboardingIntroView: View {
     
     private var buttonSection: some View {
         VStack(spacing: 12) {
-            NavigationLink {
-                AuthOptionsView(viewModel: AuthOptionsViewModel(interactor: CoreInteractor(container: container)))
+            Button {
+                viewModel.navigateToAuthOptions(path: $path)
             } label: {
                 Text("Continue")
                     .frame(maxWidth: .infinity)
@@ -132,13 +133,14 @@ struct OnboardingIntroView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingIntroView(
             viewModel: OnboardingIntroViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

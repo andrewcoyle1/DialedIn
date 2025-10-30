@@ -34,7 +34,7 @@ struct DashboardView: View {
         .navigationTitle("Dashboard")
         .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
         .navigationBarTitleDisplayMode(.large)
-
+        .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }

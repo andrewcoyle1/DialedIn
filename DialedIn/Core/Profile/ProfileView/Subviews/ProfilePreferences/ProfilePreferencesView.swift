@@ -16,23 +16,29 @@ struct ProfilePreferencesView: View {
             NavigationLink {
                 SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: container)))
             } label: {
-                ProfileSectionCard(
-                    icon: "gearshape",
-                    iconColor: .gray,
-                    title: "Preferences"
-                ) {
-                    if let user = viewModel.currentUser {
-                        VStack(spacing: 8) {
-                            MetricRow(
-                                label: "Units",
-                                value: viewModel.formatUnitPreferences(
-                                    length: user.lengthUnitPreference,
-                                    weight: user.weightUnitPreference
-                                )
+                if let user = viewModel.currentUser {
+                    VStack(spacing: 8) {
+                        MetricRow(
+                            label: "Units",
+                            value: viewModel.formatUnitPreferences(
+                                length: user.lengthUnitPreference,
+                                weight: user.weightUnitPreference
                             )
-                        }
+                        )
                     }
                 }
+            }
+        } header: {
+            HStack(spacing: 8) {
+                Image(systemName: "gearshape")
+                    .font(.title3)
+                    .foregroundStyle(.gray)
+                    .frame(width: 28)
+                
+                Text("Preferences")
+                    .font(.headline)
+                
+                Spacer()
             }
         }
     }

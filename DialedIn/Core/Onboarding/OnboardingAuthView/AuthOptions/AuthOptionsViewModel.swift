@@ -36,7 +36,7 @@ class AuthOptionsViewModel {
     #endif
     
     init(
-        interactor: AuthOptionsInteractor
+        interactor: AuthOptionsInteractor,
     ) {
         self.interactor = interactor
     }
@@ -46,7 +46,7 @@ class AuthOptionsViewModel {
         currentAuthTask = nil
     }
     
-    func onSignInApplePressed() {
+    func onSignInApplePressed(path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent race conditions
         currentAuthTask?.cancel()
         
@@ -65,13 +65,13 @@ class AuthOptionsViewModel {
                 interactor.trackEvent(event: Event.appleAuthSuccess)
 
                 // Proceed immediately to signing in the user on success
-                handleOnAuthSuccess(user: result)
+                handleOnAuthSuccess(user: result, path: path)
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
                     handleAuthError(error, provider: "Apple") {
                         Task { @MainActor in
-                            self.onSignInApplePressed()
+                            self.onSignInApplePressed(path: path)
                         }
                     }
                 }
@@ -79,7 +79,7 @@ class AuthOptionsViewModel {
         }
     }
 
-    func onSignInGooglePressed() {
+    func onSignInGooglePressed(path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent race conditions
         currentAuthTask?.cancel()
         
@@ -97,13 +97,13 @@ class AuthOptionsViewModel {
                 interactor.trackEvent(event: Event.googleAuthSuccess)
 
                 // Proceed immediately to signing in the user on success
-                handleOnAuthSuccess(user: result)
+                handleOnAuthSuccess(user: result, path: path)
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
                     handleAuthError(error, provider: "Google") {
                         Task { @MainActor in
-                            self.onSignInGooglePressed()
+                            self.onSignInGooglePressed(path: path)
                         }
                     }
                 }
@@ -111,7 +111,7 @@ class AuthOptionsViewModel {
         }
     }
     
-    func handleOnAuthSuccess(user: UserAuthInfo) {
+    func handleOnAuthSuccess(user: UserAuthInfo, path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent conflicts
         currentAuthTask?.cancel()
         
@@ -132,13 +132,13 @@ class AuthOptionsViewModel {
                 interactor.trackEvent(event: Event.userLoginSuccess)
 
                 // Navigate to appropriate view
-                handleNavigation()
+                handleNavigation(path: path)
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
                     handleUserLoginError(error) {
                         Task { @MainActor in
-                            self.handleOnAuthSuccess(user: user)
+                            self.handleOnAuthSuccess(user: user, path: path)
                         }
                     }
                 }
@@ -146,10 +146,12 @@ class AuthOptionsViewModel {
         }
     }
     
-    func handleNavigation() {
+    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
         // Navigate based on user's current onboarding step
-        let destination = getNavigationDestination(for: interactor.currentUser?.onboardingStep ?? .auth)
-        navigationDestination = destination
+        
+        path.wrappedValue.append(.subscriptionInfo)
+//        let destination = getNavigationDestination(for: interactor.currentUser?.onboardingStep ?? .auth)
+//        navigationDestination = destination
     }
     
     // MARK: - Helper Methods
@@ -230,6 +232,16 @@ class AuthOptionsViewModel {
         )
     }
     
+    func signUpPressed(path: Binding<[OnboardingPathOption]>) {
+        interactor.trackEvent(event: Event.signUpPressed)
+        path.wrappedValue.append(.signUp)
+    }
+    
+    func signInPressed(path: Binding<[OnboardingPathOption]>) {
+        interactor.trackEvent(event: Event.signUpPressed)
+        path.wrappedValue.append(.signIn)
+    }
+    
     func cleanUp() {
         currentAuthTask?.cancel()
         currentAuthTask = nil
@@ -248,6 +260,9 @@ class AuthOptionsViewModel {
         case googleAuthSuccess
         case googleAuthFail(error: Error)
 
+        case signInPressed
+        case signUpPressed
+        
         case userLoginStart
         case userLoginSuccess
         case userLoginFail(error: Error)
@@ -259,6 +274,8 @@ class AuthOptionsViewModel {
             case .googleAuthStart:   return "OnboardingAuth_GoogleAuth_Start"
             case .googleAuthSuccess: return "OnboardingAuth_GoogleAuth_Success"
             case .googleAuthFail:    return "OnboardingAuth_GoogleAuth_Fail"
+            case .signInPressed:     return "OnboardingAuth_SignIn_Pressed"
+            case .signUpPressed:     return "OnboardingAuth_SignUp_Pressed"
             case .userLoginStart:    return "OnboardingAuth_UserLogin_Start"
             case .userLoginSuccess:  return "OnboardingAuth_UserLogin_Success"
             case .userLoginFail:     return "OnboardingAuth_UserLogin_Fail"
@@ -277,9 +294,11 @@ class AuthOptionsViewModel {
         var type: LogType {
             switch self {
             case .appleAuthFail, .googleAuthFail, .userLoginFail:
-                return .severe
+                return LogType.severe
+            case .signInPressed, .signUpPressed:
+                return LogType.info
             default:
-                return .analytic
+                return LogType.analytic
 
             }
         }

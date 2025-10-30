@@ -10,7 +10,8 @@ import SwiftUI
 struct OnboardingHeightView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingHeightViewModel
-    
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             pickerSection
@@ -109,18 +110,8 @@ struct OnboardingHeightView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                OnboardingWeightView(
-                    viewModel: OnboardingWeightViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        gender: viewModel.gender,
-                        dateOfBirth: viewModel.dateOfBirth,
-                        height: viewModel.height,
-                        lengthUnitPreference: viewModel.preference
-                    )
-                )
+            Button {
+                viewModel.navigateToWeightView(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -130,6 +121,7 @@ struct OnboardingHeightView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingHeightView(
             viewModel: OnboardingHeightViewModel(
@@ -138,7 +130,7 @@ struct OnboardingHeightView: View {
                 ),
                 gender: .male,
                 dateOfBirth: Date()
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

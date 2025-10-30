@@ -79,7 +79,6 @@ struct Dependencies {
             hkWorkoutManager.liveActivityUpdater = liveActivityManager
             #endif
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
-            pushManager = PushManager(services: MockPushServices(), logManager: logManager)
 
         case .dev:
             let logs = LogManager(services: [
@@ -119,7 +118,6 @@ struct Dependencies {
             hkWorkoutManager.liveActivityUpdater = liveActivityManager
             #endif
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
-            pushManager = PushManager(services: ProductionPushServices(), logManager: logs)
 
         case .prod:
             let logs = LogManager(services: [
@@ -158,10 +156,10 @@ struct Dependencies {
             hkWorkoutManager.liveActivityUpdater = liveActivityManager
             #endif
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
-            pushManager = PushManager(services: ProductionPushServices(), logManager: logs)
 
         }
         detailNavigationModel = DetailNavigationModel()
+        pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
         healthKitManager = HealthKitManager(service: HealthKitService())
         
         let container = DependencyContainer()

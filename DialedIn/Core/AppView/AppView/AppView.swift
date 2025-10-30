@@ -25,32 +25,44 @@ struct AppView: View {
                 onApplicationWillResignActive: nil,
                 onApplicationDidEnterBackground: nil,
                 onApplicationWillTerminate: nil
-            ), content: {
+            ),
+            content: {
                 AppViewBuilder(
                     showTabBar: {
-                        if let auth = viewModel.auth, !auth.isAnonymous,
+                        if let auth = viewModel.auth,
+                           !auth.isAnonymous,
                            viewModel.currentUser?.onboardingStep == .complete {
                             return true
                         }
                         return false
                     }(),
                     tabBarView: {
-                        AdaptiveMainView()
+                        AdaptiveMainView(
+                            viewModel: AdaptiveMainViewModel(
+                                interactor: CoreInteractor(
+                                    container: container
+                                )
+                            )
+                        )
                     },
                     onboardingView: {
-                        OnboardingRouterView(viewModel: OnboardingRouterViewModel(interactor: CoreInteractor(container: container)))
+                        OnboardingWelcomeView(
+                            viewModel: OnboardingWelcomeViewModel(
+                                interactor: CoreInteractor(
+                                    container: container
+                                )
+                            )
+                        )
                     }
                 )
                 .environment(appState)
-                .task {
-                    await viewModel.checkUserStatus()
-                }
-                .task {
-                    try? await Task.sleep(for: .seconds(2))
-                    await viewModel.showATTPromptIfNeeded()
-                }
                 .onFirstAppear {
                     viewModel.schedulePushNotifications()
+                }
+                .task {
+                    await viewModel.checkUserStatus()
+                    try? await Task.sleep(for: .seconds(2))
+                    await viewModel.showATTPromptIfNeeded()
                 }
             }
         )
@@ -60,11 +72,29 @@ struct AppView: View {
 // MARK: - Completed Onboarding Previews
 
 #Preview("✅ Completed - Tab Bar") {
-    AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), appState: AppState(showTabBar: true))
+    AppView(
+        viewModel: AppViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        ),
+        appState: AppState(
+            showTabBar: true
+        )
+    )
 }
 
 // MARK: - Onboarding Step Previews
 
 #Preview("1️⃣ Not Authenticated") {
-    AppView(viewModel: AppViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), appState: AppState(showTabBar: false))
+    AppView(
+        viewModel: AppViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        ),
+        appState: AppState(
+            showTabBar: false
+        )
+    )
 }

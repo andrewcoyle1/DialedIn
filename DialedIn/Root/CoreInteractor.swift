@@ -41,7 +41,6 @@ struct CoreInteractor {
     private let hkWorkoutManager: HKWorkoutManager
     private let liveActivityManager: LiveActivityManager
 #endif
-    private let imageUploadManager: ImageUploadManager
     
     init(
         container: DependencyContainer
@@ -73,7 +72,6 @@ struct CoreInteractor {
         self.hkWorkoutManager = container.resolve(HKWorkoutManager.self)!
         self.liveActivityManager = container.resolve(LiveActivityManager.self)!
 #endif
-        self.imageUploadManager = container.resolve(ImageUploadManager.self)!
     }
     
     // MARK: AuthManager
@@ -146,6 +144,10 @@ struct CoreInteractor {
     
     var currentUser: UserModel? {
         userManager.currentUser
+    }
+    
+    var onboardingStep: OnboardingStep {
+        userManager.currentUser?.onboardingStep ?? .auth
     }
     
     func currentUserId() throws -> String? {
@@ -268,15 +270,7 @@ struct CoreInteractor {
     // User deletion
     
     func deleteCurrentUser() async throws {
-        try await userManager.deleteCurrentUser(
-            workoutSessionManager: workoutSessionManager,
-            exerciseHistoryManager: exerciseHistoryManager,
-            exerciseTemplateManager: exerciseTemplateManager,
-            workoutTemplateManager: workoutTemplateManager,
-            ingredientTemplateManager: ingredientTemplateManager,
-            recipeTemplateManager: recipeTemplateManager,
-            imageUploadManager: imageUploadManager
-        )
+        try await userManager.deleteCurrentUser()
     }
     
     // Template Management
@@ -821,6 +815,13 @@ struct CoreInteractor {
     func setActivePlan(_ plan: TrainingPlan) {
         trainingPlanManager.setActivePlan(plan)
     }
+
+    func markWorkoutIncompleteIfSessionDeleted(scheduledWorkoutId: String, sessionId: String) async throws {
+        try await trainingPlanManager.markWorkoutIncompleteIfSessionDeleted(
+            scheduledWorkoutId: scheduledWorkoutId,
+            sessionId: sessionId
+        )
+    }
     
     // Progress Tracking
     
@@ -1319,7 +1320,7 @@ struct CoreInteractor {
     
     // MARK: DetailNavigationModel
     
-    var path: [NavigationPathOption] {
+    var path: [TabBarPathOption] {
         detailNavigationModel.path
     }
     

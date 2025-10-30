@@ -10,7 +10,8 @@ import SwiftUI
 struct OnboardingExerciseFrequencyView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingExerciseFrequencyViewModel
-    
+    @Binding var path: [OnboardingPathOption]
+
     var body: some View {
         List {
             exerciseFrequencySection
@@ -44,7 +45,7 @@ struct OnboardingExerciseFrequencyView: View {
                         exerciseFrequency: exerciseFrequency,
                         lengthUnitPreference: lengthUnitPreference,
                         weightUnitPreference: weightUnitPreference
-                    )
+                    ), path: $path
                 )
             } else {
                 EmptyView()
@@ -79,23 +80,8 @@ struct OnboardingExerciseFrequencyView: View {
         #endif
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
-            NavigationLink {
-                if let frequency = viewModel.selectedFrequency {
-                    OnboardingActivityView(
-                        viewModel: OnboardingActivityViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            gender: viewModel.gender,
-                            dateOfBirth: viewModel.dateOfBirth,
-                            height: viewModel.height,
-                            weight: viewModel.weight,
-                            exerciseFrequency: frequency,
-                            lengthUnitPreference: viewModel.lengthUnitPreference,
-                            weightUnitPreference: viewModel.weightUnitPreference
-                        )
-                    )
-                }
+            Button {
+                viewModel.navigateToOnboardingActivity(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -127,6 +113,7 @@ struct OnboardingExerciseFrequencyView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
         OnboardingExerciseFrequencyView(
             viewModel: OnboardingExerciseFrequencyViewModel(
@@ -139,7 +126,7 @@ struct OnboardingExerciseFrequencyView: View {
                 weight: 70,
                 lengthUnitPreference: .centimeters,
                 weightUnitPreference: .kilograms
-            )
+            ), path: $path
         )
     }
     .previewEnvironment()

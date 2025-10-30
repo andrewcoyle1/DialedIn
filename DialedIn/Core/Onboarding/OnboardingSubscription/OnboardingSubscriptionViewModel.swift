@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 28/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol OnboardingSubscriptionInteractor {
     
@@ -26,5 +26,9 @@ class OnboardingSubscriptionViewModel {
         interactor: OnboardingSubscriptionInteractor
     ) {
         self.interactor = interactor
+    }
+    
+    func navigateToSubscriptionPlan(path: Binding<[OnboardingPathOption]>) {
+        path.wrappedValue.append(.subscriptionPlan)
     }
 }
