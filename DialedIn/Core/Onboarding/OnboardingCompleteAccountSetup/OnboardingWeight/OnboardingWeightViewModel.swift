@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingWeightInteractor {
-    
+    func updateUserWeight(_ weight: Double, weightUnitPreference: WeightUnitPreference) throws
 }
 
 extension CoreInteractor: OnboardingWeightInteractor { }
@@ -17,20 +17,12 @@ extension CoreInteractor: OnboardingWeightInteractor { }
 @MainActor
 class OnboardingWeightViewModel {
     private let interactor: OnboardingWeightInteractor
-    
-    let gender: Gender
-    let dateOfBirth: Date
-    let height: Double
-    let lengthUnitPreference: LengthUnitPreference
-    
+        
     var unit: UnitOfWeight = .kilograms
     var selectedKilograms: Int = 70
     var selectedPounds: Int = 154
-    var navigationDestination: NavigationDestination?
     
-    enum NavigationDestination {
-        case exerciseFrequency(gender: Gender, dateOfBirth: Date, height: Double, weight: Double, lengthUnitPreference: LengthUnitPreference, weightUnitPreference: WeightUnitPreference)
-    }
+    var showAlert: AnyAppAlert?
     
     var weight: Double {
         switch unit {
@@ -76,21 +68,16 @@ class OnboardingWeightViewModel {
         selectedKilograms = Int(Double(selectedPounds) / 2.20462)
     }
     
-    init(
-        interactor: OnboardingWeightInteractor,
-        gender: Gender,
-        dateOfBirth: Date,
-        height: Double,
-        lengthUnitPreference: LengthUnitPreference
-    ) {
+    init(interactor: OnboardingWeightInteractor) {
         self.interactor = interactor
-        self.gender = gender
-        self.dateOfBirth = dateOfBirth
-        self.height = height
-        self.lengthUnitPreference = lengthUnitPreference
     }
     
     func navigateToExerciseFrequency(path: Binding<[OnboardingPathOption]>) {
-        path.wrappedValue.append(.exerciseFrequency(gender: gender, dateOfBirth: dateOfBirth, height: height, weight: weight, lengthUnitPreference: lengthUnitPreference, weightUnitPreference: preference))
+        do {
+            try interactor.updateUserWeight(weight, weightUnitPreference: preference)
+            path.wrappedValue.append(.exerciseFrequency)
+        } catch {
+            showAlert = AnyAppAlert(error: error)
+        }
     }
 }

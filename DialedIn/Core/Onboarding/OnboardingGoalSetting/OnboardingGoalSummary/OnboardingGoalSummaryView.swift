@@ -87,14 +87,14 @@ struct OnboardingGoalSummaryView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Your Goal")
                             .font(.headline)
-                        Text(viewModel.objective.description)
+                        Text(objectiveTitle)
                             .font(.title3)
                             .fontWeight(.semibold)
                     }
                     Spacer()
                 }
                 
-                Text(viewModel.objective.detailedDescription)
+                Text(objectiveDetail)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -115,11 +115,13 @@ struct OnboardingGoalSummaryView: View {
                     )
                 }
                 
-                weightRow(
-                    title: "Target Weight",
-                    weight: viewModel.targetWeight,
-                    unit: viewModel.weightUnit
-                )
+                if let target = viewModel.goalDraft.targetWeightKg {
+                    weightRow(
+                        title: "Target Weight",
+                        weight: target,
+                        unit: viewModel.weightUnit
+                    )
+                }
                 
                 if viewModel.weightDifference != 0 {
                     Divider()
@@ -140,7 +142,7 @@ struct OnboardingGoalSummaryView: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
-                        Text("\(viewModel.formatWeight(viewModel.weightRate, unit: viewModel.weightUnit))/week")
+                        Text("\(viewModel.formatWeight(viewModel.goalDraft.weeklyChangeKg ?? 0, unit: viewModel.weightUnit))/week")
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
@@ -176,7 +178,7 @@ struct OnboardingGoalSummaryView: View {
                 }
                 
                 if viewModel.estimatedWeeks > 0 {
-                    Text("Based on your selected rate of \(viewModel.formatWeight(viewModel.weightRate, unit: viewModel.weightUnit)) per week")
+                    Text("Based on your selected rate of \(viewModel.formatWeight(viewModel.goalDraft.weeklyChangeKg ?? 0, unit: viewModel.weightUnit)) per week")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -224,6 +226,22 @@ struct OnboardingGoalSummaryView: View {
     }
 }
 
+private extension OnboardingGoalSummaryView {
+    var objectiveTitle: String {
+        let objective = viewModel.goalDraft.objective?.lowercased() ?? ""
+        if objective.contains("lose") { return "Lose weight" }
+        if objective.contains("maintain") { return "Maintain" }
+        return "Gain weight"
+    }
+    
+    var objectiveDetail: String {
+        let objective = viewModel.goalDraft.objective?.lowercased() ?? ""
+        if objective.contains("lose") { return "Goal of losing weight" }
+        if objective.contains("maintain") { return "Goal of maintaining weight" }
+        return "Goal of gaining weight"
+    }
+}
+
 #Preview("Normal") {
     @Previewable @State var path: [OnboardingPathOption] = []
     NavigationStack {
@@ -231,10 +249,7 @@ struct OnboardingGoalSummaryView: View {
             viewModel: OnboardingGoalSummaryViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                objective: .gainWeight,
-                targetWeight: 82,
-                weightRate: 0.5
+                )
             ), path: $path
         )
     }

@@ -25,27 +25,19 @@ class OnboardingHealthDataViewModel {
     #endif
     
     var showAlert: AnyAppAlert?
-    var navigationDestination: NavigationDestination?
-    
-    enum NavigationDestination {
-        case gender
-        case notifications
-    }
-    
-    init(
-        interactor: OnboardingHealthDataInteractor
-    ) {
+        
+    init(interactor: OnboardingHealthDataInteractor) {
         self.interactor = interactor
     }
     
-    func onAllowAccessPressed() {
+    func onAllowAccessPressed(path: Binding<[OnboardingPathOption]>) {
         Task {
             interactor.trackEvent(event: Event.enableHealthKitStart)
             do {
                 try await interactor.requestHealthKitAuthorisation()
                 interactor.trackEvent(event: Event.enableHealthKitSuccess)
-                let canRequest = await interactor.canRequestHealthDataAuthorisation()
-                navigationDestination = canRequest ? .notifications : .gender
+//                let canRequest = await interactor.canRequestHealthDataAuthorisation()
+                path.wrappedValue.append(.gender)
             } catch {
                 interactor.trackEvent(event: Event.enableHealthKitFail(error: error))
                 showAlert = AnyAppAlert(error: error)

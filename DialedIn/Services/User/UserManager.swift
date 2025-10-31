@@ -15,7 +15,7 @@ class UserManager {
     private let logManager: LogManager?
     
     private(set) var currentUser: UserModel?
-    
+    private(set) var userDraft: UserModel?
     private var currentUserListener: (() -> Void)?
     
     init(services: UserServices, logManager: LogManager? = nil) {
@@ -23,6 +23,7 @@ class UserManager {
         self.local = services.local
         self.logManager = logManager
         self.currentUser = local.getCurrentUser()
+        self.userDraft = self.currentUser
     }
     
     // MARK: - Local operations
@@ -157,9 +158,72 @@ class UserManager {
         // Refresh onboarding step from persisted user if available
     }
     
+    func updateNameAndImage(_ firstName: String, _ lastName: String?, _ profileImageUrl: String?) throws {
+        guard var draft = userDraft else { throw UserManagerError.noUserId }
+        
+        draft.updateNameAndImageURL(firstName: firstName, lastName: lastName, imageUrl: profileImageUrl)
+        self.userDraft = draft
+    }
+    
+    func updateDateOfBirth(_ dateOfBirth: Date) throws {
+        guard var draft = userDraft else { throw UserManagerError.noUserId }
+        
+        draft.updateDateOfBirth(dateOfBirth)
+        self.userDraft = draft
+    }
+    
+    func updateGender(_ gender: Gender) throws {
+        guard var draft = userDraft else { throw UserManagerError.noUserId }
+        
+        draft.updateGender(gender)
+        self.userDraft = draft
+    }
+    
+    func updateHeight(_ height: Double, lengthUnitPreference: LengthUnitPreference) throws {
+        guard var draft = userDraft else { throw UserManagerError.noUserId }
+
+        draft.updateHeight(height, lengthUnitPreference: lengthUnitPreference)
+    }
+    
+    func updateUserWeight(_ weight: Double, weightUnitPreference: WeightUnitPreference) throws {
+        guard var draft = userDraft else { throw UserManagerError.noUserId }
+
+        draft.updateWeight(weight, weightUnitPreference: weightUnitPreference)
+        self.userDraft = draft
+    }
+    
+    func updateUserActivityLevel(_ activityLevel: ProfileDailyActivityLevel) throws {
+        guard var draft = userDraft else { throw UserManagerError.noUserId }
+
+        draft.updateActivityLevel(activityLevel)
+        self.userDraft = draft
+    }
+    
+    func updateUserExerciseFrequency(_ frequency: ProfileExerciseFrequency) throws {
+        guard var draft = userDraft else { throw UserManagerError.noUserId }
+
+        draft.updateExerciseFrequency(frequency)
+        self.userDraft = draft
+    }
+    
+    func updateUserCardioFitness(_ level: ProfileCardioFitnessLevel) throws {
+        guard var draft = userDraft else { throw UserManagerError.noUserId }
+
+        draft.updateCardioFitness(level)
+        self.userDraft = draft
+    }
+    
+    func updateWeightChangeRate(to value: Double) throws {
+        guard var draft = userDraft else { throw UserManagerError.noUserId }
+
+        // TODO: Add logic
+        self.userDraft = draft
+
+    }
+    
     func saveUser(user: UserModel, image: PlatformImage?) async throws {
         try await remote.saveUser(user: user, image: image)
-        
+        self.userDraft = currentUser
         // Cache the image locally if provided
         if let image = image {
             do {

@@ -9,7 +9,9 @@ import SwiftUI
 
 protocol OnboardingProteinIntakeInteractor {
     var currentUser: UserModel? { get }
+    var dietPlanDraft: DietPlanDraft { get }
     func createAndSaveDietPlan(user: UserModel?, configuration: DietPlanConfiguration) async throws
+    func resetDietPlanDraft()
     func trackEvent(event: LoggableEvent)
 }
 
@@ -19,12 +21,7 @@ extension CoreInteractor: OnboardingProteinIntakeInteractor { }
 @MainActor
 class OnboardingProteinIntakeViewModel {
     private let interactor: OnboardingProteinIntakeInteractor
-    
-    let preferredDiet: PreferredDiet
-    let calorieFloor: CalorieFloor
-    let trainingType: TrainingType
-    let calorieDistribution: CalorieDistribution
-    
+        
     var selectedProteinIntake: ProteinIntake?
     var navigateToNextStep: Bool = false
     var showModal: Bool = false
@@ -33,18 +30,8 @@ class OnboardingProteinIntakeViewModel {
     var showDebugView: Bool = false
     #endif
     
-    init(
-        interactor: OnboardingProteinIntakeInteractor,
-        preferredDiet: PreferredDiet,
-        calorieFloor: CalorieFloor,
-        trainingType: TrainingType,
-        calorieDistribution: CalorieDistribution
-    ) {
+    init(interactor: OnboardingProteinIntakeInteractor) {
         self.interactor = interactor
-        self.preferredDiet = preferredDiet
-        self.calorieFloor = calorieFloor
-        self.trainingType = trainingType
-        self.calorieDistribution = calorieDistribution
     }
     
     func createPlan(path: Binding<[OnboardingPathOption]>) {
@@ -53,6 +40,14 @@ class OnboardingProteinIntakeViewModel {
         Task {
             do {
                 if let proteinIntake = selectedProteinIntake {
+                    let diet = interactor.dietPlanDraft
+                    guard let preferredDiet = diet.preferredDiet,
+                          let calorieFloor = diet.calorieFloor,
+                          let trainingType = diet.trainingType,
+                          let calorieDistribution = diet.calorieDistribution else {
+                        throw NSError(domain: "DietPlanError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Diet plan draft is incomplete"])
+                    }
+                    
                     let configuration = DietPlanConfiguration(
                         preferredDiet: preferredDiet,
                         calorieFloor: calorieFloor,
@@ -64,6 +59,7 @@ class OnboardingProteinIntakeViewModel {
                         user: interactor.currentUser,
                         configuration: configuration
                     )
+                    interactor.resetDietPlanDraft()
                     interactor.trackEvent(event: Event.createPlanSuccess)
                     path.wrappedValue.append(.dietPlan)
                 }

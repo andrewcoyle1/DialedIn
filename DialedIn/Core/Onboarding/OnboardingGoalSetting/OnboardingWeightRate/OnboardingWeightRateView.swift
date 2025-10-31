@@ -163,9 +163,7 @@ struct OnboardingWeightRateView: View {
             viewModel: OnboardingWeightRateViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                objective: .gainWeight,
-                targetWeight: 80
+                )
             ), path: $path
         )
     }
@@ -179,9 +177,7 @@ struct OnboardingWeightRateView: View {
             viewModel: OnboardingWeightRateViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                objective: .loseWeight,
-                targetWeight: 60
+                )
             ), path: $path
         )
     }

@@ -9,6 +9,9 @@ import SwiftUI
 
 protocol OnboardingOverarchingObjectiveInteractor {
     var currentUser: UserModel? { get }
+    func setObjective(_ objective: OverarchingObjective)
+    func setTargetWeightKg(_ value: Double)
+    func setWeeklyChangeKg(_ value: Double)
 }
 
 extension CoreInteractor: OnboardingOverarchingObjectiveInteractor { }
@@ -41,12 +44,14 @@ class OnboardingOverarchingObjectiveViewModel {
     }
     
     func navigateToNextStep(path: Binding<[OnboardingPathOption]>) {
-        if let objective = selectedObjective, let weight = userWeight {
-            if objective != .maintain {
-                path.wrappedValue.append(.targetWeight(objective: objective))
-            } else {
-                path.wrappedValue.append(.goalSummary(objective: objective, targetWeight: weight, weightRate: 0))
-            }
+        guard let objective = selectedObjective, let weight = userWeight else { return }
+        interactor.setObjective(objective)
+        if objective == .maintain {
+            interactor.setTargetWeightKg(weight)
+            interactor.setWeeklyChangeKg(0)
+            path.wrappedValue.append(.goalSummary)
+        } else {
+            path.wrappedValue.append(.targetWeight)
         }
     }
 }

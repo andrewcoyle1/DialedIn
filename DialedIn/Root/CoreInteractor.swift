@@ -146,6 +146,10 @@ struct CoreInteractor {
         userManager.currentUser
     }
     
+    var userDraft: UserModel? {
+        userManager.userDraft
+    }
+    
     var onboardingStep: OnboardingStep {
         userManager.currentUser?.onboardingStep ?? .auth
     }
@@ -174,6 +178,45 @@ struct CoreInteractor {
         try await userManager.saveUser(user: user, image: image)
     }
     
+    func updateNameAndImage(_ firstName: String, _ lastName: String?, _ profileImageUrl: String?) throws {
+        try userManager.updateNameAndImage(firstName, lastName, profileImageUrl)
+    }
+    
+    func updateDateOfBirth(_ dateOfBirth: Date) throws {
+        try userManager.updateDateOfBirth(dateOfBirth)
+    }
+    
+    func updateGender(_ gender: Gender) throws {
+        try userManager.updateGender(gender)
+    }
+    
+    func updateHeight(_ height: Double, lengthUnitPreference: LengthUnitPreference) throws {
+        try userManager.updateHeight(height, lengthUnitPreference: lengthUnitPreference)
+    }
+    
+    func updateUserWeight(_ weight: Double, weightUnitPreference: WeightUnitPreference) throws {
+        try userManager.updateUserWeight(weight, weightUnitPreference: weightUnitPreference)
+    }
+    
+    func updateUserActivityLevel(_ activityLevel: ActivityLevel) throws {
+        let profileActivityLevel = mapProfileActivityLevel(activityLevel)
+        try userManager.updateUserActivityLevel(profileActivityLevel)
+    }
+
+    func updateUserExerciseFrequency(_ exerciseFrequency: ExerciseFrequency) throws {
+        let profileExerciseFrequency = mapProfileExerciseFrequency(exerciseFrequency)
+        try userManager.updateUserExerciseFrequency(profileExerciseFrequency)
+    }
+    
+    func updateUserCardioFitness(_ level: CardioFitnessLevel) throws {
+        let profileCardioFitness  = mapProfileCardioFitness(level)
+        try userManager.updateUserCardioFitness(profileCardioFitness)
+    }
+    
+    func updateWeightChangeRate(to value: Double) throws {
+        try userManager.updateWeightChangeRate(to: value)
+    }
+    
     // swiftlint:disable:next function_parameter_count
     func saveCompleteAccountSetupProfile(
         dateOfBirth: Date,
@@ -198,6 +241,18 @@ struct CoreInteractor {
                 lengthUnitPreference: lengthUnitPreference,
                 weightUnitPreference: weightUnitPreference
             )
+    }
+
+    private func mapProfileExerciseFrequency(_ frequency: ExerciseFrequency) -> ProfileExerciseFrequency {
+        ProfileExerciseFrequency(rawValue: frequency.rawValue) ?? .threeToFour
+    }
+
+    private func mapProfileActivityLevel(_ activityLevel: ActivityLevel) -> ProfileDailyActivityLevel {
+        ProfileDailyActivityLevel(rawValue: activityLevel.rawValue) ?? .moderate
+    }
+    
+    private func mapProfileCardioFitness(_ level: CardioFitnessLevel) -> ProfileCardioFitnessLevel {
+        ProfileCardioFitnessLevel(rawValue: level.rawValue) ?? .intermediate
     }
     
     func logOut() {
@@ -1087,6 +1142,34 @@ struct CoreInteractor {
         try await nutritionManager.createAndSaveDietPlan(user: user, configuration: configuration)
     }
     
+    var dietPlanDraft: DietPlanDraft {
+        nutritionManager.dietPlanDraft
+    }
+    
+    func setPreferredDiet(_ value: PreferredDiet) {
+        nutritionManager.setPreferredDiet(value)
+    }
+    
+    func setCalorieFloor(_ value: CalorieFloor) {
+        nutritionManager.setCalorieFloor(value)
+    }
+    
+    func setTrainingType(_ value: TrainingType) {
+        nutritionManager.setTrainingType(value)
+    }
+    
+    func setCalorieDistribution(_ value: CalorieDistribution) {
+        nutritionManager.setCalorieDistribution(value)
+    }
+    
+    func setProteinIntake(_ value: ProteinIntake) {
+        nutritionManager.setProteinIntake(value)
+    }
+    
+    func resetDietPlanDraft() {
+        nutritionManager.resetDietPlanDraft()
+    }
+    
     // Get daily macro target for a specific date from the current diet plan
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget? {
         try await nutritionManager.getDailyTarget(for: date, userId: userId)
@@ -1364,6 +1447,10 @@ struct CoreInteractor {
         goalManager.goalHistory
     }
     
+    var goalDraft: GoalDraft {
+        goalManager.goalDraft
+    }
+    
     func createGoal(
         userId: String,
         objective: String,
@@ -1397,6 +1484,30 @@ struct CoreInteractor {
     /// Delete a goal
     func deleteGoal(goalId: String, userId: String) async throws {
         try await goalManager.deleteGoal(goalId: goalId, userId: userId)
+    }
+    
+    // Goal Draft Setters
+    func setObjective(_ objective: OverarchingObjective) {
+        switch objective {
+        case .loseWeight:
+            goalManager.setObjective("lose weight")
+        case .maintain:
+            goalManager.setObjective("maintain weight")
+        case .gainWeight:
+            goalManager.setObjective("gain weight")
+        }
+    }
+    
+    func setTargetWeightKg(_ value: Double) {
+        goalManager.setTargetWeightKg(value)
+    }
+    
+    func setWeeklyChangeKg(_ value: Double) {
+        goalManager.setWeeklyChangeKg(value)
+    }
+    
+    func resetGoalDraft() {
+        goalManager.resetGoalDraft()
     }
     
     // Testing Helper

@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingTrainingTypeInteractor {
-    
+    func setTrainingType(_ value: TrainingType)
 }
 
 extension CoreInteractor: OnboardingTrainingTypeInteractor { }
@@ -17,34 +17,21 @@ extension CoreInteractor: OnboardingTrainingTypeInteractor { }
 @MainActor
 class OnboardingTrainingTypeViewModel {
     private let interactor: OnboardingTrainingTypeInteractor
-    
-    let preferredDiet: PreferredDiet
-    let calorieFloor: CalorieFloor
-    
+        
     var selectedTrainingType: TrainingType?
-    var navigationDestination: NavigationDestination?
-
-    enum NavigationDestination {
-        case calorieDistribution
-    }
     
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
     
-    init(
-        interactor: OnboardingTrainingTypeInteractor,
-        preferredDiet: PreferredDiet,
-        calorieFloor: CalorieFloor
-    ) {
+    init(interactor: OnboardingTrainingTypeInteractor) {
         self.interactor = interactor
-        self.preferredDiet = preferredDiet
-        self.calorieFloor = calorieFloor
     }
     
     func navigateToCalorieDistribution(path: Binding<[OnboardingPathOption]>) {
         if let trainingType = selectedTrainingType {
-            path.wrappedValue.append(.calorieDistribution(preferredDiet: preferredDiet, calorieFloor: calorieFloor, trainingType: trainingType))
+            interactor.setTrainingType(trainingType)
+            path.wrappedValue.append(.calorieDistribution)
         }
     }
 }

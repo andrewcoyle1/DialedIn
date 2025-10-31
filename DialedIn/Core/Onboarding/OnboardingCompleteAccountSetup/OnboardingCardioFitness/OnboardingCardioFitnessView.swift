@@ -117,15 +117,7 @@ struct OnboardingCardioFitnessView: View {
             viewModel: OnboardingCardioFitnessViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                gender: .male,
-                dateOfBirth: Date(),
-                height: 180,
-                weight: 75,
-                exerciseFrequency: .threeToFour,
-                activityLevel: .moderate,
-                lengthUnitPreference: .centimeters,
-                weightUnitPreference: .kilograms
+                )
             ), path: $path
         )
     }

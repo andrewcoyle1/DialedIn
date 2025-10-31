@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingCalorieDistributionInteractor {
-    
+    func setCalorieDistribution(_ value: CalorieDistribution)
 }
 
 extension CoreInteractor: OnboardingCalorieDistributionInteractor { }
@@ -17,11 +17,7 @@ extension CoreInteractor: OnboardingCalorieDistributionInteractor { }
 @MainActor
 class OnboardingCalorieDistributionViewModel {
     private let interactor: OnboardingCalorieDistributionInteractor
-    
-    let preferredDiet: PreferredDiet
-    let calorieFloor: CalorieFloor
-    let trainingType: TrainingType
-    
+        
     var selectedCalorieDistribution: CalorieDistribution?
     
     #if DEBUG || MOCK
@@ -30,19 +26,14 @@ class OnboardingCalorieDistributionViewModel {
     
     init(
         interactor: OnboardingCalorieDistributionInteractor,
-        preferredDiet: PreferredDiet,
-        calorieFloor: CalorieFloor,
-        trainingType: TrainingType
     ) {
         self.interactor = interactor
-        self.preferredDiet = preferredDiet
-        self.calorieFloor = calorieFloor
-        self.trainingType = trainingType
     }
     
     func navigateToProteinIntake(path: Binding<[OnboardingPathOption]>) {
         if let calorieDistribution = selectedCalorieDistribution {
-            path.wrappedValue.append(.proteinIntake(preferredDiet: preferredDiet, calorieFloor: calorieFloor, trainingType: trainingType, calorieDistribution: calorieDistribution))
+            interactor.setCalorieDistribution(calorieDistribution)
+            path.wrappedValue.append(.proteinIntake)
         }
     }
 }

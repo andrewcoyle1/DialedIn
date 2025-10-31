@@ -83,8 +83,7 @@ struct OnboardingCalorieFloorView: View {
             viewModel: OnboardingCalorieFloorViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                preferredDiet: .balanced
+                )
             ), path: $path
         )
     }

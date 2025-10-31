@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingGenderInteractor {
-    
+    func updateGender(_ gender: Gender) throws
 }
 
 extension CoreInteractor: OnboardingGenderInteractor { }
@@ -19,7 +19,7 @@ class OnboardingGenderViewModel {
     private let interactor: OnboardingGenderInteractor
     
     var selectedGender: Gender?
-    
+    var showAlert: AnyAppAlert?
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
@@ -28,15 +28,18 @@ class OnboardingGenderViewModel {
         selectedGender != nil
     }
     
-    init(
-        interactor: OnboardingGenderInteractor,
-    ) {
+    init(interactor: OnboardingGenderInteractor) {
         self.interactor = interactor
     }
     
     func navigateToDateOfBirth(path: Binding<[OnboardingPathOption]>) {
         if let gender = selectedGender {
-            path.wrappedValue.append(.dateOfBirth(gender: gender))
+            do {
+                try interactor.updateGender(gender)
+                path.wrappedValue.append(.dateOfBirth)
+            } catch {
+                showAlert = AnyAppAlert(error: error)
+            }
         }
     }
 }

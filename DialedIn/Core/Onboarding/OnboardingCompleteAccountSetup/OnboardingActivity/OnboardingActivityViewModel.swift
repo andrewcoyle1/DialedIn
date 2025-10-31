@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingActivityInteractor {
-    
+    func updateUserActivityLevel(_ activityLevel: ActivityLevel) throws
 }
 
 extension CoreInteractor: OnboardingActivityInteractor { }
@@ -17,21 +17,14 @@ extension CoreInteractor: OnboardingActivityInteractor { }
 @MainActor
 class OnboardingActivityViewModel {
     private let interactor: OnboardingActivityInteractor
-    
-    let gender: Gender
-    let dateOfBirth: Date
-    let height: Double
-    let weight: Double
-    let exerciseFrequency: ExerciseFrequency
-    let lengthUnitPreference: LengthUnitPreference
-    let weightUnitPreference: WeightUnitPreference
-    
+        
     var selectedActivityLevel: ActivityLevel?
-    var navigationDestination: NavigationDestination?
     
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
+    
+    var showAlert: AnyAppAlert?
     
     var canSubmit: Bool {
         selectedActivityLevel != nil
@@ -39,27 +32,18 @@ class OnboardingActivityViewModel {
     
     init(
         interactor: OnboardingActivityInteractor,
-        gender: Gender,
-        dateOfBirth: Date,
-        height: Double,
-        weight: Double,
-        exerciseFrequency: ExerciseFrequency,
-        lengthUnitPreference: LengthUnitPreference,
-        weightUnitPreference: WeightUnitPreference
     ) {
         self.interactor = interactor
-        self.gender = gender
-        self.dateOfBirth = dateOfBirth
-        self.height = height
-        self.weight = weight
-        self.exerciseFrequency = exerciseFrequency
-        self.lengthUnitPreference = lengthUnitPreference
-        self.weightUnitPreference = weightUnitPreference
     }
     
     func navigateToCardioFitness(path: Binding<[OnboardingPathOption]>) {
         if let activityLevel = selectedActivityLevel {
-            path.wrappedValue.append(.cardioFitness(gender: gender, dateOfBirth: dateOfBirth, height: height, weight: weight, exerciseFrequency: exerciseFrequency, activityLevel: activityLevel, lengthUnitPreference: lengthUnitPreference, weightUnitPreference: weightUnitPreference))
+            do {
+                try interactor.updateUserActivityLevel(activityLevel)
+                path.wrappedValue.append(.cardioFitness)
+            } catch {
+                showAlert = AnyAppAlert(error: error)
+            }
         }
     }
 }

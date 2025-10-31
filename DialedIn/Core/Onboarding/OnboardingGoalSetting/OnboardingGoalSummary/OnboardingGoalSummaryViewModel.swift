@@ -9,6 +9,8 @@ import SwiftUI
 
 protocol OnboardingGoalSummaryInteractor {
     var currentUser: UserModel? { get }
+    var userDraft: UserModel? { get }
+    var goalDraft: GoalDraft { get }
     func createGoal(
         userId: String,
         objective: String,
@@ -17,6 +19,7 @@ protocol OnboardingGoalSummaryInteractor {
         weeklyChangeKg: Double
     ) async throws -> WeightGoal
     func updateCurrentGoalId(goalId: String?) async throws
+    func resetGoalDraft()
     func trackEvent(event: LoggableEvent)
     func handleAuthError(_ error: Error, operation: String) -> AuthErrorInfo
 }
@@ -28,9 +31,6 @@ extension CoreInteractor: OnboardingGoalSummaryInteractor { }
 class OnboardingGoalSummaryViewModel {
     private let interactor: OnboardingGoalSummaryInteractor
     
-    let objective: OverarchingObjective
-    let targetWeight: Double
-    let weightRate: Double
     let isStandaloneMode: Bool
     
     var isLoading: Bool = true
@@ -42,17 +42,19 @@ class OnboardingGoalSummaryViewModel {
     var showDebugView: Bool = false
     #endif
     
+    var userDraft: UserModel? {
+        interactor.userDraft
+    }
+    
+    var goalDraft: GoalDraft {
+        interactor.goalDraft
+    }
+    
     init(
         interactor: OnboardingGoalSummaryInteractor,
-        objective: OverarchingObjective,
-        targetWeight: Double,
-        weightRate: Double,
         isStandaloneMode: Bool = false
     ) {
         self.interactor = interactor
-        self.objective = objective
-        self.targetWeight = targetWeight
-        self.weightRate = weightRate
         self.isStandaloneMode = isStandaloneMode
     }
     
@@ -61,7 +63,7 @@ class OnboardingGoalSummaryViewModel {
     }
     
     func uploadGoalSettings() async {
-        interactor.trackEvent(event: Event.goalSaveStart(objective: objective, targetKg: targetWeight, rateKgPerWeek: weightRate))
+        interactor.trackEvent(event: Event.goalSaveStart)
         defer { isLoading = false }
         
         guard let user = interactor.currentUser,
@@ -70,20 +72,23 @@ class OnboardingGoalSummaryViewModel {
             return
         }
         
+        guard let objective = goalDraft.objective,
+              let target = goalDraft.targetWeightKg,
+              let weekly = goalDraft.weeklyChangeKg else {
+            handleSaveError(NSError(domain: "GoalError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Goal details incomplete"]))
+            return
+        }
+        
         do {
             // Create goal in subcollection with frozen starting weight
-            let goal = try await interactor.createGoal(
-                userId: user.userId,
-                objective: objective.description,
-                startingWeightKg: startingWeight,
-                targetWeightKg: targetWeight,
-                weeklyChangeKg: weightRate
-            )
+            let goal = try await interactor.createGoal(userId: user.userId, objective: objective, startingWeightKg: startingWeight, targetWeightKg: target, weeklyChangeKg: weekly)
             
             // Update user's currentGoalId reference
             try await interactor.updateCurrentGoalId(goalId: goal.goalId)
             
-            interactor.trackEvent(event: Event.goalSaveSuccess(objective: objective, targetKg: targetWeight, rateKgPerWeek: weightRate))
+            interactor.resetGoalDraft()
+            
+            interactor.trackEvent(event: Event.goalSaveSuccess)
             
             goalCreated = true
             
@@ -93,7 +98,7 @@ class OnboardingGoalSummaryViewModel {
                 onDismiss?()
             }
         } catch {
-            interactor.trackEvent(event: Event.goalSaveFail(error: error, objective: objective, targetKg: targetWeight, rateKgPerWeek: weightRate))
+            interactor.trackEvent(event: Event.goalSaveFail(error: error))
             handleSaveError(error)
         }
     }
@@ -118,12 +123,13 @@ class OnboardingGoalSummaryViewModel {
     
     var weightDifference: Double {
         guard let current = currentWeight else { return 0 }
-        return targetWeight - current
+        guard let target = goalDraft.targetWeightKg else { return 0 }
+        return target - current
     }
     
     var estimatedWeeks: Int {
-        guard weightRate > 0 else { return 0 }
-        return Int(ceil(abs(weightDifference) / weightRate))
+        guard let rate = goalDraft.weeklyChangeKg, rate > 0 else { return 0 }
+        return Int(ceil(abs(weightDifference) / rate))
     }
     
     var estimatedMonths: Int {
@@ -141,31 +147,27 @@ class OnboardingGoalSummaryViewModel {
     }
     
     var objectiveIcon: String {
-        switch objective {
-        case .loseWeight:
-            return "arrow.down.circle.fill"
-        case .maintain:
-            return "equal.circle.fill"
-        case .gainWeight:
-            return "arrow.up.circle.fill"
-        }
+        let objective = goalDraft.objective?.lowercased() ?? ""
+        if objective.contains("lose") { return "arrow.down.circle.fill" }
+        if objective.contains("maintain") { return "equal.circle.fill" }
+        return "arrow.up.circle.fill"
     }
     
     var motivationalMessage: String {
-        switch objective {
-        case .loseWeight:
+        let objective = goalDraft.objective?.lowercased() ?? ""
+        if objective.contains("lose") {
             return "Every step you take towards your goal is progress. Stay consistent with your nutrition and exercise, and you'll reach your target weight. Remember, sustainable changes lead to lasting results."
-        case .maintain:
+        } else if objective.contains("maintain") {
             return "Maintaining your current weight is a fantastic goal! Focus on balanced nutrition and regular activity to keep your body healthy and strong. Consistency is key to long-term success."
-        case .gainWeight:
+        } else {
             return "Building healthy weight takes time and dedication. Focus on nutrient-dense foods and progressive strength training. Your body will thank you for the consistent effort."
         }
     }
     
     enum Event: LoggableEvent {
-        case goalSaveStart(objective: OverarchingObjective, targetKg: Double, rateKgPerWeek: Double)
-        case goalSaveSuccess(objective: OverarchingObjective, targetKg: Double, rateKgPerWeek: Double)
-        case goalSaveFail(error: Error, objective: OverarchingObjective, targetKg: Double, rateKgPerWeek: Double)
+        case goalSaveStart
+        case goalSaveSuccess
+        case goalSaveFail(error: Error)
         
         var eventName: String {
             switch self {
@@ -177,20 +179,10 @@ class OnboardingGoalSummaryViewModel {
         
         var parameters: [String: Any]? {
             switch self {
-            case let .goalSaveStart(objective, targetKg, rateKgPerWeek),
-                 let .goalSaveSuccess(objective, targetKg, rateKgPerWeek):
-                return [
-                    "objective": objective.description,
-                    "target_weight_kg": targetKg,
-                    "weekly_change_kg": rateKgPerWeek
-                ]
-            case let .goalSaveFail(error, objective, targetKg, rateKgPerWeek):
-                return [
-                    "objective": objective.description,
-                    "target_weight_kg": targetKg,
-                    "weekly_change_kg": rateKgPerWeek,
-                    "error": error.localizedDescription
-                ]
+            case let .goalSaveFail(error):
+                return error.eventParameters
+            default:
+                return nil
             }
         }
         

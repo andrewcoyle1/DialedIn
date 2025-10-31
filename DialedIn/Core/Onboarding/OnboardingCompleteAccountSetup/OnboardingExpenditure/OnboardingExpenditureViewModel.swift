@@ -8,6 +8,7 @@
 import SwiftUI
 
 protocol OnboardingExpenditureInteractor: Sendable {
+    var userDraft: UserModel? { get }
     // swiftlint:disable:next function_parameter_count
     func saveCompleteAccountSetupProfile(
         dateOfBirth: Date,
@@ -32,16 +33,16 @@ extension CoreInteractor: OnboardingExpenditureInteractor { }
 class OnboardingExpenditureViewModel {
     private let interactor: OnboardingExpenditureInteractor
     
-    let gender: Gender
-    let dateOfBirth: Date
-    let height: Double
-    let weight: Double
-    let exerciseFrequency: ExerciseFrequency
-    let activityLevel: ActivityLevel
-    let lengthUnitPreference: LengthUnitPreference
-    let weightUnitPreference: WeightUnitPreference
-    let selectedCardioFitness: CardioFitnessLevel
-    
+    var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
+    var gender: Gender = .male
+    var height: Double = 175
+    var weight: Double = 70
+    var exerciseFrequency: ExerciseFrequency = .threeToFour
+    var activityLevel: ActivityLevel = .moderate
+    var lengthUnitPreference: LengthUnitPreference = .centimeters
+    var weightUnitPreference: WeightUnitPreference = .kilograms
+    var selectedCardioFitness: CardioFitnessLevel = .intermediate
+        
     // Computed from collected data
     var totalExpenditureKcal: Int = 0
     var breakdownItems: [Breakdown] {
@@ -84,7 +85,7 @@ class OnboardingExpenditureViewModel {
     var bmrInt: Int { Int(bmr.rounded()) }
 
     var baseActivityMultiplier: Double {
-        switch activityLevel {
+        switch mapDailyActivityLevel(activityLevel) {
         case .sedentary: return 1.2
         case .light: return 1.35
         case .moderate: return 1.5
@@ -133,28 +134,11 @@ class OnboardingExpenditureViewModel {
     
     var tdeeInt: Int { Int(tdeeFromInputs.rounded()) }
     
-    init(
-        interactor: OnboardingExpenditureInteractor,
-        gender: Gender,
-        dateOfBirth: Date,
-        height: Double,
-        weight: Double,
-        exerciseFrequency: ExerciseFrequency,
-        activityLevel: ActivityLevel,
-        lengthUnitPreference: LengthUnitPreference,
-        weightUnitPreference: WeightUnitPreference,
-        selectedCardioFitness: CardioFitnessLevel
-    ) {
+    init(interactor: OnboardingExpenditureInteractor) {
         self.interactor = interactor
-        self.gender = gender
-        self.dateOfBirth = dateOfBirth
-        self.height = height
-        self.weight = weight
-        self.exerciseFrequency = exerciseFrequency
-        self.activityLevel = activityLevel
-        self.lengthUnitPreference = lengthUnitPreference
-        self.weightUnitPreference = weightUnitPreference
-        self.selectedCardioFitness = selectedCardioFitness
+        if !hydrateFromDraft() {
+            isLoading = false
+        }
     }
     
     struct Breakdown: Identifiable {
@@ -176,6 +160,10 @@ class OnboardingExpenditureViewModel {
     func calculateExpenditure() {
         // Cancel any existing save to prevent race conditions
         currentSaveTask?.cancel()
+
+        guard hydrateFromDraft() else {
+            return
+        }
 
         currentSaveTask = Task { @MainActor in
             isSaving = true
@@ -246,6 +234,23 @@ class OnboardingExpenditureViewModel {
         )
     }
 
+    private func handleMissingUserDraft() {
+        isSaving = false
+        isLoading = false
+        showAlert = AnyAppAlert(
+            title: "Unable to Load Profile",
+            subtitle: "We couldn’t load your saved details. Please try again.",
+            buttons: {
+                AnyView(
+                    HStack {
+                        Button("Cancel") { }
+                        Button("Try Again") { self.calculateExpenditure() }
+                    }
+                )
+            }
+        )
+    }
+
     // MARK: - Timeout Helper
     
     @discardableResult
@@ -266,6 +271,63 @@ class OnboardingExpenditureViewModel {
         }
     }
     
+    // MARK: - Draft Hydration
+    @discardableResult
+    private func hydrateFromDraft() -> Bool {
+        guard let draft = interactor.userDraft else {
+            handleMissingUserDraft()
+            return false
+        }
+        
+        dateOfBirth = draft.dateOfBirth ?? defaultDateOfBirth()
+        gender = draft.gender ?? .male
+        height = max(draft.heightCentimeters ?? 175, 120)
+        weight = max(draft.weightKilograms ?? 70, 30)
+        exerciseFrequency = mapExerciseFrequency(from: draft.exerciseFrequency)
+        activityLevel = mapDailyActivityLevel(from: draft.dailyActivityLevel)
+        lengthUnitPreference = draft.lengthUnitPreference ?? .centimeters
+        weightUnitPreference = draft.weightUnitPreference ?? .kilograms
+        selectedCardioFitness = mapCardioFitnessLevel(from: draft.cardioFitnessLevel)
+        return true
+    }
+    
+    private func defaultDateOfBirth() -> Date {
+        Calendar.current.date(byAdding: .year, value: -30, to: Date()) ?? Date()
+    }
+    
+    private func mapExerciseFrequency(from value: ProfileExerciseFrequency?) -> ExerciseFrequency {
+        switch value {
+        case .some(.never): return .never
+        case .some(.oneToTwo): return .oneToTwo
+        case .some(.threeToFour): return .threeToFour
+        case .some(.fiveToSix): return .fiveToSix
+        case .some(.daily): return .daily
+        case .none: return .threeToFour
+        }
+    }
+    
+    private func mapDailyActivityLevel(from value: ProfileDailyActivityLevel?) -> ActivityLevel {
+        switch value {
+        case .some(.sedentary): return .sedentary
+        case .some(.light): return .light
+        case .some(.moderate): return .moderate
+        case .some(.active): return .active
+        case .some(.veryActive): return .veryActive
+        case .none: return .moderate
+        }
+    }
+    
+    private func mapCardioFitnessLevel(from value: ProfileCardioFitnessLevel?) -> CardioFitnessLevel {
+        switch value {
+        case .some(.beginner): return .beginner
+        case .some(.novice): return .novice
+        case .some(.intermediate): return .intermediate
+        case .some(.advanced): return .advanced
+        case .some(.elite): return .elite
+        case .none: return .intermediate
+        }
+    }
+
     // MARK: - Mapping helpers
     private func mapExerciseFrequency(_ value: ExerciseFrequency) -> ProfileExerciseFrequency {
         switch value {

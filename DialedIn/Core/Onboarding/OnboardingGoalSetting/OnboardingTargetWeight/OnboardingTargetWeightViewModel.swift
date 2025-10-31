@@ -9,6 +9,8 @@ import SwiftUI
 
 protocol OnboardingTargetWeightInteractor {
     var currentUser: UserModel? { get }
+    var goalDraft: GoalDraft { get }
+    func setTargetWeightKg(_ value: Double)
 }
 
 extension CoreInteractor: OnboardingTargetWeightInteractor { }
@@ -18,7 +20,12 @@ extension CoreInteractor: OnboardingTargetWeightInteractor { }
 class OnboardingTargetWeightViewModel {
     private let interactor: OnboardingTargetWeightInteractor
     
-    let objective: OverarchingObjective
+    private var draftObjective: String { interactor.goalDraft.objective?.lowercased() ?? "" }
+    var objective: OverarchingObjective {
+        if draftObjective.contains("maintain") { return .maintain }
+        if draftObjective.contains("gain") { return .gainWeight }
+        return .loseWeight
+    }
     let isStandaloneMode: Bool
     
     var targetWeight: Double = 0
@@ -34,11 +41,9 @@ class OnboardingTargetWeightViewModel {
     
     init(
         interactor: OnboardingTargetWeightInteractor,
-        objective: OverarchingObjective,
         isStandaloneMode: Bool = false
     ) {
         self.interactor = interactor
-        self.objective = objective
         self.isStandaloneMode = isStandaloneMode
     }
     
@@ -113,15 +118,17 @@ class OnboardingTargetWeightViewModel {
     func updateFromKilograms() {
         targetWeight = Double(selectedKilograms)
         selectedPounds = Int((targetWeight * 2.20462).rounded())
+        interactor.setTargetWeightKg(targetWeight)
     }
     
     func updateFromPounds() {
         targetWeight = Double(selectedPounds) / 2.20462
         selectedKilograms = Int(targetWeight.rounded())
+        interactor.setTargetWeightKg(targetWeight)
     }
     
     func navigateToWeightRate(path: Binding<[OnboardingPathOption]>) {
-        path.wrappedValue.append(.weightRate(objective: objective, targetWeight: targetWeight))
+        path.wrappedValue.append(.weightRate)
     }
     
     private func clamp(initial: Int, within range: ClosedRange<Int>) -> Int {

@@ -26,6 +26,7 @@ struct AuthOptionsView: View {
             .padding(.horizontal)
         }
         .allowsHitTesting(!viewModel.isLoading)
+        .navigationBarBackButtonHidden(true)
         .background {
             Color(colorScheme.backgroundPrimary)
                 .ignoresSafeArea()
@@ -40,6 +41,15 @@ struct AuthOptionsView: View {
                 }
             }
         }
+        .sheet(isPresented: $viewModel.showDebugView) {
+            DevSettingsView(
+                viewModel: DevSettingsViewModel(
+                    interactor: CoreInteractor(
+                        container: container
+                    )
+                )
+            )
+        }
         #endif
         .showCustomAlert(alert: $viewModel.showAlert)
         .safeAreaInset(edge: .bottom) {
@@ -53,17 +63,6 @@ struct AuthOptionsView: View {
         .onDisappear {
             viewModel.cleanUp()
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
-        }
-        #endif
     }
 
     private var imageSection: some View {

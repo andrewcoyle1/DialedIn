@@ -41,9 +41,7 @@ class OnboardingNamePhotoViewModel {
         !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
-    init(
-        interactor: OnboardingNamePhotoInteractor
-    ) {
+    init(interactor: OnboardingNamePhotoInteractor) {
         self.interactor = interactor
     }
     

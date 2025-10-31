@@ -9,6 +9,8 @@ import SwiftUI
 
 protocol OnboardingWeightRateInteractor {
     var currentUser: UserModel? { get }
+    var goalDraft: GoalDraft { get }
+    func setWeeklyChangeKg(_ value: Double)
 }
 
 extension CoreInteractor: OnboardingWeightRateInteractor { }
@@ -18,11 +20,8 @@ extension CoreInteractor: OnboardingWeightRateInteractor { }
 class OnboardingWeightRateViewModel {
     private let interactor: OnboardingWeightRateInteractor
     
-    let objective: OverarchingObjective
-    let targetWeight: Double
     let isStandaloneMode: Bool
     
-    var navigationDestination: NavigationDestination?
     var currentWeight: Double = 0
     var weightUnit: WeightUnitPreference = .kilograms
     var didInitialize: Bool = false
@@ -33,10 +32,6 @@ class OnboardingWeightRateViewModel {
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
-    
-    enum NavigationDestination {
-        case customisingProgram
-    }
     
     enum WeightRateCategory {
         case conservative, standard, aggressive
@@ -66,20 +61,21 @@ class OnboardingWeightRateViewModel {
         }
     }
     
+    // MARK: - Draft Accessors
+    private var draftObjective: String { interactor.goalDraft.objective?.lowercased() ?? "" }
+    private var draftTargetWeightKg: Double? { interactor.goalDraft.targetWeightKg }
+    private var isLosing: Bool { draftObjective.contains("lose") }
+    
     init(
         interactor: OnboardingWeightRateInteractor,
-        objective: OverarchingObjective,
-        targetWeight: Double,
         isStandaloneMode: Bool = false
     ) {
         self.interactor = interactor
-        self.objective = objective
-        self.targetWeight = targetWeight
         self.isStandaloneMode = isStandaloneMode
     }
     
     func navigateToGoalSummary(path: Binding<[OnboardingPathOption]>) {
-        path.wrappedValue.append(.goalSummary(objective: objective, targetWeight: targetWeight, weightRate: weightChangeRate))
+        path.wrappedValue.append(.goalSummary)
     }
     
     var canContinue: Bool { weightChangeRate > 0 }
@@ -90,7 +86,7 @@ class OnboardingWeightRateViewModel {
         let weeklyChangeInKg = weightChangeRate
         let weeklyChangeInPounds = weightUnit == .pounds ? weeklyChangeInKg * 2.20462 : weeklyChangeInKg
         let unitText = weightUnit == .pounds ? "lbs" : "kg"
-        let sign = objective == .loseWeight ? "-" : "+"
+        let sign = isLosing ? "-" : "+"
         let percentBW = (weeklyChangeInKg / currentWeight) * 100
         
         return "\(sign)\(String(format: "%.2f", weeklyChangeInPounds)) \(unitText) (\(String(format: "%.1f", percentBW))% BW) / Week"
@@ -100,7 +96,7 @@ class OnboardingWeightRateViewModel {
         let monthlyChangeInKg = weightChangeRate * 4 // Approximate monthly rate
         let monthlyChangeInPounds = weightUnit == .pounds ? monthlyChangeInKg * 2.20462 : monthlyChangeInKg
         let unitText = weightUnit == .pounds ? "lbs" : "kg"
-        let sign = objective == .loseWeight ? "-" : "+"
+        let sign = isLosing ? "-" : "+"
         let percentBW = (monthlyChangeInKg / currentWeight) * 100
         
         return "\(sign)\(String(format: "%.2f", monthlyChangeInPounds)) \(unitText) (\(String(format: "%.1f", percentBW))% BW) / Month"
@@ -115,7 +111,7 @@ class OnboardingWeightRateViewModel {
         let dailyCalorieChange = weeklyCalorieChange / 7
         
         let baseCalories = 2000.0 // Rough BMR estimate
-        let targetCalories = objective == .loseWeight ?
+        let targetCalories = isLosing ?
             baseCalories - dailyCalorieChange :
             baseCalories + dailyCalorieChange
         
@@ -123,7 +119,8 @@ class OnboardingWeightRateViewModel {
     }
     
     var estimatedEndDateText: String {
-        let totalWeightChange = abs(targetWeight - currentWeight)
+        let target = draftTargetWeightKg ?? currentWeight
+        let totalWeightChange = abs(target - currentWeight)
         let weeklyChangeInKg = weightChangeRate
         let weeksToGoal = totalWeightChange / weeklyChangeInKg
         
@@ -142,13 +139,21 @@ class OnboardingWeightRateViewModel {
         weightUnit = user?.weightUnitPreference ?? .kilograms
         
         // Set default rate based on objective
-        switch objective {
-        case .loseWeight, .gainWeight:
-            weightChangeRate = 0.5 // Standard rate
-        case .maintain:
-            weightChangeRate = 0.25 // Conservative rate
+        if draftObjective.contains("maintain") {
+            weightChangeRate = 0.25
+        } else {
+            weightChangeRate = 0.5
+        }
+        
+        // If draft already has a weekly rate, reflect it
+        if let rate = interactor.goalDraft.weeklyChangeKg, rate > 0 {
+            weightChangeRate = rate
         }
         
         didInitialize = true
+    }
+    
+    func persistRateChange() {
+        interactor.setWeeklyChangeKg(weightChangeRate)
     }
 }

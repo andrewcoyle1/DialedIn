@@ -118,11 +118,7 @@ struct OnboardingWeightView: View {
             viewModel: OnboardingWeightViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                gender: .male,
-                dateOfBirth: Date(),
-                height: 175,
-                lengthUnitPreference: .centimeters
+                )
             ), path: $path
         )
     }

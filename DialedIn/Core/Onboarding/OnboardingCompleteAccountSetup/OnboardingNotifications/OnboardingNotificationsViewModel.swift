@@ -29,9 +29,7 @@ class OnboardingNotificationsViewModel {
         case gender
     }
     
-    init(
-        interactor: OnboardingNotificationsInteractor
-    ) {
+    init(interactor: OnboardingNotificationsInteractor) {
         self.interactor = interactor
     }
     

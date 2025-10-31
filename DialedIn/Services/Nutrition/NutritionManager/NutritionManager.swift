@@ -30,11 +30,37 @@ class NutritionManager {
     private let local: LocalNutritionPersistence
     private let remote: RemoteNutritionService
     private(set) var currentDietPlan: DietPlan?
+    private(set) var dietPlanDraft: DietPlanDraft = DietPlanDraft()
     
     init(services: NutritionServices) {
         self.remote = services.remote
         self.local = services.local
         self.currentDietPlan = local.getCurrentDietPlan()
+    }
+
+    // MARK: - Draft Setters
+    func setPreferredDiet(_ value: PreferredDiet) {
+        dietPlanDraft.preferredDiet = value
+    }
+    
+    func setCalorieFloor(_ value: CalorieFloor) {
+        dietPlanDraft.calorieFloor = value
+    }
+    
+    func setTrainingType(_ value: TrainingType) {
+        dietPlanDraft.trainingType = value
+    }
+    
+    func setCalorieDistribution(_ value: CalorieDistribution) {
+        dietPlanDraft.calorieDistribution = value
+    }
+    
+    func setProteinIntake(_ value: ProteinIntake) {
+        dietPlanDraft.proteinIntake = value
+    }
+    
+    func resetDietPlanDraft() {
+        dietPlanDraft = DietPlanDraft()
     }
 
     // MARK: - Public API

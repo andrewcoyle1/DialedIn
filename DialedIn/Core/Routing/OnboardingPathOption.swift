@@ -25,95 +25,28 @@ enum OnboardingPathOption: Hashable, Sendable {
     case notifications
     case namePhoto
     case gender
-    case dateOfBirth(
-        gender: Gender
-    )
-    case height(
-        gender: Gender,
-        dateOfBirth: Date
-    )
-    case weight(
-        gender: Gender,
-        dateOfBirth: Date,
-        height: Double,
-        lengthUnitPreference: LengthUnitPreference
-    )
-    case exerciseFrequency(
-        gender: Gender,
-        dateOfBirth: Date,
-        height: Double,
-        weight: Double,
-        lengthUnitPreference: LengthUnitPreference,
-        weightUnitPreference: WeightUnitPreference
-    )
-    case activityLevel(
-        gender: Gender,
-        dateOfBirth: Date,
-        height: Double,
-        weight: Double,
-        exerciseFrequency: ExerciseFrequency,
-        lengthUnitPreference: LengthUnitPreference,
-        weightUnitPreference: WeightUnitPreference
-    )
-    case cardioFitness(
-        gender: Gender,
-        dateOfBirth: Date,
-        height: Double,
-        weight: Double,
-        exerciseFrequency: ExerciseFrequency,
-        activityLevel: ActivityLevel,
-        lengthUnitPreference: LengthUnitPreference,
-        weightUnitPreference: WeightUnitPreference
-    )
-    case expenditure(
-        gender: Gender,
-        dateOfBirth: Date,
-        height: Double,
-        weight: Double,
-        exerciseFrequency: ExerciseFrequency,
-        activityLevel: ActivityLevel,
-        lengthUnitPreference: LengthUnitPreference,
-        weightUnitPreference: WeightUnitPreference,
-        selectedCardioFitness: CardioFitnessLevel
-    )
+    case dateOfBirth
+    case height
+    case weight
+    case exerciseFrequency
+    case activityLevel
+    case cardioFitness
+    case expenditure
     case healthDisclaimer
     
     // MARK: Goal Setting
     case goalSetting
     case overarchingObjective
-    case targetWeight(
-        objective: OverarchingObjective
-    )
-    case weightRate(
-        objective: OverarchingObjective,
-        targetWeight: Double
-    )
-    case goalSummary(
-        objective: OverarchingObjective,
-        targetWeight: Double,
-        weightRate: Double
-    )
+    case targetWeight
+    case weightRate
+    case goalSummary
     
     // MARK: Customise Program
     case customiseProgram
     case preferredDiet
-    case calorieFloor(
-        preferredDiet: PreferredDiet
-    )
-    case trainingType(
-        preferredDiet: PreferredDiet,
-        calorieFloor: CalorieFloor
-    )
-    case calorieDistribution(
-        preferredDiet: PreferredDiet,
-        calorieFloor: CalorieFloor,
-        trainingType: TrainingType
-    )
-    case proteinIntake(
-        preferredDiet: PreferredDiet,
-        calorieFloor: CalorieFloor,
-        trainingType: TrainingType,
-        calorieDistribution: CalorieDistribution
-    )
+    case calorieFloor
+    case trainingType
+    case calorieDistribution
+    case proteinIntake
     case dietPlan
 }

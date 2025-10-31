@@ -11,34 +11,36 @@ struct UserModel: Codable, Equatable, Sendable {
     
     // User
     let userId: String
-
+    
     // Auth
     let email: String?
     let isAnonymous: Bool?
     
     // Profile
-    let firstName: String?
-    let lastName: String?
+    private(set) var firstName: String?
+    private(set) var lastName: String?
     
     // Profile
-    let dateOfBirth: Date?
-    let gender: Gender?
+    private(set) var dateOfBirth: Date?
+    private(set) var gender: Gender?
+    
     // Mandatory onboarding profile metrics
-    let heightCentimeters: Double?
-    let weightKilograms: Double?
-    let exerciseFrequency: ProfileExerciseFrequency?
-    let dailyActivityLevel: ProfileDailyActivityLevel?
-    let cardioFitnessLevel: ProfileCardioFitnessLevel?
+    private(set) var heightCentimeters: Double?
+    private(set) var weightKilograms: Double?
+    private(set) var exerciseFrequency: ProfileExerciseFrequency?
+    private(set) var dailyActivityLevel: ProfileDailyActivityLevel?
+    private(set) var cardioFitnessLevel: ProfileCardioFitnessLevel?
+    
     // Preferences
-    let lengthUnitPreference: LengthUnitPreference?
-    let weightUnitPreference: WeightUnitPreference?
+    private(set) var lengthUnitPreference: LengthUnitPreference?
+    private(set) var weightUnitPreference: WeightUnitPreference?
     
     // Goals
-    let currentGoalId: String?
+    private(set) var currentGoalId: String?
     
     // Profile
     private(set) var profileImageUrl: String?
-
+    
     // Creation
     let creationDate: Date?
     let creationVersion: String?
@@ -69,7 +71,7 @@ struct UserModel: Codable, Equatable, Sendable {
     let createdRecipeTemplateIds: [String]?
     let bookmarkedRecipeTemplateIds: [String]?
     let favouritedRecipeTemplateIds: [String]?
-
+    
     // Blocked Users
     let blockedUserIds: [String]?
     
@@ -144,7 +146,7 @@ struct UserModel: Codable, Equatable, Sendable {
         self.favouritedRecipeTemplateIds = favouritedRecipeTemplateIds
         self.blockedUserIds = blockedUserIds
     }
-
+    
     init(auth: UserAuthInfo, creationVersion: String?) {
         self.init(
             userId: auth.uid,
@@ -154,6 +156,42 @@ struct UserModel: Codable, Equatable, Sendable {
             creationVersion: creationVersion,
             lastSignInDate: auth.lastSignInDate
         )
+    }
+    
+    mutating func updateNameAndImageURL(firstName: String, lastName: String?, imageUrl: String?) {
+        self.firstName = firstName
+        self.lastName = lastName
+        self.profileImageUrl = imageUrl
+    }
+    
+    mutating func updateDateOfBirth(_ dateOfBirth: Date) {
+        self.dateOfBirth = dateOfBirth
+    }
+    
+    mutating func updateGender(_ gender: Gender) {
+        self.gender = gender
+    }
+    
+    mutating func updateHeight(_ height: Double, lengthUnitPreference: LengthUnitPreference) {
+        self.heightCentimeters = height
+        self.lengthUnitPreference = lengthUnitPreference
+    }
+    
+    mutating func updateWeight(_ weight: Double, weightUnitPreference: WeightUnitPreference) {
+        self.weightKilograms = weight
+        self.weightUnitPreference = weightUnitPreference
+    }
+    
+    mutating func updateExerciseFrequency(_ exerciseFrequency: ProfileExerciseFrequency) {
+        self.exerciseFrequency = exerciseFrequency
+    }
+    
+    mutating func updateActivityLevel(_ activityLevel: ProfileDailyActivityLevel) {
+        self.dailyActivityLevel = activityLevel
+    }
+    
+    mutating func updateCardioFitness(_ level: ProfileCardioFitnessLevel) {
+        self.cardioFitnessLevel = level
     }
     
     mutating func updateImageURL(imageUrl: String) {

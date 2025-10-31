@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingPreferredDietInteractor {
-    
+    func setPreferredDiet(_ value: PreferredDiet)
 }
 
 extension CoreInteractor: OnboardingPreferredDietInteractor { }
@@ -32,7 +32,8 @@ class OnboardingPreferredDietViewModel {
     
     func navigateToCalorieFloor(path: Binding<[OnboardingPathOption]>) {
         if let diet = selectedDiet {
-            path.wrappedValue.append(.calorieFloor(preferredDiet: diet))
+            interactor.setPreferredDiet(diet)
+            path.wrappedValue.append(.calorieFloor)
         }
     }
 }

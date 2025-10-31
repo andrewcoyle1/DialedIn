@@ -167,17 +167,9 @@ struct OnboardingExpenditureView: View {
             viewModel: OnboardingExpenditureViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                gender: .male,
-                dateOfBirth: Date(),
-                height: 175,
-                weight: 80,
-                exerciseFrequency: .fiveToSix,
-                activityLevel: .active,
-                lengthUnitPreference: .centimeters,
-                weightUnitPreference: .kilograms,
-                selectedCardioFitness: .intermediate
-            ), path: $path
+                )
+            ),
+            path: $path
         )
     }
     .previewEnvironment()

@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingCalorieFloorInteractor {
-    
+    func setCalorieFloor(_ value: CalorieFloor)
 }
 
 extension CoreInteractor: OnboardingCalorieFloorInteractor { }
@@ -18,24 +18,20 @@ extension CoreInteractor: OnboardingCalorieFloorInteractor { }
 class OnboardingCalorieFloorViewModel {
     private let interactor: OnboardingCalorieFloorInteractor
     
-    let preferredDiet: PreferredDiet
     var selectedFloor: CalorieFloor?
     
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
     
-    init(
-        interactor: OnboardingCalorieFloorInteractor,
-        preferredDiet: PreferredDiet
-    ) {
+    init(interactor: OnboardingCalorieFloorInteractor) {
         self.interactor = interactor
-        self.preferredDiet = preferredDiet
     }
     
     func navigateToTrainingType(path: Binding<[OnboardingPathOption]>) {
         if let floor = selectedFloor {
-            path.wrappedValue.append(.trainingType(preferredDiet: preferredDiet, calorieFloor: floor))
+            interactor.setCalorieFloor(floor)
+            path.wrappedValue.append(.trainingType)
         }
     }
 }

@@ -25,32 +25,6 @@ struct OnboardingExerciseFrequencyView: View {
             DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
         }
         #endif
-        .navigationDestination(isPresented: Binding(
-            get: {
-                if case .activity = viewModel.navigationDestination { return true }
-                return false
-            },
-            set: { if !$0 { viewModel.navigationDestination = nil } }
-        )) {
-            if case let .activity(gender, dateOfBirth, height, weight, exerciseFrequency, lengthUnitPreference, weightUnitPreference) = viewModel.navigationDestination {
-                OnboardingActivityView(
-                    viewModel: OnboardingActivityViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        gender: gender,
-                        dateOfBirth: dateOfBirth,
-                        height: height,
-                        weight: weight,
-                        exerciseFrequency: exerciseFrequency,
-                        lengthUnitPreference: lengthUnitPreference,
-                        weightUnitPreference: weightUnitPreference
-                    ), path: $path
-                )
-            } else {
-                EmptyView()
-            }
-        }
     }
     
     private var exerciseFrequencySection: some View {
@@ -119,13 +93,7 @@ struct OnboardingExerciseFrequencyView: View {
             viewModel: OnboardingExerciseFrequencyViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                gender: .male,
-                dateOfBirth: Date(),
-                height: 175,
-                weight: 70,
-                lengthUnitPreference: .centimeters,
-                weightUnitPreference: .kilograms
+                )
             ), path: $path
         )
     }

@@ -86,10 +86,7 @@ struct OnboardingCalorieDistributionView: View {
             viewModel: OnboardingCalorieDistributionViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                preferredDiet: .balanced,
-                calorieFloor: .standard,
-                trainingType: .weightlifting
+                )
             ), path: $path
         )
     }

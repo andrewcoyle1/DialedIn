@@ -84,11 +84,7 @@ struct OnboardingProteinIntakeView: View {
             viewModel: OnboardingProteinIntakeViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                preferredDiet: .balanced,
-                calorieFloor: .standard,
-                trainingType: .weightlifting,
-                calorieDistribution: .even
+                )
             ), path: $path
         )
     }

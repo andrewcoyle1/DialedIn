@@ -61,8 +61,7 @@ struct OnboardingDateOfBirthView: View {
             viewModel: OnboardingDateOfBirthViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                gender: .male
+                )
             ), path: $path
         )
     }

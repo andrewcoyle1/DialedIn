@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingHeightInteractor {
-    
+    func updateHeight(_ height: Double, lengthUnitPreference: LengthUnitPreference) throws
 }
 
 extension CoreInteractor: OnboardingHeightInteractor { }
@@ -18,12 +18,12 @@ extension CoreInteractor: OnboardingHeightInteractor { }
 class OnboardingHeightViewModel {
     private let interactor: OnboardingHeightInteractor
     
-    let gender: Gender
-    let dateOfBirth: Date
     var unit: UnitOfLength = .centimeters
     var selectedCentimeters: Int = 175
     var selectedFeet: Int = 5
     var selectedInches: Int = 9
+    
+    var showAlert: AnyAppAlert?
     
     // Computed properties to keep measurements synchronized
     private var heightInCentimeters: Int {
@@ -61,14 +61,8 @@ class OnboardingHeightViewModel {
     var showDebugView: Bool = false
     #endif
 
-    init(
-        interactor: OnboardingHeightInteractor,
-        gender: Gender,
-        dateOfBirth: Date
-    ) {
+    init(interactor: OnboardingHeightInteractor) {
         self.interactor = interactor
-        self.gender = gender
-        self.dateOfBirth = dateOfBirth
     }
     
     private var canSubmit: Bool {
@@ -81,7 +75,12 @@ class OnboardingHeightViewModel {
     }
     
     func navigateToWeightView(path: Binding<[OnboardingPathOption]>) {
-        path.wrappedValue.append(.weight(gender: gender, dateOfBirth: dateOfBirth, height: height, lengthUnitPreference: preference))
+        do {
+            try interactor.updateHeight(height, lengthUnitPreference: preference)
+            path.wrappedValue.append(.weight)
+        } catch {
+            showAlert = AnyAppAlert(error: error)
+        }
     }
     
     func updateImperialFromCentimeters() {

@@ -21,17 +21,9 @@ extension CoreInteractor: OnboardingCompleteAccountSetupInteractor { }
 class OnboardingCompleteAccountSetupViewModel {
     private let interactor: OnboardingCompleteAccountSetupInteractor
     
-    var navigationDestination: NavigationDestination?
     var canRequestNotificationsAuthorisation: Bool?
     var canRequestHealthDataAuthorisation: Bool?
     var showAlert: AnyAppAlert?
-    
-    enum NavigationDestination {
-        case healthData
-        case notifications
-        case namePhoto
-        case gender
-    }
     
     #if DEBUG || MOCK
     var showDebugView: Bool = false
@@ -41,9 +33,7 @@ class OnboardingCompleteAccountSetupViewModel {
         interactor.currentUser
     }
     
-    init(
-        interactor: OnboardingCompleteAccountSetupInteractor
-    ) {
+    init(interactor: OnboardingCompleteAccountSetupInteractor) {
         self.interactor = interactor
     }
     

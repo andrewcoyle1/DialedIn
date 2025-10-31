@@ -56,7 +56,7 @@ struct OnboardingHealthDataView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onAllowAccessPressed()
+                viewModel.onAllowAccessPressed(path: $path)
             } label: {
                 Text("Allow access to health data")
                     .padding(.horizontal)

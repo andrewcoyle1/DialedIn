@@ -74,22 +74,6 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
                             )
                         ), path: path
                     )
-                case OnboardingPathOption.healthData:
-                    OnboardingHealthDataView(
-                        viewModel: OnboardingHealthDataViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        ), path: path
-                    )
-                case OnboardingPathOption.notifications:
-                    OnboardingNotificationsView(
-                        viewModel: OnboardingNotificationsViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        ), path: path
-                    )
                 case OnboardingPathOption.namePhoto:
                     OnboardingNamePhotoView(
                         viewModel: OnboardingNamePhotoViewModel(
@@ -106,139 +90,76 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
                             )
                         ), path: path
                     )
-                case OnboardingPathOption.dateOfBirth(gender: let gender):
+                case OnboardingPathOption.dateOfBirth:
                     OnboardingDateOfBirthView(
                         viewModel: OnboardingDateOfBirthViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            gender: gender
+                            )
                         ), path: path
                     )
-                case OnboardingPathOption.height(gender: let gender, dateOfBirth: let dateOfBirth):
+                case OnboardingPathOption.height:
                     OnboardingHeightView(
                         viewModel: OnboardingHeightViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            gender: gender,
-                            dateOfBirth: dateOfBirth
+                            )
                         ), path: path
                     )
-                case OnboardingPathOption
-                        .weight(
-                            gender: let gender,
-                            dateOfBirth: let dateOfBirth,
-                            height: let height,
-                            lengthUnitPreference: let lengthUnitPreference
-                        ):
+                case OnboardingPathOption.weight:
                     OnboardingWeightView(
                         viewModel: OnboardingWeightViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            gender: gender,
-                            dateOfBirth: dateOfBirth,
-                            height: height,
-                            lengthUnitPreference: lengthUnitPreference
+                            )
                         ), path: path
                     )
-                case OnboardingPathOption
-                        .exerciseFrequency(
-                            gender: let gender,
-                            dateOfBirth: let dateOfBirth,
-                            height: let height,
-                            weight: let weight,
-                            lengthUnitPreference: let lengthUnitPreference,
-                            weightUnitPreference: let weightUnitPreference
-                        ):
+                case OnboardingPathOption.exerciseFrequency:
                     OnboardingExerciseFrequencyView(
                         viewModel: OnboardingExerciseFrequencyViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            gender: gender,
-                            dateOfBirth: dateOfBirth,
-                            height: height,
-                            weight: weight,
-                            lengthUnitPreference: lengthUnitPreference,
-                            weightUnitPreference: weightUnitPreference
+                            )
                         ), path: path
                     )
-                case OnboardingPathOption
-                        .activityLevel(
-                            gender: let gender,
-                            dateOfBirth: let dateOfBirth,
-                            height: let height,
-                            weight: let weight,
-                            exerciseFrequency: let exerciseFrequency,
-                            lengthUnitPreference: let lengthUnitPreference,
-                            weightUnitPreference: let weightUnitPreference
-                        ):
+                case OnboardingPathOption.activityLevel:
                     OnboardingActivityView(
                         viewModel: OnboardingActivityViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            gender: gender,
-                            dateOfBirth: dateOfBirth,
-                            height: height,
-                            weight: weight,
-                            exerciseFrequency: exerciseFrequency,
-                            lengthUnitPreference: lengthUnitPreference,
-                            weightUnitPreference: weightUnitPreference
+                            )
                         ), path: path
                     )
-                case OnboardingPathOption.cardioFitness(
-                    gender: let gender,
-                    dateOfBirth: let dateOfBirth,
-                    height: let height,
-                    weight: let weight,
-                    exerciseFrequency: let exerciseFrequency,
-                    activityLevel: let activityLevel,
-                    lengthUnitPreference: let lengthUnitPreference,
-                    weightUnitPreference: let weightUnitPreference
-                ):
+                case OnboardingPathOption.cardioFitness:
                     OnboardingCardioFitnessView(
                         viewModel: OnboardingCardioFitnessViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            gender: gender,
-                            dateOfBirth: dateOfBirth,
-                            height: height,
-                            weight: weight,
-                            exerciseFrequency: exerciseFrequency,
-                            activityLevel: activityLevel,
-                            lengthUnitPreference: lengthUnitPreference,
-                            weightUnitPreference: weightUnitPreference
+                            )
                         ), path: path
                     )
-                case OnboardingPathOption.expenditure(
-                    gender: let gender,
-                    dateOfBirth: let dateOfBirth,
-                    height: let height,
-                    weight: let weight,
-                    exerciseFrequency: let exerciseFrequency,
-                    activityLevel: let activityLevel,
-                    lengthUnitPreference: let lengthUnitPreference,
-                    weightUnitPreference: let weightUnitPreference,
-                    selectedCardioFitness: let selectedCardioFitness
-                ):
+                case OnboardingPathOption.expenditure:
                     OnboardingExpenditureView(
                         viewModel: OnboardingExpenditureViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            gender: gender,
-                            dateOfBirth: dateOfBirth,
-                            height: height,
-                            weight: weight,
-                            exerciseFrequency: exerciseFrequency,
-                            activityLevel: activityLevel,
-                            lengthUnitPreference: lengthUnitPreference,
-                            weightUnitPreference: weightUnitPreference,
-                            selectedCardioFitness: selectedCardioFitness
+                            )
+                        ), path: path
+                    )
+                case OnboardingPathOption.healthData:
+                    OnboardingHealthDataView(
+                        viewModel: OnboardingHealthDataViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            )
+                        ), path: path
+                    )
+                case OnboardingPathOption.notifications:
+                    OnboardingNotificationsView(
+                        viewModel: OnboardingNotificationsViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            )
                         ), path: path
                     )
                 case OnboardingPathOption.healthDisclaimer:
@@ -267,42 +188,28 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
                             )
                         ), path: path
                     )
-                case OnboardingPathOption.targetWeight(objective: let objective):
+                case OnboardingPathOption.targetWeight:
                     OnboardingTargetWeightView(
                         viewModel: OnboardingTargetWeightViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            objective: objective
+                            )
                         ), path: path
                     )
-                case OnboardingPathOption.weightRate(
-                            objective: let objective,
-                            targetWeight: let targetWeight
-                        ):
+                case OnboardingPathOption.weightRate:
                     OnboardingWeightRateView(
                         viewModel: OnboardingWeightRateViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            objective: objective,
-                            targetWeight: targetWeight,
-                            isStandaloneMode: false
+                            )
                         ), path: path
                     )
-                case OnboardingPathOption.goalSummary(
-                            objective: let objective,
-                            targetWeight: let targetWeight,
-                            weightRate: let weightRate
-                        ):
+                case OnboardingPathOption.goalSummary:
                     OnboardingGoalSummaryView(
                         viewModel: OnboardingGoalSummaryViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            objective: objective,
-                            targetWeight: targetWeight,
-                            weightRate: weightRate
+                            )
                         ), path: path
                     )
                 
@@ -323,60 +230,36 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
                             )
                         ), path: path
                     )
-                case OnboardingPathOption.calorieFloor(
-                            preferredDiet: let preferredDiet
-                        ):
+                case OnboardingPathOption.calorieFloor:
                     OnboardingCalorieFloorView(
                         viewModel: OnboardingCalorieFloorViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            preferredDiet: preferredDiet
+                            )
                         ), path: path
                     )
-                case OnboardingPathOption.trainingType(
-                            preferredDiet: let preferredDiet,
-                            calorieFloor: let calorieFloor
-                        ):
+                case OnboardingPathOption.trainingType:
                     OnboardingTrainingTypeView(
                         viewModel: OnboardingTrainingTypeViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            preferredDiet: preferredDiet,
-                            calorieFloor: calorieFloor
+                            )
                         ), path: path
                     )
-                case OnboardingPathOption.calorieDistribution(
-                            preferredDiet: let preferredDiet,
-                            calorieFloor: let calorieFloor,
-                            trainingType: let trainingType
-                        ):
+                case OnboardingPathOption.calorieDistribution:
                     OnboardingCalorieDistributionView(
                         viewModel: OnboardingCalorieDistributionViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            preferredDiet: preferredDiet,
-                            calorieFloor: calorieFloor,
-                            trainingType: trainingType
+                            )
                         ), path: path
                     )
-                case OnboardingPathOption.proteinIntake(
-                            preferredDiet: let preferredDiet,
-                            calorieFloor: let calorieFloor,
-                            trainingType: let trainingType,
-                            calorieDistribution: let calorieDistribution
-                        ):
+                case OnboardingPathOption.proteinIntake:
                     OnboardingProteinIntakeView(
                         viewModel: OnboardingProteinIntakeViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            preferredDiet: preferredDiet,
-                            calorieFloor: calorieFloor,
-                            trainingType: trainingType,
-                            calorieDistribution: calorieDistribution
+                            )
                         ), path: path
                     )
                 case OnboardingPathOption.dietPlan:

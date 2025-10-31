@@ -105,14 +105,7 @@ struct OnboardingActivityView: View {
             viewModel: OnboardingActivityViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                gender: .male,
-                dateOfBirth: Date(),
-                height: 175,                
-                weight: 70,
-                exerciseFrequency: .threeToFour,
-                lengthUnitPreference: .centimeters,
-                weightUnitPreference: .kilograms
+                )
             ), path: $path
         )
     }

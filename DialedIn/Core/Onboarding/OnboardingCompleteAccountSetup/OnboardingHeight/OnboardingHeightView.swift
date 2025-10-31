@@ -127,9 +127,7 @@ struct OnboardingHeightView: View {
             viewModel: OnboardingHeightViewModel(
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
-                ),
-                gender: .male,
-                dateOfBirth: Date()
+                )
             ), path: $path
         )
     }
