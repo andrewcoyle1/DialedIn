@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingCardioFitnessInteractor {
-    func updateUserCardioFitness(_ level: CardioFitnessLevel) throws
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingCardioFitnessInteractor { }
@@ -19,7 +19,6 @@ class OnboardingCardioFitnessViewModel {
     private let interactor: OnboardingCardioFitnessInteractor
     
     var selectedCardioFitness: CardioFitnessLevel?
-    var showAlert: AnyAppAlert?
     var isSaving: Bool = false
     var currentSaveTask: Task<Void, Never>?
     
@@ -35,13 +34,35 @@ class OnboardingCardioFitnessViewModel {
         self.interactor = interactor
     }
     
-    func navigateToExpenditure(path: Binding<[OnboardingPathOption]>) {
+    func navigateToExpenditure(path: Binding<[OnboardingPathOption]>, userBuilder: UserModelBuilder) {
         if let cardioFitness = selectedCardioFitness {
-            do {
-                try interactor.updateUserCardioFitness(cardioFitness)
-                path.wrappedValue.append(.expenditure)
-            } catch {
-                showAlert = AnyAppAlert(error: error)
+            var builder = userBuilder
+            builder.setCardioFitness(cardioFitness)
+            interactor.trackEvent(event: Event.navigate(destination: .expenditure(userModelBuilder: builder)))
+            path.wrappedValue.append(.expenditure(userModelBuilder: builder))
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "OnboardingCardioFitness_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate: 
+                return .info
             }
         }
     }

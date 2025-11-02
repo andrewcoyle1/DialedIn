@@ -11,6 +11,7 @@ protocol OnboardingWeightRateInteractor {
     var currentUser: UserModel? { get }
     var goalDraft: GoalDraft { get }
     func setWeeklyChangeKg(_ value: Double)
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingWeightRateInteractor { }
@@ -75,6 +76,7 @@ class OnboardingWeightRateViewModel {
     }
     
     func navigateToGoalSummary(path: Binding<[OnboardingPathOption]>) {
+        interactor.trackEvent(event: Event.navigate(destination: .goalSummary))
         path.wrappedValue.append(.goalSummary)
     }
     
@@ -155,5 +157,29 @@ class OnboardingWeightRateViewModel {
     
     func persistRateChange() {
         interactor.setWeeklyChangeKg(weightChangeRate)
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "Onboarding_WeightRate_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
+        }
     }
 }

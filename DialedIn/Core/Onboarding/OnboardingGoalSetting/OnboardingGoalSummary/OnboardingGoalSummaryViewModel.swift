@@ -9,7 +9,6 @@ import SwiftUI
 
 protocol OnboardingGoalSummaryInteractor {
     var currentUser: UserModel? { get }
-    var userDraft: UserModel? { get }
     var goalDraft: GoalDraft { get }
     func createGoal(
         userId: String,
@@ -18,10 +17,11 @@ protocol OnboardingGoalSummaryInteractor {
         targetWeightKg: Double,
         weeklyChangeKg: Double
     ) async throws -> WeightGoal
+    func updateOnboardingStep(step: OnboardingStep) async throws
     func updateCurrentGoalId(goalId: String?) async throws
     func resetGoalDraft()
-    func trackEvent(event: LoggableEvent)
     func handleAuthError(_ error: Error, operation: String) -> AuthErrorInfo
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingGoalSummaryInteractor { }
@@ -42,10 +42,6 @@ class OnboardingGoalSummaryViewModel {
     var showDebugView: Bool = false
     #endif
     
-    var userDraft: UserModel? {
-        interactor.userDraft
-    }
-    
     var goalDraft: GoalDraft {
         interactor.goalDraft
     }
@@ -59,7 +55,11 @@ class OnboardingGoalSummaryViewModel {
     }
     
     func navigateToCustomisingProgram(path: Binding<[OnboardingPathOption]>) {
-        path.wrappedValue.append(.customiseProgram)
+        Task {
+            try? await interactor.updateOnboardingStep(step: .customiseProgram)
+            interactor.trackEvent(event: Event.navigate(destination: .customiseProgram))
+            path.wrappedValue.append(.customiseProgram)
+        }
     }
     
     func uploadGoalSettings() async {
@@ -168,12 +168,14 @@ class OnboardingGoalSummaryViewModel {
         case goalSaveStart
         case goalSaveSuccess
         case goalSaveFail(error: Error)
-        
+        case navigate(destination: OnboardingPathOption)
+
         var eventName: String {
             switch self {
-            case .goalSaveStart: return "Onboarding_Goal_Save_Start"
-            case .goalSaveSuccess: return "Onboarding_Goal_Save_Success"
-            case .goalSaveFail: return "Onboarding_Goal_Save_Fail"
+            case .goalSaveStart:    return "Onboarding_Goal_Save_Start"
+            case .goalSaveSuccess:  return "Onboarding_Goal_Save_Success"
+            case .goalSaveFail:     return "Onboarding_Goal_Save_Fail"
+            case .navigate:         return "Onboarding_Goal_Navigation"
             }
         }
         
@@ -181,6 +183,8 @@ class OnboardingGoalSummaryViewModel {
             switch self {
             case let .goalSaveFail(error):
                 return error.eventParameters
+            case .navigate(destination: let destination):
+                return destination.eventParameters
             default:
                 return nil
             }
@@ -190,6 +194,8 @@ class OnboardingGoalSummaryViewModel {
             switch self {
             case .goalSaveFail:
                 return .severe
+            case .navigate:
+                return .info
             default:
                 return .analytic
             }

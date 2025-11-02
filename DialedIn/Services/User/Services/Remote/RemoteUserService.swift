@@ -50,5 +50,5 @@ protocol RemoteUserService: Sendable {
     func deleteUser(userId: String) async throws
     func streamUser(userId: String) -> AsyncThrowingStream<UserModel, Error>
     // MARK: - Consents
-    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws
+    func updateHealthConsents(userId: String, step: OnboardingStep, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws
 }

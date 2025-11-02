@@ -40,12 +40,11 @@ class SignUpViewModel {
     var showDebugView: Bool = false
     #endif
 
-    init(
-        interactor: SignUpInteractor
-    ) {
+    init(interactor: SignUpInteractor) {
         self.interactor = interactor
     }
 
+    // MARK: Sign Up Pressed
     func onSignUpPressed(path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent race conditions
         currentAuthTask?.cancel()
@@ -78,6 +77,7 @@ class SignUpViewModel {
         }
     }
 
+    // MARK: Handle Auth Success
     func handleOnAuthSuccess(user: UserAuthInfo, path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent conflicts
         currentAuthTask?.cancel()
@@ -98,7 +98,7 @@ class SignUpViewModel {
 
                 // Only navigate if task wasn't cancelled
                 if !Task.isCancelled {
-                    path.wrappedValue.append(.emailVerification)
+                    handleNavigation(path: path)
                 }
             } catch {
                 // Only show error if task wasn't cancelled
@@ -112,7 +112,13 @@ class SignUpViewModel {
             }
         }
     }
+
+    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
+        interactor.trackEvent(event: Event.navigate(destination: .emailVerification))
+        path.wrappedValue.append(.emailVerification)
+    }
     
+    // MARK: Cleanup Tasks
     func cleanup() {
         // Clean up any ongoing tasks and reset loading states
         currentAuthTask?.cancel()
@@ -121,6 +127,7 @@ class SignUpViewModel {
         isLoadingUser = false
     }
 
+    // MARK: Perform Auth with Timeout
     @discardableResult
     private func performAuthWithTimeout<T: Sendable>(_ operation: @escaping @Sendable () async throws -> T) async throws -> T {
         try await withThrowingTaskGroup(of: T.self) { group in
@@ -142,7 +149,7 @@ class SignUpViewModel {
         }
     }
 
-    /// Standardized error handling for auth operations
+    // MARK: Auth Error
     private func handleAuthError(_ error: Error, operation: String, retryAction: @escaping @Sendable () -> Void) {
         let errorInfo = interactor.handleAuthError(error, operation: operation)
 
@@ -164,10 +171,7 @@ class SignUpViewModel {
         )
     }
 
-    // MARK: - Error Messages
-    // Note: Error message generation is now handled by AuthErrorHandler
-
-    /// Standardized error handling for user login operations
+    // MARK: User Error
     private func handleUserLoginError(_ error: Error, retryAction: @escaping @Sendable () -> Void) {
         let errorInfo = interactor.handleUserLoginError(error)
 
@@ -190,11 +194,11 @@ class SignUpViewModel {
     }
 
     // MARK: - Events
-
     enum Event: LoggableEvent {
         case signUpStart
         case signUpSuccess
         case signUpFail(error: Error)
+        case navigate(destination: OnboardingPathOption)
         case userLoginStart
         case userLoginSuccess
         case userLoginFail(error: Error)
@@ -204,6 +208,7 @@ class SignUpViewModel {
             case .signUpStart:      return "EmailAuthView_SignUp_Start"
             case .signUpSuccess:    return "EmailAuthView_SignUp_Success"
             case .signUpFail:       return "EmailAuthView_SignUp_Fail"
+            case .navigate:         return "SignUpView_Navigate"
             case .userLoginStart:   return "EmailAuthView_UserLogin_Start"
             case .userLoginSuccess: return "EmailAuthView_UserLogin_Success"
             case .userLoginFail:    return "EmailAuthView_UserLogin_Fail"
@@ -214,6 +219,8 @@ class SignUpViewModel {
             switch self {
             case .signUpFail(error: let error), .userLoginFail(error: let error):
                 return error.eventParameters
+            case .navigate(destination: let destination):
+                return destination.eventParameters
             default:
                 return nil
             }
@@ -223,6 +230,8 @@ class SignUpViewModel {
             switch self {
             case .signUpFail, .userLoginFail:
                 return .severe
+            case .navigate:
+                return .info
             default:
                 return .analytic
 

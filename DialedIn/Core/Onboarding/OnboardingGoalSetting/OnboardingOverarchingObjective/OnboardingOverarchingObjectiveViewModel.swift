@@ -12,6 +12,7 @@ protocol OnboardingOverarchingObjectiveInteractor {
     func setObjective(_ objective: OverarchingObjective)
     func setTargetWeightKg(_ value: Double)
     func setWeeklyChangeKg(_ value: Double)
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingOverarchingObjectiveInteractor { }
@@ -49,9 +50,34 @@ class OnboardingOverarchingObjectiveViewModel {
         if objective == .maintain {
             interactor.setTargetWeightKg(weight)
             interactor.setWeeklyChangeKg(0)
+            interactor.trackEvent(event: Event.navigate(destination: .goalSummary))
             path.wrappedValue.append(.goalSummary)
         } else {
+            interactor.trackEvent(event: Event.navigate(destination: .targetWeight))
             path.wrappedValue.append(.targetWeight)
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "OverarchingObjecting_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate: return .info
+            }
         }
     }
 }

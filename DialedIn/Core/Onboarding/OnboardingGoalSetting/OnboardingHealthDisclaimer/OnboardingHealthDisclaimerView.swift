@@ -21,9 +21,6 @@ struct OnboardingHealthDisclaimerView: View {
         .safeAreaInset(edge: .bottom) {
             buttonSection
         }
-        .task {
-            await viewModel.updateOnboardingStep()
-        }
         .showModal(showModal: $viewModel.showModal, content: {
             confirmationModal
         })

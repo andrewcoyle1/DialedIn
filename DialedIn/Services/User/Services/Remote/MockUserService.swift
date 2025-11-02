@@ -224,7 +224,7 @@ struct MockUserService: RemoteUserService {
     }
     
     // MARK: - Consents
-    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
+    func updateHealthConsents(userId: String, step: OnboardingStep, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
     }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingExerciseFrequencyInteractor {
-    func updateUserExerciseFrequency(_ frequency: ExerciseFrequency) throws
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingExerciseFrequencyInteractor { }
@@ -23,9 +23,7 @@ class OnboardingExerciseFrequencyViewModel {
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
-    
-    var showAlert: AnyAppAlert?
-    
+
     var canSubmit: Bool {
         selectedFrequency != nil
     }
@@ -34,13 +32,35 @@ class OnboardingExerciseFrequencyViewModel {
         self.interactor = interactor
     }
     
-    func navigateToOnboardingActivity(path: Binding<[OnboardingPathOption]>) {
+    func navigateToOnboardingActivity(path: Binding<[OnboardingPathOption]>, userBuilder: UserModelBuilder) {
         if let frequency = selectedFrequency {
-            do {
-                try interactor.updateUserExerciseFrequency(frequency)
-                path.wrappedValue.append(.activityLevel)
-            } catch {
-                showAlert = AnyAppAlert(error: error)
+            var builder = userBuilder
+            builder.setExerciseFrequency(frequency)
+            interactor.trackEvent(event: Event.navigate(destination: .activityLevel(userModelBuilder: userBuilder)))
+            path.wrappedValue.append(.activityLevel(userModelBuilder: userBuilder))
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "OnboardingExerciseFreqView_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate: 
+                return .info
             }
         }
     }

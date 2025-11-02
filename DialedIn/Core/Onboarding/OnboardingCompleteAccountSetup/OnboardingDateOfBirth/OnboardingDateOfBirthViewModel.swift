@@ -8,8 +8,7 @@
 import SwiftUI
 
 protocol OnboardingDateOfBirthInteractor {
-    var userDraft: UserModel? { get }
-    func updateDateOfBirth(_ dateOfBirth: Date) throws
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingDateOfBirthInteractor { }
@@ -21,7 +20,6 @@ class OnboardingDateOfBirthViewModel {
     
     var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
     
-    var showAlert: AnyAppAlert?
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
@@ -30,12 +28,34 @@ class OnboardingDateOfBirthViewModel {
         self.interactor = interactor
     }
     
-    func navigateToOnboardingHeight(path: Binding<[OnboardingPathOption]>) {
-        do {
-            try interactor.updateDateOfBirth(dateOfBirth)
-            path.wrappedValue.append(.height)
-        } catch {
-            showAlert = AnyAppAlert(error: error)
+    func navigateToOnboardingHeight(path: Binding<[OnboardingPathOption]>, userBuilder: UserModelBuilder) {
+        var builder = userBuilder
+        builder.setDateOfBirth(dateOfBirth)
+        interactor.trackEvent(event: Event.navigate(destination: .height(userModelBuilder: builder)))
+        path.wrappedValue.append(.height(userModelBuilder: builder))
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "OnboardingGenderView_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate: 
+                return .info
+            }
         }
     }
 }

@@ -11,6 +11,7 @@ struct OnboardingActivityView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingActivityViewModel
     @Binding var path: [OnboardingPathOption]
+    var userModelBuilder: UserModelBuilder
 
     enum NavigationDestination {
         case cardioFitness(gender: Gender, dateOfBirth: Date, height: Double, weight: Double, exerciseFrequency: ExerciseFrequency, activityLevel: ActivityLevel, lengthUnitPreference: LengthUnitPreference, weightUnitPreference: WeightUnitPreference)
@@ -64,7 +65,7 @@ struct OnboardingActivityView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToCardioFitness(path: $path)
+                viewModel.navigateToCardioFitness(path: $path, userBuilder: userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -106,7 +107,9 @@ struct OnboardingActivityView: View {
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            ), path: $path
+            ),
+            path: $path,
+            userModelBuilder: UserModelBuilder.activityLevelMock
         )
     }
     .previewEnvironment()

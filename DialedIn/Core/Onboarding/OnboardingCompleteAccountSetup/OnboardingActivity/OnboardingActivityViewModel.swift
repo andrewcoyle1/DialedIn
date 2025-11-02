@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingActivityInteractor {
-    func updateUserActivityLevel(_ activityLevel: ActivityLevel) throws
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingActivityInteractor { }
@@ -23,26 +23,44 @@ class OnboardingActivityViewModel {
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
-    
-    var showAlert: AnyAppAlert?
-    
+        
     var canSubmit: Bool {
         selectedActivityLevel != nil
     }
     
-    init(
-        interactor: OnboardingActivityInteractor,
-    ) {
+    init(interactor: OnboardingActivityInteractor) {
         self.interactor = interactor
     }
     
-    func navigateToCardioFitness(path: Binding<[OnboardingPathOption]>) {
+    func navigateToCardioFitness(path: Binding<[OnboardingPathOption]>, userBuilder: UserModelBuilder) {
         if let activityLevel = selectedActivityLevel {
-            do {
-                try interactor.updateUserActivityLevel(activityLevel)
-                path.wrappedValue.append(.cardioFitness)
-            } catch {
-                showAlert = AnyAppAlert(error: error)
+            var builder = userBuilder
+            builder.setActivityLevel(activityLevel)
+            interactor.trackEvent(event: Event.navigate(destination: .cardioFitness(userModelBuilder: builder)))
+            path.wrappedValue.append(.cardioFitness(userModelBuilder: builder))
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "OnboardingActivityLevel_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
             }
         }
     }

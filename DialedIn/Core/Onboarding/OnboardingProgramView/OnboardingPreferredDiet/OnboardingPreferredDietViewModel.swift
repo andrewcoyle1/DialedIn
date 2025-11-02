@@ -9,6 +9,7 @@ import SwiftUI
 
 protocol OnboardingPreferredDietInteractor {
     func setPreferredDiet(_ value: PreferredDiet)
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingPreferredDietInteractor { }
@@ -24,16 +25,39 @@ class OnboardingPreferredDietViewModel {
     var showDebugView: Bool = false
     #endif
     
-    init(
-        interactor: OnboardingPreferredDietInteractor
-    ) {
+    init(interactor: OnboardingPreferredDietInteractor) {
         self.interactor = interactor
     }
     
     func navigateToCalorieFloor(path: Binding<[OnboardingPathOption]>) {
         if let diet = selectedDiet {
             interactor.setPreferredDiet(diet)
+            interactor.trackEvent(event: Event.navigate(destination: .calorieFloor))
             path.wrappedValue.append(.calorieFloor)
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "Onboarding_PrefDiet_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
         }
     }
 }

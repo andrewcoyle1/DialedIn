@@ -36,8 +36,7 @@ class OnboardingHealthDataViewModel {
             do {
                 try await interactor.requestHealthKitAuthorisation()
                 interactor.trackEvent(event: Event.enableHealthKitSuccess)
-//                let canRequest = await interactor.canRequestHealthDataAuthorisation()
-                path.wrappedValue.append(.gender)
+                handleNavigation(path: path)
             } catch {
                 interactor.trackEvent(event: Event.enableHealthKitFail(error: error))
                 showAlert = AnyAppAlert(error: error)
@@ -45,20 +44,23 @@ class OnboardingHealthDataViewModel {
         }
     }
     
-    func navigateToGender(path: Binding<[OnboardingPathOption]>) {
-        path.wrappedValue.append(.gender)
+    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
+        interactor.trackEvent(event: Event.navigate(destination: .healthDisclaimer))
+        path.wrappedValue.append(.healthDisclaimer)
     }
 
     enum Event: LoggableEvent {
         case enableHealthKitStart
         case enableHealthKitSuccess
         case enableHealthKitFail(error: Error)
+        case navigate(destination: OnboardingPathOption)
 
         var eventName: String {
             switch self {
-            case .enableHealthKitStart:    return "Onboarding_EnableHealthKit_Start"
-            case .enableHealthKitSuccess:  return "Onboarding_EnableHealthKit_Success"
-            case .enableHealthKitFail:     return "Onboarding_EnableHealthKit_Fail"
+            case .enableHealthKitStart:     return "Onboarding_EnableHealthKit_Start"
+            case .enableHealthKitSuccess:   return "Onboarding_EnableHealthKit_Success"
+            case .enableHealthKitFail:      return "Onboarding_EnableHealthKit_Fail"
+            case .navigate:                 return "Onboarding_HealthData_Navigate"
             }
         }
 
@@ -66,6 +68,8 @@ class OnboardingHealthDataViewModel {
             switch self {
             case .enableHealthKitFail(error: let error):
                 return error.eventParameters
+            case .navigate(destination: let destination):
+                return destination.eventParameters
             default:
                 return nil
             }
@@ -75,6 +79,8 @@ class OnboardingHealthDataViewModel {
             switch self {
             case .enableHealthKitFail:
                 return .severe
+            case .navigate:
+                return .info
             default:
                 return .analytic
 

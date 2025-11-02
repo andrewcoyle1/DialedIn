@@ -11,6 +11,7 @@ protocol OnboardingTargetWeightInteractor {
     var currentUser: UserModel? { get }
     var goalDraft: GoalDraft { get }
     func setTargetWeightKg(_ value: Double)
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingTargetWeightInteractor { }
@@ -128,10 +129,35 @@ class OnboardingTargetWeightViewModel {
     }
     
     func navigateToWeightRate(path: Binding<[OnboardingPathOption]>) {
+        interactor.trackEvent(event: Event.navigate(destination: .weightRate))
         path.wrappedValue.append(.weightRate)
     }
     
     private func clamp(initial: Int, within range: ClosedRange<Int>) -> Int {
         return min(max(initial, range.lowerBound), range.upperBound)
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "Onboarding_TargetWeight_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
+        }
     }
 }

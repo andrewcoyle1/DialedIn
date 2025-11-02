@@ -91,7 +91,7 @@ class OnboardingDietPlanViewModel {
         case finishOnboardingStart
         case finishOnboardingSuccess
         case finishOnboardingFail(error: Error)
-        
+
         var eventName: String {
             switch self {
             case .updateOnboardingStepStart:    return "DietView_UpdateOnboardingStep_Start"

@@ -11,6 +11,7 @@ struct OnboardingDateOfBirthView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingDateOfBirthViewModel
     @Binding var path: [OnboardingPathOption]
+    var userModelBuilder: UserModelBuilder
 
     var body: some View {
         List {
@@ -45,7 +46,7 @@ struct OnboardingDateOfBirthView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToOnboardingHeight(path: $path)
+                viewModel.navigateToOnboardingHeight(path: $path, userBuilder: userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -62,7 +63,8 @@ struct OnboardingDateOfBirthView: View {
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            ), path: $path
+            ), path: $path,
+            userModelBuilder: UserModelBuilder.dobMock
         )
     }
     .previewEnvironment()

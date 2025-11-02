@@ -11,6 +11,7 @@ struct OnboardingExpenditureView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingExpenditureViewModel
     @Binding var path: [OnboardingPathOption]
+    var userBuilder: UserModelBuilder
 
     var body: some View {
         List {
@@ -27,8 +28,11 @@ struct OnboardingExpenditureView: View {
             ProgressView()
                 .tint(.white)
         })
+        .onFirstTask {
+            await viewModel.checkCanRequestPermissions()
+        }
         .task {
-            viewModel.calculateExpenditure()
+            viewModel.calculateExpenditure(userModelBuilder: userBuilder)
         }
         .toolbar {
             toolbarContent
@@ -54,7 +58,7 @@ struct OnboardingExpenditureView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToHealthDisclaimer(path: $path)
+                viewModel.handleNavigation(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -83,9 +87,36 @@ struct OnboardingExpenditureView: View {
         }
     }
     
+    private var breakdownItems: [OnboardingExpenditureViewModel.Breakdown] {
+        guard let weight = userBuilder.weight,
+              let height = userBuilder.height,
+              let dateOfBirth = userBuilder.dateOfBirth,
+              let activityLevel = userBuilder.activityLevel,
+              let exerciseFrequency = userBuilder.exerciseFrequency else {
+            return []
+        }
+        
+        let bmrInt = viewModel.bmrInt(
+            weight: weight,
+            height: height,
+            dateOfBirth: dateOfBirth,
+            gender: userBuilder.gender
+        )
+        
+        return viewModel.breakdownItems(
+            weight: weight,
+            height: height,
+            dateOfBirth: dateOfBirth,
+            gender: userBuilder.gender,
+            bmrInt: bmrInt,
+            activityLevel: activityLevel,
+            exerciseFrequency: exerciseFrequency
+        )
+    }
+    
     private var breakdownSection: some View {
         Section("Breakdown") {
-            ForEach(viewModel.breakdownItems) { item in
+            ForEach(breakdownItems) { item in
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text(item.name)
@@ -111,30 +142,30 @@ struct OnboardingExpenditureView: View {
                 HStack {
                     Text("BMR (Mifflin-St Jeor)")
                     Spacer()
-                    Text("\(viewModel.bmrInt) kcal")
+                    Text("\(calculatedBmrInt) kcal")
                         .foregroundStyle(.secondary)
                 }
                 Divider()
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Activity Level Multiplier")
-                        Text(viewModel.activityDescription)
+                        Text(activityDescriptionText)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Text(String(format: "× %.2f", viewModel.baseActivityMultiplier))
+                    Text(String(format: "× %.2f", calculatedBaseActivityMultiplier))
                         .foregroundStyle(.secondary)
                 }
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Exercise Frequency Adjustment")
-                        Text(viewModel.exerciseDescription)
+                        Text(exerciseDescriptionText)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Text(String(format: "+ %.2f", viewModel.exerciseAdjustment))
+                    Text(String(format: "+ %.2f", calculatedExerciseAdjustment))
                         .foregroundStyle(.secondary)
                 }
                 Divider()
@@ -148,7 +179,7 @@ struct OnboardingExpenditureView: View {
                     Text("TDEE Result")
                         .fontWeight(.semibold)
                     Spacer()
-                    Text("\(viewModel.tdeeInt) kcal/day")
+                    Text("\(calculatedTdeeInt) kcal/day")
                         .fontWeight(.semibold)
                 }
             }
@@ -157,6 +188,66 @@ struct OnboardingExpenditureView: View {
         } footer: {
             Text("BMR uses your age, height, weight and sex. We then scale by daily activity and how often you exercise. Minimum safeguards may apply elsewhere when setting calorie targets.")
         }
+    }
+    
+    private var calculatedBmrInt: Int {
+        guard let weight = userBuilder.weight,
+              let height = userBuilder.height,
+              let dateOfBirth = userBuilder.dateOfBirth else {
+            return 0
+        }
+        return viewModel.bmrInt(
+            weight: weight,
+            height: height,
+            dateOfBirth: dateOfBirth,
+            gender: userBuilder.gender
+        )
+    }
+    
+    private var activityDescriptionText: String {
+        guard let activityLevel = userBuilder.activityLevel else {
+            return "N/A"
+        }
+        return viewModel.activityDescription(activityLevel: activityLevel)
+    }
+    
+    private var calculatedBaseActivityMultiplier: Double {
+        guard let activityLevel = userBuilder.activityLevel else {
+            return 1.0
+        }
+        return viewModel.baseActivityMultiplier(activityLevel: activityLevel)
+    }
+    
+    private var exerciseDescriptionText: String {
+        guard let exerciseFrequency = userBuilder.exerciseFrequency else {
+            return "N/A"
+        }
+        return viewModel.exerciseDescription(exerciseFrequency: exerciseFrequency)
+    }
+    
+    private var calculatedExerciseAdjustment: Double {
+        guard let exerciseFrequency = userBuilder.exerciseFrequency else {
+            return 0.0
+        }
+        return viewModel.exerciseAdjustment(exerciseFrequency: exerciseFrequency)
+    }
+    
+    private var calculatedTdeeInt: Int {
+        guard let weight = userBuilder.weight,
+              let height = userBuilder.height,
+              let dateOfBirth = userBuilder.dateOfBirth,
+              let activityLevel = userBuilder.activityLevel,
+              let exerciseFrequency = userBuilder.exerciseFrequency else {
+            return 0
+        }
+        return viewModel.tdeeInt(
+            weight: weight,
+            height: height,
+            dateOfBirth: dateOfBirth,
+            gender: userBuilder.gender,
+            activityLevel: activityLevel,
+            exerciseFrequency: exerciseFrequency
+        )
     }
 }
 
@@ -169,7 +260,8 @@ struct OnboardingExpenditureView: View {
                     container: DevPreview.shared.container
                 )
             ),
-            path: $path
+            path: $path,
+            userBuilder: UserModelBuilder.mock
         )
     }
     .previewEnvironment()

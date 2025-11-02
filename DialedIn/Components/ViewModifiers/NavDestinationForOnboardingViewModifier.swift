@@ -90,61 +90,69 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
                             )
                         ), path: path
                     )
-                case OnboardingPathOption.dateOfBirth:
+                case OnboardingPathOption.dateOfBirth(userModelBuilder: let userModelBuilder):
                     OnboardingDateOfBirthView(
                         viewModel: OnboardingDateOfBirthViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            )
-                        ), path: path
+                            ),
+                        ),
+                        path: path,
+                        userModelBuilder: userModelBuilder
                     )
-                case OnboardingPathOption.height:
+                case OnboardingPathOption.height(userModelBuilder: let userModelBuilder):
                     OnboardingHeightView(
                         viewModel: OnboardingHeightViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        userModelBuilder: userModelBuilder
                     )
-                case OnboardingPathOption.weight:
+                case OnboardingPathOption.weight(userModelBuilder: let userModelBuilder):
                     OnboardingWeightView(
                         viewModel: OnboardingWeightViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        userModelBuilder: userModelBuilder
                     )
-                case OnboardingPathOption.exerciseFrequency:
+                case OnboardingPathOption.exerciseFrequency(userModelBuilder: let userModelBuilder):
                     OnboardingExerciseFrequencyView(
                         viewModel: OnboardingExerciseFrequencyViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        userModelBuilder: userModelBuilder
                     )
-                case OnboardingPathOption.activityLevel:
+                case OnboardingPathOption.activityLevel(userModelBuilder: let userModelBuilder):
                     OnboardingActivityView(
                         viewModel: OnboardingActivityViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        userModelBuilder: userModelBuilder
                     )
-                case OnboardingPathOption.cardioFitness:
+                case OnboardingPathOption.cardioFitness(userModelBuilder: let userModelBuilder):
                     OnboardingCardioFitnessView(
                         viewModel: OnboardingCardioFitnessViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        userModelBuilder: userModelBuilder
                     )
-                case OnboardingPathOption.expenditure:
+                case OnboardingPathOption.expenditure(userModelBuilder: let userModelBuilder):
                     OnboardingExpenditureView(
                         viewModel: OnboardingExpenditureViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        userBuilder: userModelBuilder
                     )
                 case OnboardingPathOption.healthData:
                     OnboardingHealthDataView(

@@ -29,15 +29,12 @@ class AuthOptionsViewModel {
     
     var isLoading: Bool = false
     var showAlert: AnyAppAlert?
-    var navigationDestination: NavigationDestination?
 
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
     
-    init(
-        interactor: AuthOptionsInteractor,
-    ) {
+    init(interactor: AuthOptionsInteractor) {
         self.interactor = interactor
     }
     
@@ -46,6 +43,7 @@ class AuthOptionsViewModel {
         currentAuthTask = nil
     }
     
+    // MARK: Sign In Apple
     func onSignInApplePressed(path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent race conditions
         currentAuthTask?.cancel()
@@ -79,6 +77,7 @@ class AuthOptionsViewModel {
         }
     }
 
+    // MARK: Sign In Google
     func onSignInGooglePressed(path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent race conditions
         currentAuthTask?.cancel()
@@ -111,6 +110,7 @@ class AuthOptionsViewModel {
         }
     }
     
+    // MARK: User Log In
     func handleOnAuthSuccess(user: UserAuthInfo, path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent conflicts
         currentAuthTask?.cancel()
@@ -146,45 +146,15 @@ class AuthOptionsViewModel {
         }
     }
     
+    // MARK: Handle Navigation
     func handleNavigation(path: Binding<[OnboardingPathOption]>) {
-        // Navigate based on user's current onboarding step
-        
-        path.wrappedValue.append(.subscriptionInfo)
-//        let destination = getNavigationDestination(for: interactor.currentUser?.onboardingStep ?? .auth)
-//        navigationDestination = destination
+        // Navigate based on user's current onboarding step     
+        let pathOption = interactor.currentUser?.onboardingStep.onboardingPathOption ?? .subscriptionInfo
+        interactor.trackEvent(event: Event.navigate(destination: pathOption))
+        path.wrappedValue.append(pathOption)
     }
     
-    // MARK: - Helper Methods
-    
-    func getNavigationDestination(for step: OnboardingStep) -> NavigationDestination? {
-        switch step {
-        case .auth:
-            // SSO users should skip email verification and go straight to subscription
-            return .subscription
-        case .subscription:
-            // User is at subscription step, go there
-            return .subscription
-        case .completeAccountSetup:
-            // User is at complete account setup, go there
-            return .completeAccountSetup
-        case .healthDisclaimer:
-            // User is at health disclaimer, go there
-            return .healthDisclaimer
-        case .goalSetting:
-            // User is at goal setting, go there
-            return .goalSetting
-        case .customiseProgram:
-            // User is at customise program, go there
-            return .customiseProgram
-        case .diet:
-            return .diet
-        case .complete:
-            // User has completed onboarding, navigate to TabBarView
-            return .completed
-        }
-    }
-    
-    /// Standardized error handling for auth operations
+    // MARK: Auth Error
     func handleAuthError(_ error: Error, provider: String, retryAction: @escaping @Sendable () -> Void) {
         let errorInfo = interactor.handleAuthError(error, operation: "sign in", provider: provider)
         
@@ -206,7 +176,7 @@ class AuthOptionsViewModel {
         )
     }
     
-    /// Standardized error handling for user login operations
+    // MARK: User Error
     func handleUserLoginError(_ error: Error, retryAction: @escaping @Sendable () -> Void) {
         let errorInfo = interactor.handleUserLoginError(error)
         
@@ -232,25 +202,26 @@ class AuthOptionsViewModel {
         )
     }
     
+    // MARK: Sign Up Pressed
     func signUpPressed(path: Binding<[OnboardingPathOption]>) {
         interactor.trackEvent(event: Event.signUpPressed)
         path.wrappedValue.append(.signUp)
     }
     
+    // MARK: Sign In Pressed
     func signInPressed(path: Binding<[OnboardingPathOption]>) {
         interactor.trackEvent(event: Event.signUpPressed)
         path.wrappedValue.append(.signIn)
     }
     
+    // MARK: Cleanup Tasks
     func cleanUp() {
         currentAuthTask?.cancel()
         currentAuthTask = nil
         isLoading = false
     }
     
-    // MARK: - Error Messages
-    // Note: Error message generation is now handled by AuthErrorHandler
-
+    // MARK: Events
     enum Event: LoggableEvent {
         case appleAuthStart
         case appleAuthSuccess
@@ -259,13 +230,15 @@ class AuthOptionsViewModel {
         case googleAuthStart
         case googleAuthSuccess
         case googleAuthFail(error: Error)
-
-        case signInPressed
-        case signUpPressed
         
         case userLoginStart
         case userLoginSuccess
         case userLoginFail(error: Error)
+
+        case navigate(destination: OnboardingPathOption)
+        case signInPressed
+        case signUpPressed
+
         var eventName: String {
             switch self {
             case .appleAuthStart:    return "OnboardingAuth_AppleAuth_Start"
@@ -274,11 +247,12 @@ class AuthOptionsViewModel {
             case .googleAuthStart:   return "OnboardingAuth_GoogleAuth_Start"
             case .googleAuthSuccess: return "OnboardingAuth_GoogleAuth_Success"
             case .googleAuthFail:    return "OnboardingAuth_GoogleAuth_Fail"
-            case .signInPressed:     return "OnboardingAuth_SignIn_Pressed"
-            case .signUpPressed:     return "OnboardingAuth_SignUp_Pressed"
             case .userLoginStart:    return "OnboardingAuth_UserLogin_Start"
             case .userLoginSuccess:  return "OnboardingAuth_UserLogin_Success"
             case .userLoginFail:     return "OnboardingAuth_UserLogin_Fail"
+            case .navigate:          return "OnboardingAuth_Navigate"
+            case .signInPressed:     return "OnboardingAuth_SignIn_Pressed"
+            case .signUpPressed:     return "OnboardingAuth_SignUp_Pressed"
             }
         }
 
@@ -286,6 +260,8 @@ class AuthOptionsViewModel {
             switch self {
             case .appleAuthFail(error: let error), .googleAuthFail(error: let error), .userLoginFail(error: let error):
                 return error.eventParameters
+            case .navigate(destination: let destination):
+                return destination.eventParameters
             default:
                 return nil
             }
@@ -295,7 +271,7 @@ class AuthOptionsViewModel {
             switch self {
             case .appleAuthFail, .googleAuthFail, .userLoginFail:
                 return LogType.severe
-            case .signInPressed, .signUpPressed:
+            case .signInPressed, .signUpPressed, .navigate:
                 return LogType.info
             default:
                 return LogType.analytic
@@ -303,19 +279,4 @@ class AuthOptionsViewModel {
             }
         }
     }
-}
-
-enum NavigationDestination {
-    
-    case emailVerification
-    case subscription
-    case completeAccountSetup
-    case healthData
-    case notifications
-    case gender
-    case healthDisclaimer
-    case goalSetting
-    case customiseProgram
-    case diet
-    case completed
 }

@@ -67,7 +67,7 @@ struct Dependencies {
             mealLogManager = MealLogManager(services: MockMealLogServices(mealsByDay: MealLogModel.mockWeekMealsByDay))
             aiManager = AIManager(service: MockAIService())
             logManager = LogManager(services: [
-                ConsoleService(printParameters: false)
+                ConsoleService(printParameters: true)
             ])
             reportManager = ReportManager(service: MockReportService(), userManager: userManager, logManager: logManager)
             trainingAnalyticsManager = TrainingAnalyticsManager(services: MockTrainingAnalyticsServices())

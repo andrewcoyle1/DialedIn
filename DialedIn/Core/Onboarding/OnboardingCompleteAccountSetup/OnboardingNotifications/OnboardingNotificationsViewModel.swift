@@ -9,6 +9,7 @@ import SwiftUI
 
 protocol OnboardingNotificationsInteractor {
     func requestPushAuthorisation() async throws -> Bool
+    func canRequestHealthDataAuthorisation() -> Bool
     func trackEvent(event: LoggableEvent)
 }
 
@@ -24,11 +25,7 @@ class OnboardingNotificationsViewModel {
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
-    
-    enum NavigationDestination {
-        case gender
-    }
-    
+        
     init(interactor: OnboardingNotificationsInteractor) {
         self.interactor = interactor
     }
@@ -45,11 +42,20 @@ class OnboardingNotificationsViewModel {
             do {
                 let isAuthorised = try await interactor.requestPushAuthorisation()
                 interactor.trackEvent(event: Event.enableNotificationsSuccess(isAuthorised: isAuthorised))
-                path.wrappedValue.append(.gender)
-
+                handleNavigation(path: path)
             } catch {
                 interactor.trackEvent(event: Event.enableNotficiationsFail(error: error))
             }
+        }
+    }
+
+    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
+        if interactor.canRequestHealthDataAuthorisation() {
+            interactor.trackEvent(event: Event.navigate(destination: .healthData))
+            path.wrappedValue.append(.healthData)
+        } else {
+            interactor.trackEvent(event: Event.navigate(destination: .healthDisclaimer))
+            path.wrappedValue.append(.healthDisclaimer)
         }
     }
 
@@ -70,15 +76,17 @@ class OnboardingNotificationsViewModel {
         case enableNotificationsSuccess(isAuthorised: Bool)
         case enableNotficiationsFail(error: Error)
         case skipForNow
+        case navigate(destination: OnboardingPathOption)
 
         var eventName: String {
             switch self {
-            case .pushNotificationsModalShow: return "Onboarding_PushNotifsModal_Show"
-            case .pushNotificationsModalDismiss: return "Onboarding_PushNotifsModal_Dismiss"
-            case .enableNotificationsStart:    return "Onboarding_EnableNotifications_Start"
-            case .enableNotificationsSuccess:  return "Onboarding_EnableNotifications_Success"
-            case .enableNotficiationsFail:     return "Onboarding_EnableNotifications_Fail"
-            case .skipForNow:                  return "Onboarding_Notifications_SkipForNow"
+            case .pushNotificationsModalShow:       return "Onboarding_PushNotifsModal_Show"
+            case .pushNotificationsModalDismiss:    return "Onboarding_PushNotifsModal_Dismiss"
+            case .enableNotificationsStart:         return "Onboarding_EnableNotifications_Start"
+            case .enableNotificationsSuccess:       return "Onboarding_EnableNotifications_Success"
+            case .enableNotficiationsFail:          return "Onboarding_EnableNotifications_Fail"
+            case .skipForNow:                       return "Onboarding_Notifications_SkipForNow"
+            case .navigate:                       return "Onboarding_Notifications_Navigate"
             }
         }
 
@@ -90,6 +98,8 @@ class OnboardingNotificationsViewModel {
                 ] as [String: Any]
             case .enableNotficiationsFail(error: let error):
                 return error.eventParameters
+            case .navigate(destination: let destination):
+                return destination.eventParameters
             default:
                 return nil
             }
@@ -99,9 +109,10 @@ class OnboardingNotificationsViewModel {
             switch self {
             case .enableNotficiationsFail:
                 return .warning
+            case .navigate:
+                return .info
             default:
                 return .analytic
-
             }
         }
     }

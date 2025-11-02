@@ -146,10 +146,6 @@ struct CoreInteractor {
         userManager.currentUser
     }
     
-    var userDraft: UserModel? {
-        userManager.userDraft
-    }
-    
     var onboardingStep: OnboardingStep {
         userManager.currentUser?.onboardingStep ?? .auth
     }
@@ -176,45 +172,6 @@ struct CoreInteractor {
     
     func saveUser(user: UserModel, image: PlatformImage? = nil) async throws {
         try await userManager.saveUser(user: user, image: image)
-    }
-    
-    func updateNameAndImage(_ firstName: String, _ lastName: String?, _ profileImageUrl: String?) throws {
-        try userManager.updateNameAndImage(firstName, lastName, profileImageUrl)
-    }
-    
-    func updateDateOfBirth(_ dateOfBirth: Date) throws {
-        try userManager.updateDateOfBirth(dateOfBirth)
-    }
-    
-    func updateGender(_ gender: Gender) throws {
-        try userManager.updateGender(gender)
-    }
-    
-    func updateHeight(_ height: Double, lengthUnitPreference: LengthUnitPreference) throws {
-        try userManager.updateHeight(height, lengthUnitPreference: lengthUnitPreference)
-    }
-    
-    func updateUserWeight(_ weight: Double, weightUnitPreference: WeightUnitPreference) throws {
-        try userManager.updateUserWeight(weight, weightUnitPreference: weightUnitPreference)
-    }
-    
-    func updateUserActivityLevel(_ activityLevel: ActivityLevel) throws {
-        let profileActivityLevel = mapProfileActivityLevel(activityLevel)
-        try userManager.updateUserActivityLevel(profileActivityLevel)
-    }
-
-    func updateUserExerciseFrequency(_ exerciseFrequency: ExerciseFrequency) throws {
-        let profileExerciseFrequency = mapProfileExerciseFrequency(exerciseFrequency)
-        try userManager.updateUserExerciseFrequency(profileExerciseFrequency)
-    }
-    
-    func updateUserCardioFitness(_ level: CardioFitnessLevel) throws {
-        let profileCardioFitness  = mapProfileCardioFitness(level)
-        try userManager.updateUserCardioFitness(profileCardioFitness)
-    }
-    
-    func updateWeightChangeRate(to value: Double) throws {
-        try userManager.updateWeightChangeRate(to: value)
     }
     
     // swiftlint:disable:next function_parameter_count
@@ -308,8 +265,8 @@ struct CoreInteractor {
     }
     
     // Consents
-    func updateHealthConsents(disclaimerVersion: String, privacyVersion: String, acceptedAt: Date = Date()) async throws {
-        try await userManager.updateHealthConsents(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: acceptedAt)
+    func updateHealthConsents(disclaimerVersion: String, step: OnboardingStep, privacyVersion: String, acceptedAt: Date = Date()) async throws {
+        try await userManager.updateHealthConsents(disclaimerVersion: disclaimerVersion, step: step, privacyVersion: privacyVersion, acceptedAt: acceptedAt)
     }
     
     // User Blocking

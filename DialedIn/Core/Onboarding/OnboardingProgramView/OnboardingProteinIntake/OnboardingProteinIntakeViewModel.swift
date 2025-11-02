@@ -10,6 +10,7 @@ import SwiftUI
 protocol OnboardingProteinIntakeInteractor {
     var currentUser: UserModel? { get }
     var dietPlanDraft: DietPlanDraft { get }
+    func updateOnboardingStep(step: OnboardingStep) async throws
     func createAndSaveDietPlan(user: UserModel?, configuration: DietPlanConfiguration) async throws
     func resetDietPlanDraft()
     func trackEvent(event: LoggableEvent)
@@ -59,8 +60,11 @@ class OnboardingProteinIntakeViewModel {
                         user: interactor.currentUser,
                         configuration: configuration
                     )
+                    try? await interactor.updateOnboardingStep(step: .diet)
                     interactor.resetDietPlanDraft()
                     interactor.trackEvent(event: Event.createPlanSuccess)
+
+                    interactor.trackEvent(event: Event.navigate(destination: .dietPlan))
                     path.wrappedValue.append(.dietPlan)
                 }
             } catch {
@@ -74,12 +78,14 @@ class OnboardingProteinIntakeViewModel {
         case createPlanStart
         case createPlanSuccess
         case createPlanFail(error: Error)
+        case navigate(destination: OnboardingPathOption)
 
         var eventName: String {
             switch self {
             case .createPlanStart:   return "OnboardingDietPlan_CreatePlan_Start"
             case .createPlanSuccess: return "OnboardingDietPlan_CreatePlan_Success"
             case .createPlanFail:    return "OnboardingDietPlan_CreatePlan_Fail"
+            case .navigate:          return "OnboardingDietPlan_Navigate"
             }
         }
         
@@ -87,6 +93,8 @@ class OnboardingProteinIntakeViewModel {
             switch self {
             case .createPlanFail(error: let error):
                 return error.eventParameters
+            case .navigate(destination: let destination):
+                return destination.eventParameters
             default:
                 return nil
             }
@@ -96,6 +104,8 @@ class OnboardingProteinIntakeViewModel {
             switch self {
             case .createPlanFail:
                 return .severe
+            case .navigate:
+                return .info
             default:
                 return .analytic
                 

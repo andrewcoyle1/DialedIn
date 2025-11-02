@@ -11,7 +11,7 @@ import PhotosUI
 protocol OnboardingNamePhotoInteractor {
     var currentUser: UserModel? { get }
     func saveUser(user: UserModel, image: PlatformImage?) async throws
-    func trackEvent(eventName: String, parameters: [String: Any]?, type: LogType)
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingNamePhotoInteractor { }
@@ -55,14 +55,14 @@ class OnboardingNamePhotoViewModel {
     func saveAndContinue(path: Binding<[OnboardingPathOption]>) async {
         guard canContinue else { return }
         isSaving = true
-        
+        interactor.trackEvent(event: Event.namePhotoSaveStart)
         defer {
             isSaving = false
         }
         
         do {
             guard let userId = interactor.currentUser?.userId else {
-                interactor.trackEvent(eventName: "name_photo_save_failed", parameters: ["error": "Missing current user ID"], type: .analytic)
+                interactor.trackEvent(event: Event.noUserId)
                 return
             }
             
@@ -85,10 +85,11 @@ class OnboardingNamePhotoViewModel {
             try await interactor.saveUser(user: user, image: nsImage)
             #endif
             
-            interactor.trackEvent(eventName: "name_photo_save_success", parameters: [:], type: .analytic)
+            interactor.trackEvent(event: Event.namePhotoSaveSuccess)
+            interactor.trackEvent(event: Event.navigate(destination: .gender))
             path.wrappedValue.append(.gender)
         } catch {
-            interactor.trackEvent(eventName: "name_photo_save_failed", parameters: ["error": String(describing: error)], type: .analytic)
+            interactor.trackEvent(event: Event.namePhotoSaveFail(error: error))
             showAlert = AnyAppAlert(
                 title: "Unable to save",
                 subtitle: "Please check your internet connection and try again."
@@ -96,22 +97,84 @@ class OnboardingNamePhotoViewModel {
         }
     }
     
-    func trackEvent(eventName: String, parameters: [String: Any]? = nil) {
-        interactor.trackEvent(eventName: eventName, parameters: parameters, type: .analytic)
-    }
-    
     func handlePhotoSelection() async {
-        guard let photoItem = selectedPhotoItem else { return }
-        
+        guard let photoItem = selectedPhotoItem else { 
+            return 
+        }
+        interactor.trackEvent(event: Event.profilePhotoSelected)
+        interactor.trackEvent(event: Event.profilePhotoLoadStart)
         do {
             if let data = try await photoItem.loadTransferable(type: Data.self) {
                 selectedImageData = data
-                trackEvent(eventName: "profile_photo_selected")
+                interactor.trackEvent(event: Event.profilePhotoLoadSuccess)
             } else {
-                trackEvent(eventName: "profile_photo_load_empty")
+                interactor.trackEvent(event: Event.profilePhotoLoadEmpty)
             }
         } catch {
-            trackEvent(eventName: "profile_photo_load_failed", parameters: ["error": String(describing: error)])
+            interactor.trackEvent(event: Event.profilePhotoLoadFail(error: error))
+        }
+    }
+
+    enum Event: LoggableEvent {
+
+        case profilePhotoSelected
+        case profilePhotoNotSelected
+        case profilePhotoLoadStart
+        case profilePhotoLoadSuccess
+        case profilePhotoLoadEmpty
+        case profilePhotoLoadFail(error: Error)
+        case namePhotoSaveStart
+        case namePhotoSaveSuccess
+        case namePhotoSaveFail(error: Error)
+        case navigate(destination: OnboardingPathOption)
+        case noUserId
+
+        var eventName: String {
+            switch self {
+            case .profilePhotoSelected:     return "NamePhoto_PhotoSelected"
+            case .profilePhotoNotSelected:  return "NamePhoto_PhotoNotSelected"
+            case .profilePhotoLoadStart:    return "NamePhoto_PhotoLoad_Start"
+            case .profilePhotoLoadSuccess:  return "NamePhoto_PhotoLoad_Success"
+            case .profilePhotoLoadEmpty:    return "NamePhoto_PhotoLoad_Empty"
+            case .profilePhotoLoadFail:     return "NamePhoto_PhotoLoad_Fail"
+            case .namePhotoSaveStart:       return "NamePhoto_Save_Start"
+            case .namePhotoSaveSuccess:     return "NamePhoto_Save_Success"
+            case .namePhotoSaveFail:        return "NamePhoto_Save_Fail"
+            case .navigate:                 return "NamePhoto_Navigate"
+            case .noUserId:                 return "NamePhoto_NoUserID"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            case .profilePhotoLoadFail(error: let error), .namePhotoSaveFail(error: let error):
+                return error.eventParameters
+            case .noUserId:
+                return [
+                    "error": "Missing current user ID"
+                ]
+            default: 
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .profilePhotoSelected, 
+                 .profilePhotoNotSelected, 
+                 .profilePhotoLoadStart, 
+                 .profilePhotoLoadSuccess, 
+                 .profilePhotoLoadEmpty, 
+                 .profilePhotoLoadFail, 
+                 .navigate: 
+                return .info
+            case .noUserId, .namePhotoSaveFail:
+                return .severe
+            default:
+                return .analytic
+            }
         }
     }
 }

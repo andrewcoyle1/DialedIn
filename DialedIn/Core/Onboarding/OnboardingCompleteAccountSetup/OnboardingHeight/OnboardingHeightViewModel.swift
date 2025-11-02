@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingHeightInteractor {
-    func updateHeight(_ height: Double, lengthUnitPreference: LengthUnitPreference) throws
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingHeightInteractor { }
@@ -22,9 +22,7 @@ class OnboardingHeightViewModel {
     var selectedCentimeters: Int = 175
     var selectedFeet: Int = 5
     var selectedInches: Int = 9
-    
-    var showAlert: AnyAppAlert?
-    
+
     // Computed properties to keep measurements synchronized
     private var heightInCentimeters: Int {
         selectedCentimeters
@@ -74,13 +72,11 @@ class OnboardingHeightViewModel {
         }
     }
     
-    func navigateToWeightView(path: Binding<[OnboardingPathOption]>) {
-        do {
-            try interactor.updateHeight(height, lengthUnitPreference: preference)
-            path.wrappedValue.append(.weight)
-        } catch {
-            showAlert = AnyAppAlert(error: error)
-        }
+    func navigateToWeightView(path: Binding<[OnboardingPathOption]>, userBuilder: UserModelBuilder) {
+        var builder = userBuilder
+        builder.setHeight(Double(heightInCentimeters), lengthUnitPreference: preference)
+        interactor.trackEvent(event: Event.navigate(destination: .weight(userModelBuilder: builder)))
+        path.wrappedValue.append(.weight(userModelBuilder: builder))
     }
     
     func updateImperialFromCentimeters() {
@@ -92,6 +88,30 @@ class OnboardingHeightViewModel {
     func updateCentimetersFromImperial() {
         let totalInches = (selectedFeet * 12) + selectedInches
         selectedCentimeters = Int(Double(totalInches) * 2.54)
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "OnboardingHeightView_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
+        }
     }
 }
 

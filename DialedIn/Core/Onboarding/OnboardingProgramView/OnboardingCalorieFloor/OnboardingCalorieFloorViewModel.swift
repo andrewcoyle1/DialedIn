@@ -9,6 +9,7 @@ import SwiftUI
 
 protocol OnboardingCalorieFloorInteractor {
     func setCalorieFloor(_ value: CalorieFloor)
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingCalorieFloorInteractor { }
@@ -31,7 +32,32 @@ class OnboardingCalorieFloorViewModel {
     func navigateToTrainingType(path: Binding<[OnboardingPathOption]>) {
         if let floor = selectedFloor {
             interactor.setCalorieFloor(floor)
+            interactor.trackEvent(event: Event.navigate(destination: .trainingType))
             path.wrappedValue.append(.trainingType)
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "Onboarding_CalFloor_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
         }
     }
 }

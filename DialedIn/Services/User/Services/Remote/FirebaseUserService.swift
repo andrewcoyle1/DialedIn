@@ -304,8 +304,9 @@ struct FirebaseUserService: RemoteUserService {
     }
     
     // MARK: - Consents
-    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
+    func updateHealthConsents(userId: String, step: OnboardingStep, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
         let data: [String: Any] = [
+            "onboarding_step": step.rawValue,
             "accepted_health_disclaimer_version": disclaimerVersion,
             "accepted_health_disclaimer_at": acceptedAt,
             "accepted_health_privacy_version": privacyVersion,

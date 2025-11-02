@@ -26,9 +26,6 @@ struct OnboardingGoalSettingView: View {
             DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
         }
         #endif
-        .task {
-            await viewModel.updateOnboardingStep()
-        }
         .showModal(showModal: $viewModel.isLoading) {
             ProgressView()
                 .tint(.white)

@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingSubscriptionInteractor {
-    
+    func trackEvent(event: LoggableEvent) 
 }
 
 extension CoreInteractor: OnboardingSubscriptionInteractor { }
@@ -22,13 +22,36 @@ class OnboardingSubscriptionViewModel {
     var showDebugView: Bool = false
     #endif
     
-    init(
-        interactor: OnboardingSubscriptionInteractor
-    ) {
+    init(interactor: OnboardingSubscriptionInteractor) {
         self.interactor = interactor
     }
     
     func navigateToSubscriptionPlan(path: Binding<[OnboardingPathOption]>) {
+        interactor.trackEvent(event: Event.navigate(destination: .subscriptionPlan))
         path.wrappedValue.append(.subscriptionPlan)
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "SubscriptionInfoView_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
+        }
     }
 }

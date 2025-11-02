@@ -4,6 +4,7 @@
 //
 //  Created by Andrew Coyle on 10/14/24.
 //
+
 import SwiftUI
 import SwiftfulUtilities
 
@@ -15,7 +16,6 @@ class UserManager {
     private let logManager: LogManager?
     
     private(set) var currentUser: UserModel?
-    private(set) var userDraft: UserModel?
     private var currentUserListener: (() -> Void)?
     
     init(services: UserServices, logManager: LogManager? = nil) {
@@ -23,7 +23,6 @@ class UserManager {
         self.local = services.local
         self.logManager = logManager
         self.currentUser = local.getCurrentUser()
-        self.userDraft = self.currentUser
     }
     
     // MARK: - Local operations
@@ -158,72 +157,9 @@ class UserManager {
         // Refresh onboarding step from persisted user if available
     }
     
-    func updateNameAndImage(_ firstName: String, _ lastName: String?, _ profileImageUrl: String?) throws {
-        guard var draft = userDraft else { throw UserManagerError.noUserId }
-        
-        draft.updateNameAndImageURL(firstName: firstName, lastName: lastName, imageUrl: profileImageUrl)
-        self.userDraft = draft
-    }
-    
-    func updateDateOfBirth(_ dateOfBirth: Date) throws {
-        guard var draft = userDraft else { throw UserManagerError.noUserId }
-        
-        draft.updateDateOfBirth(dateOfBirth)
-        self.userDraft = draft
-    }
-    
-    func updateGender(_ gender: Gender) throws {
-        guard var draft = userDraft else { throw UserManagerError.noUserId }
-        
-        draft.updateGender(gender)
-        self.userDraft = draft
-    }
-    
-    func updateHeight(_ height: Double, lengthUnitPreference: LengthUnitPreference) throws {
-        guard var draft = userDraft else { throw UserManagerError.noUserId }
-
-        draft.updateHeight(height, lengthUnitPreference: lengthUnitPreference)
-    }
-    
-    func updateUserWeight(_ weight: Double, weightUnitPreference: WeightUnitPreference) throws {
-        guard var draft = userDraft else { throw UserManagerError.noUserId }
-
-        draft.updateWeight(weight, weightUnitPreference: weightUnitPreference)
-        self.userDraft = draft
-    }
-    
-    func updateUserActivityLevel(_ activityLevel: ProfileDailyActivityLevel) throws {
-        guard var draft = userDraft else { throw UserManagerError.noUserId }
-
-        draft.updateActivityLevel(activityLevel)
-        self.userDraft = draft
-    }
-    
-    func updateUserExerciseFrequency(_ frequency: ProfileExerciseFrequency) throws {
-        guard var draft = userDraft else { throw UserManagerError.noUserId }
-
-        draft.updateExerciseFrequency(frequency)
-        self.userDraft = draft
-    }
-    
-    func updateUserCardioFitness(_ level: ProfileCardioFitnessLevel) throws {
-        guard var draft = userDraft else { throw UserManagerError.noUserId }
-
-        draft.updateCardioFitness(level)
-        self.userDraft = draft
-    }
-    
-    func updateWeightChangeRate(to value: Double) throws {
-        guard var draft = userDraft else { throw UserManagerError.noUserId }
-
-        // TODO: Add logic
-        self.userDraft = draft
-
-    }
-    
     func saveUser(user: UserModel, image: PlatformImage?) async throws {
         try await remote.saveUser(user: user, image: image)
-        self.userDraft = currentUser
+
         // Cache the image locally if provided
         if let image = image {
             do {
@@ -394,6 +330,7 @@ class UserManager {
             return
         }
         try await remote.updateOnboardingStep(userId: uid, step: step)
+        logManager?.trackEvent(event: Event.updateOnboardingStep(step: step))
         // Optimistically update local cache so routing on app relaunch restores to the latest step
         if let existing = currentUser {
             let updated = UserModel(
@@ -443,9 +380,9 @@ class UserManager {
     }
     
     // MARK: - Consents
-    func updateHealthConsents(disclaimerVersion: String, privacyVersion: String, acceptedAt: Date = Date()) async throws {
+    func updateHealthConsents(disclaimerVersion: String, step: OnboardingStep, privacyVersion: String, acceptedAt: Date = Date()) async throws {
         let uid = try currentUserId()
-        try await remote.updateHealthConsents(userId: uid, disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: acceptedAt)
+        try await remote.updateHealthConsents(userId: uid, step: step, disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: acceptedAt)
     }
     
     // MARK: - User Blocking
@@ -574,7 +511,8 @@ class UserManager {
         case deleteAccountStart
         case deleteAccountSuccess
         case clearAllLocalData
-        
+        case updateOnboardingStep(step: OnboardingStep)
+
         var eventName: String {
             switch self {
             case .logInStart:               return "UserMan_LogIn_Start"
@@ -589,6 +527,7 @@ class UserManager {
             case .deleteAccountStart:       return "UserMan_DeleteAccount_Start"
             case .deleteAccountSuccess:     return "UserMan_DeleteAccount_Success"
             case .clearAllLocalData:        return "UserMan_ClearAllLocalData"
+            case .updateOnboardingStep:     return "UserMan_UpdateOnboardingStep"
             }
         }
         
@@ -600,6 +539,8 @@ class UserManager {
                 return user?.eventParameters
             case .remoteListenerFail(error: let error), .saveLocalFail(error: let error):
                 return error.eventParameters
+            case .updateOnboardingStep(step: let step):
+                return step.eventParameters
             default:
                 return nil
             }

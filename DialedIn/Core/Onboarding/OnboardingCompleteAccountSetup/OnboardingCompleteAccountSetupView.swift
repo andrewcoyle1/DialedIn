@@ -21,10 +21,6 @@ struct OnboardingCompleteAccountSetupView: View {
         .toolbar {
             toolbarContent
         }
-        .task {
-            await viewModel.setup()
-        }
-        .showCustomAlert(alert: $viewModel.showAlert)
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
             DevSettingsView(
@@ -52,7 +48,7 @@ struct OnboardingCompleteAccountSetupView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onContinuePressed(path: $path)
+                viewModel.handleNavigation(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }

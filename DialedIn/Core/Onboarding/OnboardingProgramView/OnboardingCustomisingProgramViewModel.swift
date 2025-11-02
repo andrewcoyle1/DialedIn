@@ -9,7 +9,6 @@ import SwiftUI
 
 protocol OnboardingCustomisingProgramInteractor {
     var currentUser: UserModel? { get }
-    func updateOnboardingStep(step: OnboardingStep) async throws
     func trackEvent(event: LoggableEvent)
 }
 
@@ -34,73 +33,30 @@ class OnboardingCustomisingProgramViewModel {
     }
     
     func navigateToPreferredDiet(path: Binding<[OnboardingPathOption]>) {
+        interactor.trackEvent(event: Event.navigate(destination: .preferredDiet))
         path.wrappedValue.append(.preferredDiet)
     }
     
-    func updateOnboardingStep() async {
-        let target: OnboardingStep = .customiseProgram
-        if let current = interactor.currentUser?.onboardingStep, current.orderIndex >= target.orderIndex {
-            return
-        }
-        isLoading = true
-        interactor.trackEvent(event: Event.updateOnboardingStepStart)
-        do {
-            try await interactor.updateOnboardingStep(step: target)
-            interactor.trackEvent(event: Event.updateOnboardingStepSuccess)
-        } catch {
-            showAlert = AnyAppAlert(title: "Unable to update your progress", subtitle: "Please check your internet connection and try again.", buttons: {
-                AnyView(
-                    HStack {
-                        Button {
-                            
-                        } label: {
-                            Text("Dismiss")
-                        }
-                        
-                        Button {
-                            Task {
-                                await self.updateOnboardingStep()
-                            }
-                        } label: {
-                            Text("Try again")
-                        }
-                    }
-                )
-            })
-            interactor.trackEvent(event: Event.updateOnboardingStepFail(error: error))
-        }
-        isLoading = false
-    }
-    
     enum Event: LoggableEvent {
-        case updateOnboardingStepStart
-        case updateOnboardingStepSuccess
-        case updateOnboardingStepFail(error: Error)
-        
+        case navigate(destination: OnboardingPathOption)
+
         var eventName: String {
             switch self {
-            case .updateOnboardingStepStart:    return "update_onboarding_step_start"
-            case .updateOnboardingStepSuccess:  return "update_onboarding_step_success"
-            case .updateOnboardingStepFail:     return "update_onboarding_step_fail"
+            case .navigate: return "Onboarding_CustProgram_Navigate"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
-            case .updateOnboardingStepFail(error: let error):
-                return error.eventParameters
-            default:
-                return nil
+            case .navigate(destination: let destination):
+                return destination.eventParameters
             }
         }
         
         var type: LogType {
             switch self {
-            case .updateOnboardingStepFail:
-                return .severe
-            default:
-                return .analytic
-                
+            case .navigate:
+                return .info
             }
         }
     }

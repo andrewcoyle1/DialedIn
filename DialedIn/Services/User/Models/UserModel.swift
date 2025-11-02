@@ -504,6 +504,14 @@ enum OnboardingStep: String, Codable, Sendable {
         case .complete: return .dietPlan
         }
     }
+
+    var eventParameters: [String: Any] {
+        let params: [String: Any] = [
+            "onboarding_step": self
+        ]
+
+        return params
+    }
 }
 
 extension OnboardingStep {

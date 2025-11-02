@@ -8,7 +8,6 @@
 import SwiftUI
 
 protocol OnboardingExpenditureInteractor: Sendable {
-    var userDraft: UserModel? { get }
     // swiftlint:disable:next function_parameter_count
     func saveCompleteAccountSetupProfile(
         dateOfBirth: Date,
@@ -23,6 +22,9 @@ protocol OnboardingExpenditureInteractor: Sendable {
     ) async throws -> UserModel
     func estimateTDEE(user: UserModel?) -> Double
     func handleAuthError(_ error: Error, operation: String) -> AuthErrorInfo
+    func updateOnboardingStep(step: OnboardingStep) async throws
+    func canRequestNotificationAuthorisation() async -> Bool
+    func canRequestHealthDataAuthorisation() -> Bool
     func trackEvent(event: LoggableEvent)
 }
 
@@ -33,24 +35,17 @@ extension CoreInteractor: OnboardingExpenditureInteractor { }
 class OnboardingExpenditureViewModel {
     private let interactor: OnboardingExpenditureInteractor
     
-    var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
-    var gender: Gender = .male
-    var height: Double = 175
-    var weight: Double = 70
-    var exerciseFrequency: ExerciseFrequency = .threeToFour
-    var activityLevel: ActivityLevel = .moderate
-    var lengthUnitPreference: LengthUnitPreference = .centimeters
-    var weightUnitPreference: WeightUnitPreference = .kilograms
-    var selectedCardioFitness: CardioFitnessLevel = .intermediate
-        
+    private var canRequestNotifications: Bool?
+    private var canRequestHealthData: Bool?
+
     // Computed from collected data
     var totalExpenditureKcal: Int = 0
-    var breakdownItems: [Breakdown] {
+    func breakdownItems(weight: Double, height: Double, dateOfBirth: Date, gender: Gender, bmrInt: Int, activityLevel: ActivityLevel, exerciseFrequency: ExerciseFrequency) -> [Breakdown] {
         // Breakdown aligned with the actual formula used for TDEE
         // TDEE = BMR * (baseActivityMultiplier + exerciseAdjustment)
         let bmrCals = bmrInt
-        let activityCals = max(Int((bmr * max(baseActivityMultiplier - 1.0, 0)).rounded()), 0)
-        let exerciseCals = max(Int((bmr * max(exerciseAdjustment, 0)).rounded()), 0)
+        let activityCals = max(Int((bmr(weight: weight, height: height, dateOfBirth: dateOfBirth, gender: gender) * max(baseActivityMultiplier(activityLevel: activityLevel) - 1.0, 0)).rounded()), 0)
+        let exerciseCals = max(Int((bmr(weight: weight, height: height, dateOfBirth: dateOfBirth, gender: gender) * max(exerciseAdjustment(exerciseFrequency: exerciseFrequency), 0)).rounded()), 0)
         // Use remainder as TEF to ensure components sum to displayed TDEE (accounts for rounding)
         let tefCals = max(totalExpenditureKcal - bmrCals - activityCals - exerciseCals, 0)
         return [
@@ -73,18 +68,32 @@ class OnboardingExpenditureViewModel {
     var showDebugView: Bool = false
     #endif
     
-    private var ageYears: Int {
+    private func ageYears(dateOfBirth: Date) -> Int {
         let years = Calendar.current.dateComponents([.year], from: dateOfBirth, to: Date()).year ?? 30
         return max(14, years)
     }
     
-    private var weightKg: Double { max(weight, 30) }
-    private var heightCm: Double { max(height, 120) }
-    private var mifflinGenderCoefficient: Double { (gender == .male) ? 5 : -161 }
-    private var bmr: Double { (10 * weightKg) + (6.25 * heightCm) - (5 * Double(ageYears)) + mifflinGenderCoefficient }
-    var bmrInt: Int { Int(bmr.rounded()) }
+    private func weightKg(weight: Double) -> Double { max(weight, 30) }
+    private func heightCm(height: Double) -> Double { max(height, 120) }
+    private func mifflinGenderCoefficient(gender: Gender) -> Double { (gender == .male) ? 5 : -161 }
+    private func bmr(weight: Double, height: Double, dateOfBirth: Date, gender: Gender) -> Double { (10 * weightKg(weight: weight)) + (6.25 * heightCm(height: height)) - (5 * Double(ageYears(dateOfBirth: dateOfBirth))) + mifflinGenderCoefficient(gender: gender) }
+    func bmrInt(
+        weight: Double,
+        height: Double,
+        dateOfBirth: Date,
+        gender: Gender
+    ) -> Int {
+        Int(
+            bmr(
+                weight: weight,
+                height: height,
+                dateOfBirth: dateOfBirth,
+                gender: gender
+            ).rounded()
+        )
+    }
 
-    var baseActivityMultiplier: Double {
+    func baseActivityMultiplier(activityLevel: ActivityLevel) -> Double {
         switch mapDailyActivityLevel(activityLevel) {
         case .sedentary: return 1.2
         case .light: return 1.35
@@ -93,7 +102,7 @@ class OnboardingExpenditureViewModel {
         case .veryActive: return 1.9
         }
     }
-    var activityDescription: String {
+    func activityDescription(activityLevel: ActivityLevel) -> String {
         switch activityLevel {
         case .sedentary: return "Mostly sitting; little movement"
         case .light: return "Light movement most of the day"
@@ -103,7 +112,7 @@ class OnboardingExpenditureViewModel {
         }
     }
     
-    var exerciseAdjustment: Double {
+    func exerciseAdjustment(exerciseFrequency: ExerciseFrequency) -> Double {
         switch exerciseFrequency {
         case .never: return 0.0
         case .oneToTwo: return 0.05
@@ -113,7 +122,7 @@ class OnboardingExpenditureViewModel {
         }
     }
     
-    var exerciseDescription: String {
+    func exerciseDescription(exerciseFrequency: ExerciseFrequency) -> String {
         switch exerciseFrequency {
         case .never: return "No structured exercise"
         case .oneToTwo: return "1–2 sessions per week"
@@ -123,22 +132,42 @@ class OnboardingExpenditureViewModel {
         }
     }
     
-    private var tdeeFromInputs: Double {
+    private func tdeeFromInputs(weight: Double, height: Double, dateOfBirth: Date, gender: Gender, activityLevel: ActivityLevel, exerciseFrequency: ExerciseFrequency) -> Double {
         max(
             1000,
-            bmr * (
-                baseActivityMultiplier + exerciseAdjustment
+            bmr(
+                weight: weight,
+                height: height,
+                dateOfBirth: dateOfBirth,
+                gender: gender
+            ) * (
+                baseActivityMultiplier(activityLevel: activityLevel) + exerciseAdjustment(exerciseFrequency: exerciseFrequency)
             )
         )
     }
     
-    var tdeeInt: Int { Int(tdeeFromInputs.rounded()) }
-    
+    func tdeeInt(
+        weight: Double,
+        height: Double,
+        dateOfBirth: Date,
+        gender: Gender,
+        activityLevel: ActivityLevel,
+        exerciseFrequency: ExerciseFrequency
+    ) -> Int {
+        Int(
+            tdeeFromInputs(
+                weight: weight,
+                height: height,
+                dateOfBirth: dateOfBirth,
+                gender: gender,
+                activityLevel: activityLevel,
+                exerciseFrequency: exerciseFrequency
+            ).rounded()
+        )
+    }
+
     init(interactor: OnboardingExpenditureInteractor) {
         self.interactor = interactor
-        if !hydrateFromDraft() {
-            isLoading = false
-        }
     }
     
     struct Breakdown: Identifiable {
@@ -148,8 +177,29 @@ class OnboardingExpenditureViewModel {
         let color: Color
     }
 
-    func navigateToHealthDisclaimer(path: Binding<[OnboardingPathOption]>) {
-        path.wrappedValue.append(.healthDisclaimer)
+    func checkCanRequestPermissions() async {
+        self.canRequestHealthData = interactor.canRequestHealthDataAuthorisation()
+        self.canRequestNotifications = await interactor.canRequestNotificationAuthorisation()
+    }
+
+    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
+        if let canRequestNotifs = self.canRequestNotifications, canRequestNotifs {
+            interactor.trackEvent(event: Event.navigate(destination: .notifications))
+            path.wrappedValue.append(.notifications)
+        } else if let canRequestHealth = canRequestHealthData, canRequestHealth {
+            interactor.trackEvent(event: Event.navigate(destination: .healthData))
+            path.wrappedValue.append(.healthData)
+        } else {
+            Task {
+                do {
+                    try await interactor.updateOnboardingStep(step: .healthDisclaimer)
+                    interactor.trackEvent(event: Event.navigate(destination: .healthDisclaimer))
+                    path.wrappedValue.append(.healthDisclaimer)
+                } catch {
+                    showAlert = AnyAppAlert(error: error )
+                }
+            }
+        }
     }
     
     func progress(for item: Breakdown) -> Double {
@@ -157,13 +207,9 @@ class OnboardingExpenditureViewModel {
         return Double(item.calories) / Double(totalExpenditureKcal)
     }
     
-    func calculateExpenditure() {
+    func calculateExpenditure(userModelBuilder: UserModelBuilder) {
         // Cancel any existing save to prevent race conditions
         currentSaveTask?.cancel()
-
-        guard hydrateFromDraft() else {
-            return
-        }
 
         currentSaveTask = Task { @MainActor in
             isSaving = true
@@ -174,17 +220,29 @@ class OnboardingExpenditureViewModel {
 
             interactor.trackEvent(event: Event.profileSaveStart)
             do {
+                guard let dateOfBirth = userModelBuilder.dateOfBirth,
+                      let height = userModelBuilder.height,
+                      let weight = userModelBuilder.weight,
+                      let exerciseFrequency = userModelBuilder.exerciseFrequency,
+                      let activityLevel = userModelBuilder.activityLevel,
+                      let cardioFitness = userModelBuilder.cardioFitness,
+                      let lengthUnitPreference = userModelBuilder.lengthUnitPreference,
+                      let weightUnitPreference = userModelBuilder.weightUnitPreferene else {
+                    handleMissingUserDraft(userModelBuilder: userModelBuilder)
+                    return
+                }
+                
                 let updated = try await performOperationWithTimeout {
                     try await self.interactor.saveCompleteAccountSetupProfile(
-                        dateOfBirth: self.dateOfBirth,
-                        gender: self.gender,
-                        heightCentimeters: self.height,
-                        weightKilograms: self.weight,
-                        exerciseFrequency: self.mapExerciseFrequency(self.exerciseFrequency),
-                        dailyActivityLevel: self.mapDailyActivityLevel(self.activityLevel),
-                        cardioFitnessLevel: self.mapCardioFitnessLevel(self.selectedCardioFitness),
-                        lengthUnitPreference: self.lengthUnitPreference,
-                        weightUnitPreference: self.weightUnitPreference
+                        dateOfBirth: dateOfBirth,
+                        gender: userModelBuilder.gender,
+                        heightCentimeters: height,
+                        weightKilograms: weight,
+                        exerciseFrequency: self.mapExerciseFrequency(exerciseFrequency),
+                        dailyActivityLevel: self.mapDailyActivityLevel(activityLevel),
+                        cardioFitnessLevel: self.mapCardioFitnessLevel(cardioFitness),
+                        lengthUnitPreference: lengthUnitPreference,
+                        weightUnitPreference: weightUnitPreference
                     )
                 }
 
@@ -207,15 +265,15 @@ class OnboardingExpenditureViewModel {
                 isLoading = false
             } catch {
                 interactor.trackEvent(event: Event.profileSaveFail(error: error))
-                handleSaveError(error)
+                handleSaveError(error, userModelBuilder: userModelBuilder)
             }
         }
     }
     
     // MARK: - Error Handling Helpers
     
-    private func handleSaveError(_ error: Error) {
-        
+    private func handleSaveError(_ error: Error, userModelBuilder: UserModelBuilder) {
+
         let errorInfo = interactor.handleAuthError(error, operation: "save profile")
         
         showAlert = AnyAppAlert(
@@ -226,7 +284,7 @@ class OnboardingExpenditureViewModel {
                     HStack {
                         Button("Cancel") { }
                         if errorInfo.isRetryable {
-                            Button("Try Again") { self.calculateExpenditure() }
+                            Button("Try Again") { self.calculateExpenditure(userModelBuilder: userModelBuilder) }
                         }
                     }
                 )
@@ -234,7 +292,7 @@ class OnboardingExpenditureViewModel {
         )
     }
 
-    private func handleMissingUserDraft() {
+    private func handleMissingUserDraft(userModelBuilder: UserModelBuilder) {
         isSaving = false
         isLoading = false
         showAlert = AnyAppAlert(
@@ -244,7 +302,7 @@ class OnboardingExpenditureViewModel {
                 AnyView(
                     HStack {
                         Button("Cancel") { }
-                        Button("Try Again") { self.calculateExpenditure() }
+                        Button("Try Again") { self.calculateExpenditure(userModelBuilder: userModelBuilder) }
                     }
                 )
             }
@@ -270,27 +328,7 @@ class OnboardingExpenditureViewModel {
             return result
         }
     }
-    
-    // MARK: - Draft Hydration
-    @discardableResult
-    private func hydrateFromDraft() -> Bool {
-        guard let draft = interactor.userDraft else {
-            handleMissingUserDraft()
-            return false
-        }
-        
-        dateOfBirth = draft.dateOfBirth ?? defaultDateOfBirth()
-        gender = draft.gender ?? .male
-        height = max(draft.heightCentimeters ?? 175, 120)
-        weight = max(draft.weightKilograms ?? 70, 30)
-        exerciseFrequency = mapExerciseFrequency(from: draft.exerciseFrequency)
-        activityLevel = mapDailyActivityLevel(from: draft.dailyActivityLevel)
-        lengthUnitPreference = draft.lengthUnitPreference ?? .centimeters
-        weightUnitPreference = draft.weightUnitPreference ?? .kilograms
-        selectedCardioFitness = mapCardioFitnessLevel(from: draft.cardioFitnessLevel)
-        return true
-    }
-    
+
     private func defaultDateOfBirth() -> Date {
         Calendar.current.date(byAdding: .year, value: -30, to: Date()) ?? Date()
     }
@@ -363,12 +401,14 @@ class OnboardingExpenditureViewModel {
         case profileSaveStart
         case profileSaveSuccess
         case profileSaveFail(error: Error)
+        case navigate(destination: OnboardingPathOption)
         
         var eventName: String {
             switch self {
             case .profileSaveStart: return "OnboardingCardio_SaveProfile_Start"
             case .profileSaveSuccess: return "OnboardingCardio_SaveProfile_Success"
             case .profileSaveFail: return "OnboardingCardio_SaveProfile_Fail"
+            case .navigate: return "OnboardingCardio_Navigate"
             }
         }
         
@@ -376,6 +416,8 @@ class OnboardingExpenditureViewModel {
             switch self {
             case .profileSaveFail(error: let error):
                 return error.eventParameters
+            case .navigate(destination: let destination):
+                return destination.eventParameters
             default:
                 return nil
             }
@@ -385,6 +427,8 @@ class OnboardingExpenditureViewModel {
             switch self {
             case .profileSaveFail:
                 return .severe
+            case .navigate:
+                return .info
             default:
                 return .analytic
             }

@@ -9,6 +9,7 @@ import SwiftUI
 
 protocol OnboardingCalorieDistributionInteractor {
     func setCalorieDistribution(_ value: CalorieDistribution)
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingCalorieDistributionInteractor { }
@@ -24,16 +25,39 @@ class OnboardingCalorieDistributionViewModel {
     var showDebugView: Bool = false
     #endif
     
-    init(
-        interactor: OnboardingCalorieDistributionInteractor,
-    ) {
+    init(interactor: OnboardingCalorieDistributionInteractor) {
         self.interactor = interactor
     }
     
     func navigateToProteinIntake(path: Binding<[OnboardingPathOption]>) {
         if let calorieDistribution = selectedCalorieDistribution {
             interactor.setCalorieDistribution(calorieDistribution)
+            interactor.trackEvent(event: Event.navigate(destination: .proteinIntake))
             path.wrappedValue.append(.proteinIntake)
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate:    return "Start"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
         }
     }
 }

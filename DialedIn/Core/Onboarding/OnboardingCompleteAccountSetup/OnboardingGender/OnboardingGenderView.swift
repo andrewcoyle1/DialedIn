@@ -13,7 +13,7 @@ struct OnboardingGenderView: View {
 
     @State var viewModel: OnboardingGenderViewModel
     @Binding var path: [OnboardingPathOption]
-
+    
     var body: some View {
         List {
             Section {

@@ -66,7 +66,7 @@ struct OnboardingHealthDataView: View {
         ToolbarSpacer(.fixed, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToGender(path: $path)
+                viewModel.handleNavigation(path: $path)
             } label: {
                 Image(systemName: "chevron.right")
             }

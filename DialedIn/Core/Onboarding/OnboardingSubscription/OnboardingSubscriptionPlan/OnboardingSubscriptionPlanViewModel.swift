@@ -34,9 +34,7 @@ class OnboardingSubscriptionPlanViewModel {
         interactor.currentUser
     }
     
-    init(
-        interactor: OnboardingSubscriptionPlanInteractor
-    ) {
+    init(interactor: OnboardingSubscriptionPlanInteractor) {
         self.interactor = interactor
     }
     
@@ -64,9 +62,22 @@ class OnboardingSubscriptionPlanViewModel {
             defer { isPurchasing = false }
             do {
                 try await interactor.purchase()
-                path.wrappedValue.append(.completeAccount)
+                try await handleNavigation(path: path)
             } catch {
                 showAlert = AnyAppAlert(title: "Subscription Failed", subtitle: "We were unable to setup your subscription. Please try again.")
+            }
+        }
+    }
+
+    func handleNavigation(path: Binding<[OnboardingPathOption]>) async throws {
+        if let userStep = interactor.currentUser?.onboardingStep {
+            if userStep.orderIndex > 2 {
+                interactor.trackEvent(event: Event.navigate(destination: userStep.onboardingPathOption))
+                path.wrappedValue.append(userStep.onboardingPathOption)
+            } else {
+                try await interactor.updateOnboardingStep(step: .completeAccountSetup)
+                interactor.trackEvent(event: Event.navigate(destination: .completeAccount))
+                path.wrappedValue.append(.completeAccount)
             }
         }
     }
@@ -75,12 +86,14 @@ class OnboardingSubscriptionPlanViewModel {
         case updateOnboardingStart
         case updateOnboardingSuccess
         case updateOnboardingFail(error: Error)
+        case navigate(destination: OnboardingPathOption)
         
         var eventName: String {
             switch self {
             case .updateOnboardingStart:    return "OnboardingSubscription_OnboardingStepUpdate_Start"
             case .updateOnboardingSuccess:  return "OnboardingSubscription_OnboardingStepUpdate_Success"
             case .updateOnboardingFail:     return "OnboardingSubscription_OnboardingStepUpdate_Fail"
+            case .navigate:                 return "OnboardingSubscriptionPlan_Navigate"
             }
         }
         
@@ -88,6 +101,8 @@ class OnboardingSubscriptionPlanViewModel {
             switch self {
             case .updateOnboardingFail(error: let error):
                 return error.eventParameters
+            case .navigate(destination: let destination):
+                return destination.eventParameters
             default:
                 return nil
             }
@@ -97,6 +112,8 @@ class OnboardingSubscriptionPlanViewModel {
             switch self {
             case .updateOnboardingFail:
                 return .severe
+            case .navigate:
+                return .info
             default:
                 return .analytic
                 

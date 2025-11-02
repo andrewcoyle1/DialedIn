@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingGenderInteractor {
-    func updateGender(_ gender: Gender) throws
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingGenderInteractor { }
@@ -19,7 +19,7 @@ class OnboardingGenderViewModel {
     private let interactor: OnboardingGenderInteractor
     
     var selectedGender: Gender?
-    var showAlert: AnyAppAlert?
+
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
@@ -34,11 +34,32 @@ class OnboardingGenderViewModel {
     
     func navigateToDateOfBirth(path: Binding<[OnboardingPathOption]>) {
         if let gender = selectedGender {
-            do {
-                try interactor.updateGender(gender)
-                path.wrappedValue.append(.dateOfBirth)
-            } catch {
-                showAlert = AnyAppAlert(error: error)
+            let userBuilder = UserModelBuilder(gender: gender)
+            interactor.trackEvent(event: Event.navigate(destination: .dateOfBirth(userModelBuilder: userBuilder)))
+            path.wrappedValue.append(.dateOfBirth(userModelBuilder: userBuilder))
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "OnboardingGenderView_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
             }
         }
     }

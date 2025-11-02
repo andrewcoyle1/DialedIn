@@ -9,6 +9,7 @@ import SwiftUI
 
 protocol OnboardingTrainingTypeInteractor {
     func setTrainingType(_ value: TrainingType)
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingTrainingTypeInteractor { }
@@ -31,7 +32,32 @@ class OnboardingTrainingTypeViewModel {
     func navigateToCalorieDistribution(path: Binding<[OnboardingPathOption]>) {
         if let trainingType = selectedTrainingType {
             interactor.setTrainingType(trainingType)
+            interactor.trackEvent(event: Event.navigate(destination: .calorieDistribution))
             path.wrappedValue.append(.calorieDistribution)
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "Onboarding_TrainingType_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
         }
     }
 }

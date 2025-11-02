@@ -116,7 +116,7 @@ struct EmailVerificationView: View {
         #endif
         .onFirstTask {
             viewModel.startSendVerificationEmail(isInitial: true)
-            viewModel.startPolling()
+            viewModel.startPolling(path: $path)
         }
         .onDisappear {
             // Clean up any ongoing tasks and reset loading states

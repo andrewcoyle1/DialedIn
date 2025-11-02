@@ -11,6 +11,7 @@ struct OnboardingWeightView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: OnboardingWeightViewModel
     @Binding var path: [OnboardingPathOption]
+    var userModelBuilder: UserModelBuilder
 
     var body: some View {
         List {
@@ -102,7 +103,7 @@ struct OnboardingWeightView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToExerciseFrequency(path: $path)
+                viewModel.navigateToExerciseFrequency(path: $path, userBuilder: userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -119,7 +120,9 @@ struct OnboardingWeightView: View {
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            ), path: $path
+            ),
+            path: $path,
+            userModelBuilder: UserModelBuilder.weightMock
         )
     }
     .previewEnvironment()

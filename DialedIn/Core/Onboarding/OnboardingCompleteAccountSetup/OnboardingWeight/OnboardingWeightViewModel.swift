@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol OnboardingWeightInteractor {
-    func updateUserWeight(_ weight: Double, weightUnitPreference: WeightUnitPreference) throws
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingWeightInteractor { }
@@ -72,12 +72,34 @@ class OnboardingWeightViewModel {
         self.interactor = interactor
     }
     
-    func navigateToExerciseFrequency(path: Binding<[OnboardingPathOption]>) {
-        do {
-            try interactor.updateUserWeight(weight, weightUnitPreference: preference)
-            path.wrappedValue.append(.exerciseFrequency)
-        } catch {
-            showAlert = AnyAppAlert(error: error)
+    func navigateToExerciseFrequency(path: Binding<[OnboardingPathOption]>, userBuilder: UserModelBuilder) {
+        var builder = userBuilder
+        builder.setWeight(weight, weightUnitPreferene: preference)
+        interactor.trackEvent(event: Event.navigate(destination: .exerciseFrequency(userModelBuilder: builder)))
+        path.wrappedValue.append(.exerciseFrequency(userModelBuilder: builder))
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "OnboardingWeightView_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
         }
     }
 }

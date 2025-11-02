@@ -34,18 +34,16 @@ class SignInViewModel {
     var isLoadingUser: Bool = false
     var showAlert: AnyAppAlert?
     var currentAuthTask: Task<Void, Never>?
-    var navigationDestination: NavigationDestination?
     
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
     
-    init(
-        interactor: SignInInteractor
-    ) {
+    init(interactor: SignInInteractor) {
         self.interactor = interactor
     }
     
+    // MARK: Sign In Pressed
     func onSignInPressed(path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent race conditions
         currentAuthTask?.cancel()
@@ -61,10 +59,11 @@ class SignInViewModel {
             do {
                 try await performAuthWithTimeout {
                     let auth = try await self.interactor.signInUser(email: self.email, password: self.password)
-                    await self.handleOnAuthSuccess(user: auth)
+                    await self.handleOnAuthSuccess(user: auth, path: path)
                 }
+
                 interactor.trackEvent(event: Event.signInSuccess)
-                path.wrappedValue.append(.subscriptionInfo)
+                handleNavigation(path: path)
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
@@ -78,7 +77,8 @@ class SignInViewModel {
         }
     }
     
-    func handleOnAuthSuccess(user: UserAuthInfo) {
+    // MARK: Handle Auth Success
+    func handleOnAuthSuccess(user: UserAuthInfo, path: Binding<[OnboardingPathOption]>) {
         // Cancel any existing auth task to prevent conflicts
         currentAuthTask?.cancel()
         
@@ -105,17 +105,16 @@ class SignInViewModel {
                         }
                         if isVerified {
                             // Navigate based on user's current onboarding step
-                            let step = interactor.currentUser?.onboardingStep
-                            let destination = getNavigationDestination(for: step)
-                            navigationDestination = destination
+                            handleNavigation(path: path)
                         } else {
-                            navigationDestination = .emailVerification
+                            interactor.trackEvent(event: Event.navigate(destination: .emailVerification))
+                            path.wrappedValue.append(.emailVerification)
                         }
                     } catch {
                         // Reuse login error handler to allow retry
                         handleUserLoginError(error) {
                             Task { @MainActor in
-                                self.handleOnAuthSuccess(user: user)
+                                self.handleOnAuthSuccess(user: user, path: path)
                             }
                         }
                     }
@@ -125,45 +124,22 @@ class SignInViewModel {
                 if !Task.isCancelled {
                     handleUserLoginError(error) {
                         Task { @MainActor in
-                            self.handleOnAuthSuccess(user: user)
+                            self.handleOnAuthSuccess(user: user, path: path)
                         }
                     }
                 }
             }
         }
     }
-    
-    func getNavigationDestination(for step: OnboardingStep?) -> NavigationDestination? {
-        switch step {
-        case nil:
-            return .subscription
-        case .auth:
-            // User hasn't progressed past auth, go to subscription
-            return .emailVerification
-        case .subscription:
-            // User is at subscription step, go there
-            return .subscription
-        case .completeAccountSetup:
-            // User is at complete account setup, go there
-            return .completeAccountSetup
-        case .healthDisclaimer:
-            // User is at health disclaimer, go there
-            return .healthDisclaimer
-        case .goalSetting:
-            // User is at goal setting, go there
-            return .goalSetting
-        case .customiseProgram:
-            // User is at customise program, go there
-            return .customiseProgram
-        case .diet:
-            return .diet
-        case .complete:
-            // User has completed onboarding, show main app
-            return .completed
-        }
+
+    // MARK: Handle Navigation
+    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
+        let pathOption = interactor.currentUser?.onboardingStep.onboardingPathOption ?? .emailVerification
+        interactor.trackEvent(event: Event.navigate(destination: pathOption))
+        path.wrappedValue.append(pathOption)
     }
-    
-    /// Performs auth operation with timeout handling
+
+    // MARK: Auth w/ Timeout
     @discardableResult
     func performAuthWithTimeout<T: Sendable>(_ operation: @escaping @Sendable () async throws -> T) async throws -> T {
         try await withThrowingTaskGroup(of: T.self) { group in
@@ -185,7 +161,7 @@ class SignInViewModel {
         }
     }
     
-    /// Standardized error handling for auth operations
+    // MARK: Auth Error
     func handleAuthError(_ error: Error, operation: String, retryAction: @escaping @Sendable () -> Void) {
         let errorInfo = interactor.handleAuthError(error, operation: operation)
         
@@ -207,10 +183,7 @@ class SignInViewModel {
         )
     }
     
-    // MARK: - Error Messages
-    // Note: Error message generation is now handled by AuthErrorHandler
-    
-    /// Standardized error handling for user login operations
+    // MARK: User Error
     func handleUserLoginError(_ error: Error, retryAction: @escaping @Sendable () -> Void) {
         let errorInfo = interactor.handleUserLoginError(error)
         
@@ -233,7 +206,6 @@ class SignInViewModel {
     }
     
     // MARK: - Events
-    
     enum Event: LoggableEvent {
         case signInStart
         case signInSuccess
@@ -241,6 +213,7 @@ class SignInViewModel {
         case userLoginStart
         case userLoginSuccess
         case userLoginFail(error: Error)
+        case navigate(destination: OnboardingPathOption)
         
         var eventName: String {
             switch self {
@@ -250,6 +223,7 @@ class SignInViewModel {
             case .userLoginStart:   return "EmailAuthView_UserLogin_Start"
             case .userLoginSuccess: return "EmailAuthView_UserLogin_Success"
             case .userLoginFail:    return "EmailAuthView_UserLogin_Fail"
+            case .navigate:         return "SignInView_Navigate"
             }
         }
         
@@ -257,6 +231,8 @@ class SignInViewModel {
             switch self {
             case .signInFail(error: let error), .userLoginFail(error: let error):
                 return error.eventParameters
+            case .navigate(destination: let destination):
+                return destination.eventParameters
             default:
                 return nil
             }
@@ -266,6 +242,8 @@ class SignInViewModel {
             switch self {
             case .signInFail, .userLoginFail:
                 return .severe
+            case .navigate:
+                return .info
             default:
                 return .analytic
                 
