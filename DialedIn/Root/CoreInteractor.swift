@@ -11,6 +11,10 @@ import UIKit
 import HealthKit
 import ActivityKit
 
+enum CoreInteractorError: Error {
+    case incompleteUserBuilder
+}
+
 @MainActor
 // swiftlint:disable:next type_body_length
 struct CoreInteractor {
@@ -184,7 +188,8 @@ struct CoreInteractor {
         dailyActivityLevel: ProfileDailyActivityLevel,
         cardioFitnessLevel: ProfileCardioFitnessLevel,
         lengthUnitPreference: LengthUnitPreference,
-        weightUnitPreference: WeightUnitPreference
+        weightUnitPreference: WeightUnitPreference,
+        onboardingStep: OnboardingStep
     ) async throws -> UserModel {
         try await userManager
             .saveCompleteAccountSetupProfile(
@@ -196,8 +201,34 @@ struct CoreInteractor {
                 dailyActivityLevel: dailyActivityLevel,
                 cardioFitnessLevel: cardioFitnessLevel,
                 lengthUnitPreference: lengthUnitPreference,
-                weightUnitPreference: weightUnitPreference
+                weightUnitPreference: weightUnitPreference,
+                onboardingStep: onboardingStep
             )
+    }
+
+    func saveCompleteAccountSetupProfile(userBuilder: UserModelBuilder, onboardingStep: OnboardingStep) async throws -> UserModel {
+        guard let dob = userBuilder.dateOfBirth,
+              let height = userBuilder.height,
+              let weight = userBuilder.weight,
+              let exercise = userBuilder.exerciseFrequency,
+              let activity = userBuilder.activityLevel,
+              let cardio = userBuilder.cardioFitness,
+              let lengthPref = userBuilder.lengthUnitPreference,
+              let weightPref = userBuilder.weightUnitPreferene else {
+            throw CoreInteractorError.incompleteUserBuilder
+        }
+        return try await saveCompleteAccountSetupProfile(
+            dateOfBirth: dob,
+            gender: userBuilder.gender,
+            heightCentimeters: height,
+            weightKilograms: weight,
+            exerciseFrequency: mapProfileExerciseFrequency(exercise),
+            dailyActivityLevel: mapProfileActivityLevel(activity),
+            cardioFitnessLevel: mapProfileCardioFitness(cardio),
+            lengthUnitPreference: lengthPref,
+            weightUnitPreference: weightPref,
+            onboardingStep: onboardingStep
+        )
     }
 
     private func mapProfileExerciseFrequency(_ frequency: ExerciseFrequency) -> ProfileExerciseFrequency {
@@ -1403,14 +1434,10 @@ struct CoreInteractor {
     var goalHistory: [WeightGoal] {
         goalManager.goalHistory
     }
-    
-    var goalDraft: GoalDraft {
-        goalManager.goalDraft
-    }
-    
+
     func createGoal(
         userId: String,
-        objective: String,
+        objective: OverarchingObjective,
         startingWeightKg: Double,
         targetWeightKg: Double,
         weeklyChangeKg: Double
@@ -1441,30 +1468,6 @@ struct CoreInteractor {
     /// Delete a goal
     func deleteGoal(goalId: String, userId: String) async throws {
         try await goalManager.deleteGoal(goalId: goalId, userId: userId)
-    }
-    
-    // Goal Draft Setters
-    func setObjective(_ objective: OverarchingObjective) {
-        switch objective {
-        case .loseWeight:
-            goalManager.setObjective("lose weight")
-        case .maintain:
-            goalManager.setObjective("maintain weight")
-        case .gainWeight:
-            goalManager.setObjective("gain weight")
-        }
-    }
-    
-    func setTargetWeightKg(_ value: Double) {
-        goalManager.setTargetWeightKg(value)
-    }
-    
-    func setWeeklyChangeKg(_ value: Double) {
-        goalManager.setWeeklyChangeKg(value)
-    }
-    
-    func resetGoalDraft() {
-        goalManager.resetGoalDraft()
     }
     
     // Testing Helper

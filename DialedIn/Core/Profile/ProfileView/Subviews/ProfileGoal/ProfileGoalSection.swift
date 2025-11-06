@@ -21,7 +21,7 @@ struct ProfileGoalSection: View {
                 } label: {
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(goal.objective.capitalized)
+                        Text(goal.objective.description.capitalized)
                             .font(.title3)
                             .fontWeight(.semibold)
                         

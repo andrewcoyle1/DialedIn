@@ -56,15 +56,15 @@ struct ProfileGoalsDetailView: View {
     private func goalOverviewSection(goal: WeightGoal) -> some View {
         Section {
             HStack {
-                Text(goal.objective.capitalized)
+                Text(goal.objective.description.capitalized)
                     .font(.system(size: 20, weight: .bold))
                 Spacer()
-                Image(systemName: viewModel.objectiveIcon(goal.objective))
+                Image(systemName: viewModel.objectiveIcon(goal.objective.description))
                     .font(.system(size: 20))
                     .foregroundStyle(.accent)
             }
             
-            Text(viewModel.objectiveDescription(goal.objective))
+            Text(viewModel.objectiveDescription(goal.objective.description))
                 .font(.subheadline)
                 .foregroundStyle(.tertiary)
         } header: {
@@ -160,7 +160,7 @@ struct ProfileGoalsDetailView: View {
                 let weightRemaining = goal.weightRemaining(currentWeight: currentWeight)
                 let isLosing = goal.isLosing
 
-                progressPercentageCard(progress: progress, objective: goal.objective)
+                progressPercentageCard(progress: progress, objective: goal.objective.description)
                 let progressState = ProgressState(
                     startingWeight: goal.startingWeightKg,
                     currentWeight: currentWeight,
@@ -193,7 +193,7 @@ struct ProfileGoalsDetailView: View {
                 }
 
                 if progress > 0 {
-                    motivationalMessageView(progress: progress, objective: goal.objective)
+                    motivationalMessageView(progress: progress, objective: goal.objective.description)
                 }
             } else {
                 Text("Not enough data to show progress")
@@ -214,7 +214,7 @@ struct ProfileGoalsDetailView: View {
                 Spacer()
             }
             
-            Text(viewModel.motivationalMessage(goal.objective))
+            Text(viewModel.motivationalMessage(goal.objective.description))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }

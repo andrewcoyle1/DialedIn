@@ -1,0 +1,107 @@
+//
+//  OnboardingOverarchingObjectiveViewModel.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 28/10/2025.
+//
+
+import SwiftUI
+
+protocol OnboardingOverarchingObjectiveInteractor {
+    var currentUser: UserModel? { get }
+    func trackEvent(event: LoggableEvent)
+}
+
+extension CoreInteractor: OnboardingOverarchingObjectiveInteractor { }
+
+@Observable
+@MainActor
+class OnboardingOverarchingObjectiveViewModel {
+    private let interactor: OnboardingOverarchingObjectiveInteractor
+    
+    let isStandaloneMode: Bool
+    
+    var selectedObjective: OverarchingObjective?
+    
+    #if DEBUG || MOCK
+    var showDebugView: Bool = false
+    #endif
+    
+    var userWeight: Double? {
+        interactor.currentUser?.weightKilograms
+    }
+    
+    var canContinue: Bool { selectedObjective != nil && userWeight != nil }
+    
+    init(
+        interactor: OnboardingOverarchingObjectiveInteractor,
+        isStandaloneMode: Bool = false
+    ) {
+        self.interactor = interactor
+        self.isStandaloneMode = isStandaloneMode
+    }
+    
+    func navigateToNextStep(path: Binding<[OnboardingPathOption]>) {
+        guard let objective = selectedObjective else { return }
+        if objective == .maintain {
+            let weightGoalBuilder = WeightGoalBuilder(objective: objective, targetWeightKg: 0, weeklyChangeKg: 0)
+            interactor.trackEvent(event: Event.navigate(destination: .goalSummary(weightGoalBuilder: weightGoalBuilder)))
+            path.wrappedValue.append(.goalSummary(weightGoalBuilder: weightGoalBuilder))
+        } else {
+            let weightGoalBuilder = WeightGoalBuilder(objective: objective)
+            interactor.trackEvent(event: Event.navigate(destination: .targetWeight(weightGoalBuilder: weightGoalBuilder)))
+            path.wrappedValue.append(.targetWeight(weightGoalBuilder: weightGoalBuilder))
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: OnboardingPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "OverarchingObjecting_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate: return .info
+            }
+        }
+    }
+}
+
+enum OverarchingObjective: Codable, CaseIterable {
+    case loseWeight
+    case maintain
+    case gainWeight
+    
+    var description: String {
+        switch self {
+        case .loseWeight:
+            "Lose weight"
+        case .maintain:
+            "Maintain"
+        case .gainWeight:
+            "Gain weight"
+        }
+    }
+    
+    var detailedDescription: String {
+        switch self {
+        case .loseWeight:
+            "Goal of losing weight"
+        case .maintain:
+            "Goal of maintaining weight"
+        case .gainWeight:
+            "Goal of gaining weight"
+        }
+    }
+}

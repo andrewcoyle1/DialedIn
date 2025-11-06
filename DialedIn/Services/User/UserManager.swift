@@ -185,7 +185,8 @@ class UserManager {
         dailyActivityLevel: ProfileDailyActivityLevel,
         cardioFitnessLevel: ProfileCardioFitnessLevel,
         lengthUnitPreference: LengthUnitPreference,
-        weightUnitPreference: WeightUnitPreference
+        weightUnitPreference: WeightUnitPreference,
+        onboardingStep: OnboardingStep
     ) async throws -> UserModel {
         guard let existing = currentUser else { throw UserManagerError.noUserId }
         let updated = UserModel(
@@ -208,6 +209,7 @@ class UserManager {
             creationVersion: existing.creationVersion,
             lastSignInDate: existing.lastSignInDate,
             didCompleteOnboarding: existing.didCompleteOnboarding,
+            onboardingStep: onboardingStep,
             createdExerciseTemplateIds: existing.createdExerciseTemplateIds,
             bookmarkedExerciseTemplateIds: existing.bookmarkedExerciseTemplateIds,
             favouritedExerciseTemplateIds: existing.favouritedExerciseTemplateIds,

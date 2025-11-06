@@ -9,6 +9,9 @@ import Foundation
 
 enum OnboardingPathOption: Hashable, Sendable {
 
+    // MARK: Intro
+    case intro
+
     // MARK: Auth
     case authOptions
     case signIn
@@ -37,9 +40,9 @@ enum OnboardingPathOption: Hashable, Sendable {
     // MARK: Goal Setting
     case goalSetting
     case overarchingObjective
-    case targetWeight
-    case weightRate
-    case goalSummary
+    case targetWeight(weightGoalBuilder: WeightGoalBuilder)
+    case weightRate(weightGoalBuilder: WeightGoalBuilder)
+    case goalSummary(weightGoalBuilder: WeightGoalBuilder)
     
     // MARK: Customise Program
     case customiseProgram
@@ -52,6 +55,10 @@ enum OnboardingPathOption: Hashable, Sendable {
 
     var description: String {
         switch self {
+
+            // MARK: Intro
+        case .intro:                return "Intro"
+
             // MARK: Auth
         case .authOptions:          return "AuthOptions"
         case .signIn:               return "SignIn"
@@ -105,45 +112,46 @@ enum OnboardingPathOption: Hashable, Sendable {
 
     var onboardingStep: OnboardingStep {
         switch self {
-        case .authOptions:           return .auth
-        case .signIn:              return .auth
-        case .signUp:                return .auth
-        case .emailVerification:     return .auth
+        case .intro:                return .auth
+        case .authOptions:          return .auth
+        case .signIn:               return .auth
+        case .signUp:               return .auth
+        case .emailVerification:    return .auth
 
             // MARK: Subscription
-        case .subscriptionInfo:      return .subscription
-        case .subscriptionPlan:      return .subscription
+        case .subscriptionInfo:     return .subscription
+        case .subscriptionPlan:     return .subscription
 
             // MARK: Complete Account Setup
-        case .completeAccount:       return .completeAccountSetup
-        case .namePhoto:             return .completeAccountSetup
-        case .gender:                return .completeAccountSetup
-        case .dateOfBirth:           return .completeAccountSetup
-        case .height:                return .completeAccountSetup
-        case .weight:                return .completeAccountSetup
-        case .exerciseFrequency:     return .completeAccountSetup
-        case .activityLevel:         return .completeAccountSetup
-        case .cardioFitness:         return .completeAccountSetup
-        case .expenditure:           return .completeAccountSetup
-        case .healthData:            return .completeAccountSetup
-        case .notifications:         return .completeAccountSetup
-        case .healthDisclaimer:      return .healthDisclaimer
+        case .completeAccount:      return .completeAccountSetup
+        case .namePhoto:            return .completeAccountSetup
+        case .gender:               return .completeAccountSetup
+        case .dateOfBirth:          return .completeAccountSetup
+        case .height:               return .completeAccountSetup
+        case .weight:               return .completeAccountSetup
+        case .exerciseFrequency:    return .completeAccountSetup
+        case .activityLevel:        return .completeAccountSetup
+        case .cardioFitness:        return .completeAccountSetup
+        case .expenditure:          return .completeAccountSetup
+        case .healthData:           return .completeAccountSetup
+        case .notifications:        return .completeAccountSetup
+        case .healthDisclaimer:     return .healthDisclaimer
 
             // MARK: Goal Setting
-        case .goalSetting:           return .goalSetting
-        case .overarchingObjective:  return .goalSetting
-        case .targetWeight:          return .goalSetting
-        case .weightRate:            return .goalSetting
-        case .goalSummary:           return .goalSetting
+        case .goalSetting:          return .goalSetting
+        case .overarchingObjective: return .goalSetting
+        case .targetWeight:         return .goalSetting
+        case .weightRate:           return .goalSetting
+        case .goalSummary:          return .goalSetting
 
             // MARK: Customise Program
-        case .customiseProgram:      return .customiseProgram
-        case .preferredDiet:       return .customiseProgram
-        case .calorieFloor:          return .customiseProgram
-        case .trainingType:          return .customiseProgram
-        case .calorieDistribution:   return .customiseProgram
-        case .proteinIntake:         return .customiseProgram
-        case .dietPlan:              return .diet
+        case .customiseProgram:     return .customiseProgram
+        case .preferredDiet:        return .customiseProgram
+        case .calorieFloor:         return .customiseProgram
+        case .trainingType:         return .customiseProgram
+        case .calorieDistribution:  return .customiseProgram
+        case .proteinIntake:        return .customiseProgram
+        case .dietPlan:             return .diet
         }
     }
 }

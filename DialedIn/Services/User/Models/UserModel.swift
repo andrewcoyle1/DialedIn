@@ -486,6 +486,8 @@ enum OnboardingStep: String, Codable, Sendable {
     case auth
     case subscription
     case completeAccountSetup
+    case notifications
+    case healthData
     case healthDisclaimer
     case goalSetting
     case customiseProgram
@@ -497,6 +499,8 @@ enum OnboardingStep: String, Codable, Sendable {
         case .auth: return .authOptions
         case .subscription: return .subscriptionInfo
         case .completeAccountSetup: return .completeAccount
+        case .notifications: return .notifications
+        case .healthData: return .healthData
         case .healthDisclaimer: return .healthDisclaimer
         case .goalSetting: return .goalSetting
         case .customiseProgram: return .customiseProgram
@@ -520,11 +524,13 @@ extension OnboardingStep {
         case .auth: return 0
         case .subscription: return 1
         case .completeAccountSetup: return 2
-        case .healthDisclaimer: return 3
-        case .goalSetting: return 4
-        case .customiseProgram: return 5
-        case .diet: return 6
-        case .complete: return 7
+        case .notifications: return 3
+        case .healthData: return 4
+        case .healthDisclaimer: return 5
+        case .goalSetting: return 6
+        case .customiseProgram: return 7
+        case .diet: return 8
+        case .complete: return 9
         }
     }
 }

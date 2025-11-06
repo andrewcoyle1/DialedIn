@@ -17,6 +17,15 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
         content
             .navigationDestination(for: OnboardingPathOption.self) { newValue in
                 switch newValue {
+                case OnboardingPathOption.intro:
+                    OnboardingIntroView(
+                        viewModel: OnboardingIntroViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            )
+                        ),
+                        path: path
+                    )
                 case OnboardingPathOption.authOptions:
                     AuthOptionsView(
                         viewModel: AuthOptionsViewModel(
@@ -196,29 +205,32 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
                             )
                         ), path: path
                     )
-                case OnboardingPathOption.targetWeight:
+                case OnboardingPathOption.targetWeight(weightGoalBuilder: let weightGoalBuilder):
                     OnboardingTargetWeightView(
                         viewModel: OnboardingTargetWeightViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        weightGoalBuilder: weightGoalBuilder
                     )
-                case OnboardingPathOption.weightRate:
+                case OnboardingPathOption.weightRate(weightGoalBuilder: let weightGoalBuilder):
                     OnboardingWeightRateView(
                         viewModel: OnboardingWeightRateViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        weightGoalBuilder: weightGoalBuilder
                     )
-                case OnboardingPathOption.goalSummary:
+                case OnboardingPathOption.goalSummary(weightGoalBuilder: let weightGoalBuilder):
                     OnboardingGoalSummaryView(
                         viewModel: OnboardingGoalSummaryViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        weightGoalBuilder: weightGoalBuilder
                     )
                 
                 // MARK: Customise Program

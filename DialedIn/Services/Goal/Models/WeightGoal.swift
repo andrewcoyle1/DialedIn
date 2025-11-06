@@ -10,7 +10,7 @@ import Foundation
 struct WeightGoal: Codable, Identifiable, Equatable {
     let goalId: String
     let userId: String
-    let objective: String
+    let objective: OverarchingObjective
     let startingWeightKg: Double
     let targetWeightKg: Double
     let weeklyChangeKg: Double
@@ -23,7 +23,7 @@ struct WeightGoal: Codable, Identifiable, Equatable {
     init(
         goalId: String = UUID().uuidString,
         userId: String,
-        objective: String,
+        objective: OverarchingObjective,
         startingWeightKg: Double,
         targetWeightKg: Double,
         weeklyChangeKg: Double,
@@ -73,15 +73,15 @@ struct WeightGoal: Codable, Identifiable, Equatable {
     // MARK: - Computed Properties
     
     var isLosing: Bool {
-        objective.lowercased().contains("lose")
+        objective.description.lowercased().contains("lose")
     }
     
     var isGaining: Bool {
-        objective.lowercased().contains("gain")
+        objective.description.lowercased().contains("gain")
     }
     
     var isMaintaining: Bool {
-        objective.lowercased().contains("maintain")
+        objective.description.lowercased().contains("maintain")
     }
     
     var totalWeightChange: Double {
@@ -137,7 +137,7 @@ struct WeightGoal: Codable, Identifiable, Equatable {
 // MARK: - Mock Data
 extension WeightGoal {
     static func mock(
-        objective: String = "lose weight",
+        objective: OverarchingObjective = .loseWeight,
         startingWeightKg: Double = 75.0,
         targetWeightKg: Double = 68.0,
         weeklyChangeKg: Double = 0.5
@@ -155,10 +155,10 @@ extension WeightGoal {
     
     static var mocks: [WeightGoal] {
         [
-            mock(objective: "lose weight", startingWeightKg: 75.0, targetWeightKg: 68.0),
+            mock(objective: .loseWeight, startingWeightKg: 75.0, targetWeightKg: 68.0),
             WeightGoal(
                 userId: "mockUser",
-                objective: "gain weight",
+                objective: .gainWeight,
                 startingWeightKg: 65.0,
                 targetWeightKg: 70.0,
                 weeklyChangeKg: 0.3,
@@ -168,7 +168,7 @@ extension WeightGoal {
             ),
             WeightGoal(
                 userId: "mockUser",
-                objective: "maintain weight",
+                objective: .maintain,
                 startingWeightKg: 70.0,
                 targetWeightKg: 70.0,
                 weeklyChangeKg: 0.0,

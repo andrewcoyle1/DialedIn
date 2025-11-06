@@ -15,8 +15,7 @@ class GoalManager {
     private(set) var currentGoal: WeightGoal?
     private(set) var goalHistory: [WeightGoal] = []
     private(set) var isLoading: Bool = false
-    private(set) var goalDraft: GoalDraft = GoalDraft()
-    
+
     init(services: GoalServices) {
         self.remote = services.remote
         self.local = services.local
@@ -27,7 +26,7 @@ class GoalManager {
     /// Create a new goal with the current weight as starting weight
     func createGoal(
         userId: String,
-        objective: String,
+        objective: OverarchingObjective,
         startingWeightKg: Double,
         targetWeightKg: Double,
         weeklyChangeKg: Double
@@ -154,23 +153,6 @@ class GoalManager {
         
         // Clear cache
         try? await local.clearCache(userId: userId)
-    }
-    
-    // MARK: - Draft Helpers
-    func setObjective(_ objective: String) {
-        goalDraft.objective = objective
-    }
-    
-    func setTargetWeightKg(_ targetWeightKg: Double) {
-        goalDraft.targetWeightKg = targetWeightKg
-    }
-    
-    func setWeeklyChangeKg(_ weeklyChangeKg: Double) {
-        goalDraft.weeklyChangeKg = weeklyChangeKg
-    }
-    
-    func resetGoalDraft() {
-        goalDraft = GoalDraft()
     }
     
     // MARK: - Testing Helper
