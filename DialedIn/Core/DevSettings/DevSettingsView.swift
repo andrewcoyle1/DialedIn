@@ -16,6 +16,7 @@ struct DevSettingsView: View {
     var body: some View {
         NavigationStack {
             List {
+                debugActionsSection
                 authSection
                 userSection
                 deviceSection
@@ -26,7 +27,6 @@ struct DevSettingsView: View {
                 exerciseTemplateSection
                 workoutTemplateSection
                 seedingSection
-                debugActionsSection
             }
             .navigationTitle("Dev Settings 🫨")
             .screenAppearAnalytics(name: "DevSettings")

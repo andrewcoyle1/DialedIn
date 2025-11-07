@@ -30,7 +30,6 @@ struct NutritionView: View {
         }
         // Only show inspector in compact/tabBar modes; not in split view where detail is used
         .inspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView)
-//        .modifier(InspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView))
         .onChange(of: viewModel.selectedIngredientTemplate) { _, ingredient in
             guard layoutMode == .splitView else { return }
             if let ingredient { path = [.ingredientTemplateDetail(template: ingredient)] }
