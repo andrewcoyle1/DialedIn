@@ -94,8 +94,10 @@ class OnboardingWeightRateViewModel {
     }
 
     func navigateToGoalSummary(path: Binding<[OnboardingPathOption]>, weightGoalBuilder: WeightGoalBuilder) {
-        interactor.trackEvent(event: Event.navigate(destination: .goalSummary(weightGoalBuilder: weightGoalBuilder)))
-        path.wrappedValue.append(.goalSummary(weightGoalBuilder: weightGoalBuilder))
+        var builder = weightGoalBuilder
+        builder.setWeeklyChange(weightChangeRate)
+        interactor.trackEvent(event: Event.navigate(destination: .goalSummary(weightGoalBuilder: builder)))
+        path.wrappedValue.append(.goalSummary(weightGoalBuilder: builder))
     }
 
     func weeklyWeightChangeText(weightGoalBuilder: WeightGoalBuilder) -> String {

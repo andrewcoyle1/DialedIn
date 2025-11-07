@@ -38,9 +38,9 @@ struct CoreInteractor {
     private let reportManager: ReportManager
     private let healthKitManager: HealthKitManager
     private let trainingAnalyticsManager: TrainingAnalyticsManager
-    private let detailNavigationModel: DetailNavigationModel
     private let userWeightManager: UserWeightManager
     private let goalManager: GoalManager
+    private let imageUploadManager: ImageUploadManager
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     private let hkWorkoutManager: HKWorkoutManager
     private let liveActivityManager: LiveActivityManager
@@ -69,13 +69,13 @@ struct CoreInteractor {
         self.reportManager = container.resolve(ReportManager.self)!
         self.healthKitManager = container.resolve(HealthKitManager.self)!
         self.trainingAnalyticsManager = container.resolve(TrainingAnalyticsManager.self)!
-        self.detailNavigationModel = container.resolve(DetailNavigationModel.self)!
         self.userWeightManager = container.resolve(UserWeightManager.self)!
         self.goalManager = container.resolve(GoalManager.self)!
-#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        self.imageUploadManager = container.resolve(ImageUploadManager.self)!
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         self.hkWorkoutManager = container.resolve(HKWorkoutManager.self)!
         self.liveActivityManager = container.resolve(LiveActivityManager.self)!
-#endif
+        #endif
     }
     
     // MARK: AuthManager
@@ -312,7 +312,54 @@ struct CoreInteractor {
     
     // User deletion
     
+    /// Orchestrates the complete deletion of all user data.
+    /// This includes local and remote workout sessions, exercise history, templates, profile image, and the user profile document.
     func deleteCurrentUser() async throws {
+        let uid = try userManager.currentUserId()
+
+        // 1) Delete/anonymize LOCAL data first (best-effort)
+        do {
+            try workoutSessionManager.deleteAllLocalWorkoutSessionsForAuthor(authorId: uid)
+        } catch { /* ignore local errors */ }
+        do {
+            try exerciseHistoryManager.deleteAllLocalExerciseHistoryForAuthor(authorId: uid)
+        } catch { /* ignore local errors */ }
+
+        // 2) Delete/anonymize REMOTE data in parallel while auth is still valid
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            // Profile image in Storage (best-effort; ignore if missing)
+            group.addTask {
+                do {
+                    try await self.imageUploadManager.deleteImage(path: "users/\(uid)/profile.jpg")
+                } catch {
+                    /* ignore storage deletion errors */
+                }
+            }
+            // Workout Sessions
+            group.addTask {
+                try await self.workoutSessionManager.deleteAllWorkoutSessionsForAuthor(authorId: uid)
+            }
+            // Exercise History
+            group.addTask {
+                try await self.exerciseHistoryManager.deleteAllExerciseHistoryForAuthor(authorId: uid)
+            }
+            // Templates: remove author_id to anonymize authored content
+            group.addTask {
+                try await self.exerciseTemplateManager.removeAuthorIdFromAllExerciseTemplates(id: uid)
+            }
+            group.addTask {
+                try await self.workoutTemplateManager.removeAuthorIdFromAllWorkoutTemplates(id: uid)
+            }
+            group.addTask {
+                try await self.ingredientTemplateManager.removeAuthorIdFromAllIngredientTemplates(id: uid)
+            }
+            group.addTask {
+                try await self.recipeTemplateManager.removeAuthorIdFromAllRecipeTemplates(id: uid)
+            }
+            try await group.waitForAll()
+        }
+
+        // 3) Remove the user profile document and clear local state (handled by UserManager)
         try await userManager.deleteCurrentUser()
     }
     
@@ -1125,37 +1172,17 @@ struct CoreInteractor {
     var currentDietPlan: DietPlan? {
         nutritionManager.currentDietPlan
     }
-    
-    func createAndSaveDietPlan(user: UserModel?, configuration: DietPlanConfiguration) async throws {
-        try await nutritionManager.createAndSaveDietPlan(user: user, configuration: configuration)
+
+    func computeDietPlan(user: UserModel?, builder: DietPlanBuilder) -> DietPlan {
+        nutritionManager.computeDietPlan(user: user, builder: builder)
     }
-    
-    var dietPlanDraft: DietPlanDraft {
-        nutritionManager.dietPlanDraft
+
+    func saveDietPlan(plan: DietPlan) async throws {
+        try await nutritionManager.saveDietPlan(plan: plan)
     }
-    
-    func setPreferredDiet(_ value: PreferredDiet) {
-        nutritionManager.setPreferredDiet(value)
-    }
-    
-    func setCalorieFloor(_ value: CalorieFloor) {
-        nutritionManager.setCalorieFloor(value)
-    }
-    
-    func setTrainingType(_ value: TrainingType) {
-        nutritionManager.setTrainingType(value)
-    }
-    
-    func setCalorieDistribution(_ value: CalorieDistribution) {
-        nutritionManager.setCalorieDistribution(value)
-    }
-    
-    func setProteinIntake(_ value: ProteinIntake) {
-        nutritionManager.setProteinIntake(value)
-    }
-    
-    func resetDietPlanDraft() {
-        nutritionManager.resetDietPlanDraft()
+
+    func createAndSaveDietPlan(user: UserModel?, builder: DietPlanBuilder) async throws {
+        try await nutritionManager.createAndSaveDietPlan(user: user, builder: builder)
     }
     
     // Get daily macro target for a specific date from the current diet plan
@@ -1387,16 +1414,6 @@ struct CoreInteractor {
     
     func invalidateCache() {
         trainingAnalyticsManager.invalidateCache()
-    }
-    
-    // MARK: DetailNavigationModel
-    
-    var path: [TabBarPathOption] {
-        detailNavigationModel.path
-    }
-    
-    func clearPath() {
-        detailNavigationModel.clear()
     }
     
     // UserWeightManager

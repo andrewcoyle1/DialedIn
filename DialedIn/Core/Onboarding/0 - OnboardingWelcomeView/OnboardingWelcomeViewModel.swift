@@ -24,6 +24,7 @@ class OnboardingWelcomeViewModel {
     var showSignInView: Bool = false
     
     var path: [OnboardingPathOption] = []
+
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
@@ -37,11 +38,7 @@ class OnboardingWelcomeViewModel {
     }
     
     func navToAppropriateView() {
-        if let user = currentUser {
-            navigate(step: user.onboardingStep.onboardingPathOption)
-        } else {
-            navigate(step: .intro)
-        }
+        navigate(step: currentUser?.onboardingStep.onboardingPathOption ?? .intro)
     }
 
     func navigate(step: OnboardingPathOption) {

@@ -75,27 +75,41 @@ extension View {
 
 #Preview {
     VStack {
-        Text("Hello, world!")
-            .padding()
-            .frame(maxWidth: .infinity)
-            .tappableBackground()
-            .anyButton(.highlight, action: {
-                
-            })
+        Text(
+            "Hello, world!"
+        )
         .padding()
-        
-        Text("Hello, world!")
-            .callToActionButton()
-            .anyButton(.press, action: {
-                
-            })
-            .padding()
-        
-        Text("Hello, world!")
-            .callToActionButton()
-            .anyButton(action: {
-                
-            })
-            .padding()
+        .frame(maxWidth: .infinity)
+        .tappableBackground()
+        .anyButton(
+            .highlight,
+            action: {
+
+            }
+        )
+        .padding()
+
+        Text(
+            "Hello, world!"
+        )
+        .callToActionButton()
+        .anyButton(
+            .press,
+            action: {
+
+            }
+        )
+        .padding()
+
+        Text(
+            "Hello, world!"
+        )
+        .callToActionButton()
+        .anyButton(
+            action: {
+
+            }
+        )
+        .padding()
     }
 }

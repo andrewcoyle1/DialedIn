@@ -42,7 +42,7 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
                             )
                         ), path: path
                     )
-                    
+
                 case OnboardingPathOption.signUp:
                     SignUpView(
                         viewModel: SignUpViewModel(
@@ -187,8 +187,8 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
                             )
                         ), path: path
                     )
-                    
-                // MARK: Goal Setting
+
+                    // MARK: Goal Setting
                 case OnboardingPathOption.goalSetting:
                     OnboardingGoalSettingView(
                         viewModel: OnboardingGoalSettingViewModel(
@@ -232,8 +232,8 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
                         ), path: path,
                         weightGoalBuilder: weightGoalBuilder
                     )
-                
-                // MARK: Customise Program
+
+                    // MARK: Customise Program
                 case OnboardingPathOption.customiseProgram:
                     OnboardingCustomisingProgramView(
                         viewModel: OnboardingCustomisingProgramViewModel(
@@ -241,6 +241,68 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
                                 container: container
                             )
                         ), path: path
+                    )
+                case OnboardingPathOption.trainingExperience(trainingProgramBuilder: let builder):
+                    OnboardingTrainingExperienceView(
+                        viewModel: OnboardingTrainingExperienceViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            )
+                        ),
+                        path: path,
+                        trainingProgramBuilder: builder
+                    )
+                case OnboardingPathOption.trainingDaysPerWeek(trainingProgramBuilder: let builder):
+                    OnboardingTrainingDaysPerWeekView(
+                        viewModel: OnboardingTrainingDaysPerWeekViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            )
+                        ),
+                        path: path,
+                        trainingProgramBuilder: builder
+                    )
+                case OnboardingPathOption.trainingSplit(trainingProgramBuilder: let builder):
+                    OnboardingTrainingSplitView(
+                        viewModel: OnboardingTrainingSplitViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            )
+                        ),
+                        path: path,
+                        trainingProgramBuilder: builder
+                    )
+                case OnboardingPathOption.trainingSchedule(trainingProgramBuilder: let builder):
+                    OnboardingTrainingScheduleView(
+                        viewModel: OnboardingTrainingScheduleViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            ),
+                            builder: builder
+                        ),
+                        path: path,
+                        trainingProgramBuilder: builder
+                    )
+                case OnboardingPathOption.trainingEquipment(trainingProgramBuilder: let builder):
+                    OnboardingTrainingEquipmentView(
+                        viewModel: OnboardingTrainingEquipmentViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            ),
+                            builder: builder
+                        ),
+                        path: path,
+                        trainingProgramBuilder: builder
+                    )
+                case OnboardingPathOption.trainingReview(trainingProgramBuilder: let builder):
+                    OnboardingTrainingReviewView(
+                        viewModel: OnboardingTrainingReviewViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            )
+                        ),
+                        path: path,
+                        trainingProgramBuilder: builder
                     )
                 case OnboardingPathOption.preferredDiet:
                     OnboardingPreferredDietView(
@@ -250,41 +312,54 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
                             )
                         ), path: path
                     )
-                case OnboardingPathOption.calorieFloor:
+                case OnboardingPathOption.calorieFloor(dietPlanBuilder: let dietPlanBuilder):
                     OnboardingCalorieFloorView(
                         viewModel: OnboardingCalorieFloorViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        dietPlanBuilder: dietPlanBuilder
                     )
-                case OnboardingPathOption.trainingType:
+                case OnboardingPathOption.trainingType(dietPlanBuilder: let dietPlanBuilder):
                     OnboardingTrainingTypeView(
                         viewModel: OnboardingTrainingTypeViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        dietPlanBuilder: dietPlanBuilder
                     )
-                case OnboardingPathOption.calorieDistribution:
+                case OnboardingPathOption.calorieDistribution(dietPlanBuilder: let dietPlanBuilder):
                     OnboardingCalorieDistributionView(
                         viewModel: OnboardingCalorieDistributionViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        dietPlanBuilder: dietPlanBuilder
                     )
-                case OnboardingPathOption.proteinIntake:
+                case OnboardingPathOption.proteinIntake(dietPlanBuilder: let dietPlanBuilder):
                     OnboardingProteinIntakeView(
                         viewModel: OnboardingProteinIntakeViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        ), path: path
+                        ), path: path,
+                        dietPlanBuilder: dietPlanBuilder
                     )
-                case OnboardingPathOption.dietPlan:
+                case OnboardingPathOption.dietPlan(dietPlanBuilder: let dietPlanBuilder):
                     OnboardingDietPlanView(
                         viewModel: OnboardingDietPlanViewModel(
+                            interactor: CoreInteractor(
+                                container: container
+                            )
+                        ), path: path,
+                        dietPlanBuilder: dietPlanBuilder
+                    )
+                case OnboardingPathOption.complete:
+                    OnboardingCompletedView(
+                        viewModel: OnboardingCompletedViewModel(
                             interactor: CoreInteractor(
                                 container: container
                             )

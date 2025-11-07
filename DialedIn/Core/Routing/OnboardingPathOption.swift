@@ -46,12 +46,21 @@ enum OnboardingPathOption: Hashable, Sendable {
     
     // MARK: Customise Program
     case customiseProgram
+    case trainingExperience(trainingProgramBuilder: TrainingProgramBuilder)
+    case trainingDaysPerWeek(trainingProgramBuilder: TrainingProgramBuilder)
+    case trainingSplit(trainingProgramBuilder: TrainingProgramBuilder)
+    case trainingSchedule(trainingProgramBuilder: TrainingProgramBuilder)
+    case trainingEquipment(trainingProgramBuilder: TrainingProgramBuilder)
+    case trainingReview(trainingProgramBuilder: TrainingProgramBuilder)
     case preferredDiet
-    case calorieFloor
-    case trainingType
-    case calorieDistribution
-    case proteinIntake
-    case dietPlan
+    case calorieFloor(dietPlanBuilder: DietPlanBuilder)
+    case trainingType(dietPlanBuilder: DietPlanBuilder)
+    case calorieDistribution(dietPlanBuilder: DietPlanBuilder)
+    case proteinIntake(dietPlanBuilder: DietPlanBuilder)
+    case dietPlan(dietPlanBuilder: DietPlanBuilder)
+
+    // MARK: Onboarding Complete
+    case complete
 
     var description: String {
         switch self {
@@ -93,12 +102,21 @@ enum OnboardingPathOption: Hashable, Sendable {
 
             // MARK: Customise Program
         case .customiseProgram:     return "CustomiseProgram"
+        case .trainingExperience:    return "TrainingExperience"
+        case .trainingDaysPerWeek:  return "TrainingDaysPerWeek"
+        case .trainingSplit:        return "TrainingSplit"
+        case .trainingSchedule:     return "TrainingSchedule"
+        case .trainingEquipment:    return "TrainingEquipment"
+        case .trainingReview:       return "TrainingReview"
         case .preferredDiet:        return "PreferredDiet"
         case .calorieFloor:         return "CalorieFloor"
         case .trainingType:         return "TrainingType"
         case .calorieDistribution:  return "CalorieDistribution"
         case .proteinIntake:        return "ProteinIntake"
         case .dietPlan:             return "DietPlan"
+
+            // MARK: Onboarding Complete
+        case .complete:             return "Complete"
         }
     }
 
@@ -146,12 +164,21 @@ enum OnboardingPathOption: Hashable, Sendable {
 
             // MARK: Customise Program
         case .customiseProgram:     return .customiseProgram
+        case .trainingExperience:   return .customiseProgram
+        case .trainingDaysPerWeek:   return .customiseProgram
+        case .trainingSplit:        return .customiseProgram
+        case .trainingSchedule:      return .customiseProgram
+        case .trainingEquipment:    return .customiseProgram
+        case .trainingReview:       return .customiseProgram
         case .preferredDiet:        return .customiseProgram
         case .calorieFloor:         return .customiseProgram
         case .trainingType:         return .customiseProgram
         case .calorieDistribution:  return .customiseProgram
         case .proteinIntake:        return .customiseProgram
-        case .dietPlan:             return .diet
+        case .dietPlan:             return .customiseProgram
+
+            // MARK: Complete Onboarding
+        case .complete:             return .complete
         }
     }
 }

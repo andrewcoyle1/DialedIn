@@ -11,7 +11,6 @@ import SwiftUI
 struct Dependencies {
     let container: DependencyContainer
     let logManager: LogManager
-    let detailNavigationModel: DetailNavigationModel
 
     // swiftlint:disable:next function_body_length
     init(config: BuildConfiguration) {
@@ -158,7 +157,7 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
 
         }
-        detailNavigationModel = DetailNavigationModel()
+
         pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
         healthKitManager = HealthKitManager(service: HealthKitService())
         
@@ -183,7 +182,6 @@ struct Dependencies {
         container.register(ReportManager.self, service: reportManager)
         container.register(HealthKitManager.self, service: healthKitManager)
         container.register(TrainingAnalyticsManager.self, service: trainingAnalyticsManager)
-        container.register(DetailNavigationModel.self, service: detailNavigationModel)
         container.register(UserWeightManager.self, service: userWeightManager)
         container.register(GoalManager.self, service: goalManager)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -218,7 +216,6 @@ extension View {
         let reportManager = ReportManager(service: MockReportService(), userManager: userManager)
         let healthKitManager = HealthKitManager(service: MockHealthService())
         let trainingAnalyticsManager = TrainingAnalyticsManager(services: MockTrainingAnalyticsServices())
-        let detailNavigationModel = DetailNavigationModel()
         let userWeightManager = UserWeightManager(services: MockUserWeightServices())
         let goalManager = GoalManager(services: MockGoalServices())
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -250,7 +247,6 @@ extension View {
         container.register(ReportManager.self, service: reportManager)
         container.register(HealthKitManager.self, service: healthKitManager)
         container.register(TrainingAnalyticsManager.self, service: trainingAnalyticsManager)
-        container.register(DetailNavigationModel.self, service: detailNavigationModel)
         container.register(UserWeightManager.self, service: userWeightManager)
         container.register(GoalManager.self, service: goalManager)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -292,7 +288,6 @@ class DevPreview {
         container.register(ReportManager.self, service: reportManager)
         container.register(HealthKitManager.self, service: healthKitManager)
         container.register(TrainingAnalyticsManager.self, service: trainingAnalyticsManager)
-        container.register(DetailNavigationModel.self, service: detailNavigationModel)
         container.register(UserWeightManager.self, service: userWeightManager)
         container.register(GoalManager.self, service: goalManager)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -324,7 +319,6 @@ class DevPreview {
     let reportManager: ReportManager
     let healthKitManager: HealthKitManager
     let trainingAnalyticsManager: TrainingAnalyticsManager
-    let detailNavigationModel: DetailNavigationModel
     let userWeightManager: UserWeightManager
     let goalManager: GoalManager
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -361,7 +355,6 @@ class DevPreview {
         self.reportManager = ReportManager(service: MockReportService(), userManager: userManager)
         self.healthKitManager = HealthKitManager(service: MockHealthService())
         self.trainingAnalyticsManager = TrainingAnalyticsManager(services: MockTrainingAnalyticsServices())
-        self.detailNavigationModel = DetailNavigationModel()
         self.userWeightManager = UserWeightManager(services: MockUserWeightServices())
         self.goalManager = GoalManager(services: MockGoalServices())
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)

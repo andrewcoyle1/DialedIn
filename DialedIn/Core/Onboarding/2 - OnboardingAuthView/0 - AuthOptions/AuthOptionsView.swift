@@ -9,11 +9,11 @@ import SwiftUI
 
 struct AuthOptionsView: View {
     @Environment(DependencyContainer.self) private var container
+    @Environment(\.colorScheme) private var colorScheme
 
     @State var viewModel: AuthOptionsViewModel
     @Binding var path: [OnboardingPathOption]
-    @Environment(\.colorScheme) private var colorScheme
-    
+
     var body: some View {
         VStack {
             imageSection
@@ -22,40 +22,23 @@ struct AuthOptionsView: View {
                 SignInWithGoogleButtonView { viewModel.onSignInGooglePressed(path: $path) }
                 signUpButtonSection
                 signInButtonSection
+                tsAndCsSection
             }
             .padding(.horizontal)
         }
-        .allowsHitTesting(!viewModel.isLoading)
-        .navigationBarBackButtonHidden(true)
         .background {
             Color(colorScheme.backgroundPrimary)
                 .ignoresSafeArea()
         }
+        .allowsHitTesting(!viewModel.isLoading)
+        .navigationBarBackButtonHidden(true)
         #if DEBUG || MOCK
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    viewModel.showDebugView = true
-                } label: {
-                    Image(systemName: "info")
-                }
-            }
-        }
+        .toolbar { toolbarContent }
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            devSettingsContent
         }
         #endif
         .showCustomAlert(alert: $viewModel.showAlert)
-        .safeAreaInset(edge: .bottom) {
-            tsAndCsSection
-                .padding(.horizontal)
-        }
         .showModal(showModal: $viewModel.isLoading) {
             ProgressView()
                 .tint(.white)
@@ -64,6 +47,28 @@ struct AuthOptionsView: View {
             viewModel.cleanUp()
         }
     }
+
+    #if DEBUG || MOCK
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                viewModel.showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+    }
+
+    private var devSettingsContent: some View {
+        DevSettingsView(
+            viewModel: DevSettingsViewModel(
+                interactor: CoreInteractor(
+                    container: container
+                )
+            )
+        )
+    }
+    #endif
 
     private var imageSection: some View {
         ImageLoaderView()

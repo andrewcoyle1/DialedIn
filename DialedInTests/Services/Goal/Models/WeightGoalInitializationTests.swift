@@ -15,7 +15,7 @@ struct WeightGoalInitializationTests {
     @Test("Test Basic Initialisation")
     func testBasicInitialization() {
         let randomUserId = String.random
-        let randomObjective = "lose weight"
+        let randomObjective = OverarchingObjective.loseWeight
         let randomStartingWeight = 75.0
         let randomTargetWeight = 68.0
         let randomWeeklyChange = 0.5
@@ -33,7 +33,7 @@ struct WeightGoalInitializationTests {
         #expect(goal.startingWeightKg == randomStartingWeight)
         #expect(goal.targetWeightKg == randomTargetWeight)
         #expect(goal.weeklyChangeKg == randomWeeklyChange)
-        #expect(goal.status == .active)
+        #expect(goal.status == WeightGoal.GoalStatus.active)
         #expect(goal.completedAt == nil)
     }
     
@@ -48,7 +48,7 @@ struct WeightGoalInitializationTests {
         return WeightGoalTestData(
             goalId: String.random,
             userId: String.random,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5,
@@ -61,7 +61,7 @@ struct WeightGoalInitializationTests {
     private struct WeightGoalTestData {
         let goalId: String
         let userId: String
-        let objective: String
+        let objective: OverarchingObjective
         let startingWeightKg: Double
         let targetWeightKg: Double
         let weeklyChangeKg: Double
@@ -99,7 +99,7 @@ struct WeightGoalInitializationTests {
     @Test("Test Initialization With Default Parameters")
     func testInitializationWithDefaultParameters() {
         let randomUserId = String.random
-        let randomObjective = "gain weight"
+        let randomObjective = OverarchingObjective.gainWeight
         let randomStartingWeight = 65.0
         let randomTargetWeight = 70.0
         let randomWeeklyChange = 0.3
@@ -125,7 +125,7 @@ struct WeightGoalInitializationTests {
         
         let goal = WeightGoal(
             userId: randomUserId,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5,
@@ -143,7 +143,7 @@ struct WeightGoalInitializationTests {
         
         let goal = WeightGoal(
             userId: randomUserId,
-            objective: "maintain weight",
+            objective: .maintain,
             startingWeightKg: 70.0,
             targetWeightKg: 70.0,
             weeklyChangeKg: 0.0,

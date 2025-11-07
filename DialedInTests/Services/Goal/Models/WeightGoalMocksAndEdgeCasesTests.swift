@@ -17,7 +17,7 @@ struct WeightGoalMocksAndEdgeCasesTests {
         let mock = WeightGoal.mock()
         
         #expect(mock.userId == "mockUser")
-        #expect(mock.objective == "lose weight")
+        #expect(mock.objective == .loseWeight)
         #expect(mock.startingWeightKg == 75.0)
         #expect(mock.targetWeightKg == 68.0)
         #expect(mock.weeklyChangeKg == 0.5)
@@ -27,13 +27,13 @@ struct WeightGoalMocksAndEdgeCasesTests {
     @Test("Test Mock With Custom Parameters")
     func testMockWithCustomParameters() {
         let mock = WeightGoal.mock(
-            objective: "gain weight",
+            objective: .gainWeight,
             startingWeightKg: 65.0,
             targetWeightKg: 70.0,
             weeklyChangeKg: 0.3
         )
         
-        #expect(mock.objective == "gain weight")
+        #expect(mock.objective == .gainWeight)
         #expect(mock.startingWeightKg == 65.0)
         #expect(mock.targetWeightKg == 70.0)
         #expect(mock.weeklyChangeKg == 0.3)
@@ -44,9 +44,9 @@ struct WeightGoalMocksAndEdgeCasesTests {
         let mocks = WeightGoal.mocks
         
         #expect(mocks.count == 3)
-        #expect(mocks[0].objective == "lose weight")
-        #expect(mocks[1].objective == "gain weight")
-        #expect(mocks[2].objective == "maintain weight")
+        #expect(mocks[0].objective == .loseWeight)
+        #expect(mocks[1].objective == .gainWeight)
+        #expect(mocks[2].objective == .maintain)
     }
     
     @Test("Test Mocks Have Different Statuses")
@@ -80,7 +80,7 @@ struct WeightGoalMocksAndEdgeCasesTests {
     func testGoalWithZeroWeeklyChange() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "maintain weight",
+            objective: .maintain,
             startingWeightKg: 70.0,
             targetWeightKg: 70.0,
             weeklyChangeKg: 0.0
@@ -95,7 +95,7 @@ struct WeightGoalMocksAndEdgeCasesTests {
     func testGoalWithSameStartAndTarget() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "maintain weight",
+            objective: .maintain,
             startingWeightKg: 70.0,
             targetWeightKg: 70.0,
             weeklyChangeKg: 0.5
@@ -109,7 +109,7 @@ struct WeightGoalMocksAndEdgeCasesTests {
     func testProgressCalculationClampedToOne() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -124,7 +124,7 @@ struct WeightGoalMocksAndEdgeCasesTests {
     func testProgressCalculationClampedToZero() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -139,7 +139,7 @@ struct WeightGoalMocksAndEdgeCasesTests {
     func testProgressCalculationClampedToZeroForGainingGoal() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "gain weight",
+            objective: .gainWeight,
             startingWeightKg: 65.0,
             targetWeightKg: 70.0,
             weeklyChangeKg: 0.3
@@ -154,7 +154,7 @@ struct WeightGoalMocksAndEdgeCasesTests {
     func testCaseInsensitiveObjectiveMatching() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "LOSE WEIGHT",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5

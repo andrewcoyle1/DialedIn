@@ -240,7 +240,8 @@ struct DayWorkoutMapping: Sendable, Codable, Equatable, Identifiable, Hashable {
     }
 }
 
-enum DifficultyLevel: String, Codable, CaseIterable, Sendable {
+enum DifficultyLevel: String, Codable, CaseIterable, Sendable, Identifiable {
+    var id: String { rawValue }
     case beginner
     case intermediate
     case advanced

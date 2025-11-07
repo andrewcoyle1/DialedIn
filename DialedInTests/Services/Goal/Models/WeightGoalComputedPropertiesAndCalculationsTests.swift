@@ -16,7 +16,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testIsLosingProperty() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -29,7 +29,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testIsGainingProperty() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "gain weight",
+            objective: .gainWeight,
             startingWeightKg: 65.0,
             targetWeightKg: 70.0,
             weeklyChangeKg: 0.3
@@ -42,7 +42,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testIsMaintainingProperty() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "maintain weight",
+            objective: .maintain,
             startingWeightKg: 70.0,
             targetWeightKg: 70.0,
             weeklyChangeKg: 0.0
@@ -55,7 +55,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testTotalWeightChange() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -68,7 +68,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testEstimatedWeeks() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -82,7 +82,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testEstimatedWeeksWithZeroWeeklyChange() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "maintain weight",
+            objective: .maintain,
             startingWeightKg: 70.0,
             targetWeightKg: 70.0,
             weeklyChangeKg: 0.0
@@ -95,7 +95,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testEstimatedMonths() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -111,7 +111,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testCalculateProgress() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -126,7 +126,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testCalculateProgressAtStart() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -140,7 +140,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testCalculateProgressAtTarget() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -154,7 +154,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testCalculateProgressReturnsZeroForSameStartAndTarget() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "maintain weight",
+            objective: .maintain,
             startingWeightKg: 70.0,
             targetWeightKg: 70.0,
             weeklyChangeKg: 0.0
@@ -168,7 +168,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testWeightChanged() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -182,7 +182,7 @@ struct WeightGoalCompPropsAndCalcsTests {
     func testWeightRemaining() {
         let goal = WeightGoal(
             userId: String.random,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -202,7 +202,7 @@ struct WeightGoalCompPropsAndCalcsTests {
         let goal = WeightGoal(
             goalId: randomGoalId,
             userId: randomUserId,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -218,7 +218,7 @@ struct WeightGoalCompPropsAndCalcsTests {
         
         let goal1 = WeightGoal(
             userId: randomUserId,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -226,7 +226,7 @@ struct WeightGoalCompPropsAndCalcsTests {
         
         let goal2 = WeightGoal(
             userId: randomUserId,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5

@@ -491,7 +491,6 @@ enum OnboardingStep: String, Codable, Sendable {
     case healthDisclaimer
     case goalSetting
     case customiseProgram
-    case diet
     case complete
     
     var onboardingPathOption: OnboardingPathOption {
@@ -504,8 +503,7 @@ enum OnboardingStep: String, Codable, Sendable {
         case .healthDisclaimer: return .healthDisclaimer
         case .goalSetting: return .goalSetting
         case .customiseProgram: return .customiseProgram
-        case .diet: return .dietPlan
-        case .complete: return .dietPlan
+        case .complete: return .complete
         }
     }
 
@@ -529,8 +527,7 @@ extension OnboardingStep {
         case .healthDisclaimer: return 5
         case .goalSetting: return 6
         case .customiseProgram: return 7
-        case .diet: return 8
-        case .complete: return 9
+        case .complete: return 8
         }
     }
 }

@@ -31,7 +31,7 @@ class OnboardingGoalSummaryViewModel {
     
     let isStandaloneMode: Bool
 
-    var isLoading: Bool = true
+    var isLoading: Bool = false
     var goalCreated: Bool = false
     var showAlert: AnyAppAlert?
     var onDismiss: (() -> Void)?
@@ -84,7 +84,7 @@ class OnboardingGoalSummaryViewModel {
 
                 // If standalone mode, auto-dismiss after a brief delay
                 if isStandaloneMode {
-                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second
+                    try? await Task.sleep(for: .seconds(0.5))
                     onDismiss?()
                 }
 

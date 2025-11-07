@@ -17,7 +17,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         var config: BuildConfiguration
         
         #if MOCK
-        config = .mock(isSignedIn: false)
+        config = .mock(isSignedIn: true)
         #elseif DEBUG
         config = .dev
         #else

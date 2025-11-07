@@ -7,14 +7,6 @@
 
 import SwiftUI
 
-struct DietPlanConfiguration {
-    let preferredDiet: PreferredDiet
-    let calorieFloor: CalorieFloor
-    let trainingType: TrainingType
-    let calorieDistribution: CalorieDistribution
-    let proteinIntake: ProteinIntake
-}
-
 extension CalorieFloor {
     var minimumValue: Double {
         switch self {
@@ -30,7 +22,6 @@ class NutritionManager {
     private let local: LocalNutritionPersistence
     private let remote: RemoteNutritionService
     private(set) var currentDietPlan: DietPlan?
-    private(set) var dietPlanDraft: DietPlanDraft = DietPlanDraft()
     
     init(services: NutritionServices) {
         self.remote = services.remote
@@ -38,34 +29,18 @@ class NutritionManager {
         self.currentDietPlan = local.getCurrentDietPlan()
     }
 
-    // MARK: - Draft Setters
-    func setPreferredDiet(_ value: PreferredDiet) {
-        dietPlanDraft.preferredDiet = value
-    }
-    
-    func setCalorieFloor(_ value: CalorieFloor) {
-        dietPlanDraft.calorieFloor = value
-    }
-    
-    func setTrainingType(_ value: TrainingType) {
-        dietPlanDraft.trainingType = value
-    }
-    
-    func setCalorieDistribution(_ value: CalorieDistribution) {
-        dietPlanDraft.calorieDistribution = value
-    }
-    
-    func setProteinIntake(_ value: ProteinIntake) {
-        dietPlanDraft.proteinIntake = value
-    }
-    
-    func resetDietPlanDraft() {
-        dietPlanDraft = DietPlanDraft()
+    // MARK: - Public API
+
+    func saveDietPlan(plan: DietPlan) async throws {
+        try local.saveDietPlan(plan: plan)
+        currentDietPlan = plan
+        if let userId = plan.userId {
+            try await remote.saveDietPlan(userId: userId, plan: plan)
+        }
     }
 
-    // MARK: - Public API
-    func createAndSaveDietPlan(user: UserModel?, configuration: DietPlanConfiguration) async throws {
-        let plan = try await computeDietPlan(user: user, configuration: configuration)
+    func createAndSaveDietPlan(user: UserModel?, builder: DietPlanBuilder) async throws {
+        let plan = computeDietPlan(user: user, builder: builder)
         try local.saveDietPlan(plan: plan)
         currentDietPlan = plan
         if let userId = plan.userId {
@@ -93,16 +68,16 @@ class NutritionManager {
     }
 
     // MARK: - Core logic
-    private func computeDietPlan(user: UserModel?, configuration: DietPlanConfiguration) async throws -> DietPlan {
+    func computeDietPlan(user: UserModel?, builder: DietPlanBuilder) -> DietPlan {
         let now = Date()
         let userId = user?.userId
         let tdee = estimateTDEE(user: user)
-        let minimumCalories = configuration.calorieFloor.minimumValue
+        let minimumCalories = builder.calorieFloor?.minimumValue ?? CalorieFloor.standard.minimumValue
         let targetCalories = max(tdee, minimumCalories)
         
-        let proteinGrams = calculateProteinGrams(user: user, proteinIntake: configuration.proteinIntake)
+        let proteinGrams = calculateProteinGrams(user: user, proteinIntake: builder.proteinIntake ?? .moderate)
         let macroPercentages = calculateMacroPercentages(
-            preferredDiet: configuration.preferredDiet,
+            preferredDiet: builder.preferredDiet,
             targetCalories: targetCalories,
             proteinGrams: proteinGrams
         )
@@ -110,8 +85,8 @@ class NutritionManager {
         let dailyCalories = calculateDailyCalories(
             targetCalories: targetCalories,
             minimumCalories: minimumCalories,
-            calorieDistribution: configuration.calorieDistribution,
-            trainingType: configuration.trainingType
+            calorieDistribution: builder.calorieDistribution ?? .even,
+            trainingType: builder.trainingType ?? .cardioAndWeightlifting
         )
         
         let dailyMacros = computeDailyMacros(
@@ -125,11 +100,11 @@ class NutritionManager {
             userId: userId,
             createdAt: now,
             tdeeEstimate: round(tdee),
-            preferredDiet: configuration.preferredDiet.rawValue,
-            calorieFloor: configuration.calorieFloor.rawValue,
-            trainingType: configuration.trainingType.rawValue,
-            calorieDistribution: configuration.calorieDistribution.rawValue,
-            proteinIntake: configuration.proteinIntake.rawValue,
+            preferredDiet: builder.preferredDiet.rawValue,
+            calorieFloor: builder.calorieFloor?.rawValue ?? CalorieFloor.standard.rawValue,
+            trainingType: builder.trainingType?.rawValue ?? TrainingType.cardioAndWeightlifting.rawValue,
+            calorieDistribution: builder.calorieDistribution?.rawValue ?? CalorieDistribution.even.rawValue,
+            proteinIntake: builder.proteinIntake?.rawValue ?? ProteinIntake.moderate.rawValue,
             days: dailyMacros
         )
     }

@@ -8,12 +8,11 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @State var viewModel: SettingsViewModel
-    @Environment(\.dismiss) private var dismiss
     @Environment(DependencyContainer.self) private var container
-    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
 
-    /// View Logic
+    @State var viewModel: SettingsViewModel
+
     var body: some View {
         NavigationStack {
             List {
@@ -135,19 +134,44 @@ fileprivate extension View {
 }
 
 #Preview("No auth") {
-    SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    SettingsView(
+        viewModel: SettingsViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        )
+    )
+    .previewEnvironment()
 }
+
 #Preview("Anonymous") {
-    SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    SettingsView(
+        viewModel: SettingsViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        )
+    )
+    .previewEnvironment()
 }
 #Preview("Not anonymous") {
-    SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    SettingsView(
+        viewModel: SettingsViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        )
+    )
+    .previewEnvironment()
 }
 
 #Preview("Premium") {
-    SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    SettingsView(
+        viewModel: SettingsViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        )
+    )
+    .previewEnvironment()
 }

@@ -9,15 +9,19 @@ import SwiftUI
 
 struct DashboardView: View {
     @Environment(DependencyContainer.self) private var container
-    @State var viewModel: DashboardViewModel
     @Environment(\.layoutMode) private var layoutMode
+
+    @State var viewModel: DashboardViewModel
+
+    @Binding var path: [TabBarPathOption]
     
     var body: some View {
         Group {
             if layoutMode == .tabBar {
-                NavigationStack {
+                NavigationStack(path: $path) {
                     contentView
                 }
+                .navDestinationForTabBarModule(path: $path)
             } else {
                 contentView
             }
@@ -121,6 +125,14 @@ struct DashboardView: View {
 }
 
 #Preview {
-    DashboardView(viewModel: DashboardViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    @Previewable @State var path: [TabBarPathOption] = []
+    DashboardView(
+        viewModel: DashboardViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        ),
+        path: $path
+    )
+    .previewEnvironment()
 }

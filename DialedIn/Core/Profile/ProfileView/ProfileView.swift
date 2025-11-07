@@ -12,13 +12,16 @@ struct ProfileView: View {
     @Environment(\.layoutMode) private var layoutMode
     
     @State var viewModel: ProfileViewModel
-    
+
+    @Binding var path: [TabBarPathOption]
+
     var body: some View {
         Group {
             if layoutMode == .tabBar {
-                NavigationStack {
+                NavigationStack(path: $path) {
                     contentView
                 }
+                .navDestinationForTabBarModule(path: $path)
             } else {
                 contentView
             }
@@ -123,11 +126,27 @@ struct ProfileView: View {
 
 // MARK: - Previews
 #Preview("User Has Profile") {
-    return ProfileView(viewModel: ProfileViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    @Previewable @State var path: [TabBarPathOption] = []
+    return ProfileView(
+        viewModel: ProfileViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        ),
+        path: $path
+    )
+    .previewEnvironment()
 }
 
 #Preview("User No Profile") {
-    ProfileView(viewModel: ProfileViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    @Previewable @State var path: [TabBarPathOption] = []
+    ProfileView(
+        viewModel: ProfileViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        ),
+        path: $path
+    )
+    .previewEnvironment()
 }

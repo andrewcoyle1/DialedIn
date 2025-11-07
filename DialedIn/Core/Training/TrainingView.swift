@@ -12,17 +12,18 @@ import UIKit
 
 struct TrainingView: View {
     @Environment(DependencyContainer.self) private var container
-    @Environment(DetailNavigationModel.self) private var detail
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: TrainingViewModel
+    @Binding var path: [TabBarPathOption]
 
     var body: some View {
         Group {
             if layoutMode == .tabBar {
-                NavigationStack {
+                NavigationStack(path: $path) {
                     contentView
                 }
+                .navDestinationForTabBarModule(path: $path)
             } else {
                 contentView
             }
@@ -68,21 +69,21 @@ struct TrainingView: View {
         }
         .onChange(of: viewModel.selectedExerciseTemplate) { _, exercise in
             if layoutMode == .splitView {
-                if let exercise { detail.path = [.exerciseTemplate(exerciseTemplate: exercise)] }
+                if let exercise { path = [.exerciseTemplate(exerciseTemplate: exercise)] }
             } else {
                 if exercise != nil { viewModel.isShowingInspector = true }
             }
         }
         .onChange(of: viewModel.selectedWorkoutTemplate) { _, workout in
             if layoutMode == .splitView {
-                if let workout { detail.path = [.workoutTemplateDetail(template: workout)] }
+                if let workout { path = [.workoutTemplateDetail(template: workout)] }
             } else {
                 if workout != nil { viewModel.isShowingInspector = true }
             }
         }
         .onChange(of: viewModel.selectedHistorySession) { _, session in
             if layoutMode == .splitView {
-                if let session { detail.path = [.workoutSessionDetail(session: session)] }
+                if let session { path = [.workoutSessionDetail(session: session)] }
             } else {
                 if session != nil { viewModel.isShowingInspector = true }
             }
@@ -335,12 +336,14 @@ struct TrainingView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [TabBarPathOption] = []
     TrainingView(
         viewModel: TrainingViewModel(
             interactor: CoreInteractor(
                 container: DevPreview.shared.container
             )
-        )
+        ),
+        path: $path
     )
     .previewEnvironment()
 }

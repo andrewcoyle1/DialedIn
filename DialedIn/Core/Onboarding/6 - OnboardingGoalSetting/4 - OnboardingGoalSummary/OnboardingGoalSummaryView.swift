@@ -164,7 +164,7 @@ struct OnboardingGoalSummaryView: View {
                         Text("Estimated Timeline")
                             .font(.headline)
                         if viewModel.estimatedWeeks(weightGoalBuilder: weightGoalBuilder) > 0 {
-                            Text("\(viewModel.estimatedWeeks) weeks (\(viewModel.estimatedMonths) months)")
+                            Text("\(viewModel.estimatedWeeks(weightGoalBuilder: weightGoalBuilder)) weeks (\(viewModel.estimatedMonths(weightGoalBuilder: weightGoalBuilder)) months)")
                                 .font(.title3)
                                 .fontWeight(.semibold)
                         } else {

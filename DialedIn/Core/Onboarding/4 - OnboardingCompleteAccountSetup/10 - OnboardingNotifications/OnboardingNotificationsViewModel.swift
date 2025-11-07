@@ -10,6 +10,7 @@ import SwiftUI
 protocol OnboardingNotificationsInteractor {
     func requestPushAuthorisation() async throws -> Bool
     func canRequestHealthDataAuthorisation() -> Bool
+    func updateOnboardingStep(step: OnboardingStep) async throws
     func trackEvent(event: LoggableEvent)
 }
 
@@ -41,19 +42,22 @@ class OnboardingNotificationsViewModel {
         Task {
             do {
                 let isAuthorised = try await interactor.requestPushAuthorisation()
+
                 interactor.trackEvent(event: Event.enableNotificationsSuccess(isAuthorised: isAuthorised))
-                handleNavigation(path: path)
+                await handleNavigation(path: path)
             } catch {
                 interactor.trackEvent(event: Event.enableNotficiationsFail(error: error))
             }
         }
     }
 
-    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
+    func handleNavigation(path: Binding<[OnboardingPathOption]>) async {
         if interactor.canRequestHealthDataAuthorisation() {
+            try? await interactor.updateOnboardingStep(step: .healthData)
             interactor.trackEvent(event: Event.navigate(destination: .healthData))
             path.wrappedValue.append(.healthData)
         } else {
+            try? await interactor.updateOnboardingStep(step: .healthDisclaimer)
             interactor.trackEvent(event: Event.navigate(destination: .healthDisclaimer))
             path.wrappedValue.append(.healthDisclaimer)
         }

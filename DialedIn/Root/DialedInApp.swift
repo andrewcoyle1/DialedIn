@@ -23,7 +23,6 @@ struct DialedInApp: App {
             )
             .environment(delegate.dependencies.container)
             .environment(delegate.dependencies.logManager)
-            .environment(delegate.dependencies.detailNavigationModel)
             .onOpenURL { url in
                 _ = GIDSignIn.sharedInstance.handle(url)
             }

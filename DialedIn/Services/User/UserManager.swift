@@ -106,9 +106,10 @@ class UserManager {
     
     func logIn(auth: UserAuthInfo, image: PlatformImage? = nil) async throws {
         let creationVersion = auth.isNewUser ? Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String : nil
-        var user = UserModel(auth: auth, creationVersion: creationVersion)
-        // Only initialize onboarding step for brand new users; otherwise preserve existing remote value
+
         if auth.isNewUser {
+            // Create initial profile for brand new users with first onboarding step
+            var user = UserModel(auth: auth, creationVersion: creationVersion)
             user = UserModel(
                 userId: user.userId,
                 email: user.email,
@@ -144,17 +145,22 @@ class UserManager {
                 favouritedRecipeTemplateIds: user.favouritedRecipeTemplateIds,
                 blockedUserIds: user.blockedUserIds
             )
+
+            logManager?.trackEvent(event: Event.logInStart(user: user))
+            try await remote.saveUser(user: user, image: image)
+            logManager?.trackEvent(event: Event.logInSuccess(user: user))
+
+            // Optimistically set current user immediately; stream will keep it updated
+            self.currentUser = user
+            self.saveCurrentUserLocally()
+            addCurrentUserListener(userId: auth.uid)
+        } else {
+            // Existing user: do NOT overwrite remote profile with defaults (prevents resetting onboardingStep)
+            logManager?.trackEvent(event: Event.logInStart(user: currentUser))
+            // Start streaming the existing remote user profile
+            addCurrentUserListener(userId: auth.uid)
+            logManager?.trackEvent(event: Event.logInSuccess(user: currentUser))
         }
-        logManager?.trackEvent(event: Event.logInStart(user: user))
-        try await remote.saveUser(user: user, image: image)
-        logManager?.trackEvent(event: Event.logInSuccess(user: user))
-        
-        // Optimistically set current user immediately; stream will keep it updated
-        self.currentUser = user
-        self.saveCurrentUserLocally()
-        
-        addCurrentUserListener(userId: auth.uid)
-        // Refresh onboarding step from persisted user if available
     }
     
     func saveUser(user: UserModel, image: PlatformImage?) async throws {
@@ -401,70 +407,22 @@ class UserManager {
     
     // MARK: - User deletion
     
+    /// Deletes the user profile document and clears local state.
+    /// Note: This method only handles user profile deletion. The caller (typically CoreInteractor)
+    /// is responsible for orchestrating deletion of related data (workout sessions, exercise history, templates, etc.)
     func deleteCurrentUser() async throws {
         logManager?.trackEvent(event: Event.deleteAccountStart)
         
         let uid = try currentUserId()
 
-        // 1) Delete/anonymize LOCAL data first (best-effort)
-        do {
-            let workoutSessions = WorkoutSessionManager(services: ProductionWorkoutSessionServices())
-            try workoutSessions.deleteAllLocalWorkoutSessionsForAuthor(authorId: uid)
-        } catch { /* ignore local errors */ }
-        do {
-            let exerciseHistory = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
-            try exerciseHistory.deleteAllLocalExerciseHistoryForAuthor(authorId: uid)
-        } catch { /* ignore local errors */ }
-
-        // 2) Delete/anonymize REMOTE data in parallel while auth is still valid
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            // Profile image in Storage (best-effort; ignore if missing)
-            let exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
-            group.addTask {
-                do {
-                    try await FirebaseImageUploadService().deleteImage(path: "users/\(uid)/profile.jpg")
-                } catch {
-                    /* ignore storage deletion errors */
-                }
-            }
-            // Workout Sessions
-            group.addTask {
-                let manager = await WorkoutSessionManager(services: ProductionWorkoutSessionServices())
-                try await manager.deleteAllWorkoutSessionsForAuthor(authorId: uid)
-            }
-            // Exercise History
-            group.addTask {
-                let manager = await ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
-                try await manager.deleteAllExerciseHistoryForAuthor(authorId: uid)
-            }
-            // Templates: remove author_id to anonymize authored content
-            group.addTask {
-                let manager = await ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
-                try await manager.removeAuthorIdFromAllExerciseTemplates(id: uid)
-            }
-            group.addTask {
-                let manager = await WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
-                try await manager.removeAuthorIdFromAllWorkoutTemplates(id: uid)
-            }
-            group.addTask {
-                let manager = await IngredientTemplateManager(services: ProductionIngredientTemplateServices())
-                try await manager.removeAuthorIdFromAllIngredientTemplates(id: uid)
-            }
-            group.addTask {
-                let manager = await RecipeTemplateManager(services: ProductionRecipeTemplateServices())
-                try await manager.removeAuthorIdFromAllRecipeTemplates(id: uid)
-            }
-            try await group.waitForAll()
-        }
-
-        // 3) Remove the user profile document
+        // Remove the user profile document
         try await remote.deleteUser(userId: uid)
 
-        // 4) Clear local cache/state
+        // Clear local cache/state
         self.clearAllLocalData()
         logManager?.trackEvent(event: Event.deleteAccountSuccess)
 
-        // 5) Reset UserManager state (does not sign out Auth)
+        // Reset UserManager state (does not sign out Auth)
         logOut()
     }
     

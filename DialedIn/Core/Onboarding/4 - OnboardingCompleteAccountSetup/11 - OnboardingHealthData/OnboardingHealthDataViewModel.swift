@@ -10,6 +10,7 @@ import SwiftUI
 protocol OnboardingHealthDataInteractor {
     func canRequestHealthDataAuthorisation() async -> Bool
     func requestHealthKitAuthorisation() async throws
+    func updateOnboardingStep(step: OnboardingStep) async throws
     func trackEvent(event: LoggableEvent)
 }
 
@@ -45,8 +46,11 @@ class OnboardingHealthDataViewModel {
     }
     
     func handleNavigation(path: Binding<[OnboardingPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .healthDisclaimer))
-        path.wrappedValue.append(.healthDisclaimer)
+        Task {
+            try? await interactor.updateOnboardingStep(step: .healthDisclaimer)
+            interactor.trackEvent(event: Event.navigate(destination: .healthDisclaimer))
+            path.wrappedValue.append(.healthDisclaimer)
+        }
     }
 
     enum Event: LoggableEvent {

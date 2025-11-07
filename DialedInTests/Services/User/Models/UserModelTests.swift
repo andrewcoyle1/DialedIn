@@ -438,9 +438,10 @@ struct UserModelTests {
     
     @Test("Test Mock With Step Nil")
     func testMockWithStepNil() {
-        let mock = UserModel.mockWithStep(nil)
+        // Note: mockWithStep requires OnboardingStep, so we use .auth as the initial step
+        let mock = UserModel.mockWithStep(.auth)
         
-        #expect(mock.onboardingStep == nil)
+        #expect(mock.onboardingStep == .auth)
         #expect(mock.didCompleteOnboarding == false)
     }
     
@@ -547,7 +548,6 @@ struct UserModelTests {
         #expect(OnboardingStep.healthDisclaimer.rawValue == "healthDisclaimer")
         #expect(OnboardingStep.goalSetting.rawValue == "goalSetting")
         #expect(OnboardingStep.customiseProgram.rawValue == "customiseProgram")
-        #expect(OnboardingStep.diet.rawValue == "diet")
         #expect(OnboardingStep.complete.rawValue == "complete")
     }
     
@@ -556,10 +556,11 @@ struct UserModelTests {
         #expect(OnboardingStep.auth.orderIndex == 0)
         #expect(OnboardingStep.subscription.orderIndex == 1)
         #expect(OnboardingStep.completeAccountSetup.orderIndex == 2)
-        #expect(OnboardingStep.healthDisclaimer.orderIndex == 3)
-        #expect(OnboardingStep.goalSetting.orderIndex == 4)
-        #expect(OnboardingStep.customiseProgram.orderIndex == 5)
-        #expect(OnboardingStep.diet.orderIndex == 6)
-        #expect(OnboardingStep.complete.orderIndex == 7)
+        #expect(OnboardingStep.notifications.orderIndex == 3)
+        #expect(OnboardingStep.healthData.orderIndex == 4)
+        #expect(OnboardingStep.healthDisclaimer.orderIndex == 5)
+        #expect(OnboardingStep.goalSetting.orderIndex == 6)
+        #expect(OnboardingStep.customiseProgram.orderIndex == 7)
+        #expect(OnboardingStep.complete.orderIndex == 8)
     }
 }

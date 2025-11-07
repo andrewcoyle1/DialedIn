@@ -22,8 +22,6 @@ extension CoreInteractor: TabBarInteractor { }
 class TabBarViewModel {
     
     private let interactor: TabBarInteractor
-
-    var appNavigation: AppNavigationModel
     
     var presentTracker: Bool = false
 
@@ -45,12 +43,8 @@ class TabBarViewModel {
         }
     }
 
-    init(
-        interactor: TabBarInteractor,
-        appNavigation: AppNavigationModel
-    ) {
+    init(interactor: TabBarInteractor) {
         self.interactor = interactor
-        self.appNavigation = appNavigation
     }
 
     var active: WorkoutSessionModel? {

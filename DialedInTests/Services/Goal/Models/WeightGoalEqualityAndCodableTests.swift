@@ -16,7 +16,7 @@ struct WeightGoalEqualityAndCodableTests {
     func testEqualityWithSameProperties() {
         let randomGoalId = String.random
         let randomUserId = String.random
-        let randomObjective = "lose weight"
+        let randomObjective = OverarchingObjective.loseWeight
         let randomCreatedAt = Date.random
         
         let goal1 = WeightGoal(
@@ -51,7 +51,7 @@ struct WeightGoalEqualityAndCodableTests {
         let goal1 = WeightGoal(
             goalId: String.random,
             userId: randomUserId,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -60,7 +60,7 @@ struct WeightGoalEqualityAndCodableTests {
         let goal2 = WeightGoal(
             goalId: String.random,
             userId: randomUserId,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -77,7 +77,7 @@ struct WeightGoalEqualityAndCodableTests {
         let goal1 = WeightGoal(
             goalId: randomGoalId,
             userId: randomUserId,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5
@@ -86,7 +86,7 @@ struct WeightGoalEqualityAndCodableTests {
         let goal2 = WeightGoal(
             goalId: randomGoalId,
             userId: randomUserId,
-            objective: "gain weight",
+            objective: .gainWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 80.0,
             weeklyChangeKg: 0.5
@@ -104,7 +104,7 @@ struct WeightGoalEqualityAndCodableTests {
         let goal1 = WeightGoal(
             goalId: randomGoalId,
             userId: randomUserId,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5,
@@ -115,7 +115,7 @@ struct WeightGoalEqualityAndCodableTests {
         let goal2 = WeightGoal(
             goalId: randomGoalId,
             userId: randomUserId,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5,
@@ -138,7 +138,7 @@ struct WeightGoalEqualityAndCodableTests {
         let originalGoal = WeightGoal(
             goalId: randomGoalId,
             userId: randomUserId,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5,
@@ -180,7 +180,7 @@ struct WeightGoalEqualityAndCodableTests {
         let goal = WeightGoal(
             goalId: randomGoalId,
             userId: randomUserId,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5,
@@ -210,7 +210,7 @@ struct WeightGoalEqualityAndCodableTests {
         let goal = WeightGoal(
             goalId: randomGoalId,
             userId: randomUserId,
-            objective: "lose weight",
+            objective: .loseWeight,
             startingWeightKg: 75.0,
             targetWeightKg: 68.0,
             weeklyChangeKg: 0.5,

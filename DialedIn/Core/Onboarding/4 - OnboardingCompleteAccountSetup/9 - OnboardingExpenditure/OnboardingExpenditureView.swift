@@ -31,7 +31,7 @@ struct OnboardingExpenditureView: View {
         .onFirstTask {
             await viewModel.checkCanRequestPermissions()
         }
-        .task {
+        .onFirstAppear {
             viewModel.estimateExpenditure(userModelBuilder: userBuilder)
         }
         .toolbar {

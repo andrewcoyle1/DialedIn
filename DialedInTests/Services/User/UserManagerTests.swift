@@ -80,12 +80,23 @@ struct UserManagerTests {
     
     @Test("Test Login With Existing User Does Not Reset Onboarding")
     func testLoginWithExistingUserDoesNotResetOnboarding() async throws {
-        let services = MockUserServices(user: nil)
+        let userId = String.random
+        let email = "\(String.random)@example.com"
+        
+        // Create an existing user with no onboarding step set (as it would be for an existing user)
+        let existingUser = UserModel(
+            userId: userId,
+            email: email,
+            didCompleteOnboarding: true,
+            onboardingStep: OnboardingStep.complete
+        )
+        
+        let services = MockUserServices(user: existingUser)
         let manager = UserManager(services: services)
         
         let authInfo = UserAuthInfo(
-            uid: String.random,
-            email: "\(String.random)@example.com",
+            uid: userId,
+            email: email,
             isAnonymous: false,
             creationDate: Date(),
             lastSignInDate: Date(),
@@ -94,12 +105,15 @@ struct UserManagerTests {
         
         try await manager.logIn(auth: authInfo, image: nil)
         
-        // Verify current user is set
+        // Give the async stream a moment to process (stream finishes after yielding in mock)
+        try await Task.sleep(for: .milliseconds(50))
+        
+        // Verify current user is set from the stream
         #expect(manager.currentUser != nil)
         #expect(manager.currentUser?.userId == authInfo.uid)
         // For existing users, onboarding step should not be initialized
-        #expect(manager.currentUser?.onboardingStep == nil)
-        #expect(manager.currentUser?.didCompleteOnboarding == nil)
+        #expect(manager.currentUser?.onboardingStep == OnboardingStep.complete)
+        #expect(manager.currentUser?.didCompleteOnboarding == true)
     }
     
     @Test("Test Login With Anonymous User")
@@ -167,24 +181,25 @@ struct UserManagerTests {
         
         let updatedUser = try await manager.saveCompleteAccountSetupProfile(
             dateOfBirth: dateOfBirth,
-            gender: .male,
+            gender: Gender.male,
             heightCentimeters: heightCm,
             weightKilograms: weightKg,
-            exerciseFrequency: .daily,
-            dailyActivityLevel: .active,
-            cardioFitnessLevel: .intermediate,
-            lengthUnitPreference: .centimeters,
-            weightUnitPreference: .kilograms
+            exerciseFrequency: ProfileExerciseFrequency.daily,
+            dailyActivityLevel: ProfileDailyActivityLevel.active,
+            cardioFitnessLevel: ProfileCardioFitnessLevel.intermediate,
+            lengthUnitPreference: LengthUnitPreference.centimeters,
+            weightUnitPreference: WeightUnitPreference.kilograms,
+            onboardingStep: .completeAccountSetup
         )
         
         #expect(updatedUser.userId == mockUser.userId)
         #expect(updatedUser.dateOfBirth == dateOfBirth)
-        #expect(updatedUser.gender == .male)
+        #expect(updatedUser.gender == Gender.male)
         #expect(updatedUser.heightCentimeters == heightCm)
         #expect(updatedUser.weightKilograms == weightKg)
-        #expect(updatedUser.exerciseFrequency == .daily)
-        #expect(updatedUser.dailyActivityLevel == .active)
-        #expect(updatedUser.cardioFitnessLevel == .intermediate)
+        #expect(updatedUser.exerciseFrequency == ProfileExerciseFrequency.daily)
+        #expect(updatedUser.dailyActivityLevel == ProfileDailyActivityLevel.active)
+        #expect(updatedUser.cardioFitnessLevel == ProfileCardioFitnessLevel.intermediate)
     }
     
     @Test("Test Save Complete Account Setup Profile Throws When No Current User")
@@ -195,14 +210,15 @@ struct UserManagerTests {
         await #expect(throws: UserManager.UserManagerError.self) {
             try await manager.saveCompleteAccountSetupProfile(
                 dateOfBirth: Date(),
-                gender: .male,
+                gender: Gender.male,
                 heightCentimeters: 180.0,
                 weightKilograms: 75.0,
-                exerciseFrequency: .daily,
-                dailyActivityLevel: .active,
-                cardioFitnessLevel: .intermediate,
-                lengthUnitPreference: .centimeters,
-                weightUnitPreference: .kilograms
+                exerciseFrequency: ProfileExerciseFrequency.daily,
+                dailyActivityLevel: ProfileDailyActivityLevel.active,
+                cardioFitnessLevel: ProfileCardioFitnessLevel.intermediate,
+                lengthUnitPreference: LengthUnitPreference.centimeters,
+                weightUnitPreference: WeightUnitPreference.kilograms,
+                onboardingStep: .completeAccountSetup
             )
         }
     }
@@ -480,6 +496,7 @@ struct UserManagerTests {
         
         try await manager.updateHealthConsents(
             disclaimerVersion: "1.0",
+            step: .healthDisclaimer,
             privacyVersion: "2.0",
             acceptedAt: Date()
         )
@@ -495,6 +512,7 @@ struct UserManagerTests {
         await #expect(throws: UserManager.UserManagerError.self) {
             try await manager.updateHealthConsents(
                 disclaimerVersion: "1.0",
+                step: .healthDisclaimer,
                 privacyVersion: "2.0",
                 acceptedAt: Date()
             )

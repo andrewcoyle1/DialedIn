@@ -27,6 +27,7 @@ class OnboardingExpenditureViewModel {
     private var canRequestNotifications: Bool?
     private var canRequestHealthData: Bool?
 
+    private(set) var canContinue: Bool = false
     // Computed from collected data
     var totalExpenditureKcal: Int = 0
     struct ExpenditureContext {
@@ -177,22 +178,9 @@ class OnboardingExpenditureViewModel {
         self.canRequestNotifications = await interactor.canRequestNotificationAuthorisation()
     }
 
-    private func navigateForward(path: Binding<[OnboardingPathOption]>) async {
-        if let canRequestNotifs = self.canRequestNotifications, canRequestNotifs {
-            interactor.trackEvent(event: Event.navigate(destination: .notifications))
-            path.wrappedValue.append(.notifications)
-        } else if let canRequestHealth = canRequestHealthData, canRequestHealth {
-            interactor.trackEvent(event: Event.navigate(destination: .healthData))
-            path.wrappedValue.append(.healthData)
-        } else {
-            do {
-                try await interactor.updateOnboardingStep(step: .healthDisclaimer)
-                interactor.trackEvent(event: Event.navigate(destination: .healthDisclaimer))
-                path.wrappedValue.append(.healthDisclaimer)
-            } catch {
-                showAlert = AnyAppAlert(error: error)
-            }
-        }
+    private func navigateForward(path: Binding<[OnboardingPathOption]>, targetStep: OnboardingStep) async {
+        interactor.trackEvent(event: Event.navigate(destination: targetStep.onboardingPathOption))
+        path.wrappedValue.append(targetStep.onboardingPathOption)
     }
     
     func progress(for item: Breakdown) -> Double {
@@ -219,6 +207,7 @@ class OnboardingExpenditureViewModel {
             activityLevel: activityLevel,
             exerciseFrequency: exerciseFrequency
         )
+
         totalExpenditureKcal = tdeeInt(context: context)
         guard !hasAnimated else { return }
         hasAnimated = true
@@ -233,12 +222,14 @@ class OnboardingExpenditureViewModel {
             }
         }
         isLoading = false
+        canContinue = true
     }
 
     func saveAndNavigate(path: Binding<[OnboardingPathOption]>, userModelBuilder: UserModelBuilder) {
         // Cancel any existing save to prevent race conditions
         currentSaveTask?.cancel()
 
+        guard canContinue == true else { return }
         currentSaveTask = Task { @MainActor in
             isSaving = true
             defer {
@@ -264,28 +255,12 @@ class OnboardingExpenditureViewModel {
                 let canHealth = self.canRequestHealthData ?? false
                 let targetStep: OnboardingStep = canNotifs ? .notifications : (canHealth ? .healthData : .healthDisclaimer)
 
-                let updated = try await performOperationWithTimeout {
+                _ = try await performOperationWithTimeout {
                     try await self.interactor.saveCompleteAccountSetupProfile(userBuilder: userModelBuilder, onboardingStep: targetStep)
-                }
-
-                // Compute TDEE using the updated user profile
-                let tdee = interactor.estimateTDEE(user: updated)
-                totalExpenditureKcal = Int(tdee.rounded())
-                guard !hasAnimated else { return }
-                hasAnimated = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    withAnimation(.easeOut(duration: 1.6)) {
-                        self.displayedKcal = self.totalExpenditureKcal
-                    }
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    withAnimation(.easeOut(duration: 1.0)) {
-                        self.animateBreakdown = true
-                    }
                 }
                 interactor.trackEvent(event: Event.profileSaveSuccess)
                 isLoading = false
-                await navigateForward(path: path)
+                await navigateForward(path: path, targetStep: targetStep)
             } catch {
                 interactor.trackEvent(event: Event.profileSaveFail(error: error))
                 handleSaveError(error, path: path, userModelBuilder: userModelBuilder)

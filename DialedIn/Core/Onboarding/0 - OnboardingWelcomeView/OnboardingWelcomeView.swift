@@ -9,10 +9,9 @@ import SwiftUI
 
 struct OnboardingWelcomeView: View {
     @Environment(DependencyContainer.self) private var container
-    @Environment(AppState.self) private var root
-    @State var viewModel: OnboardingWelcomeViewModel
     @Environment(\.dismiss) private var dismiss
-    
+    @State var viewModel: OnboardingWelcomeViewModel
+
     var body: some View {
         NavigationStack(path: $viewModel.path) {
             VStack(spacing: 8) {

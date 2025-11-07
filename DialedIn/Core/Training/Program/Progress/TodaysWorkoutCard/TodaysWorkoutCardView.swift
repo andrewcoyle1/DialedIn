@@ -43,7 +43,7 @@ struct TodaysWorkoutCardView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
-                        .background(.blue)
+                        .background(.accent)
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)

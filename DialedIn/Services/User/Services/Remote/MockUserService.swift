@@ -214,6 +214,12 @@ struct MockUserService: RemoteUserService {
         return AsyncThrowingStream { continuation in
             if let currentUser {
                 continuation.yield(currentUser)
+                // Finish the stream after yielding once for testing purposes
+                // In production, the stream would continue indefinitely
+                continuation.finish()
+            } else {
+                // If no user, finish immediately (no error, just empty stream)
+                continuation.finish()
             }
         }
     }

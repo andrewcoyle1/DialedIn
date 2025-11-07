@@ -12,12 +12,11 @@ import UIKit
 
 struct NutritionView: View {
     @Environment(DependencyContainer.self) private var container
-    @Environment(DetailNavigationModel.self) private var detail
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: NutritionViewModel
-    @State private var path: [TabBarPathOption] = []
-    
+    @Binding var path: [TabBarPathOption]
+
     var body: some View {
         Group {
             if layoutMode == .tabBar {
@@ -30,14 +29,15 @@ struct NutritionView: View {
             }
         }
         // Only show inspector in compact/tabBar modes; not in split view where detail is used
-        .modifier(InspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView))
-        .onChange(of: viewModel.selectedIngredientTemplate) { _, ing in
+        .inspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView)
+//        .modifier(InspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView))
+        .onChange(of: viewModel.selectedIngredientTemplate) { _, ingredient in
             guard layoutMode == .splitView else { return }
-            if let ing { detail.path = [.ingredientTemplateDetail(template: ing)] }
+            if let ingredient { path = [.ingredientTemplateDetail(template: ingredient)] }
         }
-        .onChange(of: viewModel.selectedRecipeTemplate) { _, rec in
+        .onChange(of: viewModel.selectedRecipeTemplate) { _, recipe in
             guard layoutMode == .splitView else { return }
-            if let rec { detail.path = [.recipeTemplateDetail(template: rec)] }
+            if let recipe { path = [.recipeTemplateDetail(template: recipe)] }
         }
     }
     
@@ -160,12 +160,14 @@ struct NutritionView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [TabBarPathOption] = []
     NutritionView(
         viewModel: NutritionViewModel(
             interactor: CoreInteractor(
                 container: DevPreview.shared.container
             )
-        )
+        ),
+        path: $path
     )
     .previewEnvironment()
 }

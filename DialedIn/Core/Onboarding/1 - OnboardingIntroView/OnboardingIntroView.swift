@@ -18,24 +18,14 @@ struct OnboardingIntroView: View {
             nutritionSection
             weightTracking
         }
-        .safeAreaInset(edge: .bottom, content: {
-            buttonSection
-                .padding(.horizontal)
-        })
         .navigationTitle("Welcome to Dialed.")
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            toolbarContent
+        }
         #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
         #else
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    viewModel.showDebugView = true
-                } label: {
-                    Image(systemName: "info")
-                }
-            }
-        }
         .sheet(isPresented: $viewModel.showDebugView) {
             DevSettingsView(
                 viewModel: DevSettingsViewModel(
@@ -114,17 +104,26 @@ struct OnboardingIntroView: View {
             Text("Weight Tracking")
         }
     }
-    
-    private var buttonSection: some View {
-        VStack(spacing: 12) {
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                viewModel.showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+
+        ToolbarSpacer(.flexible, placement: .bottomBar)
+        ToolbarItem(placement: .bottomBar) {
             Button {
                 viewModel.navigateToAuthOptions(path: $path)
             } label: {
-                Text("Continue")
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 40)
+                Image(systemName: "chevron.right")
             }
-            .buttonStyle(.glassProminent)
         }
     }
 }

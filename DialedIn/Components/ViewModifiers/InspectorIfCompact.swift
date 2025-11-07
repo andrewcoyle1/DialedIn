@@ -16,10 +16,21 @@ struct InspectorIfCompact<InspectorContent: View>: ViewModifier {
         Group {
             if enabled {
                 content
-                    .inspector(isPresented: $isPresented) { self.inspector() }
+                    .inspector(isPresented: $isPresented) { inspector() }
             } else {
                 content
             }
         }
+    }
+}
+
+extension View {
+
+    func inspectorIfCompact<InspectorContent: View>(
+        isPresented: Binding<Bool>,
+        @ViewBuilder inspector: @escaping () -> InspectorContent,
+        enabled: Bool = true
+    ) -> some View {
+        modifier(InspectorIfCompact(isPresented: isPresented, inspector: inspector, enabled: enabled))
     }
 }
