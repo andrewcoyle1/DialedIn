@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct AppView: View {
+
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: AppViewModel
-    @State var appState: AppState = AppState()
-        
+
     var body: some View {
         RootView(
             delegate: RootDelegate(
@@ -28,14 +28,8 @@ struct AppView: View {
             ),
             content: {
                 AppViewBuilder(
-                    showTabBar: {
-                        if let auth = viewModel.auth,
-                           !auth.isAnonymous,
-                           viewModel.currentUser?.onboardingStep == .complete {
-                            return true
-                        }
-                        return false
-                    }(),
+                    showTabBar:
+                        viewModel.showTabBar,
                     tabBarView: {
                         AdaptiveMainView(
                             viewModel: AdaptiveMainViewModel(
@@ -55,7 +49,6 @@ struct AppView: View {
                         )
                     }
                 )
-                .environment(appState)
                 .onFirstAppear {
                     viewModel.schedulePushNotifications()
                 }
@@ -72,29 +65,33 @@ struct AppView: View {
 // MARK: - Completed Onboarding Previews
 
 #Preview("✅ Completed - Tab Bar") {
-    AppView(
+    let container = DevPreview.shared.container
+    container.register(AppState.self, service: AppState(showTabBar: true))
+
+    return AppView(
         viewModel: AppViewModel(
             interactor: CoreInteractor(
                 container: DevPreview.shared.container
             )
-        ),
-        appState: AppState(
-            showTabBar: true
         )
     )
+    .previewEnvironment()
 }
 
 // MARK: - Onboarding Step Previews
 
 #Preview("1️⃣ Not Authenticated") {
-    AppView(
+    let container = DevPreview.shared.container
+    container.register(UserManager.self, service: UserManager(services: MockUserServices(user: nil)))
+    container.register(AuthManager.self, service: AuthManager(service: MockAuthService(user: nil)))
+    container.register(AppState.self, service: AppState(showTabBar: false))
+
+    return AppView(
         viewModel: AppViewModel(
             interactor: CoreInteractor(
                 container: DevPreview.shared.container
             )
-        ),
-        appState: AppState(
-            showTabBar: false
         )
     )
+    .previewEnvironment()
 }

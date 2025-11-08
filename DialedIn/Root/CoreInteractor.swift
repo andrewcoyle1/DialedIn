@@ -45,10 +45,9 @@ struct CoreInteractor {
     private let hkWorkoutManager: HKWorkoutManager
     private let liveActivityManager: LiveActivityManager
 #endif
-    
-    init(
-        container: DependencyContainer
-    ) {
+    private let appState: AppState
+
+    init(container: DependencyContainer) {
         self.authManager = container.resolve(AuthManager.self)!
         self.userManager = container.resolve(UserManager.self)!
         self.purchaseManager = container.resolve(PurchaseManager.self)!
@@ -76,8 +75,19 @@ struct CoreInteractor {
         self.hkWorkoutManager = container.resolve(HKWorkoutManager.self)!
         self.liveActivityManager = container.resolve(LiveActivityManager.self)!
         #endif
+        self.appState = container.resolve(AppState.self)!
     }
-    
+
+    // MARK: AppState
+
+    var showTabBar: Bool {
+        appState.showTabBar
+    }
+
+    func updateAppState(showTabBarView: Bool) {
+        appState.updateViewState(showTabBarView: showTabBarView)
+    }
+
     // MARK: AuthManager
     
     var auth: UserAuthInfo? {

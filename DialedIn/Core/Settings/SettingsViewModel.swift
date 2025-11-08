@@ -16,6 +16,7 @@ protocol SettingsInteractor {
     func deleteUserProfile()
     func deleteAccount() async throws
     func reauthenticateApple() async throws
+    func updateAppState(showTabBarView: Bool)
     func trackEvent(event: LoggableEvent)
 }
 
@@ -84,6 +85,7 @@ class SettingsViewModel {
                 interactor.trackEvent(event: Event.signOutSuccess)
 
                 onDismiss()
+                interactor.updateAppState(showTabBarView: false)
             } catch {
                 interactor.trackEvent(event: Event.signOutFail(error: error))
 
@@ -129,6 +131,7 @@ class SettingsViewModel {
                 interactor.trackEvent(event: Event.deleteAccountSuccess)
 
                 onDismiss()
+                interactor.updateAppState(showTabBarView: false)
             } catch {
                 interactor.trackEvent(event: Event.deleteAccountFail(error: error))
                 showAlert = AnyAppAlert(error: error)

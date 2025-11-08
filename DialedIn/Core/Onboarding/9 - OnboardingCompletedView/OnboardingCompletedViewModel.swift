@@ -9,6 +9,8 @@ import Foundation
 
 protocol OnboardingCompletedInteractor {
     func updateOnboardingStep(step: OnboardingStep) async throws
+    func updateAppState(showTabBarView: Bool)
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingCompletedInteractor { }
@@ -18,29 +20,65 @@ extension CoreInteractor: OnboardingCompletedInteractor { }
 class OnboardingCompletedViewModel {
     private let interactor: OnboardingCompletedInteractor
     
-    var isCompletingProfileSetup: Bool = false
+    private(set) var isCompletingProfileSetup: Bool = false
+
+    var showAlert: AnyAppAlert?
 
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
     
-    init(
-        interactor: OnboardingCompletedInteractor
-    ) {
+    init(interactor: OnboardingCompletedInteractor) {
         self.interactor = interactor
     }
     
     func onFinishButtonPressed() {
         isCompletingProfileSetup = true
+        interactor.trackEvent(event: Event.finishStart)
+
         Task {
-            isCompletingProfileSetup = false
-            // other logic to complete onboarding
             do {
                 try await interactor.updateOnboardingStep(step: .complete)
+                interactor.trackEvent(event: Event.finishSuccess)
+                isCompletingProfileSetup = false
+                interactor.updateAppState(showTabBarView: true)
             } catch {
-                // Proceed even if saving goal fails
+                showAlert = AnyAppAlert(error: error)
+                interactor.trackEvent(event: Event.finishFail(error: error))
             }
-            // AppView will switch to main automatically once onboardingStep is .complete
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case finishStart
+        case finishSuccess
+        case finishFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .finishStart:   return "OnboardingCompletedView_Finish_Start"
+            case .finishSuccess: return "OnboardingCompletedView_Finish_Success"
+            case .finishFail:    return "OnboardingCompletedView_Finish_Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .finishFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .finishFail:
+                return .severe
+            default:
+                return .analytic
+
+            }
         }
     }
 }

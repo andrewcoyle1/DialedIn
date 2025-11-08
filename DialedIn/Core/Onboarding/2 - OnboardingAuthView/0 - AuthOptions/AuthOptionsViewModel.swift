@@ -14,6 +14,7 @@ protocol AuthOptionsInteractor {
     func logIn(auth: UserAuthInfo, image: PlatformImage?) async throws
     func handleAuthError(_ error: Error, operation: String, provider: String?) -> AuthErrorInfo
     func handleUserLoginError(_ error: Error) -> AuthErrorInfo
+    func updateAppState(showTabBarView: Bool)
     func trackEvent(event: LoggableEvent)
 }
 
@@ -33,7 +34,11 @@ class AuthOptionsViewModel {
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
-    
+
+    var currentUser: UserModel? {
+        interactor.currentUser
+    }
+
     init(interactor: AuthOptionsInteractor) {
         self.interactor = interactor
     }
@@ -130,9 +135,14 @@ class AuthOptionsViewModel {
                 // Log in user
                 try await interactor.logIn(auth: user, image: nil)
                 interactor.trackEvent(event: Event.userLoginSuccess)
-
-                // Navigate to appropriate view
-                handleNavigation(path: path)
+                if let user = currentUser {
+                    if user.onboardingStep != .complete {
+                        // Navigate to appropriate view
+                        handleNavigation(path: path)
+                    } else {
+                        interactor.updateAppState(showTabBarView: true)
+                    }
+                }
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {

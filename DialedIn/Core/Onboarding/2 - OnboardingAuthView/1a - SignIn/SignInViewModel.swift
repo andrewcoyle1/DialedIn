@@ -14,9 +14,10 @@ protocol SignInInteractor: Sendable {
     func signInUser(email: String, password: String) async throws -> UserAuthInfo
     func logIn(auth: UserAuthInfo, image: PlatformImage?) async throws
     func checkVerificationEmail() async throws -> Bool
-    func trackEvent(event: LoggableEvent)
     func handleAuthError(_ error: Error, operation: String) -> AuthErrorInfo
     func handleUserLoginError(_ error: Error) -> AuthErrorInfo
+    func updateAppState(showTabBarView: Bool)
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: SignInInteractor { }
@@ -38,7 +39,11 @@ class SignInViewModel {
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
-    
+
+    var currentUser: UserModel? {
+        interactor.currentUser
+    }
+
     init(interactor: SignInInteractor) {
         self.interactor = interactor
     }
@@ -61,11 +66,10 @@ class SignInViewModel {
             do {
                 try await performAuthWithTimeout {
                     let auth = try await self.interactor.signInUser(email: self.email, password: self.password)
+                    await self.interactor.trackEvent(event: Event.signInSuccess)
                     await self.handleOnAuthSuccess(user: auth, path: path)
                 }
 
-                interactor.trackEvent(event: Event.signInSuccess)
-                handleNavigation(path: path)
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
@@ -107,9 +111,12 @@ class SignInViewModel {
                         let isVerified: Bool = try await performAuthWithTimeout {
                             try await self.interactor.checkVerificationEmail()
                         }
-                        if isVerified {
+                        guard let user = currentUser else { throw AuthError.notSignedIn }
+                        if isVerified, user.onboardingStep != .complete {
                             // Navigate based on user's current onboarding step
                             handleNavigation(path: path)
+                        } else if isVerified, user.onboardingStep == .complete {
+                            interactor.updateAppState(showTabBarView: true)
                         } else {
                             interactor.trackEvent(event: Event.navigate(destination: .emailVerification))
                             path.wrappedValue.append(.emailVerification)

@@ -11,6 +11,7 @@ import SwiftfulUtilities
 protocol AppInteractor {
     var auth: UserAuthInfo? { get }
     var currentUser: UserModel? { get }
+    var showTabBar: Bool { get }
     func schedulePushNotificationsForNextWeek()
     func trackEvent(event: LoggableEvent)
     func logIn(auth: UserAuthInfo, image: PlatformImage?) async throws
@@ -30,7 +31,9 @@ class AppViewModel {
     var currentUser: UserModel? {
         interactor.currentUser
     }
-    
+
+    var showTabBar: Bool
+
     init(
         interactor: AppInteractor
     ) {

@@ -12,7 +12,6 @@ struct SignInView: View {
     @State var viewModel: SignInViewModel
     
     @Binding var path: [OnboardingPathOption]
-    @Environment(AppState.self) private var appState
     
     var body: some View {
         List {
