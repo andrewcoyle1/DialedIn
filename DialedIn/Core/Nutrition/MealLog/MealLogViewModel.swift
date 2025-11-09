@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 26/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol MealLogInteractor {
     var currentUser: UserModel? { get }
@@ -14,6 +14,7 @@ protocol MealLogInteractor {
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget?
     func addMeal(_ meal: MealLogModel) async throws
     func deleteMealAndSync(id: String, dayKey: String, authorId: String) async throws
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: MealLogInteractor { }
@@ -97,6 +98,34 @@ class MealLogViewModel {
             await loadMeals()
         } catch {
             showAlert = AnyAppAlert(error: error)
+        }
+    }
+
+    func navToMealDetail(path: Binding<[TabBarPathOption]>, meal: MealLogModel) {
+        path.wrappedValue.append(.mealDetail(meal: meal))
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: TabBarPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "MealLogView_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
         }
     }
 }

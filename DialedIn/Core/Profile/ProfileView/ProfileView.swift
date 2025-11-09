@@ -32,12 +32,54 @@ struct ProfileView: View {
         List {
             if let user = viewModel.currentUser,
                let firstName = user.firstName, !firstName.isEmpty {
-                ProfileHeaderView(viewModel: ProfileHeaderViewModel(interactor: CoreInteractor(container: container)))
-                ProfilePhysicalMetricsView(viewModel: ProfilePhysicalMetricsViewModel(interactor: CoreInteractor(container: container)))
-                ProfileGoalSection(viewModel: ProfileGoalSectionViewModel(interactor: CoreInteractor(container: container)))
-                ProfileNutritionPlanView(viewModel: ProfileNutritionPlanViewModel(interactor: CoreInteractor(container: container)))
-                ProfilePreferencesView(viewModel: ProfilePreferencesViewModel(interactor: CoreInteractor(container: container)))
-                ProfileMyTemplatesView(viewModel: ProfileMyTemplatesViewModel(interactor: CoreInteractor(container: container)))
+                ProfileHeaderView(
+                    viewModel: ProfileHeaderViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    ),
+                    path: $path
+                )
+                ProfilePhysicalMetricsView(
+                    viewModel: ProfilePhysicalMetricsViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    ),
+                    path: $path
+                )
+                ProfileGoalSection(
+                    viewModel: ProfileGoalSectionViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    ),
+                    path: $path
+                )
+                ProfileNutritionPlanView(
+                    viewModel: ProfileNutritionPlanViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    ),
+                    path: $path
+                )
+                ProfilePreferencesView(
+                    viewModel: ProfilePreferencesViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    ),
+                    path: $path
+                )
+                ProfileMyTemplatesView(
+                    viewModel: ProfileMyTemplatesViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    ),
+                    path: $path
+                )
             } else {
                 createProfileSection
             }
@@ -111,8 +153,8 @@ struct ProfileView: View {
             }
         }
         ToolbarItem(placement: .topBarTrailing) {
-            NavigationLink {
-                SettingsView(viewModel: SettingsViewModel(interactor: CoreInteractor(container: container)))
+            Button {
+                viewModel.navToSettingsView(path: $path)
             } label: {
                 Image(systemName: "gear")
             }

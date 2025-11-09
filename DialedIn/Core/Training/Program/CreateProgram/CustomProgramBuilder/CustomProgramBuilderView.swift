@@ -8,11 +8,14 @@
 import SwiftUI
 
 struct CustomProgramBuilderView: View {
+    @Environment(DependencyContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(DependencyContainer.self) private var container
+
     @State var viewModel: CustomProgramBuilderViewModel
-    
+
+    @Binding var path: [TabBarPathOption]
+
     var body: some View {
         List {
             detailsSection
@@ -72,6 +75,7 @@ struct CustomProgramBuilderView: View {
                         container: container
                     )
                 ),
+                path: $path,
                 template: template
             ) { startDate, endDate, customName in
                 Task {
@@ -269,8 +273,16 @@ struct CustomProgramBuilderView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [TabBarPathOption] = []
     NavigationStack {
-        CustomProgramBuilderView(viewModel: CustomProgramBuilderViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        CustomProgramBuilderView(
+            viewModel: CustomProgramBuilderViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            ),
+            path: $path
+        )
     }
     .previewEnvironment()
 }

@@ -12,7 +12,9 @@ struct ProgramTemplatePickerView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State var viewModel: ProgramTemplatePickerViewModel
-    
+
+    @Binding var path: [TabBarPathOption]
+
     var body: some View {
         NavigationStack {
             List {
@@ -27,7 +29,12 @@ struct ProgramTemplatePickerView: View {
             }
             .navigationDestination(item: $viewModel.selectedTemplate) { template in
                 ProgramStartConfigView(
-                    viewModel: ProgramStartConfigViewModel(interactor: CoreInteractor(container: container)),
+                    viewModel: ProgramStartConfigViewModel(
+                        interactor: CoreInteractor(
+                            container: container
+                        )
+                    ),
+                    path: $path,
                     template: template,
                     onStart: { startDate, endDate, customName in
                         Task {
@@ -104,8 +111,9 @@ struct ProgramTemplatePickerView: View {
     
     private var customOptionSection: some View {
         Section {
-            NavigationLink {
-                CustomProgramBuilderView(viewModel: CustomProgramBuilderViewModel(interactor: CoreInteractor(container: container)))
+            Button {
+                viewModel.navToCustomProgramBuilderView(path: $path
+                )
             } label: {
                 Label("Create Custom Program", systemImage: "plus.circle.fill")
             }
@@ -116,6 +124,12 @@ struct ProgramTemplatePickerView: View {
 }
 
 #Preview {
-    ProgramTemplatePickerView(viewModel: ProgramTemplatePickerViewModel(container: DevPreview.shared.container))
-        .previewEnvironment()
+    @Previewable @State var path: [TabBarPathOption] = []
+    ProgramTemplatePickerView(
+        viewModel: ProgramTemplatePickerViewModel(
+            container: DevPreview.shared.container
+        ),
+        path: $path
+    )
+    .previewEnvironment()
 }

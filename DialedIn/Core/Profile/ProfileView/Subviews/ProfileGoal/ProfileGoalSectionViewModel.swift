@@ -10,6 +10,7 @@ import SwiftUI
 protocol ProfileGoalSectionInteractor {
     var currentUser: UserModel? { get }
     var currentGoal: WeightGoal? { get }
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: ProfileGoalSectionInteractor { }
@@ -29,9 +30,7 @@ class ProfileGoalSectionViewModel {
         interactor.currentGoal
     }
     
-    init(
-        interactor: ProfileGoalSectionInteractor
-    ) {
+    init(interactor: ProfileGoalSectionInteractor) {
         self.interactor = interactor
     }
     
@@ -42,6 +41,35 @@ class ProfileGoalSectionViewModel {
         case .pounds:
             let pounds = weightKg * 2.20462
             return String(format: "%.1f lbs", pounds)
+        }
+    }
+
+    func navToProfileGoals(path: Binding<[TabBarPathOption]>) {
+        interactor.trackEvent(event: Event.navigate(destination: .profileGoals))
+        path.wrappedValue.append(.profileGoals)
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: TabBarPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "ProfileGoalSection_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
         }
     }
 }

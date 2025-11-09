@@ -13,6 +13,7 @@ protocol DevSettingsInteractor {
     var currentUser: UserModel? { get }
     var currentTrainingPlan: TrainingPlan? { get }
     var activeSession: WorkoutSessionModel? { get }
+    func updateAppState(showTabBarView: Bool)
     func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel]
     func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel]
     func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
@@ -241,6 +242,7 @@ class DevSettingsViewModel {
             signOutAuth()
             
             // UI will reset to onboarding automatically when auth state changes
+            interactor.updateAppState(showTabBarView: false)
         }
     }
     

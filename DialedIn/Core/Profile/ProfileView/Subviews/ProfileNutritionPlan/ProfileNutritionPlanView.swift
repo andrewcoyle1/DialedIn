@@ -10,12 +10,14 @@ import SwiftUI
 struct ProfileNutritionPlanView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: ProfileNutritionPlanViewModel
-    
+
+    @Binding var path: [TabBarPathOption]
+
     var body: some View {
         Section {
             if let plan = viewModel.currentDietPlan {
-                NavigationLink {
-                    ProfileNutritionDetailView(viewModel: ProfileNutritionDetailViewModel(interactor: CoreInteractor(container: container)))
+                Button {
+                    viewModel.navToNutritionDetail(path: $path)
                 } label: {
                     VStack(spacing: 8) {
                         MetricRow(
@@ -94,5 +96,13 @@ struct ProfileNutritionPlanView: View {
 }
 
 #Preview {
-    ProfileNutritionPlanView(viewModel: ProfileNutritionPlanViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+    @Previewable @State var path: [TabBarPathOption] = []
+    ProfileNutritionPlanView(
+        viewModel: ProfileNutritionPlanViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        ),
+        path: $path
+    )
 }

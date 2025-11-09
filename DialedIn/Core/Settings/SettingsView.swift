@@ -13,6 +13,8 @@ struct SettingsView: View {
 
     @State var viewModel: SettingsViewModel
 
+    @Binding var path: [TabBarPathOption]
+
     var body: some View {
         NavigationStack {
             List {
@@ -76,8 +78,8 @@ struct SettingsView: View {
     
     private var purchaseSection: some View {
         Section {
-            NavigationLink {
-                ManageSubscriptionView()
+            Button {
+                viewModel.navToManageSubscriptionView(path: $path)
             } label: {
                 Text("Account status: \(viewModel.isPremium ? "PREMIUM" : "FREE")")
             }
@@ -134,44 +136,52 @@ fileprivate extension View {
 }
 
 #Preview("No auth") {
+    @Previewable @State var path: [TabBarPathOption] = []
     SettingsView(
         viewModel: SettingsViewModel(
             interactor: CoreInteractor(
                 container: DevPreview.shared.container
             )
-        )
+        ),
+        path: $path
     )
     .previewEnvironment()
 }
 
 #Preview("Anonymous") {
+    @Previewable @State var path: [TabBarPathOption] = []
     SettingsView(
         viewModel: SettingsViewModel(
             interactor: CoreInteractor(
                 container: DevPreview.shared.container
             )
-        )
+        ),
+        path: $path
     )
     .previewEnvironment()
 }
 #Preview("Not anonymous") {
+    @Previewable @State var path: [TabBarPathOption] = []
     SettingsView(
         viewModel: SettingsViewModel(
             interactor: CoreInteractor(
                 container: DevPreview.shared.container
             )
-        )
+        ),
+        path: $path
     )
     .previewEnvironment()
 }
 
 #Preview("Premium") {
+    @Previewable @State var path: [TabBarPathOption] = []
     SettingsView(
         viewModel: SettingsViewModel(
             interactor: CoreInteractor(
                 container: DevPreview.shared.container
             )
-        )
+        ),
+        path: $path
     )
     .previewEnvironment()
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol ProgramStartConfigInteractor {
-    
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: ProgramStartConfigInteractor { }
@@ -24,21 +24,8 @@ class ProgramStartConfigViewModel {
     var useCustomName = false
     var customName = ""
     
-    private(set) var template: ProgramTemplateModel!
-    private(set) var onStart: ((Date, Date?, String?) -> Void)!
-    
-    init(
-        interactor: ProgramStartConfigInteractor
-    ) {
+    init(interactor: ProgramStartConfigInteractor) {
         self.interactor = interactor
-    }
-    
-    func setTemplate(_ template: ProgramTemplateModel) {
-        self.template = template
-    }
-    
-    func setOnStart(_ onStart: @escaping (Date, Date?, String?) -> Void) {
-        self.onStart = onStart
     }
     
     func dayName(for dayOfWeek: Int) -> String {
@@ -66,7 +53,7 @@ class ProgramStartConfigViewModel {
         return calendar.date(byAdding: .day, value: daysToAdd, to: startDate) ?? startDate
     }
     
-    func calculateDefaultEndDate(from startDate: Date) -> Date {
+    func calculateDefaultEndDate(template: ProgramTemplateModel, from startDate: Date) -> Date {
         let calendar = Calendar.current
         return calendar.date(byAdding: .weekOfYear, value: template.duration, to: startDate) ?? startDate
     }
@@ -75,5 +62,34 @@ class ProgramStartConfigViewModel {
         let calendar = Calendar.current
         let weeks = calendar.dateComponents([.weekOfYear], from: startDate, to: endDate).weekOfYear ?? 0
         return max(weeks, 0)
+    }
+
+    func navToProgramPreviewView(path: Binding<[TabBarPathOption]>, template: ProgramTemplateModel) {
+        interactor.trackEvent(event: Event.navigate(destination: .programPreview(template: template, startDate: startDate)))
+        path.wrappedValue.append(.programPreview(template: template, startDate: startDate))
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: TabBarPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "ProgramStartConfig_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
+        }
     }
 }

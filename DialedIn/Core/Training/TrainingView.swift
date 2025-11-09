@@ -15,6 +15,7 @@ struct TrainingView: View {
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: TrainingViewModel
+
     @Binding var path: [TabBarPathOption]
 
     var body: some View {
@@ -29,41 +30,36 @@ struct TrainingView: View {
             }
         }
         // Only show inspector in compact/tabBar modes; not in split view where detail is used
-        .modifier(
-            InspectorIfCompact(
-                isPresented: $viewModel.isShowingInspector,
-                inspector: {
-                    Group {
-                        if let exercise = viewModel.selectedExerciseTemplate {
-                            NavigationStack {
-                                ExerciseTemplateDetailView(
-                                    viewModel: ExerciseTemplateDetailViewModel(interactor: CoreInteractor(container: container)),
-                                    exerciseTemplate: exercise
-                                )
-                            }
-                        } else if let workout = viewModel.selectedWorkoutTemplate {
-                            NavigationStack {
-                                WorkoutTemplateDetailView(
-                                    viewModel: WorkoutTemplateDetailViewModel(interactor: CoreInteractor(container: container)),
-                                    workoutTemplate: workout
-                                )
-                            }
-                        } else if let session = viewModel.selectedHistorySession {
-                            NavigationStack {
-                                WorkoutSessionDetailView(
-                                    viewModel: WorkoutSessionDetailViewModel(interactor: CoreInteractor(
-                                        container: container),
-                                        session: session
-                                    )
-                                )
-                            }
-                        } else {
-                            Text("Select an item").foregroundStyle(.secondary).padding()
-                        }
+        .inspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: {
+            Group {
+                if let exercise = viewModel.selectedExerciseTemplate {
+                    NavigationStack {
+                        ExerciseTemplateDetailView(
+                            viewModel: ExerciseTemplateDetailViewModel(interactor: CoreInteractor(container: container)),
+                            exerciseTemplate: exercise
+                        )
                     }
-                },
-                enabled: layoutMode != .splitView)
-        )
+                } else if let workout = viewModel.selectedWorkoutTemplate {
+                    NavigationStack {
+                        WorkoutTemplateDetailView(
+                            viewModel: WorkoutTemplateDetailViewModel(interactor: CoreInteractor(container: container)),
+                            workoutTemplate: workout
+                        )
+                    }
+                } else if let session = viewModel.selectedHistorySession {
+                    NavigationStack {
+                        WorkoutSessionDetailView(
+                            viewModel: WorkoutSessionDetailViewModel(interactor: CoreInteractor(
+                                container: container),
+                                session: session
+                            )
+                        )
+                    }
+                } else {
+                    Text("Select an item").foregroundStyle(.secondary).padding()
+                }
+            }
+        }, enabled: layoutMode != .splitView)
         .onAppear {
             viewModel.presentationMode = .program
         }
@@ -128,7 +124,8 @@ struct TrainingView: View {
                             interactor: CoreInteractor(
                                 container: container
                             )
-                        )
+                        ),
+                        path: $path
                     )
                 case .progressDashboard:
                     ProgressDashboardView(

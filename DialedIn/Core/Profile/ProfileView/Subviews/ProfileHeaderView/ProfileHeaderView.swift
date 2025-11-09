@@ -10,12 +10,14 @@ import SwiftUI
 struct ProfileHeaderView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: ProfileHeaderViewModel
-    
+
+    @Binding var path: [TabBarPathOption]
+
     var body: some View {
         Section {
             if let user = viewModel.currentUser {
-                NavigationLink {
-                    ProfileEditView(viewModel: ProfileEditViewModel(interactor: CoreInteractor(container: container)))
+                Button {
+                    viewModel.navToProfileEdit(path: $path)
                 } label: {
                     HStack(spacing: 16) {
                         // Profile Image
@@ -61,8 +63,16 @@ struct ProfileHeaderView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [TabBarPathOption] = []
     List {
-        ProfileHeaderView(viewModel: ProfileHeaderViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        ProfileHeaderView(
+            viewModel: ProfileHeaderViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            ),
+            path: $path
+        )
     }
     .previewEnvironment()
 }

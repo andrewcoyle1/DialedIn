@@ -9,6 +9,7 @@ import SwiftUI
 
 protocol ProfileHeaderInteractor {
     var currentUser: UserModel? { get }
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: ProfileHeaderInteractor { }
@@ -22,9 +23,36 @@ class ProfileHeaderViewModel {
         interactor.currentUser
     }
     
-    init(
-        interactor: ProfileHeaderInteractor
-    ) {
+    init(interactor: ProfileHeaderInteractor) {
         self.interactor = interactor
+    }
+
+    func navToProfileEdit(path: Binding<[TabBarPathOption]>) {
+        interactor.trackEvent(event: Event.navigate(destination: .profileEdit))
+        path.wrappedValue.append(.profileEdit)
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: TabBarPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "ProfileHeader_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
+        }
     }
 }

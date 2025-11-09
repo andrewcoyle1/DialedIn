@@ -11,13 +11,14 @@ struct ProfileGoalSection: View {
     @Environment(DependencyContainer.self) private var container
     
     @State var viewModel: ProfileGoalSectionViewModel
-    
+
+    @Binding var path: [TabBarPathOption]
     var body: some View {
         Section {
             if let goal = viewModel.currentGoal,
                let user = viewModel.currentUser {
-                NavigationLink {
-                    ProfileGoalsDetailView(viewModel: ProfileGoalsDetailViewModel(interactor: CoreInteractor(container: container)))
+                Button {
+                    viewModel.navToProfileGoals(path: $path)
                 } label: {
                     
                     VStack(alignment: .leading, spacing: 8) {
@@ -100,6 +101,14 @@ struct ProfileGoalSection: View {
 }
 
 #Preview {
-    ProfileGoalSection(viewModel: ProfileGoalSectionViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    @Previewable @State var path: [TabBarPathOption] = []
+    ProfileGoalSection(
+        viewModel: ProfileGoalSectionViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            )
+        ),
+        path: $path
+    )
+    .previewEnvironment()
 }

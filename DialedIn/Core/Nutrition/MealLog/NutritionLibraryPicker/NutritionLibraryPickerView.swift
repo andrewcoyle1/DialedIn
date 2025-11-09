@@ -8,10 +8,14 @@
 import SwiftUI
 
 struct NutritionLibraryPickerView: View {
-    @State var viewModel: NutritionLibraryPickerViewModel
+
     @Environment(DependencyContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
-    
+
+    @State var viewModel: NutritionLibraryPickerViewModel
+
+    @Binding var path: [TabBarPathOption]
+
     var body: some View {
         NavigationStack {
             List {
@@ -82,10 +86,8 @@ struct NutritionLibraryPickerView: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(viewModel.ingredients) { ingredient in
-                    NavigationLink {
-                        IngredientAmountView(viewModel: IngredientAmountViewModel(interactor: CoreInteractor(container: container), ingredient: ingredient) { item in
-                            viewModel.onPick(item)
-                        })
+                    Button {
+                        viewModel.navToIngredientAmount(path: $path, ingredient)
                     } label: {
                         CustomListCellView(
                             imageName: ingredient.imageURL,
@@ -106,17 +108,8 @@ struct NutritionLibraryPickerView: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(viewModel.recipes) { recipe in
-                    NavigationLink {
-                        RecipeAmountView(
-                            viewModel: RecipeAmountViewModel(
-                                interactor: CoreInteractor(
-                                    container: container
-                                ),
-                                recipe: recipe, onConfirm:
-                             { item in
-                            viewModel.onPick(item)
-                        }
-                                         ))
+                    Button {
+                        viewModel.navToRecipeAmount(path: $path, recipe)
                     } label: {
                         CustomListCellView(
                             imageName: nil,
@@ -132,8 +125,18 @@ struct NutritionLibraryPickerView: View {
 }
 
 #Preview {
-    NutritionLibraryPickerView(viewModel: NutritionLibraryPickerViewModel(interactor: CoreInteractor(container: DevPreview.shared.container), onPick: { item in
-        print(item.displayName)
-    }))
+    @Previewable @State var path: [TabBarPathOption] = []
+    NutritionLibraryPickerView(
+        viewModel: NutritionLibraryPickerViewModel(
+            interactor: CoreInteractor(
+                container: DevPreview.shared.container
+            ),
+            onPick: { item in
+                print(
+                    item.displayName
+                )
+            }),
+        path: $path
+    )
     .previewEnvironment()
 }

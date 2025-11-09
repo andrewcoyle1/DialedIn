@@ -9,8 +9,11 @@ import SwiftUI
 
 struct ProfileMyTemplatesView: View {
     @Environment(DependencyContainer.self) private var container
+
     @State var viewModel: ProfileMyTemplatesViewModel
-    
+
+    @Binding var path: [TabBarPathOption]
+
     var body: some View {
         Section {
             exerciseTemplateSection
@@ -26,9 +29,9 @@ struct ProfileMyTemplatesView: View {
         Group {
             let templateIds = viewModel.currentUser?.createdExerciseTemplateIds ?? []
             let count = templateIds.count
-            
-            NavigationLink {
-                ExerciseTemplateListView(interactor: CoreInteractor(container: container), templateIds: templateIds)
+
+            Button {
+                viewModel.navToExerciseTemplateList(path: $path)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Exercise Templates")
@@ -47,8 +50,8 @@ struct ProfileMyTemplatesView: View {
             let templateIds = viewModel.currentUser?.createdWorkoutTemplateIds ?? []
             let count = templateIds.count
             
-            NavigationLink {
-                WorkoutTemplateListView(interactor: CoreInteractor(container: container), templateIds: templateIds)
+            Button {
+                viewModel.navToWorkoutTemplateList(path: $path)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Workout Templates")
@@ -67,8 +70,8 @@ struct ProfileMyTemplatesView: View {
             let templateIds = viewModel.currentUser?.createdRecipeTemplateIds ?? []
             let count = templateIds.count
             
-            NavigationLink {
-                RecipeTemplateListView(interactor: CoreInteractor(container: container), templateIds: templateIds)
+            Button {
+                viewModel.navToRecipeTemplateList(path: $path)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Recipe Templates")
@@ -87,8 +90,8 @@ struct ProfileMyTemplatesView: View {
             let templateIds = viewModel.currentUser?.createdIngredientTemplateIds ?? []
             let count = templateIds.count
             
-            NavigationLink {
-                IngredientTemplateListView(interactor: CoreInteractor(container: container), templateIds: templateIds)
+            Button {
+                viewModel.navToIngredientTemplateList(path: $path)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Ingredient Templates")
@@ -104,9 +107,10 @@ struct ProfileMyTemplatesView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [TabBarPathOption] = []
     NavigationStack {
         List {
-            ProfileMyTemplatesView(viewModel: ProfileMyTemplatesViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+            ProfileMyTemplatesView(viewModel: ProfileMyTemplatesViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), path: $path)
         }
     }
     .previewEnvironment()

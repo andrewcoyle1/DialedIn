@@ -11,6 +11,8 @@ struct MealLogView: View {
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: MealLogViewModel
 
+    @Binding var path: [TabBarPathOption]
+
     @Binding var isShowingInspector: Bool
     @Binding var selectedIngredientTemplate: IngredientTemplateModel?
     @Binding var selectedRecipeTemplate: RecipeTemplateModel?
@@ -53,7 +55,8 @@ struct MealLogView: View {
                             await viewModel.saveMeal(meal)
                         }
                     }
-                )
+                ),
+                path: $path
             )
         }
         .showCustomAlert(alert: $viewModel.showAlert)
@@ -163,7 +166,9 @@ struct MealLogView: View {
                     }
                 } else {
                     ForEach(mealsForType) { meal in
-                        NavigationLink(value: TabBarPathOption.mealDetail(meal: meal)) {
+                        Button {
+                            viewModel.navToMealDetail(path: $path, meal: meal)
+                        } label: {
                             MealLogRowView(meal: meal)
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
@@ -210,10 +215,12 @@ struct MealLogView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [TabBarPathOption] = []
     NavigationStack {
         List {
             MealLogView(
                 viewModel: MealLogViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)),
+                path: $path,
                 isShowingInspector: Binding.constant(false),
                 selectedIngredientTemplate: Binding.constant(nil),
                 selectedRecipeTemplate: Binding.constant(nil)

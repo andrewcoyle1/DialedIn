@@ -10,6 +10,7 @@ import SwiftUI
 protocol ProfilePhysicalMetricsInteractor {
     var currentUser: UserModel? { get }
     var currentGoal: WeightGoal? { get }
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: ProfilePhysicalMetricsInteractor { }
@@ -27,9 +28,7 @@ class ProfilePhysicalMetricsViewModel {
         interactor.currentGoal
     }
     
-    init(
-        interactor: ProfilePhysicalMetricsInteractor
-    ) {
+    init(interactor: ProfilePhysicalMetricsInteractor) {
         self.interactor = interactor
     }
     
@@ -87,6 +86,35 @@ class ProfilePhysicalMetricsViewModel {
         case .intermediate: return "Intermediate"
         case .advanced: return "Advanced"
         case .elite: return "Elite"
+        }
+    }
+
+    func navToPhysicalStats(path: Binding<[TabBarPathOption]>) {
+        interactor.trackEvent(event: Event.navigate(destination: .profilePhysicalStats))
+        path.wrappedValue.append(.profilePhysicalStats)
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: TabBarPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "PhysicalMetricsView_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
         }
     }
 }

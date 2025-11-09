@@ -19,7 +19,7 @@ enum MealItemSourceType: String, Codable, CaseIterable, Sendable {
     case recipe
 }
 
-struct MealItemModel: Identifiable, Codable, Hashable {
+struct MealItemModel: Identifiable, Codable, Hashable, Sendable {
     var id: String { itemId }
     let itemId: String
     let sourceType: MealItemSourceType

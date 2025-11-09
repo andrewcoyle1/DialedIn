@@ -15,6 +15,7 @@ struct NutritionView: View {
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: NutritionViewModel
+    
     @Binding var path: [TabBarPathOption]
 
     var body: some View {
@@ -90,6 +91,7 @@ struct NutritionView: View {
             case .log:
                 MealLogView(
                     viewModel: MealLogViewModel(interactor: CoreInteractor(container: container)),
+                    path: $path,
                     isShowingInspector: $viewModel.isShowingInspector,
                     selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
                     selectedRecipeTemplate: $viewModel.selectedRecipeTemplate

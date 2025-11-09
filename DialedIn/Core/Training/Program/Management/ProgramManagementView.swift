@@ -8,10 +8,13 @@
 import SwiftUI
 
 struct ProgramManagementView: View {
-    @State var viewModel: ProgramManagementViewModel
-    @Environment(\.dismiss) private var dismiss
     @Environment(DependencyContainer.self) private var container
-    
+    @Environment(\.dismiss) private var dismiss
+
+    @State var viewModel: ProgramManagementViewModel
+
+    @Binding var path: [TabBarPathOption]
+
     var body: some View {
         NavigationStack {
             List {
@@ -40,10 +43,22 @@ struct ProgramManagementView: View {
                 }
             }
             .sheet(isPresented: $viewModel.showCreateSheet) {
-                ProgramTemplatePickerView(viewModel: ProgramTemplatePickerViewModel(container: container))
+                ProgramTemplatePickerView(
+                    viewModel: ProgramTemplatePickerViewModel(
+                        container: container
+                    ),
+                    path: $path
+                )
             }
             .sheet(item: $viewModel.editingPlan) { plan in
-                EditProgramView(viewModel: EditProgramViewModel(interactor: CoreInteractor(container: container)), plan: plan)
+                EditProgramView(
+                    viewModel: EditProgramViewModel(
+                        interactor: CoreInteractor(container: container),
+                        plan: plan
+                    ),
+                    path: $path,
+                    plan: plan
+                )
             }
             .showCustomAlert(alert: $viewModel.showDeleteAlert)
             .overlay {
@@ -162,12 +177,14 @@ struct ProgramManagementView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [TabBarPathOption] = []
     ProgramManagementView(
         viewModel: ProgramManagementViewModel(
             interactor: CoreInteractor(
                 container: DevPreview.shared.container
             )
-        )
+        ),
+        path: $path
     )
     .previewEnvironment()
 }

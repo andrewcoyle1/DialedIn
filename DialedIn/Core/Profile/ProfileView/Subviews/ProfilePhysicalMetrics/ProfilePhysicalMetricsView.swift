@@ -8,16 +8,20 @@
 import SwiftUI
 
 struct ProfilePhysicalMetricsView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: ProfilePhysicalMetricsViewModel
     
+    @Environment(DependencyContainer.self) private var container
+
+    @State var viewModel: ProfilePhysicalMetricsViewModel
+
+    @Binding var path: [TabBarPathOption]
+
     var body: some View {
         Section {
             if let user = viewModel.currentUser {
-                NavigationLink {
-                    ProfilePhysicalStatsView(viewModel: ProfilePhysicalStatsViewModel(interactor: CoreInteractor(container: container)))
+                Button {
+                    viewModel.navToPhysicalStats(path: $path)
                 } label: {
-                    
+
                         VStack(spacing: 8) {
                             if let height = user.heightCentimeters {
                                 MetricRow(
@@ -82,7 +86,15 @@ struct ProfilePhysicalMetricsView: View {
 }
 
 #Preview {
+    @Previewable @State var path: [TabBarPathOption] = []
     List {
-        ProfilePhysicalMetricsView(viewModel: ProfilePhysicalMetricsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        ProfilePhysicalMetricsView(
+            viewModel: ProfilePhysicalMetricsViewModel(
+                interactor: CoreInteractor(
+                    container: DevPreview.shared.container
+                )
+            ),
+            path: $path
+        )
     }
 }

@@ -5,13 +5,14 @@
 //  Created by Andrew Coyle on 26/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 protocol NutritionLibraryPickerInteractor: Sendable {
     func getTopIngredientTemplatesByClicks(limitTo: Int) async throws -> [IngredientTemplateModel]
     func getTopRecipeTemplatesByClicks(limitTo: Int) async throws -> [RecipeTemplateModel]
     func getIngredientTemplatesByName(name: String) async throws -> [IngredientTemplateModel]
     func getRecipeTemplatesByName(name: String) async throws -> [RecipeTemplateModel]
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: NutritionLibraryPickerInteractor, @unchecked Sendable { }
@@ -71,9 +72,43 @@ class NutritionLibraryPickerViewModel {
             showAlert = AnyAppAlert(error: error)
         }
     }
-    
+
+    func navToIngredientAmount(path: Binding<[TabBarPathOption]>, _ ingredient: IngredientTemplateModel) {
+        interactor.trackEvent(event: Event.navigate(destination: .ingredientAmountView(ingredient: ingredient, onPick: onPick)))
+        path.wrappedValue.append(.ingredientAmountView(ingredient: ingredient, onPick: onPick))
+    }
+
+    func navToRecipeAmount(path: Binding<[TabBarPathOption]>, _ recipe: RecipeTemplateModel) {
+        interactor.trackEvent(event: Event.navigate(destination: .recipeAmountView(recipe: recipe, onPick: onPick)))
+        path.wrappedValue.append(.recipeAmountView(recipe: recipe, onPick: onPick))
+    }
+
     enum PickerMode: String, CaseIterable, Hashable {
         case ingredients
         case recipes
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: TabBarPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "NutritionLibrary_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
+        }
     }
 }

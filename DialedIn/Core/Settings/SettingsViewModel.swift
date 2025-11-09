@@ -114,7 +114,12 @@ class SettingsViewModel {
             }
         )
     }
-    
+
+    func navToManageSubscriptionView(path: Binding<[TabBarPathOption]>) {
+        interactor.trackEvent(event: Event.navigate(destination: .manageSubscription))
+        path.wrappedValue.append(.manageSubscription)
+    }
+
     private func onDeleteAccountConfirmed(onDismiss: @escaping () -> Void) {
         interactor.trackEvent(event: Event.deleteAccountStartConfirm)
 
@@ -159,6 +164,7 @@ class SettingsViewModel {
         case ratingsPressed
         case ratingsYesPressed
         case ratingsNoPressed
+        case navigate(destination: TabBarPathOption)
 
         var eventName: String {
             switch self {
@@ -174,6 +180,7 @@ class SettingsViewModel {
             case .ratingsPressed:               return "Settings_Ratings_Press"
             case .ratingsYesPressed:            return "Settings_RatingsYes_Press"
             case .ratingsNoPressed:             return "Settings_RatingsNo_Press"
+            case .navigate:                     return "Settings_Navigate"
             }
         }
         
@@ -181,6 +188,8 @@ class SettingsViewModel {
             switch self {
             case .signOutFail(error: let error), .deleteAccountFail(error: let error):
                 return error.eventParameters
+            case .navigate(destination: let destination):
+                return destination.eventParameters
             default:
                 return nil
             }
@@ -190,6 +199,8 @@ class SettingsViewModel {
             switch self {
             case .signOutFail, .deleteAccountFail:
                 return .severe
+            case .navigate:
+                return .info
             default:
                 return .analytic
                 

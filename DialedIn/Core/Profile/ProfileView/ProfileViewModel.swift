@@ -12,6 +12,7 @@ protocol ProfileInteractor {
     var currentGoal: WeightGoal? { get }
     var currentDietPlan: DietPlan? { get }
     func getActiveGoal(userId: String) async throws -> WeightGoal?
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: ProfileInteractor { }
@@ -53,5 +54,33 @@ class ProfileViewModel {
             activeGoal = try? await interactor.getActiveGoal(userId: userId)
         }
     }
-    
+
+    func navToSettingsView(path: Binding<[TabBarPathOption]>) {
+        interactor.trackEvent(event: Event.navigate(destination: .settingsView))
+        path.wrappedValue.append(.settingsView)
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: TabBarPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate:     return "Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
+        }
+    }
 }

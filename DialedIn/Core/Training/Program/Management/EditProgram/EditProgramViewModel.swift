@@ -14,6 +14,7 @@ protocol EditProgramInteractor {
     func get(id: String) -> ProgramTemplateModel?
     func fetchTemplateFromRemote(id: String) async throws -> ProgramTemplateModel
     func getLocalWorkoutTemplate(id: String) throws -> WorkoutTemplateModel
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: EditProgramInteractor { }
@@ -23,32 +24,89 @@ extension CoreInteractor: EditProgramInteractor { }
 class EditProgramViewModel {
     private let interactor: EditProgramInteractor
     
+    // Editable fields
     var name: String = ""
     var description: String = ""
     var startDate: Date = .now
-    var endDate: Date?
-    var hasEndDate: Bool = false
-    private(set) var isSaving = false
-    var showDateChangeAlert = false
-    var showDeleteActiveAlert = false
-    var pendingStartDate: Date?
-    
     var originalStartDate: Date = .now
+    var hasEndDate: Bool = false
+    var endDate: Date?
     
-    init(
-        interactor: EditProgramInteractor
-    ) {
+    private(set) var isSaving = false
+    var pendingStartDate: Date?
+
+    var showAlert: AnyAppAlert?
+
+    init(interactor: EditProgramInteractor) {
         self.interactor = interactor
-        
-        // Initialize with default values - will be set by the view
-        self.name = ""
-        self.description = ""
-        self.startDate = .now
-        self.endDate = nil
-        self.hasEndDate = false
-        self.originalStartDate = .now
     }
     
+    init(interactor: EditProgramInteractor, plan: TrainingPlan) {
+        self.interactor = interactor
+        self.name = plan.name
+        self.description = plan.description ?? ""
+        self.startDate = plan.startDate
+        self.originalStartDate = plan.startDate
+        self.hasEndDate = plan.endDate != nil
+        self.endDate = plan.endDate
+    }
+
+    func showDateChangeAlert(startDate: Binding<Date>) {
+        showAlert = AnyAppAlert(
+            title: "Reschedule Workouts",
+            subtitle: "This program has scheduled workouts. Changing the start date will automatically reschedule all workouts. Do you want to continue?",
+            buttons: {
+                AnyView(
+                    HStack {
+                        Button("Cancel", role: .cancel) {
+                            self.pendingStartDate = nil
+                        }
+                        Button("Reschedule") {
+                            if let newDate = self.pendingStartDate {
+                                startDate.wrappedValue = newDate
+                                self.pendingStartDate = nil
+                            }
+                        }
+
+                    }
+                )
+            }
+        )
+    }
+
+    func showDeleteActiveAlert(plan: TrainingPlan, onDismiss: @escaping @MainActor () -> Void) {
+        showAlert = AnyAppAlert(
+            title: "Delete Active Program",
+            subtitle: "Are you sure you want to delete your active program '\(plan.name)'? This will remove all scheduled workouts and you'll need to create or select a new program.",
+            buttons: {
+                AnyView(
+                    HStack {
+                        Button(
+                            "Cancel",
+                            role: .cancel
+                        ) {
+
+                        }
+                        Button(
+                            "Delete",
+                            role: .destructive
+                        ) {
+                            Task {
+                                await self.deleteActivePlan(
+                                    plan: plan,
+                                    onDismiss: {
+                                        onDismiss()
+                                    }
+                                )
+                            }
+                        }
+
+                    }
+                )
+            }
+        )
+    }
+
     func totalWorkouts(for plan: TrainingPlan) -> Int {
         plan.weeks.flatMap { $0.scheduledWorkouts }.count
     }
@@ -84,9 +142,10 @@ class EditProgramViewModel {
             updatedWeeks = rescheduleWorkouts(weeks: plan.weeks, oldStartDate: originalStartDate, newStartDate: startDate)
         }
         
-        let adjustedEndDate = calculateAdjustedEndDate(originalEndDate: plan.endDate)
+        let adjustedEndDate = calculateAdjustedEndDate(hasEndDate: hasEndDate, endDate: endDate, originalEndDate: plan.endDate)
         updatedWeeks = await handleEndDateChanges(
             weeks: updatedWeeks,
+            startDate: startDate,
             originalEndDate: plan.endDate,
             adjustedEndDate: adjustedEndDate,
             programTemplateId: plan.programTemplateId
@@ -96,12 +155,13 @@ class EditProgramViewModel {
         await sendUpdatedPlan(updatedPlan: updatedPlan, onDismiss: onDismiss)
     }
     
-    private func calculateAdjustedEndDate(originalEndDate: Date?) -> Date? {
+    private func calculateAdjustedEndDate(hasEndDate: Bool, endDate: Date?, originalEndDate: Date?) -> Date? {
         return hasEndDate ? endDate : nil
     }
     
     private func handleEndDateChanges(
         weeks: [TrainingWeek],
+        startDate: Date,
         originalEndDate: Date?,
         adjustedEndDate: Date?,
         programTemplateId: String?
@@ -379,5 +439,40 @@ class EditProgramViewModel {
         }
         
         return targetDate
+    }
+
+    func navToProgramGoalsView(path: Binding<[TabBarPathOption]>, plan: TrainingPlan) {
+        interactor.trackEvent(event: Event.navigate(destination: .programGoalsView(plan: plan)))
+        path.wrappedValue.append(.programGoalsView(plan: plan))
+    }
+
+    func navToProgramScheduleView(path: Binding<[TabBarPathOption]>, plan: TrainingPlan) {
+        interactor.trackEvent(event: Event.navigate(destination: .programScheduleView(plan: plan)))
+        path.wrappedValue.append(.programScheduleView(plan: plan))
+
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: TabBarPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate:     return "Fail"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
+        }
     }
 }

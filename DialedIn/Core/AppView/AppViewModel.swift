@@ -32,11 +32,11 @@ class AppViewModel {
         interactor.currentUser
     }
 
-    var showTabBar: Bool
+    var showTabBar: Bool {
+        interactor.showTabBar
+    }
 
-    init(
-        interactor: AppInteractor
-    ) {
+    init(interactor: AppInteractor) {
         self.interactor = interactor
     }
     

@@ -9,6 +9,7 @@ import SwiftUI
 
 protocol ProfilePreferencesInteractor {
     var currentUser: UserModel? { get }
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: ProfilePreferencesInteractor { }
@@ -36,6 +37,35 @@ class ProfilePreferencesViewModel {
             return lengthStr
         } else {
             return "Mixed"
+        }
+    }
+
+    func navToSettingsView(path: Binding<[TabBarPathOption]>) {
+        interactor.trackEvent(event: Event.navigate(destination: .settingsView))
+        path.wrappedValue.append(.settingsView)
+    }
+
+    enum Event: LoggableEvent {
+        case navigate(destination: TabBarPathOption)
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "ProfilePreferences_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate(destination: let destination):
+                return destination.eventParameters
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
         }
     }
 }
