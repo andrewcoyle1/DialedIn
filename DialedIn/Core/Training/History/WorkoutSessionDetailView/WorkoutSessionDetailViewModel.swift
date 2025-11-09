@@ -30,8 +30,7 @@ class WorkoutSessionDetailViewModel {
     
     var showAlert: AnyAppAlert?
     var isDeleting = false
-    var session: WorkoutSessionModel
-    var editedSession: WorkoutSessionModel
+    var editedSession: WorkoutSessionModel?
     var isSaving = false
     var showAddExerciseSheet = false
     var isLoading: Bool {
@@ -39,39 +38,42 @@ class WorkoutSessionDetailViewModel {
     }
     var selectedExerciseTemplates: [ExerciseTemplateModel] = []
     
-    var currentSession: WorkoutSessionModel {
-        isEditMode ? editedSession : session
+    func currentSession(session: WorkoutSessionModel) -> WorkoutSessionModel {
+        isEditMode ? editedSession ?? session : session
     }
     
-    var hasUnsavedChanges: Bool {
+    func hasUnsavedChanges(session: WorkoutSessionModel) -> Bool {
         editedSession != session
     }
     
-    init(
-        interactor: WorkoutSessionDetailInteractor,
-        session: WorkoutSessionModel
-    ) {
+    init(interactor: WorkoutSessionDetailInteractor) {
         self.interactor = interactor
-        self.session = session
-        self.editedSession = session
     }
     
-    var totalSets: Int {
-        currentSession.exercises.flatMap { $0.sets }.filter { !$0.isWarmup }.count
+    func totalSets(session: WorkoutSessionModel) -> Int {
+        currentSession(session: session)
+            .exercises
+            .flatMap { $0.sets }
+            .filter { !$0.isWarmup }
+            .count
     }
     
-    var totalVolume: Double {
-        currentSession.exercises.flatMap { $0.sets }
+    func totalVolume(session: WorkoutSessionModel) -> Double {
+        currentSession(session: session)
+            .exercises
+            .flatMap { $0.sets }
             .filter { !$0.isWarmup }
             .compactMap { set -> Double? in
                 guard let weight = set.weightKg, let reps = set.reps else { return nil }
                 return weight * Double(reps)
-            }.reduce(0.0, +)
+            }
+            .reduce(0.0, +)
     }
     
-    var volumeFormatted: String {
-        if totalVolume > 0 {
-            return String(format: "%.0f kg", totalVolume)
+    func volumeFormatted(session: WorkoutSessionModel) -> String {
+        let volume = totalVolume(session: session)
+        if volume > 0 {
+            return String(format: "%.0f kg", volume)
         } else {
             return "—"
         }
@@ -79,18 +81,18 @@ class WorkoutSessionDetailViewModel {
     
     // MARK: - Edit Mode Actions
     
-    func enterEditMode() {
+    func enterEditMode(session: WorkoutSessionModel) {
         editedSession = session
         isEditMode = true
-        loadUnitPreferences()
+        loadUnitPreferences(for: session)
     }
     
-    func cancelEditing() {
+    func cancelEditing(session: WorkoutSessionModel) {
         editedSession = session
         isEditMode = false
     }
     
-    func showDiscardChangesAlert() {
+    func showDiscardChangesAlert(session: WorkoutSessionModel) {
         showAlert = AnyAppAlert(
             title: "Discard changes?",
             subtitle: "You have unsaved changes. This will discard them.",
@@ -98,7 +100,7 @@ class WorkoutSessionDetailViewModel {
                 AnyView(
                     VStack {
                         Button("Discard Changes", role: .destructive) {
-                            self.cancelEditing()
+                            self.cancelEditing(session: session)
                             self.showAlert = nil
                         }
                         Button("Keep Editing", role: .cancel) {
@@ -116,7 +118,11 @@ class WorkoutSessionDetailViewModel {
         
         do {
             // Update dateModified using the model's method
-            var sessionToSave = editedSession
+            guard var sessionToSave = editedSession else {
+                isEditMode = false
+                onDismiss()
+                return
+            }
             sessionToSave.updateExercises(sessionToSave.exercises)
             
             // Save to local first
@@ -140,20 +146,25 @@ class WorkoutSessionDetailViewModel {
     // MARK: - Exercise Updates
     
     func updateExercise(at index: Int, with updated: WorkoutExerciseModel) {
-        var updatedExercises = editedSession.exercises
+        guard var session = editedSession else { return }
+        guard session.exercises.indices.contains(index) else { return }
+        
+        var updatedExercises = session.exercises
         updatedExercises[index] = updated
-        editedSession.updateExercises(updatedExercises)
+        session.updateExercises(updatedExercises)
+        editedSession = session
     }
     
     // MARK: - Set Management
     
     func addSet(to exerciseId: String) {
-        guard let exerciseIndex = editedSession.exercises.firstIndex(where: { $0.id == exerciseId }),
+        guard var session = editedSession,
+              let exerciseIndex = session.exercises.firstIndex(where: { $0.id == exerciseId }),
               let userId = interactor.currentUser?.userId else {
             return
         }
         
-        var updatedExercises = editedSession.exercises
+        var updatedExercises = session.exercises
         let exercise = updatedExercises[exerciseIndex]
         let newIndex = exercise.sets.count + 1
         
@@ -174,15 +185,17 @@ class WorkoutSessionDetailViewModel {
         )
         
         updatedExercises[exerciseIndex].sets.append(newSet)
-        editedSession.updateExercises(updatedExercises)
+        session.updateExercises(updatedExercises)
+        editedSession = session
     }
     
     func deleteSet(_ setId: String, from exerciseId: String) {
-        guard let exerciseIndex = editedSession.exercises.firstIndex(where: { $0.id == exerciseId }) else {
+        guard var session = editedSession,
+              let exerciseIndex = session.exercises.firstIndex(where: { $0.id == exerciseId }) else {
             return
         }
         
-        var updatedExercises = editedSession.exercises
+        var updatedExercises = session.exercises
         updatedExercises[exerciseIndex].sets.removeAll { $0.id == setId }
         
         // Reindex remaining sets
@@ -190,13 +203,16 @@ class WorkoutSessionDetailViewModel {
             updatedExercises[exerciseIndex].sets[index].index = index + 1
         }
         
-        editedSession.updateExercises(updatedExercises)
+        session.updateExercises(updatedExercises)
+        editedSession = session
     }
     
     // MARK: - Exercise Management
     
     func deleteExercise(id: String) {
-        var updatedExercises = editedSession.exercises
+        guard var session = editedSession else { return }
+        
+        var updatedExercises = session.exercises
         updatedExercises.removeAll { $0.id == id }
         
         // Reindex remaining exercises
@@ -204,15 +220,18 @@ class WorkoutSessionDetailViewModel {
             updatedExercises[index].index = index + 1
         }
         
-        editedSession.updateExercises(updatedExercises)
+        session.updateExercises(updatedExercises)
+        editedSession = session
     }
     
     func addSelectedExercises() {
-        guard !selectedExerciseTemplates.isEmpty, let userId = interactor.currentUser?.userId else {
+        guard !selectedExerciseTemplates.isEmpty,
+              var session = editedSession,
+              let userId = interactor.currentUser?.userId else {
             return
         }
         
-        var updated = editedSession.exercises
+        var updated = session.exercises
         let startIndex = updated.count
         
         for (offset, template) in selectedExerciseTemplates.enumerated() {
@@ -235,14 +254,17 @@ class WorkoutSessionDetailViewModel {
             updated.append(newExercise)
         }
         
-        editedSession.updateExercises(updated)
+        session.updateExercises(updated)
+        editedSession = session
         selectedExerciseTemplates.removeAll()
     }
     
     // MARK: - Unit Preferences
     
-    func loadUnitPreferences() {
-        for exercise in editedSession.exercises {
+    func loadUnitPreferences(for session: WorkoutSessionModel) {
+        exerciseUnitPreferences.removeAll(keepingCapacity: true)
+        
+        for exercise in currentSession(session: session).exercises {
             let preference = interactor.getPreference(templateId: exercise.templateId)
             exerciseUnitPreferences[exercise.templateId] = (
                 weightUnit: preference.weightUnit,
@@ -277,9 +299,9 @@ class WorkoutSessionDetailViewModel {
     
     // MARK: - Delete Session
     
-    func onDeletePressed(onDismiss: () -> Void) {
+    func onDeletePressed(session: WorkoutSessionModel, onDismiss: () -> Void) {
         Task {
-            await deleteSession(session: self.session)
+            await deleteSession(session: session)
         }
         onDismiss()
     }

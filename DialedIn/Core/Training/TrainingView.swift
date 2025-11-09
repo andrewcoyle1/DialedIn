@@ -11,7 +11,7 @@ import UIKit
 #endif
 
 struct TrainingView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: TrainingViewModel
@@ -34,26 +34,15 @@ struct TrainingView: View {
             Group {
                 if let exercise = viewModel.selectedExerciseTemplate {
                     NavigationStack {
-                        ExerciseTemplateDetailView(
-                            viewModel: ExerciseTemplateDetailViewModel(interactor: CoreInteractor(container: container)),
-                            exerciseTemplate: exercise
-                        )
+                        builder.exerciseTemplateDetailView(exercise: exercise)
                     }
                 } else if let workout = viewModel.selectedWorkoutTemplate {
                     NavigationStack {
-                        WorkoutTemplateDetailView(
-                            viewModel: WorkoutTemplateDetailViewModel(interactor: CoreInteractor(container: container)),
-                            workoutTemplate: workout
-                        )
+                        builder.workoutTemplateDetailView(workout: workout)
                     }
                 } else if let session = viewModel.selectedHistorySession {
                     NavigationStack {
-                        WorkoutSessionDetailView(
-                            viewModel: WorkoutSessionDetailViewModel(interactor: CoreInteractor(
-                                container: container),
-                                session: session
-                            )
-                        )
+                        builder.workoutSessionDetailView(session: session)
                     }
                 } else {
                     Text("Select an item").foregroundStyle(.secondary).padding()
@@ -93,72 +82,25 @@ struct TrainingView: View {
             .scrollIndicators(.hidden)
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView) {
-                DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+                builder.devSettingsView()
             }
             #endif
             .sheet(isPresented: $viewModel.showNotificationsView) {
-                NotificationsView(
-                    viewModel: NotificationsViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    )
-                )
+                builder.notificationsView()
             }
             .sheet(item: $viewModel.workoutToStart) { template in
-                WorkoutStartView(
-                    viewModel: WorkoutStartViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    ),
-                    template: template,
-                    scheduledWorkout: viewModel.scheduledWorkoutToStart
-                )
+                builder.workoutStartView(template: template, scheduledWorkout: viewModel.scheduledWorkoutToStart)
             }
             .sheet(item: $viewModel.programActiveSheet) { sheet in
                 switch sheet {
                 case .programPicker:
-                    ProgramManagementView(
-                        viewModel: ProgramManagementViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        ),
-                        path: $path
-                    )
+                    builder.programManagementView(path: $path)
                 case .progressDashboard:
-                    ProgressDashboardView(
-                        viewModel: ProgressDashboardViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        )
-                    )
+                    builder.progressDashboardView()
                 case .strengthProgress:
-                    StrengthProgressView(
-                        viewModel: StrengthProgressViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        )
-                    )
+                    builder.strengthProgressView()
                 case .workoutHeatmap:
-                    WorkoutHeatmapView(
-                        viewModel: WorkoutHeatmapViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            progressAnalytics: ProgressAnalyticsService(
-                                workoutSessionManager: container.resolve(
-                                    WorkoutSessionManager.self
-                                )!,
-                                exerciseTemplateManager: container.resolve(
-                                    ExerciseTemplateManager.self
-                                )!
-                            )
-                        )
-                    )
+                    builder.workoutHeatmapView()
                 case .addGoal:
                     // This case is handled by the ProgramView's sheet modifier
                     EmptyView()
@@ -190,58 +132,32 @@ struct TrainingView: View {
         Group {
             switch viewModel.presentationMode {
             case .program:
-                ProgramView(
-                    viewModel: ProgramViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        onSessionSelectionChanged: { session in
-                            viewModel.selectedHistorySession = session
-                        },
-                        onWorkoutStartRequested: { template, scheduledWorkout in
-                            viewModel.handleWorkoutStartRequest(
-                                template: template,
-                                scheduledWorkout: scheduledWorkout
-                            )
-                        },
-                        onActiveSheetChanged: { sheet in
-                            viewModel.programActiveSheet = sheet
-                        }
-                    )
+                builder.programView(
+                    onSessionSelectionChangeded: { session in
+                        viewModel.selectedHistorySession = session
+                    },
+                    onWorkoutStartRequested: { template, scheduledWorkout in
+                        viewModel.handleWorkoutStartRequest(
+                            template: template,
+                            scheduledWorkout: scheduledWorkout
+                        )
+                    },
+                    onActiveSheetChanged: { sheet in
+                        viewModel.programActiveSheet = sheet
+                    }
                 )
             case .workouts:
-                WorkoutsView(
-                    viewModel: WorkoutsViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        onWorkoutSelectionChanged: { workout in
-                            viewModel.selectedWorkoutTemplate = workout
-                        }
-                    )
-                )
+                builder.workoutsView(onWorkoutSelectionChanged: { workout in
+                    viewModel.selectedWorkoutTemplate = workout
+                })
             case .exercises:
-                ExercisesView(
-                    viewModel: ExercisesViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        onExerciseSelectionChanged: { exercise in
-                            viewModel.selectedExerciseTemplate = exercise
-                        }
-                    )
-                )
+                builder.exercisesView(onExerciseSelectionChanged: { exercise in
+                    viewModel.selectedExerciseTemplate = exercise
+                })
             case .history:
-                WorkoutHistoryView(
-                    viewModel: WorkoutHistoryViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        onSessionSelectionChanged: { session in
-                            viewModel.selectedHistorySession = session
-                        }
-                    )
-                )
+                builder.workoutHistoryView(onSessionSelectionChanged: { session in
+                    viewModel.selectedHistorySession = session
+                })
             }
         }
     }
@@ -334,13 +250,7 @@ struct TrainingView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
-    TrainingView(
-        viewModel: TrainingViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path
-    )
-    .previewEnvironment()
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.trainingView(path: $path)
+        .previewEnvironment()
 }

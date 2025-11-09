@@ -6,7 +6,8 @@
 //
 
 protocol WorkoutHeatmapInteractor {
-    
+    func getProgressSnapshot(for period: DateInterval) async throws -> ProgressSnapshot
+    func getCompletedSessions(in period: DateInterval) async -> [WorkoutSessionModel]
 }
 
 extension CoreInteractor: WorkoutHeatmapInteractor { }
@@ -20,7 +21,6 @@ class WorkoutHeatmapViewModel {
     let calendar = Calendar.current
     let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
     
-    private(set) var progressAnalytics: ProgressAnalyticsService
     private(set) var performanceMetrics: PerformanceMetrics?
     private(set) var heatmapData: [Date: Int] = [:]
     private(set) var isLoading = false
@@ -28,10 +28,8 @@ class WorkoutHeatmapViewModel {
     
     init(
         interactor: WorkoutHeatmapInteractor,
-        progressAnalytics: ProgressAnalyticsService
     ) {
         self.interactor = interactor
-        self.progressAnalytics = progressAnalytics
     }
     
     func daysInMonth() -> [Date?] {
@@ -85,13 +83,11 @@ class WorkoutHeatmapViewModel {
         }
         
         do {
-            let snapshot = try await progressAnalytics.getProgressSnapshot(for: monthInterval)
+            let snapshot = try await interactor.getProgressSnapshot(for: monthInterval)
             performanceMetrics = snapshot.performanceMetrics
             
-            // Fetch actual workout sessions for this period
-            let sessions = await progressAnalytics.getCompletedSessions(in: monthInterval)
+            let sessions = await interactor.getCompletedSessions(in: monthInterval)
             
-            // Build heatmap data by grouping sessions by day
             var data: [Date: Int] = [:]
             for session in sessions {
                 let dayKey = calendar.startOfDay(for: session.dateCreated)

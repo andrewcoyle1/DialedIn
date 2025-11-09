@@ -228,48 +228,28 @@ struct WorkoutHeatmapView: View {
 }
 
 #Preview("Loaded") {
-    let workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
-    let exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
-    let analytics = ProgressAnalyticsService(
-        workoutSessionManager: workoutSessionManager,
-        exerciseTemplateManager: exerciseTemplateManager
-    )
-    
-    return WorkoutHeatmapView(
+    WorkoutHeatmapView(
         viewModel: WorkoutHeatmapViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            ),
-            progressAnalytics: analytics
+            interactor: CoreInteractor(container: DevPreview.shared.container)
         )
     )
-        .previewEnvironment()
+    .previewEnvironment()
 }
 
 #Preview("Is Loading") {
-    let workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
-    let exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
-    let analytics = ProgressAnalyticsService(
-        workoutSessionManager: workoutSessionManager,
-        exerciseTemplateManager: exerciseTemplateManager
+    WorkoutHeatmapView(
+        viewModel: WorkoutHeatmapViewModel(
+            interactor: CoreInteractor(container: DevPreview.shared.container)
+        )
     )
-    
-    return WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(interactor: CoreInteractor(
-        container: DevPreview.shared.container
-    ), progressAnalytics: analytics))
-        .previewEnvironment()
+    .previewEnvironment()
 }
 
 #Preview("Fail") {
-    let workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
-    let exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
-    let analytics = ProgressAnalyticsService(
-        workoutSessionManager: workoutSessionManager,
-        exerciseTemplateManager: exerciseTemplateManager
+    WorkoutHeatmapView(
+        viewModel: WorkoutHeatmapViewModel(
+            interactor: CoreInteractor(container: DevPreview.shared.container)
+        )
     )
-    
-    return WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(interactor: CoreInteractor(
-        container: DevPreview.shared.container
-    ), progressAnalytics: analytics))
-        .previewEnvironment()
+    .previewEnvironment()
 }

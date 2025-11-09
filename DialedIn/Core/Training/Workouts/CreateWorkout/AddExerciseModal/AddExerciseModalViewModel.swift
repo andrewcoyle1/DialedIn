@@ -25,8 +25,7 @@ class AddExerciseModalViewModel {
     var searchText: String = ""
     private(set) var isLoading: Bool = false
     private(set) var errorMessage: String?
-    var selectedExercises: Binding<[ExerciseTemplateModel]>
-    
+
     var filteredExercises: [ExerciseTemplateModel] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return exercises }
@@ -41,15 +40,11 @@ class AddExerciseModalViewModel {
         }
     }
     
-    init(
-        interactor: AddExerciseInteractor,
-        selectedExercises: Binding<[ExerciseTemplateModel]>
-    ) {
+    init(interactor: AddExerciseInteractor) {
         self.interactor = interactor
-        self.selectedExercises = selectedExercises
     }
     
-    func onExercisePressed(exercise: ExerciseTemplateModel) {
+    func onExercisePressed(exercise: ExerciseTemplateModel, selectedExercises: Binding<[ExerciseTemplateModel]>) {
         if let index = selectedExercises.wrappedValue.firstIndex(where: { $0.id == exercise.id }) {
             selectedExercises.wrappedValue.remove(at: index)
         } else {

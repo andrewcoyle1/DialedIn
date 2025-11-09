@@ -9,10 +9,11 @@ import SwiftUI
 import PhotosUI
 
 struct CreateWorkoutView: View {
-    @State var viewModel: CreateWorkoutViewModel
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
-    
+
+    @State var viewModel: CreateWorkoutViewModel
+
     var body: some View {
         NavigationStack {
             List {
@@ -75,16 +76,11 @@ struct CreateWorkoutView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView, content: {
-                DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+                builder.devSettingsView()
             })
             #endif
             .sheet(isPresented: $viewModel.showAddExerciseModal) {
-                AddExerciseModalView(
-                    viewModel: AddExerciseModalViewModel(
-                        interactor: CoreInteractor(
-                        container: container),
-                        selectedExercises: $viewModel.exercises)
-                )
+                builder.addExerciseModalView(selectedExercises: $viewModel.exercises)
             }
             .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
                 Button("OK") {

@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct WorkoutHistoryView: View {
-    @Environment(DependencyContainer.self) private var container
     @Environment(\.layoutMode) private var layoutMode
+    
     @State var viewModel: WorkoutHistoryViewModel
 
     var body: some View {
@@ -130,12 +130,9 @@ private struct WorkoutHistoryRow: View {
 }
 
 #Preview("Functioning") {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(
-                interactor: CoreInteractor(container: DevPreview.shared.container)
-            )
-        )
+        builder.workoutHistoryView()
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -144,10 +141,9 @@ private struct WorkoutHistoryRow: View {
 #Preview("Slow Loading") {
     let container = DevPreview.shared.container
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
+    let builder = CoreBuilder(container: container)
     return NavigationStack {
-        WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(interactor: CoreInteractor(container: container))
-        )
+        builder.workoutHistoryView()
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -156,10 +152,9 @@ private struct WorkoutHistoryRow: View {
 #Preview("No Data") {
     let container = DevPreview.shared.container
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(sessions: [])))
+    let builder = CoreBuilder(container: container)
     return NavigationStack {
-        WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(interactor: CoreInteractor(container: container))
-        )
+        builder.workoutHistoryView()
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -168,11 +163,10 @@ private struct WorkoutHistoryRow: View {
 #Preview("Remote Loading Failure") {
     let container = DevPreview.shared.container
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 1, showErrorRemote: true)))
-    
+    let builder = CoreBuilder(container: container)
+
     return NavigationStack {
-        WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(interactor: CoreInteractor(container: container))
-        )
+        builder.workoutHistoryView()
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -182,11 +176,10 @@ private struct WorkoutHistoryRow: View {
     let container = DevPreview.shared.container
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(
         services: MockWorkoutSessionServices(delay: 3, showErrorLocal: true)))
-    
+    let builder = CoreBuilder(container: container)
+
     return NavigationStack {
-        WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(interactor: CoreInteractor(container: container))
-        )
+        builder.workoutHistoryView()
         .navigationTitle("Workout History")
     }
     .previewEnvironment()

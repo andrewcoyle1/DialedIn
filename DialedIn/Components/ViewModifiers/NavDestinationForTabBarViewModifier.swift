@@ -101,9 +101,9 @@ struct NavDestinationForTabBarViewModifier: ViewModifier {
                         viewModel: WorkoutSessionDetailViewModel(
                             interactor: CoreInteractor(
                                 container: container
-                            ),
-                            session: session
-                        )
+                            )
+                        ),
+                        workoutSession: session
                     )
                 case .mealDetail(meal: let meal):
                     MealDetailView(

@@ -60,8 +60,8 @@ struct WorkoutTrackerView: View {
                         viewModel: AddExerciseModalViewModel(
                             interactor: CoreInteractor(
                             container: container),
-                            selectedExercises: $viewModel.pendingSelectedTemplates
-                        )
+                        ),
+                        selectedExercises: $viewModel.pendingSelectedTemplates
                     )
                 }
             )

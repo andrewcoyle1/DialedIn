@@ -9,18 +9,22 @@ import SwiftUI
 
 struct WorkoutSessionDetailView: View {
     @Environment(DependencyContainer.self) private var container
-    @State var viewModel: WorkoutSessionDetailViewModel
     @Environment(\.dismiss) private var dismiss
-    
+
+    @State var viewModel: WorkoutSessionDetailViewModel
+
+    var workoutSession: WorkoutSessionModel
+
     var body: some View {
         List {
-            if let endedAt = viewModel.currentSession.endedAt {
-                headerSection(endedAt: endedAt)
+            let session = activeSession
+            if let endedAt = session.endedAt {
+                headerSection(session: session, endedAt: endedAt)
             }
-            summarySection
-            exercisesSection
+            summarySection(session: session)
+            exercisesSection(session: session)
         }
-        .navigationTitle(viewModel.currentSession.name)
+        .navigationTitle(activeSession.name)
         .navigationBarTitleDisplayMode(.large)
         .showCustomAlert(alert: $viewModel.showAlert)
         .showModal(showModal: Binding(get: { viewModel.isLoading }, set: { _ in })) {
@@ -31,15 +35,15 @@ struct WorkoutSessionDetailView: View {
             toolbarContent
         }
         .onAppear {
-            viewModel.loadUnitPreferences()
+            viewModel.loadUnitPreferences(for: workoutSession)
         }
         .sheet(isPresented: $viewModel.showAddExerciseSheet, onDismiss: viewModel.addSelectedExercises) {
             AddExerciseModalView(
                 viewModel: AddExerciseModalViewModel(
                     interactor: CoreInteractor(
                     container: container),
-                    selectedExercises: $viewModel.selectedExerciseTemplates
-                )
+                ),
+                selectedExercises: $viewModel.selectedExerciseTemplates
             )
         }
     }
@@ -49,24 +53,28 @@ struct WorkoutSessionDetailView: View {
     NavigationStack {
         WorkoutSessionDetailView(
             viewModel: WorkoutSessionDetailViewModel(
-                interactor: CoreInteractor(container: DevPreview.shared.container),
-                session: .mock
-            )
+                interactor: CoreInteractor(container: DevPreview.shared.container)
+            ),
+            workoutSession: .mock
         )
     }
     .previewEnvironment()
 }
 
 extension WorkoutSessionDetailView {
-    private func headerSection(endedAt: Date) -> some View {
+    private var activeSession: WorkoutSessionModel {
+        viewModel.currentSession(session: workoutSession)
+    }
+    
+    private func headerSection(session: WorkoutSessionModel, endedAt: Date) -> some View {
         Section {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(viewModel.currentSession.dateCreated.formatted(date: .long, time: .shortened))
+                    Text(session.dateCreated.formatted(date: .long, time: .shortened))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                     
-                    let duration = endedAt.timeIntervalSince(viewModel.currentSession.dateCreated)
+                    let duration = endedAt.timeIntervalSince(session.dateCreated)
                     HStack(spacing: 4) {
                         Image(systemName: "clock")
                             .font(.caption)
@@ -90,25 +98,25 @@ extension WorkoutSessionDetailView {
         }
     }
     
-    private var summarySection: some View {
+    private func summarySection(session: WorkoutSessionModel) -> some View {
         Section {
             HStack(spacing: 12) {
                 StatCard(
-                    value: "\(viewModel.currentSession.exercises.count)",
+                    value: "\(session.exercises.count)",
                     label: "Exercises",
                     icon: "list.bullet",
                     color: .blue
                 )
                 
                 StatCard(
-                    value: "\(viewModel.totalSets)",
+                    value: "\(viewModel.totalSets(session: workoutSession))",
                     label: "Sets",
                     icon: "square.stack.3d.up",
                     color: .purple
                 )
                 
                 StatCard(
-                    value: viewModel.volumeFormatted,
+                    value: viewModel.volumeFormatted(session: workoutSession),
                     label: "Volume",
                     icon: "scalemass",
                     color: .orange
@@ -119,31 +127,33 @@ extension WorkoutSessionDetailView {
         }
     }
     
-    private var exercisesSection: some View {
+    private func exercisesSection(session: WorkoutSessionModel) -> some View {
         Section {
             if viewModel.isEditMode {
-                ForEach(viewModel.editedSession.exercises.indices, id: \.self) { index in
-                    let exercise = viewModel.editedSession.exercises[index]
-                    let preference = viewModel.getUnitPreference(for: exercise.templateId)
-                    EditableExerciseCardWrapper(
-                        viewModel: EditableExerciseCardWrapperViewModel(
-                            interactor: CoreInteractor(container: container),
-                        exercise: exercise,
-                        index: index + 1,
-                        weightUnit: preference.weightUnit,
-                        distanceUnit: preference.distanceUnit,
-                        onExerciseUpdate: { updated in viewModel.updateExercise(at: index, with: updated) },
-                        onAddSet: { viewModel.addSet(to: exercise.id) },
-                        onDeleteSet: { setId in viewModel.deleteSet(setId, from: exercise.id) },
-                        onWeightUnitChange: { unit in viewModel.updateWeightUnit(unit, for: exercise.templateId) },
-                        onDistanceUnitChange: { unit in viewModel.updateDistanceUnit(unit, for: exercise.templateId) }
+                if let editedSession = viewModel.editedSession {
+                    ForEach(editedSession.exercises.indices, id: \.self) { index in
+                        let exercise = editedSession.exercises[index]
+                        let preference = viewModel.getUnitPreference(for: exercise.templateId)
+                        EditableExerciseCardWrapper(
+                            viewModel: EditableExerciseCardWrapperViewModel(
+                                interactor: CoreInteractor(container: container),
+                                exercise: exercise,
+                                index: index + 1,
+                                weightUnit: preference.weightUnit,
+                                distanceUnit: preference.distanceUnit,
+                                onExerciseUpdate: { updated in viewModel.updateExercise(at: index, with: updated) },
+                                onAddSet: { viewModel.addSet(to: exercise.id) },
+                                onDeleteSet: { setId in viewModel.deleteSet(setId, from: exercise.id) },
+                                onWeightUnitChange: { unit in viewModel.updateWeightUnit(unit, for: exercise.templateId) },
+                                onDistanceUnitChange: { unit in viewModel.updateDistanceUnit(unit, for: exercise.templateId) }
+                            )
                         )
-                    )
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            viewModel.deleteExercise(id: exercise.id)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                viewModel.deleteExercise(id: exercise.id)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
                         }
                     }
                 }
@@ -160,7 +170,7 @@ extension WorkoutSessionDetailView {
                     .foregroundStyle(.blue)
                 }
             } else {
-                ForEach(Array(viewModel.currentSession.exercises.enumerated()), id: \.element.id) { index, exercise in
+                ForEach(Array(session.exercises.enumerated()), id: \.element.id) { index, exercise in
                     ExerciseDetailCard(exercise: exercise, index: index + 1)
                 }
             }
@@ -183,6 +193,7 @@ extension WorkoutSessionDetailView {
             } else {
                 Button(role: .destructive) {
                     viewModel.onDeletePressed(
+                        session: workoutSession,
                         onDismiss: {
                             dismiss()
                         }
@@ -197,16 +208,16 @@ extension WorkoutSessionDetailView {
         ToolbarItem(placement: .topBarLeading) {
             if viewModel.isEditMode {
                 Button("Cancel") {
-                    if viewModel.hasUnsavedChanges {
-                        viewModel.showDiscardChangesAlert()
+                    if viewModel.hasUnsavedChanges(session: workoutSession) {
+                        viewModel.showDiscardChangesAlert(session: workoutSession)
                     } else {
-                        viewModel.cancelEditing()
+                        viewModel.cancelEditing(session: workoutSession)
                     }
                 }
                 .disabled(viewModel.isSaving)
             } else {
                 Button("Edit") {
-                    viewModel.enterEditMode()
+                    viewModel.enterEditMode(session: workoutSession)
                 }
             }
         }
@@ -222,15 +233,20 @@ extension WorkoutSessionDetailView {
                     .foregroundStyle(.secondary)
                 
                 ZStack(alignment: .topLeading) {
-                    if viewModel.editedSession.notes?.isEmpty ?? true {
+                    let notesValue = viewModel.editedSession?.notes ?? ""
+                    if notesValue.isEmpty {
                         Text("Add notes here...")
                             .foregroundStyle(.secondary)
                             .padding(.top, 8)
                             .padding(.leading, 6)
                     }
                     TextEditor(text: Binding(
-                        get: { viewModel.editedSession.notes ?? "" },
-                        set: { viewModel.editedSession.notes = $0.isEmpty ? nil : $0 }
+                        get: { viewModel.editedSession?.notes ?? "" },
+                        set: { newValue in
+                            guard var editedSession = viewModel.editedSession else { return }
+                            editedSession.notes = newValue.isEmpty ? nil : newValue
+                            viewModel.editedSession = editedSession
+                        }
                     ))
                     .scrollContentBackground(.hidden)
                     .frame(minHeight: 80)
@@ -240,7 +256,7 @@ extension WorkoutSessionDetailView {
                 .background(.blue.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-        } else if let notes = viewModel.currentSession.notes, !notes.isEmpty {
+        } else if let notes = activeSession.notes, !notes.isEmpty {
             Text(notes)
                 .font(.subheadline)
                 .foregroundStyle(.primary)

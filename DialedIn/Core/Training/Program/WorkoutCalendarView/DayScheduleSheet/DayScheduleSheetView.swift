@@ -8,10 +8,12 @@
 import SwiftUI
 
 struct DayScheduleSheetView: View {
-    @State var viewModel: DayScheduleSheetViewModel
-    @Environment(\.dismiss) private var dismiss
     @Environment(DependencyContainer.self) private var container
-    
+    @Environment(CoreBuilder.self) private var builder
+    @Environment(\.dismiss) private var dismiss
+
+    @State var viewModel: DayScheduleSheetViewModel
+
     var body: some View {
         NavigationStack {
             List {
@@ -68,12 +70,7 @@ struct DayScheduleSheetView: View {
                 }
             }
             .sheet(item: $viewModel.sessionToShow) { session in
-                WorkoutSessionDetailView(
-                    viewModel: WorkoutSessionDetailViewModel(
-                        interactor: CoreInteractor(container: container),
-                        session: session
-                    )
-                )
+                builder.workoutSessionDetailView(session: session)
             }
             .showCustomAlert(alert: $viewModel.showAlert)
         }

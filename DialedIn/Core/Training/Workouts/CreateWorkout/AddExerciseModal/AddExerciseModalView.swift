@@ -8,48 +8,22 @@
 import SwiftUI
 
 struct AddExerciseModalView: View {
-    @State var viewModel: AddExerciseModalViewModel
-    
+
     @Environment(\.dismiss) private var dismiss
-    
+
+    @State var viewModel: AddExerciseModalViewModel
+
+    @Binding var selectedExercises: [ExerciseTemplateModel]
+
     var body: some View {
         NavigationStack {
             Group {
                 if viewModel.isLoading {
-                    VStack {
-                        ProgressView()
-                        Text("Loading exercises...")
-                            .foregroundStyle(.secondary)
-                    }
+                    progressSection
                 } else if let errorMessage = viewModel.errorMessage {
-                    VStack(spacing: 16) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.largeTitle)
-                            .foregroundStyle(.orange)
-                        Text("Error Loading Exercises")
-                            .font(.headline)
-                        Text(errorMessage)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                        Button("Try Again") {
-                            Task {
-                                await viewModel.loadExercises()
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                    .padding()
+                    errorSection(errorMessage: errorMessage)
                 } else {
-                    List {
-                        ForEach(viewModel.filteredExercises) { exercise in
-                            CustomListCellView(imageName: exercise.imageURL, title: exercise.name, subtitle: exercise.description, isSelected: viewModel.selectedExercises.contains(where: { $0.id == exercise.id }))
-                                .anyButton {
-                                    viewModel.onExercisePressed(exercise: exercise)
-                                }
-                                .removeListRowFormatting()
-                        }
-                    }
-                    .scrollIndicators(.hidden)
+                    listSection
                 }
             }
             .searchable(text: $viewModel.searchText)
@@ -74,21 +48,66 @@ struct AddExerciseModalView: View {
             }
         }
     }
+
+    private var progressSection: some View {
+        VStack {
+            ProgressView()
+            Text("Loading exercises...")
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func errorSection(errorMessage: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.largeTitle)
+                .foregroundStyle(.orange)
+            Text("Error Loading Exercises")
+                .font(.headline)
+            Text(errorMessage)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button("Try Again") {
+                Task {
+                    await viewModel.loadExercises()
+                }
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+    }
+
+    private var listSection: some View {
+        List {
+            ForEach(viewModel.filteredExercises) { exercise in
+                CustomListCellView(
+                    imageName: exercise.imageURL,
+                    title: exercise.name,
+                    subtitle: exercise.description,
+                    isSelected: selectedExercises.contains(
+                        where: {
+                            $0.id == exercise.id
+                        })
+                )
+                    .anyButton {
+                        viewModel.onExercisePressed(exercise: exercise, selectedExercises: $selectedExercises)
+                    }
+                    .removeListRowFormatting()
+            }
+        }
+        .scrollIndicators(.hidden)
+    }
 }
 
 #Preview {
     @Previewable @State var showModal: Bool = true
     @Previewable @State var selectedExercises: [ExerciseTemplateModel] = [ExerciseTemplateModel.mock]
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     Button("Show Modal") {
         showModal = true
     }
     .sheet(isPresented: $showModal) {
-        AddExerciseModalView(
-            viewModel: AddExerciseModalViewModel(
-                interactor: CoreInteractor(container: DevPreview.shared.container),
-                selectedExercises: $selectedExercises
-            )
-        )
+        builder.addExerciseModalView(selectedExercises: $selectedExercises)
     }
     .previewEnvironment()
 }

@@ -865,6 +865,7 @@
 				Resources/PrebuiltWorkouts.json,
 				Root/AppDelegate.swift,
 				Root/AppEntryPoint.swift,
+				Root/CoreBuilder.swift,
 				Root/CoreInteractor.swift,
 				Root/Dependencies.swift,
 				Root/DependencyContainer.swift,

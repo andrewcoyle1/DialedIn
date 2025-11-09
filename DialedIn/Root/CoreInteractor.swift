@@ -1422,6 +1422,14 @@ struct CoreInteractor {
         try await trainingAnalyticsManager.getStrengthProgression(for: exerciseId, in: period)
     }
     
+    func getCompletedSessions(in period: DateInterval) async -> [WorkoutSessionModel] {
+        let sessions = (try? workoutSessionManager.getAllLocalWorkoutSessions()) ?? []
+        return sessions.filter { session in
+            guard let endedAt = session.endedAt else { return false }
+            return period.contains(endedAt)
+        }
+    }
+    
     func invalidateCache() {
         trainingAnalyticsManager.invalidateCache()
     }
