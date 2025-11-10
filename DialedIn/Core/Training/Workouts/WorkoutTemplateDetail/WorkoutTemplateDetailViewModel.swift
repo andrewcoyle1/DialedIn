@@ -32,7 +32,6 @@ class WorkoutTemplateDetailViewModel {
     var showStartSessionSheet: Bool = false
     var showAlert: AnyAppAlert?
     var showEditSheet: Bool = false
-    var showDeleteConfirmation: Bool = false
     var isBookmarked: Bool = false
     var isFavourited: Bool = false
     
@@ -102,7 +101,24 @@ class WorkoutTemplateDetailViewModel {
             showAlert = AnyAppAlert(title: "Failed to update favourite status", subtitle: "Please try again later")
         }
     }
-    
+
+    func showDeleteConfirmation(workoutTemplate: WorkoutTemplateModel, onDismiss: @escaping @Sendable () -> Void) {
+        showAlert = AnyAppAlert(title: "Delete Workout", subtitle: "Are you sure you want to delete '\(workoutTemplate.name)'? This action cannot be undone.", buttons: {
+            AnyView(
+                HStack {
+                    Button("Delete", role: .destructive) {
+                        Task {
+                            await self.deleteWorkout(template: workoutTemplate, onDismiss: {
+                                onDismiss()
+                            })
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                }
+            )
+        })
+    }
+
     func deleteWorkout(template: WorkoutTemplateModel, onDismiss: @escaping () -> Void) async {
         isDeleting = true
         do {

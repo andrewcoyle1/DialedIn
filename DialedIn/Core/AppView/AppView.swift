@@ -9,6 +9,7 @@ import SwiftUI
 
 struct AppView: View {
 
+    @Environment(CoreBuilder.self) private var builder
     @Environment(DependencyContainer.self) private var container
     @State var viewModel: AppViewModel
 
@@ -31,13 +32,7 @@ struct AppView: View {
                     showTabBar:
                         viewModel.showTabBar,
                     tabBarView: {
-                        AdaptiveMainView(
-                            viewModel: AdaptiveMainViewModel(
-                                interactor: CoreInteractor(
-                                    container: container
-                                )
-                            )
-                        )
+                        builder.adaptiveMainView()
                     },
                     onboardingView: {
                         OnboardingWelcomeView(

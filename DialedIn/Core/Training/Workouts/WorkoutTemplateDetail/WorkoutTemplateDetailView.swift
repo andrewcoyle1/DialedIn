@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct WorkoutTemplateDetailView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
     @Environment(\.editMode) private var editMode
 
@@ -25,12 +25,7 @@ struct WorkoutTemplateDetailView: View {
             if let url = workoutTemplate.imageURL {
                 imageSection(url: url)
             }
-
-            Section(header: Text("Exercises")) {
-                ForEach(workoutTemplate.exercises) { exercise in
-                    exerciseSection(exercise: exercise)
-                }
-            }
+            exercisesSection
         }
         .navigationTitle(workoutTemplate.name)
         .navigationSubtitle(workoutTemplate.description ?? "")
@@ -39,7 +34,7 @@ struct WorkoutTemplateDetailView: View {
         .showCustomAlert(alert: $viewModel.showAlert)
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
         .toolbar {
@@ -53,30 +48,21 @@ struct WorkoutTemplateDetailView: View {
             viewModel.isFavourited = user?.favouritedWorkoutTemplateIds?.contains(workoutTemplate.id) ?? false
         }
         .sheet(isPresented: $viewModel.showStartSessionSheet) {
-            WorkoutStartView(viewModel: WorkoutStartViewModel(interactor: CoreInteractor(container: container)), template: workoutTemplate)
+            builder.workoutStartView(template: workoutTemplate)
         }
         .sheet(isPresented: $viewModel.showEditSheet) {
-            CreateWorkoutView(
-                viewModel: CreateWorkoutViewModel(
-                    interactor: CoreInteractor(
-                    container: container),
-                    workoutTemplate: workoutTemplate)
-            )
-        }
-        .confirmationDialog("Delete Workout", isPresented: $viewModel.showDeleteConfirmation, titleVisibility: .visible) {
-            Button("Delete", role: .destructive) {
-                Task {
-                    await viewModel.deleteWorkout(template: workoutTemplate, onDismiss: {
-                        dismiss()
-                    })
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Are you sure you want to delete '\(workoutTemplate.name)'? This action cannot be undone.")
+            builder.createWorkoutView(workoutTemplate: workoutTemplate)
         }
     }
-    
+
+    private var exercisesSection: some View {
+        Section(header: Text("Exercises")) {
+            ForEach(workoutTemplate.exercises) { exercise in
+                exerciseSection(exercise: exercise)
+            }
+        }
+    }
+
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         #if DEBUG || MOCK
@@ -134,7 +120,9 @@ struct WorkoutTemplateDetailView: View {
         if isAuthor && editMode?.wrappedValue == .active {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(role: .destructive) {
-                    viewModel.showDeleteConfirmation = true
+                    viewModel.showDeleteConfirmation(workoutTemplate: workoutTemplate, onDismiss: {
+                        dismiss()
+                    })
                 } label: {
                     if viewModel.isDeleting {
                         ProgressView()
@@ -187,15 +175,9 @@ struct WorkoutTemplateDetailView: View {
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        WorkoutTemplateDetailView(
-            viewModel: WorkoutTemplateDetailViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ),
-            workoutTemplate: WorkoutTemplateModel.mock
-        )
+        builder.workoutTemplateDetailView(workout: WorkoutTemplateModel.mock)
     }
     .previewEnvironment()
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProgramView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
     @State var viewModel: ProgramViewModel
     
@@ -33,7 +33,7 @@ struct ProgramView: View {
         }
         .sheet(isPresented: $viewModel.showAddGoalSheet) {
             if let plan = viewModel.currentTrainingPlan {
-                AddGoalView(viewModel: AddGoalViewModel(interactor: CoreInteractor(container: container)), plan: plan)
+                builder.addGoalView(plan: plan)
             }
         }
     }
@@ -67,33 +67,25 @@ struct ProgramView: View {
                         Spacer()
                         Menu {
                             Button {
-                                // DispatchQueue.main.async {
-                                    viewModel.setActiveSheet(.programPicker)
-                                // }
+                                viewModel.setActiveSheet(.programPicker)
                             } label: {
                                 Label("Manage Programs", systemImage: "list.bullet")
                             }
                             
                             Button {
-                                // DispatchQueue.main.async {
-                                    viewModel.setActiveSheet(.progressDashboard)
-                                // }
+                                viewModel.setActiveSheet(.progressDashboard)
                             } label: {
                                 Label("View Analytics", systemImage: "chart.xyaxis.line")
                             }
 
                             Button {
-                                // DispatchQueue.main.async {
-                                    viewModel.setActiveSheet(.strengthProgress)
-                                // }
+                                viewModel.setActiveSheet(.strengthProgress)
                             } label: {
                                 Label("Strength Progress", systemImage: "chart.line.uptrend.xyaxis")
                             }
 
                             Button {
-                                // DispatchQueue.main.async {
-                                    viewModel.setActiveSheet(.workoutHeatmap)
-                                // }
+                                viewModel.setActiveSheet(.workoutHeatmap)
                             } label: {
                                 Label("Training Frequency", systemImage: "square.grid.3x3.fill.square")
                             }
@@ -159,25 +151,23 @@ struct ProgramView: View {
                 Section {
                     ForEach(todaysWorkouts) { workout in
                         if workout.isCompleted {
-                            WorkoutSummaryCardView(
-                                viewModel: WorkoutSummaryCardViewModel(
-                                    interactor: CoreInteractor(container: container),
-                                    scheduledWorkout: workout,
-                                    onTap: {
-                                        viewModel.openCompletedSession(for: workout)
-                                    }
-                                )
+                            builder.workoutSummaryCardView(
+                                scheduledWorkout: workout,
+                                onTap: {
+                                    viewModel.openCompletedSession(
+                                        for: workout
+                                    )
+                                }
                             )
                             .id(workout.id)
                         } else {
-                            TodaysWorkoutCardView(
-                                viewModel: TodaysWorkoutCardViewModel(interactor: CoreInteractor(container: container),
+                            builder.todaysWorkoutCardView(
                                 scheduledWorkout: workout,
                                 onStart: {
                                     Task {
                                         await viewModel.startWorkout(workout)
                                     }
-                                })
+                                }
                             )
                         }
                     }
@@ -189,16 +179,15 @@ struct ProgramView: View {
     }
     
     private var calendarSection: some View {
-        WorkoutCalendarView(
-            viewModel: WorkoutCalendarViewModel(
-                interactor: CoreInteractor(
-                    container: container
-                ), onSessionSelectionChanged: { session in
-                    viewModel.selectedHistorySession = session
-                    viewModel.handleSessionSelectionChanged(session)
-                },
-                onWorkoutStartRequested: viewModel.handleWorkoutStartRequest
-            )
+        builder.workoutCalendarView(
+            onSessionSelectionChanged: { session in
+                viewModel.selectedHistorySession = session
+                viewModel
+                    .handleSessionSelectionChanged(
+                        session
+                    )
+            },
+            onWorkoutStartRequested: viewModel.handleWorkoutStartRequest
         )
     }
     
@@ -225,23 +214,12 @@ struct ProgramView: View {
         } else {
             ForEach(workoutsForDay) { workout in
                 if workout.isCompleted {
-                    WorkoutSummaryCardView(
-                        viewModel: WorkoutSummaryCardViewModel(
-                            interactor: CoreInteractor(container: container),
-                            scheduledWorkout: workout,
-                            onTap: {
-                                viewModel.openCompletedSession(for: workout)
-                            }
-                        )
-                    )
+                    builder.workoutSummaryCardView(scheduledWorkout: workout, onTap: {
+                        viewModel.openCompletedSession(for: workout)
+                    })
                     .id(workout.id)
                 } else {
-                    ScheduledWorkoutRowView(
-                        viewModel: ScheduledWorkoutRowViewModel(
-                            interactor: CoreInteractor(container: container),
-                            scheduledWorkout: workout
-                        )
-                    )
+                    builder.scheduledWorkoutRowView(scheduledWorkout: workout)
                     .contentShape(
                         Rectangle()
                     )

@@ -8,45 +8,21 @@
 import SwiftUI
 
 struct AdaptiveMainView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     @State var viewModel: AdaptiveMainViewModel
 
     var body: some View {
         #if targetEnvironment(macCatalyst)
-        SplitViewContainer(
-            viewModel: SplitViewContainerViewModel(
-                interactor: CoreInteractor(
-                    container: container
-                )
-            ),
-            path: $viewModel.path,
-            tab: $viewModel.tab
-        )
+        builder.splitViewContainer(path: $viewModel.path, tab: $viewModel.tab)
         .layoutMode(.splitView)
         #else
         if horizontalSizeClass == .compact {
-            TabBarView(
-                viewModel: TabBarViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                ),
-                path: $viewModel.path,
-                tab: $viewModel.tab
-            )
+            builder.tabBarView(path: $viewModel.path, tab: $viewModel.tab)
             .layoutMode(.tabBar)
         } else {
-            SplitViewContainer(
-                viewModel: SplitViewContainerViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                ),
-                path: $viewModel.path,
-                tab: $viewModel.tab
-            )
+            builder.splitViewContainer(path: $viewModel.path, tab: $viewModel.tab)
             .layoutMode(
                 .splitView
             )

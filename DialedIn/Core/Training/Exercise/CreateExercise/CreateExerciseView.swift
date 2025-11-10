@@ -9,7 +9,7 @@ import SwiftUI
 import PhotosUI
 
 struct CreateExerciseView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: CreateExerciseViewModel
@@ -65,13 +65,7 @@ struct CreateExerciseView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView) {
-                DevSettingsView(
-                    viewModel: DevSettingsViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    )
-                )
+                builder.devSettingsView()
             }
             #endif
             .showCustomAlert(alert: $viewModel.alert)
@@ -197,39 +191,42 @@ struct CreateExerciseView: View {
 
 #Preview("As sheet") {
     @Previewable @State var isPresented: Bool = true
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     Button {
         isPresented = true
     } label: {
         Text("Present")
     }
     .sheet(isPresented: $isPresented) {
-        CreateExerciseView(viewModel: CreateExerciseViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        builder.createExerciseView()
     }
     .previewEnvironment()
 }
 
 #Preview("Is saving") {
     @Previewable @State var isPresented: Bool = true
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     Button {
         isPresented = true
     } label: {
         Text("Present")
     }
     .sheet(isPresented: $isPresented) {
-        CreateExerciseView(viewModel: CreateExerciseViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        builder.createExerciseView()
     }
     .previewEnvironment()
 }
 
 #Preview("As fullscreen cover") {
     @Previewable @State var isPresented: Bool = true
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     Button {
         isPresented = true
     } label: {
         Text("Present")
     }
     .fullScreenCover(isPresented: $isPresented) {
-        CreateExerciseView(viewModel: CreateExerciseViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        builder.createExerciseView()
     }
     .previewEnvironment()
     

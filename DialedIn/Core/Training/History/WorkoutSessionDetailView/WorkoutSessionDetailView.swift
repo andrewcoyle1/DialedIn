@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct WorkoutSessionDetailView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: WorkoutSessionDetailViewModel
@@ -38,25 +38,15 @@ struct WorkoutSessionDetailView: View {
             viewModel.loadUnitPreferences(for: workoutSession)
         }
         .sheet(isPresented: $viewModel.showAddExerciseSheet, onDismiss: viewModel.addSelectedExercises) {
-            AddExerciseModalView(
-                viewModel: AddExerciseModalViewModel(
-                    interactor: CoreInteractor(
-                    container: container),
-                ),
-                selectedExercises: $viewModel.selectedExerciseTemplates
-            )
+            builder.addExerciseModalView(selectedExercises: $viewModel.selectedExerciseTemplates)
         }
     }
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        WorkoutSessionDetailView(
-            viewModel: WorkoutSessionDetailViewModel(
-                interactor: CoreInteractor(container: DevPreview.shared.container)
-            ),
-            workoutSession: .mock
-        )
+        builder.workoutSessionDetailView(session: .mock)
     }
     .previewEnvironment()
 }
@@ -134,19 +124,16 @@ extension WorkoutSessionDetailView {
                     ForEach(editedSession.exercises.indices, id: \.self) { index in
                         let exercise = editedSession.exercises[index]
                         let preference = viewModel.getUnitPreference(for: exercise.templateId)
-                        EditableExerciseCardWrapper(
-                            viewModel: EditableExerciseCardWrapperViewModel(
-                                interactor: CoreInteractor(container: container),
-                                exercise: exercise,
-                                index: index + 1,
-                                weightUnit: preference.weightUnit,
-                                distanceUnit: preference.distanceUnit,
-                                onExerciseUpdate: { updated in viewModel.updateExercise(at: index, with: updated) },
-                                onAddSet: { viewModel.addSet(to: exercise.id) },
-                                onDeleteSet: { setId in viewModel.deleteSet(setId, from: exercise.id) },
-                                onWeightUnitChange: { unit in viewModel.updateWeightUnit(unit, for: exercise.templateId) },
-                                onDistanceUnitChange: { unit in viewModel.updateDistanceUnit(unit, for: exercise.templateId) }
-                            )
+                        builder.editableExerciseCardWrapper(
+                            exercise: exercise,
+                            index: index + 1,
+                            weightUnit: preference.weightUnit,
+                            distanceUnit: preference.distanceUnit,
+                            onExerciseUpdate: { updated in viewModel.updateExercise(at: index, with: updated) },
+                            onAddSet: { viewModel.addSet(to: exercise.id) },
+                            onDeleteSet: { setId in viewModel.deleteSet(setId, from: exercise.id) },
+                            onWeightUnitChange: { unit in viewModel.updateWeightUnit(unit, for: exercise.templateId) },
+                            onDistanceUnitChange: { unit in viewModel.updateDistanceUnit(unit, for: exercise.templateId) }
                         )
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {

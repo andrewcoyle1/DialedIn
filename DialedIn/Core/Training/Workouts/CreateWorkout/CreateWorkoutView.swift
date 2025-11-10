@@ -14,6 +14,8 @@ struct CreateWorkoutView: View {
 
     @State var viewModel: CreateWorkoutViewModel
 
+    var workoutTemplate: WorkoutTemplateModel?
+    
     var body: some View {
         NavigationStack {
             List {
@@ -22,42 +24,9 @@ struct CreateWorkoutView: View {
                 exerciseTemplatesSection
             }
             .navigationTitle(viewModel.isEditMode ? "Edit Workout" : "Create Workout")
-            .onAppear { viewModel.loadInitialState() }
+            .onAppear { viewModel.loadInitialState(workoutTemplate: workoutTemplate) }
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        viewModel.cancel(onDismiss: { dismiss() })
-                    } label: {
-                    Image(systemName: "xmark")
-                    }
-                }
-                #if DEBUG || MOCK
-                ToolbarSpacer(.fixed, placement: .topBarLeading)
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        viewModel.showDebugView = true
-                    } label: {
-                        Image(systemName: "info")
-                    }
-                }
-                #endif
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task {
-                            do {
-                                try await viewModel.onSavePressed(onDismiss: { dismiss() })
-                            } catch {
-                                await MainActor.run {
-                                    viewModel.saveError = "Failed to save workout. Please try again."
-                                }
-                            }
-                        }
-                    } label: {
-                    Image(systemName: "checkmark")
-                    }
-                    .buttonStyle(.glassProminent)
-                    .disabled(!viewModel.canSave || viewModel.isSaving)
-                }
+                toolbarContent
             }
             .onChange(of: viewModel.selectedPhotoItem) {
                 guard let newItem = viewModel.selectedPhotoItem else { return }
@@ -200,6 +169,44 @@ struct CreateWorkoutView: View {
             }
         }
     }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                viewModel.cancel(onDismiss: { dismiss() })
+            } label: {
+            Image(systemName: "xmark")
+            }
+        }
+        #if DEBUG || MOCK
+        ToolbarSpacer(.fixed, placement: .topBarLeading)
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                viewModel.showDebugView = true
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                Task {
+                    do {
+                        try await viewModel.onSavePressed(onDismiss: { dismiss() })
+                    } catch {
+                        await MainActor.run {
+                            viewModel.saveError = "Failed to save workout. Please try again."
+                        }
+                    }
+                }
+            } label: {
+            Image(systemName: "checkmark")
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(!viewModel.canSave || viewModel.isSaving)
+        }
+    }
 }
 
 #Preview("With Exercises") {
@@ -210,9 +217,9 @@ struct CreateWorkoutView: View {
     .sheet(isPresented: $showingSheet) {
         CreateWorkoutView(
             viewModel: CreateWorkoutViewModel(interactor: CoreInteractor(
-                container: DevPreview.shared.container),
-                workoutTemplate: WorkoutTemplateModel.mock
-            )
+                container: DevPreview.shared.container)
+            ),
+            workoutTemplate: WorkoutTemplateModel.mock
         )
     }
     .previewEnvironment()

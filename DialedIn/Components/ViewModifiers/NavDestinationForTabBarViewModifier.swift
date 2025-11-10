@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct NavDestinationForTabBarViewModifier: ViewModifier {
-    
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
     let path: Binding<[TabBarPathOption]>
     
     // swiftlint:disable:next function_body_length cyclomatic_complexity
@@ -18,156 +18,49 @@ struct NavDestinationForTabBarViewModifier: ViewModifier {
             .navigationDestination(for: TabBarPathOption.self) { newValue in
                 switch newValue {
                 case .exerciseTemplate(exerciseTemplate: let exerciseTemplate):
-                    ExerciseTemplateDetailView(
-                        viewModel: ExerciseTemplateDetailViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        ),
-                        exerciseTemplate: exerciseTemplate
-                    )
+                    builder.exerciseTemplateDetailView(exercise: exerciseTemplate)
                 case .exerciseTemplateList(templateIds: let templateIds):
-                    ExerciseTemplateListView(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        templateIds: templateIds
-                    )
+                    builder.exerciseTemplateListView(templateIds: templateIds)
                 case .workoutTemplateList(templateIds: let templateIds):
-                    WorkoutTemplateListView(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        templateIds: templateIds
-                    )
+                    builder.workoutTemplateListView(templateIds: templateIds)
                 case .workoutTemplateDetail(template: let template):
-                    WorkoutTemplateDetailView(
-                        viewModel: WorkoutTemplateDetailViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        ),
-                        workoutTemplate: template
-                    )
+                    builder.workoutTemplateDetailView(workout: template)
                 case .ingredientTemplateDetail(template: let template):
-                    IngredientDetailView(
-                        viewModel: IngredientDetailViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            ingredientTemplate: template
-                        )
-                    )
+                    builder.ingredientDetailView(ingredientTemplate: template)
                 case .ingredientTemplateList(templateIds: let templateIds):
-                    IngredientTemplateListView(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
-                        templateIds: templateIds
-                    )
+                    builder.ingredientTemplateListView(templateIds: templateIds)
                 case .ingredientAmountView(ingredient: let ingredient, onPick: let onPick):
-                    IngredientAmountView(
-                        viewModel: IngredientAmountViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            ingredient: ingredient,
-                            onConfirm: onPick
-                        )
-                    )
+                    builder.ingredientAmountView(ingredient: ingredient, onPick: onPick)
                 case .recipeTemplateDetail(template: let template):
-                    RecipeDetailView(
-                        viewModel: RecipeDetailViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            recipeTemplate: template
-                        )
-                    )
+                    builder.recipeDetailView(recipeTemplate: template)
                 case .recipeTemplateList(templateIds: let templateIds):
-                    RecipeTemplateListView(interactor: CoreInteractor(container: container), templateIds: templateIds)
+                    builder.recipeTemplateListView(templateIds: templateIds)
                 case .recipeAmountView(recipe: let recipe, onPick: let onPick):
-                    RecipeAmountView(
-                        viewModel: RecipeAmountViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            recipe: recipe,
-                            onConfirm: onPick
-                        )
-                    )
+                    builder.recipeAmountView(recipe: recipe, onPick: onPick)
                 case .workoutSessionDetail(session: let session):
-                    WorkoutSessionDetailView(
-                        viewModel: WorkoutSessionDetailViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        ),
-                        workoutSession: session
-                    )
+                    builder.workoutSessionDetailView(session: session)
                 case .mealDetail(meal: let meal):
-                    MealDetailView(
-                        viewModel: MealDetailViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            ),
-                            meal: meal
-                        )
-                    )
+                    builder.mealDetailView(meal: meal)
                 case .profileGoals:
-                    ProfileGoalsDetailView(viewModel: ProfileGoalsDetailViewModel(interactor: CoreInteractor(container: container)))
+                    builder.profileGoalsDetailView()
                 case .profileEdit:
-                    ProfileEditView(viewModel: ProfileEditViewModel(interactor: CoreInteractor(container: container)))
+                    builder.profileEditView()
                 case .profileNutritionDetail:
-                    ProfileNutritionDetailView(
-                        viewModel: ProfileNutritionDetailViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        )
-                    )
+                    builder.profileNutritionDetailView()
                 case .profilePhysicalStats:
-                    ProfilePhysicalStatsView(
-                        viewModel: ProfilePhysicalStatsViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        )
-                    )
+                    builder.profilePhysicalStatsView()
                 case .settingsView:
-                    SettingsView(
-                        viewModel: SettingsViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        ),
-                        path: path
-                    )
+                    builder.settingsView(path: path)
                 case .manageSubscription:
-                    ManageSubscriptionView()
+                    builder.manageSubscriptionView()
                 case .programPreview(template: let template, startDate: let startDate):
-                    ProgramPreviewView(
-                        viewModel: ProgramPreviewViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        ),
-                        template: template,
-                        startDate: startDate
-                    )
+                    builder.programPreviewView(template: template, startDate: startDate)
                 case .customProgramBuilderView:
-                    CustomProgramBuilderView(
-                        viewModel: CustomProgramBuilderViewModel(
-                            interactor: CoreInteractor(
-                                container: container
-                            )
-                        ),
-                        path: path
-                    )
+                    builder.customProgramBuilderView(path: path)
                 case .programGoalsView(plan: let plan):
-                    ProgramGoalsView(viewModel: ProgramGoalsViewModel(interactor: CoreInteractor(container: container), plan: plan))
+                    builder.programGoalsView(plan: plan)
                 case .programScheduleView(plan: let plan):
-                    ProgramScheduleView(viewModel: ProgramScheduleViewModel(interactor: CoreInteractor(container: container)), plan: plan)
+                    builder.programScheduleView(plan: plan)
                 }
             }
     }

@@ -10,13 +10,7 @@ import SwiftUI
 struct EditableExerciseCardWrapper: View {
     
     @State var viewModel: EditableExerciseCardWrapperViewModel
-    
-    init(
-        viewModel: EditableExerciseCardWrapperViewModel
-    ) {
-        self.viewModel = viewModel
-    }
-    
+
     var body: some View {
         EditableExerciseCardView(
             exercise: $viewModel.localExercise,

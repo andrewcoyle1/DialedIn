@@ -9,7 +9,7 @@ import SwiftUI
 import PhotosUI
 
 struct CreateIngredientView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @State var viewModel: CreateIngredientViewModel
     @Environment(\.dismiss) private var dismiss
     
@@ -73,7 +73,7 @@ struct CreateIngredientView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView) {
-                DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+                builder.devSettingsView()
             }
             #endif
             .showCustomAlert(alert: $viewModel.alert)
@@ -265,39 +265,43 @@ struct CreateIngredientView: View {
 
 #Preview("As sheet") {
     @Previewable @State var isPresented: Bool = true
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     Button {
         isPresented = true
     } label: {
         Text("Present")
     }
     .sheet(isPresented: $isPresented) {
-        CreateIngredientView(viewModel: CreateIngredientViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        builder.createIngredientView()
     }
     .previewEnvironment()
 }
 
 #Preview("Is saving") {
     @Previewable @State var isPresented: Bool = true
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     Button {
         isPresented = true
     } label: {
         Text("Present")
     }
     .sheet(isPresented: $isPresented) {
-        CreateIngredientView(viewModel: CreateIngredientViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        builder.createIngredientView()
     }
     .previewEnvironment()
 }
 
 #Preview("As fullscreen cover") {
     @Previewable @State var isPresented: Bool = true
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+
     Button {
         isPresented = true
     } label: {
         Text("Present")
     }
     .fullScreenCover(isPresented: $isPresented) {
-        CreateIngredientView(viewModel: CreateIngredientViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        builder.createIngredientView()
     }
     .previewEnvironment()
     

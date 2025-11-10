@@ -56,12 +56,8 @@ class CreateWorkoutViewModel {
         workoutTemplate != nil
     }
     
-    init(
-        interactor: CreateWorkoutInteractor,
-        workoutTemplate: WorkoutTemplateModel? = nil
-    ) {
+    init(interactor: CreateWorkoutInteractor) {
         self.interactor = interactor
-        self.workoutTemplate = workoutTemplate
     }
     
     func onImageSelectorPressed() {
@@ -69,7 +65,8 @@ class CreateWorkoutViewModel {
         isImagePickerPresented = true
     }
         
-    func loadInitialState() {
+    func loadInitialState(workoutTemplate: WorkoutTemplateModel?) {
+        self.workoutTemplate = workoutTemplate
         guard let template = workoutTemplate else { return }
         // Pre-populate fields for edit mode
         workoutName = template.name

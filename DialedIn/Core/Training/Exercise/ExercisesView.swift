@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ExercisesView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
     @State var viewModel: ExercisesViewModel
     
@@ -61,13 +61,7 @@ struct ExercisesView: View {
             }
         }
         .sheet(isPresented: $viewModel.showCreateExercise) {
-            CreateExerciseView(
-                viewModel: CreateExerciseViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.createExerciseView()
         }
     }
     
@@ -265,8 +259,9 @@ struct ExercisesView: View {
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        ExercisesView(viewModel: ExercisesViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        builder.exercisesView()
     }
     .previewEnvironment()
 }

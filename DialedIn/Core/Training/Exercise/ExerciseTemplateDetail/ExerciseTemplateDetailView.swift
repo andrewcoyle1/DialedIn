@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ExerciseTemplateDetailView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @State var viewModel: ExerciseTemplateDetailViewModel
     var exerciseTemplate: ExerciseTemplateModel
     
@@ -71,13 +71,7 @@ struct ExerciseTemplateDetailView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
     }
@@ -393,8 +387,9 @@ struct ExerciseTemplateDetailView: View {
 }
 
 #Preview("About Section") {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        ExerciseTemplateDetailView(viewModel: ExerciseTemplateDetailViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), exerciseTemplate: ExerciseTemplateModel.mocks[0])
+        builder.exerciseTemplateDetailView(exercise: ExerciseTemplateModel.mocks[0])
     }
     .previewEnvironment()
 }

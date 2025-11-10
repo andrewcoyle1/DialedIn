@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct DashboardView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: DashboardViewModel
@@ -44,17 +44,11 @@ struct DashboardView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
         .sheet(isPresented: $viewModel.showNotifications) {
-            NotificationsView(viewModel: NotificationsViewModel(interactor: CoreInteractor(container: container)))
+            builder.notificationsView()
         }
         .onOpenURL { url in
             viewModel.handleDeepLink(url: url)
@@ -80,7 +74,7 @@ struct DashboardView: View {
     
     private var nutritionTargetSection: some View {
         Section {
-            NutritionTargetChartView(viewModel: NutritionTargetChartViewModel(interactor: CoreInteractor(container: container)))
+            builder.nutritionTargetChartView()
         } header: {
             Text("Nutrition & Targets")
         }
@@ -126,13 +120,7 @@ struct DashboardView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
-    DashboardView(
-        viewModel: DashboardViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.dashboardView(path: $path)
     .previewEnvironment()
 }
