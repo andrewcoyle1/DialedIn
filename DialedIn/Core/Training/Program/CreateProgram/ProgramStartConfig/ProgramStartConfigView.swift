@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ProgramStartConfigView: View {
-    @Environment(DependencyContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
     
     @State var viewModel: ProgramStartConfigViewModel
@@ -145,19 +144,18 @@ struct ProgramStartConfigView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        ProgramStartConfigView(
-            viewModel: ProgramStartConfigViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ),
+        builder.programStartConfigView(
             path: $path,
             template: ProgramTemplateModel.mock,
-            onStart: { _, _, _ in
-
+            onStart: {
+                _,
+                _,
+                _ in
+                
             }
         )
+        .previewEnvironment()
     }
-    .previewEnvironment()
 }

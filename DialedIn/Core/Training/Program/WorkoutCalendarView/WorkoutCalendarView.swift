@@ -8,15 +8,26 @@
 import SwiftUI
 
 struct WorkoutCalendarView: View {
+
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: WorkoutCalendarViewModel
-    @State private var scheduleViewModel: EnhancedScheduleViewModel?
-    @Environment(DependencyContainer.self) private var container
-    
+
     var body: some View {
         Section(isExpanded: $viewModel.isShowingCalendar) {
-            if let scheduleViewModel {
-                EnhancedScheduleView(viewModel: scheduleViewModel)
-            }
+            builder.enhancedScheduleView(
+                getScheduledWorkouts: {
+                    viewModel.scheduledWorkouts
+                },
+                onDateSelected: { date in
+                    viewModel.selectedDate = date
+                    viewModel.collapsedSubtitle = "Next: \(date.formatted(.dateTime.day().month()))"
+                },
+                onDateTapped: { date in
+                    viewModel.handleDateTapped(
+                        date
+                    )
+                })
         } header: {
             HStack(alignment: .firstTextBaseline) {
                 Text("Plan")
@@ -58,19 +69,6 @@ struct WorkoutCalendarView: View {
         }
         .showCustomAlert(alert: $viewModel.showAlert)
         .onAppear {
-            if scheduleViewModel == nil {
-                scheduleViewModel = EnhancedScheduleViewModel(
-                    interactor: CoreInteractor(container: container),
-                    getScheduledWorkouts: { viewModel.scheduledWorkouts },
-                    onDateSelected: { date in
-                        viewModel.selectedDate = date
-                        viewModel.collapsedSubtitle = "Next: \(date.formatted(.dateTime.day().month()))"
-                    },
-                    onDateTapped: { date in
-                        viewModel.handleDateTapped(date)
-                    }
-                )
-            }
             viewModel.loadScheduledWorkouts()
         }
         .onChange(of: viewModel.trainingPlan) { _, _ in
@@ -80,14 +78,9 @@ struct WorkoutCalendarView: View {
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     List {
-        WorkoutCalendarView(
-            viewModel: WorkoutCalendarViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            )
-        )
+        builder.workoutCalendarView()
     }
     .previewEnvironment()
 }

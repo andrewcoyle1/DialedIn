@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProgramManagementView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: ProgramManagementViewModel
@@ -43,22 +43,10 @@ struct ProgramManagementView: View {
                 }
             }
             .sheet(isPresented: $viewModel.showCreateSheet) {
-                ProgramTemplatePickerView(
-                    viewModel: ProgramTemplatePickerViewModel(
-                        container: container
-                    ),
-                    path: $path
-                )
+                builder.programTemplatePickerView(path: $path)
             }
             .sheet(item: $viewModel.editingPlan) { plan in
-                EditProgramView(
-                    viewModel: EditProgramViewModel(
-                        interactor: CoreInteractor(container: container),
-                        plan: plan
-                    ),
-                    path: $path,
-                    plan: plan
-                )
+                builder.editProgramView(path: $path, plan: plan)
             }
             .showCustomAlert(alert: $viewModel.showDeleteAlert)
             .overlay {
@@ -76,33 +64,29 @@ struct ProgramManagementView: View {
         Group {
             if let activePlan = viewModel.activePlan {
                 Section {
-                    ProgramRowView(
-                        viewModel: ProgramRowViewModel(
-                            interactor: CoreInteractor(container: container),
-                            plan: activePlan,
-                            isActive: true,
-                            onActivate: {},
-                            onEdit: { viewModel.editingPlan = activePlan },
-                            onDelete: {
-                                viewModel.planToDelete = activePlan
-                                viewModel.showDeleteAlert = AnyAppAlert(
-                                    title: "Delete Program",
-                                    subtitle: "Are you sure you want to delete your active program '\(activePlan.name)'? This will remove all scheduled workouts and you'll need to create or select a new program.",
-                                    buttons: {
-                                        AnyView(
-                                            Group {
-                                                Button("Cancel", role: .cancel) { }
-                                                Button("Delete", role: .destructive) {
-                                                    Task {
-                                                        await viewModel.deletePlan(activePlan)
-                                                    }
+                    builder.programRowView(
+                        plan: activePlan,
+                        isActive: true,
+                        onEdit: { viewModel.editingPlan = activePlan },
+                        onDelete: {
+                            viewModel.planToDelete = activePlan
+                            viewModel.showDeleteAlert = AnyAppAlert(
+                                title: "Delete Program",
+                                subtitle: "Are you sure you want to delete your active program '\(activePlan.name)'? This will remove all scheduled workouts and you'll need to create or select a new program.",
+                                buttons: {
+                                    AnyView(
+                                        Group {
+                                            Button("Cancel", role: .cancel) { }
+                                            Button("Delete", role: .destructive) {
+                                                Task {
+                                                    await viewModel.deletePlan(activePlan)
                                                 }
                                             }
-                                        )
-                                    }
-                                )
-                            }
-                        )
+                                        }
+                                    )
+                                }
+                            )
+                        }
                     )
                 } header: {
                     Text("Active Program")
@@ -120,37 +104,34 @@ struct ProgramManagementView: View {
             if !inactivePlans.isEmpty {
                 Section {
                     ForEach(inactivePlans) { plan in
-                        ProgramRowView(
-                            viewModel: ProgramRowViewModel(
-                                interactor: CoreInteractor(container: container),
-                                plan: plan,
-                                isActive: false,
-                                onActivate: {
-                                    Task {
-                                        await viewModel.setActivePlan(plan)
-                                    }
-                                },
-                                onEdit: { viewModel.editingPlan = plan },
-                                onDelete: {
-                                    viewModel.planToDelete = plan
-                                    viewModel.showDeleteAlert = AnyAppAlert(
-                                        title: "Delete Program",
-                                        subtitle: "Are you sure you want to delete '\(plan.name)'? This action cannot be undone.",
-                                        buttons: {
-                                            AnyView(
-                                                Group {
-                                                    Button("Cancel", role: .cancel) { }
-                                                    Button("Delete", role: .destructive) {
-                                                        Task {
-                                                            await viewModel.deletePlan(plan)
-                                                        }
+                        builder.programRowView(
+                            plan: plan,
+                            isActive: false,
+                            onActivate: {
+                                Task {
+                                    await viewModel.setActivePlan(plan)
+                                }
+                            },
+                            onEdit: { viewModel.editingPlan = plan },
+                            onDelete: {
+                                viewModel.planToDelete = plan
+                                viewModel.showDeleteAlert = AnyAppAlert(
+                                    title: "Delete Program",
+                                    subtitle: "Are you sure you want to delete '\(plan.name)'? This action cannot be undone.",
+                                    buttons: {
+                                        AnyView(
+                                            Group {
+                                                Button("Cancel", role: .cancel) { }
+                                                Button("Delete", role: .destructive) {
+                                                    Task {
+                                                        await viewModel.deletePlan(plan)
                                                     }
                                                 }
-                                            )
-                                        }
-                                    )
-                                }
-                            )
+                                            }
+                                        )
+                                    }
+                                )
+                            }
                         )
                     }
                 } header: {

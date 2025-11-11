@@ -47,14 +47,8 @@ class ProgramTemplatePickerViewModel {
         interactor.isBuiltIn(template)
     }
     
-    init(
-        interactor: ProgramTemplatePickerInteractor
-    ) {
+    init(interactor: ProgramTemplatePickerInteractor) {
         self.interactor = interactor
-    }
-    
-    init(container: DependencyContainer) {
-        self.interactor = CoreInteractor(container: container)
     }
     
     func createPlanFromTemplate(_ template: ProgramTemplateModel, startDate: Date, endDate: Date?, customName: String?, onDismiss: () -> Void) async {

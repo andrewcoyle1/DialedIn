@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProfileNutritionPlanView: View {
-    @Environment(DependencyContainer.self) private var container
+
     @State var viewModel: ProfileNutritionPlanViewModel
 
     @Binding var path: [TabBarPathOption]

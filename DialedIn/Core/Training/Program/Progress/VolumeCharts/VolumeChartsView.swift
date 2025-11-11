@@ -10,7 +10,7 @@ import Charts
 
 struct VolumeChartsView: View {
     @State var viewModel: VolumeChartsViewModel
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -31,11 +31,7 @@ struct VolumeChartsView: View {
                             .padding(40)
                     } else if let trend = viewModel.volumeTrend {
                         VolumeChartSection(trend: trend)
-                        TrendSummarySection(
-                            viewModel: TrendSummarySectionViewModel(
-                                interactor: CoreInteractor(container: container),
-                                trend: trend)
-                        )
+                        builder.trendSummarySection(trend: trend)
                     } else {
                         EmptyState()
                     }
@@ -64,12 +60,7 @@ struct VolumeChartsView: View {
 }
 
 #Preview {
-    return VolumeChartsView(
-        viewModel: VolumeChartsViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        )
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.volumeChartsView()
     .previewEnvironment()
 }

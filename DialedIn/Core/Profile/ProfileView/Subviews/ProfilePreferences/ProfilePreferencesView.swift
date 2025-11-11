@@ -9,8 +9,6 @@ import SwiftUI
 
 struct ProfilePreferencesView: View {
     
-    @Environment(DependencyContainer.self) private var container
-
     @State var viewModel: ProfilePreferencesViewModel
 
     @Binding var path: [TabBarPathOption]

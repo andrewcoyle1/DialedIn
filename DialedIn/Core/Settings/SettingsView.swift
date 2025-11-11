@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: SettingsViewModel
@@ -26,7 +26,7 @@ struct SettingsView: View {
             .sheet(isPresented: $viewModel.showCreateAccountView, onDismiss: {
                 viewModel.setAnonymousAccountStatus()
             }, content: {
-                CreateAccountView(viewModel: CreateAccountViewModel(interactor: CoreInteractor(container: container)))
+                builder.createAccountView()
                     .presentationDetents([.medium])
             })
             .onAppear {
@@ -137,51 +137,27 @@ fileprivate extension View {
 
 #Preview("No auth") {
     @Previewable @State var path: [TabBarPathOption] = []
-    SettingsView(
-        viewModel: SettingsViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.settingsView(path: $path)
     .previewEnvironment()
 }
 
 #Preview("Anonymous") {
     @Previewable @State var path: [TabBarPathOption] = []
-    SettingsView(
-        viewModel: SettingsViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.settingsView(path: $path)
     .previewEnvironment()
 }
 #Preview("Not anonymous") {
     @Previewable @State var path: [TabBarPathOption] = []
-    SettingsView(
-        viewModel: SettingsViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.settingsView(path: $path)
     .previewEnvironment()
 }
 
 #Preview("Premium") {
     @Previewable @State var path: [TabBarPathOption] = []
-    SettingsView(
-        viewModel: SettingsViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.settingsView(path: $path)
     .previewEnvironment()
 }

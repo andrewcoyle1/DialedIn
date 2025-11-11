@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ProfileMyTemplatesView: View {
-    @Environment(DependencyContainer.self) private var container
 
     @State var viewModel: ProfileMyTemplatesViewModel
 

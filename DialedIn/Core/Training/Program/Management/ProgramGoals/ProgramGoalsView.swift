@@ -8,10 +8,12 @@
 import SwiftUI
 
 struct ProgramGoalsView: View {
-    @State var viewModel: ProgramGoalsViewModel
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
-    
+
+    @State var viewModel: ProgramGoalsViewModel
+
     var body: some View {
         List {
             if viewModel.plan.goals.isEmpty {
@@ -22,7 +24,7 @@ struct ProgramGoalsView: View {
                 )
             } else {
                 ForEach(viewModel.plan.goals) { goal in
-                    GoalRow(viewModel: GoalRowViewModel(interactor: CoreInteractor(container: container), goal: goal, plan: viewModel.plan))
+                    builder.goalRow(goal: goal, plan: viewModel.plan)
                 }
             }
         }
@@ -38,7 +40,7 @@ struct ProgramGoalsView: View {
             }
         }
         .sheet(isPresented: $viewModel.showAddGoal) {
-            AddGoalView(viewModel: AddGoalViewModel(interactor: CoreInteractor(container: container)), plan: viewModel.plan)
+            builder.addGoalView(plan: viewModel.plan)
         }
     }
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProgramTemplatePickerView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
     
     @State var viewModel: ProgramTemplatePickerViewModel
@@ -28,12 +28,7 @@ struct ProgramTemplatePickerView: View {
                 toolbarContent
             }
             .navigationDestination(item: $viewModel.selectedTemplate) { template in
-                ProgramStartConfigView(
-                    viewModel: ProgramStartConfigViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    ),
+                builder.programStartConfigView(
                     path: $path,
                     template: template,
                     onStart: { startDate, endDate, customName in
@@ -125,11 +120,7 @@ struct ProgramTemplatePickerView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
-    ProgramTemplatePickerView(
-        viewModel: ProgramTemplatePickerViewModel(
-            container: DevPreview.shared.container
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.programTemplatePickerView(path: $path)
     .previewEnvironment()
 }

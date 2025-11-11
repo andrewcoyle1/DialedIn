@@ -9,7 +9,7 @@ import SwiftUI
 
 struct TabBarView: View {
     
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @State var viewModel: TabBarViewModel
 
     @Binding var path: [TabBarPathOption]
@@ -20,7 +20,7 @@ struct TabBarView: View {
             ForEach(TabBarOption.allCases) { tab in
                 Tab(tab.name, systemImage: tab.symbolName, value: tab) {
                     NavigationStack(path: $path) {
-                        tab.viewForPage(container: container, path: $path)
+                        tab.viewForPage(builder: builder, path: $path)
                     }
                     .navDestinationForTabBarModule(path: $path)
                 }
@@ -30,14 +30,7 @@ struct TabBarView: View {
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory {
             if let active = viewModel.active, !viewModel.trackerPresented {
-                TabViewAccessoryView(
-                    viewModel: TabViewAccessoryViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    ),
-                    active: active
-                )
+                builder.tabViewAccessoryView(active: active)
             }
         }
         .fullScreenCover(isPresented: Binding(get: {
@@ -46,7 +39,7 @@ struct TabBarView: View {
             viewModel.isTrackerPresented = newValue
         })) {
             if let session = viewModel.activeSession {
-                WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(interactor: CoreInteractor(container: container), workoutSession: session), initialWorkoutSession: session)
+                builder.workoutTrackerView(workoutSession: session, initialWorkoutSession: session)
             }
         }
         .task {
@@ -58,31 +51,16 @@ struct TabBarView: View {
 #Preview("Has No Active Session") {
     @Previewable @State var path: [TabBarPathOption] = []
     @Previewable @State var tab: TabBarOption = .dashboard
-
-    TabBarView(
-        viewModel: TabBarViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path,
-        tab: $tab
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.tabBarView(path: $path, tab: $tab)
     .previewEnvironment()
 }
 
 #Preview("Has Active Session") {
     @Previewable @State var path: [TabBarPathOption] = []
     @Previewable @State var tab: TabBarOption = .dashboard
-
-    TabBarView(
-        viewModel: TabBarViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path,
-        tab: $tab
-    )
+    
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.tabBarView(path: $path, tab: $tab)
     .previewEnvironment()
 }

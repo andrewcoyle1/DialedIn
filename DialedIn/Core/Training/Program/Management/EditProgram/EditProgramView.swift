@@ -9,7 +9,6 @@ import SwiftUI
 
 struct EditProgramView: View {
 
-    @Environment(DependencyContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
     
     @State var viewModel: EditProgramViewModel
@@ -197,13 +196,8 @@ struct EditProgramView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
-    EditProgramView(
-        viewModel: EditProgramViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            ),
-            plan: TrainingPlan.mock
-        ),
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.editProgramView(
         path: $path,
         plan: TrainingPlan.mock
     )

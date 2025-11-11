@@ -9,12 +9,12 @@ import SwiftUI
 
 extension TabBarOption {
     /// A view builder that the split view uses to show a view for the selected navigation option.
-    @MainActor @ViewBuilder func viewForPage(container: DependencyContainer, path: Binding<[TabBarPathOption]>) -> some View {
+    @MainActor @ViewBuilder func viewForPage(builder: CoreBuilder, path: Binding<[TabBarPathOption]>) -> some View {
         switch self {
-        case .dashboard: DashboardView(viewModel: DashboardViewModel(interactor: CoreInteractor(container: container)), path: path)
-        case .nutrition: NutritionView(viewModel: NutritionViewModel(interactor: CoreInteractor(container: container)), path: path)
-        case .training: TrainingView(viewModel: TrainingViewModel(interactor: CoreInteractor(container: container)), path: path)
-        case .profile: ProfileView(viewModel: ProfileViewModel(interactor: CoreInteractor(container: container)), path: path)
+        case .dashboard: builder.dashboardView(path: path)
+        case .nutrition: builder.nutritionView(path: path)
+        case .training: builder.trainingView(path: path)
+        case .profile: builder.profileView(path: path)
         case .search: SearchView()
         }
     }

@@ -12,7 +12,7 @@ struct NavDestinationForTabBarViewModifier: ViewModifier {
     @Environment(CoreBuilder.self) private var builder
     let path: Binding<[TabBarPathOption]>
     
-    // swiftlint:disable:next function_body_length cyclomatic_complexity
+    // swiftlint:disable:next cyclomatic_complexity
     func body(content: Content) -> some View {
         content
             .navigationDestination(for: TabBarPathOption.self) { newValue in

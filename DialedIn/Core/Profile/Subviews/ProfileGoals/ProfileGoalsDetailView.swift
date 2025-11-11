@@ -8,9 +8,10 @@
 import SwiftUI
 
 struct ProfileGoalsDetailView: View {
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
     @State var viewModel: ProfileGoalsDetailViewModel
-    
+
     var body: some View {
         List {
             if let goal = viewModel.currentGoal,
@@ -34,7 +35,7 @@ struct ProfileGoalsDetailView: View {
             toolbarContent
         }
         .sheet(isPresented: $viewModel.showLogWeightSheet) {
-            LogWeightView(viewModel: LogWeightViewModel(interactor: CoreInteractor(container: container)))
+            builder.logWeightView()
         }
         .task {
             await viewModel.getActiveGoal()
@@ -606,10 +607,9 @@ enum TrackingStatus {
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        ProfileGoalsDetailView(
-            viewModel: ProfileGoalsDetailViewModel(interactor: CoreInteractor(container: DevPreview.shared.container))
-        )
+        builder.profileGoalsDetailView()
     }
     .previewEnvironment()
 }

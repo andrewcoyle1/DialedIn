@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct ProfilePhysicalStatsView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: ProfilePhysicalStatsViewModel
         
     var body: some View {
@@ -31,7 +32,7 @@ struct ProfilePhysicalStatsView: View {
             toolbarContent
         }
         .sheet(isPresented: $viewModel.showLogWeightSheet) {
-            LogWeightView(viewModel: LogWeightViewModel(interactor: CoreInteractor(container: container)))
+            builder.logWeightView()
         }
         .task {
             await viewModel.loadWeights()
@@ -251,8 +252,9 @@ struct ProfilePhysicalStatsView: View {
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        ProfilePhysicalStatsView(viewModel: ProfilePhysicalStatsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        builder.profilePhysicalStatsView()
     }
     .previewEnvironment()
 }

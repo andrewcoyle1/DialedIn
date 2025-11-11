@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct AddMealSheet: View {
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: AddMealSheetViewModel
@@ -25,10 +26,10 @@ struct AddMealSheet: View {
             .navigationTitle("Add \(viewModel.mealType.rawValue.capitalized)")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $viewModel.showLibraryPicker) {
-                NutritionLibraryPickerView(viewModel: NutritionLibraryPickerViewModel(interactor: CoreInteractor(container: container), onPick: { newItem in
+                builder.nutritionLibraryPickerView(onPick: { newItem in
                     viewModel.items.append(newItem)
                     viewModel.showLibraryPicker = false
-                }), path: $path)
+                }, path: $path)
             }
             .toolbar {
                 toolbarContent
@@ -106,68 +107,32 @@ struct AddMealSheet: View {
 
 #Preview("Breakfast") {
     @Previewable @State var path: [TabBarPathOption] = []
-    AddMealSheet(
-        viewModel: AddMealSheetViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            ),
-            selectedDate: Date(),
-            mealType: .breakfast,
-            onSave: { _ in
-            }
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.addMealSheet(selectedDate: Date(), mealType: .breakfast, onSave: { _ in
+    }, path: $path)
     .previewEnvironment()
 }
 
 #Preview("Lunch") {
     @Previewable @State var path: [TabBarPathOption] = []
-    AddMealSheet(
-        viewModel: AddMealSheetViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            ),
-            selectedDate: Date(),
-            mealType: .lunch,
-            onSave: { _ in
-            }
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.addMealSheet(selectedDate: Date(), mealType: .lunch, onSave: { _ in
+    }, path: $path)
     .previewEnvironment()
 }
 
 #Preview("Dinner") {
     @Previewable @State var path: [TabBarPathOption] = []
-    AddMealSheet(
-        viewModel: AddMealSheetViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            ),
-            selectedDate: Date(),
-            mealType: .dinner,
-            onSave: { _ in
-            }
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.addMealSheet(selectedDate: Date(), mealType: .dinner, onSave: { _ in
+    }, path: $path)
     .previewEnvironment()
 }
 
 #Preview("Snack") {
     @Previewable @State var path: [TabBarPathOption] = []
-    AddMealSheet(
-        viewModel: AddMealSheetViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            ),
-            selectedDate: Date(),
-            mealType: .snack,
-            onSave: { _ in
-            }
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.addMealSheet(selectedDate: Date(), mealType: .snack, onSave: { _ in
+    }, path: $path)
     .previewEnvironment()
 }

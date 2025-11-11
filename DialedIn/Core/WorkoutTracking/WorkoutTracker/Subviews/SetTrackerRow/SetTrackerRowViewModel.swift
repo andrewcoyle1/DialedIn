@@ -7,9 +7,18 @@
 
 import SwiftUI
 
+protocol SetTrackerRowInteractor {
+
+}
+
+extension CoreInteractor: SetTrackerRowInteractor { }
+
 @Observable
 @MainActor
 class SetTrackerRowViewModel {
+
+    private let interactor: SetTrackerRowInteractor
+    
     var set: WorkoutSetModel
     let trackingMode: TrackingMode
     let weightUnit: ExerciseWeightUnit
@@ -25,7 +34,7 @@ class SetTrackerRowViewModel {
     var showWarmupHelp = false
     
     init(
-        container: DependencyContainer,
+        interactor: SetTrackerRowInteractor,
         set: WorkoutSetModel,
         trackingMode: TrackingMode,
         weightUnit: ExerciseWeightUnit = .kilograms,
@@ -36,6 +45,7 @@ class SetTrackerRowViewModel {
         onRequestRestPicker: @escaping (String, Int?) -> Void = { _, _ in },
         onUpdate: @escaping (WorkoutSetModel) -> Void
     ) {
+        self.interactor = interactor
         self.set = set
         self.trackingMode = trackingMode
         self.weightUnit = weightUnit

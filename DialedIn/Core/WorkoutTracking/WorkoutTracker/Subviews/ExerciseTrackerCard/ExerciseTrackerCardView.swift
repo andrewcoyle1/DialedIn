@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ExerciseTrackerCardView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @State var viewModel: ExerciseTrackerCardViewModel
 
     @Binding var isExpanded: Bool
@@ -124,19 +124,16 @@ struct ExerciseTrackerCardView: View {
             }
 
             ForEach(viewModel.exercise.sets) { set in
-                SetTrackerRowView(
-                    viewModel: SetTrackerRowViewModel(
-                        container: container,
-                        set: set,
-                        trackingMode: viewModel.exercise.trackingMode,
-                        weightUnit: viewModel.weightUnit,
-                        distanceUnit: viewModel.distanceUnit,
-                        previousSet: viewModel.previousSetsByIndex[set.index],
-                        restBeforeSec: viewModel.restBeforeSecForSet(set.id),
-                        onRestBeforeChange: { viewModel.onRestBeforeChange(set.id, $0) },
-                        onRequestRestPicker: { _, _ in viewModel.onRequestRestPicker(set.id, viewModel.restBeforeSecForSet(set.id)) },
-                        onUpdate: viewModel.onSetUpdate
-                    )
+                builder.setTrackerRowView(
+                    set: set,
+                    trackingMode: viewModel.exercise.trackingMode,
+                    weightUnit: viewModel.weightUnit,
+                    distanceUnit: viewModel.distanceUnit,
+                    previousSet: viewModel.previousSetsByIndex[set.index],
+                    restBeforeSec: viewModel.restBeforeSecForSet(set.id),
+                    onRestBeforeChange: { viewModel.onRestBeforeChange(set.id, $0) },
+                    onRequestRestPicker: { _, _ in viewModel.onRequestRestPicker(set.id, viewModel.restBeforeSecForSet(set.id)) },
+                    onUpdate: viewModel.onSetUpdate
                 )
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button(role: .destructive) {

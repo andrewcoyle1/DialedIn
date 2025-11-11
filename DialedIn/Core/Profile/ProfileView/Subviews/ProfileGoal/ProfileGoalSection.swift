@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct ProfileGoalSection: View {
-    @Environment(DependencyContainer.self) private var container
-    
+
     @State var viewModel: ProfileGoalSectionViewModel
 
     @Binding var path: [TabBarPathOption]
@@ -102,13 +101,7 @@ struct ProfileGoalSection: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
-    ProfileGoalSection(
-        viewModel: ProfileGoalSectionViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.profileGoalSection(path: $path)
     .previewEnvironment()
 }

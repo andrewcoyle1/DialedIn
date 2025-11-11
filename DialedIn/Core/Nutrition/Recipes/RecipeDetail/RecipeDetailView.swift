@@ -9,7 +9,7 @@ import SwiftUI
 
 struct RecipeDetailView: View {
     @State var viewModel: RecipeDetailViewModel
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -73,7 +73,7 @@ struct RecipeDetailView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
         .onAppear { viewModel.loadInitialState()}
@@ -115,15 +115,9 @@ struct RecipeDetailView: View {
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        RecipeDetailView(
-            viewModel: RecipeDetailViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                ),
-                recipeTemplate: RecipeTemplateModel.mock
-            )
-        )
+        builder.recipeDetailView(recipeTemplate: .mock)
     }
     .previewEnvironment()
 }

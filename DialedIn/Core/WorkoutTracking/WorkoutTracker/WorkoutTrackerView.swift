@@ -9,7 +9,7 @@ import SwiftUI
 import HealthKit
 
 struct WorkoutTrackerView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) var dismiss
     @Environment(\.scenePhase) private var scenePhase
     
@@ -56,13 +56,7 @@ struct WorkoutTrackerView: View {
                 isPresented: $viewModel.showingAddExercise,
                 onDismiss: { viewModel.addSelectedExercises() },
                 content: {
-                    AddExerciseModalView(
-                        viewModel: AddExerciseModalViewModel(
-                            interactor: CoreInteractor(
-                            container: container),
-                        ),
-                        selectedExercises: $viewModel.pendingSelectedTemplates
-                    )
+                    builder.addExerciseModelView(selectedExercises: $viewModel.pendingSelectedTemplates)
                 }
             )
         }
@@ -132,8 +126,7 @@ struct WorkoutTrackerView: View {
                 let distanceUnit = preference?.distanceUnit ?? .meters
                 let previousSets = viewModel.buildPreviousLookup(for: exercise)
                 let exerciseId = exercise.id
-                ExerciseTrackerCardView(
-                    viewModel: ExerciseTrackerCardViewModel(interactor: CoreInteractor(container: container),
+                builder.exerciseTrackerCardView(
                     exercise: exercise,
                     exerciseIndex: index,
                     isCurrentExercise: index == viewModel.currentExerciseIndex,
@@ -182,7 +175,7 @@ struct WorkoutTrackerView: View {
                             return [:]
                         }
                         return viewModel.buildPreviousLookup(for: latestExercise)
-                    }),
+                    },
                     isExpanded: Binding(
                         get: { viewModel.expandedExerciseIds.contains(exercise.id) },
                         set: { newValue in
@@ -196,25 +189,6 @@ struct WorkoutTrackerView: View {
                         }
                     )
                 )
-                .draggable(exercise.id)
-                .dropDestination(for: String.self) { items, _ in
-                    guard let sourceId = items.first, sourceId != exercise.id,
-                          let sourceIndex = viewModel.workoutSession.exercises.firstIndex(where: { $0.id == sourceId }),
-                          let targetIndex = viewModel.workoutSession.exercises.firstIndex(where: { $0.id == exercise.id }) else {
-                        return false
-                    }
-                    viewModel.reorderExercises(from: sourceIndex, to: targetIndex)
-                    return true
-                }
-                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    if !viewModel.expandedExerciseIds.contains(exercise.id) {
-                        Button(role: .destructive) {
-                            viewModel.deleteExercise(exercise.id)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
-                }
             }
             .onMove { source, destination in
                 viewModel.moveExercises(from: source, to: destination)

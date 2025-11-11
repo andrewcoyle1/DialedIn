@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ProfileHeaderView: View {
-    @Environment(DependencyContainer.self) private var container
     @State var viewModel: ProfileHeaderViewModel
 
     @Binding var path: [TabBarPathOption]

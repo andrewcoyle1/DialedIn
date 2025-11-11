@@ -10,7 +10,7 @@ import PhotosUI
 
 struct CreateRecipeView: View {
     @State var viewModel: CreateRecipeViewModel
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -76,24 +76,21 @@ struct CreateRecipeView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView, content: {
-                DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+                builder.devSettingsView()
             })
             #endif
             .sheet(isPresented: $viewModel.showAddIngredientModal) {
-                AddIngredientModalView(
-                    viewModel: AddIngredientModalViewModel(interactor: CoreInteractor(container: container)),
-                    selectedIngredients: Binding(get: {
-                        viewModel.ingredients.map { $0.ingredient }
-                    }, set: { newTemplates in
-                        var currentMap = Dictionary(uniqueKeysWithValues: viewModel.ingredients.map { ($0.ingredient.id, $0) })
-                        for tmpl in newTemplates where currentMap[tmpl.id] == nil {
-                            currentMap[tmpl.id] = RecipeIngredientModel(ingredient: tmpl, amount: 1)
-                        }
-                        let newIds = Set(newTemplates.map { $0.id })
-                        currentMap = currentMap.filter { newIds.contains($0.key) }
-                        viewModel.ingredients = Array(currentMap.values)
-                    })
-                )
+                builder.addIngredientModalView(selectedIngredients: Binding(get: {
+                    viewModel.ingredients.map { $0.ingredient }
+                }, set: { newTemplates in
+                    var currentMap = Dictionary(uniqueKeysWithValues: viewModel.ingredients.map { ($0.ingredient.id, $0) })
+                    for tmpl in newTemplates where currentMap[tmpl.id] == nil {
+                        currentMap[tmpl.id] = RecipeIngredientModel(ingredient: tmpl, amount: 1)
+                    }
+                    let newIds = Set(newTemplates.map { $0.id })
+                    currentMap = currentMap.filter { newIds.contains($0.key) }
+                    viewModel.ingredients = Array(currentMap.values)
+                }))
             }
             .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
                 Button("OK") {
@@ -233,22 +230,26 @@ struct CreateRecipeView: View {
 
 #Preview("With Ingredients") {
     @Previewable @State var showingSheet: Bool = true
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+
     Button("Show Sheet") {
         showingSheet = true
     }
     .sheet(isPresented: $showingSheet) {
-        CreateRecipeView(viewModel: CreateRecipeViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        builder.createRecipeView()
     }
     .previewEnvironment()
 }
 
 #Preview("Without Ingredients") {
     @Previewable @State var showingSheet: Bool = true
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+
     Button("Show Sheet") {
         showingSheet = true
     }
     .sheet(isPresented: $showingSheet) {
-        CreateRecipeView(viewModel: CreateRecipeViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+        builder.createRecipeView()
     }
     .previewEnvironment()
 }

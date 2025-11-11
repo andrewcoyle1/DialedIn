@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct WorkoutStartView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
     
     @State var viewModel: WorkoutStartViewModel
@@ -49,7 +49,7 @@ struct WorkoutStartView: View {
             }
         }, content: {
             if let session = viewModel.createdSession {
-                WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(interactor: CoreInteractor(container: container), workoutSession: session), initialWorkoutSession: session)
+                builder.workoutTrackerView(workoutSession: session, initialWorkoutSession: session)
             }
         })
     }
@@ -189,6 +189,7 @@ extension ExerciseCategory {
 }
 
 #Preview {
-    WorkoutStartView(viewModel: WorkoutStartViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), template: WorkoutTemplateModel.mock)
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.workoutStartView(template: WorkoutTemplateModel.mock)
         .previewEnvironment()
 }

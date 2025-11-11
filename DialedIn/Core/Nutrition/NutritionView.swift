@@ -11,7 +11,7 @@ import UIKit
 #endif
 
 struct NutritionView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: NutritionViewModel
@@ -51,17 +51,17 @@ struct NutritionView: View {
             .showCustomAlert(alert: $viewModel.showAlert)
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView) {
-                DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+                builder.devSettingsView()
             }
             #endif
             .sheet(isPresented: $viewModel.showNotifications) {
-                NotificationsView(viewModel: NotificationsViewModel(interactor: CoreInteractor(container: container)))
+                builder.notificationsView()
             }
             .sheet(isPresented: $viewModel.showCreateIngredient) {
-                CreateIngredientView(viewModel: CreateIngredientViewModel(interactor: CoreInteractor(container: container)))
+                builder.createIngredientView()
             }
             .sheet(isPresented: $viewModel.showCreateRecipe) {
-                CreateRecipeView(viewModel: CreateRecipeViewModel(interactor: CoreInteractor(container: container)))
+                builder.createRecipeView()
             }
         }
         .navigationTitle("Nutrition")
@@ -89,27 +89,21 @@ struct NutritionView: View {
         Group {
             switch viewModel.presentationMode {
             case .log:
-                MealLogView(
-                    viewModel: MealLogViewModel(interactor: CoreInteractor(container: container)),
+                builder.mealLogView(
                     path: $path,
                     isShowingInspector: $viewModel.isShowingInspector,
                     selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
                     selectedRecipeTemplate: $viewModel.selectedRecipeTemplate
                 )
             case .recipes:
-                RecipesView(
-                    viewModel: RecipesViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        ), showCreateRecipe: $viewModel.showCreateRecipe,
-                        selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
-                        selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
-                        isShowingInspector: $viewModel.isShowingInspector
-                    )
+                builder.recipesView(
+                    showCreateRecipe: $viewModel.showCreateRecipe,
+                    selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
+                    selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
+                    isShowingInspector: $viewModel.isShowingInspector
                 )
             case .ingredients:
-                IngredientsView(
-                    viewModel: IngredientsViewModel(interactor: CoreInteractor(container: container)),
+                builder.ingredientsView(
                     isShowingInspector: $viewModel.isShowingInspector,
                     selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
                     selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
@@ -123,11 +117,11 @@ struct NutritionView: View {
         Group {
             if let ingredient = viewModel.selectedIngredientTemplate {
                 NavigationStack {
-                    IngredientDetailView(viewModel: IngredientDetailViewModel(interactor: CoreInteractor(container: container), ingredientTemplate: ingredient))
+                    builder.ingredientDetailView(ingredientTemplate: ingredient)
                 }
             } else if let recipe = viewModel.selectedRecipeTemplate {
                 NavigationStack {
-                    RecipeDetailView(viewModel: RecipeDetailViewModel(interactor: CoreInteractor(container: container), recipeTemplate: recipe))
+                    builder.recipeDetailView(recipeTemplate: recipe)
                 }
             } else {
                 Text("Select an item")
@@ -162,13 +156,7 @@ struct NutritionView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
-    NutritionView(
-        viewModel: NutritionViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.nutritionView(path: $path)
     .previewEnvironment()
 }

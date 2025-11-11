@@ -10,9 +10,7 @@ import SwiftUI
 struct SetTrackerRowView: View {
     @State var viewModel: SetTrackerRowViewModel
     
-    init(
-        viewModel: SetTrackerRowViewModel
-    ) {
+    init(viewModel: SetTrackerRowViewModel) {
         self.viewModel = viewModel
     }
     
@@ -426,8 +424,9 @@ struct SetTrackerRowView: View {
     }
 }
 #Preview("Weight & Reps - Incomplete") {
-    SetTrackerRowView(
-        viewModel: SetTrackerRowViewModel(container: DevPreview.shared.container, set: WorkoutSetModel(
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.setTrackerRowView(
+        set: WorkoutSetModel(
             id: "1",
             authorId: "user1",
             index: 1,
@@ -444,204 +443,188 @@ struct SetTrackerRowView: View {
         restBeforeSec: nil,
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
-    ))
+    )
     .padding()
 }
 #Preview("Weight & Reps - Complete") {
-    SetTrackerRowView(
-        viewModel: SetTrackerRowViewModel(
-            container: DevPreview.shared.container,
-            set: WorkoutSetModel(
-                id: "2",
-                authorId: "user1",
-                index: 2,
-                reps: 10,
-                weightKg: 80.0,
-                durationSec: nil,
-                distanceMeters: nil,
-                rpe: 8.5,
-                isWarmup: false,
-                completedAt: Date(),
-                dateCreated: Date()
-            ),
-            trackingMode: .weightReps,
-            restBeforeSec: nil,
-            onRestBeforeChange: { _ in },
-            onUpdate: { _ in }
-        )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.setTrackerRowView(
+        set: WorkoutSetModel(
+            id: "2",
+            authorId: "user1",
+            index: 2,
+            reps: 10,
+            weightKg: 80.0,
+            durationSec: nil,
+            distanceMeters: nil,
+            rpe: 8.5,
+            isWarmup: false,
+            completedAt: Date(),
+            dateCreated: Date()
+        ),
+        trackingMode: .weightReps,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
+        onUpdate: { _ in }
     )
 }
 #Preview("Duration - Incomplete") {
-    SetTrackerRowView(
-        viewModel: SetTrackerRowViewModel(
-            container: DevPreview.shared.container,
-            set: WorkoutSetModel(
-                id: "3",
-                authorId: "user2",
-                index: 1,
-                reps: nil,
-                weightKg: nil,
-                durationSec: 90,
-                distanceMeters: nil,
-                rpe: nil,
-                isWarmup: false,
-                completedAt: nil,
-                dateCreated: Date()
-            ),
-            trackingMode: .timeOnly,
-            restBeforeSec: nil,
-            onRestBeforeChange: { _ in },
-            onUpdate: { _ in }
-        )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.setTrackerRowView(
+        set: WorkoutSetModel(
+            id: "3",
+            authorId: "user2",
+            index: 1,
+            reps: nil,
+            weightKg: nil,
+            durationSec: 90,
+            distanceMeters: nil,
+            rpe: nil,
+            isWarmup: false,
+            completedAt: nil,
+            dateCreated: Date()
+        ),
+        trackingMode: .timeOnly,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
+        onUpdate: { _ in }
     )
 }
 
 #Preview("Duration - Complete") {
-    SetTrackerRowView(
-        viewModel: SetTrackerRowViewModel(
-            container: DevPreview.shared.container,
-            set: WorkoutSetModel(
-                id: "4",
-                authorId: "user2",
-                index: 2,
-                reps: nil,
-                weightKg: nil,
-                durationSec: 120,
-                distanceMeters: nil,
-                rpe: 7.0,
-                isWarmup: false,
-                completedAt: Date(),
-                dateCreated: Date()
-            ),
-            trackingMode: .timeOnly,
-            restBeforeSec: nil,
-            onRestBeforeChange: { _ in },
-            onUpdate: { _ in }
-        )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.setTrackerRowView(
+        set: WorkoutSetModel(
+            id: "4",
+            authorId: "user2",
+            index: 2,
+            reps: nil,
+            weightKg: nil,
+            durationSec: 120,
+            distanceMeters: nil,
+            rpe: 7.0,
+            isWarmup: false,
+            completedAt: Date(),
+            dateCreated: Date()
+        ),
+        trackingMode: .timeOnly,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
+        onUpdate: { _ in }
     )
 }
 
 #Preview("Distance - Incomplete") {
-    SetTrackerRowView(
-        viewModel: SetTrackerRowViewModel(
-            container: DevPreview.shared.container,
-            set: WorkoutSetModel(
-                id: "5",
-                authorId: "user3",
-                index: 1,
-                reps: nil,
-                weightKg: nil,
-                durationSec: 8*60,
-                distanceMeters: 1500,
-                rpe: nil,
-                isWarmup: false,
-                completedAt: nil,
-                dateCreated: Date()
-            ),
-            trackingMode: .distanceTime,
-            restBeforeSec: nil,
-            onRestBeforeChange: { _ in },
-            onUpdate: { _ in }
-        )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.setTrackerRowView(
+        set: WorkoutSetModel(
+            id: "5",
+            authorId: "user3",
+            index: 1,
+            reps: nil,
+            weightKg: nil,
+            durationSec: 8*60,
+            distanceMeters: 1500,
+            rpe: nil,
+            isWarmup: false,
+            completedAt: nil,
+            dateCreated: Date()
+        ),
+        trackingMode: .distanceTime,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
+        onUpdate: { _ in }
     )
 }
 
 #Preview("Distance - Complete") {
-    SetTrackerRowView(
-        viewModel: SetTrackerRowViewModel(
-            container: DevPreview.shared.container,
-            set: WorkoutSetModel(
-                id: "6",
-                authorId: "user3",
-                index: 2,
-                reps: nil,
-                weightKg: nil,
-                durationSec: 60*25,
-                distanceMeters: 5000,
-                rpe: 9.0,
-                isWarmup: false,
-                completedAt: Date(),
-                dateCreated: Date()
-            ),
-            trackingMode: .distanceTime,
-            restBeforeSec: nil,
-            onRestBeforeChange: { _ in },
-            onUpdate: { _ in }
-        )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.setTrackerRowView(
+        set: WorkoutSetModel(
+            id: "6",
+            authorId: "user3",
+            index: 2,
+            reps: nil,
+            weightKg: nil,
+            durationSec: 60*25,
+            distanceMeters: 5000,
+            rpe: 9.0,
+            isWarmup: false,
+            completedAt: Date(),
+            dateCreated: Date()
+        ),
+        trackingMode: .distanceTime,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
+        onUpdate: { _ in }
     )
 }
 
 #Preview("Warmup Set") {
-    SetTrackerRowView(
-        viewModel: SetTrackerRowViewModel(
-            container: DevPreview.shared.container,
-            set: WorkoutSetModel(
-                id: "7",
-                authorId: "user4",
-                index: 0,
-                reps: 5,
-                weightKg: 20.0,
-                durationSec: nil,
-                distanceMeters: nil,
-                rpe: nil,
-                isWarmup: true,
-                completedAt: nil,
-                dateCreated: Date()
-            ),
-            trackingMode: .weightReps,
-            restBeforeSec: nil,
-            onRestBeforeChange: { _ in },
-            onUpdate: { _ in }
-        )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.setTrackerRowView(
+        set: WorkoutSetModel(
+            id: "7",
+            authorId: "user4",
+            index: 0,
+            reps: 5,
+            weightKg: 20.0,
+            durationSec: nil,
+            distanceMeters: nil,
+            rpe: nil,
+            isWarmup: true,
+            completedAt: nil,
+            dateCreated: Date()
+        ),
+        trackingMode: .weightReps,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
+        onUpdate: { _ in }
     )
 }
 
 #Preview("All Fields Populated") {
-    SetTrackerRowView(
-        viewModel: SetTrackerRowViewModel(
-            container: DevPreview.shared.container,
-            set: WorkoutSetModel(
-                id: "8",
-                authorId: "user5",
-                index: 3,
-                reps: 12,
-                weightKg: 100.0,
-                durationSec: 60,
-                distanceMeters: 400,
-                rpe: 10.0,
-                isWarmup: false,
-                completedAt: Date(),
-                dateCreated: Date()
-            ),
-            trackingMode: .weightReps,
-            restBeforeSec: nil,
-            onRestBeforeChange: { _ in },
-            onUpdate: { _ in }
-        )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.setTrackerRowView(
+        set: WorkoutSetModel(
+            id: "8",
+            authorId: "user5",
+            index: 3,
+            reps: 12,
+            weightKg: 100.0,
+            durationSec: 60,
+            distanceMeters: 400,
+            rpe: 10.0,
+            isWarmup: false,
+            completedAt: Date(),
+            dateCreated: Date()
+        ),
+        trackingMode: .weightReps,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
+        onUpdate: { _ in }
     )
 }
 
 #Preview("Edge: No Data") {
-    SetTrackerRowView(
-        viewModel: SetTrackerRowViewModel(
-            container: DevPreview.shared.container,
-            set: WorkoutSetModel(
-                id: "9",
-                authorId: "user6",
-                index: 1,
-                reps: nil,
-                weightKg: nil,
-                durationSec: nil,
-                distanceMeters: nil,
-                rpe: nil,
-                isWarmup: false,
-                completedAt: nil,
-                dateCreated: Date()
-            ),
-            trackingMode: .weightReps,
-            restBeforeSec: nil,
-            onRestBeforeChange: { _ in },
-            onUpdate: { _ in }
-        )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.setTrackerRowView(
+        set: WorkoutSetModel(
+            id: "9",
+            authorId: "user6",
+            index: 1,
+            reps: nil,
+            weightKg: nil,
+            durationSec: nil,
+            distanceMeters: nil,
+            rpe: nil,
+            isWarmup: false,
+            completedAt: nil,
+            dateCreated: Date()
+        ),
+        trackingMode: .weightReps,
+        restBeforeSec: nil,
+        onRestBeforeChange: { _ in },
+        onUpdate: { _ in }
     )
 }

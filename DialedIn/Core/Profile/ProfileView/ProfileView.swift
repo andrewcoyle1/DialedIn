@@ -8,9 +8,10 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @Environment(DependencyContainer.self) var container
+
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
-    
+
     @State var viewModel: ProfileViewModel
 
     @Binding var path: [TabBarPathOption]
@@ -32,54 +33,12 @@ struct ProfileView: View {
         List {
             if let user = viewModel.currentUser,
                let firstName = user.firstName, !firstName.isEmpty {
-                ProfileHeaderView(
-                    viewModel: ProfileHeaderViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    ),
-                    path: $path
-                )
-                ProfilePhysicalMetricsView(
-                    viewModel: ProfilePhysicalMetricsViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    ),
-                    path: $path
-                )
-                ProfileGoalSection(
-                    viewModel: ProfileGoalSectionViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    ),
-                    path: $path
-                )
-                ProfileNutritionPlanView(
-                    viewModel: ProfileNutritionPlanViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    ),
-                    path: $path
-                )
-                ProfilePreferencesView(
-                    viewModel: ProfilePreferencesViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    ),
-                    path: $path
-                )
-                ProfileMyTemplatesView(
-                    viewModel: ProfileMyTemplatesViewModel(
-                        interactor: CoreInteractor(
-                            container: container
-                        )
-                    ),
-                    path: $path
-                )
+                builder.profileHeaderView(path: $path)
+                builder.profilePhysicalMetricsView(path: $path)
+                builder.profileGoalsSection(path: $path)
+                builder.profileNutritionPlanView(path: $path)
+                builder.profilePreferencesView(path: $path)
+                builder.profileMyTemplatesView(path: $path)
             } else {
                 createProfileSection
             }
@@ -90,17 +49,17 @@ struct ProfileView: View {
         .navigationBarTitleDisplayMode(.large)
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView, content: {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         })
         #endif
         .sheet(isPresented: $viewModel.showCreateProfileSheet) {
-            CreateAccountView(viewModel: CreateAccountViewModel(interactor: CoreInteractor(container: container)))
+            builder.createAccountView()
                 .presentationDetents([
                     .fraction(0.4)
                 ])
         }
         .sheet(isPresented: $viewModel.showNotifications) {
-            NotificationsView(viewModel: NotificationsViewModel(interactor: CoreInteractor(container: container)))
+            builder.notificationsView()
         }
         .sheet(isPresented: $viewModel.showSetGoalSheet) {
             SetGoalFlowView()
@@ -169,26 +128,14 @@ struct ProfileView: View {
 // MARK: - Previews
 #Preview("User Has Profile") {
     @Previewable @State var path: [TabBarPathOption] = []
-    return ProfileView(
-        viewModel: ProfileViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.profileView(path: $path)
     .previewEnvironment()
 }
 
 #Preview("User No Profile") {
     @Previewable @State var path: [TabBarPathOption] = []
-    ProfileView(
-        viewModel: ProfileViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.profileView(path: $path)
     .previewEnvironment()
 }

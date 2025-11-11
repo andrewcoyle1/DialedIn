@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CustomProgramBuilderView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
 
@@ -29,10 +29,7 @@ struct CustomProgramBuilderView: View {
         .sheet(isPresented: $viewModel.showingWorkoutPicker) {
             if let day = viewModel.editingDayOfWeek {
                 NavigationStack {
-                    WorkoutPickerSheet(
-                        interactor: CoreInteractor(
-                            container: container
-                        ),
+                    builder.workoutPickerSheet(
                         onSelect: { workout in
                             viewModel.assign(
                                 workout: workout,
@@ -69,24 +66,23 @@ struct CustomProgramBuilderView: View {
             )
         }
         .sheet(item: $viewModel.startConfigTemplate) { template in
-            ProgramStartConfigView(
-                viewModel: ProgramStartConfigViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                ),
+            builder.programStartConfigView(
                 path: $path,
                 template: template
-            ) { startDate, endDate, customName in
+            ) {
+                startDate,
+                endDate,
+                customName in
                 Task {
-                    await viewModel.startProgram(
-                        template: template,
-                        startDate: startDate,
-                        endDate: endDate,
-                        customName: customName,
-                        onDismiss: {
-                            dismiss()
-                        })
+                    await viewModel
+                        .startProgram(
+                            template: template,
+                            startDate: startDate,
+                            endDate: endDate,
+                            customName: customName,
+                            onDismiss: {
+                                dismiss()
+                            })
                 }
             }
         }

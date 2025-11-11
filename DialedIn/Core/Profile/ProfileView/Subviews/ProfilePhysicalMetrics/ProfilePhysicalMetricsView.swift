@@ -9,8 +9,6 @@ import SwiftUI
 
 struct ProfilePhysicalMetricsView: View {
     
-    @Environment(DependencyContainer.self) private var container
-
     @State var viewModel: ProfilePhysicalMetricsViewModel
 
     @Binding var path: [TabBarPathOption]

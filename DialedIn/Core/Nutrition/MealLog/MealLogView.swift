@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct MealLogView: View {
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
     @State var viewModel: MealLogViewModel
 
     @Binding var path: [TabBarPathOption]
@@ -43,21 +44,11 @@ struct MealLogView: View {
             }
         }
         .sheet(isPresented: $viewModel.showAddMealSheet) {
-            AddMealSheet(
-                viewModel: AddMealSheetViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    ),
-                    selectedDate: viewModel.selectedDate,
-                    mealType: viewModel.selectedMealType,
-                    onSave: { meal in
-                        Task {
-                            await viewModel.saveMeal(meal)
-                        }
-                    }
-                ),
-                path: $path
-            )
+            builder.addMealSheet(selectedDate: viewModel.selectedDate, mealType: viewModel.selectedMealType, onSave: { meal in
+                Task {
+                    await viewModel.saveMeal(meal)
+                }
+            }, path: $path)
         }
         .showCustomAlert(alert: $viewModel.showAlert)
     }
@@ -216,15 +207,10 @@ struct MealLogView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
         List {
-            MealLogView(
-                viewModel: MealLogViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)),
-                path: $path,
-                isShowingInspector: Binding.constant(false),
-                selectedIngredientTemplate: Binding.constant(nil),
-                selectedRecipeTemplate: Binding.constant(nil)
-            )
+            builder.mealLogView(path: $path, isShowingInspector: Binding.constant(false), selectedIngredientTemplate: Binding.constant(nil), selectedRecipeTemplate: Binding.constant(nil))
         }
     }
     .previewEnvironment()

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SplitViewContainer: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: SplitViewContainerViewModel
 
@@ -31,7 +31,7 @@ struct SplitViewContainer: View {
             }
             .safeAreaInset(edge: .bottom) {
                 if let active = viewModel.activeSession, !viewModel.isTrackerPresented {
-                    TabViewAccessoryView(viewModel: TabViewAccessoryViewModel(interactor: CoreInteractor(container: container)), active: active)
+                    builder.tabViewAccessoryView(active: active)
                         .padding()
                         .buttonStyle(.bordered)
                 }
@@ -39,7 +39,7 @@ struct SplitViewContainer: View {
             .frame(minWidth: 150)
         } content: {
             NavigationStack {
-                tab.viewForPage(container: container, path: $path)
+                tab.viewForPage(builder: builder, path: $path)
             }
             .background(
                 Color(uiColor: .systemGroupedBackground)
@@ -57,7 +57,7 @@ struct SplitViewContainer: View {
             viewModel.isTrackerPresented = newValue
         })) {
             if let session = viewModel.activeSession {
-                WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(interactor: CoreInteractor(container: container), workoutSession: session), initialWorkoutSession: session)
+                builder.workoutTrackerView(workoutSession: session, initialWorkoutSession: session)
             }
         }
         .task {

@@ -9,7 +9,6 @@ import SwiftUI
 
 struct NutritionLibraryPickerView: View {
 
-    @Environment(DependencyContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: NutritionLibraryPickerViewModel
@@ -126,17 +125,11 @@ struct NutritionLibraryPickerView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
-    NutritionLibraryPickerView(
-        viewModel: NutritionLibraryPickerViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            ),
-            onPick: { item in
-                print(
-                    item.displayName
-                )
-            }),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.nutritionLibraryPickerView(onPick: { item in
+        print(
+            item.displayName
+        )
+    }, path: $path)
     .previewEnvironment()
 }
