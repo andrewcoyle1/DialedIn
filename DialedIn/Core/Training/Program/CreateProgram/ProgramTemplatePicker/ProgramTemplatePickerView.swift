@@ -7,13 +7,17 @@
 
 import SwiftUI
 
+struct ProgramTemplatePickerViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+}
+
 struct ProgramTemplatePickerView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
     
     @State var viewModel: ProgramTemplatePickerViewModel
 
-    @Binding var path: [TabBarPathOption]
+    var delegate: ProgramTemplatePickerViewDelegate
 
     var body: some View {
         NavigationStack {
@@ -30,7 +34,7 @@ struct ProgramTemplatePickerView: View {
             .navigationDestination(item: $viewModel.selectedTemplate) { template in
                 builder.programStartConfigView(
                     delegate: ProgramStartConfigViewDelegate(
-                        path: $path,
+                        path: delegate.path,
                         template: template,
                         onStart: { startDate, endDate, customName in
                             Task {
@@ -117,7 +121,7 @@ struct ProgramTemplatePickerView: View {
     private var customOptionSection: some View {
         Section {
             Button {
-                viewModel.navToCustomProgramBuilderView(path: $path
+                viewModel.navToCustomProgramBuilderView(path: delegate.path
                 )
             } label: {
                 Label("Create Custom Program", systemImage: "plus.circle.fill")
@@ -131,6 +135,6 @@ struct ProgramTemplatePickerView: View {
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.programTemplatePickerView(path: $path)
+    builder.programTemplatePickerView(delegate: ProgramTemplatePickerViewDelegate(path: $path))
     .previewEnvironment()
 }

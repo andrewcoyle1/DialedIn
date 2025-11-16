@@ -7,11 +7,15 @@
 
 import SwiftUI
 
+struct ProfileMyTemplatesViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+}
+
 struct ProfileMyTemplatesView: View {
 
     @State var viewModel: ProfileMyTemplatesViewModel
 
-    @Binding var path: [TabBarPathOption]
+    var delegate: ProfileMyTemplatesViewDelegate
 
     var body: some View {
         Section {
@@ -30,7 +34,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
 
             Button {
-                viewModel.navToExerciseTemplateList(path: $path)
+                viewModel.navToExerciseTemplateList(path: delegate.path)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Exercise Templates")
@@ -50,7 +54,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             Button {
-                viewModel.navToWorkoutTemplateList(path: $path)
+                viewModel.navToWorkoutTemplateList(path: delegate.path)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Workout Templates")
@@ -70,7 +74,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             Button {
-                viewModel.navToRecipeTemplateList(path: $path)
+                viewModel.navToRecipeTemplateList(path: delegate.path)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Recipe Templates")
@@ -90,7 +94,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             Button {
-                viewModel.navToIngredientTemplateList(path: $path)
+                viewModel.navToIngredientTemplateList(path: delegate.path)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Ingredient Templates")
@@ -107,9 +111,10 @@ struct ProfileMyTemplatesView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
         List {
-            ProfileMyTemplatesView(viewModel: ProfileMyTemplatesViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), path: $path)
+            builder.profileMyTemplatesView(delegate: ProfileMyTemplatesViewDelegate(path: $path))
         }
     }
     .previewEnvironment()

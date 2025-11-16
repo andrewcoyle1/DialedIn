@@ -7,13 +7,17 @@
 
 import SwiftUI
 
+struct SettingsViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+}
+
 struct SettingsView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: SettingsViewModel
 
-    @Binding var path: [TabBarPathOption]
+    var delegate: SettingsViewDelegate
 
     var body: some View {
         NavigationStack {
@@ -79,7 +83,7 @@ struct SettingsView: View {
     private var purchaseSection: some View {
         Section {
             Button {
-                viewModel.navToManageSubscriptionView(path: $path)
+                viewModel.navToManageSubscriptionView(path: delegate.path)
             } label: {
                 Text("Account status: \(viewModel.isPremium ? "PREMIUM" : "FREE")")
             }
@@ -138,26 +142,26 @@ fileprivate extension View {
 #Preview("No auth") {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.settingsView(path: $path)
+    builder.settingsView(delegate: SettingsViewDelegate(path: $path))
     .previewEnvironment()
 }
 
 #Preview("Anonymous") {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.settingsView(path: $path)
+    builder.settingsView(delegate: SettingsViewDelegate(path: $path))
     .previewEnvironment()
 }
 #Preview("Not anonymous") {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.settingsView(path: $path)
+    builder.settingsView(delegate: SettingsViewDelegate(path: $path))
     .previewEnvironment()
 }
 
 #Preview("Premium") {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.settingsView(path: $path)
+    builder.settingsView(delegate: SettingsViewDelegate(path: $path))
     .previewEnvironment()
 }

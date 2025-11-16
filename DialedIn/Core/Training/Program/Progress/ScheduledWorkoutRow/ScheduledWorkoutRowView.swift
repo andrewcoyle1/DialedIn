@@ -7,17 +7,25 @@
 
 import SwiftUI
 
+struct ScheduledWorkoutRowViewDelegate {
+    let scheduledWorkout: ScheduledWorkout
+}
+
 struct ScheduledWorkoutRowView: View {
+
     @State var viewModel: ScheduledWorkoutRowViewModel
+
+    let delegate: ScheduledWorkoutRowViewDelegate
+
     var body: some View {
         HStack(spacing: 16) {
-            Image(systemName: viewModel.statusIcon)
-                .foregroundStyle(viewModel.statusColor)
-            
+            Image(systemName: viewModel.statusIcon(scheduledWorkout: delegate.scheduledWorkout))
+                .foregroundStyle(viewModel.statusColor(scheduledWorkout: delegate.scheduledWorkout))
+
             VStack(alignment: .leading, spacing: 2) {
-                Text(viewModel.scheduledWorkout.workoutName ?? "Workout") // Would fetch template name
+                Text(delegate.scheduledWorkout.workoutName ?? "Workout") // Would fetch template name
                     .font(.subheadline)
-                if let date = viewModel.scheduledWorkout.scheduledDate {
+                if let date = delegate.scheduledWorkout.scheduledDate {
                     MetricView(
                         label: "Date",
                         value: date.formatted(.dateTime.day().month()),
@@ -30,7 +38,7 @@ struct ScheduledWorkoutRowView: View {
             
             Spacer()
             
-            if viewModel.scheduledWorkout.isCompleted {
+            if delegate.scheduledWorkout.isCompleted {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(.green)
             }
@@ -40,8 +48,8 @@ struct ScheduledWorkoutRowView: View {
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     List {
-        ScheduledWorkoutRowView(viewModel: ScheduledWorkoutRowViewModel(interactor: CoreInteractor(container: DevPreview.shared.container), scheduledWorkout: ScheduledWorkout.mocksWeek1.first!)
-        )
+        builder.scheduledWorkoutRowView(delegate: ScheduledWorkoutRowViewDelegate(scheduledWorkout: ScheduledWorkout.mocksWeek1.first!))
     }
 }

@@ -23,9 +23,7 @@ extension CoreInteractor: RecipeDetailInteractor { }
 @MainActor
 class RecipeDetailViewModel {
     private let interactor: RecipeDetailInteractor
-    
-    let recipeTemplate: RecipeTemplateModel
-    
+
     var isBookmarked: Bool = false
     var isFavourited: Bool = false
 
@@ -39,15 +37,11 @@ class RecipeDetailViewModel {
     var currentUser: UserModel? {
         interactor.currentUser
     }
-    init(
-        interactor: RecipeDetailInteractor,
-        recipeTemplate: RecipeTemplateModel
-    ) {
+    init(interactor: RecipeDetailInteractor) {
         self.interactor = interactor
-        self.recipeTemplate = recipeTemplate
     }
     
-    func loadInitialState() {
+    func loadInitialState(recipeTemplate: RecipeTemplateModel) {
         let user = currentUser
         // Always treat authored templates as bookmarked
         let isAuthor = user?.userId == recipeTemplate.authorId
@@ -63,7 +57,7 @@ class RecipeDetailViewModel {
         }
     }
     
-    func onBookmarkPressed() async {
+    func onBookmarkPressed(recipeTemplate: RecipeTemplateModel) async {
         let newState = !isBookmarked
         do {
             // If unbookmarking and currently favourited, unfavourite first to enforce rule
@@ -85,7 +79,7 @@ class RecipeDetailViewModel {
         }
     }
     
-    func onFavoritePressed() async {
+    func onFavoritePressed(recipeTemplate: RecipeTemplateModel) async {
         let newState = !isFavourited
         do {
             // If favouriting and not bookmarked, bookmark first to enforce rule

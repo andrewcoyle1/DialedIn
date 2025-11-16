@@ -33,12 +33,12 @@ struct ProfileView: View {
         List {
             if let user = viewModel.currentUser,
                let firstName = user.firstName, !firstName.isEmpty {
-                builder.profileHeaderView(path: $path)
-                builder.profilePhysicalMetricsView(path: $path)
-                builder.profileGoalsSection(path: $path)
-                builder.profileNutritionPlanView(path: $path)
-                builder.profilePreferencesView(path: $path)
-                builder.profileMyTemplatesView(path: $path)
+                builder.profileHeaderView(delegate: ProfileHeaderViewDelegate(path: $path))
+                builder.profilePhysicalMetricsView(delegate: ProfilePhysicalMetricsViewDelegate(path: $path))
+                builder.profileGoalSection(delegate: ProfileGoalSectionDelegate(path: $path))
+                builder.profileNutritionPlanView(delegate: ProfileNutritionPlanViewDelegate(path: $path))
+                builder.profilePreferencesView(delegate: ProfilePreferencesViewDelegate(path: $path))
+                builder.profileMyTemplatesView(delegate: ProfileMyTemplatesViewDelegate(path: $path))
             } else {
                 createProfileSection
             }

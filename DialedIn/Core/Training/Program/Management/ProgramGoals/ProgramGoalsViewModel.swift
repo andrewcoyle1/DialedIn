@@ -18,14 +18,9 @@ extension CoreInteractor: ProgramGoalsInteractor { }
 class ProgramGoalsViewModel {
     private let interactor: ProgramGoalsInteractor
     
-    private(set) var plan: TrainingPlan
     var showAddGoal: Bool = false
     
-    init(
-        interactor: ProgramGoalsInteractor,
-        plan: TrainingPlan
-    ) {
+    init(interactor: ProgramGoalsInteractor) {
         self.interactor = interactor
-        self.plan = plan
     }
 }

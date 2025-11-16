@@ -28,19 +28,19 @@ struct NavDestinationForTabBarViewModifier: ViewModifier {
                 case .ingredientTemplateDetail(template: let template):
                     builder.ingredientDetailView(delegate: IngredientDetailViewDelegate(ingredientTemplate: template))
                 case .ingredientTemplateList(templateIds: let templateIds):
-                    builder.ingredientTemplateListView(templateIds: templateIds)
+                    builder.ingredientTemplateListView(delegate: IngredientTemplateListViewDelegate(templateIds: templateIds))
                 case .ingredientAmountView(ingredient: let ingredient, onPick: let onPick):
-                    builder.ingredientAmountView(ingredient: ingredient, onPick: onPick)
+                    builder.ingredientAmountView(delegate: IngredientAmountViewDelegate(ingredient: ingredient, onPick: onPick))
                 case .recipeTemplateDetail(template: let template):
-                    builder.recipeDetailView(recipeTemplate: template)
+                    builder.recipeDetailView(delegate: RecipeDetailViewDelegate(recipeTemplate: template))
                 case .recipeTemplateList(templateIds: let templateIds):
-                    builder.recipeTemplateListView(templateIds: templateIds)
+                    builder.recipeTemplateListView(delegate: RecipeTemplateListViewDelegate(templateIds: templateIds))
                 case .recipeAmountView(recipe: let recipe, onPick: let onPick):
                     builder.recipeAmountView(recipe: recipe, onPick: onPick)
                 case .workoutSessionDetail(session: let session):
                     builder.workoutSessionDetailView(delegate: WorkoutSessionDetailViewDelegate(workoutSession: session))
                 case .mealDetail(meal: let meal):
-                    builder.mealDetailView(meal: meal)
+                    builder.mealDetailView(delegate: MealDetailViewDelegate(meal: meal))
                 case .profileGoals:
                     builder.profileGoalsDetailView()
                 case .profileEdit:
@@ -50,17 +50,17 @@ struct NavDestinationForTabBarViewModifier: ViewModifier {
                 case .profilePhysicalStats:
                     builder.profilePhysicalStatsView()
                 case .settingsView:
-                    builder.settingsView(path: path)
+                    builder.settingsView(delegate: SettingsViewDelegate(path: path))
                 case .manageSubscription:
                     builder.manageSubscriptionView()
                 case .programPreview(template: let template, startDate: let startDate):
                     builder.programPreviewView(template: template, startDate: startDate)
                 case .customProgramBuilderView:
-                    builder.customProgramBuilderView(path: path)
+                    builder.customProgramBuilderView(delegate: CustomProgramBuilderViewDelegate(path: path))
                 case .programGoalsView(plan: let plan):
-                    builder.programGoalsView(plan: plan)
+                    builder.programGoalsView(delegate: ProgramGoalsViewDelegate(plan: plan))
                 case .programScheduleView(plan: let plan):
-                    builder.programScheduleView(plan: plan)
+                    builder.programScheduleView(delegate: ProgramScheduleViewDelegate(plan: plan))
                 }
             }
     }

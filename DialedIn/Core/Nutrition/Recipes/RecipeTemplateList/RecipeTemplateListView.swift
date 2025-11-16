@@ -7,28 +7,20 @@
 
 import SwiftUI
 
+struct RecipeTemplateListViewDelegate {
+    var templateIds: [String]
+}
+
 struct RecipeTemplateListView: View {
     @State var viewModel: RecipeTemplateListViewModel
     
-    init(viewModel: RecipeTemplateListViewModel) {
-        self.viewModel = viewModel
-    }
-    
-    init(interactor: RecipeTemplateListInteractor, templateIds: [String]?) {
+    init(interactor: RecipeTemplateListInteractor, delegate: RecipeTemplateListViewDelegate) {
         self.viewModel = RecipeTemplateListViewModel.create(
             interactor: interactor,
-            templateIds: templateIds
+            templateIds: delegate.templateIds
         )
     }
-    
-    // Convenience init for non-optional templateIds (backward compatibility)
-    init(interactor: RecipeTemplateListInteractor, templateIds: [String]) {
-        self.viewModel = RecipeTemplateListViewModel.create(
-            interactor: interactor,
-            templateIds: templateIds
-        )
-    }
-    
+
     var body: some View {
         GenericTemplateListView(
             viewModel: viewModel,
@@ -41,6 +33,6 @@ struct RecipeTemplateListView: View {
 #Preview {
     RecipeTemplateListView(
         interactor: CoreInteractor(container: DevPreview.shared.container),
-        templateIds: []
+        delegate: RecipeTemplateListViewDelegate(templateIds: [])
     )
 }

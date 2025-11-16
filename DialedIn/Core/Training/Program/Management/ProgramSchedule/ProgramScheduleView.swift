@@ -7,13 +7,17 @@
 
 import SwiftUI
 
+struct ProgramScheduleViewDelegate {
+    let plan: TrainingPlan
+}
+
 struct ProgramScheduleView: View {
     @State var viewModel: ProgramScheduleViewModel
 
-    let plan: TrainingPlan
-    
+    let delegate: ProgramScheduleViewDelegate
+
     var body: some View {
-        List(viewModel.weeks(for: plan)) { week in
+        List(viewModel.weeks(for: delegate.plan)) { week in
             weekSection(week)
         }
         .navigationTitle("Schedule")
@@ -63,13 +67,6 @@ struct ProgramScheduleView: View {
 }
 
 #Preview {
-    ProgramScheduleView(
-        viewModel: ProgramScheduleViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        plan: TrainingPlan.mock
-    )
-    .previewEnvironment()
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.programScheduleView(delegate: ProgramScheduleViewDelegate(plan: .mock))
 }

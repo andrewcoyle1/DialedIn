@@ -132,7 +132,7 @@ struct NutritionView: View {
                 }
             } else if let recipe = viewModel.selectedRecipeTemplate {
                 NavigationStack {
-                    builder.recipeDetailView(recipeTemplate: recipe)
+                    builder.recipeDetailView(delegate: RecipeDetailViewDelegate(recipeTemplate: recipe))
                 }
             } else {
                 Text("Select an item")

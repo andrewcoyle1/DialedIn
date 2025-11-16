@@ -239,7 +239,7 @@ struct ProgramView: View {
                     )
                     .id(workout.id)
                 } else {
-                    builder.scheduledWorkoutRowView(scheduledWorkout: workout)
+                    builder.scheduledWorkoutRowView(delegate: ScheduledWorkoutRowViewDelegate(scheduledWorkout: workout))
                     .contentShape(
                         Rectangle()
                     )

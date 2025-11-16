@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+struct ProgramGoalsViewDelegate {
+    let plan: TrainingPlan
+}
+
 struct ProgramGoalsView: View {
 
     @Environment(CoreBuilder.self) private var builder
@@ -14,17 +18,19 @@ struct ProgramGoalsView: View {
 
     @State var viewModel: ProgramGoalsViewModel
 
+    let delegate: ProgramGoalsViewDelegate
+
     var body: some View {
         List {
-            if viewModel.plan.goals.isEmpty {
+            if delegate.plan.goals.isEmpty {
                 ContentUnavailableView(
                     "No Goals",
                     systemImage: "target",
                     description: Text("Add goals to track your progress")
                 )
             } else {
-                ForEach(viewModel.plan.goals) { goal in
-                    builder.goalRow(delegate: GoalRowDelegate(goal: goal, plan: viewModel.plan))
+                ForEach(delegate.plan.goals) { goal in
+                    builder.goalRow(delegate: GoalRowDelegate(goal: goal, plan: delegate.plan))
                 }
             }
         }
@@ -40,12 +46,13 @@ struct ProgramGoalsView: View {
             }
         }
         .sheet(isPresented: $viewModel.showAddGoal) {
-            builder.addGoalView(delegate: AddGoalViewDelegate(plan: viewModel.plan))
+            builder.addGoalView(delegate: AddGoalViewDelegate(plan: delegate.plan))
         }
     }
 }
 
 #Preview {
-    ProgramGoalsView(viewModel: ProgramGoalsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container), plan: TrainingPlan.mock))
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.programGoalsView(delegate: ProgramGoalsViewDelegate(plan: .mock))
         .previewEnvironment()
 }

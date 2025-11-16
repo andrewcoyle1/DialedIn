@@ -204,7 +204,8 @@ class CoreBuilder {
     func createWorkoutView(delegate: CreateWorkoutViewDelegate) -> some View {
         CreateWorkoutView(
             viewModel: CreateWorkoutViewModel(interactor: interactor),
-            delegate: delegate)
+            delegate: delegate
+        )
     }
 
     func createExerciseView() -> some View {
@@ -234,12 +235,10 @@ class CoreBuilder {
         )
     }
 
-    func scheduledWorkoutRowView(scheduledWorkout: ScheduledWorkout) -> some View {
+    func scheduledWorkoutRowView(delegate: ScheduledWorkoutRowViewDelegate) -> some View {
         ScheduledWorkoutRowView(
-            viewModel: ScheduledWorkoutRowViewModel(
-                interactor: interactor,
-                scheduledWorkout: scheduledWorkout
-            )
+            viewModel: ScheduledWorkoutRowViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
@@ -286,64 +285,92 @@ class CoreBuilder {
     }
 
     func progressDashboardView() -> some View {
-        ProgressDashboardView(viewModel: ProgressDashboardViewModel(interactor: interactor))
+        ProgressDashboardView(
+            viewModel: ProgressDashboardViewModel(interactor: interactor)
+        )
     }
 
     func strengthProgressView() -> some View {
-        StrengthProgressView(viewModel: StrengthProgressViewModel(interactor: interactor))
+        StrengthProgressView(
+            viewModel: StrengthProgressViewModel(interactor: interactor)
+        )
     }
 
     func workoutHeatmapView() -> some View {
-        WorkoutHeatmapView(viewModel: WorkoutHeatmapViewModel(interactor: interactor))
+        WorkoutHeatmapView(
+            viewModel: WorkoutHeatmapViewModel(interactor: interactor)
+        )
     }
 
     func notificationsView() -> some View {
-        NotificationsView(viewModel: NotificationsViewModel(interactor: interactor))
+        NotificationsView(
+            viewModel: NotificationsViewModel(interactor: interactor)
+        )
     }
 
-    func programGoalsView(plan: TrainingPlan) -> some View {
-        ProgramGoalsView(viewModel: ProgramGoalsViewModel(interactor: interactor, plan: plan))
+    func programGoalsView(delegate: ProgramGoalsViewDelegate) -> some View {
+        ProgramGoalsView(
+            viewModel: ProgramGoalsViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
-    func programScheduleView(plan: TrainingPlan) -> some View {
-        ProgramScheduleView(viewModel: ProgramScheduleViewModel(interactor: interactor), plan: plan)
+    func programScheduleView(delegate: ProgramScheduleViewDelegate) -> some View {
+        ProgramScheduleView(
+            viewModel: ProgramScheduleViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
-    func mealDetailView(meal: MealLogModel) -> some View {
-        MealDetailView(viewModel: MealDetailViewModel(interactor: interactor, meal: meal))
+    func mealDetailView(delegate: MealDetailViewDelegate) -> some View {
+        MealDetailView(
+            viewModel: MealDetailViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
     func profileGoalsDetailView() -> some View {
-        ProfileGoalsDetailView(viewModel: ProfileGoalsDetailViewModel(interactor: interactor))
+        ProfileGoalsDetailView(
+            viewModel: ProfileGoalsDetailViewModel(interactor: interactor)
+        )
     }
 
     func profileEditView() -> some View {
-        ProfileEditView(viewModel: ProfileEditViewModel(interactor: interactor))
+        ProfileEditView(
+            viewModel: ProfileEditViewModel(interactor: interactor)
+        )
     }
 
     func profileNutritionDetailView() -> some View {
-        ProfileNutritionDetailView(viewModel: ProfileNutritionDetailViewModel(interactor: interactor))
+        ProfileNutritionDetailView(
+            viewModel: ProfileNutritionDetailViewModel(interactor: interactor)
+        )
     }
 
     func profilePhysicalStatsView() -> some View {
-        ProfilePhysicalStatsView(viewModel: ProfilePhysicalStatsViewModel(interactor: interactor))
+        ProfilePhysicalStatsView(
+            viewModel: ProfilePhysicalStatsViewModel(interactor: interactor)
+        )
     }
 
-    func settingsView(path: Binding<[TabBarPathOption]>) -> some View {
-        SettingsView(viewModel: SettingsViewModel(interactor: interactor), path: path)
+    func settingsView(delegate: SettingsViewDelegate) -> some View {
+        SettingsView(
+            viewModel: SettingsViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
-    func ingredientTemplateListView(templateIds: [String]) -> some View {
-        IngredientTemplateListView(interactor: interactor, templateIds: templateIds)
+    func ingredientTemplateListView(delegate: IngredientTemplateListViewDelegate) -> some View {
+        IngredientTemplateListView(
+            interactor: interactor,
+            delegate: delegate
+        )
     }
 
-    func ingredientAmountView(ingredient: IngredientTemplateModel, onPick: @escaping (MealItemModel) -> Void) -> some View {
+    func ingredientAmountView(delegate: IngredientAmountViewDelegate) -> some View {
         IngredientAmountView(
-            viewModel: IngredientAmountViewModel(
-                interactor: interactor,
-                ingredient: ingredient,
-                onConfirm: onPick
-            )
+            viewModel: IngredientAmountViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
@@ -354,10 +381,10 @@ class CoreBuilder {
         )
     }
 
-    func programTemplatePickerView(path: Binding<[TabBarPathOption]>) -> some View {
+    func programTemplatePickerView(delegate: ProgramTemplatePickerViewDelegate) -> some View {
         ProgramTemplatePickerView(
             viewModel: ProgramTemplatePickerViewModel(interactor: interactor),
-            path: path
+            delegate: delegate
         )
     }
 
@@ -376,76 +403,78 @@ class CoreBuilder {
     }
 
     func logWeightView() -> some View {
-        LogWeightView(viewModel: LogWeightViewModel(interactor: interactor))
+        LogWeightView(
+            viewModel: LogWeightViewModel(interactor: interactor)
+        )
     }
 
-    func profileHeaderView(path: Binding<[TabBarPathOption]>) -> some View {
+    func profileHeaderView(delegate: ProfileHeaderViewDelegate) -> some View {
         ProfileHeaderView(
             viewModel: ProfileHeaderViewModel(interactor: interactor),
-            path: path
+            delegate: delegate
         )
     }
 
-    func profilePhysicalMetricsView(path: Binding<[TabBarPathOption]>) -> some View {
+    func profilePhysicalMetricsView(delegate: ProfilePhysicalMetricsViewDelegate) -> some View {
         ProfilePhysicalMetricsView(
             viewModel: ProfilePhysicalMetricsViewModel(interactor: interactor),
-            path: path
+            delegate: delegate
         )
     }
 
-    func profileGoalsSection(path: Binding<[TabBarPathOption]>) -> some View {
+    func profileGoalSection(delegate: ProfileGoalSectionDelegate) -> some View {
         ProfileGoalSection(
             viewModel: ProfileGoalSectionViewModel(interactor: interactor),
-            path: path
+            delegate: delegate
         )
     }
 
-    func profileNutritionPlanView(path: Binding<[TabBarPathOption]>) -> some View {
+    func profileNutritionPlanView(delegate: ProfileNutritionPlanViewDelegate) -> some View {
         ProfileNutritionPlanView(
             viewModel: ProfileNutritionPlanViewModel(interactor: interactor),
-            path: path
+            delegate: delegate
         )
     }
 
-    func profilePreferencesView(path: Binding<[TabBarPathOption]>) -> some View {
+    func profilePreferencesView(delegate: ProfilePreferencesViewDelegate) -> some View {
         ProfilePreferencesView(
             viewModel: ProfilePreferencesViewModel(interactor: interactor),
-            path: path
+            delegate: delegate
         )
     }
 
-    func profileMyTemplatesView(path: Binding<[TabBarPathOption]>) -> some View {
+    func profileMyTemplatesView(delegate: ProfileMyTemplatesViewDelegate) -> some View {
         ProfileMyTemplatesView(
             viewModel: ProfileMyTemplatesViewModel(interactor: interactor),
-            path: path
+            delegate: delegate
         )
     }
 
-    func recipeDetailView(recipeTemplate: RecipeTemplateModel) -> some View {
+    func recipeDetailView(delegate: RecipeDetailViewDelegate) -> some View {
         RecipeDetailView(
-            viewModel: RecipeDetailViewModel(
-                interactor: interactor,
-                recipeTemplate: recipeTemplate
-            )
+            viewModel: RecipeDetailViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
-    func recipeTemplateListView(templateIds: [String]) -> some View {
-        RecipeTemplateListView(interactor: interactor, templateIds: templateIds)
+    func recipeTemplateListView(delegate: RecipeTemplateListViewDelegate) -> some View {
+        RecipeTemplateListView(
+            interactor: interactor,
+            delegate: delegate
+        )
     }
 
-    func customProgramBuilderView(path: Binding<[TabBarPathOption]>) -> some View {
+    func customProgramBuilderView(delegate: CustomProgramBuilderViewDelegate) -> some View {
         CustomProgramBuilderView(
             viewModel: CustomProgramBuilderViewModel(interactor: interactor),
-            path: path
+            delegate: delegate
         )
     }
 
-    func programPreviewView(template: ProgramTemplateModel, startDate: Date) -> some View {
+    func programPreviewView(delegate: ProgramPreviewViewDelegate) -> some View {
         ProgramPreviewView(
             viewModel: ProgramPreviewViewModel(interactor: interactor),
-            template: template,
-            startDate: startDate
+            delegate: delegate
         )
     }
 
@@ -500,24 +529,22 @@ class CoreBuilder {
     }
 
     func profileView(path: Binding<[TabBarPathOption]>) -> some View {
-        ProfileView(viewModel: ProfileViewModel(interactor: interactor), path: path)
+        ProfileView(
+            viewModel: ProfileViewModel(interactor: interactor),
+            path: path
+        )
     }
 
     func createAccountView() -> some View {
-        CreateAccountView(viewModel: CreateAccountViewModel(interactor: interactor))
+        CreateAccountView(
+            viewModel: CreateAccountViewModel(interactor: interactor)
+        )
     }
 
     func addExerciseModalView(delegate: AddExerciseModalViewDelegate) -> some View {
         AddExerciseModalView(
             viewModel: AddExerciseModalViewModel(interactor: interactor),
             delegate: delegate
-        )
-    }
-
-    func profileGoalSection(path: Binding<[TabBarPathOption]>) -> some View {
-        ProfileGoalSection(
-            viewModel: ProfileGoalSectionViewModel(interactor: interactor),
-            path: path
         )
     }
 

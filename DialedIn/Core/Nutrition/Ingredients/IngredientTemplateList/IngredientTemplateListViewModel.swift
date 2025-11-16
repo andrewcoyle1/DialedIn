@@ -33,11 +33,11 @@ extension GenericTemplateListViewModel where Template == IngredientTemplateModel
     // Convenience create for non-optional templateIds (backward compatibility)
     static func create(
         interactor: IngredientTemplateListInteractor,
-        templateIds: [String]
+        delegate: IngredientTemplateListViewDelegate
     ) -> IngredientTemplateListViewModel {
         return GenericTemplateListViewModel<IngredientTemplateModel>(
             configuration: .ingredient,
-            templateIds: templateIds,
+            templateIds: delegate.templateIds,
             fetchTemplatesByIds: { ids, limit in
                 try await interactor.getIngredientTemplates(ids: ids, limitTo: limit)
             }

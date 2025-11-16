@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+struct CustomProgramBuilderViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+}
+
 struct CustomProgramBuilderView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
@@ -14,7 +18,7 @@ struct CustomProgramBuilderView: View {
 
     @State var viewModel: CustomProgramBuilderViewModel
 
-    @Binding var path: [TabBarPathOption]
+    var delegate: CustomProgramBuilderViewDelegate
 
     var body: some View {
         List {
@@ -70,7 +74,7 @@ struct CustomProgramBuilderView: View {
         .sheet(item: $viewModel.startConfigTemplate) { template in
             builder.programStartConfigView(
                 delegate: ProgramStartConfigViewDelegate(
-                    path: $path,
+                    path: delegate.path,
                     template: template
                 ) { startDate, endDate, customName in
                     Task {
@@ -271,15 +275,9 @@ struct CustomProgramBuilderView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        CustomProgramBuilderView(
-            viewModel: CustomProgramBuilderViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ),
-            path: $path
-        )
+        builder.customProgramBuilderView(delegate: CustomProgramBuilderViewDelegate(path: $path))
     }
     .previewEnvironment()
 }

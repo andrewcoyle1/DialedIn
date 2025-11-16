@@ -17,12 +17,10 @@ extension CoreInteractor: IngredientAmountInteractor { }
 @MainActor
 class IngredientAmountViewModel {
     private let interactor: IngredientAmountInteractor
-    let ingredient: IngredientTemplateModel
-    private let onConfirm: (MealItemModel) -> Void
 
     var amountText: String = "100"
 
-    var unitLabel: String {
+    func unitLabel(ingredient: IngredientTemplateModel) -> String {
         switch ingredient.measurementMethod {
         case .weight: return "g"
         case .volume: return "ml"
@@ -31,22 +29,16 @@ class IngredientAmountViewModel {
 
     var amountValue: Double { Double(amountText) ?? 0 }
     var scale: Double { max(amountValue, 0) / 100.0 }
-    var calories: Double? { ingredient.calories.map { $0 * scale } }
-    var protein: Double? { ingredient.protein.map { $0 * scale } }
-    var carbs: Double? { ingredient.carbs.map { $0 * scale } }
-    var fat: Double? { ingredient.fatTotal.map { $0 * scale } }
+    func calories(ingredient: IngredientTemplateModel) -> Double? { ingredient.calories.map { $0 * scale } }
+    func protein(ingredient: IngredientTemplateModel) -> Double? { ingredient.protein.map { $0 * scale } }
+    func carbs(ingredient: IngredientTemplateModel) -> Double? { ingredient.carbs.map { $0 * scale } }
+    func fat(ingredient: IngredientTemplateModel) -> Double? { ingredient.fatTotal.map { $0 * scale } }
 
-    init(
-        interactor: IngredientAmountInteractor,
-        ingredient: IngredientTemplateModel,
-        onConfirm: @escaping (MealItemModel) -> Void
-    ) {
+    init(interactor: IngredientAmountInteractor) {
         self.interactor = interactor
-        self.ingredient = ingredient
-        self.onConfirm = onConfirm
     }
 
-    func add() {
+    func add(ingredient: IngredientTemplateModel, onConfirm: @escaping (MealItemModel) -> Void) {
         let resolvedGrams = ingredient.measurementMethod == .weight ? amountValue : nil
         let resolvedMl = ingredient.measurementMethod == .volume ? amountValue : nil
         let item = MealItemModel(
@@ -55,13 +47,13 @@ class IngredientAmountViewModel {
             sourceId: ingredient.ingredientId,
             displayName: ingredient.name,
             amount: amountValue,
-            unit: unitLabel,
+            unit: unitLabel(ingredient: ingredient),
             resolvedGrams: resolvedGrams,
             resolvedMilliliters: resolvedMl,
-            calories: calories,
-            proteinGrams: protein,
-            carbGrams: carbs,
-            fatGrams: fat
+            calories: calories(ingredient: ingredient),
+            proteinGrams: protein(ingredient: ingredient),
+            carbGrams: carbs(ingredient: ingredient),
+            fatGrams: fat(ingredient: ingredient)
         )
         onConfirm(item)
     }

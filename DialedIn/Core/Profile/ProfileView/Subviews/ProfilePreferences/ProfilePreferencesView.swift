@@ -7,16 +7,20 @@
 
 import SwiftUI
 
+struct ProfilePreferencesViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+}
+
 struct ProfilePreferencesView: View {
-    
+
     @State var viewModel: ProfilePreferencesViewModel
 
-    @Binding var path: [TabBarPathOption]
+    var delegate: ProfilePreferencesViewDelegate
 
     var body: some View {
         Section {
             Button {
-                viewModel.navToSettingsView(path: $path)
+                viewModel.navToSettingsView(path: delegate.path)
             } label: {
                 if let user = viewModel.currentUser {
                     VStack(spacing: 8) {
@@ -48,12 +52,11 @@ struct ProfilePreferencesView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
-    ProfilePreferencesView(
-        viewModel: ProfilePreferencesViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    NavigationStack {
+        List {
+            builder.profilePreferencesView(delegate: ProfilePreferencesViewDelegate(path: $path))
+        }
+    }
+    .previewEnvironment()
 }

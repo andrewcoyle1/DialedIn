@@ -17,18 +17,12 @@ extension CoreInteractor: ScheduledWorkoutRowInteractor { }
 @MainActor
 class ScheduledWorkoutRowViewModel {
     private let interactor: ScheduledWorkoutRowInteractor
-    
-    let scheduledWorkout: ScheduledWorkout
-    
-    init(
-        interactor: ScheduledWorkoutRowInteractor,
-        scheduledWorkout: ScheduledWorkout
-    ) {
+
+    init(interactor: ScheduledWorkoutRowInteractor) {
         self.interactor = interactor
-        self.scheduledWorkout = scheduledWorkout
     }
     
-    var statusIcon: String {
+    func statusIcon(scheduledWorkout: ScheduledWorkout) -> String {
         if scheduledWorkout.isCompleted {
             return "checkmark.circle.fill"
         } else if scheduledWorkout.isMissed {
@@ -38,7 +32,7 @@ class ScheduledWorkoutRowViewModel {
         }
     }
     
-    var statusColor: Color {
+    func statusColor(scheduledWorkout: ScheduledWorkout) -> Color {
         if scheduledWorkout.isCompleted {
             return .green
         } else if scheduledWorkout.isMissed {

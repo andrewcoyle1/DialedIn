@@ -17,13 +17,8 @@ extension CoreInteractor: MealDetailInteractor { }
 @MainActor
 class MealDetailViewModel {
     private let interactor: MealDetailInteractor
-    let meal: MealLogModel
 
-    init(
-        interactor: MealDetailInteractor,
-        meal: MealLogModel
-    ) {
+    init(interactor: MealDetailInteractor) {
         self.interactor = interactor
-        self.meal = meal
     }
 }

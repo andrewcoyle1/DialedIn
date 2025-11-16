@@ -7,21 +7,21 @@
 
 import SwiftUI
 
+struct MealDetailViewDelegate {
+    let meal: MealLogModel
+}
+
 struct MealDetailView: View {
     @State var viewModel: MealDetailViewModel
 
+    let delegate: MealDetailViewDelegate
+
     var body: some View {
-        Text(viewModel.meal.id)
+        Text(delegate.meal.id)
     }
 }
 
 #Preview {
-    MealDetailView(
-        viewModel: MealDetailViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            ),
-            meal: .mock
-        )
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.mealDetailView(delegate: MealDetailViewDelegate(meal: .mock))
 }

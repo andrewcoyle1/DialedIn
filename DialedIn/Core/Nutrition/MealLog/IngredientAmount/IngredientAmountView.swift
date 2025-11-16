@@ -7,8 +7,16 @@
 
 import SwiftUI
 
+struct IngredientAmountViewDelegate {
+    var ingredient: IngredientTemplateModel
+    let onPick: (MealItemModel) -> Void
+}
+
 struct IngredientAmountView: View {
+
     @State var viewModel: IngredientAmountViewModel
+
+    var delegate: IngredientAmountViewDelegate
 
     var body: some View {
         Form {
@@ -16,7 +24,7 @@ struct IngredientAmountView: View {
                 HStack {
                     TextField("Amount", text: $viewModel.amountText)
                         .keyboardType(.decimalPad)
-                    Text(viewModel.unitLabel)
+                    Text(viewModel.unitLabel(ingredient: delegate.ingredient))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -25,33 +33,33 @@ struct IngredientAmountView: View {
                 HStack {
                     Text("Calories")
                     Spacer()
-                    Text(viewModel.calories.map { String(Int(round($0))) } ?? "-")
+                    Text(viewModel.calories(ingredient: delegate.ingredient).map { String(Int(round($0))) } ?? "-")
                         .foregroundStyle(.secondary)
                 }
                 HStack {
                     Text("Protein")
                     Spacer()
-                    Text(viewModel.protein.map { String(format: "%.1f g", $0) } ?? "-")
+                    Text(viewModel.protein(ingredient: delegate.ingredient).map { String(format: "%.1f g", $0) } ?? "-")
                         .foregroundStyle(.secondary)
                 }
                 HStack {
                     Text("Carbs")
                     Spacer()
-                    Text(viewModel.carbs.map { String(format: "%.1f g", $0) } ?? "-")
+                    Text(viewModel.carbs(ingredient: delegate.ingredient).map { String(format: "%.1f g", $0) } ?? "-")
                         .foregroundStyle(.secondary)
                 }
                 HStack {
                     Text("Fat")
                     Spacer()
-                    Text(viewModel.fat.map { String(format: "%.1f g", $0) } ?? "-")
+                    Text(viewModel.fat(ingredient: delegate.ingredient).map { String(format: "%.1f g", $0) } ?? "-")
                         .foregroundStyle(.secondary)
                 }
             }
         }
-        .navigationTitle(viewModel.ingredient.name)
+        .navigationTitle(delegate.ingredient.name)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("Add") { viewModel.add() }
+                Button("Add") { viewModel.add(ingredient: delegate.ingredient, onConfirm: delegate.onPick) }
                     .disabled((Double(viewModel.amountText) ?? 0) <= 0)
             }
         }
@@ -59,13 +67,11 @@ struct IngredientAmountView: View {
 }
 
 #Preview {
-    IngredientAmountView(
-        viewModel: IngredientAmountViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            ),
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.ingredientAmountView(
+        delegate: IngredientAmountViewDelegate(
             ingredient: IngredientTemplateModel.mock,
-            onConfirm: {ingredient in
+            onPick: {ingredient in
                 print(
                     ingredient.displayName
                 )

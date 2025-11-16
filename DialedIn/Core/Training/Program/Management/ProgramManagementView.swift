@@ -47,7 +47,7 @@ struct ProgramManagementView: View {
                 }
             }
             .sheet(isPresented: $viewModel.showCreateSheet) {
-                builder.programTemplatePickerView(path: delegate.path)
+                builder.programTemplatePickerView(delegate: ProgramTemplatePickerViewDelegate(path: delegate.path))
             }
             .sheet(item: $viewModel.editingPlan) { plan in
                 builder.editProgramView(delegate: EditProgramViewDelegate(path: delegate.path, plan: plan))

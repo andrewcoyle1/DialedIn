@@ -7,15 +7,21 @@
 
 import SwiftUI
 
+struct ProgramPreviewViewDelegate {
+    let template: ProgramTemplateModel
+    var startDate: Date
+}
+
 struct ProgramPreviewView: View {
     @State var viewModel: ProgramPreviewViewModel
     @State private var previewPlan: TrainingPlan?
     
-    init(viewModel: ProgramPreviewViewModel, template: ProgramTemplateModel, startDate: Date) {
+    init(viewModel: ProgramPreviewViewModel, delegate: ProgramPreviewViewDelegate) {
         self.viewModel = viewModel
-        self.viewModel.setTemplate(template)
-        self.viewModel.setStartDate(startDate)
+        self.viewModel.setTemplate(delegate.template)
+        self.viewModel.setStartDate(delegate.startDate)
     }
+    
     var body: some View {
         List {
             Section {
