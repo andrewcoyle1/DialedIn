@@ -29,13 +29,23 @@ struct ProgramTemplatePickerView: View {
             }
             .navigationDestination(item: $viewModel.selectedTemplate) { template in
                 builder.programStartConfigView(
-                    path: $path,
-                    template: template,
-                    onStart: { startDate, endDate, customName in
-                        Task {
-                            await viewModel.createPlanFromTemplate(template, startDate: startDate, endDate: endDate, customName: customName, onDismiss: { dismiss() })
+                    delegate: ProgramStartConfigViewDelegate(
+                        path: $path,
+                        template: template,
+                        onStart: { startDate, endDate, customName in
+                            Task {
+                                await viewModel.createPlanFromTemplate(
+                                    template,
+                                    startDate: startDate,
+                                    endDate: endDate,
+                                    customName: customName,
+                                    onDismiss: {
+                                        dismiss()
+                                    }
+                                )
+                            }
                         }
-                    }
+                    )
                 )
             }
             .showCustomAlert(alert: $viewModel.showAlert)

@@ -7,9 +7,18 @@
 
 import SwiftUI
 
+struct RecipesViewDelegate {
+    var showCreateRecipe: Binding<Bool>
+    var selectedIngredientTemplate: Binding<IngredientTemplateModel?>
+    var selectedRecipeTemplate: Binding<RecipeTemplateModel?>
+    var isShowingInspector: Binding<Bool>
+}
+
 struct RecipesView: View {
     @State var viewModel: RecipesViewModel
 
+    var delegate: RecipesViewDelegate
+    
     var body: some View {
         Group {
             if viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -60,7 +69,7 @@ struct RecipesView: View {
                     subtitle: recipe.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onRecipePressed(recipe: recipe)
+                    viewModel.onRecipePressed(recipe: recipe, delegate: delegate)
                 }
                 .removeListRowFormatting()
             }
@@ -81,7 +90,7 @@ struct RecipesView: View {
                     subtitle: recipe.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onRecipePressed(recipe: recipe)
+                    viewModel.onRecipePressed(recipe: recipe, delegate: delegate)
                 }
                 .removeListRowFormatting()
             }
@@ -110,7 +119,7 @@ struct RecipesView: View {
                     subtitle: recipe.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onRecipePressed(recipe: recipe)
+                    viewModel.onRecipePressed(recipe: recipe, delegate: delegate)
                 }
                 .removeListRowFormatting()
             }
@@ -146,7 +155,7 @@ struct RecipesView: View {
                         subtitle: recipe.description
                     )
                     .anyButton(.highlight) {
-                        viewModel.onRecipePressed(recipe: recipe)
+                        viewModel.onRecipePressed(recipe: recipe, delegate: delegate)
                     }
                     .removeListRowFormatting()
                 }
@@ -156,7 +165,7 @@ struct RecipesView: View {
                 Text("My Templates")
                 Spacer()
                 Button {
-                    viewModel.onAddRecipePressed()
+                    viewModel.onAddRecipePressed(showCreateRecipe: delegate.showCreateRecipe)
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20))
@@ -170,18 +179,23 @@ struct RecipesView: View {
 }
 
 #Preview("Recipes View") {
-    List {
-        RecipesView(
-            viewModel: RecipesViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                ),
-                showCreateRecipe: Binding.constant(false),
-                selectedIngredientTemplate: Binding.constant(nil),
-                selectedRecipeTemplate: Binding.constant(nil),
-                isShowingInspector: Binding.constant(false)
-            )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let delegate = RecipesViewDelegate(
+        showCreateRecipe: Binding.constant(
+            false
+        ),
+        selectedIngredientTemplate: Binding.constant(
+            nil
+        ),
+        selectedRecipeTemplate: Binding.constant(
+            nil
+        ),
+        isShowingInspector: Binding.constant(
+            false
         )
+    )
+    List {
+        builder.recipesView(delegate: delegate)
     }
     .previewEnvironment()
 }

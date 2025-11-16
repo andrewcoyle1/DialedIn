@@ -26,8 +26,6 @@ class WorkoutsViewModel {
     
     private let interactor: WorkoutsInteractor
     
-    private let onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)?
-
     private(set) var isLoading: Bool = false
     private(set) var searchText: String = ""
     private(set) var showAlert: AnyAppAlert?
@@ -75,12 +73,8 @@ class WorkoutsViewModel {
         return trimmed.isEmpty ? trendingWorkoutsDeduped : workouts
     }
     
-    init(
-        interactor: WorkoutsInteractor,
-        onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)? = nil
-    ) {
+    init(interactor: WorkoutsInteractor) {
         self.interactor = interactor
-        self.onWorkoutSelectionChanged = onWorkoutSelectionChanged
     }
     
     func onAddWorkoutPressed() {
@@ -88,7 +82,7 @@ class WorkoutsViewModel {
         showCreateWorkout = true
     }
 
-    func onWorkoutPressed(workout: WorkoutTemplateModel) {
+    func onWorkoutPressed(workout: WorkoutTemplateModel, onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)? = nil) {
         // Only increment click count for non-system workouts
         // System workouts (IDs starting with "system-") are read-only
         if !workout.id.hasPrefix("system-") {

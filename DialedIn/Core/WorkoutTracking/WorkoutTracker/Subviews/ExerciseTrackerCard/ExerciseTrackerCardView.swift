@@ -7,22 +7,77 @@
 
 import SwiftUI
 
-struct ExerciseTrackerCardView: View {
-    @Environment(CoreBuilder.self) private var builder
-    @State var viewModel: ExerciseTrackerCardViewModel
+struct ExerciseTrackerCardViewDelegate {
+    var exercise: WorkoutExerciseModel
+    var exerciseIndex: Int
+    var isCurrentExercise: Bool
+    var weightUnit: ExerciseWeightUnit
+    var distanceUnit: ExerciseDistanceUnit
+    var previousSetsByIndex: [Int: WorkoutSetModel]
+    var onSetUpdate: (WorkoutSetModel) -> Void
+    var onAddSet: () -> Void
+    var onDeleteSet: (String) -> Void
+    var onHeaderLongPress: () -> Void
+    var onNotesChange: (String) -> Void
+    var onWeightUnitChange: (ExerciseWeightUnit) -> Void
+    var onDistanceUnitChange: (ExerciseDistanceUnit) -> Void
+    var restBeforeSecForSet: (String) -> Int?
+    var onRestBeforeChange: (String, Int?) -> Void
+    var onRequestRestPicker: (String, Int?) -> Void
+    var getLatestExercise: () -> WorkoutExerciseModel?
+    var getLatestExerciseIndex: () -> Int
+    var getLatestIsCurrentExercise: () -> Bool
+    var getLatestWeightUnit: () -> ExerciseWeightUnit
+    var getLatestDistanceUnit: () -> ExerciseDistanceUnit
+    var getLatestPreviousSets: () -> [Int: WorkoutSetModel]
+    var isExpanded: Binding<Bool>
+}
 
-    @Binding var isExpanded: Bool
+struct ExerciseTrackerCardView: View {
+
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: ExerciseTrackerCardViewModel
     
+    var delegate: ExerciseTrackerCardViewDelegate
+    
+    init(delegate: ExerciseTrackerCardViewDelegate, interactor: ExerciseTrackerCardInteractor) {
+        self.delegate = delegate
+        _viewModel = State(wrappedValue: ExerciseTrackerCardViewModel(
+            interactor: interactor,
+            exercise: delegate.exercise,
+            exerciseIndex: delegate.exerciseIndex,
+            isCurrentExercise: delegate.isCurrentExercise,
+            weightUnit: delegate.weightUnit,
+            distanceUnit: delegate.distanceUnit,
+            previousSetsByIndex: delegate.previousSetsByIndex
+        ))
+    }
+
     var body: some View {
-        DisclosureGroup(isExpanded: $isExpanded) {
+        DisclosureGroup(isExpanded: delegate.isExpanded) {
             setsContent
         } label: {
             exerciseHeader
         }
-        .onChange(of: isExpanded) { _, newValue in
+        .onChange(of: delegate.isExpanded.wrappedValue) { _, newValue in
             if newValue {
                 // Refresh exercise data when card expands
-                viewModel.refreshExercise()
+                let latestExercise = delegate.getLatestExercise() ?? viewModel.exercise
+                let latestExerciseIndex = delegate.getLatestExerciseIndex()
+                let latestIsCurrentExercise = delegate.getLatestIsCurrentExercise()
+                let latestWeightUnit = delegate.getLatestWeightUnit()
+                let latestDistanceUnit = delegate.getLatestDistanceUnit()
+                let latestPreviousSets = delegate.getLatestPreviousSets()
+                
+                viewModel.refresh(
+                    with: latestExercise,
+                    exerciseIndex: latestExerciseIndex,
+                    isCurrentExercise: latestIsCurrentExercise,
+                    weightUnit: latestWeightUnit,
+                    distanceUnit: latestDistanceUnit,
+                    previousSetsByIndex: latestPreviousSets
+                )
             }
         }
     }
@@ -49,7 +104,7 @@ struct ExerciseTrackerCardView: View {
         }
         .tappableBackground()
         .onLongPressGesture(minimumDuration: 0.4) {
-            viewModel.onHeaderLongPress()
+            delegate.onHeaderLongPress()
         }
         .listRowInsets(.vertical, .zero)
     }
@@ -62,7 +117,8 @@ struct ExerciseTrackerCardView: View {
                 Menu {
                     ForEach(ExerciseWeightUnit.allCases, id: \.self) { unit in
                         Button {
-                            viewModel.onWeightUnitChange(unit)
+                            delegate.onWeightUnitChange(unit)
+                            viewModel.weightUnit = unit
                         } label: {
                             HStack {
                                 Text(unit.displayName)
@@ -82,7 +138,8 @@ struct ExerciseTrackerCardView: View {
                 Menu {
                     ForEach(ExerciseDistanceUnit.allCases, id: \.self) { unit in
                         Button {
-                            viewModel.onDistanceUnitChange(unit)
+                            delegate.onDistanceUnitChange(unit)
+                            viewModel.distanceUnit = unit
                         } label: {
                             HStack {
                                 Text(unit.displayName)
@@ -119,25 +176,27 @@ struct ExerciseTrackerCardView: View {
                     .scrollContentBackground(.hidden)
                     .textInputAutocapitalization(.sentences)
                     .onChange(of: viewModel.notesDraft) { _, newValue in
-                        viewModel.onNotesChange(newValue)
+                        delegate.onNotesChange(newValue)
                     }
             }
 
-            ForEach(viewModel.exercise.sets) { set in
+            ForEach(delegate.exercise.sets) { set in
                 builder.setTrackerRowView(
-                    set: set,
-                    trackingMode: viewModel.exercise.trackingMode,
-                    weightUnit: viewModel.weightUnit,
-                    distanceUnit: viewModel.distanceUnit,
-                    previousSet: viewModel.previousSetsByIndex[set.index],
-                    restBeforeSec: viewModel.restBeforeSecForSet(set.id),
-                    onRestBeforeChange: { viewModel.onRestBeforeChange(set.id, $0) },
-                    onRequestRestPicker: { _, _ in viewModel.onRequestRestPicker(set.id, viewModel.restBeforeSecForSet(set.id)) },
-                    onUpdate: viewModel.onSetUpdate
+                    delegate: SetTrackerRowViewDelegate(
+                        set: set,
+                        trackingMode: viewModel.exercise.trackingMode,
+                        weightUnit: viewModel.weightUnit,
+                        distanceUnit: viewModel.distanceUnit,
+                        previousSet: viewModel.previousSetsByIndex[set.index],
+                        restBeforeSec: delegate.restBeforeSecForSet(set.id),
+                        onRestBeforeChange: { delegate.onRestBeforeChange(set.id, $0) },
+                        onRequestRestPicker: { _, _ in delegate.onRequestRestPicker(set.id, delegate.restBeforeSecForSet(set.id)) },
+                        onUpdate: delegate.onSetUpdate
+                    )
                 )
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button(role: .destructive) {
-                        viewModel.onDeleteSet(set.id)
+                        delegate.onDeleteSet(set.id)
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
@@ -148,7 +207,7 @@ struct ExerciseTrackerCardView: View {
 
             // Add set button
             Button {
-                viewModel.onAddSet()
+                delegate.onAddSet()
             } label: {
                 HStack {
                     Image(systemName: "plus.circle.fill")
@@ -217,10 +276,7 @@ private struct ExerciseTrackerCardPreviewContainer: View {
         List {
             // Current exercise styled card
             ExerciseTrackerCardView(
-                viewModel: ExerciseTrackerCardViewModel(
-                    interactor: CoreInteractor(
-                        container: DevPreview.shared.container
-                    ),
+                delegate: ExerciseTrackerCardViewDelegate(
                     exercise: exercise,
                     exerciseIndex: 0,
                     isCurrentExercise: true,
@@ -242,17 +298,15 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                     getLatestIsCurrentExercise: { true },
                     getLatestWeightUnit: { .kilograms },
                     getLatestDistanceUnit: { .meters },
-                    getLatestPreviousSets: { [:] }
+                    getLatestPreviousSets: { [:] },
+                    isExpanded: $isExpandedCurrent
                 ),
-                isExpanded: $isExpandedCurrent
+                interactor: CoreInteractor(container: DevPreview.shared.container)
             )
             
             // Non-current exercise styled card
             ExerciseTrackerCardView(
-                viewModel: ExerciseTrackerCardViewModel(
-                    interactor: CoreInteractor(
-                        container: DevPreview.shared.container
-                    ),
+                delegate: ExerciseTrackerCardViewDelegate(
                     exercise: exercise,
                     exerciseIndex: 1,
                     isCurrentExercise: false,
@@ -274,9 +328,10 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                     getLatestIsCurrentExercise: { false },
                     getLatestWeightUnit: { .kilograms },
                     getLatestDistanceUnit: { .meters },
-                    getLatestPreviousSets: { [:] }
+                    getLatestPreviousSets: { [:] },
+                    isExpanded: $isExpandedOther
                 ),
-                isExpanded: $isExpandedOther
+                interactor: CoreInteractor(container: DevPreview.shared.container)
             )
         }
     }

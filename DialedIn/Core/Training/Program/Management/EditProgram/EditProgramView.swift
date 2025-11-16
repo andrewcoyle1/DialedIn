@@ -7,15 +7,18 @@
 
 import SwiftUI
 
+struct EditProgramViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+    var plan: TrainingPlan
+}
+
 struct EditProgramView: View {
 
     @Environment(\.dismiss) private var dismiss
     
     @State var viewModel: EditProgramViewModel
     
-    @Binding var path: [TabBarPathOption]
-
-    let plan: TrainingPlan
+    var delegate: EditProgramViewDelegate
 
     var body: some View {
         NavigationStack {
@@ -59,7 +62,7 @@ struct EditProgramView: View {
             DatePicker("Start Date", selection: Binding(
                 get: { viewModel.startDate },
                 set: { newDate in
-                    if !plan.weeks.flatMap({ $0.scheduledWorkouts }).isEmpty && newDate != viewModel.originalStartDate {
+                    if !delegate.plan.weeks.flatMap({ $0.scheduledWorkouts }).isEmpty && newDate != viewModel.originalStartDate {
                         viewModel.pendingStartDate = newDate
                         viewModel.showDateChangeAlert(startDate: $viewModel.startDate)
                     } else {
@@ -108,27 +111,27 @@ struct EditProgramView: View {
             HStack {
                 Text("Scheduled Weeks")
                 Spacer()
-                Text("\(plan.weeks.count)")
+                Text("\(delegate.plan.weeks.count)")
                     .foregroundStyle(.secondary)
             }
 
             HStack {
                 Text("Total Workouts")
                 Spacer()
-                Text("\(viewModel.totalWorkouts(for: plan))")
+                Text("\(viewModel.totalWorkouts(for: delegate.plan))")
                     .foregroundStyle(.secondary)
             }
 
             HStack {
                 Text("Completed")
                 Spacer()
-                Text("\(viewModel.completedWorkouts(for: plan))")
+                Text("\(viewModel.completedWorkouts(for: delegate.plan))")
                     .foregroundStyle(.secondary)
             }
         } header: {
             Text("Statistics")
         } footer: {
-            if viewModel.hasEndDate, let end = viewModel.endDate, viewModel.startDate != viewModel.originalStartDate || end != plan.endDate {
+            if viewModel.hasEndDate, let end = viewModel.endDate, viewModel.startDate != viewModel.originalStartDate || end != delegate.plan.endDate {
                 Text("Program duration will be adjusted based on new dates")
                     .foregroundStyle(.blue)
             }
@@ -138,18 +141,18 @@ struct EditProgramView: View {
     private var detailsSection: some View {
         Section {
             Button {
-                viewModel.navToProgramGoalsView(path: $path, plan: plan)
+                viewModel.navToProgramGoalsView(path: delegate.path, plan: delegate.plan)
             } label: {
                 HStack {
                     Label("Manage Goals", systemImage: "target")
                     Spacer()
-                    Text("\(plan.goals.count)")
+                    Text("\(delegate.plan.goals.count)")
                         .foregroundStyle(.secondary)
                 }
             }
 
             Button {
-                viewModel.navToProgramScheduleView(path: $path, plan: plan)
+                viewModel.navToProgramScheduleView(path: delegate.path, plan: delegate.plan)
             } label: {
                 Label("View Schedule", systemImage: "calendar")
             }
@@ -160,10 +163,10 @@ struct EditProgramView: View {
 
     @ViewBuilder
     func deletePlanSection() -> some View {
-        if plan.isActive {
+        if delegate.plan.isActive {
             Section {
                 Button(role: .destructive) {
-                    viewModel.showDeleteActiveAlert(plan: plan, onDismiss: { dismiss() })
+                    viewModel.showDeleteActiveAlert(plan: delegate.plan, onDismiss: { dismiss() })
                 } label: {
                     Label("Delete Program", systemImage: "trash")
                 }
@@ -184,7 +187,7 @@ struct EditProgramView: View {
         ToolbarItem(placement: .confirmationAction) {
             Button("Save") {
                 Task {
-                    await viewModel.savePlan(plan: plan, onDismiss: {
+                    await viewModel.savePlan(plan: delegate.plan, onDismiss: {
                         dismiss()
                     })
                 }
@@ -197,9 +200,12 @@ struct EditProgramView: View {
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.editProgramView(
+    let delegate = EditProgramViewDelegate(
         path: $path,
-        plan: TrainingPlan.mock
+        plan: .mock
+    )
+    builder.editProgramView(
+        delegate: delegate
     )
     .previewEnvironment()
 }

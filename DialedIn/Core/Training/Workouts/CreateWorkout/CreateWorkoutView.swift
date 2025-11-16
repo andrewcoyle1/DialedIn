@@ -8,14 +8,18 @@
 import SwiftUI
 import PhotosUI
 
+struct CreateWorkoutViewDelegate {
+    var workoutTemplate: WorkoutTemplateModel?
+}
+
 struct CreateWorkoutView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: CreateWorkoutViewModel
 
-    var workoutTemplate: WorkoutTemplateModel?
-    
+    var delegate: CreateWorkoutViewDelegate
+
     var body: some View {
         NavigationStack {
             List {
@@ -24,7 +28,7 @@ struct CreateWorkoutView: View {
                 exerciseTemplatesSection
             }
             .navigationTitle(viewModel.isEditMode ? "Edit Workout" : "Create Workout")
-            .onAppear { viewModel.loadInitialState(workoutTemplate: workoutTemplate) }
+            .onAppear { viewModel.loadInitialState(workoutTemplate: delegate.workoutTemplate) }
             .toolbar {
                 toolbarContent
             }
@@ -49,7 +53,7 @@ struct CreateWorkoutView: View {
             })
             #endif
             .sheet(isPresented: $viewModel.showAddExerciseModal) {
-                builder.addExerciseModalView(selectedExercises: $viewModel.exercises)
+                builder.addExerciseModalView(delegate: AddExerciseModalViewDelegate(selectedExercises: $viewModel.exercises))
             }
             .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
                 Button("OK") {
@@ -219,7 +223,7 @@ struct CreateWorkoutView: View {
             viewModel: CreateWorkoutViewModel(interactor: CoreInteractor(
                 container: DevPreview.shared.container)
             ),
-            workoutTemplate: WorkoutTemplateModel.mock
+            delegate: CreateWorkoutViewDelegate(workoutTemplate: WorkoutTemplateModel.mock)
         )
     }
     .previewEnvironment()
@@ -235,7 +239,8 @@ struct CreateWorkoutView: View {
             viewModel: CreateWorkoutViewModel(
                 interactor: CoreInteractor(
                 container: DevPreview.shared.container)
-            )
+            ),
+            delegate: CreateWorkoutViewDelegate()
         )
     }
     .previewEnvironment()

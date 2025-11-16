@@ -7,22 +7,27 @@
 
 import SwiftUI
 
+struct TabBarViewDelegate {
+
+    var path: Binding<[TabBarPathOption]>
+    var tab: Binding<TabBarOption>
+}
+
 struct TabBarView: View {
     
     @Environment(CoreBuilder.self) private var builder
     @State var viewModel: TabBarViewModel
 
-    @Binding var path: [TabBarPathOption]
-    @Binding var tab: TabBarOption
-    
+    var delegate: TabBarViewDelegate
+
     var body: some View {
-        TabView(selection: $tab) {
+        TabView(selection: delegate.tab) {
             ForEach(TabBarOption.allCases) { tab in
                 Tab(tab.name, systemImage: tab.symbolName, value: tab) {
-                    NavigationStack(path: $path) {
-                        tab.viewForPage(builder: builder, path: $path)
+                    NavigationStack(path: delegate.path) {
+                        tab.viewForPage(builder: builder, path: delegate.path)
                     }
-                    .navDestinationForTabBarModule(path: $path)
+                    .navDestinationForTabBarModule(path: delegate.path)
                 }
             }
         }
@@ -30,7 +35,8 @@ struct TabBarView: View {
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory {
             if let active = viewModel.active, !viewModel.trackerPresented {
-                builder.tabViewAccessoryView(active: active)
+                let delegate = TabViewAccessoryViewDelegate(active: active)
+                builder.tabViewAccessoryView(delegate: delegate)
             }
         }
         .fullScreenCover(isPresented: Binding(get: {
@@ -39,7 +45,7 @@ struct TabBarView: View {
             viewModel.isTrackerPresented = newValue
         })) {
             if let session = viewModel.activeSession {
-                builder.workoutTrackerView(workoutSession: session, initialWorkoutSession: session)
+                builder.workoutTrackerView(delegate: WorkoutTrackerViewDelegate(workoutSession: session))
             }
         }
         .task {
@@ -51,16 +57,17 @@ struct TabBarView: View {
 #Preview("Has No Active Session") {
     @Previewable @State var path: [TabBarPathOption] = []
     @Previewable @State var tab: TabBarOption = .dashboard
+    let delegate = TabBarViewDelegate(path: $path, tab: $tab)
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.tabBarView(path: $path, tab: $tab)
+    builder.tabBarView(delegate: delegate)
     .previewEnvironment()
 }
 
 #Preview("Has Active Session") {
     @Previewable @State var path: [TabBarPathOption] = []
     @Previewable @State var tab: TabBarOption = .dashboard
-    
+    let delegate = TabBarViewDelegate(path: $path, tab: $tab)
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.tabBarView(path: $path, tab: $tab)
+    builder.tabBarView(delegate: delegate)
     .previewEnvironment()
 }

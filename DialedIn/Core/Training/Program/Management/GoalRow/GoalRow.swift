@@ -7,29 +7,36 @@
 
 import SwiftUI
 
+struct GoalRowDelegate {
+    let goal: TrainingGoal
+    let plan: TrainingPlan
+}
+
 struct GoalRow: View {
     @State var viewModel: GoalRowViewModel
-    
+
+    let delegate: GoalRowDelegate
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(viewModel.goal.type.description)
+                Text(delegate.goal.type.description)
                     .font(.subheadline)
                     .fontWeight(.medium)
                 Spacer()
-                Text("\(Int(viewModel.goal.progress * 100))%")
+                Text("\(Int(delegate.goal.progress * 100))%")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             
-            ProgressView(value: viewModel.goal.progress)
-            
+            ProgressView(value: delegate.goal.progress)
+
             HStack {
-                Text("\(Int(viewModel.goal.currentValue)) / \(Int(viewModel.goal.targetValue)) \(viewModel.goal.type.unit)")
+                Text("\(Int(delegate.goal.currentValue)) / \(Int(delegate.goal.targetValue)) \(delegate.goal.type.unit)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
-                if let targetDate = viewModel.goal.targetDate {
+                if let targetDate = delegate.goal.targetDate {
                     Text(targetDate.formatted(date: .abbreviated, time: .omitted))
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -39,7 +46,7 @@ struct GoalRow: View {
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 Task {
-                    await viewModel.removeGoal()
+                    await viewModel.removeGoal(goal: delegate.goal)
                 }
             } label: {
                 Label("Delete", systemImage: "trash")
@@ -49,9 +56,9 @@ struct GoalRow: View {
 }
 
 #Preview {
-    GoalRow(
-        viewModel: GoalRowViewModel(
-            interactor: CoreInteractor(container: DevPreview.shared.container),
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.goalRow(
+        delegate: GoalRowDelegate(
             goal: TrainingGoal.mocks.first!,
             plan: TrainingPlan.mock
         )

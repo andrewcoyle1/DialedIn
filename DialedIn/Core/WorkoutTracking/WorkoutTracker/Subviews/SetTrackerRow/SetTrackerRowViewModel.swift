@@ -18,46 +18,16 @@ extension CoreInteractor: SetTrackerRowInteractor { }
 class SetTrackerRowViewModel {
 
     private let interactor: SetTrackerRowInteractor
-    
-    var set: WorkoutSetModel
-    let trackingMode: TrackingMode
-    let weightUnit: ExerciseWeightUnit
-    let distanceUnit: ExerciseDistanceUnit
-    let previousSet: WorkoutSetModel?
-    let restBeforeSec: Int?
-    let onRestBeforeChange: (Int?) -> Void
-    let onRequestRestPicker: (String, Int?) -> Void
-    let onUpdate: (WorkoutSetModel) -> Void
-    
+
     // Validation state
     var showAlert: AnyAppAlert?
     var showWarmupHelp = false
     
-    init(
-        interactor: SetTrackerRowInteractor,
-        set: WorkoutSetModel,
-        trackingMode: TrackingMode,
-        weightUnit: ExerciseWeightUnit = .kilograms,
-        distanceUnit: ExerciseDistanceUnit = .meters,
-        previousSet: WorkoutSetModel? = nil,
-        restBeforeSec: Int?,
-        onRestBeforeChange: @escaping (Int?) -> Void,
-        onRequestRestPicker: @escaping (String, Int?) -> Void = { _, _ in },
-        onUpdate: @escaping (WorkoutSetModel) -> Void
-    ) {
+    init(interactor: SetTrackerRowInteractor) {
         self.interactor = interactor
-        self.set = set
-        self.trackingMode = trackingMode
-        self.weightUnit = weightUnit
-        self.distanceUnit = distanceUnit
-        self.previousSet = previousSet
-        self.restBeforeSec = restBeforeSec
-        self.onRestBeforeChange = onRestBeforeChange
-        self.onRequestRestPicker = onRequestRestPicker
-        self.onUpdate = onUpdate
     }
     
-    var buttonColor: Color {
+    func buttonColor(set: WorkoutSetModel, canComplete: Bool) -> Color {
         if set.completedAt != nil {
             return .green
         } else if canComplete {
@@ -67,7 +37,7 @@ class SetTrackerRowViewModel {
         }
     }
     
-    var canComplete: Bool {
+    func canComplete(trackingMode: TrackingMode, set: WorkoutSetModel) -> Bool {
         switch trackingMode {
         case .weightReps:
             let hasValidWeight = set.weightKg == nil || set.weightKg! >= 0
@@ -87,20 +57,20 @@ class SetTrackerRowViewModel {
         }
     }
         
-    func validateSetData() -> Bool {
+    func validateSetData(trackingMode: TrackingMode, set: WorkoutSetModel) -> Bool {
         switch trackingMode {
         case .weightReps:
-            return validateWeightReps()
+            return validateWeightReps(set: set)
         case .repsOnly:
-            return validateRepsOnly()
+            return validateRepsOnly(set: set)
         case .timeOnly:
-            return validateTimeOnly()
+            return validateTimeOnly(set: set)
         case .distanceTime:
-            return validateDistanceTime()
+            return validateDistanceTime(set: set)
         }
     }
     
-    func validateWeightReps() -> Bool {
+    func validateWeightReps(set: WorkoutSetModel) -> Bool {
         // Weight must be non-negative (including 0 for bodyweight exercises)
         if let weight = set.weightKg, weight < 0 {
             showAlert = AnyAppAlert(title: "Invalid Set Data", subtitle: "Weight must be a non-negative number")
@@ -116,7 +86,7 @@ class SetTrackerRowViewModel {
         return true
     }
     
-    func validateRepsOnly() -> Bool {
+    func validateRepsOnly(set: WorkoutSetModel) -> Bool {
         // Reps must be positive
         guard let reps = set.reps, reps > 0 else {
             showAlert = AnyAppAlert(title: "Invalid Set Data", subtitle: "Reps must be a positive number")
@@ -126,7 +96,7 @@ class SetTrackerRowViewModel {
         return true
     }
     
-    func validateTimeOnly() -> Bool {
+    func validateTimeOnly(set: WorkoutSetModel) -> Bool {
         // Time must be positive
         guard let duration = set.durationSec, duration > 0 else {
             showAlert = AnyAppAlert(title: "Invalid Set Data", subtitle: "Duration must be a positive time")
@@ -136,7 +106,7 @@ class SetTrackerRowViewModel {
         return true
     }
     
-    func validateDistanceTime() -> Bool {
+    func validateDistanceTime(set: WorkoutSetModel) -> Bool {
         // Distance must be positive
         guard let distance = set.distanceMeters, distance > 0 else {
             showAlert = AnyAppAlert(title: "Invalid Set Data", subtitle: "Distance must be a positive number")

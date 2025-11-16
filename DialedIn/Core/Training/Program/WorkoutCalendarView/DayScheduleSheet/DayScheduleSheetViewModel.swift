@@ -17,22 +17,11 @@ extension CoreInteractor: DayScheduleScheetInteractor { }
 @MainActor
 class DayScheduleSheetViewModel {
     let interactor: DayScheduleScheetInteractor
-    let date: Date
-    let scheduledWorkouts: [ScheduledWorkout]
-    let onStartWorkout: (ScheduledWorkout) async throws -> Void
     var sessionToShow: WorkoutSessionModel?
     var showAlert: AnyAppAlert?
     
-    init(
-        interactor: DayScheduleScheetInteractor,
-        date: Date,
-        scheduledWorkouts: [ScheduledWorkout],
-        onStartWorkout: @escaping (ScheduledWorkout) async throws -> Void
-    ) {
+    init(interactor: DayScheduleScheetInteractor) {
         self.interactor = interactor
-        self.date = date
-        self.scheduledWorkouts = scheduledWorkouts
-        self.onStartWorkout = onStartWorkout
     }
     
     func openCompletedSession(for workout: ScheduledWorkout) async {

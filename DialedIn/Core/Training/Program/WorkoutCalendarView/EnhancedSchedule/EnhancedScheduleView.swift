@@ -7,10 +7,18 @@
 
 import SwiftUI
 
+struct EnhancedScheduleViewDelegate {
+    var getScheduledWorkouts: () -> [ScheduledWorkout]
+    var onDateSelected: (Date) -> Void
+    var onDateTapped: (Date) -> Void
+}
+
 struct EnhancedScheduleView: View {
     
     @State var viewModel: EnhancedScheduleViewModel
-    
+
+    var delegate: EnhancedScheduleViewDelegate
+
     var body: some View {
         VStack(spacing: 16) {
             // Month navigation
@@ -81,7 +89,7 @@ struct EnhancedScheduleView: View {
     }
     
     private func dayCell(for date: Date) -> some View {
-        let workouts = viewModel.workoutsForDate(date)
+        let workouts = viewModel.workoutsForDate(date, getScheduledWorkouts: delegate.getScheduledWorkouts)
         let isToday = viewModel.calendar.isDateInToday(date)
         let hasWorkouts = !workouts.isEmpty
         let completedCount = workouts.filter { $0.isCompleted }.count
@@ -89,9 +97,9 @@ struct EnhancedScheduleView: View {
         
         return Button {
             viewModel.selectedDate = date
-            viewModel.onDateTapped(date)
+            delegate.onDateTapped(date)
             if hasWorkouts {
-                viewModel.onDateSelected(date)
+                delegate.onDateSelected(date)
             }
         } label: {
             VStack(spacing: 4) {
@@ -136,14 +144,14 @@ struct EnhancedScheduleView: View {
 }
 
 #Preview {
-    EnhancedScheduleView(
-        viewModel: EnhancedScheduleViewModel(
-            interactor: CoreInteractor(container: DevPreview.shared.container),
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.enhancedScheduleView(
+        delegate: EnhancedScheduleViewDelegate(
             getScheduledWorkouts: { ScheduledWorkout.mocksWeek1 },
             onDateSelected: { _ in
-                
+
             }, onDateTapped: { _ in
-                
+
             }
         )
     )

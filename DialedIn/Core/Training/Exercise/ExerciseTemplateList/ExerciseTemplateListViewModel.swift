@@ -18,13 +18,11 @@ typealias ExerciseTemplateListViewModel = GenericTemplateListViewModel<ExerciseT
 
 extension GenericTemplateListViewModel where Template == ExerciseTemplateModel {
     static func create(
-        interactor: ExerciseTemplateListInteractor,
-        templateIds: [String]?
+        interactor: ExerciseTemplateListInteractor
     ) -> ExerciseTemplateListViewModel {
-        let config: TemplateListConfiguration<ExerciseTemplateModel> = templateIds != nil ? .exercise : .exercise(customTitle: "Exercise Templates")
-        return GenericTemplateListViewModel<ExerciseTemplateModel>(
-            configuration: config,
-            templateIds: templateIds,
+        GenericTemplateListViewModel<ExerciseTemplateModel>(
+            configuration: .exercise,
+            templateIds: nil,
             fetchTemplatesByIds: { ids, limit in
                 try await interactor.getExerciseTemplates(ids: ids, limitTo: limit)
             }

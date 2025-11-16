@@ -18,233 +18,219 @@ class CoreBuilder {
     }
 
     func adaptiveMainView() -> some View {
-        AdaptiveMainView(viewModel: AdaptiveMainViewModel(interactor: interactor))
+        AdaptiveMainView(
+            viewModel: AdaptiveMainViewModel(interactor: interactor)
+        )
     }
 
-    func tabBarView(path: Binding<[TabBarPathOption]>, tab: Binding<TabBarOption>) -> some View {
-        TabBarView(viewModel: TabBarViewModel(interactor: interactor), path: path, tab: tab)
+    func tabBarView(delegate: TabBarViewDelegate) -> some View {
+        TabBarView(
+            viewModel: TabBarViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
-    func splitViewContainer(path: Binding<[TabBarPathOption]>, tab: Binding<TabBarOption>) -> some View {
-        SplitViewContainer(viewModel: SplitViewContainerViewModel(interactor: interactor), path: path, tab: tab)
+    func splitViewContainer(delegate: SplitViewDelegate) -> some View {
+        SplitViewContainer(
+            viewModel: SplitViewContainerViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
-    func exerciseTemplateDetailView(exercise: ExerciseTemplateModel) -> some View {
+    func exerciseTemplateDetailView(delegate: ExerciseTemplateDetailViewDelegate) -> some View {
         ExerciseTemplateDetailView(
             viewModel: ExerciseTemplateDetailViewModel(interactor: interactor),
-            exerciseTemplate: exercise
+            delegate: delegate
         )
     }
 
-    func tabViewAccessoryView(active: WorkoutSessionModel) -> some View {
-        TabViewAccessoryView(viewModel: TabViewAccessoryViewModel(interactor: interactor), active: active)
+    func tabViewAccessoryView(delegate: TabViewAccessoryViewDelegate) -> some View {
+        TabViewAccessoryView(
+            viewModel: TabViewAccessoryViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
-    func workoutTrackerView(workoutSession: WorkoutSessionModel, initialWorkoutSession: WorkoutSessionModel) -> some View {
-        WorkoutTrackerView(viewModel: WorkoutTrackerViewModel(interactor: interactor, workoutSession: workoutSession), initialWorkoutSession: initialWorkoutSession)
+    func workoutTrackerView(delegate: WorkoutTrackerViewDelegate) -> some View {
+        WorkoutTrackerView(
+            viewModel: WorkoutTrackerViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
-    func ingredientDetailView(ingredientTemplate: IngredientTemplateModel) -> some View {
+    func ingredientDetailView(delegate: IngredientDetailViewDelegate) -> some View {
         IngredientDetailView(
-            viewModel: IngredientDetailViewModel(
-                interactor: interactor,
-                ingredientTemplate: ingredientTemplate
-            )
+            viewModel: IngredientDetailViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
-    func exerciseTemplateListView(templateIds: [String]) -> some View {
+    func exerciseTemplateListView(delegate: ExerciseTemplateListViewDelegate) -> some View {
         ExerciseTemplateListView(
-            interactor: interactor,
-            templateIds: templateIds
+            viewModel: ExerciseTemplateListViewModel.create(interactor: interactor),
+            delegate: delegate
         )
     }
 
-    func workoutTemplateListView(templateIds: [String]) -> some View {
+    func workoutTemplateListView(delegate: WorkoutTemplateListViewDelegate) -> some View {
         WorkoutTemplateListView(
-            interactor: interactor,
-            templateIds: templateIds
+            viewModel: WorkoutTemplateListViewModel.create(interactor: interactor),
+            delegate: delegate
         )
     }
 
-    func workoutTemplateDetailView(workout: WorkoutTemplateModel) -> some View {
+    func workoutTemplateDetailView(delegate: WorkoutTemplateDetailViewDelegate) -> some View {
         WorkoutTemplateDetailView(
             viewModel: WorkoutTemplateDetailViewModel(interactor: interactor),
-            workoutTemplate: workout
+            delegate: delegate
         )
     }
 
-    func workoutSessionDetailView(session: WorkoutSessionModel) -> some View {
+    func workoutSessionDetailView(delegate: WorkoutSessionDetailViewDelegate) -> some View {
         WorkoutSessionDetailView(
             viewModel: WorkoutSessionDetailViewModel(interactor: interactor),
-            workoutSession: session
+            delegate: delegate
         )
     }
 
-    func programView(onSessionSelectionChangeded: @escaping (WorkoutSessionModel?) -> Void, onWorkoutStartRequested: @escaping (WorkoutTemplateModel, ScheduledWorkout?) -> Void, onActiveSheetChanged: @escaping (ActiveSheet?) -> Void) -> some View {
+    func programView(delegate: ProgramViewDelegate) -> some View {
         ProgramView(
-            viewModel: ProgramViewModel(
-                interactor: interactor,
-                onSessionSelectionChanged: onSessionSelectionChangeded,
-                onWorkoutStartRequested: onWorkoutStartRequested,
-                onActiveSheetChanged: onActiveSheetChanged
-            )
+            viewModel: ProgramViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
     func devSettingsView() -> some View {
-        DevSettingsView(viewModel: DevSettingsViewModel(interactor: interactor))
-    }
-
-    func workoutStartView(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout? = nil) -> some View {
-        WorkoutStartView(
-            viewModel: WorkoutStartViewModel(
-                interactor: interactor
-            ),
-            template: template,
-            scheduledWorkout: scheduledWorkout
+        DevSettingsView(
+            viewModel: DevSettingsViewModel(interactor: interactor)
         )
     }
 
-    func dashboardView(path: Binding<[TabBarPathOption]>) -> some View {
-        DashboardView(viewModel: DashboardViewModel(interactor: interactor), path: path)
+    func workoutStartView(delegate: WorkoutStartViewDelegate) -> some View {
+        WorkoutStartView(
+            viewModel: WorkoutStartViewModel(interactor: interactor),
+            delegate: delegate
+        )
+    }
+
+    func dashboardView(delegate: DashboardViewDelegate) -> some View {
+        DashboardView(
+            viewModel: DashboardViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
     func createIngredientView() -> some View {
-        CreateIngredientView(viewModel: CreateIngredientViewModel(interactor: interactor))
+        CreateIngredientView(
+            viewModel: CreateIngredientViewModel(interactor: interactor)
+        )
     }
 
-    func addIngredientModalView(selectedIngredients: Binding<[IngredientTemplateModel]>) -> some View {
+    func addIngredientModalView(delegate: AddIngredientModalViewDelegate) -> some View {
         AddIngredientModalView(
             viewModel: AddIngredientModalViewModel(interactor: interactor),
-            selectedIngredients: selectedIngredients
+            delegate: delegate
         )
     }
 
     func createRecipeView() -> some View {
-        CreateRecipeView(viewModel: CreateRecipeViewModel(interactor: interactor))
+        CreateRecipeView(
+            viewModel: CreateRecipeViewModel(interactor: interactor)
+        )
     }
 
-    func mealLogView(
-        path: Binding<[TabBarPathOption]>,
-        isShowingInspector: Binding<Bool>,
-        selectedIngredientTemplate: Binding<IngredientTemplateModel?>,
-        selectedRecipeTemplate: Binding<RecipeTemplateModel?>
-    ) -> some View {
+    func mealLogView(delegate: MealLogViewDelegate) -> some View {
         MealLogView(
             viewModel: MealLogViewModel(interactor: interactor),
-            path: path,
-            isShowingInspector: isShowingInspector,
-            selectedIngredientTemplate: selectedIngredientTemplate,
-            selectedRecipeTemplate: selectedRecipeTemplate
+            delegate: delegate
         )
     }
 
-    func recipesView(
-        showCreateRecipe: Binding<Bool>,
-        selectedIngredientTemplate: Binding<IngredientTemplateModel?>,
-        selectedRecipeTemplate: Binding<RecipeTemplateModel?>,
-        isShowingInspector: Binding<Bool>
-    ) -> some View {
+    func recipesView(delegate: RecipesViewDelegate) -> some View {
         RecipesView(
-            viewModel: RecipesViewModel(
-                interactor: interactor, showCreateRecipe: showCreateRecipe,
-                selectedIngredientTemplate: selectedIngredientTemplate,
-                selectedRecipeTemplate: selectedRecipeTemplate,
-                isShowingInspector: isShowingInspector
-            )
+            viewModel: RecipesViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
-    func ingredientsView(
-        isShowingInspector: Binding<Bool>,
-        selectedIngredientTemplate: Binding<IngredientTemplateModel?>,
-        selectedRecipeTemplate: Binding<RecipeTemplateModel?>,
-        showCreateIngredient: Binding<Bool>
-    ) -> some View {
+    func ingredientsView(delegate: IngredientsViewDelegate) -> some View {
         IngredientsView(
             viewModel: IngredientsViewModel(interactor: interactor),
-            isShowingInspector: isShowingInspector,
-            selectedIngredientTemplate: selectedIngredientTemplate,
-            selectedRecipeTemplate: selectedRecipeTemplate,
-            showCreateIngredient: showCreateIngredient
+            delegate: delegate
         )
     }
 
-    func nutritionView(path: Binding<[TabBarPathOption]>) -> some View {
+    func nutritionView(delegate: NutritionViewDelegate) -> some View {
         NutritionView(
-            viewModel: NutritionViewModel(
-                interactor: interactor
-            ),
-            path: path
+            viewModel: NutritionViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
-    func nutritionLibraryPickerView(onPick: @escaping (MealItemModel) -> Void, path: Binding<[TabBarPathOption]>) -> some View {
-        NutritionLibraryPickerView(viewModel: NutritionLibraryPickerViewModel(interactor: interactor, onPick: onPick), path: path)
+    func nutritionLibraryPickerView(delegate: NutritionLibraryPickerViewDelegate) -> some View {
+        NutritionLibraryPickerView(
+            viewModel: NutritionLibraryPickerViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
-    func addMealSheet(selectedDate: Date, mealType: MealType, onSave: @escaping (MealLogModel) -> Void, path: Binding<[TabBarPathOption]>) -> some View {
+    func addMealSheet(delegate: AddMealSheetDelegate) -> some View {
         AddMealSheet(
-            viewModel: AddMealSheetViewModel(
-                interactor: interactor,
-                selectedDate: selectedDate,
-                mealType: mealType,
-                onSave: onSave
-            ),
-            path: path
+            viewModel: AddMealSheetViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
     func nutritionTargetChartView() -> some View {
-        NutritionTargetChartView(viewModel: NutritionTargetChartViewModel(interactor: interactor))
+        NutritionTargetChartView(
+            viewModel: NutritionTargetChartViewModel(interactor: interactor)
+        )
     }
 
-    func workoutsView(onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)? = nil) -> some View {
+    func workoutsView(delegate: WorkoutsViewDelegate) -> some View {
         WorkoutsView(
-            viewModel: WorkoutsViewModel(
-                interactor: interactor,
-                onWorkoutSelectionChanged: onWorkoutSelectionChanged
-            )
+            viewModel: WorkoutsViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
-    func workoutHistoryView(onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil) -> some View {
+    func workoutHistoryView(delegate: WorkoutHistoryViewDelegate) -> some View {
         WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(
-                interactor: interactor,
-                onSessionSelectionChanged: onSessionSelectionChanged
-            )
+            viewModel: WorkoutHistoryViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
-    func createWorkoutView(workoutTemplate: WorkoutTemplateModel? = nil) -> some View {
-        CreateWorkoutView(viewModel: CreateWorkoutViewModel(interactor: interactor), workoutTemplate: workoutTemplate)
+    func createWorkoutView(delegate: CreateWorkoutViewDelegate) -> some View {
+        CreateWorkoutView(
+            viewModel: CreateWorkoutViewModel(interactor: interactor),
+            delegate: delegate)
     }
 
     func createExerciseView() -> some View {
-        CreateExerciseView(viewModel: CreateExerciseViewModel(interactor: interactor))
-    }
-
-    func addGoalView(plan: TrainingPlan) -> some View {
-        AddGoalView(viewModel: AddGoalViewModel(interactor: interactor), plan: plan)
-    }
-
-    func workoutSummaryCardView(scheduledWorkout: ScheduledWorkout, onTap: @escaping () -> Void) -> some View {
-        WorkoutSummaryCardView(
-            viewModel: WorkoutSummaryCardViewModel(
-                interactor: interactor,
-                scheduledWorkout: scheduledWorkout,
-                onTap: onTap
-            )
+        CreateExerciseView(
+            viewModel: CreateExerciseViewModel(interactor: interactor)
         )
     }
 
-    func todaysWorkoutCardView(scheduledWorkout: ScheduledWorkout, onStart: @escaping () -> Void) -> some View {
+    func addGoalView(delegate: AddGoalViewDelegate) -> some View {
+        AddGoalView(
+            viewModel: AddGoalViewModel(interactor: interactor),
+            delegate: delegate
+        )
+    }
+
+    func workoutSummaryCardView(delegate: WorkoutSummaryCardViewDelegate) -> some View {
+        WorkoutSummaryCardView(
+            viewModel: WorkoutSummaryCardViewModel(interactor: interactor),
+            delegate: delegate
+        )
+    }
+
+    func todaysWorkoutCardView(delegate: TodaysWorkoutCardViewDelegate) -> some View {
         TodaysWorkoutCardView(
-            viewModel: TodaysWorkoutCardViewModel(interactor: interactor,
-                                                  scheduledWorkout: scheduledWorkout,
-                                                  onStart: onStart)
+            viewModel: TodaysWorkoutCardViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
@@ -257,92 +243,46 @@ class CoreBuilder {
         )
     }
 
-    func programRowView(
-        plan: TrainingPlan,
-        isActive: Bool,
-        onActivate: @escaping () -> Void = {},
-        onEdit: @escaping () -> Void = {},
-        onDelete: @escaping () -> Void = {}
-    ) -> some View {
+    func programRowView(delegate: ProgramRowViewDelegate) -> some View {
         ProgramRowView(
-            viewModel: ProgramRowViewModel(
-                interactor: interactor,
-                plan: plan,
-                isActive: isActive,
-                onActivate: onActivate,
-                onEdit: onEdit,
-                onDelete: onDelete
-            )
+            viewModel: ProgramRowViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
-    func workoutCalendarView(onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil, onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)? = nil) -> some View {
+    func workoutCalendarView(delegate: WorkoutCalendarViewDelegate) -> some View {
         WorkoutCalendarView(
-            viewModel: WorkoutCalendarViewModel(
-                interactor: interactor, onSessionSelectionChanged: onSessionSelectionChanged,
-                onWorkoutStartRequested: onWorkoutStartRequested
-            )
+            viewModel: WorkoutCalendarViewModel(interactor: interactor),
+            delegate: delegate
         )
-
     }
-    // swiftlint:disable:next function_parameter_count
-    func editableExerciseCardWrapper(
-        exercise: WorkoutExerciseModel,
-        index: Int,
-        weightUnit: ExerciseWeightUnit,
-        distanceUnit: ExerciseDistanceUnit,
-        onExerciseUpdate: @escaping (WorkoutExerciseModel) -> Void,
-        onAddSet: @escaping () -> Void,
-        onDeleteSet: @escaping (String) -> Void,
-        onWeightUnitChange: @escaping (ExerciseWeightUnit) -> Void,
-        onDistanceUnitChange: @escaping (ExerciseDistanceUnit) -> Void
-    ) -> some View {
+
+    func editableExerciseCardWrapper(delegate: EditableExerciseCardWrapperDelegate) -> some View {
         EditableExerciseCardWrapper(
-            viewModel: EditableExerciseCardWrapperViewModel(
-                interactor: interactor,
-                exercise: exercise,
-                index: index,
-                weightUnit: weightUnit,
-                distanceUnit: distanceUnit,
-                onExerciseUpdate: onExerciseUpdate,
-                onAddSet: onAddSet,
-                onDeleteSet: onDeleteSet,
-                onWeightUnitChange: onWeightUnitChange,
-                onDistanceUnitChange: onDistanceUnitChange
-            )
+            delegate: delegate,
+            interactor: interactor
         )
     }
 
-    func addExerciseModalView(selectedExercises: Binding<[ExerciseTemplateModel]>) -> some View {
-        AddExerciseModalView(
-            viewModel: AddExerciseModalViewModel(
-                interactor: interactor
-            ),
-            selectedExercises: selectedExercises
-        )
-
-    }
-
-    func exercisesView(onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)? = nil) -> some View {
+    func exercisesView(delegate: ExercisesViewDelegate) -> some View {
         ExercisesView(
-            viewModel: ExercisesViewModel(
-                interactor: interactor,
-                onExerciseSelectionChanged: onExerciseSelectionChanged
-            )
+            viewModel: ExercisesViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
-    func programManagementView(path: Binding<[TabBarPathOption]>) -> some View {
+    func programManagementView(delegate: ProgramManagementViewDelegate) -> some View {
         ProgramManagementView(
-            viewModel: ProgramManagementViewModel(
-                interactor: interactor
-            ),
-            path: path
+            viewModel: ProgramManagementViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
-    func trainingView(path: Binding<[TabBarPathOption]>) -> some View {
-        TrainingView(viewModel: TrainingViewModel(interactor: interactor), path: path)
+    func trainingView(delegate: TrainingViewDelegate) -> some View {
+        TrainingView(
+            viewModel: TrainingViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
     func progressDashboardView() -> some View {
@@ -407,9 +347,11 @@ class CoreBuilder {
         )
     }
 
-    func goalRow(goal: TrainingGoal, plan: TrainingPlan) -> some View {
+    func goalRow(delegate: GoalRowDelegate) -> some View {
         GoalRow(
-            viewModel: GoalRowViewModel(interactor: interactor, goal: goal, plan: plan))
+            viewModel: GoalRowViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
     func programTemplatePickerView(path: Binding<[TabBarPathOption]>) -> some View {
@@ -419,19 +361,18 @@ class CoreBuilder {
         )
     }
 
-    func editProgramView(path: Binding<[TabBarPathOption]>, plan: TrainingPlan) -> some View {
+    func editProgramView(delegate: EditProgramViewDelegate) -> some View {
         EditProgramView(
-            viewModel: EditProgramViewModel(
-                interactor: interactor,
-                plan: plan
-            ),
-            path: path,
-            plan: plan
+            viewModel: EditProgramViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
-    func enhancedScheduleView(getScheduledWorkouts: @escaping () -> [ScheduledWorkout], onDateSelected: @escaping (Date) -> Void, onDateTapped: @escaping (Date) -> Void) -> some View {
-        EnhancedScheduleView(viewModel: EnhancedScheduleViewModel(interactor: interactor, getScheduledWorkouts: getScheduledWorkouts, onDateSelected: onDateSelected, onDateTapped: onDateTapped))
+    func enhancedScheduleView(delegate: EnhancedScheduleViewDelegate) -> some View {
+        EnhancedScheduleView(
+            viewModel: EnhancedScheduleViewModel(interactor: interactor),
+            delegate: delegate
+        )
     }
 
     func logWeightView() -> some View {
@@ -494,7 +435,10 @@ class CoreBuilder {
     }
 
     func customProgramBuilderView(path: Binding<[TabBarPathOption]>) -> some View {
-        CustomProgramBuilderView(viewModel: CustomProgramBuilderViewModel(interactor: interactor), path: path)
+        CustomProgramBuilderView(
+            viewModel: CustomProgramBuilderViewModel(interactor: interactor),
+            path: path
+        )
     }
 
     func programPreviewView(template: ProgramTemplateModel, startDate: Date) -> some View {
@@ -519,31 +463,23 @@ class CoreBuilder {
         )
     }
 
-    func programStartConfigView(
-        path: Binding<[TabBarPathOption]>,
-        template: ProgramTemplateModel,
-        onStart: @escaping (Date, Date?, String?) -> Void
-    ) -> some View {
+    func programStartConfigView(delegate: ProgramStartConfigViewDelegate) -> some View {
         ProgramStartConfigView(
             viewModel: ProgramStartConfigViewModel(interactor: interactor),
-            path: path,
-            template: template,
-            onStart: onStart
+            delegate: delegate
         )
     }
 
     func volumeChartsView() -> some View {
-         VolumeChartsView(viewModel: VolumeChartsViewModel(interactor: interactor))
+         VolumeChartsView(
+            viewModel: VolumeChartsViewModel(interactor: interactor)
+         )
     }
 
-    func workoutPickerSheet(
-        onSelect: @escaping (WorkoutTemplateModel) -> Void,
-        onCancel: @escaping () -> Void
-    ) -> some View {
+    func workoutPickerSheet(delegate: WorkoutPickerSheetDelegate) -> some View {
         WorkoutPickerSheet(
             interactor: interactor,
-            onSelect: onSelect,
-            onCancel: onCancel
+            delegate: delegate
         )
     }
 
@@ -551,41 +487,15 @@ class CoreBuilder {
         TrendSummarySection(
             viewModel: TrendSummarySectionViewModel(
                 interactor: interactor,
-                trend: trend)
+                trend: trend
+            )
         )
     }
 
-    func setTrackerRowView(
-        set: WorkoutSetModel,
-        trackingMode: TrackingMode,
-        weightUnit: ExerciseWeightUnit = .kilograms,
-        distanceUnit: ExerciseDistanceUnit = .meters,
-        previousSet: WorkoutSetModel? = nil,
-        restBeforeSec: Int?,
-        onRestBeforeChange: @escaping (
-            Int?
-        ) -> Void,
-        onRequestRestPicker: @escaping (
-            String,
-            Int?
-        ) -> Void = { _, _ in },
-        onUpdate: @escaping (
-            WorkoutSetModel
-        ) -> Void
-    ) -> some View {
+    func setTrackerRowView(delegate: SetTrackerRowViewDelegate) -> some View {
         SetTrackerRowView(
-            viewModel: SetTrackerRowViewModel(
-                interactor: interactor,
-                set: set,
-                trackingMode: trackingMode,
-                weightUnit: weightUnit,
-                distanceUnit: distanceUnit,
-                previousSet: previousSet,
-                restBeforeSec: restBeforeSec,
-                onRestBeforeChange: onRestBeforeChange,
-                onRequestRestPicker: onRequestRestPicker,
-                onUpdate: onUpdate
-            )
+            viewModel: SetTrackerRowViewModel(interactor: interactor),
+            delegate: delegate,
         )
     }
 
@@ -597,12 +507,10 @@ class CoreBuilder {
         CreateAccountView(viewModel: CreateAccountViewModel(interactor: interactor))
     }
 
-    func addExerciseModelView(selectedExercises: Binding<[ExerciseTemplateModel]>) -> some View {
+    func addExerciseModalView(delegate: AddExerciseModalViewDelegate) -> some View {
         AddExerciseModalView(
-            viewModel: AddExerciseModalViewModel(
-                interactor: interactor,
-            ),
-            selectedExercises: selectedExercises
+            viewModel: AddExerciseModalViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
@@ -613,69 +521,17 @@ class CoreBuilder {
         )
     }
 
-    func dayScheduleSheetView(date: Date, scheduledWorkouts: [ScheduledWorkout], onStartWorkout: @escaping (ScheduledWorkout) -> Void) -> some View {
+    func dayScheduleSheetView(delegate: DayScheduleSheetViewDelegate) -> some View {
         DayScheduleSheetView(
-            viewModel: DayScheduleSheetViewModel(
-                interactor: interactor,
-                date: date,
-                scheduledWorkouts: scheduledWorkouts,
-                onStartWorkout: onStartWorkout
-            )
+            viewModel: DayScheduleSheetViewModel(interactor: interactor),
+            delegate: delegate
         )
-}
+    }
 
-    // swiftlint:disable:next function_parameter_count
-    func exerciseTrackerCardView(
-        exercise: WorkoutExerciseModel,
-        exerciseIndex: Int,
-        isCurrentExercise: Bool,
-        weightUnit: ExerciseWeightUnit,
-        distanceUnit: ExerciseDistanceUnit,
-        previousSetsByIndex: [Int: WorkoutSetModel],
-        onSetUpdate: @escaping (WorkoutSetModel) -> Void,
-        onAddSet: @escaping () -> Void,
-        onDeleteSet: @escaping (String) -> Void,
-        onHeaderLongPress: @escaping () -> Void,
-        onNotesChange: @escaping (String) -> Void,
-        onWeightUnitChange: @escaping (ExerciseWeightUnit) -> Void,
-        onDistanceUnitChange: @escaping (ExerciseDistanceUnit) -> Void,
-        restBeforeSecForSet: @escaping (String) -> Int?,
-        onRestBeforeChange: @escaping (String, Int?) -> Void,
-        onRequestRestPicker: @escaping (String, Int?) -> Void,
-        getLatestExercise: @escaping () -> WorkoutExerciseModel?,
-        getLatestExerciseIndex: @escaping () -> Int,
-        getLatestIsCurrentExercise: @escaping () -> Bool,
-        getLatestWeightUnit: @escaping () -> ExerciseWeightUnit,
-        getLatestDistanceUnit: @escaping () -> ExerciseDistanceUnit,
-        getLatestPreviousSets: @escaping () -> [Int: WorkoutSetModel],
-        isExpanded: Binding<Bool>
-    ) -> some View {
+    func exerciseTrackerCardView(delegate: ExerciseTrackerCardViewDelegate) -> some View {
         ExerciseTrackerCardView(
-            viewModel: ExerciseTrackerCardViewModel(
-                interactor: interactor,
-                exercise: exercise,
-                exerciseIndex: exerciseIndex,
-                isCurrentExercise: isCurrentExercise,
-                weightUnit: weightUnit,
-                distanceUnit: distanceUnit,
-                previousSetsByIndex: previousSetsByIndex,
-                onSetUpdate: onSetUpdate,
-                onAddSet: onAddSet,
-                onDeleteSet: onDeleteSet,
-                onHeaderLongPress: onHeaderLongPress,
-                onNotesChange: onNotesChange,
-                onWeightUnitChange: onWeightUnitChange,
-                onDistanceUnitChange: onDistanceUnitChange,
-                restBeforeSecForSet: restBeforeSecForSet,
-                onRestBeforeChange: onRestBeforeChange,
-                onRequestRestPicker: onRequestRestPicker,
-                getLatestExercise: getLatestExercise,
-                getLatestExerciseIndex: getLatestExerciseIndex,
-                getLatestIsCurrentExercise: getLatestIsCurrentExercise,
-                getLatestWeightUnit: getLatestWeightUnit,
-                getLatestDistanceUnit: getLatestDistanceUnit,
-                getLatestPreviousSets: getLatestPreviousSets),
-            isExpanded: isExpanded
-            )
+            delegate: delegate,
+            interactor: interactor
+        )
     }
 }

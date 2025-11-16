@@ -11,6 +11,7 @@ import SwiftUI
 // MARK: - Exercise Management
 extension WorkoutTrackerViewModel {
     func addSelectedExercises() {
+        guard var workoutSession = workoutSession else { return }
         let templates = self.pendingSelectedTemplates
         guard !templates.isEmpty, let userId = interactor.currentUser?.userId else { return }
         var updated = workoutSession.exercises
@@ -34,6 +35,7 @@ extension WorkoutTrackerViewModel {
             updated.append(newExercise)
         }
         workoutSession.updateExercises(updated)
+        self.workoutSession = workoutSession
         syncCurrentExerciseIndexToFirstIncomplete(in: updated)
         if currentExerciseIndex < updated.count {
             expandedExerciseIds.removeAll()
@@ -57,11 +59,13 @@ extension WorkoutTrackerViewModel {
     }
     
     func deleteExercise(_ exerciseId: String) {
+        guard var workoutSession = workoutSession else { return }
         var updated = workoutSession.exercises
         guard let idx = updated.firstIndex(where: { $0.id == exerciseId }) else { return }
         updated.remove(at: idx)
         for index in updated.indices { updated[index].index = index + 1 }
         workoutSession.updateExercises(updated)
+        self.workoutSession = workoutSession
         expandedExerciseIds.remove(exerciseId)
         syncCurrentExerciseIndexToFirstIncomplete(in: updated)
         saveWorkoutProgress()
@@ -80,6 +84,7 @@ extension WorkoutTrackerViewModel {
     }
     
     func moveExercises(from source: IndexSet, to destination: Int) {
+        guard let workoutSession = workoutSession else { return }
         var updated = workoutSession.exercises
         updated.move(fromOffsets: source, toOffset: destination)
         applyReorderedExercises(updated, movedFrom: source.first, movedTo: destination)
@@ -98,6 +103,7 @@ extension WorkoutTrackerViewModel {
     }
 
     func reorderExercises(from sourceIndex: Int, to targetIndex: Int) {
+        guard let workoutSession = workoutSession else { return }
         guard sourceIndex != targetIndex else { return }
         var updated = workoutSession.exercises
         let element = updated.remove(at: sourceIndex)

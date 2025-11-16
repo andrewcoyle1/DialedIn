@@ -7,13 +7,21 @@
 
 import SwiftUI
 
+protocol GenericTemplateListViewDelegate {
+    var onSelect: (any TemplateModel) -> Void { get }
+    var onCancel: () -> Void { get }
+}
+
 struct GenericTemplatePickerView<Template: TemplateModel>: View {
     @State var viewModel: GenericTemplatePickerViewModel<Template>
     
-    init(viewModel: GenericTemplatePickerViewModel<Template>) {
+    init(viewModel: GenericTemplatePickerViewModel<Template>, delegate: GenericTemplateListViewDelegate) {
         self.viewModel = viewModel
+        self.delegate = delegate
     }
-    
+
+    let delegate: GenericTemplateListViewDelegate
+
     var body: some View {
         List {
             if viewModel.isLoading {

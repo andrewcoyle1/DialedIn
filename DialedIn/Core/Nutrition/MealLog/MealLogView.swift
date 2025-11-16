@@ -7,17 +7,20 @@
 
 import SwiftUI
 
+struct MealLogViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+    var isShowingInspector: Binding<Bool>
+    var selectedIngredientTemplate: Binding<IngredientTemplateModel?>
+    var selectedRecipeTemplate: Binding<RecipeTemplateModel?>
+}
+
 struct MealLogView: View {
 
     @Environment(CoreBuilder.self) private var builder
     @State var viewModel: MealLogViewModel
 
-    @Binding var path: [TabBarPathOption]
+    var delegate: MealLogViewDelegate
 
-    @Binding var isShowingInspector: Bool
-    @Binding var selectedIngredientTemplate: IngredientTemplateModel?
-    @Binding var selectedRecipeTemplate: RecipeTemplateModel?
-    
     var body: some View {
         Group {
             datePickerSection
@@ -44,11 +47,20 @@ struct MealLogView: View {
             }
         }
         .sheet(isPresented: $viewModel.showAddMealSheet) {
-            builder.addMealSheet(selectedDate: viewModel.selectedDate, mealType: viewModel.selectedMealType, onSave: { meal in
-                Task {
-                    await viewModel.saveMeal(meal)
-                }
-            }, path: $path)
+            builder.addMealSheet(
+                delegate: AddMealSheetDelegate(
+                    selectedDate: viewModel.selectedDate,
+                    mealType: viewModel.selectedMealType,
+                    onSave: { meal in
+                        Task {
+                            await viewModel.saveMeal(
+                                meal
+                            )
+                        }
+                    },
+                    path: delegate.path
+                )
+            )
         }
         .showCustomAlert(alert: $viewModel.showAlert)
     }
@@ -158,7 +170,7 @@ struct MealLogView: View {
                 } else {
                     ForEach(mealsForType) { meal in
                         Button {
-                            viewModel.navToMealDetail(path: $path, meal: meal)
+                            viewModel.navToMealDetail(path: delegate.path, meal: meal)
                         } label: {
                             MealLogRowView(meal: meal)
                         }
@@ -207,10 +219,16 @@ struct MealLogView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
+    let delegate = MealLogViewDelegate(
+        path: $path,
+        isShowingInspector: Binding.constant(false),
+        selectedIngredientTemplate: Binding.constant(nil),
+        selectedRecipeTemplate: Binding.constant(nil)
+    )
     let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
         List {
-            builder.mealLogView(path: $path, isShowingInspector: Binding.constant(false), selectedIngredientTemplate: Binding.constant(nil), selectedRecipeTemplate: Binding.constant(nil))
+            builder.mealLogView(delegate: delegate)
         }
     }
     .previewEnvironment()

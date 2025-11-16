@@ -21,9 +21,6 @@ extension CoreInteractor: WorkoutCalendarInteractor { }
 class WorkoutCalendarViewModel {
     
     private let interactor: WorkoutCalendarInteractor
-    
-    private let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
-    private let onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)?
 
     var isShowingCalendar: Bool = true
     var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
@@ -37,14 +34,8 @@ class WorkoutCalendarViewModel {
         interactor.currentTrainingPlan
     }
     
-    init(
-        interactor: WorkoutCalendarInteractor,
-        onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil,
-        onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)? = nil
-    ) {
+    init(interactor: WorkoutCalendarInteractor) {
         self.interactor = interactor
-        self.onSessionSelectionChanged = onSessionSelectionChanged
-        self.onWorkoutStartRequested = onWorkoutStartRequested
     }
     
     func onCalendarToggled() {
@@ -95,7 +86,7 @@ class WorkoutCalendarViewModel {
         }
     }
     
-    func startWorkout(_ scheduledWorkout: ScheduledWorkout) async {
+    func startWorkout(_ scheduledWorkout: ScheduledWorkout, onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout) -> Void)? = nil) async {
         interactor.trackEvent(event: Event.startWorkoutStart)
         do {
             let template = try await interactor.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
@@ -112,7 +103,7 @@ class WorkoutCalendarViewModel {
         }
     }
     
-    func openCompletedSession(for scheduledWorkout: ScheduledWorkout) async {
+    func openCompletedSession(for scheduledWorkout: ScheduledWorkout, onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil) async {
         guard let sessionId = scheduledWorkout.completedSessionId else { return }
         interactor.trackEvent(event: Event.openCompletedSessionStart)
         do {

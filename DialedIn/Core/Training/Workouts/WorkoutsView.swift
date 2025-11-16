@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+struct WorkoutsViewDelegate {
+    var onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)?
+}
+
 struct WorkoutsView: View {
     @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: WorkoutsViewModel
+
+    let delegate: WorkoutsViewDelegate
 
     var body: some View {
         List {
@@ -55,7 +61,7 @@ struct WorkoutsView: View {
             }
         }
         .sheet(isPresented: $viewModel.showCreateWorkout) {
-            builder.createWorkoutView()
+            builder.createWorkoutView(delegate: CreateWorkoutViewDelegate())
         }
     }
 
@@ -210,7 +216,7 @@ struct WorkoutsView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        builder.workoutsView()
+        builder.workoutsView(delegate: WorkoutsViewDelegate())
     }
     .previewEnvironment()
 }

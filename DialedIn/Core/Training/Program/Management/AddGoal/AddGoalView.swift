@@ -7,13 +7,17 @@
 
 import SwiftUI
 
+struct AddGoalViewDelegate {
+    let plan: TrainingPlan
+}
+
 struct AddGoalView: View {
     @State var viewModel: AddGoalViewModel
     @Environment(\.dismiss) private var dismiss
         
-    init(viewModel: AddGoalViewModel, plan: TrainingPlan) {
+    init(viewModel: AddGoalViewModel, delegate: AddGoalViewDelegate) {
         self.viewModel = viewModel
-        viewModel.addTrainingPlan(plan)
+        viewModel.addTrainingPlan(delegate.plan)
     }
     
     var body: some View {
@@ -76,6 +80,6 @@ struct AddGoalView: View {
 }
 
 #Preview {
-    AddGoalView(viewModel: AddGoalViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), plan: TrainingPlan.mock)
-        .previewEnvironment()
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.addGoalView(delegate: AddGoalViewDelegate(plan: .mock))
 }

@@ -29,14 +29,8 @@ class NutritionLibraryPickerViewModel {
     private(set) var ingredients: [IngredientTemplateModel] = []
     private(set) var recipes: [RecipeTemplateModel] = []
 
-    let onPick: (MealItemModel) -> Void
-    
-    init(
-        interactor: NutritionLibraryPickerInteractor,
-        onPick: @escaping (MealItemModel) -> Void
-    ) {
+    init(interactor: NutritionLibraryPickerInteractor) {
         self.interactor = interactor
-        self.onPick = onPick
     }
     
     func loadInitial() async {
@@ -73,12 +67,12 @@ class NutritionLibraryPickerViewModel {
         }
     }
 
-    func navToIngredientAmount(path: Binding<[TabBarPathOption]>, _ ingredient: IngredientTemplateModel) {
+    func navToIngredientAmount(path: Binding<[TabBarPathOption]>, _ ingredient: IngredientTemplateModel, onPick: @escaping (MealItemModel) -> Void) {
         interactor.trackEvent(event: Event.navigate(destination: .ingredientAmountView(ingredient: ingredient, onPick: onPick)))
         path.wrappedValue.append(.ingredientAmountView(ingredient: ingredient, onPick: onPick))
     }
 
-    func navToRecipeAmount(path: Binding<[TabBarPathOption]>, _ recipe: RecipeTemplateModel) {
+    func navToRecipeAmount(path: Binding<[TabBarPathOption]>, _ recipe: RecipeTemplateModel, onPick: @escaping (MealItemModel) -> Void) {
         interactor.trackEvent(event: Event.navigate(destination: .recipeAmountView(recipe: recipe, onPick: onPick)))
         path.wrappedValue.append(.recipeAmountView(recipe: recipe, onPick: onPick))
     }

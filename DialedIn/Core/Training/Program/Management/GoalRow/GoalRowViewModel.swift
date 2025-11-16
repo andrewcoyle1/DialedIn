@@ -17,21 +17,12 @@ extension CoreInteractor: GoalRowInteractor { }
 @MainActor
 class GoalRowViewModel {
     private let interactor: GoalRowInteractor
-    
-    let goal: TrainingGoal
-    let plan: TrainingPlan
-    
-    init(
-        interactor: GoalRowInteractor,
-        goal: TrainingGoal,
-        plan: TrainingPlan
-    ) {
+
+    init(interactor: GoalRowInteractor) {
         self.interactor = interactor
-        self.goal = goal
-        self.plan = plan
     }
     
-    func removeGoal() async {
+    func removeGoal(goal: TrainingGoal) async {
         try? await interactor.removeGoal(id: goal.id)
     }
 }

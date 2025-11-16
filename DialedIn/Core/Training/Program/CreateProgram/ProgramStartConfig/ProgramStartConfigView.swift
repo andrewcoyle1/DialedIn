@@ -7,16 +7,19 @@
 
 import SwiftUI
 
+struct ProgramStartConfigViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+    let template: ProgramTemplateModel
+    let onStart: (Date, Date?, String?) -> Void
+}
+
 struct ProgramStartConfigView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State var viewModel: ProgramStartConfigViewModel
 
-    @Binding var path: [TabBarPathOption]
+    var delegate: ProgramStartConfigViewDelegate
 
-    let template: ProgramTemplateModel
-    let onStart: (Date, Date?, String?) -> Void
-    
     var body: some View {
         NavigationStack {
             Form {
@@ -31,7 +34,7 @@ struct ProgramStartConfigView: View {
             }
             .onAppear {
                 // Initialize end date to default value based on template duration
-                viewModel.endDate = viewModel.calculateDefaultEndDate(template: template, from: viewModel.startDate)
+                viewModel.endDate = viewModel.calculateDefaultEndDate(template: delegate.template, from: viewModel.startDate)
             }
         }
     }
@@ -39,10 +42,10 @@ struct ProgramStartConfigView: View {
     private var programSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
-                Text(template.name)
+                Text(delegate.template.name)
                     .font(.title3)
                     .fontWeight(.semibold)
-                Text(template.description)
+                Text(delegate.template.description)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -58,7 +61,7 @@ struct ProgramStartConfigView: View {
                 .onChange(of: viewModel.startDate) { _, newValue in
                     // Update end date to maintain duration when start date changes
                     if !viewModel.hasEndDate {
-                        viewModel.endDate = viewModel.calculateDefaultEndDate(template: template, from: newValue)
+                        viewModel.endDate = viewModel.calculateDefaultEndDate(template: delegate.template, from: newValue)
                     }
                 }
             
@@ -80,14 +83,14 @@ struct ProgramStartConfigView: View {
                 let weeks = viewModel.calculateWeeks(from: viewModel.startDate, to: viewModel.endDate)
                 Text("Custom duration: \(weeks) week\(weeks == 1 ? "" : "s"). Only workouts within this range will be scheduled.")
             } else {
-                Text("This program will run for \(template.duration) weeks from your start date.")
+                Text("This program will run for \(delegate.template.duration) weeks from your start date.")
             }
         }
     }
     
     private var previewSection: some View {
         Section {
-            ForEach(template.weekTemplates.prefix(1), id: \.weekNumber) { week in
+            ForEach(delegate.template.weekTemplates.prefix(1), id: \.weekNumber) { week in
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Week 1 Schedule")
                         .font(.subheadline)
@@ -112,7 +115,7 @@ struct ProgramStartConfigView: View {
             }
             
             Button {
-                viewModel.navToProgramPreviewView(path: $path, template: template)
+                viewModel.navToProgramPreviewView(path: delegate.path, template: delegate.template)
             } label: {
                 Label("View Full Schedule", systemImage: "calendar")
                     .font(.subheadline)
@@ -136,7 +139,7 @@ struct ProgramStartConfigView: View {
             Button("Start") {
                 let name = viewModel.useCustomName && !viewModel.customName.isEmpty ? viewModel.customName : nil
                 let finalEndDate = viewModel.hasEndDate ? viewModel.endDate : nil
-                onStart(viewModel.startDate, finalEndDate, name)
+                delegate.onStart(viewModel.startDate, finalEndDate, name)
             }
         }
     }
@@ -147,14 +150,13 @@ struct ProgramStartConfigView: View {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
         builder.programStartConfigView(
-            path: $path,
-            template: ProgramTemplateModel.mock,
-            onStart: {
-                _,
-                _,
-                _ in
-                
-            }
+            delegate: ProgramStartConfigViewDelegate(
+                path: $path,
+                template: ProgramTemplateModel.mock,
+                onStart: { _, _, _ in
+                    
+                }
+            )
         )
         .previewEnvironment()
     }

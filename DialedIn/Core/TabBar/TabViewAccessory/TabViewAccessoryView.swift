@@ -7,10 +7,14 @@
 
 import SwiftUI
 
+struct TabViewAccessoryViewDelegate {
+    var active: WorkoutSessionModel
+}
+
 struct TabViewAccessoryView: View {
     @State var viewModel: TabViewAccessoryViewModel
-    let active: WorkoutSessionModel
-    
+    let delegate: TabViewAccessoryViewDelegate
+
     var body: some View {
         Button {
             viewModel.reopenActiveSession()
@@ -34,7 +38,7 @@ struct TabViewAccessoryView: View {
             HStack(alignment: .firstTextBaseline) {
                 workoutName
                 Spacer()
-                timeSection(workoutSession: active)
+                timeSection(workoutSession: delegate.active)
             }
             ProgressView(value: viewModel.progress)
         }
@@ -42,7 +46,7 @@ struct TabViewAccessoryView: View {
     }
     
     private var workoutName: some View {
-        Text(active.name)
+        Text(delegate.active.name)
             .font(.subheadline)
             .fontWeight(.semibold)
             .lineLimit(1)
@@ -86,6 +90,7 @@ struct TabViewAccessoryView: View {
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     TabView {
         Tab {
             Text("Tab")
@@ -94,7 +99,9 @@ struct TabViewAccessoryView: View {
         }
     }
     .tabViewBottomAccessory {
-        TabViewAccessoryView(viewModel: TabViewAccessoryViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), active: .mock)
+        builder.tabViewAccessoryView(
+            delegate: TabViewAccessoryViewDelegate(active: .mock)
+        )
     }
     .previewEnvironment()
 }

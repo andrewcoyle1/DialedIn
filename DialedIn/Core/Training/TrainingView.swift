@@ -10,21 +10,25 @@ import SwiftUI
 import UIKit
 #endif
 
+struct TrainingViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+}
+
 struct TrainingView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: TrainingViewModel
 
-    @Binding var path: [TabBarPathOption]
+    var delegate: TrainingViewDelegate
 
     var body: some View {
         Group {
             if layoutMode == .tabBar {
-                NavigationStack(path: $path) {
+                NavigationStack(path: delegate.path) {
                     contentView
                 }
-                .navDestinationForTabBarModule(path: $path)
+                .navDestinationForTabBarModule(path: delegate.path)
             } else {
                 contentView
             }
@@ -34,15 +38,15 @@ struct TrainingView: View {
             Group {
                 if let exercise = viewModel.selectedExerciseTemplate {
                     NavigationStack {
-                        builder.exerciseTemplateDetailView(exercise: exercise)
+                        builder.exerciseTemplateDetailView(delegate: ExerciseTemplateDetailViewDelegate(exerciseTemplate: exercise))
                     }
                 } else if let workout = viewModel.selectedWorkoutTemplate {
                     NavigationStack {
-                        builder.workoutTemplateDetailView(workout: workout)
+                        builder.workoutTemplateDetailView(delegate: WorkoutTemplateDetailViewDelegate(workoutTemplate: workout))
                     }
                 } else if let session = viewModel.selectedHistorySession {
                     NavigationStack {
-                        builder.workoutSessionDetailView(session: session)
+                        builder.workoutSessionDetailView(delegate: WorkoutSessionDetailViewDelegate(workoutSession: session))
                     }
                 } else {
                     Text("Select an item").foregroundStyle(.secondary).padding()
@@ -54,21 +58,21 @@ struct TrainingView: View {
         }
         .onChange(of: viewModel.selectedExerciseTemplate) { _, exercise in
             if layoutMode == .splitView {
-                if let exercise { path = [.exerciseTemplate(exerciseTemplate: exercise)] }
+                if let exercise { delegate.path.wrappedValue = [.exerciseTemplate(exerciseTemplate: exercise)] }
             } else {
                 if exercise != nil { viewModel.isShowingInspector = true }
             }
         }
         .onChange(of: viewModel.selectedWorkoutTemplate) { _, workout in
             if layoutMode == .splitView {
-                if let workout { path = [.workoutTemplateDetail(template: workout)] }
+                if let workout { delegate.path.wrappedValue = [.workoutTemplateDetail(template: workout)] }
             } else {
                 if workout != nil { viewModel.isShowingInspector = true }
             }
         }
         .onChange(of: viewModel.selectedHistorySession) { _, session in
             if layoutMode == .splitView {
-                if let session { path = [.workoutSessionDetail(session: session)] }
+                if let session { delegate.path.wrappedValue = [.workoutSessionDetail(session: session)] }
             } else {
                 if session != nil { viewModel.isShowingInspector = true }
             }
@@ -89,12 +93,13 @@ struct TrainingView: View {
                 builder.notificationsView()
             }
             .sheet(item: $viewModel.workoutToStart) { template in
-                builder.workoutStartView(template: template, scheduledWorkout: viewModel.scheduledWorkoutToStart)
+                let delegate = WorkoutStartViewDelegate(template: template, scheduledWorkout: viewModel.scheduledWorkoutToStart)
+                builder.workoutStartView(delegate: delegate)
             }
             .sheet(item: $viewModel.programActiveSheet) { sheet in
                 switch sheet {
                 case .programPicker:
-                    builder.programManagementView(path: $path)
+                    builder.programManagementView(delegate: ProgramManagementViewDelegate(path: delegate.path))
                 case .progressDashboard:
                     builder.progressDashboardView()
                 case .strengthProgress:
@@ -133,31 +138,45 @@ struct TrainingView: View {
             switch viewModel.presentationMode {
             case .program:
                 builder.programView(
-                    onSessionSelectionChangeded: { session in
-                        viewModel.selectedHistorySession = session
-                    },
-                    onWorkoutStartRequested: { template, scheduledWorkout in
-                        viewModel.handleWorkoutStartRequest(
-                            template: template,
-                            scheduledWorkout: scheduledWorkout
-                        )
-                    },
-                    onActiveSheetChanged: { sheet in
-                        viewModel.programActiveSheet = sheet
-                    }
+                    delegate: ProgramViewDelegate(
+                        onSessionSelectionChangeded: { session in
+                            viewModel.selectedHistorySession = session
+                        },
+                        onWorkoutStartRequested: { template, scheduledWorkout in
+                            viewModel.handleWorkoutStartRequest(
+                                template: template,
+                                scheduledWorkout: scheduledWorkout
+                            )
+                        },
+                        onActiveSheetChanged: { sheet in
+                            viewModel.programActiveSheet = sheet
+                        }
+                    )
                 )
             case .workouts:
-                builder.workoutsView(onWorkoutSelectionChanged: { workout in
-                    viewModel.selectedWorkoutTemplate = workout
-                })
+                builder.workoutsView(
+                    delegate: WorkoutsViewDelegate(
+                        onWorkoutSelectionChanged: { workout in
+                            viewModel.selectedWorkoutTemplate = workout
+                        }
+                    )
+                )
             case .exercises:
-                builder.exercisesView(onExerciseSelectionChanged: { exercise in
-                    viewModel.selectedExerciseTemplate = exercise
-                })
+                builder.exercisesView(
+                    delegate: ExercisesViewDelegate(
+                        onExerciseSelectionChanged: { exercise in
+                            viewModel.selectedExerciseTemplate = exercise
+                        }
+                    )
+                )
             case .history:
-                builder.workoutHistoryView(onSessionSelectionChanged: { session in
-                    viewModel.selectedHistorySession = session
-                })
+                builder.workoutHistoryView(
+                    delegate: WorkoutHistoryViewDelegate(
+                        onSessionSelectionChanged: { session in
+                            viewModel.selectedHistorySession = session
+                        }
+                    )
+                )
             }
         }
     }
@@ -251,6 +270,6 @@ struct TrainingView: View {
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.trainingView(path: $path)
+    builder.trainingView(delegate: TrainingViewDelegate(path: $path))
         .previewEnvironment()
 }

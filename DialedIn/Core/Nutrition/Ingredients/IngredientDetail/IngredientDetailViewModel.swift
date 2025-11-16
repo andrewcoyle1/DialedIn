@@ -25,7 +25,6 @@ extension CoreInteractor: IngredientDetailInteractor { }
 class IngredientDetailViewModel {
     private let interactor: IngredientDetailInteractor
     
-    var ingredientTemplate: IngredientTemplateModel
     var isBookmarked: Bool = false
     var isFavourited: Bool = false
     var showAlert: AnyAppAlert?
@@ -38,15 +37,11 @@ class IngredientDetailViewModel {
         interactor.currentUser
     }
     
-    init(
-        interactor: IngredientDetailInteractor,
-        ingredientTemplate: IngredientTemplateModel
-    ) {
+    init(interactor: IngredientDetailInteractor) {
         self.interactor = interactor
-        self.ingredientTemplate = ingredientTemplate
     }
     
-    func loadInitialState() async {
+    func loadInitialState(ingredientTemplate: IngredientTemplateModel) async {
         let user = interactor.currentUser
         // Always treat authored templates as bookmarked
         let isAuthor = user?.userId == ingredientTemplate.authorId
@@ -54,7 +49,7 @@ class IngredientDetailViewModel {
         isFavourited = user?.favouritedIngredientTemplateIds?.contains(ingredientTemplate.id) ?? false
     }
     
-    func onBookmarkPressed() async {
+    func onBookmarkPressed(ingredientTemplate: IngredientTemplateModel) async {
         interactor.trackEvent(event: Event.bookmarkIngredientStart)
         let newState = !isBookmarked
         do {
@@ -79,7 +74,7 @@ class IngredientDetailViewModel {
         }
     }
     
-    func onFavoritePressed() async {
+    func onFavoritePressed(ingredientTemplate: IngredientTemplateModel) async {
         interactor.trackEvent(event: Event.favouriteIngredientSuccess)
         let newState = !isFavourited
         do {

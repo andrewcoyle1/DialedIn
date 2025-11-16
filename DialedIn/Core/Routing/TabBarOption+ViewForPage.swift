@@ -11,9 +11,9 @@ extension TabBarOption {
     /// A view builder that the split view uses to show a view for the selected navigation option.
     @MainActor @ViewBuilder func viewForPage(builder: CoreBuilder, path: Binding<[TabBarPathOption]>) -> some View {
         switch self {
-        case .dashboard: builder.dashboardView(path: path)
-        case .nutrition: builder.nutritionView(path: path)
-        case .training: builder.trainingView(path: path)
+        case .dashboard: builder.dashboardView(delegate: DashboardViewDelegate(path: path))
+        case .nutrition: builder.nutritionView(delegate: NutritionViewDelegate(path: path))
+        case .training: builder.trainingView(delegate: TrainingViewDelegate(path: path))
         case .profile: builder.profileView(path: path)
         case .search: SearchView()
         }

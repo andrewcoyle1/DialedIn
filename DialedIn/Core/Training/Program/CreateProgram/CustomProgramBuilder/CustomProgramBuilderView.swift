@@ -30,19 +30,21 @@ struct CustomProgramBuilderView: View {
             if let day = viewModel.editingDayOfWeek {
                 NavigationStack {
                     builder.workoutPickerSheet(
-                        onSelect: { workout in
-                            viewModel.assign(
-                                workout: workout,
-                                to: day,
-                                inWeek: viewModel.selectedWeek
-                            )
-                            viewModel.showingWorkoutPicker = false
-                            viewModel.editingDayOfWeek = nil
-                        },
-                        onCancel: {
-                            viewModel.showingWorkoutPicker = false
-                            viewModel.editingDayOfWeek = nil
-                        }
+                        delegate: WorkoutPickerSheetDelegate(
+                            onSelect: { workout in
+                                viewModel.assign(
+                                    workout: workout,
+                                    to: day,
+                                    inWeek: viewModel.selectedWeek
+                                )
+                                viewModel.showingWorkoutPicker = false
+                                viewModel.editingDayOfWeek = nil
+                            },
+                            onCancel: {
+                                viewModel.showingWorkoutPicker = false
+                                viewModel.editingDayOfWeek = nil
+                            }
+                        )
                     )
                 }
             }
@@ -67,24 +69,23 @@ struct CustomProgramBuilderView: View {
         }
         .sheet(item: $viewModel.startConfigTemplate) { template in
             builder.programStartConfigView(
-                path: $path,
-                template: template
-            ) {
-                startDate,
-                endDate,
-                customName in
-                Task {
-                    await viewModel
-                        .startProgram(
+                delegate: ProgramStartConfigViewDelegate(
+                    path: $path,
+                    template: template
+                ) { startDate, endDate, customName in
+                    Task {
+                        await viewModel.startProgram(
                             template: template,
                             startDate: startDate,
                             endDate: endDate,
                             customName: customName,
                             onDismiss: {
                                 dismiss()
-                            })
+                            }
+                        )
+                    }
                 }
-            }
+            )
         }
         .onChange(of: viewModel.durationWeeks) { _, newValue in
             viewModel.resizeWeeks(to: newValue)

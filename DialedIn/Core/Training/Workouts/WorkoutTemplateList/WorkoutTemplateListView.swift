@@ -7,37 +7,35 @@
 
 import SwiftUI
 
+struct WorkoutTemplateListViewDelegate {
+    let templateIds: [String]?
+}
+
 struct WorkoutTemplateListView: View {
     @State var viewModel: WorkoutTemplateListViewModel
+    let delegate: WorkoutTemplateListViewDelegate
     let config: TemplateListConfiguration<WorkoutTemplateModel>
 
-    init(viewModel: WorkoutTemplateListViewModel) {
+    init(
+        viewModel: WorkoutTemplateListViewModel,
+        delegate: WorkoutTemplateListViewDelegate
+    ) {
         self.viewModel = viewModel
-        self.config = viewModel.templateIds != nil ? .workout : .workout(customTitle: "Workout Templates", customEmptyDescription: "No workout templates available.")
+        self.delegate = delegate
+        self.config = delegate.templateIds != nil ? .workout : .workout(customTitle: "Workout Templates", customEmptyDescription: "No workout templates available.")
     }
-    
-    init(interactor: WorkoutTemplateListInteractor, templateIds: [String]?) {
-        self.config = templateIds != nil ? .workout : .workout(customTitle: "Workout Templates", customEmptyDescription: "No workout templates available.")
-        self.viewModel = WorkoutTemplateListViewModel.create(
-            interactor: interactor,
-            templateIds: templateIds
-        )
-    }
-    
+
     var body: some View {
         GenericTemplateListView(
             viewModel: viewModel,
-            configuration: config
+            configuration: config,
+            templateIdsOverride: delegate.templateIds
         )
     }
 }
  
 #Preview {
-    WorkoutTemplateListView(
-        interactor: CoreInteractor(
-            container: DevPreview.shared.container
-        ),
-        templateIds: []
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.workoutTemplateListView(delegate: WorkoutTemplateListViewDelegate(templateIds: []))
     .previewEnvironment()
 }

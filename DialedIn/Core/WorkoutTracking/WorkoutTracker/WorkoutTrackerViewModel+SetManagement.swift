@@ -11,6 +11,7 @@ import SwiftUI
 // MARK: - Set Management
 extension WorkoutTrackerViewModel {
     func updateSet(_ updatedSet: WorkoutSetModel, in exerciseId: String) {
+        guard var workoutSession = workoutSession else { return }
         guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }),
               let setIndex = workoutSession.exercises[exerciseIndex].sets.firstIndex(where: { $0.id == updatedSet.id }) else {
             return
@@ -23,6 +24,7 @@ extension WorkoutTrackerViewModel {
         updatedExercises[exerciseIndex].sets[setIndex] = updatedSet
         let isExerciseCompleteNow = !updatedExercises[exerciseIndex].sets.isEmpty && updatedExercises[exerciseIndex].sets.allSatisfy { $0.completedAt != nil }
         workoutSession.updateExercises(updatedExercises)
+        self.workoutSession = workoutSession
         saveWorkoutProgress()
         
         let allSets = updatedExercises.flatMap { $0.sets }
@@ -59,6 +61,7 @@ extension WorkoutTrackerViewModel {
     }
     
     func addSet(to exerciseId: String) {
+        guard var workoutSession = workoutSession else { return }
         guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }),
               let userId = interactor.currentUser?.userId else {
             return
@@ -88,6 +91,7 @@ extension WorkoutTrackerViewModel {
             restBeforeSetIdToSec[newSet.id] = last
         }
         workoutSession.updateExercises(updatedExercises)
+        self.workoutSession = workoutSession
         saveWorkoutProgress()
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -104,6 +108,7 @@ extension WorkoutTrackerViewModel {
     }
     
     func deleteSet(_ setId: String, from exerciseId: String) {
+        guard var workoutSession = workoutSession else { return }
         guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) else {
             return
         }
@@ -117,6 +122,7 @@ extension WorkoutTrackerViewModel {
         }
         
         workoutSession.updateExercises(updatedExercises)
+        self.workoutSession = workoutSession
         saveWorkoutProgress()
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)

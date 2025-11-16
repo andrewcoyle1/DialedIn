@@ -7,36 +7,34 @@
 
 import SwiftUI
 
+struct ExerciseTemplateListViewDelegate {
+    let templateIds: [String]?
+}
+
 struct ExerciseTemplateListView: View {
     @State var viewModel: ExerciseTemplateListViewModel
+    let delegate: ExerciseTemplateListViewDelegate
     let config: TemplateListConfiguration<ExerciseTemplateModel>
-    
-    init(viewModel: ExerciseTemplateListViewModel) {
+
+    init(viewModel: ExerciseTemplateListViewModel, delegate: ExerciseTemplateListViewDelegate) {
         self.viewModel = viewModel
-        self.config = viewModel.templateIds != nil ? .exercise : .exercise(customTitle: "Exercise Templates")
-    }
-    
-    init(interactor: ExerciseTemplateListInteractor, templateIds: [String]?) {
-        self.config = templateIds != nil ? .exercise : .exercise(customTitle: "Exercise Templates")
-        self.viewModel = ExerciseTemplateListViewModel.create(
-            interactor: interactor,
-            templateIds: templateIds
-        )
+        self.delegate = delegate
+        self.config = delegate.templateIds != nil ? .exercise : .exercise(customTitle: "Exercise Templates")
     }
     
     var body: some View {
         GenericTemplateListView(
             viewModel: viewModel,
-            configuration: config
+            configuration: config,
+            templateIdsOverride: delegate.templateIds
         )
     }
 }
 
 #Preview {
-    ExerciseTemplateListView(
-        interactor: CoreInteractor(
-            container: DevPreview.shared.container
-        ),
-        templateIds: []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    return builder.exerciseTemplateListView(
+        delegate: ExerciseTemplateListViewDelegate(templateIds: [])
     )
+    .previewEnvironment()
 }

@@ -7,13 +7,17 @@
 
 import SwiftUI
 
+struct WorkoutSessionDetailViewDelegate {
+    let workoutSession: WorkoutSessionModel
+}
+
 struct WorkoutSessionDetailView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: WorkoutSessionDetailViewModel
 
-    var workoutSession: WorkoutSessionModel
+    var delegate: WorkoutSessionDetailViewDelegate
 
     var body: some View {
         List {
@@ -35,25 +39,26 @@ struct WorkoutSessionDetailView: View {
             toolbarContent
         }
         .onAppear {
-            viewModel.loadUnitPreferences(for: workoutSession)
+            viewModel.loadUnitPreferences(for: delegate.workoutSession)
         }
         .sheet(isPresented: $viewModel.showAddExerciseSheet, onDismiss: viewModel.addSelectedExercises) {
-            builder.addExerciseModalView(selectedExercises: $viewModel.selectedExerciseTemplates)
+            builder.addExerciseModalView(delegate: AddExerciseModalViewDelegate(selectedExercises: $viewModel.selectedExerciseTemplates))
         }
     }
 }
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
+    let delegate = WorkoutSessionDetailViewDelegate(workoutSession: .mock)
     NavigationStack {
-        builder.workoutSessionDetailView(session: .mock)
+        builder.workoutSessionDetailView(delegate: delegate)
     }
     .previewEnvironment()
 }
 
 extension WorkoutSessionDetailView {
     private var activeSession: WorkoutSessionModel {
-        viewModel.currentSession(session: workoutSession)
+        viewModel.currentSession(session: delegate.workoutSession)
     }
     
     private func headerSection(session: WorkoutSessionModel, endedAt: Date) -> some View {
@@ -99,14 +104,14 @@ extension WorkoutSessionDetailView {
                 )
                 
                 StatCard(
-                    value: "\(viewModel.totalSets(session: workoutSession))",
+                    value: "\(viewModel.totalSets(session: delegate.workoutSession))",
                     label: "Sets",
                     icon: "square.stack.3d.up",
                     color: .purple
                 )
                 
                 StatCard(
-                    value: viewModel.volumeFormatted(session: workoutSession),
+                    value: viewModel.volumeFormatted(session: delegate.workoutSession),
                     label: "Volume",
                     icon: "scalemass",
                     color: .orange
@@ -125,15 +130,17 @@ extension WorkoutSessionDetailView {
                         let exercise = editedSession.exercises[index]
                         let preference = viewModel.getUnitPreference(for: exercise.templateId)
                         builder.editableExerciseCardWrapper(
-                            exercise: exercise,
-                            index: index + 1,
-                            weightUnit: preference.weightUnit,
-                            distanceUnit: preference.distanceUnit,
-                            onExerciseUpdate: { updated in viewModel.updateExercise(at: index, with: updated) },
-                            onAddSet: { viewModel.addSet(to: exercise.id) },
-                            onDeleteSet: { setId in viewModel.deleteSet(setId, from: exercise.id) },
-                            onWeightUnitChange: { unit in viewModel.updateWeightUnit(unit, for: exercise.templateId) },
-                            onDistanceUnitChange: { unit in viewModel.updateDistanceUnit(unit, for: exercise.templateId) }
+                            delegate: EditableExerciseCardWrapperDelegate(
+                                exercise: exercise,
+                                index: index + 1,
+                                weightUnit: preference.weightUnit,
+                                distanceUnit: preference.distanceUnit,
+                                onExerciseUpdate: { updated in viewModel.updateExercise(at: index, with: updated) },
+                                onAddSet: { viewModel.addSet(to: exercise.id) },
+                                onDeleteSet: { setId in viewModel.deleteSet(setId, from: exercise.id) },
+                                onWeightUnitChange: { unit in viewModel.updateWeightUnit(unit, for: exercise.templateId) },
+                                onDistanceUnitChange: { unit in viewModel.updateDistanceUnit(unit, for: exercise.templateId) }
+                            )
                         )
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
@@ -180,7 +187,7 @@ extension WorkoutSessionDetailView {
             } else {
                 Button(role: .destructive) {
                     viewModel.onDeletePressed(
-                        session: workoutSession,
+                        session: delegate.workoutSession,
                         onDismiss: {
                             dismiss()
                         }
@@ -195,16 +202,16 @@ extension WorkoutSessionDetailView {
         ToolbarItem(placement: .topBarLeading) {
             if viewModel.isEditMode {
                 Button("Cancel") {
-                    if viewModel.hasUnsavedChanges(session: workoutSession) {
-                        viewModel.showDiscardChangesAlert(session: workoutSession)
+                    if viewModel.hasUnsavedChanges(session: delegate.workoutSession) {
+                        viewModel.showDiscardChangesAlert(session: delegate.workoutSession)
                     } else {
-                        viewModel.cancelEditing(session: workoutSession)
+                        viewModel.cancelEditing(session: delegate.workoutSession)
                     }
                 }
                 .disabled(viewModel.isSaving)
             } else {
                 Button("Edit") {
-                    viewModel.enterEditMode(session: workoutSession)
+                    viewModel.enterEditMode(session: delegate.workoutSession)
                 }
             }
         }

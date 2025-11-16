@@ -19,10 +19,12 @@ struct AdaptiveMainView: View {
         .layoutMode(.splitView)
         #else
         if horizontalSizeClass == .compact {
-            builder.tabBarView(path: $viewModel.path, tab: $viewModel.tab)
+            let delegate = TabBarViewDelegate(path: $viewModel.path, tab: $viewModel.tab)
+            builder.tabBarView(delegate: delegate)
             .layoutMode(.tabBar)
         } else {
-            builder.splitViewContainer(path: $viewModel.path, tab: $viewModel.tab)
+            let delegate = SplitViewDelegate(path: $viewModel.path, tab: $viewModel.tab)
+            builder.splitViewContainer(delegate: delegate)
             .layoutMode(
                 .splitView
             )

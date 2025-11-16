@@ -7,12 +7,19 @@
 
 import SwiftUI
 
+struct WorkoutSummaryCardViewDelegate {
+    let scheduledWorkout: ScheduledWorkout
+    let onTap: () -> Void
+}
+
 struct WorkoutSummaryCardView: View {
     @State var viewModel: WorkoutSummaryCardViewModel
-    
+
+    let delegate: WorkoutSummaryCardViewDelegate
+
     var body: some View {
         Button {
-            viewModel.onTap()
+            delegate.onTap()
         } label: {
             HStack(spacing: 16) {
                 // Status indicator
@@ -21,7 +28,7 @@ struct WorkoutSummaryCardView: View {
                 
                 // Workout info
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(viewModel.session?.name ?? viewModel.scheduledWorkout.workoutName ?? "Workout")
+                    Text(viewModel.session?.name ?? delegate.scheduledWorkout.workoutName ?? "Workout")
                         .font(.subheadline)
                     
                         summaryMetrics
@@ -32,7 +39,7 @@ struct WorkoutSummaryCardView: View {
         }
         .buttonStyle(.plain)
         .task {
-            await viewModel.loadSession()
+            await viewModel.loadSession(scheduledWorkout: delegate.scheduledWorkout)
         }
         .showCustomAlert(alert: $viewModel.showAlert)
     }
@@ -131,11 +138,11 @@ struct MetricView: View {
         completedSessionId: "session-1",
         isCompleted: true
     )
-    
-    List {
-        WorkoutSummaryCardView(
-            viewModel: WorkoutSummaryCardViewModel(
-                interactor: CoreInteractor(container: DevPreview.shared.container),
+
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    return List {
+        builder.workoutSummaryCardView(
+            delegate: WorkoutSummaryCardViewDelegate(
                 scheduledWorkout: scheduledWorkout,
                 onTap: {
                     print("Row tapped.")
@@ -158,11 +165,10 @@ struct MetricView: View {
     
     let container = DevPreview.shared.container
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
-    
+    let builder = CoreBuilder(container: container)
     return List {
-        WorkoutSummaryCardView(
-            viewModel: WorkoutSummaryCardViewModel(
-                interactor: CoreInteractor(container: DevPreview.shared.container),
+        builder.workoutSummaryCardView(
+            delegate: WorkoutSummaryCardViewDelegate(
                 scheduledWorkout: scheduledWorkout,
                 onTap: {
                     print("Row tapped.")

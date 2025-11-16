@@ -7,13 +7,17 @@
 
 import SwiftUI
 
+struct AddExerciseModalViewDelegate {
+    let selectedExercises: Binding<[ExerciseTemplateModel]>
+}
+
 struct AddExerciseModalView: View {
 
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: AddExerciseModalViewModel
 
-    @Binding var selectedExercises: [ExerciseTemplateModel]
+    var delegate: AddExerciseModalViewDelegate
 
     var body: some View {
         NavigationStack {
@@ -84,13 +88,13 @@ struct AddExerciseModalView: View {
                     imageName: exercise.imageURL,
                     title: exercise.name,
                     subtitle: exercise.description,
-                    isSelected: selectedExercises.contains(
+                    isSelected: delegate.selectedExercises.wrappedValue.contains(
                         where: {
                             $0.id == exercise.id
                         })
                 )
                     .anyButton {
-                        viewModel.onExercisePressed(exercise: exercise, selectedExercises: $selectedExercises)
+                        viewModel.onExercisePressed(exercise: exercise, selectedExercises: delegate.selectedExercises)
                     }
                     .removeListRowFormatting()
             }
@@ -103,11 +107,12 @@ struct AddExerciseModalView: View {
     @Previewable @State var showModal: Bool = true
     @Previewable @State var selectedExercises: [ExerciseTemplateModel] = [ExerciseTemplateModel.mock]
     let builder = CoreBuilder(container: DevPreview.shared.container)
+    let delegate = AddExerciseModalViewDelegate(selectedExercises: $selectedExercises)
     Button("Show Modal") {
         showModal = true
     }
     .sheet(isPresented: $showModal) {
-        builder.addExerciseModalView(selectedExercises: $selectedExercises)
+        builder.addExerciseModalView(delegate: delegate)
     }
     .previewEnvironment()
 }

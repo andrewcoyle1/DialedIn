@@ -8,6 +8,10 @@
 import SwiftUI
 import HealthKit
 
+struct WorkoutTrackerViewDelegate {
+    let workoutSession: WorkoutSessionModel
+}
+
 struct WorkoutTrackerView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) var dismiss
@@ -16,16 +20,16 @@ struct WorkoutTrackerView: View {
     // ViewModel
     @State var viewModel: WorkoutTrackerViewModel
     
-    let initialWorkoutSession: WorkoutSessionModel
-    
+    let delegate: WorkoutTrackerViewDelegate
+
     var body: some View {
-        TimelineView(.periodic(from: viewModel.startTime, by: 1.0)) { _ in
+        TimelineView(.periodic(from: delegate.workoutSession.dateCreated, by: 1.0)) { _ in
             NavigationStack {
                 List {
                     workoutOverviewCard
                     exerciseSection
                 }
-                .navigationTitle(viewModel.workoutSession.name)
+                .navigationTitle(viewModel.workoutSession?.name ?? delegate.workoutSession.name)
                 .navigationSubtitle(viewModel.elapsedTimeString)
                 .navigationBarTitleDisplayMode(.large)
                 .scrollIndicators(.hidden)
@@ -39,6 +43,7 @@ struct WorkoutTrackerView: View {
                 .showCustomAlert(alert: $viewModel.showAlert)
             }
             .task {
+                viewModel.loadWorkoutSession(delegate.workoutSession)
                 await viewModel.onAppear()
             }
             .onChange(of: scenePhase) { oldPhase, newPhase in
@@ -56,7 +61,7 @@ struct WorkoutTrackerView: View {
                 isPresented: $viewModel.showingAddExercise,
                 onDismiss: { viewModel.addSelectedExercises() },
                 content: {
-                    builder.addExerciseModelView(selectedExercises: $viewModel.pendingSelectedTemplates)
+                    builder.addExerciseModalView(delegate: AddExerciseModalViewDelegate(selectedExercises: $viewModel.pendingSelectedTemplates))
                 }
             )
         }
@@ -67,45 +72,47 @@ struct WorkoutTrackerView: View {
     
     private var workoutOverviewCard: some View {
         Section {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Current Workout")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+            if let workoutSession = viewModel.workoutSession {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Current Workout")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Text("\(workoutSession.exercises.count) exercises")
+                                .font(.headline)
+                        }
                         
-                        Text("\(viewModel.workoutSession.exercises.count) exercises")
-                            .font(.headline)
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text("Sets Completed")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Text("\(viewModel.completedSetsCount)/\(viewModel.totalSetsCount)")
+                                .font(.headline)
+                                .foregroundColor(.green)
+                        }
                     }
                     
-                    Spacer()
-                    
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text("Sets Completed")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Text("\(viewModel.completedSetsCount)/\(viewModel.totalSetsCount)")
-                            .font(.headline)
-                            .foregroundColor(.green)
-                    }
-                }
-                
-                // Quick stats
-                HStack(spacing: 20) {
-                    StatCard(
-                        value: "\(viewModel.currentExerciseIndex + 1)/\(viewModel.workoutSession.exercises.count)",
-                        label: "Exercise",
-                    )
-                    StatCard(
-                        value: viewModel.formattedVolume,
-                        label: "Volume"
-                    )
-                    if !viewModel.workoutNotes.isEmpty {
+                    // Quick stats
+                    HStack(spacing: 20) {
                         StatCard(
-                            value: "Added",
-                            label: "Notes"
+                            value: "\(viewModel.currentExerciseIndex + 1)/\(workoutSession.exercises.count)",
+                            label: "Exercise",
                         )
+                        StatCard(
+                            value: viewModel.formattedVolume,
+                            label: "Volume"
+                        )
+                        if !viewModel.workoutNotes.isEmpty {
+                            StatCard(
+                                value: "Added",
+                                label: "Notes"
+                            )
+                        }
                     }
                 }
             }
@@ -119,79 +126,87 @@ struct WorkoutTrackerView: View {
     private var exerciseSection: some View {
         // Exercise List
         Section {
-            ForEach(viewModel.workoutSession.exercises, id: \.id) { exercise in
-                let index = viewModel.workoutSession.exercises.firstIndex(where: { $0.id == exercise.id }) ?? 0
-                let preference = viewModel.exerciseUnitPreferences[exercise.templateId]
-                let weightUnit = preference?.weightUnit ?? .kilograms
-                let distanceUnit = preference?.distanceUnit ?? .meters
-                let previousSets = viewModel.buildPreviousLookup(for: exercise)
-                let exerciseId = exercise.id
-                builder.exerciseTrackerCardView(
-                    exercise: exercise,
-                    exerciseIndex: index,
-                    isCurrentExercise: index == viewModel.currentExerciseIndex,
-                    weightUnit: weightUnit,
-                    distanceUnit: distanceUnit,
-                    previousSetsByIndex: previousSets,
-                    onSetUpdate: { updatedSet in viewModel.updateSet(updatedSet, in: exerciseId) },
-                    onAddSet: { viewModel.addSet(to: exerciseId) },
-                    onDeleteSet: { setId in viewModel.deleteSet(setId, from: exerciseId) },
-                    onHeaderLongPress: { /* no-op: reordering via drag on header */ },
-                    onNotesChange: { notes in viewModel.updateExerciseNotes(notes, for: exerciseId) },
-                    onWeightUnitChange: { unit in viewModel.updateWeightUnit(unit, for: exercise.templateId) },
-                    onDistanceUnitChange: { unit in viewModel.updateDistanceUnit(unit, for: exercise.templateId) },
-                    restBeforeSecForSet: { setId in viewModel.getRestBeforeSet(setId: setId) },
-                    onRestBeforeChange: { setId, value in viewModel.updateRestBeforeSet(setId: setId, value: value) },
-                    onRequestRestPicker: { setId, current in
-                        viewModel.openRestPicker(for: setId, currentValue: current)
-                        viewModel.isRestPickerOpen = true
-                    },
-                    getLatestExercise: {
-                        viewModel.workoutSession.exercises.first(where: { $0.id == exerciseId })
-                    },
-                    getLatestExerciseIndex: {
-                        viewModel.workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) ?? 0
-                    },
-                    getLatestIsCurrentExercise: {
-                        let currentIndex = viewModel.workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) ?? 0
-                        return currentIndex == viewModel.currentExerciseIndex
-                    },
-                    getLatestWeightUnit: {
-                        guard let latestExercise = viewModel.workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
-                            return .kilograms
-                        }
-                        let preference = viewModel.exerciseUnitPreferences[latestExercise.templateId]
-                        return preference?.weightUnit ?? .kilograms
-                    },
-                    getLatestDistanceUnit: {
-                        guard let latestExercise = viewModel.workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
-                            return .meters
-                        }
-                        let preference = viewModel.exerciseUnitPreferences[latestExercise.templateId]
-                        return preference?.distanceUnit ?? .meters
-                    },
-                    getLatestPreviousSets: {
-                        guard let latestExercise = viewModel.workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
-                            return [:]
-                        }
-                        return viewModel.buildPreviousLookup(for: latestExercise)
-                    },
-                    isExpanded: Binding(
-                        get: { viewModel.expandedExerciseIds.contains(exercise.id) },
-                        set: { newValue in
-                            if newValue {
-                                // Allow only one expanded at a time: collapse current first
-                                viewModel.expandedExerciseIds.removeAll()
-                                viewModel.expandedExerciseIds.insert(exercise.id)
-                            } else {
-                                viewModel.expandedExerciseIds.remove(exercise.id)
-                            }
-                        }
+            if let workoutSession = viewModel.workoutSession {
+                ForEach(workoutSession.exercises, id: \.id) { exercise in
+                    let index = workoutSession.exercises.firstIndex(where: { $0.id == exercise.id }) ?? 0
+                    let preference = viewModel.exerciseUnitPreferences[exercise.templateId]
+                    let weightUnit = preference?.weightUnit ?? .kilograms
+                    let distanceUnit = preference?.distanceUnit ?? .meters
+                    let previousSets = viewModel.buildPreviousLookup(for: exercise)
+                    let exerciseId = exercise.id
+                    builder.exerciseTrackerCardView(
+                        delegate: ExerciseTrackerCardViewDelegate(
+                            exercise: exercise,
+                            exerciseIndex: index,
+                            isCurrentExercise: index == viewModel.currentExerciseIndex,
+                            weightUnit: weightUnit,
+                            distanceUnit: distanceUnit,
+                            previousSetsByIndex: previousSets,
+                            onSetUpdate: { updatedSet in viewModel.updateSet(updatedSet, in: exerciseId) },
+                            onAddSet: { viewModel.addSet(to: exerciseId) },
+                            onDeleteSet: { setId in viewModel.deleteSet(setId, from: exerciseId) },
+                            onHeaderLongPress: { /* no-op: reordering via drag on header */ },
+                            onNotesChange: { notes in viewModel.updateExerciseNotes(notes, for: exerciseId) },
+                            onWeightUnitChange: { unit in viewModel.updateWeightUnit(unit, for: exercise.templateId) },
+                            onDistanceUnitChange: { unit in viewModel.updateDistanceUnit(unit, for: exercise.templateId) },
+                            restBeforeSecForSet: { setId in viewModel.getRestBeforeSet(setId: setId) },
+                            onRestBeforeChange: { setId, value in viewModel.updateRestBeforeSet(setId: setId, value: value) },
+                            onRequestRestPicker: { setId, current in
+                                viewModel.openRestPicker(for: setId, currentValue: current)
+                                viewModel.isRestPickerOpen = true
+                            },
+                            getLatestExercise: {
+                                viewModel.workoutSession?.exercises.first(where: { $0.id == exerciseId })
+                            },
+                            getLatestExerciseIndex: {
+                                viewModel.workoutSession?.exercises.firstIndex(where: { $0.id == exerciseId }) ?? 0
+                            },
+                            getLatestIsCurrentExercise: {
+                                guard let workoutSession = viewModel.workoutSession else { return false }
+                                let currentIndex = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) ?? 0
+                                return currentIndex == viewModel.currentExerciseIndex
+                            },
+                            getLatestWeightUnit: {
+                                guard let workoutSession = viewModel.workoutSession,
+                                      let latestExercise = workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
+                                    return .kilograms
+                                }
+                                let preference = viewModel.exerciseUnitPreferences[latestExercise.templateId]
+                                return preference?.weightUnit ?? .kilograms
+                            },
+                            getLatestDistanceUnit: {
+                                guard let workoutSession = viewModel.workoutSession,
+                                      let latestExercise = workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
+                                    return .meters
+                                }
+                                let preference = viewModel.exerciseUnitPreferences[latestExercise.templateId]
+                                return preference?.distanceUnit ?? .meters
+                            },
+                            getLatestPreviousSets: {
+                                guard let workoutSession = viewModel.workoutSession,
+                                      let latestExercise = workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
+                                    return [:]
+                                }
+                                return viewModel.buildPreviousLookup(for: latestExercise)
+                            },
+                            isExpanded: Binding(
+                                get: { viewModel.expandedExerciseIds.contains(exercise.id) },
+                                set: { newValue in
+                                    if newValue {
+                                        // Allow only one expanded at a time: collapse current first
+                                        viewModel.expandedExerciseIds.removeAll()
+                                        viewModel.expandedExerciseIds.insert(exercise.id)
+                                    } else {
+                                        viewModel.expandedExerciseIds.remove(exercise.id)
+                                    }
+                                }
+                            )
+                        )
                     )
-                )
-            }
-            .onMove { source, destination in
-                viewModel.moveExercises(from: source, to: destination)
+                }
+                .onMove { source, destination in
+                    viewModel.moveExercises(from: source, to: destination)
+                }
             }
         } header: {
             Text("Exercises")
@@ -220,7 +235,7 @@ struct WorkoutTrackerView: View {
                                 .foregroundColor(.primary)
                         }
                     } else {
-                        Text(viewModel.workoutSession.dateCreated, style: .timer)
+                        Text((viewModel.workoutSession?.dateCreated ?? delegate.workoutSession.dateCreated), style: .timer)
                             .font(.title2.bold())
                             .foregroundColor(.primary)
                     }
@@ -383,12 +398,7 @@ struct WorkoutNotesView: View {
 }
 
 #Preview("Tracker View") {
-    WorkoutTrackerView(
-        viewModel: WorkoutTrackerViewModel(interactor: CoreInteractor(
-            container: DevPreview.shared.container),
-            workoutSession: WorkoutSessionModel.mock
-        ),
-        initialWorkoutSession: WorkoutSessionModel.mock
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.workoutTrackerView(delegate: WorkoutTrackerViewDelegate(workoutSession: .mock))
     .previewEnvironment()
 }

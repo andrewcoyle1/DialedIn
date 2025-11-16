@@ -80,17 +80,44 @@ struct CreateRecipeView: View {
             })
             #endif
             .sheet(isPresented: $viewModel.showAddIngredientModal) {
-                builder.addIngredientModalView(selectedIngredients: Binding(get: {
-                    viewModel.ingredients.map { $0.ingredient }
-                }, set: { newTemplates in
-                    var currentMap = Dictionary(uniqueKeysWithValues: viewModel.ingredients.map { ($0.ingredient.id, $0) })
-                    for tmpl in newTemplates where currentMap[tmpl.id] == nil {
-                        currentMap[tmpl.id] = RecipeIngredientModel(ingredient: tmpl, amount: 1)
-                    }
-                    let newIds = Set(newTemplates.map { $0.id })
-                    currentMap = currentMap.filter { newIds.contains($0.key) }
-                    viewModel.ingredients = Array(currentMap.values)
-                }))
+                builder.addIngredientModalView(
+                    delegate: AddIngredientModalViewDelegate(
+                        selectedIngredients: Binding(
+                            get: {
+                                viewModel.ingredients.map {
+                                    $0.ingredient
+                                }
+                            },
+                            set: { newTemplates in
+                                var currentMap = Dictionary(
+                                    uniqueKeysWithValues: viewModel.ingredients.map {
+                                        (
+                                            $0.ingredient.id,
+                                            $0
+                                        )
+                                    })
+                                for tmpl in newTemplates where currentMap[tmpl.id] == nil {
+                                    currentMap[tmpl.id] = RecipeIngredientModel(
+                                        ingredient: tmpl,
+                                        amount: 1
+                                    )
+                                }
+                                let newIds = Set(
+                                    newTemplates.map {
+                                        $0.id
+                                    })
+                                currentMap = currentMap.filter {
+                                    newIds.contains(
+                                        $0.key
+                                    )
+                                }
+                                viewModel.ingredients = Array(
+                                    currentMap.values
+                                )
+                            }
+                        )
+                    )
+                )
             }
             .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
                 Button("OK") {

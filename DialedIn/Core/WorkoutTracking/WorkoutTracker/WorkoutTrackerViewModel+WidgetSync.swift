@@ -24,8 +24,8 @@ extension WorkoutTrackerViewModel {
     }
     
     func syncPendingSetCompletionFromWidget() {
-        guard let pending = SharedWorkoutStorage.pendingSetCompletion else { return }
-        
+        guard let pending = SharedWorkoutStorage.pendingSetCompletion,
+              let workoutSession else { return }
         print("🔍 Widget Completion: Found pending for set '\(pending.setId)'")
         print("   Values: weight=\(pending.weightKg ?? 0)kg, reps=\(pending.reps ?? 0)")
         
@@ -68,8 +68,9 @@ extension WorkoutTrackerViewModel {
     }
     
     func syncPendingWorkoutCompletionFromWidget() {
-        guard let pending = SharedWorkoutStorage.pendingWorkoutCompletion else { return }
-        
+        guard let pending = SharedWorkoutStorage.pendingWorkoutCompletion,
+              let workoutSession else { return }
+
         print("🔍 Widget Workout Completion: Found pending for session '\(pending.sessionId)'")
         
         guard pending.sessionId == workoutSession.id else {

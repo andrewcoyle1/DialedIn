@@ -7,15 +7,30 @@
 
 import SwiftUI
 
+struct SetTrackerRowViewDelegate {
+    var set: WorkoutSetModel
+    let trackingMode: TrackingMode
+    var weightUnit: ExerciseWeightUnit = .kilograms
+    var distanceUnit: ExerciseDistanceUnit = .meters
+    var previousSet: WorkoutSetModel?
+    var restBeforeSec: Int?
+    let onRestBeforeChange: (Int?) -> Void
+    var onRequestRestPicker: (String, Int?) -> Void = { _, _ in }
+    let onUpdate: (WorkoutSetModel) -> Void
+}
+
 struct SetTrackerRowView: View {
     @State var viewModel: SetTrackerRowViewModel
-    
-    init(viewModel: SetTrackerRowViewModel) {
-        self.viewModel = viewModel
-    }
-    
+
+    var delegate: SetTrackerRowViewDelegate
+
     private var cellHeight: CGFloat = 35
-    
+
+    init(viewModel: SetTrackerRowViewModel, delegate: SetTrackerRowViewDelegate) {
+        self.viewModel = viewModel
+        self.delegate = delegate
+    }
+
     var body: some View {
         VStack {
             HStack {
@@ -40,9 +55,6 @@ struct SetTrackerRowView: View {
             restSelector
         }
         .padding(.vertical, 4)
-        .onChange(of: viewModel.set) { _, newValue in
-            viewModel.onUpdate(newValue)
-        }
         .showCustomAlert(alert: $viewModel.showAlert)
         .sheet(isPresented: $viewModel.showWarmupHelp) {
             CustomModalView(
@@ -61,16 +73,16 @@ struct SetTrackerRowView: View {
     
     private var setNumber: some View {
         VStack(alignment: .leading) {
-            if viewModel.set.index == 1 {
+            if delegate.set.index == 1 {
                 Text("Set")
                     .font(.caption2)
             }
             Menu {
                 
                 Button {
-                    viewModel.set.isWarmup.toggle()
+                    updateSet { $0.isWarmup.toggle() }
                 } label: {
-                    Label("Warmup Set", systemImage: viewModel.set.isWarmup ? "checkmark" : "")
+                    Label("Warmup Set", systemImage: delegate.set.isWarmup ? "checkmark" : "")
                 }
                 
                 Button {
@@ -79,13 +91,13 @@ struct SetTrackerRowView: View {
                     Label("What's a warmup set?", systemImage: "info.circle")
                 }
             } label: {
-                Text("\(viewModel.set.index)")
+                Text("\(delegate.set.index)")
                     .font(.subheadline)
                     .frame(height: cellHeight)
                     .frame(width: 28, alignment: .center)
                     .background(
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(viewModel.set.isWarmup ? Color.orange.opacity(0.2) : .secondary.opacity(0.05))
+                            .fill(delegate.set.isWarmup ? Color.orange.opacity(0.2) : .secondary.opacity(0.05))
                     )
             }
         }
@@ -95,17 +107,17 @@ struct SetTrackerRowView: View {
     // MARK: Previous Values
     private var previousValues: some View {
         VStack(alignment: .leading) {
-            if viewModel.set.index == 1 {
+            if delegate.set.index == 1 {
                 Text("Prev")
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
             
-            if let prev = viewModel.previousSet {
-                switch viewModel.trackingMode {
+            if let prev = delegate.previousSet {
+                switch delegate.trackingMode {
                 case .weightReps:
                     if let weight = prev.weightKg, let reps = prev.reps {
-                        let displayWeight = UnitConversion.formatWeight(weight, unit: viewModel.weightUnit)
+                        let displayWeight = UnitConversion.formatWeight(weight, unit: delegate.weightUnit)
                         Text("\(displayWeight) × \(reps)")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -147,7 +159,7 @@ struct SetTrackerRowView: View {
                     
                 case .distanceTime:
                     if let distance = prev.distanceMeters, let duration = prev.durationSec {
-                        let displayDistance = UnitConversion.formatDistance(distance, unit: viewModel.distanceUnit)
+                        let displayDistance = UnitConversion.formatDistance(distance, unit: delegate.distanceUnit)
                         let minutes = duration / 60
                         let seconds = duration % 60
                         Text("\(displayDistance) \(minutes):\(String(format: "%02d", seconds))")
@@ -176,7 +188,7 @@ struct SetTrackerRowView: View {
     
     @ViewBuilder
     private var inputFields: some View {
-        switch viewModel.trackingMode {
+        switch delegate.trackingMode {
         case .weightReps:
             weightRepsFields
         case .repsOnly:
@@ -191,22 +203,23 @@ struct SetTrackerRowView: View {
     private var weightRepsFields: some View {
         HStack(spacing: 8) {
             VStack(alignment: .leading) {
-                if viewModel.set.index == 1 {
-                    Text("Weight (\(viewModel.weightUnit.abbreviation))")
+                if delegate.set.index == 1 {
+                    Text("Weight (\(delegate.weightUnit.abbreviation))")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
                 TextField("0", value: Binding(
                     get: {
-                        guard let kilograms = viewModel.set.weightKg else { return nil }
-                        return UnitConversion.convertWeight(kilograms, to: viewModel.weightUnit)
+                        guard let kilograms = delegate.set.weightKg else { return nil }
+                        return UnitConversion.convertWeight(kilograms, to: delegate.weightUnit)
                     },
                     set: { newValue in
                         guard let value = newValue else {
-                            viewModel.set.weightKg = nil
+                            updateSet { $0.weightKg = nil }
                             return
                         }
-                        viewModel.set.weightKg = UnitConversion.convertWeightToKg(value, from: viewModel.weightUnit)
+                        let kg = UnitConversion.convertWeightToKg(value, from: delegate.weightUnit)
+                        updateSet { $0.weightKg = kg }
                     }
                 ), format: .number)
                 .textFieldStyle(.roundedBorder)
@@ -216,15 +229,20 @@ struct SetTrackerRowView: View {
             .frame(width: 70)
             
             VStack(alignment: .leading) {
-                if viewModel.set.index == 1 {
+                if delegate.set.index == 1 {
                     Text("Reps")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
-                TextField("0", value: $viewModel.set.reps, format: .number)
-                    .textFieldStyle(.roundedBorder)
-                    .keyboardType(.numberPad)
-                    .frame(height: cellHeight)
+                TextField("0", value: Binding(
+                    get: { delegate.set.reps },
+                    set: { newValue in
+                        updateSet { $0.reps = newValue }
+                    }
+                ), format: .number)
+                .textFieldStyle(.roundedBorder)
+                .keyboardType(.numberPad)
+                .frame(height: cellHeight)
             }
             .frame(width: 50)
         }
@@ -232,33 +250,39 @@ struct SetTrackerRowView: View {
     
     private var repsOnlyFields: some View {
         VStack(alignment: .leading) {
-            if viewModel.set.index == 1 {
+            if delegate.set.index == 1 {
                 Text("Reps")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
-            TextField("0", value: $viewModel.set.reps, format: .number)
-                .textFieldStyle(.roundedBorder)
-                .keyboardType(.numberPad)
-                .frame(height: cellHeight)
+            TextField("0", value: Binding(
+                get: { delegate.set.reps },
+                set: { newValue in
+                    updateSet { $0.reps = newValue }
+                }
+            ), format: .number)
+            .textFieldStyle(.roundedBorder)
+            .keyboardType(.numberPad)
+            .frame(height: cellHeight)
         }
         .frame(width: 60)
     }
     
     private var timeOnlyFields: some View {
         VStack(alignment: .leading, spacing: 2) {
-            if viewModel.set.index == 1 {
+            if delegate.set.index == 1 {
                 Text("Duration")
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
             HStack(spacing: 4) {
                 TextField("0", value: Binding(
-                    get: { viewModel.set.durationSec.map { $0 / 60 } },
+                    get: { delegate.set.durationSec.map { $0 / 60 } },
                     set: { newMinutes in
                         if let minutes = newMinutes {
-                            let seconds = (viewModel.set.durationSec ?? 0) % 60
-                            viewModel.set.durationSec = minutes * 60 + seconds
+                            let seconds = (delegate.set.durationSec ?? 0) % 60
+                            let newDuration = minutes * 60 + seconds
+                            updateSet { $0.durationSec = newDuration }
                         }
                     }
                 ), format: .number)
@@ -270,11 +294,12 @@ struct SetTrackerRowView: View {
                     .font(.caption)
                 
                 TextField("00", value: Binding(
-                    get: { viewModel.set.durationSec.map { $0 % 60 } },
+                    get: { delegate.set.durationSec.map { $0 % 60 } },
                     set: { newSeconds in
                         if let seconds = newSeconds {
-                            let minutes = (viewModel.set.durationSec ?? 0) / 60
-                            viewModel.set.durationSec = minutes * 60 + seconds
+                            let minutes = (delegate.set.durationSec ?? 0) / 60
+                            let newDuration = minutes * 60 + seconds
+                            updateSet { $0.durationSec = newDuration }
                         }
                     }
                 ), format: .number)
@@ -291,22 +316,23 @@ struct SetTrackerRowView: View {
         HStack(spacing: 8) {
             // Distance input
             VStack(alignment: .leading, spacing: 2) {
-                if viewModel.set.index == 1 {
-                    Text("Distance (\(viewModel.distanceUnit.abbreviation))")
+                if delegate.set.index == 1 {
+                    Text("Distance (\(delegate.distanceUnit.abbreviation))")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
                 TextField("0", value: Binding(
                     get: {
-                        guard let meters = viewModel.set.distanceMeters else { return nil }
-                        return UnitConversion.convertDistance(meters, to: viewModel.distanceUnit)
+                        guard let meters = delegate.set.distanceMeters else { return nil }
+                        return UnitConversion.convertDistance(meters, to: delegate.distanceUnit)
                     },
                     set: { newValue in
                         guard let value = newValue else {
-                            viewModel.set.distanceMeters = nil
+                            updateSet { $0.distanceMeters = nil }
                             return
                         }
-                        viewModel.set.distanceMeters = UnitConversion.convertDistanceToMeters(value, from: viewModel.distanceUnit)
+                        let meters = UnitConversion.convertDistanceToMeters(value, from: delegate.distanceUnit)
+                        updateSet { $0.distanceMeters = meters }
                     }
                 ), format: .number)
                 .textFieldStyle(.roundedBorder)
@@ -317,7 +343,7 @@ struct SetTrackerRowView: View {
             
             // Time input
             VStack(alignment: .leading, spacing: 2) {
-                if viewModel.set.index == 1 {
+                if delegate.set.index == 1 {
                     Text("Time")
                         .font(.caption2)
                         .foregroundColor(.secondary)
@@ -325,11 +351,12 @@ struct SetTrackerRowView: View {
                 
                 HStack(spacing: 2) {
                     TextField("0", value: Binding(
-                        get: { viewModel.set.durationSec.map { $0 / 60 } },
+                        get: { delegate.set.durationSec.map { $0 / 60 } },
                         set: { newMinutes in
                             if let minutes = newMinutes {
-                                let seconds = (viewModel.set.durationSec ?? 0) % 60
-                                viewModel.set.durationSec = minutes * 60 + seconds
+                                let seconds = (delegate.set.durationSec ?? 0) % 60
+                                let newDuration = minutes * 60 + seconds
+                                updateSet { $0.durationSec = newDuration }
                             }
                         }
                     ), format: .number)
@@ -341,11 +368,12 @@ struct SetTrackerRowView: View {
                         .font(.caption2)
                     
                     TextField("00", value: Binding(
-                        get: { viewModel.set.durationSec.map { $0 % 60 } },
+                        get: { delegate.set.durationSec.map { $0 % 60 } },
                         set: { newSeconds in
                             if let seconds = newSeconds {
-                                let minutes = (viewModel.set.durationSec ?? 0) / 60
-                                viewModel.set.durationSec = minutes * 60 + seconds
+                                let minutes = (delegate.set.durationSec ?? 0) / 60
+                                let newDuration = minutes * 60 + seconds
+                                updateSet { $0.durationSec = newDuration }
                             }
                         }
                     ), format: .number)
@@ -362,16 +390,21 @@ struct SetTrackerRowView: View {
     // MARK: - RPE Field
     private var rpeField: some View {
         VStack(alignment: .leading) {
-            if viewModel.set.index == 1 {
+            if delegate.set.index == 1 {
                 Text("RPE")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
             
-            TextField("0", value: $viewModel.set.rpe, format: .number)
-                .textFieldStyle(.roundedBorder)
-                .keyboardType(.decimalPad)
-                .frame(height: cellHeight)
+            TextField("0", value: Binding(
+                get: { delegate.set.rpe },
+                set: { newValue in
+                    updateSet { $0.rpe = newValue }
+                }
+            ), format: .number)
+            .textFieldStyle(.roundedBorder)
+            .keyboardType(.decimalPad)
+            .frame(height: cellHeight)
         }
         .frame(width: 45, alignment: .leading)
     }
@@ -379,24 +412,24 @@ struct SetTrackerRowView: View {
     // MARK: - Action Buttons
     private var completeButton: some View {
         Button {
-            if viewModel.set.completedAt == nil {
+            if delegate.set.completedAt == nil {
                 // Validate before completing
-                if viewModel.validateSetData() {
-                    viewModel.set.completedAt = Date()
+                if viewModel.validateSetData(trackingMode: delegate.trackingMode, set: delegate.set) {
+                    updateSet { $0.completedAt = Date() }
                 }
             } else {
-                viewModel.set.completedAt = nil
+                updateSet { $0.completedAt = nil }
             }
         } label: {
             VStack(alignment: .trailing) {
-                if viewModel.set.index == 1 {
+                if delegate.set.index == 1 {
                     Text("Done")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
-                Image(systemName: viewModel.set.completedAt != nil ? "checkmark.circle.fill" : "circle")
+                Image(systemName: delegate.set.completedAt != nil ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    .foregroundColor(viewModel.buttonColor)
+                    .foregroundColor(viewModel.buttonColor(set: delegate.set, canComplete: viewModel.canComplete(trackingMode: delegate.trackingMode, set: delegate.set)))
                     .frame(height: cellHeight)
             }
         }
@@ -407,14 +440,14 @@ struct SetTrackerRowView: View {
     // MARK: - Rest Selector
     private var restSelector: some View {
         Button {
-            viewModel.onRequestRestPicker(viewModel.set.id, viewModel.restBeforeSec)
+            delegate.onRequestRestPicker(delegate.set.id, delegate.restBeforeSec)
         } label: {
             HStack {
                 Capsule()
                     .frame(maxWidth: .infinity)
                     .frame(height: 2)
                 Image(systemName: "timer")
-                Text(viewModel.restBeforeSec.map { "\($0)s" } ?? "Rest")
+                Text(delegate.restBeforeSec.map { "\($0)s" } ?? "Rest")
                     .fontWeight(.medium)
                 Capsule()
                     .frame(maxWidth: .infinity)
@@ -423,9 +456,18 @@ struct SetTrackerRowView: View {
         }
     }
 }
+
+extension SetTrackerRowView {
+    /// Helper to emit an updated copy of the set back to the parent.
+    private func updateSet(_ update: (inout WorkoutSetModel) -> Void) {
+        var updated = delegate.set
+        update(&updated)
+        delegate.onUpdate(updated)
+    }
+}
 #Preview("Weight & Reps - Incomplete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.setTrackerRowView(
+    let delegate = SetTrackerRowViewDelegate(
         set: WorkoutSetModel(
             id: "1",
             authorId: "user1",
@@ -444,11 +486,13 @@ struct SetTrackerRowView: View {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
+    builder.setTrackerRowView(delegate: delegate)
     .padding()
 }
+
 #Preview("Weight & Reps - Complete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.setTrackerRowView(
+    let delegate = SetTrackerRowViewDelegate(
         set: WorkoutSetModel(
             id: "2",
             authorId: "user1",
@@ -467,10 +511,11 @@ struct SetTrackerRowView: View {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
+    builder.setTrackerRowView(delegate: delegate)
 }
 #Preview("Duration - Incomplete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.setTrackerRowView(
+    let delegate = SetTrackerRowViewDelegate(
         set: WorkoutSetModel(
             id: "3",
             authorId: "user2",
@@ -489,11 +534,12 @@ struct SetTrackerRowView: View {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
+    builder.setTrackerRowView(delegate: delegate)
 }
 
 #Preview("Duration - Complete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.setTrackerRowView(
+    let delegate = SetTrackerRowViewDelegate(
         set: WorkoutSetModel(
             id: "4",
             authorId: "user2",
@@ -512,11 +558,12 @@ struct SetTrackerRowView: View {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
+    builder.setTrackerRowView(delegate: delegate)
 }
 
 #Preview("Distance - Incomplete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.setTrackerRowView(
+    let delegate = SetTrackerRowViewDelegate(
         set: WorkoutSetModel(
             id: "5",
             authorId: "user3",
@@ -535,11 +582,12 @@ struct SetTrackerRowView: View {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
+    builder.setTrackerRowView(delegate: delegate)
 }
 
 #Preview("Distance - Complete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.setTrackerRowView(
+    let delegate = SetTrackerRowViewDelegate(
         set: WorkoutSetModel(
             id: "6",
             authorId: "user3",
@@ -558,11 +606,12 @@ struct SetTrackerRowView: View {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
+    builder.setTrackerRowView(delegate: delegate)
 }
 
 #Preview("Warmup Set") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.setTrackerRowView(
+    let delegate = SetTrackerRowViewDelegate(
         set: WorkoutSetModel(
             id: "7",
             authorId: "user4",
@@ -581,11 +630,12 @@ struct SetTrackerRowView: View {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
+    builder.setTrackerRowView(delegate: delegate)
 }
 
 #Preview("All Fields Populated") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.setTrackerRowView(
+    let delegate = SetTrackerRowViewDelegate(
         set: WorkoutSetModel(
             id: "8",
             authorId: "user5",
@@ -604,11 +654,12 @@ struct SetTrackerRowView: View {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
+    builder.setTrackerRowView(delegate: delegate)
 }
 
 #Preview("Edge: No Data") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.setTrackerRowView(
+    let delegate = SetTrackerRowViewDelegate(
         set: WorkoutSetModel(
             id: "9",
             authorId: "user6",
@@ -627,4 +678,5 @@ struct SetTrackerRowView: View {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
+    builder.setTrackerRowView(delegate: delegate)
 }

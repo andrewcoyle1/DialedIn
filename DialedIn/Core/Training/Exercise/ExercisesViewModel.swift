@@ -24,8 +24,7 @@ extension CoreInteractor: ExercisesInteractor { }
 @MainActor
 class ExercisesViewModel {
     private let interactor: ExercisesInteractor
-    private let onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?
-    
+
     private(set) var isLoading: Bool = false
     private(set) var searchText: String = ""
     private(set) var showAlert: AnyAppAlert?
@@ -81,12 +80,8 @@ class ExercisesViewModel {
         return trimmed.isEmpty ? trendingExercisesDeduped : exercises
     }
     
-    init(
-        interactor: ExercisesInteractor,
-        onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)? = nil
-    ) {
+    init(interactor: ExercisesInteractor) {
         self.interactor = interactor
-        self.onExerciseSelectionChanged = onExerciseSelectionChanged
     }
     
     func onAddExercisePressed() {
@@ -94,7 +89,7 @@ class ExercisesViewModel {
         showCreateExercise = true
     }
 
-    func onExercisePressed(exercise: ExerciseTemplateModel) {
+    func onExercisePressed(exercise: ExerciseTemplateModel, onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?) {
         // Only increment click count for non-system exercises
         // System exercises (IDs starting with "system-") are read-only
         if !exercise.id.hasPrefix("system-") {
@@ -113,24 +108,24 @@ class ExercisesViewModel {
         onExerciseSelectionChanged?(exercise)
     }
 
-    func onExercisePressedFromFavourites(exercise: ExerciseTemplateModel) {
+    func onExercisePressedFromFavourites(exercise: ExerciseTemplateModel, onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?) {
         interactor.trackEvent(event: ExercisesViewEvents.onExercisePressedFromFavourites)
-        onExercisePressed(exercise: exercise)
+        onExercisePressed(exercise: exercise, onExerciseSelectionChanged: onExerciseSelectionChanged)
     }
 
-    func onExercisePressedFromBookmarked(exercise: ExerciseTemplateModel) {
+    func onExercisePressedFromBookmarked(exercise: ExerciseTemplateModel, onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?) {
         interactor.trackEvent(event: ExercisesViewEvents.onExercisePressedFromBookmarked)
-        onExercisePressed(exercise: exercise)
+        onExercisePressed(exercise: exercise, onExerciseSelectionChanged: onExerciseSelectionChanged)
     }
 
-    func onExercisePressedFromTrending(exercise: ExerciseTemplateModel) {
+    func onExercisePressedFromTrending(exercise: ExerciseTemplateModel, onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?) {
         interactor.trackEvent(event: ExercisesViewEvents.onExercisePressedFromTrending)
-        onExercisePressed(exercise: exercise)
+        onExercisePressed(exercise: exercise, onExerciseSelectionChanged: onExerciseSelectionChanged)
     }
 
-    func onExercisePressedFromMyTemplates(exercise: ExerciseTemplateModel) {
+    func onExercisePressedFromMyTemplates(exercise: ExerciseTemplateModel, onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?) {
         interactor.trackEvent(event: ExercisesViewEvents.onExercisePressedFromMyTemplates)
-        onExercisePressed(exercise: exercise)
+        onExercisePressed(exercise: exercise, onExerciseSelectionChanged: onExerciseSelectionChanged)
     }
 
     func performExerciseSearch(for query: String) {

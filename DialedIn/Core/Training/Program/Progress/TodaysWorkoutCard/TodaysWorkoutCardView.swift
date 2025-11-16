@@ -7,9 +7,16 @@
 
 import SwiftUI
 
+struct TodaysWorkoutCardViewDelegate {
+    let scheduledWorkout: ScheduledWorkout
+    let onStart: () -> Void
+}
+
 struct TodaysWorkoutCardView: View {
     @State var viewModel: TodaysWorkoutCardViewModel
-    
+
+    let delegate: TodaysWorkoutCardViewDelegate
+
     var body: some View {
         HStack(spacing: 16) {            
             // Workout info
@@ -22,7 +29,7 @@ struct TodaysWorkoutCardView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     
-                    if let date = viewModel.scheduledWorkout.scheduledDate {
+                    if let date = delegate.scheduledWorkout.scheduledDate {
                         Label(date.formatted(date: .abbreviated, time: .omitted), systemImage: "clock")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -34,9 +41,9 @@ struct TodaysWorkoutCardView: View {
             .loadingRedaction(isLoading: viewModel.isLoading)
 
             // Start button
-            if !viewModel.scheduledWorkout.isCompleted {
+            if !delegate.scheduledWorkout.isCompleted {
                 Button {
-                    viewModel.onStart()
+                    delegate.onStart()
                 } label: {
                     Text("Start")
                         .fontWeight(.semibold)
@@ -50,17 +57,17 @@ struct TodaysWorkoutCardView: View {
             }
         }
         .task {
-            await viewModel.loadWorkoutDetails()
+            await viewModel.loadWorkoutDetails(scheduledWorkout: delegate.scheduledWorkout)
         }
         .showCustomAlert(alert: $viewModel.showAlert)
     }
 }
 
 #Preview("Functioning") {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     List {
-        TodaysWorkoutCardView(
-            viewModel: TodaysWorkoutCardViewModel(
-                interactor: CoreInteractor(container: DevPreview.shared.container),
+        builder.todaysWorkoutCardView(
+            delegate: TodaysWorkoutCardViewDelegate(
                 scheduledWorkout: ScheduledWorkout.mocksWeek1.first!,
                 onStart: {
                     print("Start workout")
@@ -72,10 +79,10 @@ struct TodaysWorkoutCardView: View {
 }
 
 #Preview("Slow Loading") {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     List {
-        TodaysWorkoutCardView(
-            viewModel: TodaysWorkoutCardViewModel(
-                interactor: CoreInteractor(container: DevPreview.shared.container),
+        builder.todaysWorkoutCardView(
+            delegate: TodaysWorkoutCardViewDelegate(
                 scheduledWorkout: ScheduledWorkout.mocksWeek2.first!,
                 onStart: {
                     print("Start workout")
@@ -87,11 +94,12 @@ struct TodaysWorkoutCardView: View {
 }
 
 #Preview("Failure") {
-    List {
-        TodaysWorkoutCardView(
-            viewModel: TodaysWorkoutCardViewModel(
-                interactor: CoreInteractor(container: DevPreview.shared.container),
-                scheduledWorkout: ScheduledWorkout.mocksWeek3.first!,
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+
+    List(ScheduledWorkout.mocksWeek3) { workout in
+        builder.todaysWorkoutCardView(
+            delegate: TodaysWorkoutCardViewDelegate(
+                scheduledWorkout: workout,
                 onStart: {
                     print("Start workout")
                 }

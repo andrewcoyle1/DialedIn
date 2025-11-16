@@ -7,27 +7,37 @@
 
 import SwiftUI
 
+struct WorkoutCalendarViewDelegate {
+    let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
+    let onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)?
+}
+
 struct WorkoutCalendarView: View {
 
     @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: WorkoutCalendarViewModel
 
+    let delegate: WorkoutCalendarViewDelegate
+
     var body: some View {
         Section(isExpanded: $viewModel.isShowingCalendar) {
             builder.enhancedScheduleView(
-                getScheduledWorkouts: {
-                    viewModel.scheduledWorkouts
-                },
-                onDateSelected: { date in
-                    viewModel.selectedDate = date
-                    viewModel.collapsedSubtitle = "Next: \(date.formatted(.dateTime.day().month()))"
-                },
-                onDateTapped: { date in
-                    viewModel.handleDateTapped(
-                        date
-                    )
-                })
+                delegate: EnhancedScheduleViewDelegate(
+                    getScheduledWorkouts: {
+                        viewModel.scheduledWorkouts
+                    },
+                    onDateSelected: { date in
+                        viewModel.selectedDate = date
+                        viewModel.collapsedSubtitle = "Next: \(date.formatted(.dateTime.day().month()))"
+                    },
+                    onDateTapped: { date in
+                        viewModel.handleDateTapped(
+                            date
+                        )
+                    }
+                )
+            )
         } header: {
             HStack(alignment: .firstTextBaseline) {
                 Text("Plan")
@@ -80,7 +90,7 @@ struct WorkoutCalendarView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     List {
-        builder.workoutCalendarView()
+        builder.workoutCalendarView(delegate: WorkoutCalendarViewDelegate(onSessionSelectionChanged: nil, onWorkoutStartRequested: nil))
     }
     .previewEnvironment()
 }

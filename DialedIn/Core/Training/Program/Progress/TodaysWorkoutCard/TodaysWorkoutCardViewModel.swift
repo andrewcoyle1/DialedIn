@@ -19,26 +19,17 @@ extension CoreInteractor: TodaysWorkoutCardInteractor { }
 class TodaysWorkoutCardViewModel {
     private let interactor: TodaysWorkoutCardInteractor
 
-    let scheduledWorkout: ScheduledWorkout
-    let onStart: () -> Void
-    
     private(set) var templateName: String = "Workout"
     private(set) var exerciseCount: Int = 0
     private(set) var isLoading: Bool = true
     
     var showAlert: AnyAppAlert?
     
-    init(
-        interactor: TodaysWorkoutCardInteractor,
-        scheduledWorkout: ScheduledWorkout,
-        onStart: @escaping () -> Void
-    ) {
+    init(interactor: TodaysWorkoutCardInteractor) {
         self.interactor = interactor
-        self.scheduledWorkout = scheduledWorkout
-        self.onStart = onStart
     }
     
-    func loadWorkoutDetails() async {
+    func loadWorkoutDetails(scheduledWorkout: ScheduledWorkout) async {
         interactor.trackEvent(event: Event.loadWorkoutStart)
         do {
             let template = try await interactor.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)

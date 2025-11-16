@@ -18,25 +18,13 @@ extension CoreInteractor: AddMealSheetInteractor { }
 class AddMealSheetViewModel {
     private let interactor: AddMealSheetInteractor
     
-    let selectedDate: Date
-    let mealType: MealType
-    let onSave: (MealLogModel) -> Void
-    
     var mealTime: Date = Date()
     var notes: String = ""
     var items: [MealItemModel] = []
     var showLibraryPicker: Bool = false
     
-    init(
-        interactor: AddMealSheetInteractor,
-        selectedDate: Date,
-        mealType: MealType,
-        onSave: @escaping (MealLogModel) -> Void
-    ) {
+    init(interactor: AddMealSheetInteractor) {
         self.interactor = interactor
-        self.selectedDate = selectedDate
-        self.mealType = mealType
-        self.onSave = onSave
     }
     
     var currentUser: UserModel? {
@@ -51,7 +39,7 @@ class AddMealSheetViewModel {
         items.remove(atOffsets: offsets)
     }
     
-    func saveMeal(onDismiss: () -> Void) {
+    func saveMeal(onDismiss: () -> Void, selectedDate: Date, mealType: MealType, onSave: @escaping (MealLogModel) -> Void) {
         guard let userId = interactor.currentUser?.userId else { return }
         
         // Combine selected date with selected time

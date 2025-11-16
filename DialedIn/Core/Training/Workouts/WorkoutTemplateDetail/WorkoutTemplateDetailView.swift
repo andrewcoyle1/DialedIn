@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+struct WorkoutTemplateDetailViewDelegate {
+    let workoutTemplate: WorkoutTemplateModel
+}
+
 struct WorkoutTemplateDetailView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
@@ -14,21 +18,21 @@ struct WorkoutTemplateDetailView: View {
 
     @State var viewModel: WorkoutTemplateDetailViewModel
     
-    let workoutTemplate: WorkoutTemplateModel
-    
+    let delegate: WorkoutTemplateDetailViewDelegate
+
     private var isAuthor: Bool {
-        viewModel.currentUser?.userId == workoutTemplate.authorId
+        viewModel.currentUser?.userId == delegate.workoutTemplate.authorId
     }
     
     var body: some View {
         List {
-            if let url = workoutTemplate.imageURL {
+            if let url = delegate.workoutTemplate.imageURL {
                 imageSection(url: url)
             }
             exercisesSection
         }
-        .navigationTitle(workoutTemplate.name)
-        .navigationSubtitle(workoutTemplate.description ?? "")
+        .navigationTitle(delegate.workoutTemplate.name)
+        .navigationSubtitle(delegate.workoutTemplate.description ?? "")
         .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
         .showCustomAlert(alert: $viewModel.showAlert)
@@ -40,24 +44,25 @@ struct WorkoutTemplateDetailView: View {
         .toolbar {
             toolbarContent
         }
-        .onAppear { viewModel.loadInitialState(template: workoutTemplate)}
+        .onAppear { viewModel.loadInitialState(template: delegate.workoutTemplate)}
         .onChange(of: viewModel.currentUser) {_, _ in
             let user = viewModel.currentUser
-            let isAuthor = user?.userId == workoutTemplate.authorId
-            viewModel.isBookmarked = isAuthor || (viewModel.currentUser?.bookmarkedWorkoutTemplateIds?.contains(workoutTemplate.id) ?? false) || (user?.createdWorkoutTemplateIds?.contains(workoutTemplate.id) ?? false)
-            viewModel.isFavourited = user?.favouritedWorkoutTemplateIds?.contains(workoutTemplate.id) ?? false
+            let isAuthor = user?.userId == delegate.workoutTemplate.authorId
+            viewModel.isBookmarked = isAuthor || (viewModel.currentUser?.bookmarkedWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false) || (user?.createdWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false)
+            viewModel.isFavourited = user?.favouritedWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false
         }
         .sheet(isPresented: $viewModel.showStartSessionSheet) {
-            builder.workoutStartView(template: workoutTemplate)
+            let delegate = WorkoutStartViewDelegate(template: delegate.workoutTemplate)
+            builder.workoutStartView(delegate: delegate)
         }
         .sheet(isPresented: $viewModel.showEditSheet) {
-            builder.createWorkoutView(workoutTemplate: workoutTemplate)
+            builder.createWorkoutView(delegate: CreateWorkoutViewDelegate(workoutTemplate: delegate.workoutTemplate))
         }
     }
 
     private var exercisesSection: some View {
         Section(header: Text("Exercises")) {
-            ForEach(workoutTemplate.exercises) { exercise in
+            ForEach(delegate.workoutTemplate.exercises) { exercise in
                 exerciseSection(exercise: exercise)
             }
         }
@@ -85,7 +90,7 @@ struct WorkoutTemplateDetailView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 Task {
-                    await viewModel.onFavoritePressed(template: workoutTemplate)
+                    await viewModel.onFavoritePressed(template: delegate.workoutTemplate)
                 }
             } label: {
                 Image(systemName: viewModel.isFavourited ? "heart.fill" : "heart")
@@ -93,11 +98,11 @@ struct WorkoutTemplateDetailView: View {
             .disabled(viewModel.activeSession != nil)
         }
         // Hide bookmark button when the current user is the author
-        if viewModel.currentUser?.userId != nil && viewModel.currentUser?.userId != workoutTemplate.authorId {
+        if viewModel.currentUser?.userId != nil && viewModel.currentUser?.userId != delegate.workoutTemplate.authorId {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
-                        await viewModel.onBookmarkPressed(template: workoutTemplate)
+                        await viewModel.onBookmarkPressed(template: delegate.workoutTemplate)
                     }
                 } label: {
                     Image(systemName: viewModel.isBookmarked ? "book.closed.fill" : "book.closed")
@@ -120,7 +125,7 @@ struct WorkoutTemplateDetailView: View {
         if isAuthor && editMode?.wrappedValue == .active {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(role: .destructive) {
-                    viewModel.showDeleteConfirmation(workoutTemplate: workoutTemplate, onDismiss: {
+                    viewModel.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate, onDismiss: {
                         dismiss()
                     })
                 } label: {
@@ -177,7 +182,7 @@ struct WorkoutTemplateDetailView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        builder.workoutTemplateDetailView(workout: WorkoutTemplateModel.mock)
+        builder.workoutTemplateDetailView(delegate: WorkoutTemplateDetailViewDelegate(workoutTemplate: WorkoutTemplateModel.mock))
     }
     .previewEnvironment()
 }

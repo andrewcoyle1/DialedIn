@@ -171,8 +171,8 @@ class WorkoutTrackerViewModel {
     var editMode: EditMode = .inactive
     var isRestPickerOpen: Bool = false
     
-    var workoutSession: WorkoutSessionModel
-    var startTime: Date
+    var workoutSession: WorkoutSessionModel?
+    var startTime: Date = Date()
     var elapsedTime: TimeInterval = 0
     var isActive = true
     
@@ -209,15 +209,16 @@ class WorkoutTrackerViewModel {
     
     // MARK: - Initialization
     
-    init(
-        interactor: WorkoutTrackerInteractor,
-        workoutSession: WorkoutSessionModel
-    ) {
+    init(interactor: WorkoutTrackerInteractor) {
         self.interactor = interactor
-        
+    }
+    
+    func loadWorkoutSession(_ workoutSession: WorkoutSessionModel) {
         self.workoutSession = workoutSession
         self.workoutNotes = workoutSession.notes ?? ""
         self.startTime = workoutSession.dateCreated
+        // Refresh from local storage to ensure latest persisted changes are loaded
+        buildView()
     }
     
     // MARK: - Computed Properties
@@ -245,11 +246,13 @@ class WorkoutTrackerViewModel {
     }
     
     var completedSetsCount: Int {
-        workoutSession.exercises.flatMap { $0.sets }.filter { $0.completedAt != nil }.count
+        guard let workoutSession = workoutSession else { return 0 }
+        return workoutSession.exercises.flatMap { $0.sets }.filter { $0.completedAt != nil }.count
     }
     
     var totalSetsCount: Int {
-        workoutSession.exercises.flatMap { $0.sets }.count
+        guard let workoutSession = workoutSession else { return 0 }
+        return workoutSession.exercises.flatMap { $0.sets }.count
     }
     
     var formattedVolume: String {
@@ -260,6 +263,7 @@ class WorkoutTrackerViewModel {
     // MARK: - Lifecycle
     
     func onAppear() async {
+        guard let workoutSession = workoutSession else { return }
         buildView()
         loadUnitPreferences()
         startWidgetSyncTimer()
@@ -299,14 +303,17 @@ class WorkoutTrackerViewModel {
     }
     
     func buildView() {
+        guard var workoutSession = workoutSession else { return }
         // Refresh from local active session to ensure persisted edits are loaded
         if let latest = try? interactor.getLocalWorkoutSession(id: workoutSession.id) {
-            workoutSession = latest
+            self.workoutSession = latest
             workoutNotes = latest.notes ?? ""
+            workoutSession = latest
         } else if let activeOpt = try? interactor.getActiveLocalWorkoutSession() {
             if activeOpt.id == workoutSession.id {
-                workoutSession = activeOpt
+                self.workoutSession = activeOpt
                 workoutNotes = activeOpt.notes ?? ""
+                workoutSession = activeOpt
             }
         }
         // Ensure start time comes from the session creation time
@@ -339,6 +346,7 @@ class WorkoutTrackerViewModel {
     // MARK: - Unit Preferences
     
     func loadUnitPreferences() {
+        guard let workoutSession = workoutSession else { return }
         // Load unit preferences for all exercises in the workout
         for exercise in workoutSession.exercises {
             let preference = interactor.getPreference(templateId: exercise.templateId)
@@ -374,6 +382,10 @@ class WorkoutTrackerViewModel {
     // MARK: - Previous Values
     
     func loadPreviousWorkoutSession() {
+        guard let workoutSession = workoutSession else {
+            previousWorkoutSession = nil
+            return
+        }
         // Only load previous session if this workout is from a template
         guard let templateId = workoutSession.workoutTemplateId,
               let authorId = interactor.currentUser?.userId else {
@@ -409,6 +421,10 @@ class WorkoutTrackerViewModel {
     // MARK: - Workout Actions
     
     func discardWorkout(onDismiss: @escaping () -> Void) {
+        guard let workoutSession = workoutSession else {
+            onDismiss()
+            return
+        }
         stopWidgetSyncTimer()
         Task {
             do {
@@ -443,6 +459,10 @@ class WorkoutTrackerViewModel {
     }
     
     func finishWorkout(onDismiss: @escaping () -> Void) {
+        guard var workoutSession = workoutSession else {
+            onDismiss()
+            return
+        }
         stopWidgetSyncTimer()
         Task {
             do {
@@ -469,6 +489,7 @@ class WorkoutTrackerViewModel {
                 
                 // Update session end time
                 workoutSession.endSession(at: endTime)
+                self.workoutSession = workoutSession
                 try interactor.endLocalWorkoutSession(id: workoutSession.id, at: endTime)
                 
                 // Save to remote
@@ -494,11 +515,14 @@ class WorkoutTrackerViewModel {
     }
     
     func updateWorkoutNotes() {
+        guard var workoutSession = workoutSession else { return }
         workoutSession.notes = workoutNotes.isEmpty ? nil : workoutNotes
+        self.workoutSession = workoutSession
         saveWorkoutProgress()
     }
     
     func updateExerciseNotes(_ notes: String, for exerciseId: String) {
+        guard var workoutSession = workoutSession else { return }
         guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) else {
             return
         }
@@ -506,6 +530,7 @@ class WorkoutTrackerViewModel {
         var updatedExercises = workoutSession.exercises
         updatedExercises[exerciseIndex].notes = notes.isEmpty ? nil : notes
         workoutSession.updateExercises(updatedExercises)
+        self.workoutSession = workoutSession
         saveWorkoutProgress()
     }
     
@@ -517,6 +542,7 @@ class WorkoutTrackerViewModel {
     // MARK: - Rest Timer
     
     func startRestTimer(durationSeconds: Int = 0) {
+        guard let workoutSession = workoutSession else { return }
         let duration = durationSeconds > 0 ? durationSeconds : restDurationSeconds
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         interactor.startRest(durationSeconds: duration, session: workoutSession, currentExerciseIndex: currentExerciseIndex)
@@ -582,6 +608,7 @@ class WorkoutTrackerViewModel {
     // MARK: - Persistence
     
     func saveWorkoutProgress() {
+        guard let workoutSession = workoutSession else { return }
         Task {
             do {
                 try interactor.updateLocalWorkoutSession(session: workoutSession)
@@ -596,6 +623,9 @@ class WorkoutTrackerViewModel {
     }
     
     private func createExerciseHistoryEntries(performedAt: Date) async throws {
+        guard let workoutSession = workoutSession else {
+            throw NSError(domain: "WorkoutTrackerViewModel", code: 400, userInfo: [NSLocalizedDescriptionKey: "No workout session loaded"])
+        }
         guard let userId = interactor.currentUser?.userId else {
             throw NSError(domain: "WorkoutTrackerViewModel", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
         }
@@ -624,7 +654,8 @@ class WorkoutTrackerViewModel {
     // MARK: - Helpers
     
     func computeTotalVolumeKg() -> Double {
-        workoutSession.exercises.flatMap { $0.sets }
+        guard let workoutSession = workoutSession else { return 0.0 }
+        return workoutSession.exercises.flatMap { $0.sets }
             .compactMap { set in
                 guard let weight = set.weightKg, let reps = set.reps else { return nil }
                 return weight * Double(reps)
@@ -649,6 +680,7 @@ class WorkoutTrackerViewModel {
     }
     
     func applyReorderedExercises(_ updated: [WorkoutExerciseModel], movedFrom: Int?, movedTo: Int) {
+        guard var workoutSession = workoutSession else { return }
         var updated = updated
         // Reindex exercises only (do not touch set indices)
         for idx in updated.indices {
@@ -657,12 +689,14 @@ class WorkoutTrackerViewModel {
 
         // Always align current exercise to top-most incomplete after reorders
         workoutSession.updateExercises(updated)
+        self.workoutSession = workoutSession
         syncCurrentExerciseIndexToFirstIncomplete(in: updated)
 
         saveWorkoutProgress()
     }
     
     func lastKnownRestForExercise(exerciseIndex: Int) -> Int? {
+        guard let workoutSession = workoutSession else { return nil }
         guard exerciseIndex < workoutSession.exercises.count else { return nil }
         let sets = workoutSession.exercises[exerciseIndex].sets
         // Walk from last to first to find a mapping

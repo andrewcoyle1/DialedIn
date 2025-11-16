@@ -7,6 +7,13 @@
 
 import SwiftUI
 
+struct AddMealSheetDelegate {
+    let selectedDate: Date
+    let mealType: MealType
+    let onSave: (MealLogModel) -> Void
+    var path: Binding<[TabBarPathOption]>
+}
+
 struct AddMealSheet: View {
 
     @Environment(CoreBuilder.self) private var builder
@@ -14,7 +21,7 @@ struct AddMealSheet: View {
 
     @State var viewModel: AddMealSheetViewModel
 
-    @Binding var path: [TabBarPathOption]
+    let delegate: AddMealSheetDelegate
 
     var body: some View {
         NavigationStack {
@@ -23,13 +30,15 @@ struct AddMealSheet: View {
                 notesSection
                 itemsSection
             }
-            .navigationTitle("Add \(viewModel.mealType.rawValue.capitalized)")
+            .navigationTitle("Add \(delegate.mealType.rawValue.capitalized)")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $viewModel.showLibraryPicker) {
-                builder.nutritionLibraryPickerView(onPick: { newItem in
-                    viewModel.items.append(newItem)
-                    viewModel.showLibraryPicker = false
-                }, path: $path)
+                builder.nutritionLibraryPickerView(
+                    delegate: NutritionLibraryPickerViewDelegate(onPick: { newItem in
+                        viewModel.items.append(newItem)
+                        viewModel.showLibraryPicker = false
+                    }, path: delegate.path)
+                )
             }
             .toolbar {
                 toolbarContent
@@ -98,7 +107,7 @@ struct AddMealSheet: View {
 
         ToolbarItem(placement: .confirmationAction) {
             Button("Save") {
-                viewModel.saveMeal(onDismiss: { dismiss() })
+                viewModel.saveMeal(onDismiss: { dismiss() }, selectedDate: delegate.selectedDate, mealType: delegate.mealType, onSave: delegate.onSave)
             }
             .disabled(viewModel.items.isEmpty)
         }
@@ -108,31 +117,59 @@ struct AddMealSheet: View {
 #Preview("Breakfast") {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.addMealSheet(selectedDate: Date(), mealType: .breakfast, onSave: { _ in
-    }, path: $path)
+    let delegate = AddMealSheetDelegate(
+        selectedDate: Date(),
+        mealType: .breakfast,
+        onSave: { _ in
+
+        },
+        path: $path
+    )
+    builder.addMealSheet(delegate: delegate)
     .previewEnvironment()
 }
 
 #Preview("Lunch") {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.addMealSheet(selectedDate: Date(), mealType: .lunch, onSave: { _ in
-    }, path: $path)
+    let delegate = AddMealSheetDelegate(
+        selectedDate: Date(),
+        mealType: .lunch,
+        onSave: { _ in
+
+        },
+        path: $path
+    )
+    builder.addMealSheet(delegate: delegate)
     .previewEnvironment()
 }
 
 #Preview("Dinner") {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.addMealSheet(selectedDate: Date(), mealType: .dinner, onSave: { _ in
-    }, path: $path)
+    let delegate = AddMealSheetDelegate(
+        selectedDate: Date(),
+        mealType: .dinner,
+        onSave: { _ in
+
+        },
+        path: $path
+    )
+    builder.addMealSheet(delegate: delegate)
     .previewEnvironment()
 }
 
 #Preview("Snack") {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.addMealSheet(selectedDate: Date(), mealType: .snack, onSave: { _ in
-    }, path: $path)
+    let delegate = AddMealSheetDelegate(
+        selectedDate: Date(),
+        mealType: .snack,
+        onSave: { _ in
+
+        },
+        path: $path
+    )
+    builder.addMealSheet(delegate: delegate)
     .previewEnvironment()
 }

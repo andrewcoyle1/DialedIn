@@ -7,12 +7,17 @@
 
 import SwiftUI
 
+struct AddIngredientModalViewDelegate {
+    var selectedIngredients: Binding<[IngredientTemplateModel]>
+}
+
 struct AddIngredientModalView: View {
-    @State var viewModel: AddIngredientModalViewModel
     @Environment(\.dismiss) private var dismiss
-    
-    @Binding var selectedIngredients: [IngredientTemplateModel]
-    
+
+    @State var viewModel: AddIngredientModalViewModel
+
+    var delegate: AddIngredientModalViewDelegate
+
     private var filteredIngredients: [IngredientTemplateModel] {
         let query = viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return viewModel.ingredients }
@@ -52,16 +57,7 @@ struct AddIngredientModalView: View {
                     }
                     .padding()
                 } else {
-                    List {
-                        ForEach(filteredIngredients) { ingredient in
-                            CustomListCellView(imageName: ingredient.imageURL, title: ingredient.name, subtitle: ingredient.description, isSelected: selectedIngredients.contains(where: { $0.id == ingredient.id }))
-                                .anyButton {
-                                    viewModel.onIngredientPressed(ingredient: ingredient, selectedIngredients: &selectedIngredients)
-                                }
-                                .removeListRowFormatting()
-                        }
-                    }
-                    .scrollIndicators(.hidden)
+                    listSection
                 }
             }
             .searchable(text: $viewModel.searchText)
@@ -90,16 +86,31 @@ struct AddIngredientModalView: View {
             }
         }
     }
+
+    private var listSection: some View {
+        List {
+            ForEach(filteredIngredients) { ingredient in
+                CustomListCellView(imageName: ingredient.imageURL, title: ingredient.name, subtitle: ingredient.description, isSelected: delegate.selectedIngredients.contains(where: { $0.id == ingredient.id }))
+                    .anyButton {
+                        viewModel.onIngredientPressed(ingredient: ingredient, selectedIngredients: &delegate.selectedIngredients.wrappedValue)
+                    }
+                    .removeListRowFormatting()
+            }
+        }
+        .scrollIndicators(.hidden)
+    }
 }
 
 #Preview {
     @Previewable @State var showModal: Bool = true
     @Previewable @State var selectedIngredients: [IngredientTemplateModel] = [IngredientTemplateModel.mock]
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+
     Button("Show Modal") {
         showModal = true
     }
     .sheet(isPresented: $showModal) {
-        AddIngredientModalView(viewModel: AddIngredientModalViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)), selectedIngredients: $selectedIngredients)
+        builder.addIngredientModalView(delegate: AddIngredientModalViewDelegate(selectedIngredients: $selectedIngredients))
     }
     .previewEnvironment()
 }

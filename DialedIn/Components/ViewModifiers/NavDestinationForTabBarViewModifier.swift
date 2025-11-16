@@ -18,15 +18,15 @@ struct NavDestinationForTabBarViewModifier: ViewModifier {
             .navigationDestination(for: TabBarPathOption.self) { newValue in
                 switch newValue {
                 case .exerciseTemplate(exerciseTemplate: let exerciseTemplate):
-                    builder.exerciseTemplateDetailView(exercise: exerciseTemplate)
+                    builder.exerciseTemplateDetailView(delegate: ExerciseTemplateDetailViewDelegate(exerciseTemplate: exerciseTemplate))
                 case .exerciseTemplateList(templateIds: let templateIds):
-                    builder.exerciseTemplateListView(templateIds: templateIds)
+                    builder.exerciseTemplateListView(delegate: ExerciseTemplateListViewDelegate(templateIds: templateIds))
                 case .workoutTemplateList(templateIds: let templateIds):
-                    builder.workoutTemplateListView(templateIds: templateIds)
+                    builder.workoutTemplateListView(delegate: WorkoutTemplateListViewDelegate(templateIds: templateIds))
                 case .workoutTemplateDetail(template: let template):
-                    builder.workoutTemplateDetailView(workout: template)
+                    builder.workoutTemplateDetailView(delegate: WorkoutTemplateDetailViewDelegate(workoutTemplate: template))
                 case .ingredientTemplateDetail(template: let template):
-                    builder.ingredientDetailView(ingredientTemplate: template)
+                    builder.ingredientDetailView(delegate: IngredientDetailViewDelegate(ingredientTemplate: template))
                 case .ingredientTemplateList(templateIds: let templateIds):
                     builder.ingredientTemplateListView(templateIds: templateIds)
                 case .ingredientAmountView(ingredient: let ingredient, onPick: let onPick):
@@ -38,7 +38,7 @@ struct NavDestinationForTabBarViewModifier: ViewModifier {
                 case .recipeAmountView(recipe: let recipe, onPick: let onPick):
                     builder.recipeAmountView(recipe: recipe, onPick: onPick)
                 case .workoutSessionDetail(session: let session):
-                    builder.workoutSessionDetailView(session: session)
+                    builder.workoutSessionDetailView(delegate: WorkoutSessionDetailViewDelegate(workoutSession: session))
                 case .mealDetail(meal: let meal):
                     builder.mealDetailView(meal: meal)
                 case .profileGoals:

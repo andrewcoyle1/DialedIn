@@ -7,11 +7,15 @@
 
 import SwiftUI
 
+struct ExerciseTemplateDetailViewDelegate {
+    var exerciseTemplate: ExerciseTemplateModel
+}
+
 struct ExerciseTemplateDetailView: View {
     @Environment(CoreBuilder.self) private var builder
     @State var viewModel: ExerciseTemplateDetailViewModel
-    var exerciseTemplate: ExerciseTemplateModel
-    
+    var delegate: ExerciseTemplateDetailViewDelegate
+
     var body: some View {
         List {
             pickerSection
@@ -26,7 +30,7 @@ struct ExerciseTemplateDetailView: View {
                 recordsSection
             }
         }
-        .navigationTitle(exerciseTemplate.name)
+        .navigationTitle(delegate.exerciseTemplate.name)
         .navigationSubtitle(viewModel.performedSubtitle)
         .navigationBarTitleDisplayMode(.large)
         .showCustomAlert(alert: $viewModel.showAlert)
@@ -43,18 +47,18 @@ struct ExerciseTemplateDetailView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
-                        await viewModel.onFavoritePressed(exerciseTemplate: exerciseTemplate)
+                        await viewModel.onFavoritePressed(exerciseTemplate: delegate.exerciseTemplate)
                     }
                 } label: {
                     Image(systemName: viewModel.isFavourited ? "heart.fill" : "heart")
                 }
             }
             // Hide bookmark button when the current user is the author
-            if viewModel.currentUser?.userId != nil && viewModel.currentUser?.userId != exerciseTemplate.authorId {
+            if viewModel.currentUser?.userId != nil && viewModel.currentUser?.userId != delegate.exerciseTemplate.authorId {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Task {
-                            await viewModel.onBookmarkPressed(exerciseTemplate: exerciseTemplate)
+                            await viewModel.onBookmarkPressed(exerciseTemplate: delegate.exerciseTemplate)
                         }
                     } label: {
                         Image(systemName: viewModel.isBookmarked ? "book.closed.fill" : "book.closed")
@@ -62,12 +66,12 @@ struct ExerciseTemplateDetailView: View {
                 }
             }
         }
-        .task { await viewModel.loadInitialState(exerciseTemplate: exerciseTemplate) }
+        .task { await viewModel.loadInitialState(exerciseTemplate: delegate.exerciseTemplate) }
         .onChange(of: viewModel.currentUser) { _, _ in
             let user = viewModel.currentUser
-            let isAuthor = user?.userId == exerciseTemplate.authorId
-            viewModel.isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false)
-            viewModel.isFavourited = user?.favouritedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false
+            let isAuthor = user?.userId == delegate.exerciseTemplate.authorId
+            viewModel.isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false)
+            viewModel.isFavourited = user?.favouritedExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
@@ -78,26 +82,26 @@ struct ExerciseTemplateDetailView: View {
     
     private var aboutSection: some View {
         Group {
-            if let url = exerciseTemplate.imageURL {
+            if let url = delegate.exerciseTemplate.imageURL {
                 imageSection(url: url)
             }
             
-            if let description = exerciseTemplate.description {
+            if let description = delegate.exerciseTemplate.description {
                 descriptionSection(description: description)
             }
             
-            if !exerciseTemplate.instructions.isEmpty {
+            if !delegate.exerciseTemplate.instructions.isEmpty {
                 instructionsSection
             }
             
-            if !exerciseTemplate.muscleGroups.isEmpty {
+            if !delegate.exerciseTemplate.muscleGroups.isEmpty {
                 muscleGroupsSection
             }
             
             categorySection
             
             dateCreatedSection
-            if let authorId = exerciseTemplate.authorId {
+            if let authorId = delegate.exerciseTemplate.authorId {
                 authorSection(id: authorId)
             }
         }
@@ -337,7 +341,7 @@ struct ExerciseTemplateDetailView: View {
     private var instructionsSection: some View {
         Section(header: Text("Instructions")) {
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(Array(exerciseTemplate.instructions.enumerated()), id: \.offset) { index, instruction in
+                ForEach(Array(delegate.exerciseTemplate.instructions.enumerated()), id: \.offset) { index, instruction in
                     HStack(alignment: .top) {
                         Text("\(index + 1).")
                             .fontWeight(.semibold)
@@ -354,7 +358,7 @@ struct ExerciseTemplateDetailView: View {
         Section(header: Text("Muscle Groups")) {
             let columns = [GridItem(.adaptive(minimum: 90), spacing: 8, alignment: .leading)]
             LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
-                ForEach(exerciseTemplate.muscleGroups, id: \.self) { group in
+                ForEach(delegate.exerciseTemplate.muscleGroups, id: \.self) { group in
                     Text(group.description)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
@@ -367,13 +371,13 @@ struct ExerciseTemplateDetailView: View {
     
     private var categorySection: some View {
         Section(header: Text("Category")) {
-            Text(exerciseTemplate.type.description)
+            Text(delegate.exerciseTemplate.type.description)
         }
     }
     
     private var dateCreatedSection: some View {
         Section(header: Text("Date Created")) {
-            Text(exerciseTemplate.dateCreated.formatted(date: .abbreviated, time: .omitted))
+            Text(delegate.exerciseTemplate.dateCreated.formatted(date: .abbreviated, time: .omitted))
         }
     }
     
@@ -389,7 +393,11 @@ struct ExerciseTemplateDetailView: View {
 #Preview("About Section") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        builder.exerciseTemplateDetailView(exercise: ExerciseTemplateModel.mocks[0])
+        builder.exerciseTemplateDetailView(
+                delegate: ExerciseTemplateDetailViewDelegate(
+                    exerciseTemplate: ExerciseTemplateModel.mocks[0]
+                )
+            )
     }
     .previewEnvironment()
 }

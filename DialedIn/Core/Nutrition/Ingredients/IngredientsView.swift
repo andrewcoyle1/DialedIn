@@ -7,14 +7,18 @@
 
 import SwiftUI
 
+struct IngredientsViewDelegate {
+    var isShowingInspector: Binding<Bool>
+    var selectedIngredientTemplate: Binding<IngredientTemplateModel?>
+    var selectedRecipeTemplate: Binding<RecipeTemplateModel?>
+    var showCreateIngredient: Binding<Bool>
+}
+
 struct IngredientsView: View {
     @State var viewModel: IngredientsViewModel
 
-    @Binding var isShowingInspector: Bool
-    @Binding var selectedIngredientTemplate: IngredientTemplateModel?
-    @Binding var selectedRecipeTemplate: RecipeTemplateModel?
-    @Binding var showCreateIngredient: Bool
-    
+    var delegate: IngredientsViewDelegate
+
     var body: some View {
         Group {
             if viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -192,13 +196,13 @@ struct IngredientsView: View {
     
     private func onAddIngredientPressed() {
         viewModel.onAddIngredientPressed()
-        showCreateIngredient = true
+        delegate.showCreateIngredient.wrappedValue = true
     }
     
     private func updateBindings(ingredient: IngredientTemplateModel) {
-        selectedRecipeTemplate = nil
-        selectedIngredientTemplate = ingredient
-        isShowingInspector = true
+        delegate.selectedRecipeTemplate.wrappedValue = nil
+        delegate.selectedIngredientTemplate.wrappedValue = ingredient
+        delegate.isShowingInspector.wrappedValue = true
     }
 }
 
@@ -210,6 +214,7 @@ struct IngredientsView: View {
                     container: DevPreview.shared.container
                 )
             ),
+            delegate: IngredientsViewDelegate(
             isShowingInspector: Binding.constant(
                 false
             ),
@@ -221,6 +226,7 @@ struct IngredientsView: View {
             ),
             showCreateIngredient: Binding.constant(
                 false
+            )
             )
         )
     }

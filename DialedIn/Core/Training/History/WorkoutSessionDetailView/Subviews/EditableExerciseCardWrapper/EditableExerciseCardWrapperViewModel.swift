@@ -17,40 +17,33 @@ extension CoreInteractor: EditableExerciseCardWrapperInteractor { }
 @MainActor
 class EditableExerciseCardWrapperViewModel {
     private let interactor: EditableExerciseCardWrapperInteractor
-    let exercise: WorkoutExerciseModel
-    let index: Int
-    let weightUnit: ExerciseWeightUnit
-    let distanceUnit: ExerciseDistanceUnit
-    let onExerciseUpdate: (WorkoutExerciseModel) -> Void
-    let onAddSet: () -> Void
-    let onDeleteSet: (String) -> Void
-    let onWeightUnitChange: (ExerciseWeightUnit) -> Void
-    let onDistanceUnitChange: (ExerciseDistanceUnit) -> Void
-    
+
+    // Local, mutable copy of the exercise used for editing
     var localExercise: WorkoutExerciseModel
+    var index: Int
+    var weightUnit: ExerciseWeightUnit
+    var distanceUnit: ExerciseDistanceUnit
     
     init(
         interactor: EditableExerciseCardWrapperInteractor,
         exercise: WorkoutExerciseModel,
         index: Int,
         weightUnit: ExerciseWeightUnit,
-        distanceUnit: ExerciseDistanceUnit,
-        onExerciseUpdate: @escaping (WorkoutExerciseModel) -> Void,
-        onAddSet: @escaping () -> Void,
-        onDeleteSet: @escaping (String) -> Void,
-        onWeightUnitChange: @escaping (ExerciseWeightUnit) -> Void,
-        onDistanceUnitChange: @escaping (ExerciseDistanceUnit) -> Void
+        distanceUnit: ExerciseDistanceUnit
     ) {
         self.interactor = interactor
-        self.exercise = exercise
+        self.localExercise = exercise
         self.index = index
         self.weightUnit = weightUnit
         self.distanceUnit = distanceUnit
-        self.onExerciseUpdate = onExerciseUpdate
-        self.onAddSet = onAddSet
-        self.onDeleteSet = onDeleteSet
-        self.onWeightUnitChange = onWeightUnitChange
-        self.onDistanceUnitChange = onDistanceUnitChange
-        self.localExercise = exercise
+    }
+    
+    func refresh(from delegate: EditableExerciseCardWrapperDelegate) {
+        index = delegate.index
+        weightUnit = delegate.weightUnit
+        distanceUnit = delegate.distanceUnit
+        // If parent updates the exercise externally and we want to reflect that,
+        // uncomment the following line to overwrite the local copy:
+        // localExercise = delegate.exercise
     }
 }

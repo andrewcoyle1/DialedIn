@@ -18,21 +18,13 @@ extension CoreInteractor: WorkoutSummaryCardInteractor { }
 @MainActor
 class WorkoutSummaryCardViewModel {
     private let interactor: WorkoutSummaryCardInteractor
-    
-    let scheduledWorkout: ScheduledWorkout
-    let onTap: () -> Void
-    
+
     private(set) var session: WorkoutSessionModel?
     private(set) var isLoading = true
     var showAlert: AnyAppAlert?
-    init(
-        interactor: WorkoutSummaryCardInteractor,
-        scheduledWorkout: ScheduledWorkout,
-        onTap: @escaping () -> Void
-    ) {
+    
+    init(interactor: WorkoutSummaryCardInteractor) {
         self.interactor = interactor
-        self.scheduledWorkout = scheduledWorkout
-        self.onTap = onTap
     }
     
     func formatDuration(_ duration: TimeInterval) -> String {
@@ -56,7 +48,7 @@ class WorkoutSummaryCardViewModel {
             .reduce(0.0, +)
     }
     
-    func loadSession() async {
+    func loadSession(scheduledWorkout: ScheduledWorkout) async {
         guard let sessionId = scheduledWorkout.completedSessionId else {
             isLoading = false
             return

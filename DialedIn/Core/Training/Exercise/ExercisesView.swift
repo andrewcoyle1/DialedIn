@@ -7,11 +7,17 @@
 
 import SwiftUI
 
+struct ExercisesViewDelegate {
+    let onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?
+}
+
 struct ExercisesView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
     @State var viewModel: ExercisesViewModel
-    
+
+    let delegate: ExercisesViewDelegate
+
     var body: some View {
         List {
             if viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -74,7 +80,7 @@ struct ExercisesView: View {
                     subtitle: exercise.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onExercisePressed(exercise: exercise)
+                    viewModel.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
                 }
                 .removeListRowFormatting()
             }
@@ -95,7 +101,7 @@ struct ExercisesView: View {
                     subtitle: exercise.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onExercisePressed(exercise: exercise)
+                    viewModel.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
                 }
                 .removeListRowFormatting()
             }
@@ -151,7 +157,7 @@ struct ExercisesView: View {
                 .padding(.vertical, 4)
                 .background(Color(uiColor: .systemBackground))
                 .anyButton(.highlight) {
-                    viewModel.onExercisePressed(exercise: exercise)
+                    viewModel.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
                 }
                 .removeListRowFormatting()
             }
@@ -187,7 +193,7 @@ struct ExercisesView: View {
                         subtitle: exercise.description
                     )
                     .anyButton(.highlight) {
-                        viewModel.onExercisePressed(exercise: exercise)
+                        viewModel.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
                     }
                     .removeListRowFormatting()
                 }
@@ -245,7 +251,7 @@ struct ExercisesView: View {
                 .padding(.vertical, 4)
                 .background(Color(uiColor: .systemBackground))
                 .anyButton(.highlight) {
-                    viewModel.onExercisePressed(exercise: exercise)
+                    viewModel.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
                 }
                 .removeListRowFormatting()
             }
@@ -261,7 +267,7 @@ struct ExercisesView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        builder.exercisesView()
+        builder.exercisesView(delegate: ExercisesViewDelegate(onExerciseSelectionChanged: nil))
     }
     .previewEnvironment()
 }

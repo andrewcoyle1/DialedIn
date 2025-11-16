@@ -7,13 +7,17 @@
 
 import SwiftUI
 
+struct ProgramManagementViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+}
+
 struct ProgramManagementView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: ProgramManagementViewModel
 
-    @Binding var path: [TabBarPathOption]
+    var delegate: ProgramManagementViewDelegate
 
     var body: some View {
         NavigationStack {
@@ -43,10 +47,10 @@ struct ProgramManagementView: View {
                 }
             }
             .sheet(isPresented: $viewModel.showCreateSheet) {
-                builder.programTemplatePickerView(path: $path)
+                builder.programTemplatePickerView(path: delegate.path)
             }
             .sheet(item: $viewModel.editingPlan) { plan in
-                builder.editProgramView(path: $path, plan: plan)
+                builder.editProgramView(delegate: EditProgramViewDelegate(path: delegate.path, plan: plan))
             }
             .showCustomAlert(alert: $viewModel.showDeleteAlert)
             .overlay {
@@ -64,7 +68,7 @@ struct ProgramManagementView: View {
         Group {
             if let activePlan = viewModel.activePlan {
                 Section {
-                    builder.programRowView(
+                    let delegate = ProgramRowViewDelegate(
                         plan: activePlan,
                         isActive: true,
                         onEdit: { viewModel.editingPlan = activePlan },
@@ -88,6 +92,7 @@ struct ProgramManagementView: View {
                             )
                         }
                     )
+                    builder.programRowView(delegate: delegate)
                 } header: {
                     Text("Active Program")
                 } footer: {
@@ -105,33 +110,35 @@ struct ProgramManagementView: View {
                 Section {
                     ForEach(inactivePlans) { plan in
                         builder.programRowView(
-                            plan: plan,
-                            isActive: false,
-                            onActivate: {
-                                Task {
-                                    await viewModel.setActivePlan(plan)
-                                }
-                            },
-                            onEdit: { viewModel.editingPlan = plan },
-                            onDelete: {
-                                viewModel.planToDelete = plan
-                                viewModel.showDeleteAlert = AnyAppAlert(
-                                    title: "Delete Program",
-                                    subtitle: "Are you sure you want to delete '\(plan.name)'? This action cannot be undone.",
-                                    buttons: {
-                                        AnyView(
-                                            Group {
-                                                Button("Cancel", role: .cancel) { }
-                                                Button("Delete", role: .destructive) {
-                                                    Task {
-                                                        await viewModel.deletePlan(plan)
+                            delegate: ProgramRowViewDelegate(
+                                plan: plan,
+                                isActive: false,
+                                onActivate: {
+                                    Task {
+                                        await viewModel.setActivePlan(plan)
+                                    }
+                                },
+                                onEdit: { viewModel.editingPlan = plan },
+                                onDelete: {
+                                    viewModel.planToDelete = plan
+                                    viewModel.showDeleteAlert = AnyAppAlert(
+                                        title: "Delete Program",
+                                        subtitle: "Are you sure you want to delete '\(plan.name)'? This action cannot be undone.",
+                                        buttons: {
+                                            AnyView(
+                                                Group {
+                                                    Button("Cancel", role: .cancel) { }
+                                                    Button("Delete", role: .destructive) {
+                                                        Task {
+                                                            await viewModel.deletePlan(plan)
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        )
-                                    }
-                                )
-                            }
+                                            )
+                                        }
+                                    )
+                                }
+                            )
                         )
                     }
                 } header: {
@@ -159,13 +166,7 @@ struct ProgramManagementView: View {
 
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
-    ProgramManagementView(
-        viewModel: ProgramManagementViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ),
-        path: $path
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.programManagementView(delegate: ProgramManagementViewDelegate(path: $path))
     .previewEnvironment()
 }

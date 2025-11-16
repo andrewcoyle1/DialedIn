@@ -7,21 +7,25 @@
 
 import SwiftUI
 
+struct DashboardViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+}
+
 struct DashboardView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: DashboardViewModel
 
-    @Binding var path: [TabBarPathOption]
-    
+    var delegate: DashboardViewDelegate
+
     var body: some View {
         Group {
             if layoutMode == .tabBar {
-                NavigationStack(path: $path) {
+                NavigationStack(path: delegate.path) {
                     contentView
                 }
-                .navDestinationForTabBarModule(path: $path)
+                .navDestinationForTabBarModule(path: delegate.path)
             } else {
                 contentView
             }
@@ -121,6 +125,6 @@ struct DashboardView: View {
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.dashboardView(path: $path)
+    builder.dashboardView(delegate: DashboardViewDelegate(path: $path))
     .previewEnvironment()
 }

@@ -10,21 +10,25 @@ import SwiftUI
 import UIKit
 #endif
 
+struct NutritionViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+}
+
 struct NutritionView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: NutritionViewModel
     
-    @Binding var path: [TabBarPathOption]
+    var delegate: NutritionViewDelegate
 
     var body: some View {
         Group {
             if layoutMode == .tabBar {
-                NavigationStack(path: $path) {
+                NavigationStack(path: delegate.path) {
                     contentView
                 }
-                .navDestinationForTabBarModule(path: $path)
+                .navDestinationForTabBarModule(path: delegate.path)
             } else {
                 contentView
             }
@@ -33,11 +37,11 @@ struct NutritionView: View {
         .inspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView)
         .onChange(of: viewModel.selectedIngredientTemplate) { _, ingredient in
             guard layoutMode == .splitView else { return }
-            if let ingredient { path = [.ingredientTemplateDetail(template: ingredient)] }
+            if let ingredient { delegate.path.wrappedValue = [.ingredientTemplateDetail(template: ingredient)] }
         }
         .onChange(of: viewModel.selectedRecipeTemplate) { _, recipe in
             guard layoutMode == .splitView else { return }
-            if let recipe { path = [.recipeTemplateDetail(template: recipe)] }
+            if let recipe { delegate.path.wrappedValue = [.recipeTemplateDetail(template: recipe)] }
         }
     }
     
@@ -90,24 +94,30 @@ struct NutritionView: View {
             switch viewModel.presentationMode {
             case .log:
                 builder.mealLogView(
-                    path: $path,
-                    isShowingInspector: $viewModel.isShowingInspector,
-                    selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
-                    selectedRecipeTemplate: $viewModel.selectedRecipeTemplate
+                    delegate: MealLogViewDelegate(
+                        path: delegate.path,
+                        isShowingInspector: $viewModel.isShowingInspector,
+                        selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
+                        selectedRecipeTemplate: $viewModel.selectedRecipeTemplate
+                    )
                 )
             case .recipes:
                 builder.recipesView(
-                    showCreateRecipe: $viewModel.showCreateRecipe,
-                    selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
-                    selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
-                    isShowingInspector: $viewModel.isShowingInspector
+                    delegate: RecipesViewDelegate(
+                        showCreateRecipe: $viewModel.showCreateRecipe,
+                        selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
+                        selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
+                        isShowingInspector: $viewModel.isShowingInspector
+                    )
                 )
             case .ingredients:
                 builder.ingredientsView(
-                    isShowingInspector: $viewModel.isShowingInspector,
-                    selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
-                    selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
-                    showCreateIngredient: $viewModel.showCreateIngredient
+                    delegate: IngredientsViewDelegate(
+                        isShowingInspector: $viewModel.isShowingInspector,
+                        selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
+                        selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
+                        showCreateIngredient: $viewModel.showCreateIngredient
+                    )
                 )
             }
         }
@@ -117,7 +127,8 @@ struct NutritionView: View {
         Group {
             if let ingredient = viewModel.selectedIngredientTemplate {
                 NavigationStack {
-                    builder.ingredientDetailView(ingredientTemplate: ingredient)
+                    let delegate = IngredientDetailViewDelegate(ingredientTemplate: ingredient)
+                    builder.ingredientDetailView(delegate: delegate)
                 }
             } else if let recipe = viewModel.selectedRecipeTemplate {
                 NavigationStack {
@@ -157,6 +168,6 @@ struct NutritionView: View {
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.nutritionView(path: $path)
+    builder.nutritionView(delegate: NutritionViewDelegate(path: $path))
     .previewEnvironment()
 }

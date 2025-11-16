@@ -7,17 +7,27 @@
 
 import SwiftUI
 
+struct ProgramRowViewDelegate {
+    let plan: TrainingPlan
+    let isActive: Bool
+    var onActivate: () -> Void = {}
+    var onEdit: () -> Void = {}
+    var onDelete: () -> Void = {}
+}
+
 struct ProgramRowView: View {
     @State var viewModel: ProgramRowViewModel
-    
+
+    let delegate: ProgramRowViewDelegate
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(viewModel.plan.name)
+                    Text(delegate.plan.name)
                         .font(.headline)
                     
-                    if let description = viewModel.plan.description {
+                    if let description = delegate.plan.description {
                         Text(description)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -27,7 +37,7 @@ struct ProgramRowView: View {
                 
                 Spacer()
                 
-                if viewModel.isActive {
+                if delegate.isActive {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
                         .font(.title3)
@@ -36,7 +46,7 @@ struct ProgramRowView: View {
             
             // Stats
             HStack(spacing: 16) {
-                if viewModel.plan.endDate != nil {
+                if delegate.plan.endDate != nil {
                     StatLabel(
                         icon: "calendar",
                         text: "\(viewModel.programDuration) weeks"
@@ -50,13 +60,13 @@ struct ProgramRowView: View {
                 
                 StatLabel(
                     icon: "figure.strengthtraining.traditional",
-                    text: "\(viewModel.totalWorkouts) workouts"
+                    text: "\(viewModel.totalWorkouts(plan: delegate.plan)) workouts"
                 )
                 
-                if viewModel.plan.isActive {
+                if delegate.plan.isActive {
                     StatLabel(
                         icon: "checkmark.circle",
-                        text: "\(Int(viewModel.plan.adherenceRate * 100))%"
+                        text: "\(Int(delegate.plan.adherenceRate * 100))%"
                     )
                 }
             }
@@ -65,11 +75,11 @@ struct ProgramRowView: View {
             
             // Dates
             HStack {
-                Text("Started \(viewModel.plan.startDate.formatted(date: .abbreviated, time: .omitted))")
+                Text("Started \(delegate.plan.startDate.formatted(date: .abbreviated, time: .omitted))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 
-                if let endDate = viewModel.plan.endDate {
+                if let endDate = delegate.plan.endDate {
                     Text("•")
                         .foregroundStyle(.secondary)
                     Text("Ends \(endDate.formatted(date: .abbreviated, time: .omitted))")
@@ -80,9 +90,9 @@ struct ProgramRowView: View {
             
             // Actions
             HStack(spacing: 12) {
-                if !viewModel.isActive {
+                if !delegate.isActive {
                     Button {
-                        viewModel.onActivate()
+                        delegate.onActivate()
                     } label: {
                         Label("Set Active", systemImage: "checkmark.circle")
                             .font(.caption)
@@ -91,7 +101,7 @@ struct ProgramRowView: View {
                 }
                 
                 Button {
-                    viewModel.onEdit()
+                    delegate.onEdit()
                 } label: {
                     Label("Edit", systemImage: "pencil")
                         .font(.caption)
@@ -99,7 +109,7 @@ struct ProgramRowView: View {
                 .buttonStyle(.bordered)
                 
                 Button(role: .destructive) {
-                    viewModel.onDelete()
+                    delegate.onDelete()
                 } label: {
                     Label("Delete", systemImage: "trash")
                         .font(.caption)
@@ -112,19 +122,20 @@ struct ProgramRowView: View {
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     List {
-        ProgramRowView(
-            viewModel: ProgramRowViewModel(
-                interactor: CoreInteractor(container: DevPreview.shared.container),
-                plan: TrainingPlan.mock,
-                isActive: false
-            ) {
-                
-            } onEdit: {
-                
-            } onDelete: {
-                
-            }
+        builder.programRowView(
+            delegate: ProgramRowViewDelegate(
+                plan: .mock,
+                isActive: false,
+                onActivate: {
+
+                }, onEdit: {
+
+                }, onDelete: {
+
+                }
+            )
         )
     }
     .previewEnvironment()

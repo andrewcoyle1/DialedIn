@@ -24,7 +24,7 @@ struct ProgramGoalsView: View {
                 )
             } else {
                 ForEach(viewModel.plan.goals) { goal in
-                    builder.goalRow(goal: goal, plan: viewModel.plan)
+                    builder.goalRow(delegate: GoalRowDelegate(goal: goal, plan: viewModel.plan))
                 }
             }
         }
@@ -40,7 +40,7 @@ struct ProgramGoalsView: View {
             }
         }
         .sheet(isPresented: $viewModel.showAddGoal) {
-            builder.addGoalView(plan: viewModel.plan)
+            builder.addGoalView(delegate: AddGoalViewDelegate(plan: viewModel.plan))
         }
     }
 }

@@ -7,11 +7,20 @@
 
 import SwiftUI
 
+struct ProgramViewDelegate {
+    var onSessionSelectionChangeded: (WorkoutSessionModel?) -> Void
+    var onWorkoutStartRequested: (WorkoutTemplateModel, ScheduledWorkout?) -> Void
+    var onActiveSheetChanged: (ActiveSheet?) -> Void
+}
+
 struct ProgramView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
+
     @State var viewModel: ProgramViewModel
-    
+
+    let delegate: ProgramViewDelegate
+
     var body: some View {
         List {
             if viewModel.currentTrainingPlan != nil {
@@ -33,7 +42,7 @@ struct ProgramView: View {
         }
         .sheet(isPresented: $viewModel.showAddGoalSheet) {
             if let plan = viewModel.currentTrainingPlan {
-                builder.addGoalView(plan: plan)
+                builder.addGoalView(delegate: AddGoalViewDelegate(plan: plan))
             }
         }
     }
@@ -152,22 +161,26 @@ struct ProgramView: View {
                     ForEach(todaysWorkouts) { workout in
                         if workout.isCompleted {
                             builder.workoutSummaryCardView(
-                                scheduledWorkout: workout,
-                                onTap: {
-                                    viewModel.openCompletedSession(
-                                        for: workout
-                                    )
-                                }
+                                delegate: WorkoutSummaryCardViewDelegate(
+                                    scheduledWorkout: workout,
+                                    onTap: {
+                                        viewModel.openCompletedSession(
+                                            for: workout
+                                        )
+                                    }
+                                )
                             )
                             .id(workout.id)
                         } else {
                             builder.todaysWorkoutCardView(
-                                scheduledWorkout: workout,
-                                onStart: {
-                                    Task {
-                                        await viewModel.startWorkout(workout)
+                                delegate: TodaysWorkoutCardViewDelegate(
+                                    scheduledWorkout: workout,
+                                    onStart: {
+                                        Task {
+                                            await viewModel.startWorkout(workout)
+                                        }
                                     }
-                                }
+                                )
                             )
                         }
                     }
@@ -180,14 +193,16 @@ struct ProgramView: View {
     
     private var calendarSection: some View {
         builder.workoutCalendarView(
-            onSessionSelectionChanged: { session in
-                viewModel.selectedHistorySession = session
-                viewModel
-                    .handleSessionSelectionChanged(
-                        session
-                    )
-            },
-            onWorkoutStartRequested: viewModel.handleWorkoutStartRequest
+            delegate: WorkoutCalendarViewDelegate(
+                onSessionSelectionChanged: { session in
+                    viewModel.selectedHistorySession = session
+                    viewModel
+                        .handleSessionSelectionChanged(
+                            session
+                        )
+                },
+                onWorkoutStartRequested: viewModel.handleWorkoutStartRequest
+            )
         )
     }
     
@@ -214,9 +229,14 @@ struct ProgramView: View {
         } else {
             ForEach(workoutsForDay) { workout in
                 if workout.isCompleted {
-                    builder.workoutSummaryCardView(scheduledWorkout: workout, onTap: {
-                        viewModel.openCompletedSession(for: workout)
-                    })
+                    builder.workoutSummaryCardView(
+                        delegate: WorkoutSummaryCardViewDelegate(
+                            scheduledWorkout: workout, onTap: {
+                                viewModel.openCompletedSession(for: workout)
+                                
+                            }
+                        )
+                    )
                     .id(workout.id)
                 } else {
                     builder.scheduledWorkoutRowView(scheduledWorkout: workout)
@@ -335,9 +355,15 @@ struct ProgramView: View {
     // Override with empty training plan manager
     let emptyTrainingPlanManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: nil))
     container.register(TrainingPlanManager.self, service: emptyTrainingPlanManager)
-    
+    let builder = CoreBuilder(container: container)
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
+        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+
+        }, onWorkoutStartRequested: { _, _ in
+
+        }, onActiveSheetChanged: { _ in
+
+        }))
     }
     .previewEnvironment()
 }
@@ -353,9 +379,16 @@ struct ProgramView: View {
         TrainingPlanManager.self,
         service: highAdherenceManager
     )
-    
+    let builder = CoreBuilder(container: container)
+
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
+        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+
+        }, onWorkoutStartRequested: { _, _ in
+
+        }, onActiveSheetChanged: { _ in
+
+        }))
     }
     .previewEnvironment()
 }
@@ -364,9 +397,16 @@ struct ProgramView: View {
     let container = DevPreview.shared.container
     let lowAdherenceManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: TrainingPlan.mockLowAdherence))
     container.register(TrainingPlanManager.self, service: lowAdherenceManager)
-    
+    let builder = CoreBuilder(container: container)
+
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
+        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+
+        }, onWorkoutStartRequested: { _, _ in
+
+        }, onActiveSheetChanged: { _ in
+
+        }))
     }
     .previewEnvironment()
 }
@@ -375,9 +415,16 @@ struct ProgramView: View {
     let container = DevPreview.shared.container
     let todaysWorkoutManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: TrainingPlan.mockWithTodaysWorkout))
     container.register(TrainingPlanManager.self, service: todaysWorkoutManager)
-    
+    let builder = CoreBuilder(container: container)
+
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
+        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+
+        }, onWorkoutStartRequested: { _, _ in
+
+        }, onActiveSheetChanged: { _ in
+
+        }))
     }
     .previewEnvironment()
 }
@@ -386,9 +433,16 @@ struct ProgramView: View {
     let container = DevPreview.shared.container
     let completedWorkoutManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: TrainingPlan.mockWithCompletedTodaysWorkout))
     container.register(TrainingPlanManager.self, service: completedWorkoutManager)
-    
+    let builder = CoreBuilder(container: container)
+
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
+        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+
+        }, onWorkoutStartRequested: { _, _ in
+
+        }, onActiveSheetChanged: { _ in
+
+        }))
     }
     .previewEnvironment()
 }
@@ -397,9 +451,16 @@ struct ProgramView: View {
     let container = DevPreview.shared.container
     let multipleWorkoutsManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: TrainingPlan.mockWithMultipleTodaysWorkouts))
     container.register(TrainingPlanManager.self, service: multipleWorkoutsManager)
-    
+    let builder = CoreBuilder(container: container)
+
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
+        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+
+        }, onWorkoutStartRequested: { _, _ in
+
+        }, onActiveSheetChanged: { _ in
+
+        }))
     }
     .previewEnvironment()
 }
@@ -408,9 +469,16 @@ struct ProgramView: View {
     let container = DevPreview.shared.container
     let noGoalsManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: TrainingPlan.mockNoGoals))
     container.register(TrainingPlanManager.self, service: noGoalsManager)
-    
+    let builder = CoreBuilder(container: container)
+
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
+        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+
+        }, onWorkoutStartRequested: { _, _ in
+
+        }, onActiveSheetChanged: { _ in
+
+        }))
     }
     .previewEnvironment()
 }
@@ -419,16 +487,31 @@ struct ProgramView: View {
     let container = DevPreview.shared.container
     let nearEndManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: TrainingPlan.mockNearEnd))
     container.register(TrainingPlanManager.self, service: nearEndManager)
-    
+    let builder = CoreBuilder(container: container)
+
     return NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: container), onActiveSheetChanged: nil))
+        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+
+        }, onWorkoutStartRequested: { _, _ in
+
+        }, onActiveSheetChanged: { _ in
+
+        }))
     }
     .previewEnvironment()
 }
 
 #Preview("Mid-Program Progress") {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+
     NavigationStack {
-        ProgramView(viewModel: ProgramViewModel(interactor: CoreInteractor(container: DevPreview.shared.container), onActiveSheetChanged: nil))
+        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+
+        }, onWorkoutStartRequested: { _, _ in
+
+        }, onActiveSheetChanged: { _ in
+
+        }))
     }
     .previewEnvironment()
 }

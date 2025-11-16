@@ -17,28 +17,13 @@ extension CoreInteractor: EnhancedScheduleInteractor { }
 @MainActor
 class EnhancedScheduleViewModel {
     let interactor: EnhancedScheduleInteractor
-    let getScheduledWorkouts: () -> [ScheduledWorkout]
-    let onDateSelected: (Date) -> Void
-    let onDateTapped: (Date) -> Void
     let calendar = Calendar.current
 
     var selectedDate: Date = Date()
     var selectedTime: Date = Date()
-    
-    var scheduledWorkouts: [ScheduledWorkout] {
-        getScheduledWorkouts()
-    }
-    
-    init(
-        interactor: EnhancedScheduleInteractor,
-        getScheduledWorkouts: @escaping () -> [ScheduledWorkout],
-        onDateSelected: @escaping (Date) -> Void,
-        onDateTapped: @escaping (Date) -> Void
-    ) {
+
+    init(interactor: EnhancedScheduleInteractor) {
         self.interactor = interactor
-        self.getScheduledWorkouts = getScheduledWorkouts
-        self.onDateSelected = onDateSelected
-        self.onDateTapped = onDateTapped
     }
     
     func daysInMonth() -> [Date?] {
@@ -67,8 +52,8 @@ class EnhancedScheduleViewModel {
         return days
     }
     
-    func workoutsForDate(_ date: Date) -> [ScheduledWorkout] {
-        scheduledWorkouts.filter { workout in
+    func workoutsForDate(_ date: Date, getScheduledWorkouts: () -> [ScheduledWorkout]) -> [ScheduledWorkout] {
+        getScheduledWorkouts().filter { workout in
             guard let scheduledDate = workout.scheduledDate else { return false }
             return calendar.isDate(scheduledDate, inSameDayAs: date)
         }

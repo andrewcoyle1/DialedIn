@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+struct WorkoutHistoryViewDelegate {
+    let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
+}
+
 struct WorkoutHistoryView: View {
     @Environment(\.layoutMode) private var layoutMode
     
     @State var viewModel: WorkoutHistoryViewModel
+
+    let delegate: WorkoutHistoryViewDelegate
 
     var body: some View {
         List {
@@ -70,7 +76,7 @@ struct WorkoutHistoryView: View {
                 WorkoutHistoryRow(session: session)
                     .contentShape(Rectangle())
                     .anyButton(.highlight) {
-                        viewModel.onWorkoutSessionPressed(session: session, layoutMode: layoutMode)
+                        viewModel.onWorkoutSessionPressed(session: session, layoutMode: layoutMode, onSessionSelectionChanged: delegate.onSessionSelectionChanged)
                     }
             }
         } header: {
@@ -132,7 +138,7 @@ private struct WorkoutHistoryRow: View {
 #Preview("Functioning") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        builder.workoutHistoryView()
+        builder.workoutHistoryView(delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -143,7 +149,7 @@ private struct WorkoutHistoryRow: View {
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
     let builder = CoreBuilder(container: container)
     return NavigationStack {
-        builder.workoutHistoryView()
+        builder.workoutHistoryView(delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -154,7 +160,7 @@ private struct WorkoutHistoryRow: View {
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(sessions: [])))
     let builder = CoreBuilder(container: container)
     return NavigationStack {
-        builder.workoutHistoryView()
+        builder.workoutHistoryView(delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -166,7 +172,7 @@ private struct WorkoutHistoryRow: View {
     let builder = CoreBuilder(container: container)
 
     return NavigationStack {
-        builder.workoutHistoryView()
+        builder.workoutHistoryView(delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -179,7 +185,7 @@ private struct WorkoutHistoryRow: View {
     let builder = CoreBuilder(container: container)
 
     return NavigationStack {
-        builder.workoutHistoryView()
+        builder.workoutHistoryView(delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()

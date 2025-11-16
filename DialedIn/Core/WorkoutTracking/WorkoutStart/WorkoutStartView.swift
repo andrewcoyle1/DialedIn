@@ -7,21 +7,25 @@
 
 import SwiftUI
 
+struct WorkoutStartViewDelegate {
+
+    let template: WorkoutTemplateModel
+    let scheduledWorkout: ScheduledWorkout?
+
+    init(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout? = nil) {
+        self.template = template
+        self.scheduledWorkout = scheduledWorkout
+    }
+}
+
 struct WorkoutStartView: View {
     @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
     
     @State var viewModel: WorkoutStartViewModel
     
-    let template: WorkoutTemplateModel
-    let scheduledWorkout: ScheduledWorkout?
-    
-    init(viewModel: WorkoutStartViewModel, template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout? = nil) {
-        self.viewModel = viewModel
-        self.template = template
-        self.scheduledWorkout = scheduledWorkout
-    }
-    
+    let delegate: WorkoutStartViewDelegate
+
     var body: some View {
         NavigationStack {
             List {
@@ -31,7 +35,7 @@ struct WorkoutStartView: View {
             }
             .navigationTitle("Start Workout")
             .navigationBarTitleDisplayMode(.large)
-            .navigationSubtitle(template.name)
+            .navigationSubtitle(delegate.template.name)
             .scrollIndicators(.hidden)
             .safeAreaInset(edge: .bottom) {
                 startButton
@@ -49,7 +53,7 @@ struct WorkoutStartView: View {
             }
         }, content: {
             if let session = viewModel.createdSession {
-                builder.workoutTrackerView(workoutSession: session, initialWorkoutSession: session)
+                builder.workoutTrackerView(delegate: WorkoutTrackerViewDelegate(workoutSession: session))
             }
         })
     }
@@ -59,18 +63,18 @@ struct WorkoutStartView: View {
             // Stats
             HStack(spacing: 20) {
                 StatCard(
-                    value: "\(template.exercises.count)",
+                    value: "\(delegate.template.exercises.count)",
                     label: "Exercises",
                 )
                 StatCard(
                     value: viewModel.estimatedTime(
-                        template: template
+                        template: delegate.template
                     ),
                     label: "Est. Time"
                 )
                 StatCard(
                     value: viewModel.primaryMuscleGroup(
-                        template: template
+                        template: delegate.template
                     ),
                     label: "Focus"
                 )
@@ -83,7 +87,7 @@ struct WorkoutStartView: View {
     private var exercisesSection: some View {
         Section {
             // Exercise list preview
-            ForEach(Array(template.exercises.prefix(5).enumerated()), id: \.element.id) { index, exercise in
+            ForEach(Array(delegate.template.exercises.prefix(5).enumerated()), id: \.element.id) { index, exercise in
                 HStack {
                     Text("\(index + 1).")
                         .font(.caption)
@@ -101,8 +105,8 @@ struct WorkoutStartView: View {
                 }
             }
             
-            if template.exercises.count > 5 {
-                Text("+ \(template.exercises.count - 5) more exercises")
+            if delegate.template.exercises.count > 5 {
+                Text("+ \(delegate.template.exercises.count - 5) more exercises")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.leading, 20)
@@ -127,7 +131,7 @@ struct WorkoutStartView: View {
         
     private var startButton: some View {
         Button {
-            viewModel.startWorkout(template: template, scheduledWorkout: scheduledWorkout)
+            viewModel.startWorkout(template: delegate.template, scheduledWorkout: delegate.scheduledWorkout)
         } label: {
             HStack {
                 if viewModel.isStarting {
@@ -190,6 +194,7 @@ extension ExerciseCategory {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.workoutStartView(template: WorkoutTemplateModel.mock)
-        .previewEnvironment()
+    let delegate = WorkoutStartViewDelegate(template: .mock)
+    builder.workoutStartView(delegate: delegate)
+    .previewEnvironment()
 }

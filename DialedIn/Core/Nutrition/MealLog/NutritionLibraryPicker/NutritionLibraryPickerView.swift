@@ -7,13 +7,18 @@
 
 import SwiftUI
 
+struct NutritionLibraryPickerViewDelegate {
+    var onPick: (MealItemModel) -> Void
+    var path: Binding<[TabBarPathOption]>
+}
+
 struct NutritionLibraryPickerView: View {
 
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: NutritionLibraryPickerViewModel
 
-    @Binding var path: [TabBarPathOption]
+    var delegate: NutritionLibraryPickerViewDelegate
 
     var body: some View {
         NavigationStack {
@@ -86,7 +91,7 @@ struct NutritionLibraryPickerView: View {
             } else {
                 ForEach(viewModel.ingredients) { ingredient in
                     Button {
-                        viewModel.navToIngredientAmount(path: $path, ingredient)
+                        viewModel.navToIngredientAmount(path: delegate.path, ingredient, onPick: delegate.onPick)
                     } label: {
                         CustomListCellView(
                             imageName: ingredient.imageURL,
@@ -108,7 +113,7 @@ struct NutritionLibraryPickerView: View {
             } else {
                 ForEach(viewModel.recipes) { recipe in
                     Button {
-                        viewModel.navToRecipeAmount(path: $path, recipe)
+                        viewModel.navToRecipeAmount(path: delegate.path, recipe, onPick: delegate.onPick)
                     } label: {
                         CustomListCellView(
                             imageName: nil,
@@ -126,10 +131,13 @@ struct NutritionLibraryPickerView: View {
 #Preview {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.nutritionLibraryPickerView(onPick: { item in
-        print(
-            item.displayName
-        )
-    }, path: $path)
+    let delegate = NutritionLibraryPickerViewDelegate(
+        onPick: { item in
+            print(
+                item.displayName
+            )
+        }, path: $path
+    )
+    builder.nutritionLibraryPickerView(delegate: delegate)
     .previewEnvironment()
 }

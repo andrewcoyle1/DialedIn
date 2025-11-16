@@ -11,17 +11,20 @@ struct GenericTemplateListView<Template: TemplateModel>: View {
     @State var viewModel: GenericTemplateListViewModel<Template>
     let configuration: TemplateListConfiguration<Template>
     let supportsRefresh: Bool
+    let templateIdsOverride: [String]?
     
     @Environment(\.dismiss) private var dismiss
     
     init(
         viewModel: GenericTemplateListViewModel<Template>,
         configuration: TemplateListConfiguration<Template>,
-        supportsRefresh: Bool = false
+        supportsRefresh: Bool = false,
+        templateIdsOverride: [String]? = nil
     ) {
         self.viewModel = viewModel
         self.configuration = configuration
         self.supportsRefresh = supportsRefresh
+        self.templateIdsOverride = templateIdsOverride
     }
     
     var body: some View {
@@ -51,7 +54,7 @@ struct GenericTemplateListView<Template: TemplateModel>: View {
                     }
                 }
             }
-            .navigationTitle(viewModel.title)
+            .navigationTitle(configuration.title)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -63,11 +66,11 @@ struct GenericTemplateListView<Template: TemplateModel>: View {
                 }
             }
             .task {
-                await viewModel.loadTemplates(templateIds: viewModel.templateIds)
+                await viewModel.loadTemplates(templateIds: templateIdsOverride ?? viewModel.templateIds)
             }
             .if(supportsRefresh) { view in
                 view.refreshable {
-                    await viewModel.loadTemplates(templateIds: viewModel.templateIds)
+                    await viewModel.loadTemplates(templateIds: templateIdsOverride ?? viewModel.templateIds)
                 }
             }
             .showCustomAlert(alert: $viewModel.showAlert)

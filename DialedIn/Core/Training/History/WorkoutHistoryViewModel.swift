@@ -21,23 +21,17 @@ extension CoreInteractor: WorkoutHistoryInteractor { }
 class WorkoutHistoryViewModel {
     private let interactor: WorkoutHistoryInteractor
 
-    private let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
-    
     private(set) var sessions: [WorkoutSessionModel] = []
     private(set) var isLoading = false
     
     var selectedSession: WorkoutSessionModel?
     var showAlert: AnyAppAlert?
 
-    init(
-        interactor: WorkoutHistoryInteractor,
-        onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil
-    ) {
+    init(interactor: WorkoutHistoryInteractor) {
         self.interactor = interactor
-        self.onSessionSelectionChanged = onSessionSelectionChanged
     }
     
-    func onWorkoutSessionPressed(session: WorkoutSessionModel, layoutMode: LayoutMode) {
+    func onWorkoutSessionPressed(session: WorkoutSessionModel, layoutMode: LayoutMode, onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?) {
         selectedSession = session
         onSessionSelectionChanged?(session)
     }

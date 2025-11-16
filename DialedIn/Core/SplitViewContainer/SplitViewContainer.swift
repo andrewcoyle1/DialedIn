@@ -7,13 +7,17 @@
 
 import SwiftUI
 
+struct SplitViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+    var tab: Binding<TabBarOption>
+}
+
 struct SplitViewContainer: View {
     @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: SplitViewContainerViewModel
 
-    @Binding var path: [TabBarPathOption]
-    @Binding var tab: TabBarOption
+    var delegate: SplitViewDelegate
 
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all), preferredCompactColumn: $viewModel.preferredColumn) {
@@ -22,7 +26,7 @@ struct SplitViewContainer: View {
                 Section {
                     ForEach(TabBarOption.allCases, id: \.self) { section in
                         Button {
-                            tab = section
+                            delegate.tab.wrappedValue = section
                         } label: {
                             Label(section.id, systemImage: section.symbolName)
                         }
@@ -31,7 +35,8 @@ struct SplitViewContainer: View {
             }
             .safeAreaInset(edge: .bottom) {
                 if let active = viewModel.activeSession, !viewModel.isTrackerPresented {
-                    builder.tabViewAccessoryView(active: active)
+                    let delegate = TabViewAccessoryViewDelegate(active: active)
+                    builder.tabViewAccessoryView(delegate: delegate)
                         .padding()
                         .buttonStyle(.bordered)
                 }
@@ -39,16 +44,16 @@ struct SplitViewContainer: View {
             .frame(minWidth: 150)
         } content: {
             NavigationStack {
-                tab.viewForPage(builder: builder, path: $path)
+                delegate.tab.wrappedValue.viewForPage(builder: builder, path: delegate.path)
             }
             .background(
                 Color(uiColor: .systemGroupedBackground)
             )
         } detail: {
-            NavigationStack(path: $path) {
+            NavigationStack(path: delegate.path) {
                 detailPlaceholder
             }
-            .navDestinationForTabBarModule(path: $path)
+            .navDestinationForTabBarModule(path: delegate.path)
         }
         .navigationSplitViewStyle(.balanced)
         .sheet(isPresented: Binding(get: {
@@ -57,7 +62,7 @@ struct SplitViewContainer: View {
             viewModel.isTrackerPresented = newValue
         })) {
             if let session = viewModel.activeSession {
-                builder.workoutTrackerView(workoutSession: session, initialWorkoutSession: session)
+                builder.workoutTrackerView(delegate: WorkoutTrackerViewDelegate(workoutSession: session))
             }
         }
         .task {
@@ -70,13 +75,15 @@ struct SplitViewContainer: View {
 }
 
 #Preview {
+    @Previewable @State var path: [TabBarPathOption] = []
+    @Previewable @State var tab: TabBarOption = .dashboard
+    let delegate = SplitViewDelegate(path: $path, tab: $tab)
     let container = DevPreview.shared.container
     SplitViewContainer(
         viewModel: SplitViewContainerViewModel(
             interactor: CoreInteractor(container: container)
         ),
-        path: .constant([]),
-        tab: .constant(.dashboard)
+        delegate: delegate
     )
     .previewEnvironment()
 }
