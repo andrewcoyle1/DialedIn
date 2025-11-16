@@ -482,13 +482,10 @@ class CoreBuilder {
         ManageSubscriptionView()
     }
 
-    func recipeAmountView(recipe: RecipeTemplateModel, onPick: @escaping (MealItemModel) -> Void) -> some View {
+    func recipeAmountView(delegate: RecipeAmountViewDelegate) -> some View {
         RecipeAmountView(
-            viewModel: RecipeAmountViewModel(
-                interactor: interactor,
-                recipe: recipe,
-                onConfirm: onPick
-            )
+            viewModel: RecipeAmountViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
@@ -512,12 +509,10 @@ class CoreBuilder {
         )
     }
 
-    func trendSummarySection(trend: VolumeTrend) -> some View {
+    func trendSummarySection(delegate: TrendSummarySectionDelegate) -> some View {
         TrendSummarySection(
-            viewModel: TrendSummarySectionViewModel(
-                interactor: interactor,
-                trend: trend
-            )
+            viewModel: TrendSummarySectionViewModel(interactor: interactor),
+            delegate: delegate
         )
     }
 
@@ -528,10 +523,10 @@ class CoreBuilder {
         )
     }
 
-    func profileView(path: Binding<[TabBarPathOption]>) -> some View {
+    func profileView(delegate: ProfileViewDelegate) -> some View {
         ProfileView(
             viewModel: ProfileViewModel(interactor: interactor),
-            path: path
+            delegate: delegate
         )
     }
 

@@ -76,11 +76,13 @@ struct ProgramPreviewView: View {
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        ProgramPreviewView(
-            viewModel: ProgramPreviewViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)),
-            template: .pushPullLegs,
-            startDate: Date()
+        builder.programPreviewView(
+            delegate: ProgramPreviewViewDelegate(
+                template: .pushPullLegs,
+                startDate: Date()
+            )
         )
     }
     .previewEnvironment()

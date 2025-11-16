@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+struct ProfileViewDelegate {
+    var path: Binding<[TabBarPathOption]>
+}
+
 struct ProfileView: View {
 
     @Environment(CoreBuilder.self) private var builder
@@ -14,15 +18,15 @@ struct ProfileView: View {
 
     @State var viewModel: ProfileViewModel
 
-    @Binding var path: [TabBarPathOption]
+    var delegate: ProfileViewDelegate
 
     var body: some View {
         Group {
             if layoutMode == .tabBar {
-                NavigationStack(path: $path) {
+                NavigationStack(path: delegate.path) {
                     contentView
                 }
-                .navDestinationForTabBarModule(path: $path)
+                .navDestinationForTabBarModule(path: delegate.path)
             } else {
                 contentView
             }
@@ -33,12 +37,12 @@ struct ProfileView: View {
         List {
             if let user = viewModel.currentUser,
                let firstName = user.firstName, !firstName.isEmpty {
-                builder.profileHeaderView(delegate: ProfileHeaderViewDelegate(path: $path))
-                builder.profilePhysicalMetricsView(delegate: ProfilePhysicalMetricsViewDelegate(path: $path))
-                builder.profileGoalSection(delegate: ProfileGoalSectionDelegate(path: $path))
-                builder.profileNutritionPlanView(delegate: ProfileNutritionPlanViewDelegate(path: $path))
-                builder.profilePreferencesView(delegate: ProfilePreferencesViewDelegate(path: $path))
-                builder.profileMyTemplatesView(delegate: ProfileMyTemplatesViewDelegate(path: $path))
+                builder.profileHeaderView(delegate: ProfileHeaderViewDelegate(path: delegate.path))
+                builder.profilePhysicalMetricsView(delegate: ProfilePhysicalMetricsViewDelegate(path: delegate.path))
+                builder.profileGoalSection(delegate: ProfileGoalSectionDelegate(path: delegate.path))
+                builder.profileNutritionPlanView(delegate: ProfileNutritionPlanViewDelegate(path: delegate.path))
+                builder.profilePreferencesView(delegate: ProfilePreferencesViewDelegate(path: delegate.path))
+                builder.profileMyTemplatesView(delegate: ProfileMyTemplatesViewDelegate(path: delegate.path))
             } else {
                 createProfileSection
             }
@@ -113,7 +117,7 @@ struct ProfileView: View {
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                viewModel.navToSettingsView(path: $path)
+                viewModel.navToSettingsView(path: delegate.path)
             } label: {
                 Image(systemName: "gear")
             }
@@ -129,13 +133,13 @@ struct ProfileView: View {
 #Preview("User Has Profile") {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.profileView(path: $path)
+    builder.profileView(delegate: ProfileViewDelegate(path: $path))
     .previewEnvironment()
 }
 
 #Preview("User No Profile") {
     @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.profileView(path: $path)
+    builder.profileView(delegate: ProfileViewDelegate(path: $path))
     .previewEnvironment()
 }

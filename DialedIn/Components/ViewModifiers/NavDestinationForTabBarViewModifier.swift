@@ -36,7 +36,7 @@ struct NavDestinationForTabBarViewModifier: ViewModifier {
                 case .recipeTemplateList(templateIds: let templateIds):
                     builder.recipeTemplateListView(delegate: RecipeTemplateListViewDelegate(templateIds: templateIds))
                 case .recipeAmountView(recipe: let recipe, onPick: let onPick):
-                    builder.recipeAmountView(recipe: recipe, onPick: onPick)
+                    builder.recipeAmountView(delegate: RecipeAmountViewDelegate(recipe: recipe, onPick: onPick))
                 case .workoutSessionDetail(session: let session):
                     builder.workoutSessionDetailView(delegate: WorkoutSessionDetailViewDelegate(workoutSession: session))
                 case .mealDetail(meal: let meal):
@@ -54,7 +54,7 @@ struct NavDestinationForTabBarViewModifier: ViewModifier {
                 case .manageSubscription:
                     builder.manageSubscriptionView()
                 case .programPreview(template: let template, startDate: let startDate):
-                    builder.programPreviewView(template: template, startDate: startDate)
+                    builder.programPreviewView(delegate: ProgramPreviewViewDelegate(template: template, startDate: startDate))
                 case .customProgramBuilderView:
                     builder.customProgramBuilderView(delegate: CustomProgramBuilderViewDelegate(path: path))
                 case .programGoalsView(plan: let plan):

@@ -17,40 +17,16 @@ extension CoreInteractor: RecipeAmountInteractor { }
 @MainActor
 class RecipeAmountViewModel {
     private let interactor: RecipeAmountInteractor
-    let recipe: RecipeTemplateModel
-    let onConfirm: (MealItemModel) -> Void
 
     var servingsText: String = "1"
 
-    var baseCalories: Double? {
-        aggregate { $0.calories }
-    }
-
-    var baseProtein: Double? {
-        aggregate { $0.protein }
-    }
-
-    var baseCarbs: Double? {
-        aggregate { $0.carbs }
-    }
-
-    var baseFat: Double? {
-        aggregate { $0.fatTotal }
-    }
-
     var servings: Double { max(Double(servingsText) ?? 0, 0) }
 
-    init(
-        interactor: RecipeAmountInteractor,
-        recipe: RecipeTemplateModel,
-        onConfirm: @escaping (MealItemModel) -> Void
-    ) {
+    init(interactor: RecipeAmountInteractor) {
         self.interactor = interactor
-        self.recipe = recipe
-        self.onConfirm = onConfirm
     }
 
-    func aggregate(_ keyPath: (IngredientTemplateModel) -> Double?) -> Double? {
+    private func aggregate(_ keyPath: (IngredientTemplateModel) -> Double?, recipe: RecipeTemplateModel) -> Double? {
         var total: Double = 0
         var hasValue = false
         for recipeIngredient in recipe.ingredients {
@@ -70,11 +46,27 @@ class RecipeAmountViewModel {
         return hasValue ? total : nil
     }
 
-    func add() {
-        let calories = baseCalories.map { $0 * servings }
-        let protein = baseProtein.map { $0 * servings }
-        let carbs = baseCarbs.map { $0 * servings }
-        let fat = baseFat.map { $0 * servings }
+    func baseCalories(recipe: RecipeTemplateModel) -> Double? {
+        aggregate({ $0.calories }, recipe: recipe)
+    }
+
+    func baseProtein(recipe: RecipeTemplateModel) -> Double? {
+        aggregate({ $0.protein }, recipe: recipe)
+    }
+
+    func baseCarbs(recipe: RecipeTemplateModel) -> Double? {
+        aggregate({ $0.carbs }, recipe: recipe)
+    }
+
+    func baseFat(recipe: RecipeTemplateModel) -> Double? {
+        aggregate({ $0.fatTotal }, recipe: recipe)
+    }
+
+    func add(recipe: RecipeTemplateModel, onConfirm: @escaping (MealItemModel) -> Void) {
+        let calories = baseCalories(recipe: recipe).map { $0 * servings }
+        let protein = baseProtein(recipe: recipe).map { $0 * servings }
+        let carbs = baseCarbs(recipe: recipe).map { $0 * servings }
+        let fat = baseFat(recipe: recipe).map { $0 * servings }
         let item = MealItemModel(
             itemId: UUID().uuidString,
             sourceType: .recipe,

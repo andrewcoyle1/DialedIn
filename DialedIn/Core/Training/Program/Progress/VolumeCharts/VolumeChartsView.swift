@@ -31,7 +31,7 @@ struct VolumeChartsView: View {
                             .padding(40)
                     } else if let trend = viewModel.volumeTrend {
                         VolumeChartSection(trend: trend)
-                        builder.trendSummarySection(trend: trend)
+                        builder.trendSummarySection(delegate: TrendSummarySectionDelegate(trend: trend))
                     } else {
                         EmptyState()
                     }

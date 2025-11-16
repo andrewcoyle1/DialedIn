@@ -7,9 +7,15 @@
 
 import SwiftUI
 
+struct TrendSummarySectionDelegate {
+    let trend: VolumeTrend
+}
+
 struct TrendSummarySection: View {
     @State var viewModel: TrendSummarySectionViewModel
-    
+
+    let delegate: TrendSummarySectionDelegate
+
     var body: some View {
         
         VStack(alignment: .leading, spacing: 16) {
@@ -21,7 +27,7 @@ struct TrendSummarySection: View {
                     Text("Average Volume")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text("\(Int(viewModel.trend.averageVolume)) kg")
+                    Text("\(Int(delegate.trend.averageVolume)) kg")
                         .font(.title3)
                         .fontWeight(.semibold)
                 }
@@ -33,22 +39,22 @@ struct TrendSummarySection: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     HStack(spacing: 4) {
-                        Image(systemName: viewModel.trendIcon)
-                            .foregroundStyle(viewModel.trendColor)
-                        Text(viewModel.trendText)
+                        Image(systemName: viewModel.trendIcon(trend: delegate.trend))
+                            .foregroundStyle(viewModel.trendColor(trend: delegate.trend))
+                        Text(viewModel.trendText(trend: delegate.trend))
                             .font(.title3)
                             .fontWeight(.semibold)
-                            .foregroundStyle(viewModel.trendColor)
+                            .foregroundStyle(viewModel.trendColor(trend: delegate.trend))
                     }
                 }
             }
             
             // Insights
-            if abs(viewModel.trend.percentageChange) > 10 {
+            if abs(delegate.trend.percentageChange) > 10 {
                 HStack(spacing: 8) {
                     Image(systemName: "lightbulb.fill")
                         .foregroundStyle(.yellow)
-                    Text(viewModel.trendInsight)
+                    Text(viewModel.trendInsight(trend: delegate.trend))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -64,14 +70,8 @@ struct TrendSummarySection: View {
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     List {
-        TrendSummarySection(
-            viewModel: TrendSummarySectionViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                ),
-                trend: VolumeTrend.mock
-            )
-        )
+        builder.trendSummarySection(delegate: TrendSummarySectionDelegate(trend: .mock))
     }
 }

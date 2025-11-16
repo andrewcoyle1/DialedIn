@@ -14,7 +14,7 @@ extension TabBarOption {
         case .dashboard: builder.dashboardView(delegate: DashboardViewDelegate(path: path))
         case .nutrition: builder.nutritionView(delegate: NutritionViewDelegate(path: path))
         case .training: builder.trainingView(delegate: TrainingViewDelegate(path: path))
-        case .profile: builder.profileView(path: path)
+        case .profile: builder.profileView(delegate: ProfileViewDelegate(path: path))
         case .search: SearchView()
         }
     }
