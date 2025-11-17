@@ -7,11 +7,18 @@
 
 import SwiftUI
 
-struct OnboardingWeightView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingWeightViewModel
-    @Binding var path: [OnboardingPathOption]
+struct OnboardingWeightViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var userModelBuilder: UserModelBuilder
+}
+
+struct OnboardingWeightView: View {
+
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingWeightViewModel
+
+    var delegate: OnboardingWeightViewDelegate
 
     var body: some View {
         List {
@@ -29,13 +36,7 @@ struct OnboardingWeightView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
     }
@@ -103,7 +104,7 @@ struct OnboardingWeightView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToExerciseFrequency(path: $path, userBuilder: userModelBuilder)
+                viewModel.navigateToExerciseFrequency(path: delegate.path, userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -114,15 +115,13 @@ struct OnboardingWeightView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingWeightView(
-            viewModel: OnboardingWeightViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ),
-            path: $path,
-            userModelBuilder: UserModelBuilder.weightMock
+        builder.onboardingWeightView(
+            delegate: OnboardingWeightViewDelegate(
+                path: $path,
+                userModelBuilder: UserModelBuilder.weightMock
+            )
         )
     }
     .previewEnvironment()

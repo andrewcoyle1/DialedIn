@@ -7,11 +7,17 @@
 
 import SwiftUI
 
-struct OnboardingHeightView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingHeightViewModel
-    @Binding var path: [OnboardingPathOption]
+struct OnboardingHeightViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var userModelBuilder: UserModelBuilder
+}
+
+struct OnboardingHeightView: View {
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingHeightViewModel
+
+    var delegate: OnboardingHeightViewDelegate
 
     var body: some View {
         List {
@@ -28,7 +34,7 @@ struct OnboardingHeightView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
     }
@@ -122,7 +128,7 @@ struct OnboardingHeightView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToWeightView(path: $path, userBuilder: userModelBuilder)
+                viewModel.navigateToWeightView(path: delegate.path, userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -133,15 +139,13 @@ struct OnboardingHeightView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack(path: $path) {
-        OnboardingHeightView(
-            viewModel: OnboardingHeightViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ),
-            path: $path,
-            userModelBuilder: UserModelBuilder.heightMock
+        builder.onboardingHeightView(
+            delegate: OnboardingHeightViewDelegate(
+                path: $path,
+                userModelBuilder: UserModelBuilder.heightMock
+            )
         )
     }
     .navigationDestinationOnboardingModule(path: $path)

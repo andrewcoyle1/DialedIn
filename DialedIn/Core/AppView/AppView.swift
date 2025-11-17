@@ -9,9 +9,10 @@ import SwiftUI
 
 struct AppView: View {
 
-    @Environment(CoreBuilder.self) private var builder
-    @Environment(DependencyContainer.self) private var container
     @State var viewModel: AppViewModel
+
+    @ViewBuilder var adaptiveMainView: () -> AnyView
+    @ViewBuilder var onboardingWelcomeView: () -> AnyView
 
     var body: some View {
         RootView(
@@ -32,16 +33,10 @@ struct AppView: View {
                     showTabBar:
                         viewModel.showTabBar,
                     tabBarView: {
-                        builder.adaptiveMainView()
+                        adaptiveMainView()
                     },
                     onboardingView: {
-                        OnboardingWelcomeView(
-                            viewModel: OnboardingWelcomeViewModel(
-                                interactor: CoreInteractor(
-                                    container: container
-                                )
-                            )
-                        )
+                        onboardingWelcomeView()
                     }
                 )
                 .onFirstAppear {
@@ -63,13 +58,8 @@ struct AppView: View {
     let container = DevPreview.shared.container
     container.register(AppState.self, service: AppState(showTabBar: true))
 
-    return AppView(
-        viewModel: AppViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        )
-    )
+    let builder = CoreBuilder(container: container)
+    return builder.appView()
     .previewEnvironment()
 }
 
@@ -81,12 +71,7 @@ struct AppView: View {
     container.register(AuthManager.self, service: AuthManager(service: MockAuthService(user: nil)))
     container.register(AppState.self, service: AppState(showTabBar: false))
 
-    return AppView(
-        viewModel: AppViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        )
-    )
+    let builder = CoreBuilder(container: container)
+    return builder.appView()
     .previewEnvironment()
 }

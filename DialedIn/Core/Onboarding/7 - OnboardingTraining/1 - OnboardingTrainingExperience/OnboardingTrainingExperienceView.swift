@@ -7,11 +7,17 @@
 
 import SwiftUI
 
-struct OnboardingTrainingExperienceView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingTrainingExperienceViewModel
-    @Binding var path: [OnboardingPathOption]
+struct OnboardingTrainingExperienceViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var trainingProgramBuilder: TrainingProgramBuilder
+}
+
+struct OnboardingTrainingExperienceView: View {
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingTrainingExperienceViewModel
+
+    var delegate: OnboardingTrainingExperienceViewDelegate
 
     var body: some View {
         List {
@@ -23,13 +29,7 @@ struct OnboardingTrainingExperienceView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
         .screenAppearAnalytics(name: "TrainingExperience")
@@ -82,7 +82,7 @@ struct OnboardingTrainingExperienceView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToDaysPerWeek(path: $path, builder: trainingProgramBuilder)
+                viewModel.navigateToDaysPerWeek(path: delegate.path, builder: delegate.trainingProgramBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -94,15 +94,13 @@ struct OnboardingTrainingExperienceView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingTrainingExperienceView(
-            viewModel: OnboardingTrainingExperienceViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ),
-            path: $path,
-            trainingProgramBuilder: TrainingProgramBuilder()
+        builder.onboardingTrainingExperienceView(
+            delegate: OnboardingTrainingExperienceViewDelegate(
+                path: $path,
+                trainingProgramBuilder: TrainingProgramBuilder()
+            )
         )
     }
     .previewEnvironment()

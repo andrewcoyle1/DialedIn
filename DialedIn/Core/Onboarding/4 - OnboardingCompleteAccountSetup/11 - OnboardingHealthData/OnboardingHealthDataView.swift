@@ -7,11 +7,17 @@
 
 import SwiftUI
 
+struct OnboardingHealthDataViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingHealthDataView: View {
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: OnboardingHealthDataViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingHealthDataViewDelegate
 
     var body: some View {
         List {
@@ -27,13 +33,7 @@ struct OnboardingHealthDataView: View {
         .navigationBarBackButtonHidden(true)
         #else
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
         .toolbar {
@@ -56,7 +56,7 @@ struct OnboardingHealthDataView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onAllowAccessPressed(path: $path)
+                viewModel.onAllowAccessPressed(path: delegate.path)
             } label: {
                 Text("Allow access to health data")
                     .padding(.horizontal)
@@ -66,7 +66,7 @@ struct OnboardingHealthDataView: View {
         ToolbarSpacer(.fixed, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.handleNavigation(path: $path)
+                viewModel.handleNavigation(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -125,13 +125,12 @@ struct OnboardingHealthDataView: View {
 
 #Preview("Proceed to Notifications") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingHealthDataView(
-            viewModel: OnboardingHealthDataViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingHealthDataView(
+            delegate: OnboardingHealthDataViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

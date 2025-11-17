@@ -7,12 +7,16 @@
 
 import SwiftUI
 
-struct OnboardingCalorieDistributionView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingCalorieDistributionViewModel
-    @Binding var path: [OnboardingPathOption]
-
+struct OnboardingCalorieDistributionViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     let dietPlanBuilder: DietPlanBuilder
+}
+struct OnboardingCalorieDistributionView: View {
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingCalorieDistributionViewModel
+
+    var delegate: OnboardingCalorieDistributionViewDelegate
 
     var body: some View {
         List {
@@ -36,13 +40,7 @@ struct OnboardingCalorieDistributionView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
     }
@@ -83,7 +81,7 @@ struct OnboardingCalorieDistributionView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToProteinIntake(path: $path, dietPlanBuilder: dietPlanBuilder)
+                viewModel.navigateToProteinIntake(path: delegate.path, dietPlanBuilder: delegate.dietPlanBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -95,14 +93,13 @@ struct OnboardingCalorieDistributionView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingCalorieDistributionView(
-            viewModel: OnboardingCalorieDistributionViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path,
-            dietPlanBuilder: .calorieDistributionMock
+        builder.onboardingCalorieDistributionView(
+            delegate: OnboardingCalorieDistributionViewDelegate(
+                path: $path,
+                dietPlanBuilder: .calorieDistributionMock
+            )
         )
     }
     .previewEnvironment()

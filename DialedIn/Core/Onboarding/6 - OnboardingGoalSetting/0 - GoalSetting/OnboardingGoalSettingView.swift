@@ -7,10 +7,17 @@
 
 import SwiftUI
 
+struct OnboardingGoalSettingViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingGoalSettingView: View {
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: OnboardingGoalSettingViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingGoalSettingViewDelegate
 
     var body: some View {
         List {
@@ -23,7 +30,7 @@ struct OnboardingGoalSettingView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
         .showModal(showModal: $viewModel.isLoading) {
@@ -57,7 +64,7 @@ struct OnboardingGoalSettingView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToOverarchingObjective(path: $path)
+                viewModel.navigateToOverarchingObjective(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -68,13 +75,12 @@ struct OnboardingGoalSettingView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingGoalSettingView(
-            viewModel: OnboardingGoalSettingViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingGoalSettingView(
+            delegate: OnboardingGoalSettingViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

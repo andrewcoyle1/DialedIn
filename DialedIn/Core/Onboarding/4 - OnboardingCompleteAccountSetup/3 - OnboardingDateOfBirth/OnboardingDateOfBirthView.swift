@@ -7,11 +7,18 @@
 
 import SwiftUI
 
-struct OnboardingDateOfBirthView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingDateOfBirthViewModel
-    @Binding var path: [OnboardingPathOption]
+struct OnboardingDateOfBirthViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var userModelBuilder: UserModelBuilder
+
+}
+struct OnboardingDateOfBirthView: View {
+
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingDateOfBirthViewModel
+
+    var delegate: OnboardingDateOfBirthViewDelegate
 
     var body: some View {
         List {
@@ -27,7 +34,7 @@ struct OnboardingDateOfBirthView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
     }
@@ -46,7 +53,7 @@ struct OnboardingDateOfBirthView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToOnboardingHeight(path: $path, userBuilder: userModelBuilder)
+                viewModel.navigateToOnboardingHeight(path: delegate.path, userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -57,14 +64,13 @@ struct OnboardingDateOfBirthView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack(path: $path) {
-        OnboardingDateOfBirthView(
-            viewModel: OnboardingDateOfBirthViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path,
-            userModelBuilder: UserModelBuilder.dobMock
+        builder.onboardingDateOfBirthView(
+            delegate: OnboardingDateOfBirthViewDelegate(
+                path: $path,
+                userModelBuilder: UserModelBuilder.dobMock
+            )
         )
     }
     .navigationDestinationOnboardingModule(path: $path)

@@ -7,11 +7,18 @@
 
 import SwiftUI
 
-struct OnboardingTrainingScheduleView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingTrainingScheduleViewModel
-    @Binding var path: [OnboardingPathOption]
+struct OnboardingTrainingScheduleViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var trainingProgramBuilder: TrainingProgramBuilder
+}
+
+struct OnboardingTrainingScheduleView: View {
+
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingTrainingScheduleViewModel
+
+    var delegate: OnboardingTrainingScheduleViewDelegate
 
     private let weekdays = [
         (1, "Sunday"),
@@ -30,7 +37,7 @@ struct OnboardingTrainingScheduleView: View {
                     Text("Select the days you want to train each week.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                    if let targetDays = trainingProgramBuilder.targetDaysPerWeek {
+                    if let targetDays = delegate.trainingProgramBuilder.targetDaysPerWeek {
                         Text("You selected \(targetDays) day\(targetDays == 1 ? "" : "s") per week.")
                             .font(.caption)
                             .foregroundStyle(.tertiary)
@@ -67,13 +74,7 @@ struct OnboardingTrainingScheduleView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
         .screenAppearAnalytics(name: "TrainingSchedule")
@@ -93,7 +94,7 @@ struct OnboardingTrainingScheduleView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToEquipment(path: $path, builder: trainingProgramBuilder)
+                viewModel.navigateToEquipment(path: delegate.path, builder: delegate.trainingProgramBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -105,15 +106,13 @@ struct OnboardingTrainingScheduleView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingTrainingScheduleView(
-            viewModel: OnboardingTrainingScheduleViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ),
-            path: $path,
-            trainingProgramBuilder: TrainingProgramBuilder(targetDaysPerWeek: 3)
+        builder.onboardingTrainingScheduleView(
+            delegate: OnboardingTrainingScheduleViewDelegate(
+                path: $path,
+                trainingProgramBuilder: TrainingProgramBuilder(targetDaysPerWeek: 3)
+            )
         )
     }
     .previewEnvironment()

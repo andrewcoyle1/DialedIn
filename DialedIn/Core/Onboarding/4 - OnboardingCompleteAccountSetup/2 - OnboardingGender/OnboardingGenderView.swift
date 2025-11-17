@@ -7,13 +7,18 @@
 
 import SwiftUI
 
+struct OnboardingGenderViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingGenderView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: OnboardingGenderViewModel
-    @Binding var path: [OnboardingPathOption]
-    
+
+    var delegate: OnboardingGenderViewDelegate
+
     var body: some View {
         List {
             Section {
@@ -34,7 +39,7 @@ struct OnboardingGenderView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
     }
@@ -53,7 +58,7 @@ struct OnboardingGenderView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToDateOfBirth(path: $path)
+                viewModel.navigateToDateOfBirth(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -86,13 +91,12 @@ struct OnboardingGenderView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack(path: $path) {
-        OnboardingGenderView(
-            viewModel: OnboardingGenderViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingGenderView(
+            delegate: OnboardingGenderViewDelegate(
+                path: $path
+            )
         )
     }
     .navigationDestinationOnboardingModule(path: $path)

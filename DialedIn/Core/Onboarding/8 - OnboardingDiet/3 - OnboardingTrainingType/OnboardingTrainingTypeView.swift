@@ -7,12 +7,15 @@
 
 import SwiftUI
 
-struct OnboardingTrainingTypeView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingTrainingTypeViewModel
-    @Binding var path: [OnboardingPathOption]
-
+struct OnboardingTrainingTypeViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     let dietPlanBuilder: DietPlanBuilder
+}
+
+struct OnboardingTrainingTypeView: View {
+    @Environment(CoreBuilder.self) private var builder
+    @State var viewModel: OnboardingTrainingTypeViewModel
+    var delegate: OnboardingTrainingTypeViewDelegate
 
     var body: some View {
         List {
@@ -43,13 +46,7 @@ struct OnboardingTrainingTypeView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
     }
@@ -68,7 +65,7 @@ struct OnboardingTrainingTypeView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToCalorieDistribution(path: $path, dietPlanBuilder: dietPlanBuilder)
+                viewModel.navigateToCalorieDistribution(path: delegate.path, dietPlanBuilder: delegate.dietPlanBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -80,14 +77,13 @@ struct OnboardingTrainingTypeView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingTrainingTypeView(
-            viewModel: OnboardingTrainingTypeViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path,
-            dietPlanBuilder: .trainingTypeMock
+        builder.onboardingTrainingTypeView(
+            delegate: OnboardingTrainingTypeViewDelegate(
+                path: $path,
+                dietPlanBuilder: .trainingTypeMock
+            )
         )
     }
     .previewEnvironment()

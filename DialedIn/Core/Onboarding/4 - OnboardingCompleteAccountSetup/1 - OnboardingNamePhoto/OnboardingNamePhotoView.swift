@@ -8,10 +8,17 @@
 import SwiftUI
 import PhotosUI
 
+struct OnboardingNamePhotoViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingNamePhotoView: View {
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: OnboardingNamePhotoViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingNamePhotoViewDelegate
 
     var body: some View {
         List {
@@ -26,13 +33,7 @@ struct OnboardingNamePhotoView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
         .onAppear(perform: viewModel.prefillFromCurrentUser)
@@ -131,7 +132,7 @@ struct OnboardingNamePhotoView: View {
         ToolbarItem(placement: .bottomBar) {
             Button {
                 Task {
-                    await viewModel.saveAndContinue(path: $path)
+                    await viewModel.saveAndContinue(path: delegate.path)
                 }
             } label: {
                 Image(systemName: "chevron.right")
@@ -144,13 +145,12 @@ struct OnboardingNamePhotoView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack(path: $path) {
-        OnboardingNamePhotoView(
-            viewModel: OnboardingNamePhotoViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingNamePhotoView(
+            delegate: OnboardingNamePhotoViewDelegate(
+                path: $path
+            )
         )
     }
     .navigationDestinationOnboardingModule(path: $path)

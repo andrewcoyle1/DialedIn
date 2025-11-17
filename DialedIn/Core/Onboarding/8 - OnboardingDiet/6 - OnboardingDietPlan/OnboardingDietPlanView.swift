@@ -7,12 +7,18 @@
 
 import SwiftUI
 
-struct OnboardingDietPlanView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingDietPlanViewModel
-    @Binding var path: [OnboardingPathOption]
-
+struct OnboardingDietPlanViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     let dietPlanBuilder: DietPlanBuilder
+}
+
+struct OnboardingDietPlanView: View {
+
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingDietPlanViewModel
+
+    var delegate: OnboardingDietPlanViewDelegate
 
     var body: some View {
         List {
@@ -32,17 +38,11 @@ struct OnboardingDietPlanView: View {
             toolbarContent
         }
         .onAppear {
-            viewModel.createPlan(dietPlanBuilder: dietPlanBuilder)
+            viewModel.createPlan(dietPlanBuilder: delegate.dietPlanBuilder)
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
         .showCustomAlert(alert: $viewModel.showAlert)
@@ -116,7 +116,7 @@ struct OnboardingDietPlanView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigate(path: $path)
+                viewModel.navigate(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -137,14 +137,13 @@ struct OnboardingDietPlanView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingDietPlanView(
-            viewModel: OnboardingDietPlanViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path,
-            dietPlanBuilder: .mock
+        builder.onboardingDietPlanView(
+            delegate: OnboardingDietPlanViewDelegate(
+                path: $path,
+                dietPlanBuilder: .mock
+            )
         )
     }
     .previewEnvironment()

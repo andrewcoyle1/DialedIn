@@ -7,10 +7,15 @@
 
 import SwiftUI
 
+struct OnboardingHealthDisclaimerViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
 struct OnboardingHealthDisclaimerView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: OnboardingHealthDisclaimerViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingHealthDisclaimerViewDelegate
 
     var body: some View {
         List {
@@ -34,7 +39,7 @@ struct OnboardingHealthDisclaimerView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
     }
@@ -73,7 +78,7 @@ struct OnboardingHealthDisclaimerView: View {
             You understand DialedIn does not provide medical advice and is for educational use only. You can review these terms at any time in Settings.
             """,
             primaryButtonTitle: "I Agree & Continue",
-            primaryButtonAction: { viewModel.onConfirmPressed(path: $path) },
+            primaryButtonAction: { viewModel.onConfirmPressed(path: delegate.path) },
             secondaryButtonTitle: "Go Back",
             secondaryButtonAction: { viewModel.onCancelPressed() }
         )
@@ -106,14 +111,12 @@ struct OnboardingHealthDisclaimerView: View {
 
 #Preview("Health Disclaimer") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingHealthDisclaimerView(
-            viewModel: OnboardingHealthDisclaimerViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ),
-            path: $path
+        builder.onboardingHealthDisclaimerView(
+            delegate: OnboardingHealthDisclaimerViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

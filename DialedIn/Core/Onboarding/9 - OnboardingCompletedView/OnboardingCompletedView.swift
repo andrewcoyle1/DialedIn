@@ -7,10 +7,17 @@
 
 import SwiftUI
 
+struct OnboardingCompletedViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingCompletedView: View {
-    @Environment(DependencyContainer.self) private var container
+
     @State var viewModel: OnboardingCompletedViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingCompletedViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         VStack {
@@ -36,13 +43,7 @@ struct OnboardingCompletedView: View {
             }
         }
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            devSettingsView()
         }
         #endif
     }
@@ -89,12 +90,14 @@ struct OnboardingCompletedView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
-    OnboardingCompletedView(
-        viewModel: OnboardingCompletedViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        ), path: $path
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.onboardingCompletedView(
+        delegate: OnboardingCompletedViewDelegate(
+            path: $path
+        ),
+        devSettingsView: {
+            Text("Dev Settings").any()
+        }
     )
     .previewEnvironment()
 }

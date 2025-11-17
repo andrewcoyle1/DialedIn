@@ -7,12 +7,18 @@
 
 import SwiftUI
 
-struct OnboardingProteinIntakeView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingProteinIntakeViewModel
-    @Binding var path: [OnboardingPathOption]
-
+struct OnboardingProteinIntakeViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     let dietPlanBuilder: DietPlanBuilder
+}
+
+struct OnboardingProteinIntakeView: View {
+
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingProteinIntakeViewModel
+
+    var delegate: OnboardingProteinIntakeViewDelegate
 
     var body: some View {
         List {
@@ -40,7 +46,7 @@ struct OnboardingProteinIntakeView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
     }
@@ -81,7 +87,7 @@ struct OnboardingProteinIntakeView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigate(path: $path, dietPlanBuilder: dietPlanBuilder)
+                viewModel.navigate(path: delegate.path, dietPlanBuilder: delegate.dietPlanBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -93,14 +99,13 @@ struct OnboardingProteinIntakeView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingProteinIntakeView(
-            viewModel: OnboardingProteinIntakeViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path,
-            dietPlanBuilder: .proteinIntakeMock
+        builder.onboardingProteinIntakeView(
+            delegate: OnboardingProteinIntakeViewDelegate(
+                path: $path,
+                dietPlanBuilder: .proteinIntakeMock
+            )
         )
     }
     .previewEnvironment()

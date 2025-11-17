@@ -7,10 +7,18 @@
 
 import SwiftUI
 
+struct OnboardingSubscriptionPlanViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingSubscriptionPlanView: View {
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: OnboardingSubscriptionPlanViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingSubscriptionPlanViewDelegate
+
     var body: some View {
         List {
             choosePlanSection
@@ -22,15 +30,6 @@ struct OnboardingSubscriptionPlanView: View {
         }
         .navigationTitle("Subscription Plans")
         .navigationBarTitleDisplayMode(.large)
-        .navigationDestination(isPresented: $viewModel.navigateToCompleteAccountSetup) {
-            OnboardingCompleteAccountSetupView(
-                viewModel: OnboardingCompleteAccountSetupViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                ), path: $path
-            )
-        }
         .showModal(showModal: $viewModel.isPurchasing, content: {
             ProgressView()
                 .tint(Color.white)
@@ -45,7 +44,7 @@ struct OnboardingSubscriptionPlanView: View {
         ))
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
     }
@@ -63,7 +62,7 @@ struct OnboardingSubscriptionPlanView: View {
         #endif
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onPurchase(path: $path)
+                viewModel.onPurchase(path: delegate.path)
             } label: {
                 Text("Restore Purchases")
             }
@@ -71,7 +70,7 @@ struct OnboardingSubscriptionPlanView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onPurchase(path: $path)
+                viewModel.onPurchase(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -165,13 +164,12 @@ struct OnboardingSubscriptionPlanView: View {
 
 #Preview("Functioning") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingSubscriptionPlanView(
-            viewModel: OnboardingSubscriptionPlanViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingSubscriptionPlanView(
+            delegate: OnboardingSubscriptionPlanViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

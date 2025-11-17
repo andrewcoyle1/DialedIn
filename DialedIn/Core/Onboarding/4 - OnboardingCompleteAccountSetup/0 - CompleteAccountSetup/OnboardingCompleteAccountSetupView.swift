@@ -7,10 +7,17 @@
 
 import SwiftUI
 
+struct OnboardingCompleteAccountSetupViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingCompleteAccountSetupView: View {
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: OnboardingCompleteAccountSetupViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingCompleteAccountSetupViewDelegate
 
     var body: some View {
         List {
@@ -23,13 +30,7 @@ struct OnboardingCompleteAccountSetupView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
     }
@@ -48,7 +49,7 @@ struct OnboardingCompleteAccountSetupView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.handleNavigation(path: $path)
+                viewModel.handleNavigation(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -59,13 +60,12 @@ struct OnboardingCompleteAccountSetupView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack(path: $path) {
-        OnboardingCompleteAccountSetupView(
-            viewModel: OnboardingCompleteAccountSetupViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingCompleteAccountSetupView(
+            delegate: OnboardingCompleteAccountSetupViewDelegate(
+                path: $path
+            )
         )
     }
     .navigationDestinationOnboardingModule(path: $path)

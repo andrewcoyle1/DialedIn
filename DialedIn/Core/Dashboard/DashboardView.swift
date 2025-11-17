@@ -12,12 +12,15 @@ struct DashboardViewDelegate {
 }
 
 struct DashboardView: View {
-    @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: DashboardViewModel
 
     var delegate: DashboardViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
+    @ViewBuilder var notificationsView: () -> AnyView
+    @ViewBuilder var nutritionTargetChartView: () -> AnyView
 
     var body: some View {
         Group {
@@ -30,7 +33,7 @@ struct DashboardView: View {
                 contentView
             }
         }
-        .modifier(InspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView))
+        .inspectorIfCompact(isPresented: $viewModel.isShowingInspector, inspector: { inspectorContent }, enabled: layoutMode != .splitView)
     }
     
     private var contentView: some View {
@@ -48,11 +51,11 @@ struct DashboardView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .sheet(isPresented: $viewModel.showNotifications) {
-            builder.notificationsView()
+            notificationsView()
         }
         .onOpenURL { url in
             viewModel.handleDeepLink(url: url)
@@ -78,7 +81,7 @@ struct DashboardView: View {
     
     private var nutritionTargetSection: some View {
         Section {
-            builder.nutritionTargetChartView()
+            nutritionTargetChartView()
         } header: {
             Text("Nutrition & Targets")
         }

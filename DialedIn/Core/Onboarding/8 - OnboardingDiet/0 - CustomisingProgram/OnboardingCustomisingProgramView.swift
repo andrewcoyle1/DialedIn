@@ -7,10 +7,17 @@
 
 import SwiftUI
 
+struct OnboardingCustomisingProgramViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingCustomisingProgramView: View {
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: OnboardingCustomisingProgramViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingCustomisingProgramViewDelegate
 
     var body: some View {
         List {
@@ -23,7 +30,7 @@ struct OnboardingCustomisingProgramView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
         .showModal(showModal: $viewModel.isLoading) {
@@ -44,7 +51,7 @@ struct OnboardingCustomisingProgramView: View {
             .padding(.horizontal)
             .foregroundStyle(Color.secondary)
             Button {
-                viewModel.navigateToTrainingExperience(path: $path)
+                viewModel.navigateToTrainingExperience(path: delegate.path)
             } label: {
                 HStack {
                     Text("Set Up Training Program")
@@ -86,7 +93,7 @@ struct OnboardingCustomisingProgramView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToPreferredDiet(path: $path)
+                viewModel.navigateToPreferredDiet(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -97,13 +104,12 @@ struct OnboardingCustomisingProgramView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingCustomisingProgramView(
-            viewModel: OnboardingCustomisingProgramViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingCustomisingProgramView(
+            delegate: OnboardingCustomisingProgramViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

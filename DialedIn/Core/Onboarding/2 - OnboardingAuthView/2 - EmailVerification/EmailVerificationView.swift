@@ -7,12 +7,17 @@
 
 import SwiftUI
 
+struct EmailVerificationViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct EmailVerificationView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: EmailVerificationViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: EmailVerificationViewDelegate
 
     var body: some View {
         List {
@@ -37,11 +42,11 @@ struct EmailVerificationView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
         .onFirstTask {
-            viewModel.setup(path: $path)
+            viewModel.setup(path: delegate.path)
         }
         .onDisappear {
             viewModel.cleanUp()
@@ -104,7 +109,7 @@ struct EmailVerificationView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onDonePressed(path: $path)
+                viewModel.onDonePressed(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -118,13 +123,12 @@ struct EmailVerificationView: View {
 
 #Preview("Default") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        EmailVerificationView(
-            viewModel: EmailVerificationViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingEmailVerificationView(
+            delegate: EmailVerificationViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()
@@ -132,13 +136,12 @@ struct EmailVerificationView: View {
 
 #Preview("Initial Send - Success") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        EmailVerificationView(
-            viewModel: EmailVerificationViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingEmailVerificationView(
+            delegate: EmailVerificationViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()
@@ -146,13 +149,12 @@ struct EmailVerificationView: View {
 
 #Preview("Initial Send - Slow") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        EmailVerificationView(
-            viewModel: EmailVerificationViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingEmailVerificationView(
+            delegate: EmailVerificationViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()
@@ -160,13 +162,12 @@ struct EmailVerificationView: View {
 
 #Preview("Initial Send - Failure") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        EmailVerificationView(
-            viewModel: EmailVerificationViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingEmailVerificationView(
+            delegate: EmailVerificationViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()
@@ -174,13 +175,12 @@ struct EmailVerificationView: View {
 
 #Preview("Check - Not Verified") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        EmailVerificationView(
-            viewModel: EmailVerificationViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingEmailVerificationView(
+            delegate: EmailVerificationViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()
@@ -188,13 +188,12 @@ struct EmailVerificationView: View {
 
 #Preview("Check - Verified") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        EmailVerificationView(
-            viewModel: EmailVerificationViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingEmailVerificationView(
+            delegate: EmailVerificationViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()
@@ -202,13 +201,12 @@ struct EmailVerificationView: View {
 
 #Preview("No Current User - Error") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        EmailVerificationView(
-            viewModel: EmailVerificationViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingEmailVerificationView(
+            delegate: EmailVerificationViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

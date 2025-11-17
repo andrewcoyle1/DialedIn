@@ -24,11 +24,8 @@ class OnboardingTrainingEquipmentViewModel {
     var showDebugView: Bool = false
     #endif
     
-    init(interactor: OnboardingTrainingEquipmentInteractor, builder: TrainingProgramBuilder? = nil) {
+    init(interactor: OnboardingTrainingEquipmentInteractor) {
         self.interactor = interactor
-        if let builder = builder, !builder.availableEquipment.isEmpty {
-            selectedEquipment = builder.availableEquipment
-        }
     }
     
     func navigateToReview(path: Binding<[OnboardingPathOption]>, builder: TrainingProgramBuilder) {

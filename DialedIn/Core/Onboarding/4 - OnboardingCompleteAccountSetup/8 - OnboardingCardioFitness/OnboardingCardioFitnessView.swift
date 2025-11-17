@@ -7,11 +7,17 @@
 
 import SwiftUI
 
-struct OnboardingCardioFitnessView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingCardioFitnessViewModel
-    @Binding var path: [OnboardingPathOption]
+struct OnboardingCardioFitnessViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var userModelBuilder: UserModelBuilder
+}
+
+struct OnboardingCardioFitnessView: View {
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingCardioFitnessViewModel
+
+    var delegate: OnboardingCardioFitnessViewDelegate
 
     var body: some View {
         List {
@@ -33,7 +39,7 @@ struct OnboardingCardioFitnessView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
     }
@@ -76,7 +82,7 @@ struct OnboardingCardioFitnessView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToExpenditure(path: $path, userBuilder: userModelBuilder)
+                viewModel.navigateToExpenditure(path: delegate.path, userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -112,14 +118,13 @@ struct OnboardingCardioFitnessView: View {
 
 #Preview("Default - Ready to submit") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingCardioFitnessView(
-            viewModel: OnboardingCardioFitnessViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path,
-            userModelBuilder: UserModelBuilder.cardioFitnessMock
+        builder.onboardingCardioFitnessView(
+            delegate: OnboardingCardioFitnessViewDelegate(
+                path: $path, 
+                userModelBuilder: UserModelBuilder.cardioFitnessMock
+            )
         )
     }
     .previewEnvironment()

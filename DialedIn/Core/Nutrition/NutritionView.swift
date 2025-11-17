@@ -15,12 +15,22 @@ struct NutritionViewDelegate {
 }
 
 struct NutritionView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: NutritionViewModel
     
     var delegate: NutritionViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
+    @ViewBuilder var notificationsView: () -> AnyView
+    @ViewBuilder var createIngredientView: () -> AnyView
+    @ViewBuilder var createRecipeView: () -> AnyView
+    @ViewBuilder var mealLogView: (MealLogViewDelegate) -> AnyView
+    @ViewBuilder var recipesView: (RecipesViewDelegate) -> AnyView
+    @ViewBuilder var ingredientsView: (IngredientsViewDelegate) -> AnyView
+    @ViewBuilder var ingredientDetailView: (IngredientDetailViewDelegate) -> AnyView
+    @ViewBuilder var recipeDetailView: (RecipeDetailViewDelegate) -> AnyView
 
     var body: some View {
         Group {
@@ -55,17 +65,17 @@ struct NutritionView: View {
             .showCustomAlert(alert: $viewModel.showAlert)
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView) {
-                builder.devSettingsView()
+                devSettingsView()
             }
             #endif
             .sheet(isPresented: $viewModel.showNotifications) {
-                builder.notificationsView()
+                notificationsView()
             }
             .sheet(isPresented: $viewModel.showCreateIngredient) {
-                builder.createIngredientView()
+                createIngredientView()
             }
             .sheet(isPresented: $viewModel.showCreateRecipe) {
-                builder.createRecipeView()
+                createRecipeView()
             }
         }
         .navigationTitle("Nutrition")
@@ -93,8 +103,8 @@ struct NutritionView: View {
         Group {
             switch viewModel.presentationMode {
             case .log:
-                builder.mealLogView(
-                    delegate: MealLogViewDelegate(
+                mealLogView(
+                    MealLogViewDelegate(
                         path: delegate.path,
                         isShowingInspector: $viewModel.isShowingInspector,
                         selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
@@ -102,8 +112,8 @@ struct NutritionView: View {
                     )
                 )
             case .recipes:
-                builder.recipesView(
-                    delegate: RecipesViewDelegate(
+                recipesView(
+                    RecipesViewDelegate(
                         showCreateRecipe: $viewModel.showCreateRecipe,
                         selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
                         selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
@@ -111,8 +121,8 @@ struct NutritionView: View {
                     )
                 )
             case .ingredients:
-                builder.ingredientsView(
-                    delegate: IngredientsViewDelegate(
+                ingredientsView(
+                    IngredientsViewDelegate(
                         isShowingInspector: $viewModel.isShowingInspector,
                         selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
                         selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
@@ -128,11 +138,11 @@ struct NutritionView: View {
             if let ingredient = viewModel.selectedIngredientTemplate {
                 NavigationStack {
                     let delegate = IngredientDetailViewDelegate(ingredientTemplate: ingredient)
-                    builder.ingredientDetailView(delegate: delegate)
+                    ingredientDetailView(IngredientDetailViewDelegate(ingredientTemplate: ingredient))
                 }
             } else if let recipe = viewModel.selectedRecipeTemplate {
                 NavigationStack {
-                    builder.recipeDetailView(delegate: RecipeDetailViewDelegate(recipeTemplate: recipe))
+                    recipeDetailView(RecipeDetailViewDelegate(recipeTemplate: recipe))
                 }
             } else {
                 Text("Select an item")

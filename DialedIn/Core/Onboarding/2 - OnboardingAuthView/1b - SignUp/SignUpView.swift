@@ -7,11 +7,18 @@
 
 import SwiftUI
 
+struct SignUpViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct SignUpView: View {
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: SignUpViewModel
-    @Binding var path: [OnboardingPathOption]
-    
+
+    var delegate: SignUpViewDelegate
+
     var body: some View {
         List {
             emailSection
@@ -24,13 +31,7 @@ struct SignUpView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
         .showCustomAlert(alert: $viewModel.showAlert)
@@ -112,7 +113,7 @@ struct SignUpView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onSignUpPressed(path: $path)
+                viewModel.onSignUpPressed(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -123,13 +124,12 @@ struct SignUpView: View {
 
 #Preview("Sign Up") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        SignUpView(
-            viewModel: SignUpViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingSignUpView(
+            delegate: SignUpViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

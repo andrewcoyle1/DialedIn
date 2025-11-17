@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct OnboardingWelcomeView: View {
-    @Environment(DependencyContainer.self) private var container
+
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
+    
     @State var viewModel: OnboardingWelcomeViewModel
 
     var body: some View {
@@ -30,7 +32,7 @@ struct OnboardingWelcomeView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView) {
-                DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+                builder.devSettingsView()
             }
             #endif
             .screenAppearAnalytics(name: "Welcome")
@@ -94,12 +96,7 @@ struct OnboardingWelcomeView: View {
 }
 
 #Preview("Functioning") {
-    OnboardingWelcomeView(
-        viewModel: OnboardingWelcomeViewModel(
-            interactor: CoreInteractor(
-                container: DevPreview.shared.container
-            )
-        )
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.onboardingWelcomeView()
     .previewEnvironment()
 }

@@ -7,12 +7,17 @@
 
 import SwiftUI
 
-struct OnboardingTargetWeightView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingTargetWeightViewModel
-    @Binding var path: [OnboardingPathOption]
-
+struct OnboardingTargetWeightViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var weightGoalBuilder: WeightGoalBuilder
+}
+
+struct OnboardingTargetWeightView: View {
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingTargetWeightViewModel
+
+    var delegate: OnboardingTargetWeightViewDelegate
 
     var body: some View {
         List {
@@ -26,17 +31,11 @@ struct OnboardingTargetWeightView: View {
         }
         .navigationTitle("Target Weight")
         .onFirstAppear {
-            viewModel.onAppear(weightGoalBuilder: weightGoalBuilder)
+            viewModel.onAppear(weightGoalBuilder: delegate.weightGoalBuilder)
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
         .toolbar {
@@ -58,7 +57,7 @@ struct OnboardingTargetWeightView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToWeightRate(path: $path, weightGoalBuilder: weightGoalBuilder)
+                viewModel.navigateToWeightRate(path: delegate.path, weightGoalBuilder: delegate.weightGoalBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -70,7 +69,7 @@ struct OnboardingTargetWeightView: View {
     private var kilogramsSection: some View {
         Section {
             Picker("Kilograms", selection: $viewModel.selectedKilograms) {
-                ForEach(viewModel.kilogramRange(weightGoalBuilder: weightGoalBuilder).reversed(), id: \.self) { value in
+                ForEach(viewModel.kilogramRange(weightGoalBuilder: delegate.weightGoalBuilder).reversed(), id: \.self) { value in
                     Text("\(value) kg").tag(value)
                 }
             }
@@ -89,7 +88,7 @@ struct OnboardingTargetWeightView: View {
     private var poundsSection: some View {
         Section {
             Picker("Pounds", selection: $viewModel.selectedPounds) {
-                ForEach(viewModel.poundRange(weightGoalBuilder: weightGoalBuilder).reversed(), id: \.self) { value in
+                ForEach(viewModel.poundRange(weightGoalBuilder: delegate.weightGoalBuilder).reversed(), id: \.self) { value in
                     Text("\(value) lbs").tag(value)
                 }
             }
@@ -117,14 +116,13 @@ struct OnboardingTargetWeightView: View {
 
 #Preview("Gain Weight") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingTargetWeightView(
-            viewModel: OnboardingTargetWeightViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path,
-            weightGoalBuilder: .targetWeightMock
+        builder.onboardingTargetWeightView(
+            delegate: OnboardingTargetWeightViewDelegate(
+                path: $path,
+                weightGoalBuilder: .targetWeightMock
+            )
         )
     }
     .previewEnvironment()
@@ -132,14 +130,13 @@ struct OnboardingTargetWeightView: View {
 
 #Preview("Lose Weight") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingTargetWeightView(
-            viewModel: OnboardingTargetWeightViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path,
-            weightGoalBuilder: .targetWeightMock
+        builder.onboardingTargetWeightView(
+            delegate: OnboardingTargetWeightViewDelegate(
+                path: $path,
+                weightGoalBuilder: .targetWeightMock
+            )
         )
     }
     .previewEnvironment()

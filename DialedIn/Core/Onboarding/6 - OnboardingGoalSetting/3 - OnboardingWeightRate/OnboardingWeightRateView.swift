@@ -7,12 +7,17 @@
 
 import SwiftUI
 
-struct OnboardingWeightRateView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingWeightRateViewModel
-    @Binding var path: [OnboardingPathOption]
-
+struct OnboardingWeightRateViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var weightGoalBuilder: WeightGoalBuilder
+}
+
+struct OnboardingWeightRateView: View {
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingWeightRateViewModel
+
+    var delegate: OnboardingWeightRateViewDelegate
 
     var body: some View {
         List {
@@ -33,14 +38,14 @@ struct OnboardingWeightRateView: View {
         }
         .navigationTitle("At what rate?")
         .onFirstAppear {
-            viewModel.onAppear(weightGoalBuilder: weightGoalBuilder)
+            viewModel.onAppear(weightGoalBuilder: delegate.weightGoalBuilder)
         }
         .toolbar {
             toolbarContent
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
         .showCustomAlert(alert: $viewModel.showAlert)
@@ -60,7 +65,7 @@ struct OnboardingWeightRateView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToGoalSummary(path: $path, weightGoalBuilder: weightGoalBuilder
+                viewModel.navigateToGoalSummary(path: delegate.path, weightGoalBuilder: delegate.weightGoalBuilder
                 )
             } label: {
                 Image(systemName: "chevron.right")
@@ -115,11 +120,11 @@ struct OnboardingWeightRateView: View {
     private var rateDetailsSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
-                Text(viewModel.weeklyWeightChangeText(weightGoalBuilder: weightGoalBuilder))
+                Text(viewModel.weeklyWeightChangeText(weightGoalBuilder: delegate.weightGoalBuilder))
                     .font(.body)
                     .fontWeight(.medium)
                 
-                Text(viewModel.monthlyWeightChangeText(weightGoalBuilder: weightGoalBuilder))
+                Text(viewModel.monthlyWeightChangeText(weightGoalBuilder: delegate.weightGoalBuilder))
                     .font(.body)
                     .fontWeight(.medium)
             }
@@ -133,11 +138,11 @@ struct OnboardingWeightRateView: View {
     private var additionalInfoSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
-                Text(viewModel.estimatedCalorieTargetText(weightGoalBuilder: weightGoalBuilder))
+                Text(viewModel.estimatedCalorieTargetText(weightGoalBuilder: delegate.weightGoalBuilder))
                     .font(.callout)
                     .foregroundStyle(.secondary)
                 
-                Text(viewModel.estimatedEndDateText(weightGoalBuilder: weightGoalBuilder))
+                Text(viewModel.estimatedEndDateText(weightGoalBuilder: delegate.weightGoalBuilder))
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
@@ -161,14 +166,13 @@ struct OnboardingWeightRateView: View {
 
 #Preview("Gain Weight") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingWeightRateView(
-            viewModel: OnboardingWeightRateViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path,
-            weightGoalBuilder: .weightRateMock
+        builder.onboardingWeightRateView(
+            delegate: OnboardingWeightRateViewDelegate(
+                path: $path,
+                weightGoalBuilder: .weightRateMock
+            )
         )
     }
     .previewEnvironment()
@@ -176,14 +180,13 @@ struct OnboardingWeightRateView: View {
 
 #Preview("Lose Weight") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingWeightRateView(
-            viewModel: OnboardingWeightRateViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path,
-            weightGoalBuilder: .weightRateMock
+        builder.onboardingWeightRateView(
+            delegate: OnboardingWeightRateViewDelegate(
+                path: $path,
+                weightGoalBuilder: .weightRateMock
+            )
         )
     }
     .previewEnvironment()

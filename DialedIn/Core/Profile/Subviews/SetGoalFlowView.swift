@@ -8,19 +8,16 @@
 import SwiftUI
 
 struct SetGoalFlowView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
     @State var path: [OnboardingPathOption] = []
     
     var body: some View {
         NavigationStack {
-            OnboardingOverarchingObjectiveView(
-                viewModel: OnboardingOverarchingObjectiveViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    ),
-                    isStandaloneMode: true
-                ), path: $path
+            builder.onboardingOverarchingObjectiveView(
+                delegate: OnboardingOverarchingObjectiveViewDelegate(
+                    path: $path
+                )
             )
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

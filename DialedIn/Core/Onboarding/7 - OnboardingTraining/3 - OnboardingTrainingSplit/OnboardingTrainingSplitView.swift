@@ -7,11 +7,18 @@
 
 import SwiftUI
 
-struct OnboardingTrainingSplitView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingTrainingSplitViewModel
-    @Binding var path: [OnboardingPathOption]
+struct OnboardingTrainingSplitViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var trainingProgramBuilder: TrainingProgramBuilder
+}
+
+struct OnboardingTrainingSplitView: View {
+
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingTrainingSplitViewModel
+
+    var delegate: OnboardingTrainingSplitViewDelegate
 
     var body: some View {
         List {
@@ -44,13 +51,7 @@ struct OnboardingTrainingSplitView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
         .screenAppearAnalytics(name: "TrainingSplit")
@@ -70,7 +71,7 @@ struct OnboardingTrainingSplitView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToSchedule(path: $path, builder: trainingProgramBuilder)
+                viewModel.navigateToSchedule(path: delegate.path, builder: delegate.trainingProgramBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -82,15 +83,13 @@ struct OnboardingTrainingSplitView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingTrainingSplitView(
-            viewModel: OnboardingTrainingSplitViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ),
-            path: $path,
-            trainingProgramBuilder: TrainingProgramBuilder()
+        builder.onboardingTrainingSplitView(
+            delegate: OnboardingTrainingSplitViewDelegate(
+                path: $path,
+                trainingProgramBuilder: TrainingProgramBuilder()
+            )
         )
     }
     .previewEnvironment()

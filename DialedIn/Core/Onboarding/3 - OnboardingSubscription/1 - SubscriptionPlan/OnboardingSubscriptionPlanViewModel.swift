@@ -21,7 +21,6 @@ extension CoreInteractor: OnboardingSubscriptionPlanInteractor { }
 class OnboardingSubscriptionPlanViewModel {
     private let interactor: OnboardingSubscriptionPlanInteractor
     
-    var navigateToCompleteAccountSetup: Bool = false
     var selectedPlan: Plan = .annual
     var isPurchasing: Bool = false
     var showRestoreAlert: Bool = false

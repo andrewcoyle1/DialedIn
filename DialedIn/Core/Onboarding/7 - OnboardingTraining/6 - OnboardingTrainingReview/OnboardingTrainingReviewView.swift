@@ -7,11 +7,18 @@
 
 import SwiftUI
 
-struct OnboardingTrainingReviewView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingTrainingReviewViewModel
-    @Binding var path: [OnboardingPathOption]
+struct OnboardingTrainingReviewViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var trainingProgramBuilder: TrainingProgramBuilder
+}
+
+struct OnboardingTrainingReviewView: View {
+
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingTrainingReviewViewModel
+
+    var delegate: OnboardingTrainingReviewViewDelegate
 
     var body: some View {
         List {
@@ -36,17 +43,17 @@ struct OnboardingTrainingReviewView: View {
             }
             
             Section {
-                summaryRow(title: "Experience Level", value: trainingProgramBuilder.experienceLevel?.description ?? "Not set")
-                if let days = trainingProgramBuilder.targetDaysPerWeek {
+                summaryRow(title: "Experience Level", value: delegate.trainingProgramBuilder.experienceLevel?.description ?? "Not set")
+                if let days = delegate.trainingProgramBuilder.targetDaysPerWeek {
                     summaryRow(title: "Training Days", value: "\(days) per week")
                 }
-                summaryRow(title: "Split Type", value: trainingProgramBuilder.splitType?.description ?? "Not set")
-                if !trainingProgramBuilder.weeklySchedule.isEmpty {
-                    let days = trainingProgramBuilder.weeklySchedule.sorted().map { weekdayName($0) }.joined(separator: ", ")
+                summaryRow(title: "Split Type", value: delegate.trainingProgramBuilder.splitType?.description ?? "Not set")
+                if !delegate.trainingProgramBuilder.weeklySchedule.isEmpty {
+                    let days = delegate.trainingProgramBuilder.weeklySchedule.sorted().map { weekdayName($0) }.joined(separator: ", ")
                     summaryRow(title: "Schedule", value: days)
                 }
-                if !trainingProgramBuilder.availableEquipment.isEmpty {
-                    let equipment = trainingProgramBuilder.availableEquipment.map { $0.description }.joined(separator: ", ")
+                if !delegate.trainingProgramBuilder.availableEquipment.isEmpty {
+                    let equipment = delegate.trainingProgramBuilder.availableEquipment.map { $0.description }.joined(separator: ", ")
                     summaryRow(title: "Equipment", value: equipment)
                 }
             } header: {
@@ -64,18 +71,12 @@ struct OnboardingTrainingReviewView: View {
         .showCustomAlert(alert: $viewModel.showAlert)
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
         .screenAppearAnalytics(name: "TrainingReview")
         .onFirstAppear {
-            viewModel.loadRecommendation(builder: trainingProgramBuilder)
+            viewModel.loadRecommendation(builder: delegate.trainingProgramBuilder)
         }
     }
     
@@ -116,7 +117,7 @@ struct OnboardingTrainingReviewView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.createPlanAndContinue(path: $path, builder: trainingProgramBuilder)
+                viewModel.createPlanAndContinue(path: delegate.path, builder: delegate.trainingProgramBuilder)
             } label: {
                 Text("Create Program")
             }
@@ -128,20 +129,18 @@ struct OnboardingTrainingReviewView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingTrainingReviewView(
-            viewModel: OnboardingTrainingReviewViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
+        builder.onboardingTrainingReviewView(
+            delegate: OnboardingTrainingReviewViewDelegate(
+                path: $path,
+                trainingProgramBuilder: TrainingProgramBuilder(
+                    experienceLevel: .intermediate,
+                    targetDaysPerWeek: 4,
+                    splitType: .upperLower,
+                    weeklySchedule: [2, 4, 6, 7],
+                    availableEquipment: [.barbell, .dumbbell]
                 )
-            ),
-            path: $path,
-            trainingProgramBuilder: TrainingProgramBuilder(
-                experienceLevel: .intermediate,
-                targetDaysPerWeek: 4,
-                splitType: .upperLower,
-                weeklySchedule: [2, 4, 6, 7],
-                availableEquipment: [.barbell, .dumbbell]
             )
         )
     }

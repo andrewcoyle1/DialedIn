@@ -7,16 +7,19 @@
 
 import SwiftUI
 
-struct OnboardingActivityView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingActivityViewModel
-    @Binding var path: [OnboardingPathOption]
+struct OnboardingActivityViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var userModelBuilder: UserModelBuilder
+}
 
-    enum NavigationDestination {
-        case cardioFitness(gender: Gender, dateOfBirth: Date, height: Double, weight: Double, exerciseFrequency: ExerciseFrequency, activityLevel: ActivityLevel, lengthUnitPreference: LengthUnitPreference, weightUnitPreference: WeightUnitPreference)
-    }
-    
+struct OnboardingActivityView: View {
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingActivityViewModel
+
+    var delegate: OnboardingActivityViewDelegate
+
+
     var body: some View {
         List {
             dailyActivitySection
@@ -27,7 +30,7 @@ struct OnboardingActivityView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
     }
@@ -65,7 +68,7 @@ struct OnboardingActivityView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToCardioFitness(path: $path, userBuilder: userModelBuilder)
+                viewModel.navigateToCardioFitness(path: delegate.path, userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -101,15 +104,13 @@ struct OnboardingActivityView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingActivityView(
-            viewModel: OnboardingActivityViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ),
-            path: $path,
-            userModelBuilder: UserModelBuilder.activityLevelMock
+        builder.onboardingActivityView(
+            delegate: OnboardingActivityViewDelegate(
+                path: $path,
+                userModelBuilder: UserModelBuilder.activityLevelMock
+            )
         )
     }
     .previewEnvironment()

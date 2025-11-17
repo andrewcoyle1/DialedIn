@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+struct OnboardingNotificationsViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingNotificationsView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: OnboardingNotificationsViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingNotificationsViewDelegate
 
     var body: some View {
         List {
@@ -24,7 +30,7 @@ struct OnboardingNotificationsView: View {
         .navigationBarBackButtonHidden(true)
         #else
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
         .toolbar {
@@ -60,7 +66,7 @@ struct OnboardingNotificationsView: View {
         ToolbarSpacer(.fixed)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onSkipForNowPressed(path: $path)
+                viewModel.onSkipForNowPressed(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -117,7 +123,7 @@ struct OnboardingNotificationsView: View {
             .buttonStyle(.glassProminent)
 
             Button {
-                viewModel.onSkipForNowPressed(path: $path)
+                viewModel.onSkipForNowPressed(path: delegate.path)
             } label: {
                 Text("Not now")
                     .frame(maxWidth: .infinity)
@@ -133,7 +139,7 @@ struct OnboardingNotificationsView: View {
             subtitle: "We will send you reminders and updates",
             primaryButtonTitle: "Enable",
             primaryButtonAction: {
-                viewModel.onEnablePushNotificationsPressed(path: $path)
+                viewModel.onEnablePushNotificationsPressed(path: delegate.path)
             },
             secondaryButtonTitle: "Cancel",
             secondaryButtonAction: {
@@ -145,13 +151,12 @@ struct OnboardingNotificationsView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingNotificationsView(
-            viewModel: OnboardingNotificationsViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingNotificationsView(
+            delegate: OnboardingNotificationsViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

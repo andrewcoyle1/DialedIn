@@ -7,19 +7,24 @@
 
 import SwiftUI
 
+struct AuthOptionsViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct AuthOptionsView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
     @Environment(\.colorScheme) private var colorScheme
 
     @State var viewModel: AuthOptionsViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: AuthOptionsViewDelegate
 
     var body: some View {
         VStack {
             imageSection
             Group {
-                SignInWithAppleButtonView { viewModel.onSignInApplePressed(path: $path) }
-                SignInWithGoogleButtonView { viewModel.onSignInGooglePressed(path: $path) }
+                SignInWithAppleButtonView { viewModel.onSignInApplePressed(path: delegate.path) }
+                SignInWithGoogleButtonView { viewModel.onSignInGooglePressed(path: delegate.path) }
                 signUpButtonSection
                 signInButtonSection
                 tsAndCsSection
@@ -35,7 +40,7 @@ struct AuthOptionsView: View {
         #if DEBUG || MOCK
         .toolbar { toolbarContent }
         .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsContent
+            builder.devSettingsView()
         }
         #endif
         .showCustomAlert(alert: $viewModel.showAlert)
@@ -58,16 +63,6 @@ struct AuthOptionsView: View {
             }
         }
     }
-
-    private var devSettingsContent: some View {
-        DevSettingsView(
-            viewModel: DevSettingsViewModel(
-                interactor: CoreInteractor(
-                    container: container
-                )
-            )
-        )
-    }
     #endif
 
     private var imageSection: some View {
@@ -86,7 +81,7 @@ struct AuthOptionsView: View {
 
     private var signUpButtonSection: some View {
         Button {
-            viewModel.signUpPressed(path: $path)
+            viewModel.signUpPressed(path: delegate.path)
         } label: {
             HStack {
                 Text("Sign Up With Email")
@@ -101,7 +96,7 @@ struct AuthOptionsView: View {
 
     private var signInButtonSection: some View {
         Button {
-            viewModel.signInPressed(path: $path)
+            viewModel.signInPressed(path: delegate.path)
         } label: {
             HStack {
                 Text("Sign In With Email")
@@ -129,13 +124,12 @@ struct AuthOptionsView: View {
 
 #Preview("Functioning Auth") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        AuthOptionsView(
-            viewModel: AuthOptionsViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingAuthOptionsView(
+            delegate: AuthOptionsViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()
@@ -143,13 +137,13 @@ struct AuthOptionsView: View {
 
 #Preview("Slow Auth") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+
     NavigationStack {
-        AuthOptionsView(
-            viewModel: AuthOptionsViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingAuthOptionsView(
+            delegate: AuthOptionsViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()
@@ -157,13 +151,13 @@ struct AuthOptionsView: View {
 
 #Preview("Failing Auth") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+
     NavigationStack {
-        AuthOptionsView(
-            viewModel: AuthOptionsViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingAuthOptionsView(
+            delegate: AuthOptionsViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()
@@ -171,13 +165,13 @@ struct AuthOptionsView: View {
 
 #Preview("Slow Login") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+
     NavigationStack {
-        AuthOptionsView(
-            viewModel: AuthOptionsViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingAuthOptionsView(
+            delegate: AuthOptionsViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()
@@ -185,13 +179,13 @@ struct AuthOptionsView: View {
 
 #Preview("Failing Login") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+
     NavigationStack {
-        AuthOptionsView(
-            viewModel: AuthOptionsViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingAuthOptionsView(
+            delegate: AuthOptionsViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

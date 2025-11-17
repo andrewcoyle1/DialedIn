@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+struct OnboardingPreferredDietViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingPreferredDietView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: OnboardingPreferredDietViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingPreferredDietViewDelegate
 
     var body: some View {
         List {
@@ -40,13 +46,7 @@ struct OnboardingPreferredDietView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
     }
@@ -65,7 +65,7 @@ struct OnboardingPreferredDietView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToCalorieFloor(path: $path)
+                viewModel.navigateToCalorieFloor(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -77,13 +77,12 @@ struct OnboardingPreferredDietView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingPreferredDietView(
-            viewModel: OnboardingPreferredDietViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingPreferredDietView(
+            delegate: OnboardingPreferredDietViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+struct OnboardingOverarchingObjectiveViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingOverarchingObjectiveView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: OnboardingOverarchingObjectiveViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingOverarchingObjectiveViewDelegate
 
     var body: some View {
         List {
@@ -22,7 +28,7 @@ struct OnboardingOverarchingObjectiveView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
     }
@@ -78,7 +84,7 @@ struct OnboardingOverarchingObjectiveView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToNextStep(path: $path)
+                viewModel.navigateToNextStep(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -90,14 +96,12 @@ struct OnboardingOverarchingObjectiveView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingOverarchingObjectiveView(
-            viewModel: OnboardingOverarchingObjectiveViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                ),
-                isStandaloneMode: false
-            ), path: $path
+        builder.onboardingOverarchingObjectiveView(
+            delegate: OnboardingOverarchingObjectiveViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

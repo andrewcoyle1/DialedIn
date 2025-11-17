@@ -7,13 +7,17 @@
 
 import SwiftUI
 
-struct OnboardingGoalSummaryView: View {
-    @Environment(DependencyContainer.self) private var container
-    @Environment(\.goalFlowDismissAction) private var dismissFlow
-    @State var viewModel: OnboardingGoalSummaryViewModel
-    @Binding var path: [OnboardingPathOption]
-
+struct OnboardingGoalSummaryViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var weightGoalBuilder: WeightGoalBuilder
+}
+struct OnboardingGoalSummaryView: View {
+    @Environment(CoreBuilder.self) private var builder
+    @Environment(\.goalFlowDismissAction) private var dismissFlow
+
+    @State var viewModel: OnboardingGoalSummaryViewModel
+
+    var delegate: OnboardingGoalSummaryViewDelegate
 
     var body: some View {
         List {
@@ -29,7 +33,7 @@ struct OnboardingGoalSummaryView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
         .toolbar {
@@ -64,7 +68,7 @@ struct OnboardingGoalSummaryView: View {
                 .disabled(viewModel.isLoading || !viewModel.goalCreated)
             } else {
                 Button {
-                    viewModel.uploadGoalSettings(path: $path, weightGoalBuilder: weightGoalBuilder)
+                    viewModel.uploadGoalSettings(path: delegate.path, weightGoalBuilder: delegate.weightGoalBuilder)
                 } label: {
                     Image(systemName: "chevron.right")
                 }
@@ -80,7 +84,7 @@ struct OnboardingGoalSummaryView: View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Image(systemName: viewModel.objectiveIcon(objective: weightGoalBuilder.objective))
+                    Image(systemName: viewModel.objectiveIcon(objective: delegate.weightGoalBuilder.objective))
                         .font(.title2)
                         .foregroundColor(.accent)
                     VStack(alignment: .leading, spacing: 4) {
@@ -114,7 +118,7 @@ struct OnboardingGoalSummaryView: View {
                     )
                 }
                 
-                if let target = weightGoalBuilder.targetWeightKg {
+                if let target = delegate.weightGoalBuilder.targetWeightKg {
                     weightRow(
                         title: "Target Weight",
                         weight: target,
@@ -122,7 +126,7 @@ struct OnboardingGoalSummaryView: View {
                     )
                 }
                 
-                if viewModel.weightDifference(targetWeight: weightGoalBuilder.targetWeightKg) != 0 {
+                if viewModel.weightDifference(targetWeight: delegate.weightGoalBuilder.targetWeightKg) != 0 {
                     Divider()
                     
                     HStack {
@@ -130,10 +134,10 @@ struct OnboardingGoalSummaryView: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
-                        Text("\(viewModel.weightDifference(targetWeight: weightGoalBuilder.targetWeightKg) > 0 ? "+" : "")\(viewModel.formatWeight(abs(viewModel.weightDifference(targetWeight: weightGoalBuilder.targetWeightKg)), unit: viewModel.weightUnit))")
+                        Text("\(viewModel.weightDifference(targetWeight: delegate.weightGoalBuilder.targetWeightKg) > 0 ? "+" : "")\(viewModel.formatWeight(abs(viewModel.weightDifference(targetWeight: delegate.weightGoalBuilder.targetWeightKg)), unit: viewModel.weightUnit))")
                             .font(.subheadline)
                             .fontWeight(.medium)
-                            .foregroundColor(viewModel.weightDifference(targetWeight: weightGoalBuilder.targetWeightKg) > 0 ? .green : .red)
+                            .foregroundColor(viewModel.weightDifference(targetWeight: delegate.weightGoalBuilder.targetWeightKg) > 0 ? .green : .red)
                     }
                     
                     HStack {
@@ -141,7 +145,7 @@ struct OnboardingGoalSummaryView: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
-                        Text("\(viewModel.formatWeight(weightGoalBuilder.weeklyChangeKg ?? 0, unit: viewModel.weightUnit))/week")
+                        Text("\(viewModel.formatWeight(delegate.weightGoalBuilder.weeklyChangeKg ?? 0, unit: viewModel.weightUnit))/week")
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
@@ -163,8 +167,8 @@ struct OnboardingGoalSummaryView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Estimated Timeline")
                             .font(.headline)
-                        if viewModel.estimatedWeeks(weightGoalBuilder: weightGoalBuilder) > 0 {
-                            Text("\(viewModel.estimatedWeeks(weightGoalBuilder: weightGoalBuilder)) weeks (\(viewModel.estimatedMonths(weightGoalBuilder: weightGoalBuilder)) months)")
+                        if viewModel.estimatedWeeks(weightGoalBuilder: delegate.weightGoalBuilder) > 0 {
+                            Text("\(viewModel.estimatedWeeks(weightGoalBuilder: delegate.weightGoalBuilder)) weeks (\(viewModel.estimatedMonths(weightGoalBuilder: delegate.weightGoalBuilder)) months)")
                                 .font(.title3)
                                 .fontWeight(.semibold)
                         } else {
@@ -176,8 +180,8 @@ struct OnboardingGoalSummaryView: View {
                     Spacer()
                 }
                 
-                if viewModel.estimatedWeeks(weightGoalBuilder: weightGoalBuilder) > 0 {
-                    Text("Based on your selected rate of \(viewModel.formatWeight(weightGoalBuilder.weeklyChangeKg ?? 0, unit: viewModel.weightUnit)) per week")
+                if viewModel.estimatedWeeks(weightGoalBuilder: delegate.weightGoalBuilder) > 0 {
+                    Text("Based on your selected rate of \(viewModel.formatWeight(delegate.weightGoalBuilder.weeklyChangeKg ?? 0, unit: viewModel.weightUnit)) per week")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -200,7 +204,7 @@ struct OnboardingGoalSummaryView: View {
                     Spacer()
                 }
                 
-                Text(viewModel.motivationalMessage(objective: weightGoalBuilder.objective))
+                Text(viewModel.motivationalMessage(objective: delegate.weightGoalBuilder.objective))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -227,24 +231,23 @@ struct OnboardingGoalSummaryView: View {
 
 private extension OnboardingGoalSummaryView {
     var objectiveTitle: String {
-        weightGoalBuilder.objective.description
+        delegate.weightGoalBuilder.objective.description
     }
     
     var objectiveDetail: String {
-        weightGoalBuilder.objective.detailedDescription
+        delegate.weightGoalBuilder.objective.detailedDescription
     }
 }
 
 #Preview("Normal") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingGoalSummaryView(
-            viewModel: OnboardingGoalSummaryViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path,
-            weightGoalBuilder: WeightGoalBuilder.mock
+        builder.onboardingGoalSummaryView(
+            delegate: OnboardingGoalSummaryViewDelegate(
+                path: $path,
+                weightGoalBuilder: .mock
+            )
         )
     }
     .previewEnvironment()

@@ -16,6 +16,7 @@ struct TabBarViewDelegate {
 struct TabBarView: View {
     
     @Environment(CoreBuilder.self) private var builder
+    
     @State var viewModel: TabBarViewModel
 
     var delegate: TabBarViewDelegate

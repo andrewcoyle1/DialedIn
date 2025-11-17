@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+struct OnboardingIntroViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingIntroView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: OnboardingIntroViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingIntroViewDelegate
 
     var body: some View {
         List {
@@ -27,13 +33,7 @@ struct OnboardingIntroView: View {
         .navigationBarBackButtonHidden(true)
         #else
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(
-                viewModel: DevSettingsViewModel(
-                    interactor: CoreInteractor(
-                        container: container
-                    )
-                )
-            )
+            builder.devSettingsView()
         }
         #endif
         .screenAppearAnalytics(name: "OnboardingIntro")
@@ -120,7 +120,7 @@ struct OnboardingIntroView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToAuthOptions(path: $path)
+                viewModel.navigateToAuthOptions(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -130,13 +130,12 @@ struct OnboardingIntroView: View {
 
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingIntroView(
-            viewModel: OnboardingIntroViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ), path: $path
+        builder.onboardingIntroView(
+            delegate: OnboardingIntroViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

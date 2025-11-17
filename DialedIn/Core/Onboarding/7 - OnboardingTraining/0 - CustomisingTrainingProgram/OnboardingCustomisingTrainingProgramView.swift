@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+struct OnboardingTrainingProgramViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
+}
+
 struct OnboardingTrainingProgramView: View {
-    @Environment(DependencyContainer.self) private var container
+    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: OnboardingTrainingProgramViewModel
-    @Binding var path: [OnboardingPathOption]
+
+    var delegate: OnboardingTrainingProgramViewDelegate
 
     var body: some View {
         List {
@@ -22,7 +28,7 @@ struct OnboardingTrainingProgramView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
         .showModal(showModal: $viewModel.isLoading) {
@@ -62,7 +68,7 @@ struct OnboardingTrainingProgramView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToTrainingExperience(path: $path)
+                viewModel.navigateToTrainingExperience(path: delegate.path)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -79,7 +85,10 @@ struct OnboardingTrainingProgramView: View {
                 interactor: CoreInteractor(
                     container: DevPreview.shared.container
                 )
-            ), path: $path
+            ),
+            delegate: OnboardingTrainingProgramViewDelegate(
+                path: $path
+            )
         )
     }
     .previewEnvironment()

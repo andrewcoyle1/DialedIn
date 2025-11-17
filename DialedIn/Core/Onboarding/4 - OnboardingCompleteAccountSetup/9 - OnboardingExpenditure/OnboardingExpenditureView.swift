@@ -7,11 +7,18 @@
 
 import SwiftUI
 
-struct OnboardingExpenditureView: View {
-    @Environment(DependencyContainer.self) private var container
-    @State var viewModel: OnboardingExpenditureViewModel
-    @Binding var path: [OnboardingPathOption]
+struct OnboardingExpenditureViewDelegate {
+    var path: Binding<[OnboardingPathOption]>
     var userBuilder: UserModelBuilder
+}
+
+struct OnboardingExpenditureView: View {
+
+    @Environment(CoreBuilder.self) private var builder
+
+    @State var viewModel: OnboardingExpenditureViewModel
+
+    var delegate: OnboardingExpenditureViewDelegate
 
     var body: some View {
         List {
@@ -32,14 +39,14 @@ struct OnboardingExpenditureView: View {
             await viewModel.checkCanRequestPermissions()
         }
         .onFirstAppear {
-            viewModel.estimateExpenditure(userModelBuilder: userBuilder)
+            viewModel.estimateExpenditure(userModelBuilder: delegate.userBuilder)
         }
         .toolbar {
             toolbarContent
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            DevSettingsView(viewModel: DevSettingsViewModel(interactor: CoreInteractor(container: container)))
+            builder.devSettingsView()
         }
         #endif
     }
@@ -58,7 +65,7 @@ struct OnboardingExpenditureView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.saveAndNavigate(path: $path, userModelBuilder: userBuilder)
+                viewModel.saveAndNavigate(path: delegate.path, userModelBuilder: delegate.userBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -88,6 +95,7 @@ struct OnboardingExpenditureView: View {
     }
     
     private var breakdownItems: [OnboardingExpenditureViewModel.Breakdown] {
+        let userBuilder = delegate.userBuilder
         guard let weight = userBuilder.weight,
               let height = userBuilder.height,
               let dateOfBirth = userBuilder.dateOfBirth,
@@ -183,6 +191,8 @@ struct OnboardingExpenditureView: View {
     }
     
     private var calculatedBmrInt: Int {
+        let userBuilder = delegate.userBuilder
+
         guard let weight = userBuilder.weight,
               let height = userBuilder.height,
               let dateOfBirth = userBuilder.dateOfBirth else {
@@ -197,34 +207,36 @@ struct OnboardingExpenditureView: View {
     }
     
     private var activityDescriptionText: String {
-        guard let activityLevel = userBuilder.activityLevel else {
+        
+        guard let activityLevel = delegate.userBuilder.activityLevel else {
             return "N/A"
         }
         return viewModel.activityDescription(activityLevel: activityLevel)
     }
     
     private var calculatedBaseActivityMultiplier: Double {
-        guard let activityLevel = userBuilder.activityLevel else {
+        guard let activityLevel = delegate.userBuilder.activityLevel else {
             return 1.0
         }
         return viewModel.baseActivityMultiplier(activityLevel: activityLevel)
     }
     
     private var exerciseDescriptionText: String {
-        guard let exerciseFrequency = userBuilder.exerciseFrequency else {
+        guard let exerciseFrequency = delegate.userBuilder.exerciseFrequency else {
             return "N/A"
         }
         return viewModel.exerciseDescription(exerciseFrequency: exerciseFrequency)
     }
     
     private var calculatedExerciseAdjustment: Double {
-        guard let exerciseFrequency = userBuilder.exerciseFrequency else {
+        guard let exerciseFrequency = delegate.userBuilder.exerciseFrequency else {
             return 0.0
         }
         return viewModel.exerciseAdjustment(exerciseFrequency: exerciseFrequency)
     }
     
     private var calculatedTdeeInt: Int {
+        let userBuilder = delegate.userBuilder
         guard let weight = userBuilder.weight,
               let height = userBuilder.height,
               let dateOfBirth = userBuilder.dateOfBirth,
@@ -246,15 +258,13 @@ struct OnboardingExpenditureView: View {
 
 #Preview("Functioning") {
     @Previewable @State var path: [OnboardingPathOption] = []
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        OnboardingExpenditureView(
-            viewModel: OnboardingExpenditureViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ),
-            path: $path,
-            userBuilder: UserModelBuilder.mock
+        builder.onboardingExpenditureView(
+            delegate: OnboardingExpenditureViewDelegate(
+                path: $path,
+                userBuilder: .mock
+            )
         )
     }
     .previewEnvironment()
