@@ -182,12 +182,19 @@ struct NutritionView: View {
         Group {
             if let ingredient = viewModel.selectedIngredientTemplate {
                 NavigationStack {
-                    let delegate = IngredientDetailViewDelegate(ingredientTemplate: ingredient)
-                    ingredientDetailView(IngredientDetailViewDelegate(ingredientTemplate: ingredient))
+                    ingredientDetailView(
+                        IngredientDetailViewDelegate(
+                            ingredientTemplate: ingredient
+                        )
+                    )
                 }
             } else if let recipe = viewModel.selectedRecipeTemplate {
                 NavigationStack {
-                    recipeDetailView(RecipeDetailViewDelegate(recipeTemplate: recipe))
+                    recipeDetailView(
+                        RecipeDetailViewDelegate(
+                            recipeTemplate: recipe
+                        )
+                    )
                 }
             } else {
                 Text("Select an item")

@@ -49,7 +49,7 @@ struct ProgramRowView: View {
                 if delegate.plan.endDate != nil {
                     StatLabel(
                         icon: "calendar",
-                        text: "\(viewModel.programDuration) weeks"
+                        text: "\(viewModel.programDuration(plan: delegate.plan)) weeks"
                     )
                 } else {
                     StatLabel(

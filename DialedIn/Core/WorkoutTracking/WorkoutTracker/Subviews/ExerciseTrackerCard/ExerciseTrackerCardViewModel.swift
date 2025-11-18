@@ -49,7 +49,8 @@ class ExerciseTrackerCardViewModel {
         self.previousSetsByIndex = previousSetsByIndex
         self.notesDraft = exercise.notes ?? ""
     }
-    
+
+    // swiftlint:disable:next function_parameter_count
     func refresh(
         with exercise: WorkoutExerciseModel,
         exerciseIndex: Int,

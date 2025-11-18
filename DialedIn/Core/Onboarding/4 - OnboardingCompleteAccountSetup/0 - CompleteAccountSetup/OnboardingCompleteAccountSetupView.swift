@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+// swiftlint:disable:next type_name
 struct OnboardingCompleteAccountSetupViewDelegate {
     var path: Binding<[OnboardingPathOption]>
 }

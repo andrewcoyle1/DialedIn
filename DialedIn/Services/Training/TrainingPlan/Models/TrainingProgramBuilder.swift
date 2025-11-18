@@ -188,6 +188,3 @@ enum EquipmentType: String, CaseIterable, Identifiable, Sendable, Codable, Hasha
         }
     }
 }
-
-
-

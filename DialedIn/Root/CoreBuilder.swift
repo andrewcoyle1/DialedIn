@@ -9,6 +9,7 @@ import SwiftUI
 
 @Observable
 @MainActor
+// swiftlint:disable:next type_body_length
 class CoreBuilder {
 
     let interactor: CoreInteractor
@@ -545,6 +546,7 @@ class CoreBuilder {
         .any()
     }
 
+    // swiftlint:disable:next function_body_length
     func tabBarView(delegate: TabBarViewDelegate) -> AnyView {
         TabBarView(
             viewModel: TabBarViewModel(interactor: interactor),
@@ -618,6 +620,7 @@ class CoreBuilder {
         .any()
     }
 
+    // swiftlint:disable:next function_body_length
     func splitViewContainer(delegate: SplitViewDelegate) -> AnyView {
         SplitViewContainer(
             viewModel: SplitViewContainerViewModel(interactor: interactor),
@@ -838,6 +841,7 @@ class CoreBuilder {
         .any()
     }
 
+    // swiftlint:disable:next function_body_length
     func dashboardView(delegate: DashboardViewDelegate) -> AnyView {
         DashboardView(
             viewModel: DashboardViewModel(interactor: interactor),
@@ -964,6 +968,7 @@ class CoreBuilder {
         .any()
     }
 
+    // swiftlint:disable:next function_body_length
     func nutritionView(delegate: NutritionViewDelegate) -> AnyView {
         NutritionView(
             viewModel: NutritionViewModel(interactor: interactor),
@@ -1191,6 +1196,7 @@ class CoreBuilder {
         .any()
     }
 
+    // swiftlint:disable:next function_body_length
     func trainingView(delegate: TrainingViewDelegate) -> AnyView {
         TrainingView(
             viewModel: TrainingViewModel(interactor: interactor),
@@ -1519,6 +1525,7 @@ class CoreBuilder {
 
     // MARK: Generic Template List
 
+    // swiftlint:disable:next function_body_length
     func genericTemplateListView<Template: TemplateModel>(
         viewModel: GenericTemplateListViewModel<Template>,
         configuration: TemplateListConfiguration<Template>,
@@ -1688,6 +1695,7 @@ class CoreBuilder {
         .any()
     }
 
+    // swiftlint:disable:next function_body_length
     func profileView(delegate: ProfileViewDelegate) -> AnyView {
         ProfileView(
             viewModel: ProfileViewModel(interactor: interactor),
@@ -1816,4 +1824,5 @@ class CoreBuilder {
         )
         .any()
     }
+    // swiftlint:disable:next file_length
 }

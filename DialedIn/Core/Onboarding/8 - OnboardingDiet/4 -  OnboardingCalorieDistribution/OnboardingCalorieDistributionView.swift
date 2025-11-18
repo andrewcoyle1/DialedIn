@@ -7,10 +7,12 @@
 
 import SwiftUI
 
+// swiftlint:disable:next type_name
 struct OnboardingCalorieDistributionViewDelegate {
     var path: Binding<[OnboardingPathOption]>
     let dietPlanBuilder: DietPlanBuilder
 }
+
 struct OnboardingCalorieDistributionView: View {
 
     @State var viewModel: OnboardingCalorieDistributionViewModel

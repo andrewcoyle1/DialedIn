@@ -218,8 +218,8 @@ struct SetTrackerRowView: View {
                             updateSet { $0.weightKg = nil }
                             return
                         }
-                        let kg = UnitConversion.convertWeightToKg(value, from: delegate.weightUnit)
-                        updateSet { $0.weightKg = kg }
+                        let kilos = UnitConversion.convertWeightToKg(value, from: delegate.weightUnit)
+                        updateSet { $0.weightKg = kilos }
                     }
                 ), format: .number)
                 .textFieldStyle(.roundedBorder)

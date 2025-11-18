@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+// swiftlint:disable:next type_name
 struct OnboardingTrainingDaysPerWeekViewDelegate {
     var path: Binding<[OnboardingPathOption]>
     var trainingProgramBuilder: TrainingProgramBuilder
