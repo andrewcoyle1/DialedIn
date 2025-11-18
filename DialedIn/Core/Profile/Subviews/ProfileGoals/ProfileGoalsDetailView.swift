@@ -9,8 +9,9 @@ import SwiftUI
 
 struct ProfileGoalsDetailView: View {
 
-    @Environment(CoreBuilder.self) private var builder
     @State var viewModel: ProfileGoalsDetailViewModel
+
+    @ViewBuilder var logWeightView: () -> AnyView
 
     var body: some View {
         List {
@@ -35,7 +36,7 @@ struct ProfileGoalsDetailView: View {
             toolbarContent
         }
         .sheet(isPresented: $viewModel.showLogWeightSheet) {
-            builder.logWeightView()
+            logWeightView()
         }
         .task {
             await viewModel.getActiveGoal()

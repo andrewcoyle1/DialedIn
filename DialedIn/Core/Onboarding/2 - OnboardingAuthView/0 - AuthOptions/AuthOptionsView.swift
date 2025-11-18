@@ -12,12 +12,14 @@ struct AuthOptionsViewDelegate {
 }
 
 struct AuthOptionsView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.colorScheme) private var colorScheme
 
     @State var viewModel: AuthOptionsViewModel
 
     var delegate: AuthOptionsViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         VStack {
@@ -40,7 +42,7 @@ struct AuthOptionsView: View {
         #if DEBUG || MOCK
         .toolbar { toolbarContent }
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .showCustomAlert(alert: $viewModel.showAlert)

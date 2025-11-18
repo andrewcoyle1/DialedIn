@@ -13,11 +13,12 @@ struct OnboardingWeightRateViewDelegate {
 }
 
 struct OnboardingWeightRateView: View {
-    @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: OnboardingWeightRateViewModel
 
     var delegate: OnboardingWeightRateViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -45,7 +46,7 @@ struct OnboardingWeightRateView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .showCustomAlert(alert: $viewModel.showAlert)

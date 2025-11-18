@@ -11,10 +11,12 @@ struct IngredientDetailViewDelegate {
     let ingredientTemplate: IngredientTemplateModel
 }
 struct IngredientDetailView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: IngredientDetailViewModel
 
     let delegate: IngredientDetailViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -49,7 +51,7 @@ struct IngredientDetailView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
     }
@@ -229,7 +231,11 @@ struct IngredientDetailView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
-        builder.ingredientDetailView(delegate: IngredientDetailViewDelegate(ingredientTemplate: IngredientTemplateModel.mocks[0]))
+        builder.ingredientDetailView(
+            delegate: IngredientDetailViewDelegate(
+                ingredientTemplate: IngredientTemplateModel.mocks[0]
+            )
+        )
     }
     .previewEnvironment()
 }

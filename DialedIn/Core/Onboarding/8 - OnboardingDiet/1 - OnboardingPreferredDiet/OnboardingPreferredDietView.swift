@@ -12,11 +12,12 @@ struct OnboardingPreferredDietViewDelegate {
 }
 
 struct OnboardingPreferredDietView: View {
-    @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: OnboardingPreferredDietViewModel
 
     var delegate: OnboardingPreferredDietViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -46,7 +47,7 @@ struct OnboardingPreferredDietView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
     }

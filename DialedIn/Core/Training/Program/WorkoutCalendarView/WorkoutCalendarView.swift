@@ -14,16 +14,16 @@ struct WorkoutCalendarViewDelegate {
 
 struct WorkoutCalendarView: View {
 
-    @Environment(CoreBuilder.self) private var builder
-
     @State var viewModel: WorkoutCalendarViewModel
 
     let delegate: WorkoutCalendarViewDelegate
 
+    @ViewBuilder var enhancedScheduleView: (EnhancedScheduleViewDelegate) -> AnyView
+
     var body: some View {
         Section(isExpanded: $viewModel.isShowingCalendar) {
-            builder.enhancedScheduleView(
-                delegate: EnhancedScheduleViewDelegate(
+            enhancedScheduleView(
+                EnhancedScheduleViewDelegate(
                     getScheduledWorkouts: {
                         viewModel.scheduledWorkouts
                     },

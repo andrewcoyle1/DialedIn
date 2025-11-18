@@ -12,12 +12,14 @@ struct EmailVerificationViewDelegate {
 }
 
 struct EmailVerificationView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: EmailVerificationViewModel
 
     var delegate: EmailVerificationViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -42,7 +44,7 @@ struct EmailVerificationView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .onFirstTask {

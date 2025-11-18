@@ -13,12 +13,15 @@ struct CreateWorkoutViewDelegate {
 }
 
 struct CreateWorkoutView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: CreateWorkoutViewModel
 
     var delegate: CreateWorkoutViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
+    @ViewBuilder var addExerciseModalView: (AddExerciseModalViewDelegate) -> AnyView
 
     var body: some View {
         NavigationStack {
@@ -49,11 +52,11 @@ struct CreateWorkoutView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView, content: {
-                builder.devSettingsView()
+                devSettingsView()
             })
             #endif
             .sheet(isPresented: $viewModel.showAddExerciseModal) {
-                builder.addExerciseModalView(delegate: AddExerciseModalViewDelegate(selectedExercises: $viewModel.exercises))
+                addExerciseModalView(AddExerciseModalViewDelegate(selectedExercises: $viewModel.exercises))
             }
             .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
                 Button("OK") {
@@ -215,33 +218,25 @@ struct CreateWorkoutView: View {
 
 #Preview("With Exercises") {
     @Previewable @State var showingSheet: Bool = true
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     Button("Show Sheet") {
         showingSheet = true
     }
     .sheet(isPresented: $showingSheet) {
-        CreateWorkoutView(
-            viewModel: CreateWorkoutViewModel(interactor: CoreInteractor(
-                container: DevPreview.shared.container)
-            ),
-            delegate: CreateWorkoutViewDelegate(workoutTemplate: WorkoutTemplateModel.mock)
-        )
+        builder.createWorkoutView(delegate: CreateWorkoutViewDelegate(workoutTemplate: .mock))
     }
     .previewEnvironment()
 }
 
 #Preview("Without Exercises") {
     @Previewable @State var showingSheet: Bool = true
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+
     Button("Show Sheet") {
         showingSheet = true
     }
     .sheet(isPresented: $showingSheet) {
-        CreateWorkoutView(
-            viewModel: CreateWorkoutViewModel(
-                interactor: CoreInteractor(
-                container: DevPreview.shared.container)
-            ),
-            delegate: CreateWorkoutViewDelegate()
-        )
+        builder.createWorkoutView(delegate: CreateWorkoutViewDelegate())
     }
     .previewEnvironment()
 }

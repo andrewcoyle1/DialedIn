@@ -13,26 +13,44 @@ struct RecipeTemplateListViewDelegate {
 
 struct RecipeTemplateListView: View {
     @State var viewModel: RecipeTemplateListViewModel
+    let genericTemplateListView: (
+        RecipeTemplateListViewModel,
+        TemplateListConfiguration<RecipeTemplateModel>,
+        Bool,
+        [String]?
+    ) -> AnyView
     
-    init(interactor: RecipeTemplateListInteractor, delegate: RecipeTemplateListViewDelegate) {
+    init(
+        interactor: RecipeTemplateListInteractor,
+        delegate: RecipeTemplateListViewDelegate,
+        genericTemplateListView: @escaping (
+            RecipeTemplateListViewModel,
+            TemplateListConfiguration<RecipeTemplateModel>,
+            Bool,
+            [String]?
+        ) -> AnyView
+    ) {
         self.viewModel = RecipeTemplateListViewModel.create(
             interactor: interactor,
             templateIds: delegate.templateIds
         )
+        self.genericTemplateListView = genericTemplateListView
     }
 
     var body: some View {
-        GenericTemplateListView(
-            viewModel: viewModel,
-            configuration: .recipe,
-            supportsRefresh: true
+        genericTemplateListView(
+            viewModel,
+            .recipe,
+            true,
+            viewModel.templateIds
         )
     }
 }
 
 #Preview {
-    RecipeTemplateListView(
-        interactor: CoreInteractor(container: DevPreview.shared.container),
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+
+    return builder.recipeTemplateListView(
         delegate: RecipeTemplateListViewDelegate(templateIds: [])
     )
 }

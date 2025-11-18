@@ -13,12 +13,14 @@ struct RecipeDetailViewDelegate {
 
 struct RecipeDetailView: View {
 
-    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: RecipeDetailViewModel
 
     let delegate: RecipeDetailViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
+    @ViewBuilder var recipeStartView: (RecipeStartViewDelegate) -> AnyView
 
     var body: some View {
         List {
@@ -41,7 +43,7 @@ struct RecipeDetailView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .onAppear { viewModel.loadInitialState(recipeTemplate: delegate.recipeTemplate)}
@@ -52,7 +54,11 @@ struct RecipeDetailView: View {
             viewModel.isFavourited = user?.favouritedRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false
         }
         .sheet(isPresented: $viewModel.showStartSessionSheet) {
-            RecipeStartView(recipe: delegate.recipeTemplate)
+            recipeStartView(
+                RecipeStartViewDelegate(
+                    recipe: delegate.recipeTemplate
+                )
+            )
         }
     }
     

@@ -19,12 +19,13 @@ struct WorkoutStartViewDelegate {
 }
 
 struct WorkoutStartView: View {
-    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
     
     @State var viewModel: WorkoutStartViewModel
     
     let delegate: WorkoutStartViewDelegate
+
+    @ViewBuilder var workoutTrackerView: (WorkoutTrackerViewDelegate) -> AnyView
 
     var body: some View {
         NavigationStack {
@@ -53,7 +54,7 @@ struct WorkoutStartView: View {
             }
         }, content: {
             if let session = viewModel.createdSession {
-                builder.workoutTrackerView(delegate: WorkoutTrackerViewDelegate(workoutSession: session))
+                workoutTrackerView(WorkoutTrackerViewDelegate(workoutSession: session))
             }
         })
     }

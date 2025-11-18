@@ -12,11 +12,12 @@ struct SignInViewDelegate {
 }
 
 struct SignInView: View {
-    @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: SignInViewModel
 
     var delegate: SignInViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -39,7 +40,7 @@ struct SignInView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
     }

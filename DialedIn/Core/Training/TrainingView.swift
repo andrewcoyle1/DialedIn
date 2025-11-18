@@ -15,12 +15,47 @@ struct TrainingViewDelegate {
 }
 
 struct TrainingView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: TrainingViewModel
 
     var delegate: TrainingViewDelegate
+
+    @ViewBuilder var exerciseTemplateDetailView: (ExerciseTemplateDetailViewDelegate) -> AnyView
+    @ViewBuilder var workoutTemplateDetailView: (WorkoutTemplateDetailViewDelegate) -> AnyView
+    @ViewBuilder var workoutSessionDetailView: (WorkoutSessionDetailViewDelegate) -> AnyView
+    @ViewBuilder var devSettingsView: () -> AnyView
+    @ViewBuilder var notificationsView: () -> AnyView
+    @ViewBuilder var workoutStartView: (WorkoutStartViewDelegate) -> AnyView
+    @ViewBuilder var programManagementView: (ProgramManagementViewDelegate) -> AnyView
+    @ViewBuilder var progressDashboardView: () -> AnyView
+    @ViewBuilder var strengthProgressView: () -> AnyView
+    @ViewBuilder var workoutHeatmapView: () -> AnyView
+    @ViewBuilder var programView: (ProgramViewDelegate) -> AnyView
+    @ViewBuilder var workoutsView: (WorkoutsViewDelegate) -> AnyView
+    @ViewBuilder var exercisesView: (ExercisesViewDelegate) -> AnyView
+    @ViewBuilder var workoutHistoryView: (WorkoutHistoryViewDelegate) -> AnyView
+
+    @ViewBuilder var exerciseTemplateListView: (ExerciseTemplateListViewDelegate) -> AnyView
+    @ViewBuilder var workoutTemplateListView: (WorkoutTemplateListViewDelegate) -> AnyView
+    @ViewBuilder var ingredientDetailView: (IngredientDetailViewDelegate) -> AnyView
+    @ViewBuilder var ingredientTemplateListView: (IngredientTemplateListViewDelegate) -> AnyView
+    @ViewBuilder var ingredientAmountView: (IngredientAmountViewDelegate) -> AnyView
+    @ViewBuilder var recipeDetailView: (RecipeDetailViewDelegate) -> AnyView
+    @ViewBuilder var recipeTemplateListView: (RecipeTemplateListViewDelegate) -> AnyView
+    @ViewBuilder var recipeAmountView: (RecipeAmountViewDelegate) -> AnyView
+    @ViewBuilder var mealDetailView: (MealDetailViewDelegate) -> AnyView
+    @ViewBuilder var profileGoalsDetailView: () -> AnyView
+    @ViewBuilder var profileEditView: () -> AnyView
+    @ViewBuilder var profileNutritionDetailView: () -> AnyView
+    @ViewBuilder var profilePhysicalStatsView: () -> AnyView
+    @ViewBuilder var settingsView: (SettingsViewDelegate) -> AnyView
+    @ViewBuilder var manageSubscriptionView: () -> AnyView
+    @ViewBuilder var programPreviewView: (ProgramPreviewViewDelegate) -> AnyView
+    @ViewBuilder var customProgramBuilderView: (CustomProgramBuilderViewDelegate) -> AnyView
+    @ViewBuilder var programGoalsView: (ProgramGoalsViewDelegate) -> AnyView
+    @ViewBuilder var programScheduleView: (ProgramScheduleViewDelegate) -> AnyView
 
     var body: some View {
         Group {
@@ -28,7 +63,31 @@ struct TrainingView: View {
                 NavigationStack(path: delegate.path) {
                     contentView
                 }
-                .navDestinationForTabBarModule(path: delegate.path)
+                .navDestinationForTabBarModule(
+                    path: delegate.path,
+                    exerciseTemplateDetailView: exerciseTemplateDetailView,
+                    exerciseTemplateListView: exerciseTemplateListView,
+                    workoutTemplateListView: workoutTemplateListView,
+                    workoutTemplateDetailView: workoutTemplateDetailView,
+                    ingredientDetailView: ingredientDetailView,
+                    ingredientTemplateListView: ingredientTemplateListView,
+                    ingredientAmountView: ingredientAmountView,
+                    recipeDetailView: recipeDetailView,
+                    recipeTemplateListView: recipeTemplateListView,
+                    recipeAmountView: recipeAmountView,
+                    workoutSessionDetailView: workoutSessionDetailView,
+                    mealDetailView: mealDetailView,
+                    profileGoalsDetailView: profileGoalsDetailView,
+                    profileEditView: profileEditView,
+                    profileNutritionDetailView: profileNutritionDetailView,
+                    profilePhysicalStatsView: profilePhysicalStatsView,
+                    settingsView: settingsView,
+                    manageSubscriptionView: manageSubscriptionView,
+                    programPreviewView: programPreviewView,
+                    customProgramBuilderView: customProgramBuilderView,
+                    programGoalsView: programGoalsView,
+                    programScheduleView: programScheduleView
+                )
             } else {
                 contentView
             }
@@ -38,15 +97,15 @@ struct TrainingView: View {
             Group {
                 if let exercise = viewModel.selectedExerciseTemplate {
                     NavigationStack {
-                        builder.exerciseTemplateDetailView(delegate: ExerciseTemplateDetailViewDelegate(exerciseTemplate: exercise))
+                        exerciseTemplateDetailView(ExerciseTemplateDetailViewDelegate(exerciseTemplate: exercise))
                     }
                 } else if let workout = viewModel.selectedWorkoutTemplate {
                     NavigationStack {
-                        builder.workoutTemplateDetailView(delegate: WorkoutTemplateDetailViewDelegate(workoutTemplate: workout))
+                        workoutTemplateDetailView(WorkoutTemplateDetailViewDelegate(workoutTemplate: workout))
                     }
                 } else if let session = viewModel.selectedHistorySession {
                     NavigationStack {
-                        builder.workoutSessionDetailView(delegate: WorkoutSessionDetailViewDelegate(workoutSession: session))
+                        workoutSessionDetailView(WorkoutSessionDetailViewDelegate(workoutSession: session))
                     }
                 } else {
                     Text("Select an item").foregroundStyle(.secondary).padding()
@@ -86,26 +145,26 @@ struct TrainingView: View {
             .scrollIndicators(.hidden)
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView) {
-                builder.devSettingsView()
+                devSettingsView()
             }
             #endif
             .sheet(isPresented: $viewModel.showNotificationsView) {
-                builder.notificationsView()
+                notificationsView()
             }
             .sheet(item: $viewModel.workoutToStart) { template in
                 let delegate = WorkoutStartViewDelegate(template: template, scheduledWorkout: viewModel.scheduledWorkoutToStart)
-                builder.workoutStartView(delegate: delegate)
+                workoutStartView(delegate)
             }
             .sheet(item: $viewModel.programActiveSheet) { sheet in
                 switch sheet {
                 case .programPicker:
-                    builder.programManagementView(delegate: ProgramManagementViewDelegate(path: delegate.path))
+                    programManagementView(ProgramManagementViewDelegate(path: delegate.path))
                 case .progressDashboard:
-                    builder.progressDashboardView()
+                    progressDashboardView()
                 case .strengthProgress:
-                    builder.strengthProgressView()
+                    strengthProgressView()
                 case .workoutHeatmap:
-                    builder.workoutHeatmapView()
+                    workoutHeatmapView()
                 case .addGoal:
                     // This case is handled by the ProgramView's sheet modifier
                     EmptyView()
@@ -137,8 +196,8 @@ struct TrainingView: View {
         Group {
             switch viewModel.presentationMode {
             case .program:
-                builder.programView(
-                    delegate: ProgramViewDelegate(
+                programView(
+                    ProgramViewDelegate(
                         onSessionSelectionChangeded: { session in
                             viewModel.selectedHistorySession = session
                         },
@@ -154,24 +213,24 @@ struct TrainingView: View {
                     )
                 )
             case .workouts:
-                builder.workoutsView(
-                    delegate: WorkoutsViewDelegate(
+                workoutsView(
+                    WorkoutsViewDelegate(
                         onWorkoutSelectionChanged: { workout in
                             viewModel.selectedWorkoutTemplate = workout
                         }
                     )
                 )
             case .exercises:
-                builder.exercisesView(
-                    delegate: ExercisesViewDelegate(
+                exercisesView(
+                    ExercisesViewDelegate(
                         onExerciseSelectionChanged: { exercise in
                             viewModel.selectedExerciseTemplate = exercise
                         }
                     )
                 )
             case .history:
-                builder.workoutHistoryView(
-                    delegate: WorkoutHistoryViewDelegate(
+                workoutHistoryView(
+                    WorkoutHistoryViewDelegate(
                         onSessionSelectionChanged: { session in
                             viewModel.selectedHistorySession = session
                         }

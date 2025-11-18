@@ -8,10 +8,11 @@
 import SwiftUI
 
 struct ProfilePhysicalStatsView: View {
-    @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: ProfilePhysicalStatsViewModel
-        
+
+    @ViewBuilder var logWeightView: () -> AnyView
+    
     var body: some View {
         List {
             if let user = viewModel.currentUser {
@@ -32,7 +33,7 @@ struct ProfilePhysicalStatsView: View {
             toolbarContent
         }
         .sheet(isPresented: $viewModel.showLogWeightSheet) {
-            builder.logWeightView()
+            logWeightView()
         }
         .task {
             await viewModel.loadWeights()

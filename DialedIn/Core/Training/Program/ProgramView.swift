@@ -14,12 +14,18 @@ struct ProgramViewDelegate {
 }
 
 struct ProgramView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: ProgramViewModel
 
     let delegate: ProgramViewDelegate
+
+    @ViewBuilder var addGoalView: (AddGoalViewDelegate) -> AnyView
+    @ViewBuilder var workoutSummaryCardView: (WorkoutSummaryCardViewDelegate) -> AnyView
+    @ViewBuilder var todaysWorkoutCardView: (TodaysWorkoutCardViewDelegate) -> AnyView
+    @ViewBuilder var workoutCalendarView: (WorkoutCalendarViewDelegate) -> AnyView
+    @ViewBuilder var scheduledWorkoutRowView: (ScheduledWorkoutRowViewDelegate) -> AnyView
 
     var body: some View {
         List {
@@ -42,7 +48,7 @@ struct ProgramView: View {
         }
         .sheet(isPresented: $viewModel.showAddGoalSheet) {
             if let plan = viewModel.currentTrainingPlan {
-                builder.addGoalView(delegate: AddGoalViewDelegate(plan: plan))
+                addGoalView(AddGoalViewDelegate(plan: plan))
             }
         }
     }
@@ -160,8 +166,8 @@ struct ProgramView: View {
                 Section {
                     ForEach(todaysWorkouts) { workout in
                         if workout.isCompleted {
-                            builder.workoutSummaryCardView(
-                                delegate: WorkoutSummaryCardViewDelegate(
+                            workoutSummaryCardView(
+                                WorkoutSummaryCardViewDelegate(
                                     scheduledWorkout: workout,
                                     onTap: {
                                         viewModel.openCompletedSession(
@@ -172,8 +178,8 @@ struct ProgramView: View {
                             )
                             .id(workout.id)
                         } else {
-                            builder.todaysWorkoutCardView(
-                                delegate: TodaysWorkoutCardViewDelegate(
+                            todaysWorkoutCardView(
+                                TodaysWorkoutCardViewDelegate(
                                     scheduledWorkout: workout,
                                     onStart: {
                                         Task {
@@ -192,8 +198,8 @@ struct ProgramView: View {
     }
     
     private var calendarSection: some View {
-        builder.workoutCalendarView(
-            delegate: WorkoutCalendarViewDelegate(
+        workoutCalendarView(
+            WorkoutCalendarViewDelegate(
                 onSessionSelectionChanged: { session in
                     viewModel.selectedHistorySession = session
                     viewModel
@@ -229,8 +235,8 @@ struct ProgramView: View {
         } else {
             ForEach(workoutsForDay) { workout in
                 if workout.isCompleted {
-                    builder.workoutSummaryCardView(
-                        delegate: WorkoutSummaryCardViewDelegate(
+                    workoutSummaryCardView(
+                        WorkoutSummaryCardViewDelegate(
                             scheduledWorkout: workout, onTap: {
                                 viewModel.openCompletedSession(for: workout)
                                 
@@ -239,7 +245,7 @@ struct ProgramView: View {
                     )
                     .id(workout.id)
                 } else {
-                    builder.scheduledWorkoutRowView(delegate: ScheduledWorkoutRowViewDelegate(scheduledWorkout: workout))
+                    scheduledWorkoutRowView(ScheduledWorkoutRowViewDelegate(scheduledWorkout: workout))
                     .contentShape(
                         Rectangle()
                     )

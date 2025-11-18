@@ -9,11 +9,13 @@ import SwiftUI
 import PhotosUI
 
 struct CreateExerciseView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: CreateExerciseViewModel
-    
+
+    @ViewBuilder var devSettingsView: () -> AnyView
+
     var body: some View {
         NavigationStack {
             List {
@@ -65,7 +67,7 @@ struct CreateExerciseView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView) {
-                builder.devSettingsView()
+                devSettingsView()
             }
             #endif
             .showCustomAlert(alert: $viewModel.alert)

@@ -13,11 +13,11 @@ struct SignUpViewDelegate {
 
 struct SignUpView: View {
 
-    @Environment(CoreBuilder.self) private var builder
-
     @State var viewModel: SignUpViewModel
 
     var delegate: SignUpViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -31,7 +31,7 @@ struct SignUpView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .showCustomAlert(alert: $viewModel.showAlert)

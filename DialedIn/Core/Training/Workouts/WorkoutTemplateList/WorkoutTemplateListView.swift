@@ -15,21 +15,35 @@ struct WorkoutTemplateListView: View {
     @State var viewModel: WorkoutTemplateListViewModel
     let delegate: WorkoutTemplateListViewDelegate
     let config: TemplateListConfiguration<WorkoutTemplateModel>
+    let genericTemplateListView: (
+        WorkoutTemplateListViewModel,
+        TemplateListConfiguration<WorkoutTemplateModel>,
+        Bool,
+        [String]?
+    ) -> AnyView
 
     init(
         viewModel: WorkoutTemplateListViewModel,
-        delegate: WorkoutTemplateListViewDelegate
+        delegate: WorkoutTemplateListViewDelegate,
+        genericTemplateListView: @escaping (
+            WorkoutTemplateListViewModel,
+            TemplateListConfiguration<WorkoutTemplateModel>,
+            Bool,
+            [String]?
+        ) -> AnyView
     ) {
         self.viewModel = viewModel
         self.delegate = delegate
         self.config = delegate.templateIds != nil ? .workout : .workout(customTitle: "Workout Templates", customEmptyDescription: "No workout templates available.")
+        self.genericTemplateListView = genericTemplateListView
     }
 
     var body: some View {
-        GenericTemplateListView(
-            viewModel: viewModel,
-            configuration: config,
-            templateIdsOverride: delegate.templateIds
+        genericTemplateListView(
+            viewModel,
+            config,
+            false,
+            delegate.templateIds
         )
     }
 }

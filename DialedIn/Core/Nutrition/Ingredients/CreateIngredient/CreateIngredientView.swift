@@ -9,10 +9,12 @@ import SwiftUI
 import PhotosUI
 
 struct CreateIngredientView: View {
-    @Environment(CoreBuilder.self) private var builder
-    @State var viewModel: CreateIngredientViewModel
     @Environment(\.dismiss) private var dismiss
-    
+
+    @State var viewModel: CreateIngredientViewModel
+
+    @ViewBuilder var devSettingsView: () -> AnyView
+
     var body: some View {
         NavigationStack {
             List {
@@ -73,7 +75,7 @@ struct CreateIngredientView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView) {
-                builder.devSettingsView()
+                devSettingsView()
             }
             #endif
             .showCustomAlert(alert: $viewModel.alert)

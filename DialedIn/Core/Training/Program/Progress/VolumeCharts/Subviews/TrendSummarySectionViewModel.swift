@@ -30,7 +30,7 @@ class TrendSummarySectionViewModel {
         }
     }
     
-    func trendColor(trend: VolumeTrend) ->  Color {
+    func trendColor(trend: VolumeTrend) -> Color {
         switch trend.trendDirection {
         case .increasing: return .green
         case .decreasing: return .red
@@ -38,7 +38,7 @@ class TrendSummarySectionViewModel {
         }
     }
     
-    func trendText(trend: VolumeTrend) ->  String {
+    func trendText(trend: VolumeTrend) -> String {
         switch trend.trendDirection {
         case .increasing: return "+\(Int(abs(trend.percentageChange)))%"
         case .decreasing: return "-\(Int(abs(trend.percentageChange)))%"
@@ -46,7 +46,7 @@ class TrendSummarySectionViewModel {
         }
     }
     
-    func trendInsight(trend: VolumeTrend) ->  String {
+    func trendInsight(trend: VolumeTrend) -> String {
         switch trend.trendDirection {
         case .increasing:
             return "Great progress! Your training volume has increased by \(Int(abs(trend.percentageChange)))%. Keep up the momentum!"

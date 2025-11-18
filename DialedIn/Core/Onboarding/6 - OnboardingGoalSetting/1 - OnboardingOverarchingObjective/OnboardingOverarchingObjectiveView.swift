@@ -12,11 +12,12 @@ struct OnboardingOverarchingObjectiveViewDelegate {
 }
 
 struct OnboardingOverarchingObjectiveView: View {
-    @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: OnboardingOverarchingObjectiveViewModel
 
     var delegate: OnboardingOverarchingObjectiveViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -28,7 +29,7 @@ struct OnboardingOverarchingObjectiveView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
     }

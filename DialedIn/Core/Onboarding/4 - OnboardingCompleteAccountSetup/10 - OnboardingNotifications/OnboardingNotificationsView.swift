@@ -12,11 +12,12 @@ struct OnboardingNotificationsViewDelegate {
 }
 
 struct OnboardingNotificationsView: View {
-    @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: OnboardingNotificationsViewModel
 
     var delegate: OnboardingNotificationsViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -30,7 +31,7 @@ struct OnboardingNotificationsView: View {
         .navigationBarBackButtonHidden(true)
         #else
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .toolbar {

@@ -9,10 +9,13 @@ import SwiftUI
 import Charts
 
 struct VolumeChartsView: View {
-    @State var viewModel: VolumeChartsViewModel
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.dismiss) private var dismiss
-    
+
+    @State var viewModel: VolumeChartsViewModel
+
+    @ViewBuilder var trendSummarySection: (TrendSummarySectionDelegate) -> AnyView
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -31,7 +34,7 @@ struct VolumeChartsView: View {
                             .padding(40)
                     } else if let trend = viewModel.volumeTrend {
                         VolumeChartSection(trend: trend)
-                        builder.trendSummarySection(delegate: TrendSummarySectionDelegate(trend: trend))
+                        trendSummarySection(TrendSummarySectionDelegate(trend: trend))
                     } else {
                         EmptyState()
                     }

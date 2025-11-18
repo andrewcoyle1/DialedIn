@@ -94,10 +94,7 @@ struct OnboardingCompletedView: View {
     builder.onboardingCompletedView(
         delegate: OnboardingCompletedViewDelegate(
             path: $path
-        ),
-        devSettingsView: {
-            Text("Dev Settings").any()
-        }
+        )
     )
     .previewEnvironment()
 }

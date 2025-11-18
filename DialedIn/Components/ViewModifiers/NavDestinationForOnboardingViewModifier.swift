@@ -9,285 +9,228 @@ import SwiftUI
 
 struct NavDestinationForOnboardingViewModifier: ViewModifier {
 
-    @Environment(CoreBuilder.self) private var builder
     let path: Binding<[OnboardingPathOption]>
-    
+
+    @ViewBuilder var onboardingIntroView: (OnboardingIntroViewDelegate) -> AnyView
+    @ViewBuilder var onboardingAuthOptionsView: (AuthOptionsViewDelegate) -> AnyView
+    @ViewBuilder var onboardingSignInView: (SignInViewDelegate) -> AnyView
+    @ViewBuilder var onboardingSignUpView: (SignUpViewDelegate) -> AnyView
+    @ViewBuilder var onboardingEmailVerificationView: (EmailVerificationViewDelegate) -> AnyView
+    @ViewBuilder var onboardingSubscriptionView: (OnboardingSubscriptionViewDelegate) -> AnyView
+    @ViewBuilder var onboardingSubscriptionPlanView: (OnboardingSubscriptionPlanViewDelegate) -> AnyView
+    @ViewBuilder var onboardingCompleteAccountSetupView: (OnboardingCompleteAccountSetupViewDelegate) -> AnyView
+    @ViewBuilder var onboardingNamePhotoView: (OnboardingNamePhotoViewDelegate) -> AnyView
+    @ViewBuilder var onboardingGenderView: (OnboardingGenderViewDelegate) -> AnyView
+    @ViewBuilder var onboardingDateOfBirthView: (OnboardingDateOfBirthViewDelegate) -> AnyView
+    @ViewBuilder var onboardingHeightView: (OnboardingHeightViewDelegate) -> AnyView
+    @ViewBuilder var onboardingWeightView: (OnboardingWeightViewDelegate) -> AnyView
+    @ViewBuilder var onboardingExerciseFrequencyView: (OnboardingExerciseFrequencyViewDelegate) -> AnyView
+    @ViewBuilder var onboardingActivityView: (OnboardingActivityViewDelegate) -> AnyView
+    @ViewBuilder var onboardingCardioFitnessView: (OnboardingCardioFitnessViewDelegate) -> AnyView
+    @ViewBuilder var onboardingExpenditureView: (OnboardingExpenditureViewDelegate) -> AnyView
+    @ViewBuilder var onboardingHealthDataView: (OnboardingHealthDataViewDelegate) -> AnyView
+    @ViewBuilder var onboardingNotificationsView: (OnboardingNotificationsViewDelegate) -> AnyView
+    @ViewBuilder var onboardingHealthDisclaimerView: (OnboardingHealthDisclaimerViewDelegate) -> AnyView
+    @ViewBuilder var onboardingGoalSettingView: (OnboardingGoalSettingViewDelegate) -> AnyView
+    @ViewBuilder var onboardingOverarchingObjectiveView: (OnboardingOverarchingObjectiveViewDelegate) -> AnyView
+    @ViewBuilder var onboardingTargetWeightView: (OnboardingTargetWeightViewDelegate) -> AnyView
+    @ViewBuilder var onboardingWeightRateView: (OnboardingWeightRateViewDelegate) -> AnyView
+    @ViewBuilder var onboardingGoalSummaryView: (OnboardingGoalSummaryViewDelegate) -> AnyView
+    @ViewBuilder var onboardingCustomisingProgramView: (OnboardingCustomisingProgramViewDelegate) -> AnyView
+    @ViewBuilder var onboardingTrainingExperienceView: (OnboardingTrainingExperienceViewDelegate) -> AnyView
+    @ViewBuilder var onboardingTrainingDaysPerWeekView: (OnboardingTrainingDaysPerWeekViewDelegate) -> AnyView
+    @ViewBuilder var onboardingTrainingSplitView: (OnboardingTrainingSplitViewDelegate) -> AnyView
+    @ViewBuilder var onboardingTrainingScheduleView: (OnboardingTrainingScheduleViewDelegate) -> AnyView
+    @ViewBuilder var onboardingTrainingEquipmentView: (OnboardingTrainingEquipmentViewDelegate) -> AnyView
+    @ViewBuilder var onboardingTrainingReviewView: (OnboardingTrainingReviewViewDelegate) -> AnyView
+    @ViewBuilder var onboardingPreferredDietView: (OnboardingPreferredDietViewDelegate) -> AnyView
+    @ViewBuilder var onboardingCalorieFloorView: (OnboardingCalorieFloorViewDelegate) -> AnyView
+    @ViewBuilder var onboardingTrainingTypeView: (OnboardingTrainingTypeViewDelegate) -> AnyView
+    @ViewBuilder var onboardingCalorieDistributionView: (OnboardingCalorieDistributionViewDelegate) -> AnyView
+    @ViewBuilder var onboardingProteinIntakeView: (OnboardingProteinIntakeViewDelegate) -> AnyView
+    @ViewBuilder var onboardingDietPlanView: (OnboardingDietPlanViewDelegate) -> AnyView
+    @ViewBuilder var onboardingCompletedView: (OnboardingCompletedViewDelegate) -> AnyView
+
     // swiftlint:disable:next function_body_length cyclomatic_complexity
     func body(content: Content) -> some View {
         content
             .navigationDestination(for: OnboardingPathOption.self) { newValue in
                 switch newValue {
                 case OnboardingPathOption.intro:
-                    builder.onboardingIntroView(
-                        delegate: OnboardingIntroViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingIntroView(OnboardingIntroViewDelegate(path: path))
                 case OnboardingPathOption.authOptions:
-                    builder.onboardingAuthOptionsView(
-                        delegate: AuthOptionsViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingAuthOptionsView(AuthOptionsViewDelegate(path: path))
                 case OnboardingPathOption.signIn:
-                    builder.onboardingSignInView(
-                        delegate: SignInViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingSignInView(SignInViewDelegate(path: path))
                 case OnboardingPathOption.signUp:
-                    builder.onboardingSignUpView(
-                        delegate: SignUpViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingSignUpView(SignUpViewDelegate(path: path))
                 case OnboardingPathOption.emailVerification:
-                    builder.onboardingEmailVerificationView(
-                        delegate: EmailVerificationViewDelegate(
-                            path: path
-                        )
-                    )
-
+                    onboardingEmailVerificationView(EmailVerificationViewDelegate(path: path))
                 case OnboardingPathOption.subscriptionInfo:
-                    builder.onboardingSubscriptionView(
-                        delegate: OnboardingSubscriptionViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingSubscriptionView(OnboardingSubscriptionViewDelegate(path: path))
                 case OnboardingPathOption.subscriptionPlan:
-                    builder.onboardingSubscriptionPlanView(
-                        delegate: OnboardingSubscriptionPlanViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingSubscriptionPlanView(OnboardingSubscriptionPlanViewDelegate(path: path))
                 case OnboardingPathOption.completeAccount:
-                    builder.onboardingCompleteAccountSetupView(
-                        delegate: OnboardingCompleteAccountSetupViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingCompleteAccountSetupView(OnboardingCompleteAccountSetupViewDelegate(path: path))
                 case OnboardingPathOption.namePhoto:
-                    builder.onboardingNamePhotoView(
-                        delegate: OnboardingNamePhotoViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingNamePhotoView(OnboardingNamePhotoViewDelegate(path: path))
                 case OnboardingPathOption.gender:
-                    builder.onboardingGenderView(
-                        delegate: OnboardingGenderViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingGenderView(OnboardingGenderViewDelegate(path: path))
                 case OnboardingPathOption.dateOfBirth(userModelBuilder: let userModelBuilder):
-                    builder.onboardingDateOfBirthView(
-                        delegate: OnboardingDateOfBirthViewDelegate(
-                            path: path,
-                            userModelBuilder: userModelBuilder
-                        )
-                    )
+                    onboardingDateOfBirthView(OnboardingDateOfBirthViewDelegate(path: path, userModelBuilder: userModelBuilder))
                 case OnboardingPathOption.height(userModelBuilder: let userModelBuilder):
-                    builder.onboardingHeightView(
-                        delegate: OnboardingHeightViewDelegate(
-                            path: path,
-                            userModelBuilder: userModelBuilder
-                        )
-                    )
+                    onboardingHeightView(OnboardingHeightViewDelegate(path: path, userModelBuilder: userModelBuilder))
                 case OnboardingPathOption.weight(userModelBuilder: let userModelBuilder):
-                    builder.onboardingWeightView(
-                        delegate: OnboardingWeightViewDelegate(
-                            path: path,
-                            userModelBuilder: userModelBuilder
-                        )
-                    )
+                    onboardingWeightView(OnboardingWeightViewDelegate(path: path, userModelBuilder: userModelBuilder))
                 case OnboardingPathOption.exerciseFrequency(userModelBuilder: let userModelBuilder):
-                    builder.onboardingExerciseFrequencyView(
-                        delegate: OnboardingExerciseFrequencyViewDelegate(
-                            path: path,
-                            userModelBuilder: userModelBuilder
-                        )
-                    )
+                    onboardingExerciseFrequencyView(OnboardingExerciseFrequencyViewDelegate(path: path, userModelBuilder: userModelBuilder))
                 case OnboardingPathOption.activityLevel(userModelBuilder: let userModelBuilder):
-                    builder.onboardingActivityView(
-                        delegate: OnboardingActivityViewDelegate(
-                            path: path,
-                            userModelBuilder: userModelBuilder
-                        )
-                    )
+                    onboardingActivityView(OnboardingActivityViewDelegate(path: path, userModelBuilder: userModelBuilder))
                 case OnboardingPathOption.cardioFitness(userModelBuilder: let userModelBuilder):
-                    builder.onboardingCardioFitnessView(
-                        delegate: OnboardingCardioFitnessViewDelegate(
-                            path: path, 
-                            userModelBuilder: userModelBuilder
-                        )
-                    )
+                    onboardingCardioFitnessView(OnboardingCardioFitnessViewDelegate(path: path, userModelBuilder: userModelBuilder))
                 case OnboardingPathOption.expenditure(userModelBuilder: let userModelBuilder):
-                    builder.onboardingExpenditureView(
-                        delegate: OnboardingExpenditureViewDelegate(
-                            path: path, 
-                            userBuilder: userModelBuilder
-                        )
-                    )
+                    onboardingExpenditureView(OnboardingExpenditureViewDelegate(path: path, userBuilder: userModelBuilder))
                 case OnboardingPathOption.healthData:
-                    builder.onboardingHealthDataView(
-                        delegate: OnboardingHealthDataViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingHealthDataView(OnboardingHealthDataViewDelegate(path: path))
                 case OnboardingPathOption.notifications:
-                    builder.onboardingNotificationsView(
-                        delegate: OnboardingNotificationsViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingNotificationsView(OnboardingNotificationsViewDelegate(path: path))
                 case OnboardingPathOption.healthDisclaimer:
-                    builder.onboardingHealthDisclaimerView(
-                        delegate: OnboardingHealthDisclaimerViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingHealthDisclaimerView(OnboardingHealthDisclaimerViewDelegate(path: path))
 
                     // MARK: Goal Setting
                 case OnboardingPathOption.goalSetting:
-                    builder.onboardingGoalSettingView(
-                        delegate: OnboardingGoalSettingViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingGoalSettingView(OnboardingGoalSettingViewDelegate(path: path))
                 case OnboardingPathOption.overarchingObjective:
-                    builder.onboardingOverarchingObjectiveView(
-                        delegate: OnboardingOverarchingObjectiveViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingOverarchingObjectiveView(OnboardingOverarchingObjectiveViewDelegate(path: path))
                 case OnboardingPathOption.targetWeight(weightGoalBuilder: let weightGoalBuilder):
-                    builder.onboardingTargetWeightView(
-                        delegate: OnboardingTargetWeightViewDelegate(
-                            path: path,
-                            weightGoalBuilder: weightGoalBuilder
-                        )
-                    )
+                    onboardingTargetWeightView(OnboardingTargetWeightViewDelegate(path: path, weightGoalBuilder: weightGoalBuilder))
                 case OnboardingPathOption.weightRate(weightGoalBuilder: let weightGoalBuilder):
-                    builder.onboardingWeightRateView(
-                        delegate: OnboardingWeightRateViewDelegate(
-                            path: path,
-                            weightGoalBuilder: weightGoalBuilder
-                        )
-                    )
+                    onboardingWeightRateView(OnboardingWeightRateViewDelegate(path: path, weightGoalBuilder: weightGoalBuilder))
                 case OnboardingPathOption.goalSummary(weightGoalBuilder: let weightGoalBuilder):
-                    builder.onboardingGoalSummaryView(
-                        delegate: OnboardingGoalSummaryViewDelegate(
-                            path: path,
-                            weightGoalBuilder: weightGoalBuilder
-                        )
-                    )
+                    onboardingGoalSummaryView(OnboardingGoalSummaryViewDelegate(path: path, weightGoalBuilder: weightGoalBuilder))
 
                     // MARK: Customise Program
                 case OnboardingPathOption.customiseProgram:
-                    builder.onboardingCustomisingProgramView(
-                        delegate: OnboardingCustomisingProgramViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingCustomisingProgramView(OnboardingCustomisingProgramViewDelegate(path: path))
                 case OnboardingPathOption.trainingExperience(trainingProgramBuilder: let trainingProgramBuilder):
-                    builder.onboardingTrainingExperienceView(
-                        delegate: OnboardingTrainingExperienceViewDelegate(
-                            path: path,
-                            trainingProgramBuilder: trainingProgramBuilder
-                        )
-                    )
+                    onboardingTrainingExperienceView(OnboardingTrainingExperienceViewDelegate(path: path, trainingProgramBuilder: trainingProgramBuilder))
                 case OnboardingPathOption.trainingDaysPerWeek(trainingProgramBuilder: let trainingProgramBuilder):
-                    builder.onboardingTrainingExperienceView(
-                        delegate: OnboardingTrainingExperienceViewDelegate(
-                            path: path,
-                            trainingProgramBuilder: trainingProgramBuilder
-                        )
-                    )
+                    onboardingTrainingDaysPerWeekView(OnboardingTrainingDaysPerWeekViewDelegate(path: path, trainingProgramBuilder: trainingProgramBuilder))
                 case OnboardingPathOption.trainingSplit(trainingProgramBuilder: let trainingProgramBuilder):
-                    builder.onboardingTrainingSplitView(
-                        delegate: OnboardingTrainingSplitViewDelegate(
-                            path: path,
-                            trainingProgramBuilder: trainingProgramBuilder
-                        )
-                    )
+                    onboardingTrainingSplitView(OnboardingTrainingSplitViewDelegate(path: path, trainingProgramBuilder: trainingProgramBuilder))
                 case OnboardingPathOption.trainingSchedule(trainingProgramBuilder: let trainingProgramBuilder):
-                    builder.onboardingTrainingScheduleView(
-                        delegate: OnboardingTrainingScheduleViewDelegate(
-                            path: path,
-                            trainingProgramBuilder: trainingProgramBuilder
-                        )
-                    )
+                    onboardingTrainingScheduleView(OnboardingTrainingScheduleViewDelegate(path: path, trainingProgramBuilder: trainingProgramBuilder))
                 case OnboardingPathOption.trainingEquipment(trainingProgramBuilder: let trainingProgramBuilder):
-                    builder.onboardingTrainingEquipmentView(
-                        delegate: OnboardingTrainingEquipmentViewDelegate(
-                            path: path,
-                            trainingProgramBuilder: trainingProgramBuilder
-                        )
-                    )
+                    onboardingTrainingEquipmentView(OnboardingTrainingEquipmentViewDelegate(path: path, trainingProgramBuilder: trainingProgramBuilder))
                 case OnboardingPathOption.trainingReview(trainingProgramBuilder: let trainingProgramBuilder):
-                    builder.onboardingTrainingReviewView(
-                        delegate: OnboardingTrainingReviewViewDelegate(
-                            path: path,
-                            trainingProgramBuilder: trainingProgramBuilder
-                        )
-                    )
+                    onboardingTrainingReviewView(OnboardingTrainingReviewViewDelegate(path: path, trainingProgramBuilder: trainingProgramBuilder))
                 case OnboardingPathOption.preferredDiet:
-                    builder.onboardingPreferredDietView(
-                        delegate: OnboardingPreferredDietViewDelegate(
-                            path: path
-                        )
-                    )
+                    onboardingPreferredDietView(OnboardingPreferredDietViewDelegate(path: path))
                 case OnboardingPathOption.calorieFloor(dietPlanBuilder: let dietPlanBuilder):
-                    builder.onboardingCalorieFloorView(
-                        delegate: OnboardingCalorieFloorViewDelegate(
-                            path: path,
-                            dietPlanBuilder: dietPlanBuilder
-                        )
-                    )
+                    onboardingCalorieFloorView(OnboardingCalorieFloorViewDelegate(path: path, dietPlanBuilder: dietPlanBuilder))
                 case OnboardingPathOption.trainingType(dietPlanBuilder: let dietPlanBuilder):
-                    builder.onboardingTrainingTypeView(
-                        delegate: OnboardingTrainingTypeViewDelegate(
-                            path: path,
-                            dietPlanBuilder: dietPlanBuilder
-                        )
-                    )
+                    onboardingTrainingTypeView(OnboardingTrainingTypeViewDelegate(path: path, dietPlanBuilder: dietPlanBuilder))
                 case OnboardingPathOption.calorieDistribution(dietPlanBuilder: let dietPlanBuilder):
-                    builder.onboardingCalorieDistributionView(
-                        delegate: OnboardingCalorieDistributionViewDelegate(
-                            path: path,
-                            dietPlanBuilder: dietPlanBuilder
-                        )
-                    )
+                    onboardingCalorieDistributionView(OnboardingCalorieDistributionViewDelegate(path: path, dietPlanBuilder: dietPlanBuilder))
                 case OnboardingPathOption.proteinIntake(dietPlanBuilder: let dietPlanBuilder):
-                    builder.onboardingProteinIntakeView(
-                        delegate: OnboardingProteinIntakeViewDelegate(
-                            path: path,
-                            dietPlanBuilder: dietPlanBuilder
-                        )
-                    )
+                    onboardingProteinIntakeView(OnboardingProteinIntakeViewDelegate(path: path, dietPlanBuilder: dietPlanBuilder))
                 case OnboardingPathOption.dietPlan(dietPlanBuilder: let dietPlanBuilder):
-                    builder.onboardingDietPlanView(
-                        delegate: OnboardingDietPlanViewDelegate(
-                            path: path,
-                            dietPlanBuilder: dietPlanBuilder
-                        )
-                    )
+                    onboardingDietPlanView(OnboardingDietPlanViewDelegate(path: path, dietPlanBuilder: dietPlanBuilder))
                 case OnboardingPathOption.complete:
-                    builder.onboardingCompletedView(
-                        delegate: OnboardingCompletedViewDelegate(
-                            path: path
-                        ),
-                        devSettingsView: {
-                            builder.devSettingsView()
-                        }
-                    )
+                    onboardingCompletedView(OnboardingCompletedViewDelegate(path: path))
                 }
             }
     }
 }
 
 extension View {
-    
-    func navigationDestinationOnboardingModule(path: Binding<[OnboardingPathOption]>) -> some View {
-        modifier(NavDestinationForOnboardingViewModifier(path: path))
+
+    // swiftlint:disable:next function_parameter_count
+    func navigationDestinationOnboardingModule(
+        path: Binding<[OnboardingPathOption]>,
+        @ViewBuilder onboardingIntroView: @escaping (OnboardingIntroViewDelegate) -> AnyView,
+        @ViewBuilder onboardingAuthOptionsView: @escaping (AuthOptionsViewDelegate) -> AnyView,
+        @ViewBuilder onboardingSignInView: @escaping (SignInViewDelegate) -> AnyView,
+        @ViewBuilder onboardingSignUpView: @escaping (SignUpViewDelegate) -> AnyView,
+        @ViewBuilder onboardingEmailVerificationView: @escaping (EmailVerificationViewDelegate) -> AnyView,
+        @ViewBuilder onboardingSubscriptionView: @escaping (OnboardingSubscriptionViewDelegate) -> AnyView,
+        @ViewBuilder onboardingSubscriptionPlanView: @escaping (OnboardingSubscriptionPlanViewDelegate) -> AnyView,
+        @ViewBuilder onboardingCompleteAccountSetupView: @escaping (OnboardingCompleteAccountSetupViewDelegate) -> AnyView,
+        @ViewBuilder onboardingNamePhotoView: @escaping (OnboardingNamePhotoViewDelegate) -> AnyView,
+        @ViewBuilder onboardingGenderView: @escaping (OnboardingGenderViewDelegate) -> AnyView,
+        @ViewBuilder onboardingDateOfBirthView: @escaping (OnboardingDateOfBirthViewDelegate) -> AnyView,
+        @ViewBuilder onboardingHeightView: @escaping (OnboardingHeightViewDelegate) -> AnyView,
+        @ViewBuilder onboardingWeightView: @escaping (OnboardingWeightViewDelegate) -> AnyView,
+        @ViewBuilder onboardingExerciseFrequencyView: @escaping (OnboardingExerciseFrequencyViewDelegate) -> AnyView,
+        @ViewBuilder onboardingActivityView: @escaping (OnboardingActivityViewDelegate) -> AnyView,
+        @ViewBuilder onboardingCardioFitnessView: @escaping (OnboardingCardioFitnessViewDelegate) -> AnyView,
+        @ViewBuilder onboardingExpenditureView: @escaping (OnboardingExpenditureViewDelegate) -> AnyView,
+        @ViewBuilder onboardingHealthDataView: @escaping (OnboardingHealthDataViewDelegate) -> AnyView,
+        @ViewBuilder onboardingNotificationsView: @escaping (OnboardingNotificationsViewDelegate) -> AnyView,
+        @ViewBuilder onboardingHealthDisclaimerView: @escaping (OnboardingHealthDisclaimerViewDelegate) -> AnyView,
+        @ViewBuilder onboardingGoalSettingView: @escaping (OnboardingGoalSettingViewDelegate) -> AnyView,
+        @ViewBuilder onboardingOverarchingObjectiveView: @escaping (OnboardingOverarchingObjectiveViewDelegate) -> AnyView,
+        @ViewBuilder onboardingTargetWeightView: @escaping (OnboardingTargetWeightViewDelegate) -> AnyView,
+        @ViewBuilder onboardingWeightRateView: @escaping (OnboardingWeightRateViewDelegate) -> AnyView,
+        @ViewBuilder onboardingGoalSummaryView: @escaping (OnboardingGoalSummaryViewDelegate) -> AnyView,
+        @ViewBuilder onboardingCustomisingProgramView: @escaping (OnboardingCustomisingProgramViewDelegate) -> AnyView,
+        @ViewBuilder onboardingTrainingExperienceView: @escaping (OnboardingTrainingExperienceViewDelegate) -> AnyView,
+        @ViewBuilder onboardingTrainingDaysPerWeekView: @escaping (OnboardingTrainingDaysPerWeekViewDelegate) -> AnyView,
+        @ViewBuilder onboardingTrainingSplitView: @escaping (OnboardingTrainingSplitViewDelegate) -> AnyView,
+        @ViewBuilder onboardingTrainingScheduleView: @escaping (OnboardingTrainingScheduleViewDelegate) -> AnyView,
+        @ViewBuilder onboardingTrainingEquipmentView: @escaping (OnboardingTrainingEquipmentViewDelegate) -> AnyView,
+        @ViewBuilder onboardingTrainingReviewView: @escaping (OnboardingTrainingReviewViewDelegate) -> AnyView,
+        @ViewBuilder onboardingPreferredDietView: @escaping (OnboardingPreferredDietViewDelegate) -> AnyView,
+        @ViewBuilder onboardingCalorieFloorView: @escaping (OnboardingCalorieFloorViewDelegate) -> AnyView,
+        @ViewBuilder onboardingTrainingTypeView: @escaping (OnboardingTrainingTypeViewDelegate) -> AnyView,
+        @ViewBuilder onboardingCalorieDistributionView: @escaping (OnboardingCalorieDistributionViewDelegate) -> AnyView,
+        @ViewBuilder onboardingProteinIntakeView: @escaping (OnboardingProteinIntakeViewDelegate) -> AnyView,
+        @ViewBuilder onboardingDietPlanView: @escaping (OnboardingDietPlanViewDelegate) -> AnyView,
+        @ViewBuilder onboardingCompletedView: @escaping (OnboardingCompletedViewDelegate) -> AnyView
+    ) -> some View {
+        modifier(
+            NavDestinationForOnboardingViewModifier(
+                path: path,
+                onboardingIntroView: onboardingIntroView,
+                onboardingAuthOptionsView: onboardingAuthOptionsView,
+                onboardingSignInView: onboardingSignInView,
+                onboardingSignUpView: onboardingSignUpView,
+                onboardingEmailVerificationView: onboardingEmailVerificationView,
+                onboardingSubscriptionView: onboardingSubscriptionView,
+                onboardingSubscriptionPlanView: onboardingSubscriptionPlanView,
+                onboardingCompleteAccountSetupView: onboardingCompleteAccountSetupView,
+                onboardingNamePhotoView: onboardingNamePhotoView,
+                onboardingGenderView: onboardingGenderView,
+                onboardingDateOfBirthView: onboardingDateOfBirthView,
+                onboardingHeightView: onboardingHeightView,
+                onboardingWeightView: onboardingWeightView,
+                onboardingExerciseFrequencyView: onboardingExerciseFrequencyView,
+                onboardingActivityView: onboardingActivityView,
+                onboardingCardioFitnessView: onboardingCardioFitnessView,
+                onboardingExpenditureView: onboardingExpenditureView,
+                onboardingHealthDataView: onboardingHealthDataView,
+                onboardingNotificationsView: onboardingNotificationsView,
+                onboardingHealthDisclaimerView: onboardingHealthDisclaimerView,
+                onboardingGoalSettingView: onboardingGoalSettingView,
+                onboardingOverarchingObjectiveView: onboardingOverarchingObjectiveView,
+                onboardingTargetWeightView: onboardingTargetWeightView,
+                onboardingWeightRateView: onboardingWeightRateView,
+                onboardingGoalSummaryView: onboardingGoalSummaryView,
+                onboardingCustomisingProgramView: onboardingCustomisingProgramView,
+                onboardingTrainingExperienceView: onboardingTrainingExperienceView,
+                onboardingTrainingDaysPerWeekView: onboardingTrainingDaysPerWeekView,
+                onboardingTrainingSplitView: onboardingTrainingSplitView,
+                onboardingTrainingScheduleView: onboardingTrainingScheduleView,
+                onboardingTrainingEquipmentView: onboardingTrainingEquipmentView,
+                onboardingTrainingReviewView: onboardingTrainingReviewView,
+                onboardingPreferredDietView: onboardingPreferredDietView,
+                onboardingCalorieFloorView: onboardingCalorieFloorView,
+                onboardingTrainingTypeView: onboardingTrainingTypeView,
+                onboardingCalorieDistributionView: onboardingCalorieDistributionView,
+                onboardingProteinIntakeView: onboardingProteinIntakeView,
+                onboardingDietPlanView: onboardingDietPlanView,
+                onboardingCompletedView: onboardingCompletedView
+            )
+        )
     }
 }

@@ -9,10 +9,14 @@ import SwiftUI
 import PhotosUI
 
 struct CreateRecipeView: View {
-    @State var viewModel: CreateRecipeViewModel
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.dismiss) private var dismiss
-    
+
+    @State var viewModel: CreateRecipeViewModel
+
+    @ViewBuilder var devSettingsView: () -> AnyView
+    @ViewBuilder var addIngredientModalView: (AddIngredientModalViewDelegate) -> AnyView
+
     var body: some View {
         NavigationStack {
             List {
@@ -76,12 +80,12 @@ struct CreateRecipeView: View {
             }
             #if DEBUG || MOCK
             .sheet(isPresented: $viewModel.showDebugView, content: {
-                builder.devSettingsView()
+                devSettingsView()
             })
             #endif
             .sheet(isPresented: $viewModel.showAddIngredientModal) {
-                builder.addIngredientModalView(
-                    delegate: AddIngredientModalViewDelegate(
+                addIngredientModalView(
+                    AddIngredientModalViewDelegate(
                         selectedIngredients: Binding(
                             get: {
                                 viewModel.ingredients.map {

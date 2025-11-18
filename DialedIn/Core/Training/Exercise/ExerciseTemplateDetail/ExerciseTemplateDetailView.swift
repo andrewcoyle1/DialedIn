@@ -12,10 +12,13 @@ struct ExerciseTemplateDetailViewDelegate {
 }
 
 struct ExerciseTemplateDetailView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: ExerciseTemplateDetailViewModel
+
     var delegate: ExerciseTemplateDetailViewDelegate
 
+    @ViewBuilder var devSettingsView: () -> AnyView
+    
     var body: some View {
         List {
             pickerSection
@@ -75,7 +78,7 @@ struct ExerciseTemplateDetailView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
     }

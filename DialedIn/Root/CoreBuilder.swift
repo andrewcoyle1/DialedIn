@@ -28,9 +28,128 @@ class CoreBuilder {
 
     // MARK: Onboarding
 
+    // swiftlint:disable:next function_body_length
     func onboardingWelcomeView() -> AnyView {
         OnboardingWelcomeView(
-            viewModel: OnboardingWelcomeViewModel(interactor: interactor)
+            viewModel: OnboardingWelcomeViewModel(interactor: interactor),
+            devSettingsView: { self.devSettingsView() },
+            onboardingIntroView: { delegate in
+                self.onboardingIntroView(delegate: delegate)
+            },
+            onboardingAuthOptionsView: { delegate in
+                self.onboardingAuthOptionsView(delegate: delegate)
+            },
+            onboardingSignInView: { delegate in
+                self.onboardingSignInView(delegate: delegate)
+            },
+            onboardingSignUpView: { delegate in
+                self.onboardingSignUpView(delegate: delegate)
+            },
+            onboardingEmailVerificationView: { delegate in
+                self.onboardingEmailVerificationView(delegate: delegate)
+            },
+            onboardingSubscriptionView: { delegate in
+                self.onboardingSubscriptionView(delegate: delegate)
+            },
+            onboardingSubscriptionPlanView: { delegate in
+                self.onboardingSubscriptionPlanView(delegate: delegate)
+            },
+            onboardingCompleteAccountSetupView: { delegate in
+                self.onboardingCompleteAccountSetupView(delegate: delegate)
+            },
+            onboardingNamePhotoView: { delegate in
+                self.onboardingNamePhotoView(delegate: delegate)
+            },
+            onboardingGenderView: { delegate in
+                self.onboardingGenderView(delegate: delegate)
+            },
+            onboardingDateOfBirthView: { delegate in
+                self.onboardingDateOfBirthView(delegate: delegate)
+            },
+            onboardingHeightView: { delegate in
+                self.onboardingHeightView(delegate: delegate)
+            },
+            onboardingWeightView: { delegate in
+                self.onboardingWeightView(delegate: delegate)
+            },
+            onboardingExerciseFrequencyView: { delegate in
+                self.onboardingExerciseFrequencyView(delegate: delegate)
+            },
+            onboardingActivityView: { delegate in
+                self.onboardingActivityView(delegate: delegate)
+            },
+            onboardingCardioFitnessView: { delegate in
+                self.onboardingCardioFitnessView(delegate: delegate)
+            },
+            onboardingExpenditureView: { delegate in
+                self.onboardingExpenditureView(delegate: delegate)
+            },
+            onboardingHealthDataView: { delegate in
+                self.onboardingHealthDataView(delegate: delegate)
+            },
+            onboardingNotificationsView: { delegate in
+                self.onboardingNotificationsView(delegate: delegate)
+            },
+            onboardingHealthDisclaimerView: { delegate in
+                self.onboardingHealthDisclaimerView(delegate: delegate)
+            },
+            onboardingGoalSettingView: { delegate in
+                self.onboardingGoalSettingView(delegate: delegate)
+            },
+            onboardingOverarchingObjectiveView: { delegate in
+                self.onboardingOverarchingObjectiveView(delegate: delegate)
+            },
+            onboardingTargetWeightView: { delegate in
+                self.onboardingTargetWeightView(delegate: delegate)
+            },
+            onboardingWeightRateView: { delegate in
+                self.onboardingWeightRateView(delegate: delegate)
+            },
+            onboardingGoalSummaryView: { delegate in
+                self.onboardingGoalSummaryView(delegate: delegate)
+            },
+            onboardingCustomisingProgramView: { delegate in
+                self.onboardingCustomisingProgramView(delegate: delegate)
+            },
+            onboardingTrainingExperienceView: { delegate in
+                self.onboardingTrainingExperienceView(delegate: delegate)
+            },
+            onboardingTrainingDaysPerWeekView: { delegate in
+                self.onboardingTrainingDaysPerWeekView(delegate: delegate)
+            },
+            onboardingTrainingSplitView: { delegate in
+                self.onboardingTrainingSplitView(delegate: delegate)
+            },
+            onboardingTrainingScheduleView: { delegate in
+                self.onboardingTrainingScheduleView(delegate: delegate)
+            },
+            onboardingTrainingEquipmentView: { delegate in
+                self.onboardingTrainingEquipmentView(delegate: delegate)
+            },
+            onboardingTrainingReviewView: { delegate in
+                self.onboardingTrainingReviewView(delegate: delegate)
+            },
+            onboardingPreferredDietView: { delegate in
+                self.onboardingPreferredDietView(delegate: delegate)
+            },
+            onboardingCalorieFloorView: { delegate in
+                self.onboardingCalorieFloorView(delegate: delegate)
+            },
+            onboardingTrainingTypeView: { delegate in
+                self.onboardingTrainingTypeView(delegate: delegate)
+            },
+            onboardingCalorieDistributionView: { delegate in
+                self.onboardingCalorieDistributionView(delegate: delegate)
+            },
+            onboardingProteinIntakeView: { delegate in
+                self.onboardingProteinIntakeView(delegate: delegate)
+            },
+            onboardingDietPlanView: { delegate in
+                self.onboardingDietPlanView(delegate: delegate)
+            },
+            onboardingCompletedView: { delegate in
+                self.onboardingCompletedView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -38,7 +157,8 @@ class CoreBuilder {
     func onboardingIntroView(delegate: OnboardingIntroViewDelegate) -> AnyView {
         OnboardingIntroView(
             viewModel: OnboardingIntroViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -48,7 +168,8 @@ class CoreBuilder {
     func onboardingAuthOptionsView(delegate: AuthOptionsViewDelegate) -> AnyView {
         AuthOptionsView(
             viewModel: AuthOptionsViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -56,7 +177,8 @@ class CoreBuilder {
     func onboardingSignInView(delegate: SignInViewDelegate) -> AnyView {
         SignInView(
             viewModel: SignInViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -64,7 +186,8 @@ class CoreBuilder {
     func onboardingSignUpView(delegate: SignUpViewDelegate) -> AnyView {
         SignUpView(
             viewModel: SignUpViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -72,7 +195,8 @@ class CoreBuilder {
     func onboardingEmailVerificationView(delegate: EmailVerificationViewDelegate) -> AnyView {
         EmailVerificationView(
             viewModel: EmailVerificationViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -82,7 +206,8 @@ class CoreBuilder {
     func onboardingSubscriptionView(delegate: OnboardingSubscriptionViewDelegate) -> AnyView {
         OnboardingSubscriptionView(
             viewModel: OnboardingSubscriptionViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -90,7 +215,8 @@ class CoreBuilder {
     func onboardingSubscriptionPlanView(delegate: OnboardingSubscriptionPlanViewDelegate) -> AnyView {
         OnboardingSubscriptionPlanView(
             viewModel: OnboardingSubscriptionPlanViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -98,7 +224,8 @@ class CoreBuilder {
     func onboardingCompleteAccountSetupView(delegate: OnboardingCompleteAccountSetupViewDelegate) -> AnyView {
         OnboardingCompleteAccountSetupView(
             viewModel: OnboardingCompleteAccountSetupViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -106,7 +233,8 @@ class CoreBuilder {
     func onboardingNamePhotoView(delegate: OnboardingNamePhotoViewDelegate) -> AnyView {
         OnboardingNamePhotoView(
             viewModel: OnboardingNamePhotoViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -114,7 +242,8 @@ class CoreBuilder {
     func onboardingGenderView(delegate: OnboardingGenderViewDelegate) -> AnyView {
         OnboardingGenderView(
             viewModel: OnboardingGenderViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -122,7 +251,8 @@ class CoreBuilder {
     func onboardingDateOfBirthView(delegate: OnboardingDateOfBirthViewDelegate) -> AnyView {
         OnboardingDateOfBirthView(
             viewModel: OnboardingDateOfBirthViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -130,7 +260,8 @@ class CoreBuilder {
     func onboardingHeightView(delegate: OnboardingHeightViewDelegate) -> AnyView {
         OnboardingHeightView(
             viewModel: OnboardingHeightViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -138,7 +269,8 @@ class CoreBuilder {
     func onboardingWeightView(delegate: OnboardingWeightViewDelegate) -> AnyView {
         OnboardingWeightView(
             viewModel: OnboardingWeightViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -146,7 +278,8 @@ class CoreBuilder {
     func onboardingExerciseFrequencyView(delegate: OnboardingExerciseFrequencyViewDelegate) -> AnyView {
         OnboardingExerciseFrequencyView(
             viewModel: OnboardingExerciseFrequencyViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -154,7 +287,8 @@ class CoreBuilder {
     func onboardingActivityView(delegate: OnboardingActivityViewDelegate) -> AnyView {
         OnboardingActivityView(
             viewModel: OnboardingActivityViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -162,7 +296,8 @@ class CoreBuilder {
     func onboardingCardioFitnessView(delegate: OnboardingCardioFitnessViewDelegate) -> AnyView {
         OnboardingCardioFitnessView(
             viewModel: OnboardingCardioFitnessViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -170,7 +305,8 @@ class CoreBuilder {
     func onboardingExpenditureView(delegate: OnboardingExpenditureViewDelegate) -> AnyView {
         OnboardingExpenditureView(
             viewModel: OnboardingExpenditureViewModel(interactor: interactor), 
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -178,7 +314,8 @@ class CoreBuilder {
     func onboardingHealthDataView(delegate: OnboardingHealthDataViewDelegate) -> AnyView {
         OnboardingHealthDataView(
             viewModel: OnboardingHealthDataViewModel(interactor: interactor), 
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -186,7 +323,8 @@ class CoreBuilder {
     func onboardingNotificationsView(delegate: OnboardingNotificationsViewDelegate) -> AnyView {
         OnboardingNotificationsView(
             viewModel: OnboardingNotificationsViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -194,7 +332,8 @@ class CoreBuilder {
     func onboardingHealthDisclaimerView(delegate: OnboardingHealthDisclaimerViewDelegate) -> AnyView {
         OnboardingHealthDisclaimerView(
             viewModel: OnboardingHealthDisclaimerViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -204,7 +343,8 @@ class CoreBuilder {
     func onboardingGoalSettingView(delegate: OnboardingGoalSettingViewDelegate) -> AnyView {
         OnboardingGoalSettingView(
             viewModel: OnboardingGoalSettingViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -213,7 +353,8 @@ class CoreBuilder {
         OnboardingOverarchingObjectiveView(
             viewModel: OnboardingOverarchingObjectiveViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -222,7 +363,8 @@ class CoreBuilder {
         OnboardingTargetWeightView(
             viewModel: OnboardingTargetWeightViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -231,7 +373,8 @@ class CoreBuilder {
         OnboardingWeightRateView(
             viewModel: OnboardingWeightRateViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -240,7 +383,8 @@ class CoreBuilder {
         OnboardingGoalSummaryView(
             viewModel: OnboardingGoalSummaryViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -251,7 +395,8 @@ class CoreBuilder {
         OnboardingCustomisingProgramView(
             viewModel: OnboardingCustomisingProgramViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -260,7 +405,8 @@ class CoreBuilder {
         OnboardingTrainingExperienceView(
             viewModel: OnboardingTrainingExperienceViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -269,7 +415,8 @@ class CoreBuilder {
         OnboardingTrainingDaysPerWeekView(
             viewModel: OnboardingTrainingDaysPerWeekViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -278,7 +425,8 @@ class CoreBuilder {
         OnboardingTrainingSplitView(
             viewModel: OnboardingTrainingSplitViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -287,7 +435,8 @@ class CoreBuilder {
         OnboardingTrainingScheduleView(
             viewModel: OnboardingTrainingScheduleViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -296,7 +445,8 @@ class CoreBuilder {
         OnboardingTrainingEquipmentView(
             viewModel: OnboardingTrainingEquipmentViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -305,7 +455,8 @@ class CoreBuilder {
         OnboardingTrainingReviewView(
             viewModel: OnboardingTrainingReviewViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -314,7 +465,8 @@ class CoreBuilder {
         OnboardingPreferredDietView(
             viewModel: OnboardingPreferredDietViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -323,7 +475,8 @@ class CoreBuilder {
         OnboardingCalorieFloorView(
             viewModel: OnboardingCalorieFloorViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -332,7 +485,8 @@ class CoreBuilder {
         OnboardingTrainingTypeView(
             viewModel: OnboardingTrainingTypeViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -341,7 +495,8 @@ class CoreBuilder {
         OnboardingCalorieDistributionView(
             viewModel: OnboardingCalorieDistributionViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -350,7 +505,8 @@ class CoreBuilder {
         OnboardingProteinIntakeView(
             viewModel: OnboardingProteinIntakeViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -359,12 +515,13 @@ class CoreBuilder {
         OnboardingDietPlanView(
             viewModel: OnboardingDietPlanViewModel(
                 interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
 
-    func onboardingCompletedView(delegate: OnboardingCompletedViewDelegate, devSettingsView: () -> AnyView) -> AnyView {
+    func onboardingCompletedView(delegate: OnboardingCompletedViewDelegate) -> AnyView {
         OnboardingCompletedView(
             viewModel: OnboardingCompletedViewModel(
                 interactor: interactor),
@@ -391,7 +548,72 @@ class CoreBuilder {
     func tabBarView(delegate: TabBarViewDelegate) -> AnyView {
         TabBarView(
             viewModel: TabBarViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            tabViewAccessoryView: { delegate in
+                self.tabViewAccessoryView(delegate: delegate)
+            },
+            workoutTrackerView: { delegate in
+                self.workoutTrackerView(delegate: delegate)
+            },
+            tabRootView: { option, path in
+                self.tabRootView(for: option, path: path)
+            },
+            exerciseTemplateDetailView: { delegate in
+                self.exerciseTemplateDetailView(delegate: delegate)
+            },
+            exerciseTemplateListView: { delegate in
+                self.exerciseTemplateListView(delegate: delegate)
+            },
+            workoutTemplateListView: { delegate in
+                self.workoutTemplateListView(delegate: delegate)
+            },
+            workoutTemplateDetailView: { delegate in
+                self.workoutTemplateDetailView(delegate: delegate)
+            },
+            ingredientDetailView: { delegate in
+                self.ingredientDetailView(delegate: delegate)
+            },
+            ingredientTemplateListView: { delegate in
+                self.ingredientTemplateListView(delegate: delegate)
+            },
+            ingredientAmountView: { delegate in
+                self.ingredientAmountView(delegate: delegate)
+            },
+            recipeDetailView: { delegate in
+                self.recipeDetailView(delegate: delegate)
+            },
+            recipeTemplateListView: { delegate in
+                self.recipeTemplateListView(delegate: delegate)
+            },
+            recipeAmountView: { delegate in
+                self.recipeAmountView(delegate: delegate)
+            },
+            workoutSessionDetailView: { delegate in
+                self.workoutSessionDetailView(delegate: delegate)
+            },
+            mealDetailView: { delegate in
+                self.mealDetailView(delegate: delegate)
+            },
+            profileGoalsDetailView: { self.profileGoalsDetailView() },
+            profileEditView: { self.profileEditView() },
+            profileNutritionDetailView: { self.profileNutritionDetailView() },
+            profilePhysicalStatsView: { self.profilePhysicalStatsView() },
+            settingsView: { delegate in
+                self.settingsView(delegate: delegate)
+            },
+            manageSubscriptionView: { self.manageSubscriptionView()},
+            programPreviewView: { delegate in
+                self.programPreviewView(delegate: delegate)
+            },
+            customProgramBuilderView: { delegate in
+                self.customProgramBuilderView(delegate: delegate)
+            },
+            programGoalsView: { delegate in
+                self.programGoalsView(delegate: delegate)
+            },
+            programScheduleView: { delegate in
+                self.programScheduleView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -399,15 +621,86 @@ class CoreBuilder {
     func splitViewContainer(delegate: SplitViewDelegate) -> AnyView {
         SplitViewContainer(
             viewModel: SplitViewContainerViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            tabViewAccessoryView: { accessoryDelegate in
+                self.tabViewAccessoryView(delegate: accessoryDelegate)
+            },
+            workoutTrackerView: { trackerDelegate in
+                self.workoutTrackerView(delegate: trackerDelegate)
+            },
+            tabRootView: { tab, path in
+                self.tabRootView(for: tab, path: path)
+            },
+            exerciseTemplateDetailView: { delegate in
+                self.exerciseTemplateDetailView(delegate: delegate)
+            },
+            exerciseTemplateListView: { delegate in
+                self.exerciseTemplateListView(delegate: delegate)
+            },
+            workoutTemplateListView: { delegate in
+                self.workoutTemplateListView(delegate: delegate)
+            },
+            workoutTemplateDetailView: { delegate in
+                self.workoutTemplateDetailView(delegate: delegate)
+            },
+            ingredientDetailView: { delegate in
+                self.ingredientDetailView(delegate: delegate)
+            },
+            ingredientTemplateListView: { delegate in
+                self.ingredientTemplateListView(delegate: delegate)
+            },
+            ingredientAmountView: { delegate in
+                self.ingredientAmountView(delegate: delegate)
+            },
+            recipeDetailView: { delegate in
+                self.recipeDetailView(delegate: delegate)
+            },
+            recipeTemplateListView: { delegate in
+                self.recipeTemplateListView(delegate: delegate)
+            },
+            recipeAmountView: { delegate in
+                self.recipeAmountView(delegate: delegate)
+            },
+            workoutSessionDetailView: { delegate in
+                self.workoutSessionDetailView(delegate: delegate)
+            },
+            mealDetailView: { delegate in
+                self.mealDetailView(delegate: delegate)
+            },
+            profileGoalsDetailView: { self.profileGoalsDetailView() },
+            profileEditView: { self.profileEditView() },
+            profileNutritionDetailView: { self.profileNutritionDetailView() },
+            profilePhysicalStatsView: { self.profilePhysicalStatsView() },
+            settingsView: { delegate in
+                self.settingsView(delegate: delegate)
+            },
+            manageSubscriptionView: { self.manageSubscriptionView()},
+            programPreviewView: { delegate in
+                self.programPreviewView(delegate: delegate)
+            },
+            customProgramBuilderView: { delegate in
+                self.customProgramBuilderView(delegate: delegate)
+            },
+            programGoalsView: { delegate in
+                self.programGoalsView(delegate: delegate)
+            },
+            programScheduleView: { delegate in
+                self.programScheduleView(delegate: delegate)
+            }
         )
         .any()
+    }
+
+    func tabRootView(for tab: TabBarOption, path: Binding<[TabBarPathOption]>) -> AnyView {
+        tab.viewForPage(builder: self, path: path)
+            .any()
     }
 
     func exerciseTemplateDetailView(delegate: ExerciseTemplateDetailViewDelegate) -> AnyView {
         ExerciseTemplateDetailView(
             viewModel: ExerciseTemplateDetailViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -423,7 +716,13 @@ class CoreBuilder {
     func workoutTrackerView(delegate: WorkoutTrackerViewDelegate) -> AnyView {
         WorkoutTrackerView(
             viewModel: WorkoutTrackerViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            addExerciseModalView: { delegate in
+                self.addExerciseModalView(delegate: delegate)
+            },
+            exerciseTrackerCardView: { delegate in
+                self.exerciseTrackerCardView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -431,7 +730,8 @@ class CoreBuilder {
     func ingredientDetailView(delegate: IngredientDetailViewDelegate) -> AnyView {
         IngredientDetailView(
             viewModel: IngredientDetailViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -439,7 +739,15 @@ class CoreBuilder {
     func exerciseTemplateListView(delegate: ExerciseTemplateListViewDelegate) -> AnyView {
         ExerciseTemplateListView(
             viewModel: ExerciseTemplateListViewModel.create(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            genericTemplateListView: { viewModel, configuration, supportsRefresh, templateIdsOverride in
+                self.genericTemplateListView(
+                    viewModel: viewModel,
+                    configuration: configuration,
+                    supportsRefresh: supportsRefresh,
+                    templateIdsOverride: templateIdsOverride
+                )
+            }
         )
         .any()
     }
@@ -447,7 +755,15 @@ class CoreBuilder {
     func workoutTemplateListView(delegate: WorkoutTemplateListViewDelegate) -> AnyView {
         WorkoutTemplateListView(
             viewModel: WorkoutTemplateListViewModel.create(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            genericTemplateListView: { viewModel, configuration, supportsRefresh, templateIdsOverride in
+                self.genericTemplateListView(
+                    viewModel: viewModel,
+                    configuration: configuration,
+                    supportsRefresh: supportsRefresh,
+                    templateIdsOverride: templateIdsOverride
+                )
+            }
         )
         .any()
     }
@@ -455,7 +771,14 @@ class CoreBuilder {
     func workoutTemplateDetailView(delegate: WorkoutTemplateDetailViewDelegate) -> AnyView {
         WorkoutTemplateDetailView(
             viewModel: WorkoutTemplateDetailViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() },
+            workoutStartView: { delegate in
+                self.workoutStartView(delegate: delegate)
+            },
+            createWorkoutView: { delegate in
+                self.createWorkoutView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -463,7 +786,13 @@ class CoreBuilder {
     func workoutSessionDetailView(delegate: WorkoutSessionDetailViewDelegate) -> AnyView {
         WorkoutSessionDetailView(
             viewModel: WorkoutSessionDetailViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            addExerciseModalView: { delegate in
+                self.addExerciseModalView(delegate: delegate)
+            },
+            editableExerciseCardWrapper: { delegate in
+                self.editableExerciseCardWrapper(delegate: delegate)
+            }
         )
         .any()
     }
@@ -471,7 +800,22 @@ class CoreBuilder {
     func programView(delegate: ProgramViewDelegate) -> AnyView {
         ProgramView(
             viewModel: ProgramViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            addGoalView: { delegate in
+                self.addGoalView(delegate: delegate)
+            },
+            workoutSummaryCardView: { delegate in
+                self.workoutSummaryCardView(delegate: delegate)
+            },
+            todaysWorkoutCardView: { delegate in
+                self.todaysWorkoutCardView(delegate: delegate)
+            },
+            workoutCalendarView: { delegate in
+                self.workoutCalendarView(delegate: delegate)
+            },
+            scheduledWorkoutRowView: { delegate in
+                self.scheduledWorkoutRowView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -486,7 +830,10 @@ class CoreBuilder {
     func workoutStartView(delegate: WorkoutStartViewDelegate) -> AnyView {
         WorkoutStartView(
             viewModel: WorkoutStartViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            workoutTrackerView: { delegate in
+                self.workoutTrackerView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -497,14 +844,71 @@ class CoreBuilder {
             delegate: delegate,
             devSettingsView: { self.devSettingsView() },
             notificationsView: { self.notificationsView() },
-            nutritionTargetChartView: { self.nutritionTargetChartView() }
+            nutritionTargetChartView: { self.nutritionTargetChartView() },
+            exerciseTemplateDetailView: { delegate in
+                self.exerciseTemplateDetailView(delegate: delegate)
+            },
+            exerciseTemplateListView: { delegate in
+                self.exerciseTemplateListView(delegate: delegate)
+            },
+            workoutTemplateListView: { delegate in
+                self.workoutTemplateListView(delegate: delegate)
+            },
+            workoutTemplateDetailView: { delegate in
+                self.workoutTemplateDetailView(delegate: delegate)
+            },
+            ingredientDetailView: { delegate in
+                self.ingredientDetailView(delegate: delegate)
+            },
+            ingredientTemplateListView: { delegate in
+                self.ingredientTemplateListView(delegate: delegate)
+            },
+            ingredientAmountView: { delegate in
+                self.ingredientAmountView(delegate: delegate)
+            },
+            recipeDetailView: { delegate in
+                self.recipeDetailView(delegate: delegate)
+            },
+            recipeTemplateListView: { delegate in
+                self.recipeTemplateListView(delegate: delegate)
+            },
+            recipeAmountView: { delegate in
+                self.recipeAmountView(delegate: delegate)
+            },
+            workoutSessionDetailView: { delegate in
+                self.workoutSessionDetailView(delegate: delegate)
+            },
+            mealDetailView: { delegate in
+                self.mealDetailView(delegate: delegate)
+            },
+            profileGoalsDetailView: { self.profileGoalsDetailView() },
+            profileEditView: { self.profileEditView() },
+            profileNutritionDetailView: { self.profileNutritionDetailView() },
+            profilePhysicalStatsView: { self.profilePhysicalStatsView() },
+            settingsView: { delegate in
+                self.settingsView(delegate: delegate)
+            },
+            manageSubscriptionView: { self.manageSubscriptionView()},
+            programPreviewView: { delegate in
+                self.programPreviewView(delegate: delegate)
+            },
+            customProgramBuilderView: { delegate in
+                self.customProgramBuilderView(delegate: delegate)
+            },
+            programGoalsView: { delegate in
+                self.programGoalsView(delegate: delegate)
+            },
+            programScheduleView: { delegate in
+                self.programScheduleView(delegate: delegate)
+            }
         )
         .any()
     }
 
     func createIngredientView() -> AnyView {
         CreateIngredientView(
-            viewModel: CreateIngredientViewModel(interactor: interactor)
+            viewModel: CreateIngredientViewModel(interactor: interactor),
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -519,15 +923,27 @@ class CoreBuilder {
 
     func createRecipeView() -> AnyView {
         CreateRecipeView(
-            viewModel: CreateRecipeViewModel(interactor: interactor)
+            viewModel: CreateRecipeViewModel(interactor: interactor),
+            devSettingsView: { self.devSettingsView() },
+            addIngredientModalView: { delegate in
+                self.addIngredientModalView(delegate: delegate)
+            }
         )
         .any()
+    }
+
+    func recipeStartView(delegate: RecipeStartViewDelegate) -> AnyView {
+        RecipeStartView(delegate: delegate)
+            .any()
     }
 
     func mealLogView(delegate: MealLogViewDelegate) -> AnyView {
         MealLogView(
             viewModel: MealLogViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            addMealSheet: { delegate in
+                self.addMealSheet(delegate: delegate)
+            }
         )
         .any()
     }
@@ -570,6 +986,56 @@ class CoreBuilder {
             },
             recipeDetailView: { delegate in
                 self.recipeDetailView(delegate: delegate)
+            },
+            exerciseTemplateDetailView: { delegate in
+                self.exerciseTemplateDetailView(delegate: delegate)
+            },
+            exerciseTemplateListView: { delegate in
+                self.exerciseTemplateListView(delegate: delegate)
+            },
+            workoutTemplateListView: { delegate in
+                self.workoutTemplateListView(delegate: delegate)
+            },
+            workoutTemplateDetailView: { delegate in
+                self.workoutTemplateDetailView(delegate: delegate)
+            },
+            ingredientTemplateListView: { delegate in
+                self.ingredientTemplateListView(delegate: delegate)
+            },
+            ingredientAmountView: { delegate in
+                self.ingredientAmountView(delegate: delegate)
+            },
+            recipeTemplateListView: { delegate in
+                self.recipeTemplateListView(delegate: delegate)
+            },
+            recipeAmountView: { delegate in
+                self.recipeAmountView(delegate: delegate)
+            },
+            workoutSessionDetailView: { delegate in
+                self.workoutSessionDetailView(delegate: delegate)
+            },
+            mealDetailView: { delegate in
+                self.mealDetailView(delegate: delegate)
+            },
+            profileGoalsDetailView: { self.profileGoalsDetailView() },
+            profileEditView: { self.profileEditView() },
+            profileNutritionDetailView: { self.profileNutritionDetailView() },
+            profilePhysicalStatsView: { self.profilePhysicalStatsView() },
+            settingsView: { delegate in
+                self.settingsView(delegate: delegate)
+            },
+            manageSubscriptionView: { self.manageSubscriptionView()},
+            programPreviewView: { delegate in
+                self.programPreviewView(delegate: delegate)
+            },
+            customProgramBuilderView: { delegate in
+                self.customProgramBuilderView(delegate: delegate)
+            },
+            programGoalsView: { delegate in
+                self.programGoalsView(delegate: delegate)
+            },
+            programScheduleView: { delegate in
+                self.programScheduleView(delegate: delegate)
             }
         )
         .any()
@@ -586,7 +1052,10 @@ class CoreBuilder {
     func addMealSheet(delegate: AddMealSheetDelegate) -> AnyView {
         AddMealSheet(
             viewModel: AddMealSheetViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            nutritionLibraryPickerView: { delegate in
+                self.nutritionLibraryPickerView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -601,7 +1070,10 @@ class CoreBuilder {
     func workoutsView(delegate: WorkoutsViewDelegate) -> AnyView {
         WorkoutsView(
             viewModel: WorkoutsViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            createWorkoutView: { delegate in
+                self.createWorkoutView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -617,14 +1089,19 @@ class CoreBuilder {
     func createWorkoutView(delegate: CreateWorkoutViewDelegate) -> AnyView {
         CreateWorkoutView(
             viewModel: CreateWorkoutViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() },
+            addExerciseModalView: { delegate in
+                self.addExerciseModalView(delegate: delegate)
+            }
         )
         .any()
     }
 
     func createExerciseView() -> AnyView {
         CreateExerciseView(
-            viewModel: CreateExerciseViewModel(interactor: interactor)
+            viewModel: CreateExerciseViewModel(interactor: interactor),
+            devSettingsView: { self.devSettingsView() }
         )
         .any()
     }
@@ -672,7 +1149,10 @@ class CoreBuilder {
     func workoutCalendarView(delegate: WorkoutCalendarViewDelegate) -> AnyView {
         WorkoutCalendarView(
             viewModel: WorkoutCalendarViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            enhancedScheduleView: { delegate in
+                self.enhancedScheduleView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -688,7 +1168,8 @@ class CoreBuilder {
     func exercisesView(delegate: ExercisesViewDelegate) -> AnyView {
         ExercisesView(
             viewModel: ExercisesViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            createExerciseView: { self.createExerciseView() }
         )
         .any()
     }
@@ -696,7 +1177,16 @@ class CoreBuilder {
     func programManagementView(delegate: ProgramManagementViewDelegate) -> AnyView {
         ProgramManagementView(
             viewModel: ProgramManagementViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            programTemplatePickerView: { delegate in
+                self.programTemplatePickerView(delegate: delegate)
+            },
+            editProgramView: { delegate in
+                self.editProgramView(delegate: delegate)
+            },
+            programRowView: { delegate in
+                self.programRowView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -704,7 +1194,86 @@ class CoreBuilder {
     func trainingView(delegate: TrainingViewDelegate) -> AnyView {
         TrainingView(
             viewModel: TrainingViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            exerciseTemplateDetailView: { delegate in
+                self.exerciseTemplateDetailView(delegate: delegate)
+            },
+            workoutTemplateDetailView: { delegate in
+                self.workoutTemplateDetailView(delegate: delegate)
+            },
+            workoutSessionDetailView: { delegate in
+                self.workoutSessionDetailView(delegate: delegate)
+            },
+            devSettingsView: { self.devSettingsView() },
+            notificationsView: { self.notificationsView() },
+            workoutStartView: { delegate in
+                self.workoutStartView(delegate: delegate)
+            },
+            programManagementView: { delegate in
+                self.programManagementView(delegate: delegate)
+            },
+            progressDashboardView: { self.progressDashboardView() },
+            strengthProgressView: { self.strengthProgressView() },
+            workoutHeatmapView: { self.workoutHeatmapView() },
+            programView: { delegate in
+                self.programView(delegate: delegate)
+            },
+            workoutsView: { delegate in
+                self.workoutsView(delegate: delegate)
+            },
+            exercisesView: { delegate in
+                self.exercisesView(delegate: delegate)
+            },
+            workoutHistoryView: { delegate in
+                self.workoutHistoryView(delegate: delegate)
+            },
+            exerciseTemplateListView: { delegate in
+                self.exerciseTemplateListView(delegate: delegate)
+            },
+            workoutTemplateListView: { delegate in
+                self.workoutTemplateListView(delegate: delegate)
+            },
+            ingredientDetailView: { delegate in
+                self.ingredientDetailView(delegate: delegate)
+            },
+            ingredientTemplateListView: { delegate in
+                self.ingredientTemplateListView(delegate: delegate)
+            },
+            ingredientAmountView: { delegate in
+                self.ingredientAmountView(delegate: delegate)
+            },
+            recipeDetailView: { delegate in
+                self.recipeDetailView(delegate: delegate)
+            },
+            recipeTemplateListView: { delegate in
+                self.recipeTemplateListView(delegate: delegate)
+            },
+            recipeAmountView: { delegate in
+                self.recipeAmountView(delegate: delegate)
+            },
+            mealDetailView: { delegate in
+                self.mealDetailView(delegate: delegate)
+            },
+            profileGoalsDetailView: { self.profileGoalsDetailView() },
+            profileEditView: { self.profileEditView() },
+            profileNutritionDetailView: { self.profileNutritionDetailView() },
+            profilePhysicalStatsView: { self.profilePhysicalStatsView() },
+            settingsView: { delegate in
+                self.settingsView(delegate: delegate)
+            },
+            manageSubscriptionView: { self.manageSubscriptionView()},
+            programPreviewView: { delegate in
+                self.programPreviewView(delegate: delegate)
+            },
+            customProgramBuilderView: { delegate in
+                self.customProgramBuilderView(delegate: delegate)
+            },
+            programGoalsView: { delegate in
+                self.programGoalsView(delegate: delegate)
+            },
+            programScheduleView: { delegate in
+                self.programScheduleView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -740,7 +1309,13 @@ class CoreBuilder {
     func programGoalsView(delegate: ProgramGoalsViewDelegate) -> AnyView {
         ProgramGoalsView(
             viewModel: ProgramGoalsViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            goalRow: { delegate in
+                self.goalRow(delegate: delegate)
+            },
+            addGoalView: { delegate in
+                self.addGoalView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -763,7 +1338,8 @@ class CoreBuilder {
 
     func profileGoalsDetailView() -> AnyView {
         ProfileGoalsDetailView(
-            viewModel: ProfileGoalsDetailViewModel(interactor: interactor)
+            viewModel: ProfileGoalsDetailViewModel(interactor: interactor),
+            logWeightView: { self.logWeightView() }
         )
         .any()
     }
@@ -784,7 +1360,8 @@ class CoreBuilder {
 
     func profilePhysicalStatsView() -> AnyView {
         ProfilePhysicalStatsView(
-            viewModel: ProfilePhysicalStatsViewModel(interactor: interactor)
+            viewModel: ProfilePhysicalStatsViewModel(interactor: interactor),
+            logWeightView: { self.logWeightView() }
         )
         .any()
     }
@@ -792,7 +1369,8 @@ class CoreBuilder {
     func settingsView(delegate: SettingsViewDelegate) -> AnyView {
         SettingsView(
             viewModel: SettingsViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            createAccountView: { self.createAccountView() }
         )
         .any()
     }
@@ -800,7 +1378,15 @@ class CoreBuilder {
     func ingredientTemplateListView(delegate: IngredientTemplateListViewDelegate) -> AnyView {
         IngredientTemplateListView(
             interactor: interactor,
-            delegate: delegate
+            delegate: delegate,
+            genericTemplateListView: { viewModel, configuration, supportsRefresh, templateIdsOverride in
+                self.genericTemplateListView(
+                    viewModel: viewModel,
+                    configuration: configuration,
+                    supportsRefresh: supportsRefresh,
+                    templateIdsOverride: templateIdsOverride
+                )
+            }
         )
         .any()
     }
@@ -824,7 +1410,10 @@ class CoreBuilder {
     func programTemplatePickerView(delegate: ProgramTemplatePickerViewDelegate) -> AnyView {
         ProgramTemplatePickerView(
             viewModel: ProgramTemplatePickerViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            programStartConfigView: { delegate in
+                self.programStartConfigView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -903,7 +1492,11 @@ class CoreBuilder {
     func recipeDetailView(delegate: RecipeDetailViewDelegate) -> AnyView {
         RecipeDetailView(
             viewModel: RecipeDetailViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            devSettingsView: { self.devSettingsView() },
+            recipeStartView: { delegate in
+                self.recipeStartView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -911,7 +1504,98 @@ class CoreBuilder {
     func recipeTemplateListView(delegate: RecipeTemplateListViewDelegate) -> AnyView {
         RecipeTemplateListView(
             interactor: interactor,
-            delegate: delegate
+            delegate: delegate,
+            genericTemplateListView: { viewModel, configuration, supportsRefresh, templateIdsOverride in
+                self.genericTemplateListView(
+                    viewModel: viewModel,
+                    configuration: configuration,
+                    supportsRefresh: supportsRefresh,
+                    templateIdsOverride: templateIdsOverride
+                )
+            }
+        )
+        .any()
+    }
+
+    // MARK: Generic Template List
+
+    func genericTemplateListView<Template: TemplateModel>(
+        viewModel: GenericTemplateListViewModel<Template>,
+        configuration: TemplateListConfiguration<Template>,
+        supportsRefresh: Bool,
+        templateIdsOverride: [String]?
+    ) -> AnyView {
+        GenericTemplateListView(
+            viewModel: viewModel,
+            configuration: configuration,
+            supportsRefresh: supportsRefresh,
+            templateIdsOverride: templateIdsOverride,
+            exerciseTemplateDetailView: { delegate in
+                self.exerciseTemplateDetailView(delegate: delegate)
+            },
+            exerciseTemplateListView: { delegate in
+                self.exerciseTemplateListView(delegate: delegate)
+            },
+            workoutTemplateListView: { delegate in
+                self.workoutTemplateListView(delegate: delegate)
+            },
+            workoutTemplateDetailView: { delegate in
+                self.workoutTemplateDetailView(delegate: delegate)
+            },
+            ingredientDetailView: { delegate in
+                self.ingredientDetailView(delegate: delegate)
+            },
+            ingredientTemplateListView: { delegate in
+                self.ingredientTemplateListView(delegate: delegate)
+            },
+            ingredientAmountView: { delegate in
+                self.ingredientAmountView(delegate: delegate)
+            },
+            recipeDetailView: { delegate in
+                self.recipeDetailView(delegate: delegate)
+            },
+            recipeTemplateListView: { delegate in
+                self.recipeTemplateListView(delegate: delegate)
+            },
+            recipeAmountView: { delegate in
+                self.recipeAmountView(delegate: delegate)
+            },
+            workoutSessionDetailView: { delegate in
+                self.workoutSessionDetailView(delegate: delegate)
+            },
+            mealDetailView: { delegate in
+                self.mealDetailView(delegate: delegate)
+            },
+            profileGoalsDetailView: {
+                self.profileGoalsDetailView()
+            },
+            profileEditView: {
+                self.profileEditView()
+            },
+            profileNutritionDetailView: {
+                self.profileNutritionDetailView()
+            },
+            profilePhysicalStatsView: {
+                self.profilePhysicalStatsView()
+            },
+            settingsView: { delegate in
+                self.settingsView(delegate: delegate)
+            },
+            manageSubscriptionView: {
+                self.manageSubscriptionView()
+            },
+            programPreviewView: { delegate in
+                self.programPreviewView(delegate: delegate)
+            },
+            customProgramBuilderView: { delegate in
+                self.customProgramBuilderView(delegate: delegate)
+            },
+            programGoalsView: { delegate in
+                self.programGoalsView(delegate: delegate)
+            },
+            programScheduleView: { delegate in
+                self.programScheduleView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -919,7 +1603,13 @@ class CoreBuilder {
     func customProgramBuilderView(delegate: CustomProgramBuilderViewDelegate) -> AnyView {
         CustomProgramBuilderView(
             viewModel: CustomProgramBuilderViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            programStartConfigView: { delegate in
+                self.programStartConfigView(delegate: delegate)
+            },
+            workoutPickerSheet: { delegate in
+                self.workoutPickerSheet(delegate: delegate)
+            }
         )
         .any()
     }
@@ -955,7 +1645,10 @@ class CoreBuilder {
 
     func volumeChartsView() -> AnyView {
          VolumeChartsView(
-            viewModel: VolumeChartsViewModel(interactor: interactor)
+            viewModel: VolumeChartsViewModel(interactor: interactor),
+            trendSummarySection: { delegate in
+                self.trendSummarySection(delegate: delegate)
+            }
          )
          .any()
     }
@@ -984,10 +1677,99 @@ class CoreBuilder {
         .any()
     }
 
+    func setGoalFlowView() -> AnyView {
+        SetGoalFlowView(
+            onboardingOverarchingObjectiveView: { delegate in
+                self.onboardingOverarchingObjectiveView(
+                    delegate: delegate
+                )
+            }
+        )
+        .any()
+    }
+
     func profileView(delegate: ProfileViewDelegate) -> AnyView {
         ProfileView(
             viewModel: ProfileViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            profileHeaderView: { delegate in
+                self.profileHeaderView(delegate: delegate)
+            },
+            profilePhysicalMetricsView: { delegate in
+                self.profilePhysicalMetricsView(delegate: delegate)
+            },
+            profileGoalSection: { delegate in
+                self.profileGoalSection(delegate: delegate)
+            },
+            profileNutritionPlanView: { delegate in
+                self.profileNutritionPlanView(delegate: delegate)
+            },
+            profilePreferencesView: { delegate in
+                self.profilePreferencesView(delegate: delegate)
+            },
+            profileMyTemplatesView: { delegate in
+                self.profileMyTemplatesView(delegate: delegate)
+            },
+            devSettingsView: { self.devSettingsView() },
+            createAccountView: { self.createAccountView() },
+            notificationsView: { self.notificationsView() },
+            setGoalFlowView: { self.setGoalFlowView() },
+            exerciseTemplateDetailView: { delegate in
+                self.exerciseTemplateDetailView(delegate: delegate)
+            },
+            exerciseTemplateListView: { delegate in
+                self.exerciseTemplateListView(delegate: delegate)
+            },
+            workoutTemplateListView: { delegate in
+                self.workoutTemplateListView(delegate: delegate)
+            },
+            workoutTemplateDetailView: { delegate in
+                self.workoutTemplateDetailView(delegate: delegate)
+            },
+            ingredientDetailView: { delegate in
+                self.ingredientDetailView(delegate: delegate)
+            },
+            ingredientTemplateListView: { delegate in
+                self.ingredientTemplateListView(delegate: delegate)
+            },
+            ingredientAmountView: { delegate in
+                self.ingredientAmountView(delegate: delegate)
+            },
+            recipeDetailView: { delegate in
+                self.recipeDetailView(delegate: delegate)
+            },
+            recipeTemplateListView: { delegate in
+                self.recipeTemplateListView(delegate: delegate)
+            },
+            recipeAmountView: { delegate in
+                self.recipeAmountView(delegate: delegate)
+            },
+            workoutSessionDetailView: { delegate in
+                self.workoutSessionDetailView(delegate: delegate)
+            },
+            mealDetailView: { delegate in
+                self.mealDetailView(delegate: delegate)
+            },
+            profileGoalsDetailView: { self.profileGoalsDetailView() },
+            profileEditView: { self.profileEditView() },
+            profileNutritionDetailView: { self.profileNutritionDetailView() },
+            profilePhysicalStatsView: { self.profilePhysicalStatsView() },
+            settingsView: { delegate in
+                self.settingsView(delegate: delegate)
+            },
+            manageSubscriptionView: { self.manageSubscriptionView()},
+            programPreviewView: { delegate in
+                self.programPreviewView(delegate: delegate)
+            },
+            customProgramBuilderView: { delegate in
+                self.customProgramBuilderView(delegate: delegate)
+            },
+            programGoalsView: { delegate in
+                self.programGoalsView(delegate: delegate)
+            },
+            programScheduleView: { delegate in
+                self.programScheduleView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -1010,7 +1792,16 @@ class CoreBuilder {
     func dayScheduleSheetView(delegate: DayScheduleSheetViewDelegate) -> AnyView {
         DayScheduleSheetView(
             viewModel: DayScheduleSheetViewModel(interactor: interactor),
-            delegate: delegate
+            delegate: delegate,
+            workoutSummaryCardView: { delegate in
+                self.workoutSummaryCardView(delegate: delegate)
+            },
+            todaysWorkoutCardView: { delegate in
+                self.todaysWorkoutCardView(delegate: delegate)
+            },
+            workoutSessionDetailView: { delegate in
+                self.workoutSessionDetailView(delegate: delegate)
+            }
         )
         .any()
     }
@@ -1018,7 +1809,10 @@ class CoreBuilder {
     func exerciseTrackerCardView(delegate: ExerciseTrackerCardViewDelegate) -> AnyView {
         ExerciseTrackerCardView(
             delegate: delegate,
-            interactor: interactor
+            interactor: interactor,
+            setTrackerRowView: { delegate in
+                self.setTrackerRowView(delegate: delegate)
+            }
         )
         .any()
     }

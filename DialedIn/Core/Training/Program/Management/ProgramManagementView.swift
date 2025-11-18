@@ -12,12 +12,16 @@ struct ProgramManagementViewDelegate {
 }
 
 struct ProgramManagementView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: ProgramManagementViewModel
 
     var delegate: ProgramManagementViewDelegate
+
+    @ViewBuilder var programTemplatePickerView: (ProgramTemplatePickerViewDelegate) -> AnyView
+    @ViewBuilder var editProgramView: (EditProgramViewDelegate) -> AnyView
+    @ViewBuilder var programRowView: (ProgramRowViewDelegate) -> AnyView
 
     var body: some View {
         NavigationStack {
@@ -47,10 +51,10 @@ struct ProgramManagementView: View {
                 }
             }
             .sheet(isPresented: $viewModel.showCreateSheet) {
-                builder.programTemplatePickerView(delegate: ProgramTemplatePickerViewDelegate(path: delegate.path))
+                programTemplatePickerView(ProgramTemplatePickerViewDelegate(path: delegate.path))
             }
             .sheet(item: $viewModel.editingPlan) { plan in
-                builder.editProgramView(delegate: EditProgramViewDelegate(path: delegate.path, plan: plan))
+                editProgramView(EditProgramViewDelegate(path: delegate.path, plan: plan))
             }
             .showCustomAlert(alert: $viewModel.showDeleteAlert)
             .overlay {
@@ -92,7 +96,7 @@ struct ProgramManagementView: View {
                             )
                         }
                     )
-                    builder.programRowView(delegate: delegate)
+                    programRowView(delegate)
                 } header: {
                     Text("Active Program")
                 } footer: {
@@ -109,8 +113,8 @@ struct ProgramManagementView: View {
             if !inactivePlans.isEmpty {
                 Section {
                     ForEach(inactivePlans) { plan in
-                        builder.programRowView(
-                            delegate: ProgramRowViewDelegate(
+                        programRowView(
+                            ProgramRowViewDelegate(
                                 plan: plan,
                                 isActive: false,
                                 onActivate: {

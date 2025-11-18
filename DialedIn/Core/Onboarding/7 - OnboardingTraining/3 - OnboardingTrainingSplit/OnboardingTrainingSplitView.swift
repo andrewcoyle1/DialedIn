@@ -14,11 +14,11 @@ struct OnboardingTrainingSplitViewDelegate {
 
 struct OnboardingTrainingSplitView: View {
 
-    @Environment(CoreBuilder.self) private var builder
-
     @State var viewModel: OnboardingTrainingSplitViewModel
 
     var delegate: OnboardingTrainingSplitViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -51,7 +51,7 @@ struct OnboardingTrainingSplitView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .screenAppearAnalytics(name: "TrainingSplit")

@@ -35,13 +35,13 @@ struct ExerciseTrackerCardViewDelegate {
 
 struct ExerciseTrackerCardView: View {
 
-    @Environment(CoreBuilder.self) private var builder
-
     @State var viewModel: ExerciseTrackerCardViewModel
     
     var delegate: ExerciseTrackerCardViewDelegate
-    
-    init(delegate: ExerciseTrackerCardViewDelegate, interactor: ExerciseTrackerCardInteractor) {
+
+    @ViewBuilder var setTrackerRowView: (SetTrackerRowViewDelegate) -> AnyView
+
+    init(delegate: ExerciseTrackerCardViewDelegate, interactor: ExerciseTrackerCardInteractor, setTrackerRowView: @escaping (SetTrackerRowViewDelegate) -> AnyView) {
         self.delegate = delegate
         _viewModel = State(wrappedValue: ExerciseTrackerCardViewModel(
             interactor: interactor,
@@ -52,6 +52,7 @@ struct ExerciseTrackerCardView: View {
             distanceUnit: delegate.distanceUnit,
             previousSetsByIndex: delegate.previousSetsByIndex
         ))
+        self.setTrackerRowView = setTrackerRowView
     }
 
     var body: some View {
@@ -181,8 +182,8 @@ struct ExerciseTrackerCardView: View {
             }
 
             ForEach(delegate.exercise.sets) { set in
-                builder.setTrackerRowView(
-                    delegate: SetTrackerRowViewDelegate(
+                setTrackerRowView(
+                    SetTrackerRowViewDelegate(
                         set: set,
                         trackingMode: viewModel.exercise.trackingMode,
                         weightUnit: viewModel.weightUnit,
@@ -232,6 +233,7 @@ struct ExerciseTrackerCardView: View {
 }
 
 private struct ExerciseTrackerCardPreviewContainer: View {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     @State private var exercise: WorkoutExerciseModel = {
         var exercise = WorkoutExerciseModel.mock
         exercise.notes = exercise.notes ?? ""
@@ -275,7 +277,7 @@ private struct ExerciseTrackerCardPreviewContainer: View {
     var body: some View {
         List {
             // Current exercise styled card
-            ExerciseTrackerCardView(
+            builder.exerciseTrackerCardView(
                 delegate: ExerciseTrackerCardViewDelegate(
                     exercise: exercise,
                     exerciseIndex: 0,
@@ -300,12 +302,10 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                     getLatestDistanceUnit: { .meters },
                     getLatestPreviousSets: { [:] },
                     isExpanded: $isExpandedCurrent
-                ),
-                interactor: CoreInteractor(container: DevPreview.shared.container)
+                )
             )
-            
             // Non-current exercise styled card
-            ExerciseTrackerCardView(
+            builder.exerciseTrackerCardView(
                 delegate: ExerciseTrackerCardViewDelegate(
                     exercise: exercise,
                     exerciseIndex: 1,
@@ -330,8 +330,7 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                     getLatestDistanceUnit: { .meters },
                     getLatestPreviousSets: { [:] },
                     isExpanded: $isExpandedOther
-                ),
-                interactor: CoreInteractor(container: DevPreview.shared.container)
+                )
             )
         }
     }

@@ -13,11 +13,11 @@ struct OnboardingHealthDataViewDelegate {
 
 struct OnboardingHealthDataView: View {
 
-    @Environment(CoreBuilder.self) private var builder
-
     @State var viewModel: OnboardingHealthDataViewModel
 
     var delegate: OnboardingHealthDataViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -33,7 +33,7 @@ struct OnboardingHealthDataView: View {
         .navigationBarBackButtonHidden(true)
         #else
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .toolbar {

@@ -13,7 +13,6 @@ struct WorkoutTrackerViewDelegate {
 }
 
 struct WorkoutTrackerView: View {
-    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) var dismiss
     @Environment(\.scenePhase) private var scenePhase
     
@@ -21,6 +20,9 @@ struct WorkoutTrackerView: View {
     @State var viewModel: WorkoutTrackerViewModel
     
     let delegate: WorkoutTrackerViewDelegate
+
+    @ViewBuilder var addExerciseModalView: (AddExerciseModalViewDelegate) -> AnyView
+    @ViewBuilder var exerciseTrackerCardView: (ExerciseTrackerCardViewDelegate) -> AnyView
 
     var body: some View {
         TimelineView(.periodic(from: delegate.workoutSession.dateCreated, by: 1.0)) { _ in
@@ -61,7 +63,7 @@ struct WorkoutTrackerView: View {
                 isPresented: $viewModel.showingAddExercise,
                 onDismiss: { viewModel.addSelectedExercises() },
                 content: {
-                    builder.addExerciseModalView(delegate: AddExerciseModalViewDelegate(selectedExercises: $viewModel.pendingSelectedTemplates))
+                    addExerciseModalView(AddExerciseModalViewDelegate(selectedExercises: $viewModel.pendingSelectedTemplates))
                 }
             )
         }
@@ -134,8 +136,8 @@ struct WorkoutTrackerView: View {
                     let distanceUnit = preference?.distanceUnit ?? .meters
                     let previousSets = viewModel.buildPreviousLookup(for: exercise)
                     let exerciseId = exercise.id
-                    builder.exerciseTrackerCardView(
-                        delegate: ExerciseTrackerCardViewDelegate(
+                    exerciseTrackerCardView(
+                        ExerciseTrackerCardViewDelegate(
                             exercise: exercise,
                             exerciseIndex: index,
                             isCurrentExercise: index == viewModel.currentExerciseIndex,

@@ -12,12 +12,13 @@ struct OnboardingIntroViewDelegate {
 }
 
 struct OnboardingIntroView: View {
-    @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: OnboardingIntroViewModel
 
     var delegate: OnboardingIntroViewDelegate
 
+    @ViewBuilder var devSettingsView: () -> AnyView
+    
     var body: some View {
         List {
             trainingSection
@@ -33,7 +34,7 @@ struct OnboardingIntroView: View {
         .navigationBarBackButtonHidden(true)
         #else
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .screenAppearAnalytics(name: "OnboardingIntro")

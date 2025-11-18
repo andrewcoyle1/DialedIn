@@ -11,11 +11,12 @@ struct OnboardingHealthDisclaimerViewDelegate {
     var path: Binding<[OnboardingPathOption]>
 }
 struct OnboardingHealthDisclaimerView: View {
-    @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: OnboardingHealthDisclaimerViewModel
 
     var delegate: OnboardingHealthDisclaimerViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -39,7 +40,7 @@ struct OnboardingHealthDisclaimerView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
     }

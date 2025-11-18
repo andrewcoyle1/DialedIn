@@ -13,12 +13,45 @@ struct ProfileViewDelegate {
 
 struct ProfileView: View {
 
-    @Environment(CoreBuilder.self) private var builder
     @Environment(\.layoutMode) private var layoutMode
 
     @State var viewModel: ProfileViewModel
 
     var delegate: ProfileViewDelegate
+
+    @ViewBuilder var profileHeaderView: (ProfileHeaderViewDelegate) -> AnyView
+    @ViewBuilder var profilePhysicalMetricsView: (ProfilePhysicalMetricsViewDelegate) -> AnyView
+    @ViewBuilder var profileGoalSection: (ProfileGoalSectionDelegate) -> AnyView
+    @ViewBuilder var profileNutritionPlanView: (ProfileNutritionPlanViewDelegate) -> AnyView
+    @ViewBuilder var profilePreferencesView: (ProfilePreferencesViewDelegate) -> AnyView
+    @ViewBuilder var profileMyTemplatesView: (ProfileMyTemplatesViewDelegate) -> AnyView
+    @ViewBuilder var devSettingsView: () -> AnyView
+    @ViewBuilder var createAccountView: () -> AnyView
+    @ViewBuilder var notificationsView: () -> AnyView
+    @ViewBuilder var setGoalFlowView: () -> AnyView
+
+    @ViewBuilder var exerciseTemplateDetailView: (ExerciseTemplateDetailViewDelegate) -> AnyView
+    @ViewBuilder var exerciseTemplateListView: (ExerciseTemplateListViewDelegate) -> AnyView
+    @ViewBuilder var workoutTemplateListView: (WorkoutTemplateListViewDelegate) -> AnyView
+    @ViewBuilder var workoutTemplateDetailView: (WorkoutTemplateDetailViewDelegate) -> AnyView
+    @ViewBuilder var ingredientDetailView: (IngredientDetailViewDelegate) -> AnyView
+    @ViewBuilder var ingredientTemplateListView: (IngredientTemplateListViewDelegate) -> AnyView
+    @ViewBuilder var ingredientAmountView: (IngredientAmountViewDelegate) -> AnyView
+    @ViewBuilder var recipeDetailView: (RecipeDetailViewDelegate) -> AnyView
+    @ViewBuilder var recipeTemplateListView: (RecipeTemplateListViewDelegate) -> AnyView
+    @ViewBuilder var recipeAmountView: (RecipeAmountViewDelegate) -> AnyView
+    @ViewBuilder var workoutSessionDetailView: (WorkoutSessionDetailViewDelegate) -> AnyView
+    @ViewBuilder var mealDetailView: (MealDetailViewDelegate) -> AnyView
+    @ViewBuilder var profileGoalsDetailView: () -> AnyView
+    @ViewBuilder var profileEditView: () -> AnyView
+    @ViewBuilder var profileNutritionDetailView: () -> AnyView
+    @ViewBuilder var profilePhysicalStatsView: () -> AnyView
+    @ViewBuilder var settingsView: (SettingsViewDelegate) -> AnyView
+    @ViewBuilder var manageSubscriptionView: () -> AnyView
+    @ViewBuilder var programPreviewView: (ProgramPreviewViewDelegate) -> AnyView
+    @ViewBuilder var customProgramBuilderView: (CustomProgramBuilderViewDelegate) -> AnyView
+    @ViewBuilder var programGoalsView: (ProgramGoalsViewDelegate) -> AnyView
+    @ViewBuilder var programScheduleView: (ProgramScheduleViewDelegate) -> AnyView
 
     var body: some View {
         Group {
@@ -26,7 +59,31 @@ struct ProfileView: View {
                 NavigationStack(path: delegate.path) {
                     contentView
                 }
-                .navDestinationForTabBarModule(path: delegate.path)
+                .navDestinationForTabBarModule(
+                    path: delegate.path,
+                    exerciseTemplateDetailView: exerciseTemplateDetailView,
+                    exerciseTemplateListView: exerciseTemplateListView,
+                    workoutTemplateListView: workoutTemplateListView,
+                    workoutTemplateDetailView: workoutTemplateDetailView,
+                    ingredientDetailView: ingredientDetailView,
+                    ingredientTemplateListView: ingredientTemplateListView,
+                    ingredientAmountView: ingredientAmountView,
+                    recipeDetailView: recipeDetailView,
+                    recipeTemplateListView: recipeTemplateListView,
+                    recipeAmountView: recipeAmountView,
+                    workoutSessionDetailView: workoutSessionDetailView,
+                    mealDetailView: mealDetailView,
+                    profileGoalsDetailView: profileGoalsDetailView,
+                    profileEditView: profileEditView,
+                    profileNutritionDetailView: profileNutritionDetailView,
+                    profilePhysicalStatsView: profilePhysicalStatsView,
+                    settingsView: settingsView,
+                    manageSubscriptionView: manageSubscriptionView,
+                    programPreviewView: programPreviewView,
+                    customProgramBuilderView: customProgramBuilderView,
+                    programGoalsView: programGoalsView,
+                    programScheduleView: programScheduleView
+                )
             } else {
                 contentView
             }
@@ -37,12 +94,12 @@ struct ProfileView: View {
         List {
             if let user = viewModel.currentUser,
                let firstName = user.firstName, !firstName.isEmpty {
-                builder.profileHeaderView(delegate: ProfileHeaderViewDelegate(path: delegate.path))
-                builder.profilePhysicalMetricsView(delegate: ProfilePhysicalMetricsViewDelegate(path: delegate.path))
-                builder.profileGoalSection(delegate: ProfileGoalSectionDelegate(path: delegate.path))
-                builder.profileNutritionPlanView(delegate: ProfileNutritionPlanViewDelegate(path: delegate.path))
-                builder.profilePreferencesView(delegate: ProfilePreferencesViewDelegate(path: delegate.path))
-                builder.profileMyTemplatesView(delegate: ProfileMyTemplatesViewDelegate(path: delegate.path))
+                profileHeaderView(ProfileHeaderViewDelegate(path: delegate.path))
+                profilePhysicalMetricsView(ProfilePhysicalMetricsViewDelegate(path: delegate.path))
+                profileGoalSection(ProfileGoalSectionDelegate(path: delegate.path))
+                profileNutritionPlanView(ProfileNutritionPlanViewDelegate(path: delegate.path))
+                profilePreferencesView(ProfilePreferencesViewDelegate(path: delegate.path))
+                profileMyTemplatesView(ProfileMyTemplatesViewDelegate(path: delegate.path))
             } else {
                 createProfileSection
             }
@@ -53,20 +110,20 @@ struct ProfileView: View {
         .navigationBarTitleDisplayMode(.large)
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView, content: {
-            builder.devSettingsView()
+            devSettingsView()
         })
         #endif
         .sheet(isPresented: $viewModel.showCreateProfileSheet) {
-            builder.createAccountView()
+            createAccountView()
                 .presentationDetents([
                     .fraction(0.4)
                 ])
         }
         .sheet(isPresented: $viewModel.showNotifications) {
-            builder.notificationsView()
+            notificationsView()
         }
         .sheet(isPresented: $viewModel.showSetGoalSheet) {
-            SetGoalFlowView()
+            setGoalFlowView()
         }
         .toolbar {
             toolbarContent

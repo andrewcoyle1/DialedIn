@@ -13,11 +13,12 @@ struct OnboardingExerciseFrequencyViewDelegate {
 }
 
 struct OnboardingExerciseFrequencyView: View {
-    @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: OnboardingExerciseFrequencyViewModel
 
     var delegate: OnboardingExerciseFrequencyViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -29,7 +30,7 @@ struct OnboardingExerciseFrequencyView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
     }

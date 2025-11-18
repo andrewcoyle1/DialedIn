@@ -12,12 +12,14 @@ struct OnboardingGoalSummaryViewDelegate {
     var weightGoalBuilder: WeightGoalBuilder
 }
 struct OnboardingGoalSummaryView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.goalFlowDismissAction) private var dismissFlow
 
     @State var viewModel: OnboardingGoalSummaryViewModel
 
     var delegate: OnboardingGoalSummaryViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -33,7 +35,7 @@ struct OnboardingGoalSummaryView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .toolbar {

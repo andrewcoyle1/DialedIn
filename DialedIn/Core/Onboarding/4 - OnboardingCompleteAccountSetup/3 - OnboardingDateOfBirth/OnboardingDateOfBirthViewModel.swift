@@ -29,11 +29,11 @@ class OnboardingDateOfBirthViewModel {
     }
     
     func navigateToOnboardingHeight(path: Binding<[OnboardingPathOption]>, userBuilder: UserModelBuilder) {
-        var builder = userBuilder
-        builder.setDateOfBirth(dateOfBirth)
-        
-        interactor.trackEvent(event: Event.navigate(destination: .height(userModelBuilder: builder)))
-        path.wrappedValue.append(.height(userModelBuilder: builder))
+        var userModelbuilder = userBuilder
+        userModelbuilder.setDateOfBirth(dateOfBirth)
+
+        interactor.trackEvent(event: Event.navigate(destination: .height(userModelBuilder: userModelbuilder)))
+        path.wrappedValue.append(.height(userModelBuilder: userModelbuilder))
     }
 
     enum Event: LoggableEvent {

@@ -13,12 +13,14 @@ struct ProgramGoalsViewDelegate {
 
 struct ProgramGoalsView: View {
 
-    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: ProgramGoalsViewModel
 
     let delegate: ProgramGoalsViewDelegate
+
+    @ViewBuilder var goalRow: (GoalRowDelegate) -> AnyView
+    @ViewBuilder var addGoalView: (AddGoalViewDelegate) -> AnyView
 
     var body: some View {
         List {
@@ -30,7 +32,7 @@ struct ProgramGoalsView: View {
                 )
             } else {
                 ForEach(delegate.plan.goals) { goal in
-                    builder.goalRow(delegate: GoalRowDelegate(goal: goal, plan: delegate.plan))
+                    goalRow(GoalRowDelegate(goal: goal, plan: delegate.plan))
                 }
             }
         }
@@ -46,7 +48,7 @@ struct ProgramGoalsView: View {
             }
         }
         .sheet(isPresented: $viewModel.showAddGoal) {
-            builder.addGoalView(delegate: AddGoalViewDelegate(plan: delegate.plan))
+            addGoalView(AddGoalViewDelegate(plan: delegate.plan))
         }
     }
 }

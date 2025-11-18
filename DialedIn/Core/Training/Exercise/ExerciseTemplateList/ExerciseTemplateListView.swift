@@ -15,18 +15,35 @@ struct ExerciseTemplateListView: View {
     @State var viewModel: ExerciseTemplateListViewModel
     let delegate: ExerciseTemplateListViewDelegate
     let config: TemplateListConfiguration<ExerciseTemplateModel>
+    let genericTemplateListView: (
+        ExerciseTemplateListViewModel,
+        TemplateListConfiguration<ExerciseTemplateModel>,
+        Bool,
+        [String]?
+    ) -> AnyView
 
-    init(viewModel: ExerciseTemplateListViewModel, delegate: ExerciseTemplateListViewDelegate) {
+    init(
+        viewModel: ExerciseTemplateListViewModel,
+        delegate: ExerciseTemplateListViewDelegate,
+        genericTemplateListView: @escaping (
+            ExerciseTemplateListViewModel,
+            TemplateListConfiguration<ExerciseTemplateModel>,
+            Bool,
+            [String]?
+        ) -> AnyView
+    ) {
         self.viewModel = viewModel
         self.delegate = delegate
         self.config = delegate.templateIds != nil ? .exercise : .exercise(customTitle: "Exercise Templates")
+        self.genericTemplateListView = genericTemplateListView
     }
     
     var body: some View {
-        GenericTemplateListView(
-            viewModel: viewModel,
-            configuration: config,
-            templateIdsOverride: delegate.templateIds
+        genericTemplateListView(
+            viewModel,
+            config,
+            false,
+            delegate.templateIds
         )
     }
 }

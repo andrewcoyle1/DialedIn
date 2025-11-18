@@ -14,11 +14,11 @@ struct OnboardingTrainingScheduleViewDelegate {
 
 struct OnboardingTrainingScheduleView: View {
 
-    @Environment(CoreBuilder.self) private var builder
-
     @State var viewModel: OnboardingTrainingScheduleViewModel
 
     var delegate: OnboardingTrainingScheduleViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     private let weekdays = [
         (1, "Sunday"),
@@ -74,7 +74,7 @@ struct OnboardingTrainingScheduleView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .screenAppearAnalytics(name: "TrainingSchedule")

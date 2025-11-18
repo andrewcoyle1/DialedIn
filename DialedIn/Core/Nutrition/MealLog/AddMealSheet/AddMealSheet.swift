@@ -16,13 +16,13 @@ struct AddMealSheetDelegate {
 
 struct AddMealSheet: View {
 
-    @Environment(CoreBuilder.self) private var builder
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: AddMealSheetViewModel
 
     let delegate: AddMealSheetDelegate
 
+    @ViewBuilder var nutritionLibraryPickerView: (NutritionLibraryPickerViewDelegate) -> AnyView
     var body: some View {
         NavigationStack {
             List {
@@ -33,8 +33,8 @@ struct AddMealSheet: View {
             .navigationTitle("Add \(delegate.mealType.rawValue.capitalized)")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $viewModel.showLibraryPicker) {
-                builder.nutritionLibraryPickerView(
-                    delegate: NutritionLibraryPickerViewDelegate(onPick: { newItem in
+                nutritionLibraryPickerView(
+                    NutritionLibraryPickerViewDelegate(onPick: { newItem in
                         viewModel.items.append(newItem)
                         viewModel.showLibraryPicker = false
                     }, path: delegate.path)

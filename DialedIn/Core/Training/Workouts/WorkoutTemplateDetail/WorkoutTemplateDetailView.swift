@@ -12,13 +12,17 @@ struct WorkoutTemplateDetailViewDelegate {
 }
 
 struct WorkoutTemplateDetailView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.dismiss) private var dismiss
     @Environment(\.editMode) private var editMode
 
     @State var viewModel: WorkoutTemplateDetailViewModel
     
     let delegate: WorkoutTemplateDetailViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
+    @ViewBuilder var workoutStartView: (WorkoutStartViewDelegate) -> AnyView
+    @ViewBuilder var createWorkoutView: (CreateWorkoutViewDelegate) -> AnyView
 
     private var isAuthor: Bool {
         viewModel.currentUser?.userId == delegate.workoutTemplate.authorId
@@ -38,7 +42,7 @@ struct WorkoutTemplateDetailView: View {
         .showCustomAlert(alert: $viewModel.showAlert)
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .toolbar {
@@ -53,10 +57,10 @@ struct WorkoutTemplateDetailView: View {
         }
         .sheet(isPresented: $viewModel.showStartSessionSheet) {
             let delegate = WorkoutStartViewDelegate(template: delegate.workoutTemplate)
-            builder.workoutStartView(delegate: delegate)
+            workoutStartView(delegate)
         }
         .sheet(isPresented: $viewModel.showEditSheet) {
-            builder.createWorkoutView(delegate: CreateWorkoutViewDelegate(workoutTemplate: delegate.workoutTemplate))
+            createWorkoutView(CreateWorkoutViewDelegate(workoutTemplate: delegate.workoutTemplate))
         }
     }
 

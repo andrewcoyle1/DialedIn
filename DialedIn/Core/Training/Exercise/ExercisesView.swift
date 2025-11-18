@@ -12,11 +12,14 @@ struct ExercisesViewDelegate {
 }
 
 struct ExercisesView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.layoutMode) private var layoutMode
+
     @State var viewModel: ExercisesViewModel
 
     let delegate: ExercisesViewDelegate
+
+    @ViewBuilder var createExerciseView: () -> AnyView
 
     var body: some View {
         List {
@@ -67,7 +70,7 @@ struct ExercisesView: View {
             }
         }
         .sheet(isPresented: $viewModel.showCreateExercise) {
-            builder.createExerciseView()
+            createExerciseView()
         }
     }
     

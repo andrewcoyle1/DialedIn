@@ -12,13 +12,16 @@ struct CustomProgramBuilderViewDelegate {
 }
 
 struct CustomProgramBuilderView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
 
     @State var viewModel: CustomProgramBuilderViewModel
 
     var delegate: CustomProgramBuilderViewDelegate
+
+    @ViewBuilder var programStartConfigView: (ProgramStartConfigViewDelegate) -> AnyView
+    @ViewBuilder var workoutPickerSheet: (WorkoutPickerSheetDelegate) -> AnyView
 
     var body: some View {
         List {
@@ -33,8 +36,8 @@ struct CustomProgramBuilderView: View {
         .sheet(isPresented: $viewModel.showingWorkoutPicker) {
             if let day = viewModel.editingDayOfWeek {
                 NavigationStack {
-                    builder.workoutPickerSheet(
-                        delegate: WorkoutPickerSheetDelegate(
+                    workoutPickerSheet(
+                        WorkoutPickerSheetDelegate(
                             onSelect: { workout in
                                 viewModel.assign(
                                     workout: workout,
@@ -72,8 +75,8 @@ struct CustomProgramBuilderView: View {
             )
         }
         .sheet(item: $viewModel.startConfigTemplate) { template in
-            builder.programStartConfigView(
-                delegate: ProgramStartConfigViewDelegate(
+            programStartConfigView(
+                ProgramStartConfigViewDelegate(
                     path: delegate.path,
                     template: template
                 ) { startDate, endDate, customName in

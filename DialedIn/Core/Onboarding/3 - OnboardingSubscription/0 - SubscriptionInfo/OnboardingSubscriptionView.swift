@@ -12,11 +12,12 @@ struct OnboardingSubscriptionViewDelegate {
 }
 
 struct OnboardingSubscriptionView: View {
-    @Environment(CoreBuilder.self) private var builder
 
     @State var viewModel: OnboardingSubscriptionViewModel
 
     var delegate: OnboardingSubscriptionViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -30,7 +31,7 @@ struct OnboardingSubscriptionView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
     }

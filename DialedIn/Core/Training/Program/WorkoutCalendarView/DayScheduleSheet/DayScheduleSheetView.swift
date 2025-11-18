@@ -14,12 +14,16 @@ struct DayScheduleSheetViewDelegate {
 }
 
 struct DayScheduleSheetView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: DayScheduleSheetViewModel
 
     let delegate: DayScheduleSheetViewDelegate
+
+    @ViewBuilder var workoutSummaryCardView: (WorkoutSummaryCardViewDelegate) -> AnyView
+    @ViewBuilder var todaysWorkoutCardView: (TodaysWorkoutCardViewDelegate) -> AnyView
+    @ViewBuilder var workoutSessionDetailView: (WorkoutSessionDetailViewDelegate) -> AnyView
 
     var body: some View {
         NavigationStack {
@@ -34,8 +38,8 @@ struct DayScheduleSheetView: View {
                     Section {
                         ForEach(delegate.scheduledWorkouts) { workout in
                             if workout.isCompleted {
-                                builder.workoutSummaryCardView(
-                                    delegate: WorkoutSummaryCardViewDelegate(
+                                workoutSummaryCardView(
+                                    WorkoutSummaryCardViewDelegate(
                                         scheduledWorkout: workout, onTap: {
                                             Task {
                                                 await viewModel.openCompletedSession(for: workout)
@@ -44,18 +48,14 @@ struct DayScheduleSheetView: View {
                                     )
                                 )
                             } else {
-                                builder.todaysWorkoutCardView(
-                                    delegate: TodaysWorkoutCardViewDelegate(
+                                todaysWorkoutCardView(
+                                    TodaysWorkoutCardViewDelegate(
                                         scheduledWorkout: workout, onStart: {
                                             Task {
                                                 dismiss()
                                                 // Small delay to ensure sheet dismissal completes
                                                 try? await Task.sleep(nanoseconds: 100_000_000)
-                                                do {
-                                                    try await delegate.onStartWorkout(workout)
-                                                } catch {
-                                                    viewModel.showAlert = AnyAppAlert(error: error)
-                                                }
+                                                delegate.onStartWorkout(workout)
                                             }
                                         }
                                     )
@@ -75,8 +75,7 @@ struct DayScheduleSheetView: View {
                 }
             }
             .sheet(item: $viewModel.sessionToShow) { session in
-                let delegate = WorkoutSessionDetailViewDelegate(workoutSession: session)
-                builder.workoutSessionDetailView(delegate: delegate)
+                workoutSessionDetailView(WorkoutSessionDetailViewDelegate(workoutSession: session))
             }
             .showCustomAlert(alert: $viewModel.showAlert)
         }

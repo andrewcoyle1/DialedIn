@@ -13,28 +13,59 @@ struct IngredientTemplateListViewDelegate {
 
 struct IngredientTemplateListView: View {
     @State var viewModel: IngredientTemplateListViewModel
+    let genericTemplateListView: (
+        IngredientTemplateListViewModel,
+        TemplateListConfiguration<IngredientTemplateModel>,
+        Bool,
+        [String]?
+    ) -> AnyView
 
-    init(viewModel: IngredientTemplateListViewModel, delegate: IngredientTemplateListViewDelegate) {
+    init(
+        viewModel: IngredientTemplateListViewModel,
+        delegate: IngredientTemplateListViewDelegate,
+        genericTemplateListView: @escaping (
+            IngredientTemplateListViewModel,
+            TemplateListConfiguration<IngredientTemplateModel>,
+            Bool,
+            [String]?
+        ) -> AnyView
+    ) {
         self.viewModel = viewModel
+        self.genericTemplateListView = genericTemplateListView
     }
     
-    init(interactor: IngredientTemplateListInteractor, delegate: IngredientTemplateListViewDelegate) {
+    init(
+        interactor: IngredientTemplateListInteractor,
+        delegate: IngredientTemplateListViewDelegate,
+        genericTemplateListView: @escaping (
+            IngredientTemplateListViewModel,
+            TemplateListConfiguration<IngredientTemplateModel>,
+            Bool,
+            [String]?
+        ) -> AnyView
+    ) {
         self.viewModel = IngredientTemplateListViewModel.create(
             interactor: interactor,
             delegate: delegate
         )
+        self.genericTemplateListView = genericTemplateListView
     }
 
     var body: some View {
-        GenericTemplateListView(
-            viewModel: viewModel,
-            configuration: .ingredient,
-            supportsRefresh: true
+        genericTemplateListView(
+            viewModel,
+            .ingredient,
+            true,
+            viewModel.templateIds
         )
     }
 }
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.ingredientTemplateListView(delegate: IngredientTemplateListViewDelegate(templateIds: []))
+    builder.ingredientTemplateListView(
+        delegate: IngredientTemplateListViewDelegate(
+            templateIds: []
+        )
+    )
 }

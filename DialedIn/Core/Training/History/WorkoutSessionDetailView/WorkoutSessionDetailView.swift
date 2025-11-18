@@ -12,13 +12,15 @@ struct WorkoutSessionDetailViewDelegate {
 }
 
 struct WorkoutSessionDetailView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: WorkoutSessionDetailViewModel
 
     var delegate: WorkoutSessionDetailViewDelegate
 
+    @ViewBuilder var addExerciseModalView: (AddExerciseModalViewDelegate) -> AnyView
+    @ViewBuilder var editableExerciseCardWrapper: (EditableExerciseCardWrapperDelegate) -> AnyView
     var body: some View {
         List {
             let session = activeSession
@@ -42,7 +44,7 @@ struct WorkoutSessionDetailView: View {
             viewModel.loadUnitPreferences(for: delegate.workoutSession)
         }
         .sheet(isPresented: $viewModel.showAddExerciseSheet, onDismiss: viewModel.addSelectedExercises) {
-            builder.addExerciseModalView(delegate: AddExerciseModalViewDelegate(selectedExercises: $viewModel.selectedExerciseTemplates))
+            addExerciseModalView(AddExerciseModalViewDelegate(selectedExercises: $viewModel.selectedExerciseTemplates))
         }
     }
 }
@@ -129,8 +131,8 @@ extension WorkoutSessionDetailView {
                     ForEach(editedSession.exercises.indices, id: \.self) { index in
                         let exercise = editedSession.exercises[index]
                         let preference = viewModel.getUnitPreference(for: exercise.templateId)
-                        builder.editableExerciseCardWrapper(
-                            delegate: EditableExerciseCardWrapperDelegate(
+                        editableExerciseCardWrapper(
+                            EditableExerciseCardWrapperDelegate(
                                 exercise: exercise,
                                 index: index + 1,
                                 weightUnit: preference.weightUnit,

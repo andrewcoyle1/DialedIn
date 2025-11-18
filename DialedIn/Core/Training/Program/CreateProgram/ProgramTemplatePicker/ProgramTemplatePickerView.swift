@@ -12,12 +12,14 @@ struct ProgramTemplatePickerViewDelegate {
 }
 
 struct ProgramTemplatePickerView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.dismiss) private var dismiss
-    
+
     @State var viewModel: ProgramTemplatePickerViewModel
 
     var delegate: ProgramTemplatePickerViewDelegate
+
+    @ViewBuilder var programStartConfigView: (ProgramStartConfigViewDelegate) -> AnyView
 
     var body: some View {
         NavigationStack {
@@ -32,8 +34,8 @@ struct ProgramTemplatePickerView: View {
                 toolbarContent
             }
             .navigationDestination(item: $viewModel.selectedTemplate) { template in
-                builder.programStartConfigView(
-                    delegate: ProgramStartConfigViewDelegate(
+                programStartConfigView(
+                    ProgramStartConfigViewDelegate(
                         path: delegate.path,
                         template: template,
                         onStart: { startDate, endDate, customName in

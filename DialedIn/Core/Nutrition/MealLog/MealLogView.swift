@@ -16,10 +16,11 @@ struct MealLogViewDelegate {
 
 struct MealLogView: View {
 
-    @Environment(CoreBuilder.self) private var builder
     @State var viewModel: MealLogViewModel
 
     var delegate: MealLogViewDelegate
+
+    @ViewBuilder var addMealSheet: (AddMealSheetDelegate) -> AnyView
 
     var body: some View {
         Group {
@@ -47,8 +48,8 @@ struct MealLogView: View {
             }
         }
         .sheet(isPresented: $viewModel.showAddMealSheet) {
-            builder.addMealSheet(
-                delegate: AddMealSheetDelegate(
+            addMealSheet(
+                AddMealSheetDelegate(
                     selectedDate: viewModel.selectedDate,
                     mealType: viewModel.selectedMealType,
                     onSave: { meal in

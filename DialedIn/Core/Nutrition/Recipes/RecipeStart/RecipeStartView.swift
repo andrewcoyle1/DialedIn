@@ -7,13 +7,18 @@
 
 import SwiftUI
 
+struct RecipeStartViewDelegate {
+    var recipe: RecipeTemplateModel
+}
+
 struct RecipeStartView: View {
     
-    var recipe: RecipeTemplateModel
+    var delegate: RecipeStartViewDelegate
+
     var body: some View {
         List {
             Section("Ingredients") {
-                ForEach(recipe.ingredients) { wrapper in
+                ForEach(delegate.recipe.ingredients) { wrapper in
                     HStack {
                         Text(wrapper.ingredient.name)
                         Spacer()
@@ -34,5 +39,5 @@ struct RecipeStartView: View {
 }
 
 #Preview {
-    RecipeStartView(recipe: .mock)
+    RecipeStartView(delegate: RecipeStartViewDelegate(recipe: .mock))
 }

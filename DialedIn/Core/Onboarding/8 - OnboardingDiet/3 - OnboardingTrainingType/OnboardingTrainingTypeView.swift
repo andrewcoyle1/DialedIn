@@ -13,9 +13,12 @@ struct OnboardingTrainingTypeViewDelegate {
 }
 
 struct OnboardingTrainingTypeView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @State var viewModel: OnboardingTrainingTypeViewModel
+
     var delegate: OnboardingTrainingTypeViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -46,7 +49,7 @@ struct OnboardingTrainingTypeView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
     }

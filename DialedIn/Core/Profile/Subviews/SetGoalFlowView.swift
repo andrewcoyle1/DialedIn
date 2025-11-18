@@ -8,14 +8,17 @@
 import SwiftUI
 
 struct SetGoalFlowView: View {
-    @Environment(CoreBuilder.self) private var builder
+
     @Environment(\.dismiss) private var dismiss
+
     @State var path: [OnboardingPathOption] = []
-    
+
+    @ViewBuilder var onboardingOverarchingObjectiveView: (OnboardingOverarchingObjectiveViewDelegate) -> AnyView
+
     var body: some View {
         NavigationStack {
-            builder.onboardingOverarchingObjectiveView(
-                delegate: OnboardingOverarchingObjectiveViewDelegate(
+            onboardingOverarchingObjectiveView(
+                OnboardingOverarchingObjectiveViewDelegate(
                     path: $path
                 )
             )
@@ -32,6 +35,7 @@ struct SetGoalFlowView: View {
 }
 
 #Preview {
-    SetGoalFlowView()
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.setGoalFlowView()
         .previewEnvironment()
 }

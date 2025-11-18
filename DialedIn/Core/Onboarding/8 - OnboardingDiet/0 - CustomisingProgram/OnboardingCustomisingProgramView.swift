@@ -13,11 +13,11 @@ struct OnboardingCustomisingProgramViewDelegate {
 
 struct OnboardingCustomisingProgramView: View {
 
-    @Environment(CoreBuilder.self) private var builder
-
     @State var viewModel: OnboardingCustomisingProgramViewModel
 
     var delegate: OnboardingCustomisingProgramViewDelegate
+
+    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -30,7 +30,7 @@ struct OnboardingCustomisingProgramView: View {
         }
         #if DEBUG || MOCK
         .sheet(isPresented: $viewModel.showDebugView) {
-            builder.devSettingsView()
+            devSettingsView()
         }
         #endif
         .showModal(showModal: $viewModel.isLoading) {
