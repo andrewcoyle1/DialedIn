@@ -6,19 +6,12 @@
 //
 
 import SwiftUI
-
-struct SettingsViewDelegate {
-    var path: Binding<[TabBarPathOption]>
-}
+import CustomRouting
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: SettingsViewModel
-
-    var delegate: SettingsViewDelegate
-
-    @ViewBuilder var createAccountView: () -> AnyView
 
     var body: some View {
         NavigationStack {
@@ -28,12 +21,6 @@ struct SettingsView: View {
                 applicationSection
             }
             .navigationTitle("Settings")
-            .sheet(isPresented: $viewModel.showCreateAccountView, onDismiss: {
-                viewModel.setAnonymousAccountStatus()
-            }, content: {
-                createAccountView()
-                    .presentationDetents([.medium])
-            })
             .onAppear {
                 viewModel.setAnonymousAccountStatus()
             }
@@ -84,7 +71,7 @@ struct SettingsView: View {
     private var purchaseSection: some View {
         Section {
             Button {
-                viewModel.navToManageSubscriptionView(path: delegate.path)
+                viewModel.navToManageSubscriptionView(path: .constant([]))
             } label: {
                 Text("Account status: \(viewModel.isPremium ? "PREMIUM" : "FREE")")
             }
@@ -141,28 +128,32 @@ fileprivate extension View {
 }
 
 #Preview("No auth") {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.settingsView(delegate: SettingsViewDelegate(path: $path))
+    RouterView { router in
+        builder.settingsView(router: router)
+    }
     .previewEnvironment()
 }
 
 #Preview("Anonymous") {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.settingsView(delegate: SettingsViewDelegate(path: $path))
+    RouterView { router in
+        builder.settingsView(router: router)
+    }
     .previewEnvironment()
 }
 #Preview("Not anonymous") {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.settingsView(delegate: SettingsViewDelegate(path: $path))
+    RouterView { router in
+        builder.settingsView(router: router)
+    }
     .previewEnvironment()
 }
 
 #Preview("Premium") {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.settingsView(delegate: SettingsViewDelegate(path: $path))
+    RouterView { router in
+        builder.settingsView(router: router)
+    }
     .previewEnvironment()
 }

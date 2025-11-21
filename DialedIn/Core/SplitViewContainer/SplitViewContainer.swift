@@ -7,53 +7,24 @@
 
 import SwiftUI
 
-struct SplitViewDelegate {
-    var path: Binding<[TabBarPathOption]>
-    var tab: Binding<TabBarOption>
-}
-
 struct SplitViewContainer: View {
 
     @State var viewModel: SplitViewContainerViewModel
-
-    var delegate: SplitViewDelegate
+    var tabs: [TabBarScreen]
 
     @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryViewDelegate) -> AnyView
     @ViewBuilder var workoutTrackerView: (WorkoutTrackerViewDelegate) -> AnyView
-    @ViewBuilder var tabRootView: (TabBarOption, Binding<[TabBarPathOption]>) -> AnyView
 
-    @ViewBuilder var exerciseTemplateDetailView: (ExerciseTemplateDetailViewDelegate) -> AnyView
-    @ViewBuilder var exerciseTemplateListView: (ExerciseTemplateListViewDelegate) -> AnyView
-    @ViewBuilder var workoutTemplateListView: (WorkoutTemplateListViewDelegate) -> AnyView
-    @ViewBuilder var workoutTemplateDetailView: (WorkoutTemplateDetailViewDelegate) -> AnyView
-    @ViewBuilder var ingredientDetailView: (IngredientDetailViewDelegate) -> AnyView
-    @ViewBuilder var ingredientTemplateListView: (IngredientTemplateListViewDelegate) -> AnyView
-    @ViewBuilder var ingredientAmountView: (IngredientAmountViewDelegate) -> AnyView
-    @ViewBuilder var recipeDetailView: (RecipeDetailViewDelegate) -> AnyView
-    @ViewBuilder var recipeTemplateListView: (RecipeTemplateListViewDelegate) -> AnyView
-    @ViewBuilder var recipeAmountView: (RecipeAmountViewDelegate) -> AnyView
-    @ViewBuilder var workoutSessionDetailView: (WorkoutSessionDetailViewDelegate) -> AnyView
-    @ViewBuilder var mealDetailView: (MealDetailViewDelegate) -> AnyView
-    @ViewBuilder var profileGoalsDetailView: () -> AnyView
-    @ViewBuilder var profileEditView: () -> AnyView
-    @ViewBuilder var profileNutritionDetailView: () -> AnyView
-    @ViewBuilder var profilePhysicalStatsView: () -> AnyView
-    @ViewBuilder var settingsView: (SettingsViewDelegate) -> AnyView
-    @ViewBuilder var manageSubscriptionView: () -> AnyView
-    @ViewBuilder var programPreviewView: (ProgramPreviewViewDelegate) -> AnyView
-    @ViewBuilder var customProgramBuilderView: (CustomProgramBuilderViewDelegate) -> AnyView
-    @ViewBuilder var programGoalsView: (ProgramGoalsViewDelegate) -> AnyView
-    @ViewBuilder var programScheduleView: (ProgramScheduleViewDelegate) -> AnyView
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all), preferredCompactColumn: $viewModel.preferredColumn) {
             // Sidebar
             List {
                 Section {
-                    ForEach(TabBarOption.allCases, id: \.self) { section in
+                    ForEach(tabs) { tab in
                         Button {
-                            delegate.tab.wrappedValue = section
+                            print("Tab selected")
                         } label: {
-                            Label(section.id, systemImage: section.symbolName)
+                            Label(tab.title, systemImage: tab.systemImage)
                         }
                     }
                 }
@@ -67,41 +38,17 @@ struct SplitViewContainer: View {
             }
             .frame(minWidth: 150)
         } content: {
-            NavigationStack {
-                tabRootView(delegate.tab.wrappedValue, delegate.path)
-            }
+            tabs.first!.screen()
+//            NavigationStack {
+//                tabRootView(delegate.tab.wrappedValue, delegate.path)
+//            }
             .background(
                 Color(uiColor: .systemGroupedBackground)
             )
         } detail: {
-            NavigationStack(path: delegate.path) {
+            NavigationStack {
                 detailPlaceholder
             }
-            .navDestinationForTabBarModule(
-                path: delegate.path,
-                exerciseTemplateDetailView: exerciseTemplateDetailView,
-                exerciseTemplateListView: exerciseTemplateListView,
-                workoutTemplateListView: workoutTemplateListView,
-                workoutTemplateDetailView: workoutTemplateDetailView,
-                ingredientDetailView: ingredientDetailView,
-                ingredientTemplateListView: ingredientTemplateListView,
-                ingredientAmountView: ingredientAmountView,
-                recipeDetailView: recipeDetailView,
-                recipeTemplateListView: recipeTemplateListView,
-                recipeAmountView: recipeAmountView,
-                workoutSessionDetailView: workoutSessionDetailView,
-                mealDetailView: mealDetailView,
-                profileGoalsDetailView: profileGoalsDetailView,
-                profileEditView: profileEditView,
-                profileNutritionDetailView: profileNutritionDetailView,
-                profilePhysicalStatsView: profilePhysicalStatsView,
-                settingsView: settingsView,
-                manageSubscriptionView: manageSubscriptionView,
-                programPreviewView: programPreviewView,
-                customProgramBuilderView: customProgramBuilderView,
-                programGoalsView: programGoalsView,
-                programScheduleView: programScheduleView
-            )
         }
         .navigationSplitViewStyle(.balanced)
         .sheet(isPresented: Binding(get: {
@@ -119,6 +66,9 @@ struct SplitViewContainer: View {
                 viewModel.activeSession = active
             }
         }
+//        .onChange(of: tab) { _, _ in
+//            path.clear()
+//        }
     }
 }
 
@@ -126,7 +76,7 @@ struct SplitViewContainer: View {
     @Previewable @State var path: [TabBarPathOption] = []
     @Previewable @State var tab: TabBarOption = .dashboard
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.splitViewContainer(delegate: SplitViewDelegate(path: $path, tab: $tab))
+    builder.splitViewContainer()
     .previewEnvironment()
 }
 

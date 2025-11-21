@@ -42,6 +42,7 @@
 		D08F58632E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
 		D0AB1C992EA1907100682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
 		D0AB1C9A2EA1907200682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
+		D0ADE5542ECECCAA003DF65B /* CustomRouting in Frameworks */ = {isa = PBXBuildFile; productRef = D0ADE5532ECECCAA003DF65B /* CustomRouting */; };
 		D0CE846D2EAAC4EB00C3CCBE /* DialedInWatchApp.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = D0CE844D2EAAC4E900C3CCBE /* DialedInWatchApp.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D0CE89E72EB2379000EED3B5 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E62EB2379000EED3B5 /* FirebaseAnalytics */; };
 		D0CE89E92EB237A100EED3B5 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E82EB237A100EED3B5 /* FirebaseAuth */; };
@@ -146,7 +147,6 @@
 				Components/Views/GenericTemplatePicker/TemplatePickerConfiguration.swift,
 				Core/CreateAccount/CreateAccountViewModel.swift,
 				Core/Dashboard/DashboardViewModel.swift,
-				Core/Dashboard/NutritionTargetChartViewModel.swift,
 				Core/DevSettings/DevSettingsViewModel.swift,
 				Core/Notifications/NotificationsViewModel.swift,
 				Core/Nutrition/Ingredients/CreateIngredient/CreateIngredientViewModel.swift,
@@ -587,9 +587,6 @@
 				Core/CreateAccount/CreateAccountViewModel.swift,
 				Core/Dashboard/DashboardView.swift,
 				Core/Dashboard/DashboardViewModel.swift,
-				Core/Dashboard/NutritionTargetChartView.swift,
-				Core/Dashboard/NutritionTargetChartViewModel.swift,
-				Core/Dashboard/OverallTargetCellView.swift,
 				Core/DevSettings/DevSettingsView.swift,
 				Core/DevSettings/DevSettingsViewModel.swift,
 				Core/Notifications/NotificationsView.swift,
@@ -625,6 +622,7 @@
 				Core/Nutrition/Recipes/CreateRecipe/CreateRecipeViewModel.swift,
 				Core/Nutrition/Recipes/RecipeDetail/RecipeDetailView.swift,
 				Core/Nutrition/Recipes/RecipeDetail/RecipeDetailViewModel.swift,
+				Core/Nutrition/Recipes/RecipeStart/RecipeStartIViewModel.swift,
 				Core/Nutrition/Recipes/RecipeStart/RecipeStartView.swift,
 				Core/Nutrition/Recipes/RecipesView.swift,
 				Core/Nutrition/Recipes/RecipesViewModel.swift,
@@ -738,7 +736,6 @@
 				Core/Profile/Subviews/SetGoalFlowView.swift,
 				Core/Routing/OnboardingPathOption.swift,
 				Core/Routing/TabBarOption.swift,
-				"Core/Routing/TabBarOption+ViewForPage.swift",
 				Core/Routing/TabBarPathOption.swift,
 				Core/Search/SearchView.swift,
 				Core/Settings/SettingsView.swift,
@@ -867,6 +864,7 @@
 				Root/AppEntryPoint.swift,
 				Root/CoreBuilder.swift,
 				Root/CoreInteractor.swift,
+				Root/CoreRouter.swift,
 				Root/Dependencies.swift,
 				Root/DependencyContainer.swift,
 				Root/DialedInApp.swift,
@@ -1218,6 +1216,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0ADE5542ECECCAA003DF65B /* CustomRouting in Frameworks */,
 				D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */,
 				D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */,
 				D05D0BCB2E8FDE0B0027C662 /* GoogleSignInSwift in Frameworks */,
@@ -1423,6 +1422,7 @@
 				D05D0BBD2E8EA22E0027C662 /* SwiftfulUtilities */,
 				D05D0BC82E8FDE0B0027C662 /* GoogleSignIn */,
 				D05D0BCA2E8FDE0B0027C662 /* GoogleSignInSwift */,
+				D0ADE5532ECECCAA003DF65B /* CustomRouting */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -1496,6 +1496,7 @@
 				D05D0BB72E8EA1710027C662 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */,
 				D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				D0ADE5522ECECCAA003DF65B /* XCRemoteSwiftPackageReference "CustomRouting" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
@@ -2533,6 +2534,14 @@
 				minimumVersion = 9.0.0;
 			};
 		};
+		D0ADE5522ECECCAA003DF65B /* XCRemoteSwiftPackageReference "CustomRouting" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/CustomRouting";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -2640,6 +2649,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		D0ADE5532ECECCAA003DF65B /* CustomRouting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0ADE5522ECECCAA003DF65B /* XCRemoteSwiftPackageReference "CustomRouting" */;
+			productName = CustomRouting;
 		};
 		D0CE89E62EB2379000EED3B5 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;

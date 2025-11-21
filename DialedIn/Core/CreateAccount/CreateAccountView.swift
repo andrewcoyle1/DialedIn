@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct CreateAccountView: View {
     @State var viewModel: CreateAccountViewModel
@@ -48,10 +49,13 @@ struct CreateAccountView: View {
 }
 
 #Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     NavigationStack {
         Text("Hello")
             .sheet(isPresented: Binding.constant(true)) {
-                CreateAccountView(viewModel: CreateAccountViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+                RouterView { router in
+                    builder.createAccountView(router: router)
+                }
             }
             .presentationDetents([.fraction(0.25)])
     }

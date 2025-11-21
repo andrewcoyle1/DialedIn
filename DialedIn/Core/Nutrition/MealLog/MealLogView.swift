@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct MealLogViewDelegate {
     var path: Binding<[TabBarPathOption]>
@@ -19,8 +20,6 @@ struct MealLogView: View {
     @State var viewModel: MealLogViewModel
 
     var delegate: MealLogViewDelegate
-
-    @ViewBuilder var addMealSheet: (AddMealSheetDelegate) -> AnyView
 
     var body: some View {
         Group {
@@ -46,22 +45,6 @@ struct MealLogView: View {
             Task {
                 await viewModel.loadMeals()
             }
-        }
-        .sheet(isPresented: $viewModel.showAddMealSheet) {
-            addMealSheet(
-                AddMealSheetDelegate(
-                    selectedDate: viewModel.selectedDate,
-                    mealType: viewModel.selectedMealType,
-                    onSave: { meal in
-                        Task {
-                            await viewModel.saveMeal(
-                                meal
-                            )
-                        }
-                    },
-                    path: delegate.path
-                )
-            )
         }
         .showCustomAlert(alert: $viewModel.showAlert)
     }
@@ -158,7 +141,7 @@ struct MealLogView: View {
                 if mealsForType.isEmpty {
                     Button {
                         viewModel.selectedMealType = mealType
-                        viewModel.showAddMealSheet = true
+                        viewModel.onAddMealPressed(mealType: mealType)
                     } label: {
                         HStack {
                             Text("Add \(mealType.rawValue.capitalized)")
@@ -200,7 +183,7 @@ struct MealLogView: View {
                 ForEach(MealType.allCases, id: \.self) { mealType in
                     Button {
                         viewModel.selectedMealType = mealType
-                        viewModel.showAddMealSheet = true
+                        viewModel.onAddMealPressed(mealType: mealType)
                     } label: {
                         Label(mealType.rawValue.capitalized, systemImage: viewModel.mealTypeIcon(mealType))
                     }
@@ -227,9 +210,9 @@ struct MealLogView: View {
         selectedRecipeTemplate: Binding.constant(nil)
     )
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         List {
-            builder.mealLogView(delegate: delegate)
+            builder.mealLogView(router: router, delegate: delegate)
         }
     }
     .previewEnvironment()

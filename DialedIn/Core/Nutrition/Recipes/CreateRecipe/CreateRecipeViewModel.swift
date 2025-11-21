@@ -20,11 +20,20 @@ protocol CreateRecipeInteractor {
 
 extension CoreInteractor: CreateRecipeInteractor { }
 
+@MainActor
+protocol CreateRecipeRouter {
+    func showDevSettingsView()
+    func showAddIngredientView(delegate: AddIngredientModalViewDelegate)
+}
+
+extension CoreRouter: CreateRecipeRouter { }
+
 @Observable
 @MainActor
 class CreateRecipeViewModel {
     private let interactor: CreateRecipeInteractor
-    
+    private let router: CreateRecipeRouter
+
     var recipeName: String = ""
     var recipeTemplateDescription: String?
     var selectedPhotoItem: PhotosPickerItem?
@@ -37,11 +46,7 @@ class CreateRecipeViewModel {
     private(set) var isGenerating: Bool = false
     private(set) var generatedImage: UIImage?
     var alert: AnyAppAlert?
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
+
     var currentUser: UserModel? {
         interactor.currentUser
     }
@@ -49,10 +54,13 @@ class CreateRecipeViewModel {
     var canSave: Bool {
         !recipeName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
+
     init(
-        interactor: CreateRecipeInteractor
+        interactor: CreateRecipeInteractor,
+        router: CreateRecipeRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onImageSelectorPressed() {
@@ -63,7 +71,11 @@ class CreateRecipeViewModel {
     func cancel(onDismiss: () -> Void) {
         onDismiss()
     }
-    
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     func onSavePressed(onDismiss: () -> Void) async throws {
         guard !isSaving, canSave else { return }
         isSaving = true
@@ -109,7 +121,40 @@ class CreateRecipeViewModel {
     }
     
     func onAddIngredientPressed() {
-        showAddIngredientModal = true
+        let selectedIngredientsBinding = Binding<[IngredientTemplateModel]>(
+            get: { [weak self] in
+                guard let self = self else { return [] }
+                return self.ingredients.map { $0.ingredient }
+            },
+            set: { [weak self] newTemplates in
+                guard let self = self else { return }
+                
+                var currentMap = Dictionary(
+                    uniqueKeysWithValues: self.ingredients.map {
+                        ($0.ingredient.id, $0)
+                    }
+                )
+                
+                for tmpl in newTemplates where currentMap[tmpl.id] == nil {
+                    currentMap[tmpl.id] = RecipeIngredientModel(
+                        ingredient: tmpl,
+                        amount: 1
+                    )
+                }
+                
+                let newIds = Set(newTemplates.map { $0.id })
+                
+                currentMap = currentMap.filter { newIds.contains($0.key) }
+                
+                self.ingredients = Array(currentMap.values)
+            }
+        )
+        
+        router.showAddIngredientView(
+            delegate: AddIngredientModalViewDelegate(
+                selectedIngredients: selectedIngredientsBinding
+            )
+        )
     }
     
     func onGenerateImagePressed() {

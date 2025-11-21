@@ -16,14 +16,14 @@ struct TabViewAccessoryView: View {
     let delegate: TabViewAccessoryViewDelegate
 
     var body: some View {
-        Button {
-            viewModel.reopenActiveSession()
-        } label: {
+//        Button {
+//            viewModel.reopenActiveSession()
+//        } label: {
             HStack {
                 iconSection
                 workoutDescriptionSection
             }
-        }
+//        }
         .frame(maxWidth: .infinity)
     }
     

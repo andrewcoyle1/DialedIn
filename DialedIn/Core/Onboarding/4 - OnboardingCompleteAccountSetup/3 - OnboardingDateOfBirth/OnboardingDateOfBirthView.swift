@@ -75,7 +75,7 @@ struct OnboardingDateOfBirthView: View {
     }
     .navigationDestinationOnboardingModule(
         path: $path,
-        onboardingIntroView: { _ in
+        onboardingIntroView: { 
             Text("Intro View").any()
         },
         onboardingAuthOptionsView: { _ in

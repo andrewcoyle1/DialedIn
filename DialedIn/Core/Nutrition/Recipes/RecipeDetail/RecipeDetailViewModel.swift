@@ -19,10 +19,19 @@ protocol RecipeDetailInteractor {
 
 extension CoreInteractor: RecipeDetailInteractor { }
 
+@MainActor
+protocol RecipeDetailRouter {
+    func showDevSettingsView()
+    func showStartRecipeView(delegate: RecipeStartViewDelegate)
+}
+
+extension CoreRouter: RecipeDetailRouter { }
+
 @Observable
 @MainActor
 class RecipeDetailViewModel {
     private let interactor: RecipeDetailInteractor
+    private let router: RecipeDetailRouter
 
     var isBookmarked: Bool = false
     var isFavourited: Bool = false
@@ -37,8 +46,12 @@ class RecipeDetailViewModel {
     var currentUser: UserModel? {
         interactor.currentUser
     }
-    init(interactor: RecipeDetailInteractor) {
+    init(
+        interactor: RecipeDetailInteractor,
+        router: RecipeDetailRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func loadInitialState(recipeTemplate: RecipeTemplateModel) {
@@ -98,5 +111,13 @@ class RecipeDetailViewModel {
         } catch {
             showAlert = AnyAppAlert(title: "Failed to update favourite status", subtitle: "Please try again later")
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func onStartRecipePressed(recipe: RecipeTemplateModel) {
+        router.showStartRecipeView(delegate: RecipeStartViewDelegate(recipe: recipe))
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct WorkoutTemplateDetailViewDelegate {
     let workoutTemplate: WorkoutTemplateModel
@@ -19,10 +20,6 @@ struct WorkoutTemplateDetailView: View {
     @State var viewModel: WorkoutTemplateDetailViewModel
     
     let delegate: WorkoutTemplateDetailViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
-    @ViewBuilder var workoutStartView: (WorkoutStartViewDelegate) -> AnyView
-    @ViewBuilder var createWorkoutView: (CreateWorkoutViewDelegate) -> AnyView
 
     private var isAuthor: Bool {
         viewModel.currentUser?.userId == delegate.workoutTemplate.authorId
@@ -40,11 +37,6 @@ struct WorkoutTemplateDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
         .showCustomAlert(alert: $viewModel.showAlert)
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .toolbar {
             toolbarContent
         }
@@ -54,13 +46,6 @@ struct WorkoutTemplateDetailView: View {
             let isAuthor = user?.userId == delegate.workoutTemplate.authorId
             viewModel.isBookmarked = isAuthor || (viewModel.currentUser?.bookmarkedWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false) || (user?.createdWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false)
             viewModel.isFavourited = user?.favouritedWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false
-        }
-        .sheet(isPresented: $viewModel.showStartSessionSheet) {
-            let delegate = WorkoutStartViewDelegate(template: delegate.workoutTemplate)
-            workoutStartView(delegate)
-        }
-        .sheet(isPresented: $viewModel.showEditSheet) {
-            createWorkoutView(CreateWorkoutViewDelegate(workoutTemplate: delegate.workoutTemplate))
         }
     }
 
@@ -77,7 +62,7 @@ struct WorkoutTemplateDetailView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -118,7 +103,7 @@ struct WorkoutTemplateDetailView: View {
         if isAuthor && editMode?.wrappedValue != .active {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    viewModel.showEditSheet = true
+                    viewModel.onEditWorkoutPressed(template: delegate.workoutTemplate)
                 } label: {
                     Image(systemName: "pencil")
                 }
@@ -147,7 +132,7 @@ struct WorkoutTemplateDetailView: View {
         if editMode?.wrappedValue != .active {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    viewModel.showStartSessionSheet = true
+                    viewModel.onStartWorkoutPressed(workoutTemplate: delegate.workoutTemplate)
                 } label: {
                     Label("Start", systemImage: "play.fill")
                 }
@@ -185,8 +170,8 @@ struct WorkoutTemplateDetailView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.workoutTemplateDetailView(delegate: WorkoutTemplateDetailViewDelegate(workoutTemplate: WorkoutTemplateModel.mock))
+    RouterView { router in
+        builder.workoutTemplateDetailView(router: router, delegate: WorkoutTemplateDetailViewDelegate(workoutTemplate: WorkoutTemplateModel.mock))
     }
     .previewEnvironment()
 }

@@ -22,11 +22,18 @@ protocol SettingsInteractor {
 
 extension CoreInteractor: SettingsInteractor { }
 
+@MainActor
+protocol SettingsRouter {
+    func showCreateAccountView()
+}
+
+extension CoreRouter: SettingsRouter { }
+
 @Observable
 @MainActor
 class SettingsViewModel {
     private let interactor: SettingsInteractor
-    
+    private let router: SettingsRouter
     private(set) var isAnonymousUser: Bool = false
     private(set) var isPremium: Bool = false
     
@@ -34,13 +41,14 @@ class SettingsViewModel {
     let appBuild: String = SwiftfulUtilities.Utilities.buildNumber ?? ""
     
     var showRatingsModal: Bool = false
-    var showCreateAccountView: Bool = false
     var showAlert: AnyAppAlert?
     
     init(
-        interactor: SettingsInteractor
+        interactor: SettingsInteractor,
+        router: SettingsRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onRatingsButtonPressed() {
@@ -147,7 +155,7 @@ class SettingsViewModel {
     func onCreateAccountPressed() {
         interactor.trackEvent(event: Event.createAccountPressed)
 
-        showCreateAccountView = true
+        router.showCreateAccountView()
     }
     
     /// Logger Events

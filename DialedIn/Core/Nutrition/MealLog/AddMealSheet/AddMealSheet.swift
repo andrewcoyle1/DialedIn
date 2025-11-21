@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct AddMealSheetDelegate {
     let selectedDate: Date
@@ -23,6 +24,7 @@ struct AddMealSheet: View {
     let delegate: AddMealSheetDelegate
 
     @ViewBuilder var nutritionLibraryPickerView: (NutritionLibraryPickerViewDelegate) -> AnyView
+
     var body: some View {
         NavigationStack {
             List {
@@ -125,7 +127,9 @@ struct AddMealSheet: View {
         },
         path: $path
     )
-    builder.addMealSheet(delegate: delegate)
+    RouterView { router in
+        builder.addMealSheet(router: router, delegate: delegate)
+    }
     .previewEnvironment()
 }
 
@@ -140,7 +144,9 @@ struct AddMealSheet: View {
         },
         path: $path
     )
-    builder.addMealSheet(delegate: delegate)
+    RouterView { router in
+        builder.addMealSheet(router: router, delegate: delegate)
+    }
     .previewEnvironment()
 }
 
@@ -155,7 +161,9 @@ struct AddMealSheet: View {
         },
         path: $path
     )
-    builder.addMealSheet(delegate: delegate)
+    RouterView { router in
+        builder.addMealSheet(router: router, delegate: delegate)
+    }
     .previewEnvironment()
 }
 
@@ -170,6 +178,8 @@ struct AddMealSheet: View {
         },
         path: $path
     )
-    builder.addMealSheet(delegate: delegate)
+    RouterView { router in
+        builder.addMealSheet(router: router, delegate: delegate)
+    }
     .previewEnvironment()
 }

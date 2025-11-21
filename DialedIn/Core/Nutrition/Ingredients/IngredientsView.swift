@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct IngredientsViewDelegate {
     var isShowingInspector: Binding<Bool>
@@ -207,28 +208,27 @@ struct IngredientsView: View {
 }
 
 #Preview("Ingredients View") {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     List {
-        IngredientsView(
-            viewModel: IngredientsViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
+        RouterView { router in
+            builder.ingredientsView(
+                router: router, 
+                delegate: IngredientsViewDelegate(
+                    isShowingInspector: Binding.constant(
+                        false
+                    ),
+                    selectedIngredientTemplate: Binding.constant(
+                        nil
+                    ),
+                    selectedRecipeTemplate: Binding.constant(
+                        nil
+                    ),
+                    showCreateIngredient: Binding.constant(
+                        false
+                    )
                 )
-            ),
-            delegate: IngredientsViewDelegate(
-            isShowingInspector: Binding.constant(
-                false
-            ),
-            selectedIngredientTemplate: Binding.constant(
-                nil
-            ),
-            selectedRecipeTemplate: Binding.constant(
-                nil
-            ),
-            showCreateIngredient: Binding.constant(
-                false
             )
-            )
-        )
+        }
     }
     .previewEnvironment()
 }

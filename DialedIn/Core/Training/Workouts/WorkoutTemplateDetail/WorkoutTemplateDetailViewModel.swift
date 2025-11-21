@@ -22,23 +22,27 @@ protocol WorkoutTemplateDetailInteractor {
 
 extension CoreInteractor: WorkoutTemplateDetailInteractor { }
 
+@MainActor
+protocol WorkoutTemplateDetailRouter {
+    func showDevSettingsView()
+    func showWorkoutStartView(delegate: WorkoutStartViewDelegate)
+    func showCreateWorkoutView(delegate: CreateWorkoutViewDelegate)
+}
+
+extension CoreRouter: WorkoutTemplateDetailRouter { }
+
 @Observable
 @MainActor
 class WorkoutTemplateDetailViewModel {
     private let interactor: WorkoutTemplateDetailInteractor
-    
+    private let router: WorkoutTemplateDetailRouter
+
     private(set) var isDeleting: Bool = false
 
-    var showStartSessionSheet: Bool = false
     var showAlert: AnyAppAlert?
-    var showEditSheet: Bool = false
     var isBookmarked: Bool = false
     var isFavourited: Bool = false
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
+        
     var currentUser: UserModel? {
         interactor.currentUser
     }
@@ -47,8 +51,12 @@ class WorkoutTemplateDetailViewModel {
         interactor.activeSession
     }
     
-    init(interactor: WorkoutTemplateDetailInteractor) {
+    init(
+        interactor: WorkoutTemplateDetailInteractor,
+        router: WorkoutTemplateDetailRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func loadInitialState(template: WorkoutTemplateModel) {
@@ -102,7 +110,7 @@ class WorkoutTemplateDetailViewModel {
         }
     }
 
-    func showDeleteConfirmation(workoutTemplate: WorkoutTemplateModel, onDismiss: @escaping @Sendable () -> Void) {
+    func showDeleteConfirmation(workoutTemplate: WorkoutTemplateModel, onDismiss: @escaping @MainActor () -> Void) {
         showAlert = AnyAppAlert(title: "Delete Workout", subtitle: "Are you sure you want to delete '\(workoutTemplate.name)'? This action cannot be undone.", buttons: {
             AnyView(
                 HStack {
@@ -144,5 +152,17 @@ class WorkoutTemplateDetailViewModel {
             isDeleting = false
             showAlert = AnyAppAlert(title: "Failed to delete workout", subtitle: "Please try again later")
         }
+    }
+
+    func onStartWorkoutPressed(workoutTemplate: WorkoutTemplateModel) {
+        router.showWorkoutStartView(delegate: WorkoutStartViewDelegate(template: workoutTemplate, scheduledWorkout: nil))
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func onEditWorkoutPressed(template: WorkoutTemplateModel) {
+        router.showCreateWorkoutView(delegate: CreateWorkoutViewDelegate(workoutTemplate: template))
     }
 }

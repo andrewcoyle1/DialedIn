@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct NotificationsView: View {
     @State var viewModel: NotificationsViewModel
@@ -178,6 +179,9 @@ struct NotificationsView: View {
 }
 
 #Preview {
-    NotificationsView(viewModel: NotificationsViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.notificationsView(router: router)
+    }
+    .previewEnvironment()
 }

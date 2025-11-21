@@ -19,11 +19,19 @@ protocol RecipesInteractor {
 
 extension CoreInteractor: RecipesInteractor { }
 
+@MainActor
+protocol RecipesRouter {
+    func showRecipeDetailView(delegate: RecipeDetailViewDelegate)
+}
+
+extension CoreRouter: RecipesRouter { }
+
 @Observable
 @MainActor
 class RecipesViewModel {
     private let interactor: RecipesInteractor
-    
+    private let router: RecipesRouter
+
     private(set) var isLoading: Bool = false
     private(set) var searchText: String = ""
     private(set) var searchRecipeTask: Task<Void, Never>?
@@ -67,8 +75,10 @@ class RecipesViewModel {
         return trimmed.isEmpty ? trendingRecipesDeduped : recipes
     }
     
-    init(interactor: RecipesInteractor) {
+    init(interactor: RecipesInteractor,
+         router: RecipesRouter) {
         self.interactor = interactor
+        self.router = router
     }
     
     func favouritesSectionViewed() {
@@ -96,7 +106,7 @@ class RecipesViewModel {
         showCreateRecipe.wrappedValue = true
     }
 
-    func onRecipePressed(recipe: RecipeTemplateModel, delegate: RecipesViewDelegate) {
+    func onRecipePressed(recipe: RecipeTemplateModel) {
         Task {
             interactor.trackEvent(event: Event.incrementRecipeStart)
             do {
@@ -106,29 +116,27 @@ class RecipesViewModel {
                 interactor.trackEvent(event: Event.incrementRecipeFail(error: error))
             }
         }
-        delegate.selectedIngredientTemplate.wrappedValue = nil
-        delegate.selectedRecipeTemplate.wrappedValue = recipe
-        delegate.isShowingInspector.wrappedValue = true
+        router.showRecipeDetailView(delegate: RecipeDetailViewDelegate(recipeTemplate: recipe))
     }
 
     func onRecipePressedFromFavourites(recipe: RecipeTemplateModel, delegate: RecipesViewDelegate) {
         interactor.trackEvent(event: Event.onRecipePressedFromFavourites)
-        onRecipePressed(recipe: recipe, delegate: delegate)
+        onRecipePressed(recipe: recipe)
     }
 
     func onRecipePressedFromBookmarked(recipe: RecipeTemplateModel, delegate: RecipesViewDelegate) {
         interactor.trackEvent(event: Event.onRecipePressedFromBookmarked)
-        onRecipePressed(recipe: recipe, delegate: delegate)
+        onRecipePressed(recipe: recipe)
     }
 
     func onRecipePressedFromTrending(recipe: RecipeTemplateModel, delegate: RecipesViewDelegate) {
         interactor.trackEvent(event: Event.onRecipePressedFromTrending)
-        onRecipePressed(recipe: recipe, delegate: delegate)
+        onRecipePressed(recipe: recipe)
     }
 
     func onRecipePressedFromMyTemplates(recipe: RecipeTemplateModel, delegate: RecipesViewDelegate) {
         interactor.trackEvent(event: Event.onRecipePressedFromMyTemplates)
-        onRecipePressed(recipe: recipe, delegate: delegate)
+        onRecipePressed(recipe: recipe)
     }
 
     func performRecipeSearch(for query: String) {

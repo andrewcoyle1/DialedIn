@@ -13,11 +13,20 @@ protocol DashboardInteractor {
 
 extension CoreInteractor: DashboardInteractor { }
 
+@MainActor
+protocol DashboardRouter {
+    func showNotificationsView()
+    func showDevSettingsView()
+}
+
+extension CoreRouter: DashboardRouter { }
+
 @Observable
 @MainActor
 class DashboardViewModel {
     private let interactor: DashboardInteractor
-    
+    private let router: DashboardRouter
+
     var showNotifications: Bool = false
     var isShowingInspector: Bool = false
     private(set) var contributionChartData: [Double] = []
@@ -28,9 +37,11 @@ class DashboardViewModel {
     #endif
     
     init(
-        interactor: DashboardInteractor
+        interactor: DashboardInteractor,
+        router: DashboardRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func handleDeepLink(url: URL) {
@@ -50,9 +61,13 @@ class DashboardViewModel {
     
     func onPushNotificationsPressed() {
         interactor.trackEvent(event: Event.onNotificationsPressed)
-        showNotifications = true
+        router.showNotificationsView()
     }
-    
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
         case onNotificationsPressed
 

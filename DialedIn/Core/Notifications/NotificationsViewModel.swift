@@ -17,19 +17,29 @@ protocol NotificationsInteractor {
 
 extension CoreInteractor: NotificationsInteractor { }
 
+@MainActor
+protocol NotificationsRouter {
+
+}
+
+extension CoreRouter: NotificationsRouter { }
+
 @Observable
 @MainActor
 class NotificationsViewModel {
     private let interactor: NotificationsInteractor
-    
+    private let router: NotificationsRouter
+
     private(set) var notifications: [UNNotification] = []
     private(set) var authorizationStatus: UNAuthorizationStatus = .notDetermined
     private(set) var isLoading: Bool = true
     
     init(
-        interactor: NotificationsInteractor
+        interactor: NotificationsInteractor,
+        router: NotificationsRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func loadNotifications() async {

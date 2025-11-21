@@ -15,26 +15,34 @@ protocol OnboardingWelcomeInteractor {
 
 extension CoreInteractor: OnboardingWelcomeInteractor { }
 
+@MainActor
+protocol OnboardingWelcomeRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: OnboardingWelcomeRouter { }
+
 @Observable
 @MainActor
 class OnboardingWelcomeViewModel {
     private let interactor: OnboardingWelcomeInteractor
-    
+    private let router: OnboardingWelcomeRouter
+
     var imageName: String = Constants.randomImage
     var showSignInView: Bool = false
     
     var path: [OnboardingPathOption] = []
 
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
     var currentUser: UserModel? {
         interactor.currentUser
     }
     
-    init(interactor: OnboardingWelcomeInteractor) {
+    init(
+        interactor: OnboardingWelcomeInteractor,
+        router: OnboardingWelcomeRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func navToAppropriateView() {
@@ -44,6 +52,10 @@ class OnboardingWelcomeViewModel {
     func navigate(step: OnboardingPathOption) {
         interactor.trackEvent(event: Event.navigate(destination: step))
         path.append(step)
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {

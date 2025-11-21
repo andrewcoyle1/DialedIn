@@ -19,11 +19,21 @@ protocol IngredientsInteractor {
 
 extension CoreInteractor: IngredientsInteractor { }
 
+@MainActor
+protocol IngredientsRouter {
+    func showIngredientDetailView(delegate: IngredientDetailViewDelegate)
+}
+
+extension CoreRouter: IngredientsRouter {
+
+}
+
 @Observable
 @MainActor
 class IngredientsViewModel {
     private let interactor: IngredientsInteractor
-    
+    private let router: IngredientsRouter
+
     var isLoading: Bool = false
     var searchText: String = ""
     var showAlert: AnyAppAlert?
@@ -68,9 +78,11 @@ class IngredientsViewModel {
     }
     
     init(
-        interactor: IngredientsInteractor
+        interactor: IngredientsInteractor,
+        router: IngredientsRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onMyTemplatesShown() {
@@ -107,6 +119,7 @@ class IngredientsViewModel {
                 interactor.trackEvent(event: Event.incrementIngredientFail(error: error))
             }
         }
+        router.showIngredientDetailView(delegate: IngredientDetailViewDelegate(ingredientTemplate: ingredient))
     }
     
     func onIngredientPressedFromFavourites(ingredient: IngredientTemplateModel) {

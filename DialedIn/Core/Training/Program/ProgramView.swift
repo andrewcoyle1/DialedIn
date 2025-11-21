@@ -6,11 +6,10 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct ProgramViewDelegate {
     var onSessionSelectionChangeded: (WorkoutSessionModel?) -> Void
-    var onWorkoutStartRequested: (WorkoutTemplateModel, ScheduledWorkout?) -> Void
-    var onActiveSheetChanged: (ActiveSheet?) -> Void
 }
 
 struct ProgramView: View {
@@ -82,25 +81,25 @@ struct ProgramView: View {
                         Spacer()
                         Menu {
                             Button {
-                                viewModel.setActiveSheet(.programPicker)
+                                viewModel.onProgramManagementPressed()
                             } label: {
                                 Label("Manage Programs", systemImage: "list.bullet")
                             }
                             
                             Button {
-                                viewModel.setActiveSheet(.progressDashboard)
+                                viewModel.onProgessDashboardPressed()
                             } label: {
                                 Label("View Analytics", systemImage: "chart.xyaxis.line")
                             }
 
                             Button {
-                                viewModel.setActiveSheet(.strengthProgress)
+                                viewModel.onStrengthProgressPressed()
                             } label: {
                                 Label("Strength Progress", systemImage: "chart.line.uptrend.xyaxis")
                             }
 
                             Button {
-                                viewModel.setActiveSheet(.workoutHeatmap)
+                                viewModel.onWorkoutHeatmapPressed()
                             } label: {
                                 Label("Training Frequency", systemImage: "square.grid.3x3.fill.square")
                             }
@@ -362,14 +361,15 @@ struct ProgramView: View {
     let emptyTrainingPlanManager = TrainingPlanManager(services: MockTrainingPlanServices(customPlan: nil))
     container.register(TrainingPlanManager.self, service: emptyTrainingPlanManager)
     let builder = CoreBuilder(container: container)
-    return NavigationStack {
-        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
-
-        }, onWorkoutStartRequested: { _, _ in
-
-        }, onActiveSheetChanged: { _ in
-
-        }))
+    return RouterView { router in
+        builder.programView(
+            router: router,
+            delegate: ProgramViewDelegate(
+                onSessionSelectionChangeded: { _ in
+                    
+                }
+            )
+        )
     }
     .previewEnvironment()
 }
@@ -387,14 +387,15 @@ struct ProgramView: View {
     )
     let builder = CoreBuilder(container: container)
 
-    return NavigationStack {
-        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+    return RouterView { router in
+        builder.programView(
+            router: router,
+            delegate: ProgramViewDelegate(
+                onSessionSelectionChangeded: { _ in
 
-        }, onWorkoutStartRequested: { _, _ in
-
-        }, onActiveSheetChanged: { _ in
-
-        }))
+                }
+            )
+        )
     }
     .previewEnvironment()
 }
@@ -405,14 +406,15 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: lowAdherenceManager)
     let builder = CoreBuilder(container: container)
 
-    return NavigationStack {
-        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+    return RouterView { router in
+        builder.programView(
+            router: router,
+            delegate: ProgramViewDelegate(
+                onSessionSelectionChangeded: { _ in
 
-        }, onWorkoutStartRequested: { _, _ in
-
-        }, onActiveSheetChanged: { _ in
-
-        }))
+                }
+            )
+        )
     }
     .previewEnvironment()
 }
@@ -423,14 +425,15 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: todaysWorkoutManager)
     let builder = CoreBuilder(container: container)
 
-    return NavigationStack {
-        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+    return RouterView { router in
+        builder.programView(
+            router: router,
+            delegate: ProgramViewDelegate(
+                onSessionSelectionChangeded: { _ in
 
-        }, onWorkoutStartRequested: { _, _ in
-
-        }, onActiveSheetChanged: { _ in
-
-        }))
+                }
+            )
+        )
     }
     .previewEnvironment()
 }
@@ -441,14 +444,15 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: completedWorkoutManager)
     let builder = CoreBuilder(container: container)
 
-    return NavigationStack {
-        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+    return RouterView { router in
+        builder.programView(
+            router: router,
+            delegate: ProgramViewDelegate(
+                onSessionSelectionChangeded: { _ in
 
-        }, onWorkoutStartRequested: { _, _ in
-
-        }, onActiveSheetChanged: { _ in
-
-        }))
+                }
+            )
+        )
     }
     .previewEnvironment()
 }
@@ -459,14 +463,15 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: multipleWorkoutsManager)
     let builder = CoreBuilder(container: container)
 
-    return NavigationStack {
-        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+    return RouterView { router in
+        builder.programView(
+            router: router,
+            delegate: ProgramViewDelegate(
+                onSessionSelectionChangeded: { _ in
 
-        }, onWorkoutStartRequested: { _, _ in
-
-        }, onActiveSheetChanged: { _ in
-
-        }))
+                }
+            )
+        )
     }
     .previewEnvironment()
 }
@@ -477,14 +482,15 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: noGoalsManager)
     let builder = CoreBuilder(container: container)
 
-    return NavigationStack {
-        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
-
-        }, onWorkoutStartRequested: { _, _ in
-
-        }, onActiveSheetChanged: { _ in
-
-        }))
+    return RouterView { router in
+        builder.programView(
+            router: router,
+            delegate: ProgramViewDelegate(
+                onSessionSelectionChangeded: { _ in
+                    
+                }
+            )
+        )
     }
     .previewEnvironment()
 }
@@ -495,14 +501,15 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: nearEndManager)
     let builder = CoreBuilder(container: container)
 
-    return NavigationStack {
-        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
+    return RouterView { router in
+        builder.programView(
+            router: router,
+            delegate: ProgramViewDelegate(
+                onSessionSelectionChangeded: { _ in
 
-        }, onWorkoutStartRequested: { _, _ in
-
-        }, onActiveSheetChanged: { _ in
-
-        }))
+                }
+            )
+        )
     }
     .previewEnvironment()
 }
@@ -510,14 +517,15 @@ struct ProgramView: View {
 #Preview("Mid-Program Progress") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
 
-    NavigationStack {
-        builder.programView(delegate: ProgramViewDelegate(onSessionSelectionChangeded: { _ in
-
-        }, onWorkoutStartRequested: { _, _ in
-
-        }, onActiveSheetChanged: { _ in
-
-        }))
+    return RouterView { router in
+        builder.programView(
+            router: router,
+            delegate: ProgramViewDelegate(
+                onSessionSelectionChangeded: { _ in
+                    
+                }
+            )
+        )
     }
     .previewEnvironment()
 }

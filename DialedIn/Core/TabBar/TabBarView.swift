@@ -6,80 +6,34 @@
 //
 
 import SwiftUI
+import CustomRouting
 
-struct TabBarViewDelegate {
+struct TabBarScreen: Identifiable {
+    var id: String {
+        title
+    }
 
-    var path: Binding<[TabBarPathOption]>
-    var tab: Binding<TabBarOption>
+    let title: String
+    let systemImage: String
+    @ViewBuilder var screen: () -> AnyView
 }
 
 struct TabBarView: View {
 
     @State var viewModel: TabBarViewModel
 
-    var delegate: TabBarViewDelegate
-
+    var tabs: [TabBarScreen]
+    
     @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryViewDelegate) -> AnyView
     @ViewBuilder var workoutTrackerView: (WorkoutTrackerViewDelegate) -> AnyView
-    @ViewBuilder var tabRootView: (TabBarOption, Binding<[TabBarPathOption]>) -> AnyView
-
-    @ViewBuilder var exerciseTemplateDetailView: (ExerciseTemplateDetailViewDelegate) -> AnyView
-    @ViewBuilder var exerciseTemplateListView: (ExerciseTemplateListViewDelegate) -> AnyView
-    @ViewBuilder var workoutTemplateListView: (WorkoutTemplateListViewDelegate) -> AnyView
-    @ViewBuilder var workoutTemplateDetailView: (WorkoutTemplateDetailViewDelegate) -> AnyView
-    @ViewBuilder var ingredientDetailView: (IngredientDetailViewDelegate) -> AnyView
-    @ViewBuilder var ingredientTemplateListView: (IngredientTemplateListViewDelegate) -> AnyView
-    @ViewBuilder var ingredientAmountView: (IngredientAmountViewDelegate) -> AnyView
-    @ViewBuilder var recipeDetailView: (RecipeDetailViewDelegate) -> AnyView
-    @ViewBuilder var recipeTemplateListView: (RecipeTemplateListViewDelegate) -> AnyView
-    @ViewBuilder var recipeAmountView: (RecipeAmountViewDelegate) -> AnyView
-    @ViewBuilder var workoutSessionDetailView: (WorkoutSessionDetailViewDelegate) -> AnyView
-    @ViewBuilder var mealDetailView: (MealDetailViewDelegate) -> AnyView
-    @ViewBuilder var profileGoalsDetailView: () -> AnyView
-    @ViewBuilder var profileEditView: () -> AnyView
-    @ViewBuilder var profileNutritionDetailView: () -> AnyView
-    @ViewBuilder var profilePhysicalStatsView: () -> AnyView
-    @ViewBuilder var settingsView: (SettingsViewDelegate) -> AnyView
-    @ViewBuilder var manageSubscriptionView: () -> AnyView
-    @ViewBuilder var programPreviewView: (ProgramPreviewViewDelegate) -> AnyView
-    @ViewBuilder var customProgramBuilderView: (CustomProgramBuilderViewDelegate) -> AnyView
-    @ViewBuilder var programGoalsView: (ProgramGoalsViewDelegate) -> AnyView
-    @ViewBuilder var programScheduleView: (ProgramScheduleViewDelegate) -> AnyView
 
     var body: some View {
-        TabView(selection: delegate.tab) {
-            ForEach(TabBarOption.allCases) { tab in
-                Tab(tab.name, systemImage: tab.symbolName, value: tab) {
-                    NavigationStack(path: delegate.path) {
-                        tabRootView(delegate.tab.wrappedValue, delegate.path)
-
+        TabView {
+            ForEach(tabs) { tab in
+                tab.screen()
+                    .tabItem {
+                        Label(tab.title, systemImage: tab.systemImage)
                     }
-                    .navDestinationForTabBarModule(
-                        path: delegate.path,
-                        exerciseTemplateDetailView: exerciseTemplateDetailView,
-                        exerciseTemplateListView: exerciseTemplateListView,
-                        workoutTemplateListView: workoutTemplateListView,
-                        workoutTemplateDetailView: workoutTemplateDetailView,
-                        ingredientDetailView: ingredientDetailView,
-                        ingredientTemplateListView: ingredientTemplateListView,
-                        ingredientAmountView: ingredientAmountView,
-                        recipeDetailView: recipeDetailView,
-                        recipeTemplateListView: recipeTemplateListView,
-                        recipeAmountView: recipeAmountView,
-                        workoutSessionDetailView: workoutSessionDetailView,
-                        mealDetailView: mealDetailView,
-                        profileGoalsDetailView: profileGoalsDetailView,
-                        profileEditView: profileEditView,
-                        profileNutritionDetailView: profileNutritionDetailView,
-                        profilePhysicalStatsView: profilePhysicalStatsView,
-                        settingsView: settingsView,
-                        manageSubscriptionView: manageSubscriptionView,
-                        programPreviewView: programPreviewView,
-                        customProgramBuilderView: customProgramBuilderView,
-                        programGoalsView: programGoalsView,
-                        programScheduleView: programScheduleView
-                    )
-                }
             }
         }
         .tabViewStyle(.tabBarOnly)
@@ -105,19 +59,13 @@ struct TabBarView: View {
 }
 
 #Preview("Has No Active Session") {
-    @Previewable @State var path: [TabBarPathOption] = []
-    @Previewable @State var tab: TabBarOption = .dashboard
-    let delegate = TabBarViewDelegate(path: $path, tab: $tab)
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.tabBarView(delegate: delegate)
+    builder.tabBarView()
     .previewEnvironment()
 }
 
 #Preview("Has Active Session") {
-    @Previewable @State var path: [TabBarPathOption] = []
-    @Previewable @State var tab: TabBarOption = .dashboard
-    let delegate = TabBarViewDelegate(path: $path, tab: $tab)
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.tabBarView(delegate: delegate)
+    builder.tabBarView()
     .previewEnvironment()
 }

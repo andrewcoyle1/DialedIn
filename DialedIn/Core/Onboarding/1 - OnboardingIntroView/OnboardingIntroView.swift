@@ -6,19 +6,12 @@
 //
 
 import SwiftUI
-
-struct OnboardingIntroViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct OnboardingIntroView: View {
 
     @State var viewModel: OnboardingIntroViewModel
 
-    var delegate: OnboardingIntroViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
-    
     var body: some View {
         List {
             trainingSection
@@ -32,10 +25,6 @@ struct OnboardingIntroView: View {
         }
         #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
-        #else
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
         #endif
         .screenAppearAnalytics(name: "OnboardingIntro")
     }
@@ -111,7 +100,7 @@ struct OnboardingIntroView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -121,7 +110,7 @@ struct OnboardingIntroView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToAuthOptions(path: delegate.path)
+                viewModel.navigateToAuthOptions(path: .constant([]))
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -132,12 +121,8 @@ struct OnboardingIntroView: View {
 #Preview {
     @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingIntroView(
-            delegate: OnboardingIntroViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingIntroView(router: router)
     }
     .previewEnvironment()
 }

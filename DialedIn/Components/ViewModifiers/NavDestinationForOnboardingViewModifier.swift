@@ -11,7 +11,7 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
 
     let path: Binding<[OnboardingPathOption]>
 
-    @ViewBuilder var onboardingIntroView: (OnboardingIntroViewDelegate) -> AnyView
+    @ViewBuilder var onboardingIntroView: () -> AnyView
     @ViewBuilder var onboardingAuthOptionsView: (AuthOptionsViewDelegate) -> AnyView
     @ViewBuilder var onboardingSignInView: (SignInViewDelegate) -> AnyView
     @ViewBuilder var onboardingSignUpView: (SignUpViewDelegate) -> AnyView
@@ -57,7 +57,7 @@ struct NavDestinationForOnboardingViewModifier: ViewModifier {
             .navigationDestination(for: OnboardingPathOption.self) { newValue in
                 switch newValue {
                 case OnboardingPathOption.intro:
-                    onboardingIntroView(OnboardingIntroViewDelegate(path: path))
+                    onboardingIntroView()
                 case OnboardingPathOption.authOptions:
                     onboardingAuthOptionsView(AuthOptionsViewDelegate(path: path))
                 case OnboardingPathOption.signIn:
@@ -148,7 +148,7 @@ extension View {
     // swiftlint:disable:next function_parameter_count
     func navigationDestinationOnboardingModule(
         path: Binding<[OnboardingPathOption]>,
-        @ViewBuilder onboardingIntroView: @escaping (OnboardingIntroViewDelegate) -> AnyView,
+        @ViewBuilder onboardingIntroView: @escaping () -> AnyView,
         @ViewBuilder onboardingAuthOptionsView: @escaping (AuthOptionsViewDelegate) -> AnyView,
         @ViewBuilder onboardingSignInView: @escaping (SignInViewDelegate) -> AnyView,
         @ViewBuilder onboardingSignUpView: @escaping (SignUpViewDelegate) -> AnyView,

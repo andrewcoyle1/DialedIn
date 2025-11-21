@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct IngredientDetailViewDelegate {
     let ingredientTemplate: IngredientTemplateModel
 }
+
 struct IngredientDetailView: View {
 
     @State var viewModel: IngredientDetailViewModel
@@ -230,8 +232,9 @@ struct IngredientDetailView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.ingredientDetailView(
+            router: router,
             delegate: IngredientDetailViewDelegate(
                 ingredientTemplate: IngredientTemplateModel.mocks[0]
             )

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct RecipesViewDelegate {
     var showCreateRecipe: Binding<Bool>
@@ -69,7 +70,7 @@ struct RecipesView: View {
                     subtitle: recipe.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onRecipePressed(recipe: recipe, delegate: delegate)
+                    viewModel.onRecipePressed(recipe: recipe)
                 }
                 .removeListRowFormatting()
             }
@@ -90,7 +91,7 @@ struct RecipesView: View {
                     subtitle: recipe.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onRecipePressed(recipe: recipe, delegate: delegate)
+                    viewModel.onRecipePressed(recipe: recipe)
                 }
                 .removeListRowFormatting()
             }
@@ -119,7 +120,7 @@ struct RecipesView: View {
                     subtitle: recipe.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onRecipePressed(recipe: recipe, delegate: delegate)
+                    viewModel.onRecipePressed(recipe: recipe)
                 }
                 .removeListRowFormatting()
             }
@@ -155,7 +156,7 @@ struct RecipesView: View {
                         subtitle: recipe.description
                     )
                     .anyButton(.highlight) {
-                        viewModel.onRecipePressed(recipe: recipe, delegate: delegate)
+                        viewModel.onRecipePressed(recipe: recipe)
                     }
                     .removeListRowFormatting()
                 }
@@ -195,7 +196,9 @@ struct RecipesView: View {
         )
     )
     List {
-        builder.recipesView(delegate: delegate)
+        RouterView { router in
+            builder.recipesView(router: router, delegate: delegate)
+        }
     }
     .previewEnvironment()
 }

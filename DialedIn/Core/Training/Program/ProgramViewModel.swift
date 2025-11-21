@@ -23,16 +23,25 @@ protocol ProgramInteractor {
 
 extension CoreInteractor: ProgramInteractor { }
 
+protocol ProgramRouter {
+    func showWorkoutStartView(delegate: WorkoutStartViewDelegate)
+    func showProgramManagementView()
+    func showProgressDashboardView()
+    func showStrengthProgressView()
+    func showWorkoutHeatmapView()
+}
+
+extension CoreRouter: ProgramRouter { }
+
 @Observable
 @MainActor
 class ProgramViewModel {
     
     private let interactor: ProgramInteractor
-    
+    private let router: ProgramRouter
+
     private let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
-    private let onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)?
-    private let onActiveSheetChanged: ((ActiveSheet?) -> Void)?
-    
+
     private(set) var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
 
     private(set) var isShowingAddGoals: Bool = false
@@ -82,24 +91,17 @@ class ProgramViewModel {
         }
         return ""
     }
+    
     init(
         interactor: ProgramInteractor,
-        onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil,
-        onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)? = nil,
-        onActiveSheetChanged: ((ActiveSheet?) -> Void)? = nil
+        router: ProgramRouter,
+        onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil
     ) {
         self.interactor = interactor
+        self.router = router
         self.onSessionSelectionChanged = onSessionSelectionChanged
-        self.onWorkoutStartRequested = onWorkoutStartRequested
-        self.onActiveSheetChanged = onActiveSheetChanged
     }
-    
-    func setActiveSheet(_ activeSheet: ActiveSheet) {
-        self.activeSheet = activeSheet
-        onActiveSheetChanged?(activeSheet)
-        interactor.trackEvent(event: Event.setActiveSheet(sheet: activeSheet))
-    }
-    
+
     func getWeeklyProgress(weekNumber: Int) -> WeekProgress {
         interactor.trackEvent(event: Event.getWeeklyProgress)
         return interactor.getWeeklyProgress(for: weekNumber)
@@ -148,7 +150,7 @@ class ProgramViewModel {
     }
     
     func handleWorkoutStartRequest(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout?) {
-        onWorkoutStartRequested?(template, scheduledWorkout)
+        router.showWorkoutStartView(delegate: WorkoutStartViewDelegate(template: template, scheduledWorkout: scheduledWorkout))
     }
     
     func handleSessionSelectionChanged(_ session: WorkoutSessionModel) {
@@ -164,7 +166,7 @@ class ProgramViewModel {
             try? await Task.sleep(for: .seconds(0.1))
             
             // Notify parent to show WorkoutStartView
-            onWorkoutStartRequested?(template, scheduledWorkout)
+            handleWorkoutStartRequest(template: template, scheduledWorkout: scheduledWorkout)
             interactor.trackEvent(event: Event.startWorkoutRequestedSuccess)
 
         } catch {
@@ -209,7 +211,23 @@ class ProgramViewModel {
             showAlert = AnyAppAlert(error: error)
         }
     }
-    
+
+    func onProgramManagementPressed() {
+        router.showProgramManagementView()
+    }
+
+    func onProgessDashboardPressed() {
+        router.showProgressDashboardView()
+    }
+
+    func onStrengthProgressPressed() {
+        router.showStrengthProgressView()
+    }
+
+    func onWorkoutHeatmapPressed() {
+        router.showWorkoutHeatmapView()
+    }
+
     enum Event: LoggableEvent {
         case setActiveSheet(sheet: ActiveSheet)
         case startWorkoutRequestedStart

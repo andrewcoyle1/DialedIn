@@ -13,22 +13,33 @@ protocol OnboardingIntroInteractor {
 
 extension CoreInteractor: OnboardingIntroInteractor { }
 
+protocol OnboardingIntroRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: OnboardingIntroRouter { }
+
 @Observable
 @MainActor
 class OnboardingIntroViewModel {
     private let interactor: OnboardingIntroInteractor
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingIntroInteractor) {
+    private let router: OnboardingIntroRouter
+
+    init(
+        interactor: OnboardingIntroInteractor,
+        router: OnboardingIntroRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func navigateToAuthOptions(path: Binding<[OnboardingPathOption]>) {
         interactor.trackEvent(event: Event.navigate(destination: .authOptions))
         path.wrappedValue.append(.authOptions)
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {

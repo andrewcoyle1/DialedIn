@@ -17,18 +17,23 @@ protocol ProfileInteractor {
 
 extension CoreInteractor: ProfileInteractor { }
 
+@MainActor
+protocol ProfileRouter {
+    func showNotificationsView()
+    func showDevSettingsView()
+    func showCreateAccountView()
+}
+
+extension CoreRouter: ProfileRouter { }
+
 @Observable
 @MainActor
 class ProfileViewModel {
     private let interactor: ProfileInteractor
-    
+    private let router: ProfileRouter
+
     private(set) var activeGoal: WeightGoal?
     
-#if DEBUG || MOCK
-    var showDebugView: Bool = false
-#endif
-    var showNotifications: Bool = false
-    var showCreateProfileSheet: Bool = false
     var showSetGoalSheet: Bool = false
     
     var currentUser: UserModel? {
@@ -44,9 +49,11 @@ class ProfileViewModel {
     }
     
     init(
-        interactor: ProfileInteractor
+        interactor: ProfileInteractor,
+        router: ProfileRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func getActiveGoal() async {
@@ -58,6 +65,18 @@ class ProfileViewModel {
     func navToSettingsView(path: Binding<[TabBarPathOption]>) {
         interactor.trackEvent(event: Event.navigate(destination: .settingsView))
         path.wrappedValue.append(.settingsView)
+    }
+
+    func onNotificationsPressed() {
+        router.showNotificationsView()
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func onCreateAccountPressed() {
+        router.showCreateAccountView()
     }
 
     enum Event: LoggableEvent {

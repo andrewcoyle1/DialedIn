@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct RecipeDetailViewDelegate {
     let recipeTemplate: RecipeTemplateModel
@@ -18,9 +19,6 @@ struct RecipeDetailView: View {
     @State var viewModel: RecipeDetailViewModel
 
     let delegate: RecipeDetailViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
-    @ViewBuilder var recipeStartView: (RecipeStartViewDelegate) -> AnyView
 
     var body: some View {
         List {
@@ -41,24 +39,12 @@ struct RecipeDetailView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .onAppear { viewModel.loadInitialState(recipeTemplate: delegate.recipeTemplate)}
         .onChange(of: viewModel.currentUser) {_, _ in
             let user = viewModel.currentUser
             let isAuthor = user?.userId == delegate.recipeTemplate.authorId
             viewModel.isBookmarked = isAuthor || (user?.bookmarkedRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false) || (user?.createdRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false)
             viewModel.isFavourited = user?.favouritedRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false
-        }
-        .sheet(isPresented: $viewModel.showStartSessionSheet) {
-            recipeStartView(
-                RecipeStartViewDelegate(
-                    recipe: delegate.recipeTemplate
-                )
-            )
         }
     }
     
@@ -92,7 +78,7 @@ struct RecipeDetailView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -123,7 +109,7 @@ struct RecipeDetailView: View {
 
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                viewModel.showStartSessionSheet = true
+                viewModel.onStartRecipePressed(recipe: delegate.recipeTemplate)
             } label: {
                 Label("Start", systemImage: "play.fill")
             }
@@ -134,8 +120,8 @@ struct RecipeDetailView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.recipeDetailView(delegate: RecipeDetailViewDelegate(recipeTemplate: .mock))
+    RouterView { router in
+        builder.recipeDetailView(router: router, delegate: RecipeDetailViewDelegate(recipeTemplate: .mock))
     }
     .previewEnvironment()
 }

@@ -13,8 +13,8 @@ struct AdaptiveMainView: View {
 
     @State var viewModel: AdaptiveMainViewModel
 
-    @ViewBuilder var tabBarView: (TabBarViewDelegate) -> AnyView
-    @ViewBuilder var splitViewContainer: (SplitViewDelegate) -> AnyView
+    @ViewBuilder var tabBarView: () -> AnyView
+    @ViewBuilder var splitViewContainer: () -> AnyView
 
     var body: some View {
         #if targetEnvironment(macCatalyst)
@@ -23,12 +23,10 @@ struct AdaptiveMainView: View {
         .layoutMode(.splitView)
         #else
         if horizontalSizeClass == .compact {
-            let delegate = TabBarViewDelegate(path: $viewModel.path, tab: $viewModel.tab)
-            tabBarView(delegate)
+            tabBarView()
             .layoutMode(.tabBar)
         } else {
-            let delegate = SplitViewDelegate(path: $viewModel.path, tab: $viewModel.tab)
-            splitViewContainer(delegate)
+            splitViewContainer()
             .layoutMode(
                 .splitView
             )

@@ -20,11 +20,19 @@ protocol IngredientDetailInteractor {
 
 extension CoreInteractor: IngredientDetailInteractor { }
 
+@MainActor
+protocol IngredientDetailRouter {
+
+}
+
+extension CoreRouter: IngredientDetailRouter { }
+
 @Observable
 @MainActor
 class IngredientDetailViewModel {
     private let interactor: IngredientDetailInteractor
-    
+    private let router: IngredientDetailRouter
+
     var isBookmarked: Bool = false
     var isFavourited: Bool = false
     var showAlert: AnyAppAlert?
@@ -37,8 +45,12 @@ class IngredientDetailViewModel {
         interactor.currentUser
     }
     
-    init(interactor: IngredientDetailInteractor) {
+    init(
+        interactor: IngredientDetailInteractor,
+        router: IngredientDetailRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func loadInitialState(ingredientTemplate: IngredientTemplateModel) async {

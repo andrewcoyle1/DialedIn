@@ -1,5 +1,5 @@
 {
-  "originHash" : "bbda4ba64803620c79e3a7e5f640c6dc7430115b9c19969eb2532e0aad484a0b",
+  "originHash" : "f50fe1946abd69503d4d8d9663672ec60642200e792deaae11b3df1134af346d",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "145104f5ea9d58ae21b60add007c33c1cc0c948e",
         "version" : "2.0.0"
+      }
+    },
+    {
+      "identity" : "customrouting",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SwiftfulThinking/CustomRouting",
+      "state" : {
+        "revision" : "bee42d4a581b19db99ce69ad1c8109f33c2488e4",
+        "version" : "1.0.0"
       }
     },
     {
@@ -184,7 +193,7 @@
     {
       "identity" : "signinappleasync",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SwiftfulThinking/SignInAppleAsync",
+      "location" : "https://github.com/SwiftfulThinking/SignInAppleAsync.git",
       "state" : {
         "revision" : "42242c92cbca2b20d69e808ef13a0bc54326254e",
         "version" : "1.0.2"

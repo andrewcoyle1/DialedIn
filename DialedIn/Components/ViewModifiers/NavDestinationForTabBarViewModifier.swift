@@ -27,7 +27,7 @@ struct NavDestinationForTabBarViewModifier: ViewModifier {
     @ViewBuilder var profileEditView: () -> AnyView
     @ViewBuilder var profileNutritionDetailView: () -> AnyView
     @ViewBuilder var profilePhysicalStatsView: () -> AnyView
-    @ViewBuilder var settingsView: (SettingsViewDelegate) -> AnyView
+    @ViewBuilder var settingsView: () -> AnyView
     @ViewBuilder var manageSubscriptionView: () -> AnyView
     @ViewBuilder var programPreviewView: (ProgramPreviewViewDelegate) -> AnyView
     @ViewBuilder var customProgramBuilderView: (CustomProgramBuilderViewDelegate) -> AnyView
@@ -72,7 +72,7 @@ struct NavDestinationForTabBarViewModifier: ViewModifier {
                 case .profilePhysicalStats:
                     profilePhysicalStatsView()
                 case .settingsView:
-                    settingsView(SettingsViewDelegate(path: path))
+                    settingsView()
                 case .manageSubscription:
                     manageSubscriptionView()
                 case .programPreview(template: let template, startDate: let startDate):
@@ -109,7 +109,7 @@ extension View {
         @ViewBuilder profileEditView: @escaping () -> AnyView,
         @ViewBuilder profileNutritionDetailView: @escaping () -> AnyView,
         @ViewBuilder profilePhysicalStatsView: @escaping () -> AnyView,
-        @ViewBuilder settingsView: @escaping (SettingsViewDelegate) -> AnyView,
+        @ViewBuilder settingsView: @escaping () -> AnyView,
         @ViewBuilder manageSubscriptionView: @escaping () -> AnyView,
         @ViewBuilder programPreviewView: @escaping (ProgramPreviewViewDelegate) -> AnyView,
         @ViewBuilder customProgramBuilderView: @escaping (CustomProgramBuilderViewDelegate) -> AnyView,

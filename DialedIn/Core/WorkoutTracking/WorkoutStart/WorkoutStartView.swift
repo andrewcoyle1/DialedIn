@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct WorkoutStartViewDelegate {
 
@@ -196,6 +197,8 @@ extension ExerciseCategory {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = WorkoutStartViewDelegate(template: .mock)
-    builder.workoutStartView(delegate: delegate)
+    RouterView { router in
+        builder.workoutStartView(router: router, delegate: delegate)
+    }
     .previewEnvironment()
 }

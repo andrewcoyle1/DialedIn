@@ -19,11 +19,19 @@ protocol MealLogInteractor {
 
 extension CoreInteractor: MealLogInteractor { }
 
+@MainActor
+protocol MealLogRouter {
+    func showAddMealView(delegate: AddMealSheetDelegate)
+}
+
+extension CoreRouter: MealLogRouter { }
+
 @Observable
 @MainActor
 class MealLogViewModel {
     private let interactor: MealLogInteractor
-    
+    private let router: MealLogRouter
+
     var selectedDate: Date = Date()
     private(set) var meals: [MealLogModel] = []
     private(set) var dailyTotals: DailyMacroTarget?
@@ -32,7 +40,6 @@ class MealLogViewModel {
     var selectedMealType: MealType = .breakfast
     
     var showAlert: AnyAppAlert?
-    var showAddMealSheet: Bool = false
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -43,9 +50,11 @@ class MealLogViewModel {
     }
     
     init(
-        interactor: MealLogInteractor
+        interactor: MealLogInteractor,
+        router: MealLogRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func mealTypeIcon(_ mealType: MealType) -> String {
@@ -82,7 +91,7 @@ class MealLogViewModel {
         do {
             try await interactor.addMeal(meal)
             await loadMeals()
-            showAddMealSheet = false
+
         } catch {
             showAlert = AnyAppAlert(error: error)
         }
@@ -103,6 +112,20 @@ class MealLogViewModel {
 
     func navToMealDetail(path: Binding<[TabBarPathOption]>, meal: MealLogModel) {
         path.wrappedValue.append(.mealDetail(meal: meal))
+    }
+
+    func onAddMealPressed(mealType: MealType) {
+        let delegate = AddMealSheetDelegate(
+            selectedDate: selectedDate,
+            mealType: mealType,
+            onSave: { meal in
+                Task { [weak self] in
+                    await self?.saveMeal(meal)
+                }
+            },
+            path: .constant([])
+        )
+        router.showAddMealView(delegate: delegate)
     }
 
     enum Event: LoggableEvent {

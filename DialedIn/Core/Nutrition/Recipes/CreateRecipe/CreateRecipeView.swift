@@ -7,15 +7,13 @@
 
 import SwiftUI
 import PhotosUI
+import CustomRouting
 
 struct CreateRecipeView: View {
 
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: CreateRecipeViewModel
-
-    @ViewBuilder var devSettingsView: () -> AnyView
-    @ViewBuilder var addIngredientModalView: (AddIngredientModalViewDelegate) -> AnyView
 
     var body: some View {
         NavigationStack {
@@ -39,7 +37,7 @@ struct CreateRecipeView: View {
                 ToolbarSpacer(.fixed, placement: .topBarLeading)
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        viewModel.showDebugView = true
+                        viewModel.onDevSettingsPressed()
                     } label: {
                         Image(systemName: "info")
                     }
@@ -77,51 +75,6 @@ struct CreateRecipeView: View {
                         
                     }
                 }
-            }
-            #if DEBUG || MOCK
-            .sheet(isPresented: $viewModel.showDebugView, content: {
-                devSettingsView()
-            })
-            #endif
-            .sheet(isPresented: $viewModel.showAddIngredientModal) {
-                addIngredientModalView(
-                    AddIngredientModalViewDelegate(
-                        selectedIngredients: Binding(
-                            get: {
-                                viewModel.ingredients.map {
-                                    $0.ingredient
-                                }
-                            },
-                            set: { newTemplates in
-                                var currentMap = Dictionary(
-                                    uniqueKeysWithValues: viewModel.ingredients.map {
-                                        (
-                                            $0.ingredient.id,
-                                            $0
-                                        )
-                                    })
-                                for tmpl in newTemplates where currentMap[tmpl.id] == nil {
-                                    currentMap[tmpl.id] = RecipeIngredientModel(
-                                        ingredient: tmpl,
-                                        amount: 1
-                                    )
-                                }
-                                let newIds = Set(
-                                    newTemplates.map {
-                                        $0.id
-                                    })
-                                currentMap = currentMap.filter {
-                                    newIds.contains(
-                                        $0.key
-                                    )
-                                }
-                                viewModel.ingredients = Array(
-                                    currentMap.values
-                                )
-                            }
-                        )
-                    )
-                )
             }
             .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
                 Button("OK") {
@@ -267,7 +220,9 @@ struct CreateRecipeView: View {
         showingSheet = true
     }
     .sheet(isPresented: $showingSheet) {
-        builder.createRecipeView()
+        RouterView { router in
+            builder.createRecipeView(router: router)
+        }
     }
     .previewEnvironment()
 }
@@ -280,7 +235,9 @@ struct CreateRecipeView: View {
         showingSheet = true
     }
     .sheet(isPresented: $showingSheet) {
-        builder.createRecipeView()
+        RouterView { router in
+            builder.createRecipeView(router: router)
+        }
     }
     .previewEnvironment()
 }

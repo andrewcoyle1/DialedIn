@@ -17,15 +17,25 @@ protocol WorkoutStartInteractor {
 
 extension CoreInteractor: WorkoutStartInteractor { }
 
+@MainActor
+protocol WorkoutStartRouter {
+
+}
+
+extension CoreRouter: WorkoutStartRouter { }
+
 @Observable
 @MainActor
 class WorkoutStartViewModel {
     private let interactor: WorkoutStartInteractor
-    
+    private let router: WorkoutStartRouter
+
     init(
-        interactor: WorkoutStartInteractor
+        interactor: WorkoutStartInteractor,
+        router: WorkoutStartRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
 
     var workoutNotes = ""

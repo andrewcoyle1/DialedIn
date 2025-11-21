@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+// swiftlint:disable:next class_delegate_protocol
 protocol GenericTemplateListViewDelegate {
     var onSelect: (any TemplateModel) -> Void { get }
     var onCancel: () -> Void { get }

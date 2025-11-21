@@ -22,7 +22,7 @@ extension CoreInteractor: TabBarInteractor { }
 class TabBarViewModel {
     
     private let interactor: TabBarInteractor
-    
+
     var presentTracker: Bool = false
 
     var activeSession: WorkoutSessionModel? {
@@ -43,7 +43,9 @@ class TabBarViewModel {
         }
     }
 
-    init(interactor: TabBarInteractor) {
+    init(
+        interactor: TabBarInteractor,
+    ) {
         self.interactor = interactor
     }
 

@@ -13,18 +13,30 @@ protocol AddMealSheetInteractor {
 
 extension CoreInteractor: AddMealSheetInteractor { }
 
+@MainActor
+protocol AddMealSheetRouter {
+    func showNutritionLibraryPickerView(delegate: NutritionLibraryPickerViewDelegate)
+}
+
+extension CoreRouter: AddMealSheetRouter { }
+
 @Observable
 @MainActor
 class AddMealSheetViewModel {
     private let interactor: AddMealSheetInteractor
-    
+    private let router: AddMealSheetRouter
+
     var mealTime: Date = Date()
     var notes: String = ""
     var items: [MealItemModel] = []
     var showLibraryPicker: Bool = false
     
-    init(interactor: AddMealSheetInteractor) {
+    init(
+        interactor: AddMealSheetInteractor,
+        router: AddMealSheetRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     var currentUser: UserModel? {
@@ -38,7 +50,14 @@ class AddMealSheetViewModel {
     func deleteItems(at offsets: IndexSet) {
         items.remove(atOffsets: offsets)
     }
-    
+
+    func onNutritionLibraryPickerViewPressed(delegate: NutritionLibraryPickerViewDelegate) {
+        let delegate = NutritionLibraryPickerViewDelegate(onPick: { newItem in
+            self.items.append(newItem)
+        }, path: .constant([]))
+        router.showNutritionLibraryPickerView(delegate: delegate)
+    }
+
     func saveMeal(onDismiss: () -> Void, selectedDate: Date, mealType: MealType, onSave: @escaping (MealLogModel) -> Void) {
         guard let userId = interactor.currentUser?.userId else { return }
         

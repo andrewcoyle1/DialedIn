@@ -16,12 +16,26 @@ protocol TrainingInteractor {
 
 extension CoreInteractor: TrainingInteractor { }
 
+@MainActor
+protocol TrainingRouter {
+    func showNotificationsView()
+    func showDevSettingsView()
+    func showWorkoutStartView(delegate: WorkoutStartViewDelegate)
+    func showProgramManagementView()
+    func showProgressDashboardView()
+    func showStrengthProgressView()
+    func showWorkoutHeatmapView()
+}
+
+extension CoreRouter: TrainingRouter { }
+
 @Observable
 @MainActor
 class TrainingViewModel {
     
     private let interactor: TrainingInteractor
-    
+    private let router: TrainingRouter
+
     private(set) var searchExerciseTask: Task<Void, Never>?
     private(set) var searchWorkoutTask: Task<Void, Never>?
     private(set) var isLoading: Bool = false
@@ -32,23 +46,21 @@ class TrainingViewModel {
     var isShowingInspector: Bool = false
     var selectedExerciseTemplate: ExerciseTemplateModel?
     var selectedWorkoutTemplate: WorkoutTemplateModel?
-    var workoutToStart: WorkoutTemplateModel?
     var scheduledWorkoutToStart: ScheduledWorkout?
     var showCreateExercise: Bool = false
     var showCreateWorkout: Bool = false
-    var programActiveSheet: ActiveSheet?
     var selectedHistorySession: WorkoutSessionModel?
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: TrainingInteractor) {
+    init(
+        interactor: TrainingInteractor,
+        router: TrainingRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onNotificationsPressed() {
-        showNotificationsView = true
+        router.showNotificationsView()
     }
     
     var currentMenuIcon: String {
@@ -87,20 +99,26 @@ class TrainingViewModel {
         return Date.now.formatted(date: .abbreviated, time: .omitted)
     }
     
-    func startTodaysWorkout() async throws {
-        let todaysWorkouts = interactor.getTodaysWorkouts()
-        guard let firstIncomplete = todaysWorkouts.first(where: { !$0.isCompleted }) else { return }
-        
-        let template = try await interactor.getWorkoutTemplate(id: firstIncomplete.workoutTemplateId)
-        
-        // Store scheduled workout reference for WorkoutStartView
-        scheduledWorkoutToStart = firstIncomplete
-        
-        // Small delay to ensure any pending presentations complete
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-        
-        // Show WorkoutStartView (preview, notes, etc.)
-        workoutToStart = template
+    func startTodaysWorkout() {
+        Task {
+            do {
+                let todaysWorkouts = interactor.getTodaysWorkouts()
+                guard let firstIncomplete = todaysWorkouts.first(where: { !$0.isCompleted }) else { return }
+
+                let template = try await interactor.getWorkoutTemplate(id: firstIncomplete.workoutTemplateId)
+
+                // Store scheduled workout reference for WorkoutStartView
+                scheduledWorkoutToStart = firstIncomplete
+
+                // Small delay to ensure any pending presentations complete
+                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+
+                // Show WorkoutStartView (preview, notes, etc.)
+                handleWorkoutStartRequest(template: template, scheduledWorkout: scheduledWorkoutToStart)
+            } catch {
+                showAlert = AnyAppAlert(error: error)
+            }
+        }
     }
     
     func getTodaysWorkouts() -> Bool {
@@ -108,8 +126,15 @@ class TrainingViewModel {
     }
     
     func handleWorkoutStartRequest(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout?) {
-        workoutToStart = template
-        scheduledWorkoutToStart = scheduledWorkout
+        onStartWorkout(delegate: WorkoutStartViewDelegate(template: template, scheduledWorkout: scheduledWorkout))
+    }
+
+    func onStartWorkout(delegate: WorkoutStartViewDelegate) {
+        router.showWorkoutStartView(delegate: delegate)
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }
 

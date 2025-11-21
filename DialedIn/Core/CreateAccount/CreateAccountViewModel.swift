@@ -16,19 +16,29 @@ protocol CreateAccountInteractor {
 
 extension CoreInteractor: CreateAccountInteractor { }
 
+@MainActor
+protocol CreateAccountRouter {
+
+}
+
+extension CoreRouter: CreateAccountRouter { }
+
 @Observable
 @MainActor
 class CreateAccountViewModel {
     private let interactor: CreateAccountInteractor
+    private let router: CreateAccountRouter
 
     var title: String = "Create Account?"
     var subtitle: String = "Don't lose your data! Connect to an SSO provider to save your account."
     var onDidSignIn: ((_ isNewUser: Bool) -> Void)?
     
     init(
-        interactor: CreateAccountInteractor
+        interactor: CreateAccountInteractor,
+        router: CreateAccountRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onSignInApplePressed(onDismiss: @escaping () -> Void) {
@@ -66,7 +76,7 @@ class CreateAccountViewModel {
             }
         }
     }
-    
+
     enum Event: LoggableEvent {
         case appleAuthStart
         case appleAuthSuccess(user: UserAuthInfo)
