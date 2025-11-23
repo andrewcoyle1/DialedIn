@@ -6,18 +6,11 @@
 //
 
 import SwiftUI
-
-struct OnboardingCustomisingProgramViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct OnboardingCustomisingProgramView: View {
 
     @State var viewModel: OnboardingCustomisingProgramViewModel
-
-    var delegate: OnboardingCustomisingProgramViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -28,11 +21,6 @@ struct OnboardingCustomisingProgramView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .showModal(showModal: $viewModel.isLoading) {
             ProgressView()
                 .tint(.white)
@@ -51,7 +39,7 @@ struct OnboardingCustomisingProgramView: View {
             .padding(.horizontal)
             .foregroundStyle(Color.secondary)
             Button {
-                viewModel.navigateToTrainingExperience(path: delegate.path)
+                viewModel.navigateToTrainingExperience()
             } label: {
                 HStack {
                     Text("Set Up Training Program")
@@ -84,7 +72,7 @@ struct OnboardingCustomisingProgramView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -93,7 +81,7 @@ struct OnboardingCustomisingProgramView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToPreferredDiet(path: delegate.path)
+                viewModel.navigateToPreferredDiet()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -103,14 +91,9 @@ struct OnboardingCustomisingProgramView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingCustomisingProgramView(
-            delegate: OnboardingCustomisingProgramViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingCustomisingProgramView(router: router)
     }
     .previewEnvironment()
 }

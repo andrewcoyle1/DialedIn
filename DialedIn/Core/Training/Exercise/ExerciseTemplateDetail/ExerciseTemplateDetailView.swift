@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct ExerciseTemplateDetailViewDelegate {
     var exerciseTemplate: ExerciseTemplateModel
@@ -17,8 +18,6 @@ struct ExerciseTemplateDetailView: View {
 
     var delegate: ExerciseTemplateDetailViewDelegate
 
-    @ViewBuilder var devSettingsView: () -> AnyView
-    
     var body: some View {
         List {
             pickerSection
@@ -38,36 +37,7 @@ struct ExerciseTemplateDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .showCustomAlert(alert: $viewModel.showAlert)
         .toolbar {
-            #if DEBUG || MOCK
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    viewModel.showDebugView = true
-                } label: {
-                    Image(systemName: "info")
-                }
-            }
-            #endif
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task {
-                        await viewModel.onFavoritePressed(exerciseTemplate: delegate.exerciseTemplate)
-                    }
-                } label: {
-                    Image(systemName: viewModel.isFavourited ? "heart.fill" : "heart")
-                }
-            }
-            // Hide bookmark button when the current user is the author
-            if viewModel.currentUser?.userId != nil && viewModel.currentUser?.userId != delegate.exerciseTemplate.authorId {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task {
-                            await viewModel.onBookmarkPressed(exerciseTemplate: delegate.exerciseTemplate)
-                        }
-                    } label: {
-                        Image(systemName: viewModel.isBookmarked ? "book.closed.fill" : "book.closed")
-                    }
-                }
-            }
+            toolbarContent
         }
         .task { await viewModel.loadInitialState(exerciseTemplate: delegate.exerciseTemplate) }
         .onChange(of: viewModel.currentUser) { _, _ in
@@ -76,11 +46,6 @@ struct ExerciseTemplateDetailView: View {
             viewModel.isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false)
             viewModel.isFavourited = user?.favouritedExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     private var aboutSection: some View {
@@ -391,16 +356,51 @@ struct ExerciseTemplateDetailView: View {
                 .foregroundColor(.secondary)
         }
     }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                viewModel.onDevSettingsPressed()
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                Task {
+                    await viewModel.onFavoritePressed(exerciseTemplate: delegate.exerciseTemplate)
+                }
+            } label: {
+                Image(systemName: viewModel.isFavourited ? "heart.fill" : "heart")
+            }
+        }
+        // Hide bookmark button when the current user is the author
+        if viewModel.currentUser?.userId != nil && viewModel.currentUser?.userId != delegate.exerciseTemplate.authorId {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    Task {
+                        await viewModel.onBookmarkPressed(exerciseTemplate: delegate.exerciseTemplate)
+                    }
+                } label: {
+                    Image(systemName: viewModel.isBookmarked ? "book.closed.fill" : "book.closed")
+                }
+            }
+        }
+    }
 }
 
 #Preview("About Section") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.exerciseTemplateDetailView(
-                delegate: ExerciseTemplateDetailViewDelegate(
-                    exerciseTemplate: ExerciseTemplateModel.mocks[0]
-                )
+            router: router,
+            delegate: ExerciseTemplateDetailViewDelegate(
+                exerciseTemplate: ExerciseTemplateModel.mocks[0]
             )
+        )
     }
     .previewEnvironment()
 }

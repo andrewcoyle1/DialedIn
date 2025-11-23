@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct ProgramGoalsViewDelegate {
     let plan: TrainingPlan
@@ -13,14 +14,11 @@ struct ProgramGoalsViewDelegate {
 
 struct ProgramGoalsView: View {
 
-    @Environment(\.dismiss) private var dismiss
-
     @State var viewModel: ProgramGoalsViewModel
 
     let delegate: ProgramGoalsViewDelegate
 
     @ViewBuilder var goalRow: (GoalRowDelegate) -> AnyView
-    @ViewBuilder var addGoalView: (AddGoalViewDelegate) -> AnyView
 
     var body: some View {
         List {
@@ -41,20 +39,19 @@ struct ProgramGoalsView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    viewModel.showAddGoal = true
+                    viewModel.onAddGoalPressed(plan: delegate.plan)
                 } label: {
                     Image(systemName: "plus")
                 }
             }
-        }
-        .sheet(isPresented: $viewModel.showAddGoal) {
-            addGoalView(AddGoalViewDelegate(plan: delegate.plan))
         }
     }
 }
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.programGoalsView(delegate: ProgramGoalsViewDelegate(plan: .mock))
-        .previewEnvironment()
+    RouterView { router in
+        builder.programGoalsView(router: router, delegate: ProgramGoalsViewDelegate(plan: .mock))
+    }
+    .previewEnvironment()
 }

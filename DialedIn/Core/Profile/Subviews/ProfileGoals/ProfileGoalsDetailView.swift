@@ -6,12 +6,11 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct ProfileGoalsDetailView: View {
 
     @State var viewModel: ProfileGoalsDetailViewModel
-
-    @ViewBuilder var logWeightView: () -> AnyView
 
     var body: some View {
         List {
@@ -34,9 +33,6 @@ struct ProfileGoalsDetailView: View {
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
-        }
-        .sheet(isPresented: $viewModel.showLogWeightSheet) {
-            logWeightView()
         }
         .task {
             await viewModel.getActiveGoal()
@@ -609,8 +605,8 @@ enum TrackingStatus {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.profileGoalsDetailView()
+    RouterView { router in
+        builder.profileGoalsDetailView(router: router)
     }
     .previewEnvironment()
 }

@@ -51,368 +51,305 @@ class CoreBuilder {
 
     // MARK: Onboarding Auth
 
-    func onboardingAuthOptionsView(delegate: AuthOptionsViewDelegate) -> AnyView {
+    func onboardingAuthOptionsView(router: Router) -> AnyView {
         AuthOptionsView(
-            viewModel: AuthOptionsViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: AuthOptionsViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingSignInView(delegate: SignInViewDelegate) -> AnyView {
+    func onboardingSignInView(router: Router) -> AnyView {
         SignInView(
-            viewModel: SignInViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: SignInViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingSignUpView(delegate: SignUpViewDelegate) -> AnyView {
+    func onboardingSignUpView(router: Router) -> AnyView {
         SignUpView(
-            viewModel: SignUpViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: SignUpViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingEmailVerificationView(delegate: EmailVerificationViewDelegate) -> AnyView {
+    func onboardingEmailVerificationView(router: Router) -> AnyView {
         EmailVerificationView(
-            viewModel: EmailVerificationViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: EmailVerificationViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
     // MARK: Onboarding Subscriptions
 
-    func onboardingSubscriptionView(delegate: OnboardingSubscriptionViewDelegate) -> AnyView {
+    func onboardingSubscriptionView(router: Router) -> AnyView {
         OnboardingSubscriptionView(
-            viewModel: OnboardingSubscriptionViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingSubscriptionViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingSubscriptionPlanView(delegate: OnboardingSubscriptionPlanViewDelegate) -> AnyView {
+    func onboardingSubscriptionPlanView(router: Router) -> AnyView {
         OnboardingSubscriptionPlanView(
-            viewModel: OnboardingSubscriptionPlanViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingSubscriptionPlanViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingCompleteAccountSetupView(delegate: OnboardingCompleteAccountSetupViewDelegate) -> AnyView {
+    func onboardingCompleteAccountSetupView(router: Router) -> AnyView {
         OnboardingCompleteAccountSetupView(
-            viewModel: OnboardingCompleteAccountSetupViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingCompleteAccountSetupViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingNamePhotoView(delegate: OnboardingNamePhotoViewDelegate) -> AnyView {
+    func onboardingNamePhotoView(router: Router) -> AnyView {
         OnboardingNamePhotoView(
-            viewModel: OnboardingNamePhotoViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingNamePhotoViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingGenderView(delegate: OnboardingGenderViewDelegate) -> AnyView {
+    func onboardingGenderView(router: Router) -> AnyView {
         OnboardingGenderView(
-            viewModel: OnboardingGenderViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingGenderViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingDateOfBirthView(delegate: OnboardingDateOfBirthViewDelegate) -> AnyView {
+    func onboardingDateOfBirthView(router: Router, delegate: OnboardingDateOfBirthViewDelegate) -> AnyView {
         OnboardingDateOfBirthView(
-            viewModel: OnboardingDateOfBirthViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingDateOfBirthViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingHeightView(delegate: OnboardingHeightViewDelegate) -> AnyView {
+    func onboardingHeightView(router: Router, delegate: OnboardingHeightViewDelegate) -> AnyView {
         OnboardingHeightView(
-            viewModel: OnboardingHeightViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingHeightViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingWeightView(delegate: OnboardingWeightViewDelegate) -> AnyView {
+    func onboardingWeightView(router: Router, delegate: OnboardingWeightViewDelegate) -> AnyView {
         OnboardingWeightView(
-            viewModel: OnboardingWeightViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingWeightViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingExerciseFrequencyView(delegate: OnboardingExerciseFrequencyViewDelegate) -> AnyView {
+    func onboardingExerciseFrequencyView(router: Router, delegate: OnboardingExerciseFrequencyViewDelegate) -> AnyView {
         OnboardingExerciseFrequencyView(
-            viewModel: OnboardingExerciseFrequencyViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingExerciseFrequencyViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingActivityView(delegate: OnboardingActivityViewDelegate) -> AnyView {
+    func onboardingActivityView(router: Router, delegate: OnboardingActivityViewDelegate) -> AnyView {
         OnboardingActivityView(
-            viewModel: OnboardingActivityViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingActivityViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingCardioFitnessView(delegate: OnboardingCardioFitnessViewDelegate) -> AnyView {
+    func onboardingCardioFitnessView(router: Router, delegate: OnboardingCardioFitnessViewDelegate) -> AnyView {
         OnboardingCardioFitnessView(
-            viewModel: OnboardingCardioFitnessViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingCardioFitnessViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingExpenditureView(delegate: OnboardingExpenditureViewDelegate) -> AnyView {
+    func onboardingExpenditureView(router: Router, delegate: OnboardingExpenditureViewDelegate) -> AnyView {
         OnboardingExpenditureView(
-            viewModel: OnboardingExpenditureViewModel(interactor: interactor), 
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingExpenditureViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingHealthDataView(delegate: OnboardingHealthDataViewDelegate) -> AnyView {
+    func onboardingHealthDataView(router: Router) -> AnyView {
         OnboardingHealthDataView(
-            viewModel: OnboardingHealthDataViewModel(interactor: interactor), 
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingHealthDataViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingNotificationsView(delegate: OnboardingNotificationsViewDelegate) -> AnyView {
+    func onboardingNotificationsView(router: Router) -> AnyView {
         OnboardingNotificationsView(
-            viewModel: OnboardingNotificationsViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingNotificationsViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingHealthDisclaimerView(delegate: OnboardingHealthDisclaimerViewDelegate) -> AnyView {
+    func onboardingHealthDisclaimerView(router: Router) -> AnyView {
         OnboardingHealthDisclaimerView(
-            viewModel: OnboardingHealthDisclaimerViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingHealthDisclaimerViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
     // MARK: Onboarding Goal Setting
 
-    func onboardingGoalSettingView(delegate: OnboardingGoalSettingViewDelegate) -> AnyView {
+    func onboardingGoalSettingView(router: Router) -> AnyView {
         OnboardingGoalSettingView(
-            viewModel: OnboardingGoalSettingViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingGoalSettingViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingOverarchingObjectiveView(delegate: OnboardingOverarchingObjectiveViewDelegate) -> AnyView {
+    func onboardingOverarchingObjectiveView(router: Router) -> AnyView {
         OnboardingOverarchingObjectiveView(
-            viewModel: OnboardingOverarchingObjectiveViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingOverarchingObjectiveViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingTargetWeightView(delegate: OnboardingTargetWeightViewDelegate) -> AnyView {
+    func onboardingTargetWeightView(router: Router, delegate: OnboardingTargetWeightViewDelegate) -> AnyView {
         OnboardingTargetWeightView(
-            viewModel: OnboardingTargetWeightViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingTargetWeightViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingWeightRateView(delegate: OnboardingWeightRateViewDelegate) -> AnyView {
+    func onboardingWeightRateView(router: Router, delegate: OnboardingWeightRateViewDelegate) -> AnyView {
         OnboardingWeightRateView(
-            viewModel: OnboardingWeightRateViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingWeightRateViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingGoalSummaryView(delegate: OnboardingGoalSummaryViewDelegate) -> AnyView {
+    func onboardingGoalSummaryView(router: Router, delegate: OnboardingGoalSummaryViewDelegate) -> AnyView {
         OnboardingGoalSummaryView(
-            viewModel: OnboardingGoalSummaryViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingGoalSummaryViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
     // MARK: Customise Program
 
-    func onboardingCustomisingProgramView(delegate: OnboardingCustomisingProgramViewDelegate) -> AnyView {
+    func onboardingTrainingProgramView(router: Router) -> AnyView {
+        OnboardingTrainingProgramView(
+            viewModel: OnboardingTrainingProgramViewModel(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            )
+        )
+        .any()
+    }
+
+    func onboardingCustomisingProgramView(router: Router) -> AnyView {
         OnboardingCustomisingProgramView(
-            viewModel: OnboardingCustomisingProgramViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingCustomisingProgramViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingTrainingExperienceView(delegate: OnboardingTrainingExperienceViewDelegate) -> AnyView {
+    func onboardingTrainingExperienceView(router: Router, delegate: OnboardingTrainingExperienceViewDelegate) -> AnyView {
         OnboardingTrainingExperienceView(
-            viewModel: OnboardingTrainingExperienceViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingTrainingExperienceViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingTrainingDaysPerWeekView(delegate: OnboardingTrainingDaysPerWeekViewDelegate) -> AnyView {
+    func onboardingTrainingDaysPerWeekView(router: Router, delegate: OnboardingTrainingDaysPerWeekViewDelegate) -> AnyView {
         OnboardingTrainingDaysPerWeekView(
-            viewModel: OnboardingTrainingDaysPerWeekViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingTrainingDaysPerWeekViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingTrainingSplitView(delegate: OnboardingTrainingSplitViewDelegate) -> AnyView {
+    func onboardingTrainingSplitView(router: Router, delegate: OnboardingTrainingSplitViewDelegate) -> AnyView {
         OnboardingTrainingSplitView(
-            viewModel: OnboardingTrainingSplitViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingTrainingSplitViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingTrainingScheduleView(delegate: OnboardingTrainingScheduleViewDelegate) -> AnyView {
+    func onboardingTrainingScheduleView(router: Router, delegate: OnboardingTrainingScheduleViewDelegate) -> AnyView {
         OnboardingTrainingScheduleView(
-            viewModel: OnboardingTrainingScheduleViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingTrainingScheduleViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingTrainingEquipmentView(delegate: OnboardingTrainingEquipmentViewDelegate) -> AnyView {
+    func onboardingTrainingEquipmentView(router: Router, delegate: OnboardingTrainingEquipmentViewDelegate) -> AnyView {
         OnboardingTrainingEquipmentView(
-            viewModel: OnboardingTrainingEquipmentViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingTrainingEquipmentViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingTrainingReviewView(delegate: OnboardingTrainingReviewViewDelegate) -> AnyView {
+    func onboardingTrainingReviewView(router: Router, delegate: OnboardingTrainingReviewViewDelegate) -> AnyView {
         OnboardingTrainingReviewView(
-            viewModel: OnboardingTrainingReviewViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingTrainingReviewViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingPreferredDietView(delegate: OnboardingPreferredDietViewDelegate) -> AnyView {
+    func onboardingPreferredDietView(router: Router) -> AnyView {
         OnboardingPreferredDietView(
-            viewModel: OnboardingPreferredDietViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingPreferredDietViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func onboardingCalorieFloorView(delegate: OnboardingCalorieFloorViewDelegate) -> AnyView {
+    func onboardingCalorieFloorView(router: Router, delegate: OnboardingCalorieFloorViewDelegate) -> AnyView {
         OnboardingCalorieFloorView(
-            viewModel: OnboardingCalorieFloorViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingCalorieFloorViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingTrainingTypeView(delegate: OnboardingTrainingTypeViewDelegate) -> AnyView {
+    func onboardingTrainingTypeView(router: Router, delegate: OnboardingTrainingTypeViewDelegate) -> AnyView {
         OnboardingTrainingTypeView(
-            viewModel: OnboardingTrainingTypeViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingTrainingTypeViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingCalorieDistributionView(delegate: OnboardingCalorieDistributionViewDelegate) -> AnyView {
+    func onboardingCalorieDistributionView(router: Router, delegate: OnboardingCalorieDistributionViewDelegate) -> AnyView {
         OnboardingCalorieDistributionView(
-            viewModel: OnboardingCalorieDistributionViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingCalorieDistributionViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingProteinIntakeView(delegate: OnboardingProteinIntakeViewDelegate) -> AnyView {
+    func onboardingProteinIntakeView(router: Router, delegate: OnboardingProteinIntakeViewDelegate) -> AnyView {
         OnboardingProteinIntakeView(
-            viewModel: OnboardingProteinIntakeViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingProteinIntakeViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingDietPlanView(delegate: OnboardingDietPlanViewDelegate) -> AnyView {
+    func onboardingDietPlanView(router: Router, delegate: OnboardingDietPlanViewDelegate) -> AnyView {
         OnboardingDietPlanView(
-            viewModel: OnboardingDietPlanViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingDietPlanViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func onboardingCompletedView(delegate: OnboardingCompletedViewDelegate) -> AnyView {
+    func onboardingCompletedView(router: Router) -> AnyView {
         OnboardingCompletedView(
-            viewModel: OnboardingCompletedViewModel(
-                interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: OnboardingCompletedViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
@@ -432,7 +369,6 @@ class CoreBuilder {
         .any()
     }
 
-    // swiftlint:disable:next function_body_length
     func tabBarView() -> AnyView {
         TabBarView(
             viewModel: TabBarViewModel(interactor: interactor),
@@ -480,9 +416,6 @@ class CoreBuilder {
             ],
             tabViewAccessoryView: { delegate in
                 self.tabViewAccessoryView(delegate: delegate)
-            },
-            workoutTrackerView: { delegate in
-                self.workoutTrackerView(delegate: delegate)
             }
         )
         .any()
@@ -538,17 +471,19 @@ class CoreBuilder {
                 self.tabViewAccessoryView(delegate: accessoryDelegate)
             },
             workoutTrackerView: { trackerDelegate in
-                self.workoutTrackerView(delegate: trackerDelegate)
+                RouterView { router in
+                    self.workoutTrackerView(router: router, delegate: trackerDelegate)
+                }
+                .any()
             }
         )
         .any()
     }
 
-    func exerciseTemplateDetailView(delegate: ExerciseTemplateDetailViewDelegate) -> AnyView {
+    func exerciseTemplateDetailView(router: Router, delegate: ExerciseTemplateDetailViewDelegate) -> AnyView {
         ExerciseTemplateDetailView(
-            viewModel: ExerciseTemplateDetailViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            viewModel: ExerciseTemplateDetailViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
@@ -561,13 +496,10 @@ class CoreBuilder {
         .any()
     }
 
-    func workoutTrackerView(delegate: WorkoutTrackerViewDelegate) -> AnyView {
+    func workoutTrackerView(router: Router, delegate: WorkoutTrackerViewDelegate) -> AnyView {
         WorkoutTrackerView(
-            viewModel: WorkoutTrackerViewModel(interactor: interactor),
+            viewModel: WorkoutTrackerViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
-            addExerciseModalView: { delegate in
-                self.addExerciseModalView(delegate: delegate)
-            },
             exerciseTrackerCardView: { delegate in
                 self.exerciseTrackerCardView(delegate: delegate)
             }
@@ -578,15 +510,14 @@ class CoreBuilder {
     func ingredientDetailView(router: Router, delegate: IngredientDetailViewDelegate) -> AnyView {
         IngredientDetailView(
             viewModel: IngredientDetailViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() }
+            delegate: delegate
         )
         .any()
     }
 
-    func exerciseTemplateListView(delegate: ExerciseTemplateListViewDelegate) -> AnyView {
+    func exerciseTemplateListView(router: Router, delegate: ExerciseTemplateListViewDelegate) -> AnyView {
         ExerciseTemplateListView(
-            viewModel: ExerciseTemplateListViewModel.create(interactor: interactor),
+            viewModel: ExerciseTemplateListViewModel.create(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
             genericTemplateListView: { viewModel, configuration, supportsRefresh, templateIdsOverride in
                 self.genericTemplateListView(
@@ -600,9 +531,12 @@ class CoreBuilder {
         .any()
     }
 
-    func workoutTemplateListView(delegate: WorkoutTemplateListViewDelegate) -> AnyView {
+    func workoutTemplateListView(router: Router, delegate: WorkoutTemplateListViewDelegate) -> AnyView {
         WorkoutTemplateListView(
-            viewModel: WorkoutTemplateListViewModel.create(interactor: interactor),
+            viewModel: WorkoutTemplateListViewModel.create(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
             delegate: delegate,
             genericTemplateListView: { viewModel, configuration, supportsRefresh, templateIdsOverride in
                 self.genericTemplateListView(
@@ -624,13 +558,10 @@ class CoreBuilder {
         .any()
     }
 
-    func workoutSessionDetailView(delegate: WorkoutSessionDetailViewDelegate) -> AnyView {
+    func workoutSessionDetailView(router: Router, delegate: WorkoutSessionDetailViewDelegate) -> AnyView {
         WorkoutSessionDetailView(
-            viewModel: WorkoutSessionDetailViewModel(interactor: interactor),
+            viewModel: WorkoutSessionDetailViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
-            addExerciseModalView: { delegate in
-                self.addExerciseModalView(delegate: delegate)
-            },
             editableExerciseCardWrapper: { delegate in
                 self.editableExerciseCardWrapper(delegate: delegate)
             }
@@ -643,7 +574,7 @@ class CoreBuilder {
             viewModel: ProgramViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
             addGoalView: { delegate in
-                self.addGoalView(delegate: delegate)
+                self.addGoalView(router: router, delegate: delegate)
             },
             workoutSummaryCardView: { delegate in
                 self.workoutSummaryCardView(delegate: delegate)
@@ -671,10 +602,7 @@ class CoreBuilder {
     func workoutStartView(router: Router, delegate: WorkoutStartViewDelegate) -> AnyView {
         WorkoutStartView(
             viewModel: WorkoutStartViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            delegate: delegate,
-            workoutTrackerView: { delegate in
-                self.workoutTrackerView(delegate: delegate)
-            }
+            delegate: delegate
         )
         .any()
     }
@@ -687,10 +615,9 @@ class CoreBuilder {
         .any()
     }
 
-    func createIngredientView() -> AnyView {
+    func createIngredientView(router: Router) -> AnyView {
         CreateIngredientView(
-            viewModel: CreateIngredientViewModel(interactor: interactor),
-            devSettingsView: { self.devSettingsView() }
+            viewModel: CreateIngredientViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
@@ -759,20 +686,14 @@ class CoreBuilder {
             },
             ingredientsView: { delegate in
                 self.ingredientsView(router: router, delegate: delegate)
-            },
-            ingredientDetailView: { delegate in
-                self.ingredientDetailView(router: router, delegate: delegate)
-            },
-            recipeDetailView: { delegate in
-                self.recipeDetailView(router: router, delegate: delegate)
             }
         )
         .any()
     }
 
-    func nutritionLibraryPickerView(delegate: NutritionLibraryPickerViewDelegate) -> AnyView {
+    func nutritionLibraryPickerView(router: Router, delegate: NutritionLibraryPickerViewDelegate) -> AnyView {
         NutritionLibraryPickerView(
-            viewModel: NutritionLibraryPickerViewModel(interactor: interactor),
+            viewModel: NutritionLibraryPickerViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
         .any()
@@ -787,10 +708,18 @@ class CoreBuilder {
                     builder: self
                 )
             ),
-            delegate: delegate,
-            nutritionLibraryPickerView: { delegate in
-                self.nutritionLibraryPickerView(delegate: delegate)
-            }
+            delegate: delegate
+        )
+        .any()
+    }
+
+    func ingredientAmountView(router: Router, delegate: IngredientAmountViewDelegate) -> AnyView {
+        IngredientAmountView(
+            viewModel: IngredientAmountViewModel(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
         )
         .any()
     }
@@ -802,48 +731,40 @@ class CoreBuilder {
         .any()
     }
 
-    func workoutsView(delegate: WorkoutsViewDelegate) -> AnyView {
+    func workoutsView(router: Router, delegate: WorkoutsViewDelegate) -> AnyView {
         WorkoutsView(
-            viewModel: WorkoutsViewModel(interactor: interactor),
-            delegate: delegate,
-            createWorkoutView: { delegate in
-                self.createWorkoutView(delegate: delegate)
-            }
-        )
-        .any()
-    }
-
-    func workoutHistoryView(delegate: WorkoutHistoryViewDelegate) -> AnyView {
-        WorkoutHistoryView(
-            viewModel: WorkoutHistoryViewModel(interactor: interactor),
+            viewModel: WorkoutsViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
         .any()
     }
 
-    func createWorkoutView(delegate: CreateWorkoutViewDelegate) -> AnyView {
+    func workoutHistoryView(router: Router, delegate: WorkoutHistoryViewDelegate) -> AnyView {
+        WorkoutHistoryView(
+            viewModel: WorkoutHistoryViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+        .any()
+    }
+
+    func createWorkoutView(router: Router, delegate: CreateWorkoutViewDelegate) -> AnyView {
         CreateWorkoutView(
-            viewModel: CreateWorkoutViewModel(interactor: interactor),
-            delegate: delegate,
-            devSettingsView: { self.devSettingsView() },
-            addExerciseModalView: { delegate in
-                self.addExerciseModalView(delegate: delegate)
-            }
+            viewModel: CreateWorkoutViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func createExerciseView() -> AnyView {
+    func createExerciseView(router: Router) -> AnyView {
         CreateExerciseView(
-            viewModel: CreateExerciseViewModel(interactor: interactor),
-            devSettingsView: { self.devSettingsView() }
+            viewModel: CreateExerciseViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func addGoalView(delegate: AddGoalViewDelegate) -> AnyView {
+    func addGoalView(router: Router, delegate: AddGoalViewDelegate) -> AnyView {
         AddGoalView(
-            viewModel: AddGoalViewModel(interactor: interactor),
+            viewModel: AddGoalViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
         .any()
@@ -900,25 +821,17 @@ class CoreBuilder {
         .any()
     }
 
-    func exercisesView(delegate: ExercisesViewDelegate) -> AnyView {
+    func exercisesView(router: Router, delegate: ExercisesViewDelegate) -> AnyView {
         ExercisesView(
-            viewModel: ExercisesViewModel(interactor: interactor),
-            delegate: delegate,
-            createExerciseView: { self.createExerciseView() }
+            viewModel: ExercisesViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
         )
         .any()
     }
 
-    func programManagementView(delegate: ProgramManagementViewDelegate) -> AnyView {
+    func programManagementView(router: Router) -> AnyView {
         ProgramManagementView(
-            viewModel: ProgramManagementViewModel(interactor: interactor),
-            delegate: delegate,
-            programTemplatePickerView: { delegate in
-                self.programTemplatePickerView(delegate: delegate)
-            },
-            editProgramView: { delegate in
-                self.editProgramView(delegate: delegate)
-            },
+            viewModel: ProgramManagementViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             programRowView: { delegate in
                 self.programRowView(delegate: delegate)
             }
@@ -929,26 +842,17 @@ class CoreBuilder {
     func trainingView(router: Router) -> AnyView {
         TrainingView(
             viewModel: TrainingViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            exerciseTemplateDetailView: { delegate in
-                self.exerciseTemplateDetailView(delegate: delegate)
-            },
-            workoutTemplateDetailView: { delegate in
-                self.workoutTemplateDetailView(router: router, delegate: delegate)
-            },
-            workoutSessionDetailView: { delegate in
-                self.workoutSessionDetailView(delegate: delegate)
-            },
             programView: { delegate in
                 self.programView(router: router, delegate: delegate)
             },
             workoutsView: { delegate in
-                self.workoutsView(delegate: delegate)
+                self.workoutsView(router: router, delegate: delegate)
             },
             exercisesView: { delegate in
-                self.exercisesView(delegate: delegate)
+                self.exercisesView(router: router, delegate: delegate)
             },
             workoutHistoryView: { delegate in
-                self.workoutHistoryView(delegate: delegate)
+                self.workoutHistoryView(router: router, delegate: delegate)
             }
         )
         .any()
@@ -982,23 +886,20 @@ class CoreBuilder {
         .any()
     }
 
-    func programGoalsView(delegate: ProgramGoalsViewDelegate) -> AnyView {
+    func programGoalsView(router: Router, delegate: ProgramGoalsViewDelegate) -> AnyView {
         ProgramGoalsView(
-            viewModel: ProgramGoalsViewModel(interactor: interactor),
+            viewModel: ProgramGoalsViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
             goalRow: { delegate in
                 self.goalRow(delegate: delegate)
-            },
-            addGoalView: { delegate in
-                self.addGoalView(delegate: delegate)
             }
         )
         .any()
     }
 
-    func programScheduleView(delegate: ProgramScheduleViewDelegate) -> AnyView {
+    func programScheduleView(router: Router, delegate: ProgramScheduleViewDelegate) -> AnyView {
         ProgramScheduleView(
-            viewModel: ProgramScheduleViewModel(interactor: interactor),
+            viewModel: ProgramScheduleViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
         .any()
@@ -1012,31 +913,30 @@ class CoreBuilder {
         .any()
     }
 
-    func profileGoalsDetailView() -> AnyView {
+    func profileGoalsDetailView(router: Router) -> AnyView {
         ProfileGoalsDetailView(
-            viewModel: ProfileGoalsDetailViewModel(interactor: interactor),
-            logWeightView: { self.logWeightView() }
+            viewModel: ProfileGoalsDetailViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func profileEditView() -> AnyView {
+    func profileEditView(router: Router) -> AnyView {
         ProfileEditView(
-            viewModel: ProfileEditViewModel(interactor: interactor)
+            viewModel: ProfileEditViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func profileNutritionDetailView() -> AnyView {
+    func profileNutritionDetailView(router: Router) -> AnyView {
         ProfileNutritionDetailView(
-            viewModel: ProfileNutritionDetailViewModel(interactor: interactor)
+            viewModel: ProfileNutritionDetailViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func profilePhysicalStatsView() -> AnyView {
+    func profilePhysicalStatsView(router: Router) -> AnyView {
         ProfilePhysicalStatsView(
-            viewModel: ProfilePhysicalStatsViewModel(interactor: interactor),
+            viewModel: ProfilePhysicalStatsViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             logWeightView: { self.logWeightView() }
         )
         .any()
@@ -1055,9 +955,10 @@ class CoreBuilder {
         .any()
     }
 
-    func ingredientTemplateListView(delegate: IngredientTemplateListViewDelegate) -> AnyView {
+    func ingredientTemplateListView(router: Router, delegate: IngredientTemplateListViewDelegate) -> AnyView {
         IngredientTemplateListView(
             interactor: interactor,
+            router: CoreRouter(router: router, builder: self),
             delegate: delegate,
             genericTemplateListView: { viewModel, configuration, supportsRefresh, templateIdsOverride in
                 self.genericTemplateListView(
@@ -1071,14 +972,6 @@ class CoreBuilder {
         .any()
     }
 
-    func ingredientAmountView(delegate: IngredientAmountViewDelegate) -> AnyView {
-        IngredientAmountView(
-            viewModel: IngredientAmountViewModel(interactor: interactor),
-            delegate: delegate
-        )
-        .any()
-    }
-
     func goalRow(delegate: GoalRowDelegate) -> AnyView {
         GoalRow(
             viewModel: GoalRowViewModel(interactor: interactor),
@@ -1087,20 +980,16 @@ class CoreBuilder {
         .any()
     }
 
-    func programTemplatePickerView(delegate: ProgramTemplatePickerViewDelegate) -> AnyView {
+    func programTemplatePickerView(router: Router) -> AnyView {
         ProgramTemplatePickerView(
-            viewModel: ProgramTemplatePickerViewModel(interactor: interactor),
-            delegate: delegate,
-            programStartConfigView: { delegate in
-                self.programStartConfigView(delegate: delegate)
-            }
+            viewModel: ProgramTemplatePickerViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func editProgramView(delegate: EditProgramViewDelegate) -> AnyView {
+    func editProgramView(router: Router, delegate: EditProgramViewDelegate) -> AnyView {
         EditProgramView(
-            viewModel: EditProgramViewModel(interactor: interactor),
+            viewModel: EditProgramViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
         .any()
@@ -1121,50 +1010,44 @@ class CoreBuilder {
         .any()
     }
 
-    func profileHeaderView(delegate: ProfileHeaderViewDelegate) -> AnyView {
+    func profileHeaderView(router: Router) -> AnyView {
         ProfileHeaderView(
-            viewModel: ProfileHeaderViewModel(interactor: interactor),
-            delegate: delegate
+            viewModel: ProfileHeaderViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func profilePhysicalMetricsView(delegate: ProfilePhysicalMetricsViewDelegate) -> AnyView {
+    func profilePhysicalMetricsView(router: Router) -> AnyView {
         ProfilePhysicalMetricsView(
-            viewModel: ProfilePhysicalMetricsViewModel(interactor: interactor),
-            delegate: delegate
+            viewModel: ProfilePhysicalMetricsViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func profileGoalSection(delegate: ProfileGoalSectionDelegate) -> AnyView {
+    func profileGoalSection(router: Router) -> AnyView {
         ProfileGoalSection(
-            viewModel: ProfileGoalSectionViewModel(interactor: interactor),
-            delegate: delegate
+            viewModel: ProfileGoalSectionViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func profileNutritionPlanView(delegate: ProfileNutritionPlanViewDelegate) -> AnyView {
+    func profileNutritionPlanView(router: Router) -> AnyView {
         ProfileNutritionPlanView(
-            viewModel: ProfileNutritionPlanViewModel(interactor: interactor),
-            delegate: delegate
+            viewModel: ProfileNutritionPlanViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func profilePreferencesView(delegate: ProfilePreferencesViewDelegate) -> AnyView {
+    func profilePreferencesView(router: Router) -> AnyView {
         ProfilePreferencesView(
-            viewModel: ProfilePreferencesViewModel(interactor: interactor),
-            delegate: delegate
+            viewModel: ProfilePreferencesViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func profileMyTemplatesView(delegate: ProfileMyTemplatesViewDelegate) -> AnyView {
+    func profileMyTemplatesView(router: Router) -> AnyView {
         ProfileMyTemplatesView(
-            viewModel: ProfileMyTemplatesViewModel(interactor: interactor),
-            delegate: delegate
+            viewModel: ProfileMyTemplatesViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
@@ -1177,9 +1060,10 @@ class CoreBuilder {
         .any()
     }
 
-    func recipeTemplateListView(delegate: RecipeTemplateListViewDelegate) -> AnyView {
+    func recipeTemplateListView(router: Router, delegate: RecipeTemplateListViewDelegate) -> AnyView {
         RecipeTemplateListView(
             interactor: interactor,
+            router: CoreRouter(router: router, builder: self),
             delegate: delegate,
             genericTemplateListView: { viewModel, configuration, supportsRefresh, templateIdsOverride in
                 self.genericTemplateListView(
@@ -1209,13 +1093,9 @@ class CoreBuilder {
         .any()
     }
 
-    func customProgramBuilderView(delegate: CustomProgramBuilderViewDelegate) -> AnyView {
+    func customProgramBuilderView(router: Router) -> AnyView {
         CustomProgramBuilderView(
-            viewModel: CustomProgramBuilderViewModel(interactor: interactor),
-            delegate: delegate,
-            programStartConfigView: { delegate in
-                self.programStartConfigView(delegate: delegate)
-            },
+            viewModel: CustomProgramBuilderViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             workoutPickerSheet: { delegate in
                 self.workoutPickerSheet(delegate: delegate)
             }
@@ -1244,9 +1124,9 @@ class CoreBuilder {
         .any()
     }
 
-    func programStartConfigView(delegate: ProgramStartConfigViewDelegate) -> AnyView {
+    func programStartConfigView(router: Router, delegate: ProgramStartConfigViewDelegate) -> AnyView {
         ProgramStartConfigView(
-            viewModel: ProgramStartConfigViewModel(interactor: interactor),
+            viewModel: ProgramStartConfigViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
         .any()
@@ -1288,10 +1168,11 @@ class CoreBuilder {
 
     func setGoalFlowView() -> AnyView {
         SetGoalFlowView(
-            onboardingOverarchingObjectiveView: { delegate in
-                self.onboardingOverarchingObjectiveView(
-                    delegate: delegate
-                )
+            onboardingOverarchingObjectiveView: {
+                RouterView { router in
+                    self.onboardingOverarchingObjectiveView(router: router)
+                }
+                .any()
             }
         )
         .any()
@@ -1300,23 +1181,23 @@ class CoreBuilder {
     func profileView(router: Router) -> AnyView {
         ProfileView(
             viewModel: ProfileViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            profileHeaderView: { delegate in
-                self.profileHeaderView(delegate: delegate)
+            profileHeaderView: {
+                self.profileHeaderView(router: router)
             },
-            profilePhysicalMetricsView: { delegate in
-                self.profilePhysicalMetricsView(delegate: delegate)
+            profilePhysicalMetricsView: {
+                self.profilePhysicalMetricsView(router: router)
             },
-            profileGoalSection: { delegate in
-                self.profileGoalSection(delegate: delegate)
+            profileGoalSection: {
+                self.profileGoalSection(router: router)
             },
-            profileNutritionPlanView: { delegate in
-                self.profileNutritionPlanView(delegate: delegate)
+            profileNutritionPlanView: {
+                self.profileNutritionPlanView(router: router)
             },
-            profilePreferencesView: { delegate in
-                self.profilePreferencesView(delegate: delegate)
+            profilePreferencesView: {
+                self.profilePreferencesView(router: router)
             },
-            profileMyTemplatesView: { delegate in
-                self.profileMyTemplatesView(delegate: delegate)
+            profileMyTemplatesView: { 
+                self.profileMyTemplatesView(router: router)
             },
             setGoalFlowView: { self.setGoalFlowView() }
         )
@@ -1330,26 +1211,23 @@ class CoreBuilder {
         .any()
     }
 
-    func addExerciseModalView(delegate: AddExerciseModalViewDelegate) -> AnyView {
+    func addExerciseModalView(router: Router, delegate: AddExerciseModalViewDelegate) -> AnyView {
         AddExerciseModalView(
-            viewModel: AddExerciseModalViewModel(interactor: interactor),
+            viewModel: AddExerciseModalViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
         .any()
     }
 
-    func dayScheduleSheetView(delegate: DayScheduleSheetViewDelegate) -> AnyView {
+    func dayScheduleSheetView(router: Router, delegate: DayScheduleSheetViewDelegate) -> AnyView {
         DayScheduleSheetView(
-            viewModel: DayScheduleSheetViewModel(interactor: interactor),
+            viewModel: DayScheduleSheetViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
             workoutSummaryCardView: { delegate in
                 self.workoutSummaryCardView(delegate: delegate)
             },
             todaysWorkoutCardView: { delegate in
                 self.todaysWorkoutCardView(delegate: delegate)
-            },
-            workoutSessionDetailView: { delegate in
-                self.workoutSessionDetailView(delegate: delegate)
             }
         )
         .any()
@@ -1365,5 +1243,6 @@ class CoreBuilder {
         )
         .any()
     }
+
     // swiftlint:disable:next file_length
 }

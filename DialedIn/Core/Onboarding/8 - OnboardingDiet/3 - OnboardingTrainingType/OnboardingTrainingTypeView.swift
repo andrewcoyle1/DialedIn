@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingTrainingTypeViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     let dietPlanBuilder: DietPlanBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingTrainingTypeView: View {
     @State var viewModel: OnboardingTrainingTypeViewModel
 
     var delegate: OnboardingTrainingTypeViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -47,11 +45,6 @@ struct OnboardingTrainingTypeView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     @ToolbarContentBuilder
@@ -59,7 +52,7 @@ struct OnboardingTrainingTypeView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -68,7 +61,7 @@ struct OnboardingTrainingTypeView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToCalorieDistribution(path: delegate.path, dietPlanBuilder: delegate.dietPlanBuilder)
+                viewModel.navigateToCalorieDistribution(dietPlanBuilder: delegate.dietPlanBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -79,12 +72,11 @@ struct OnboardingTrainingTypeView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingTrainingTypeView(
+            router: router,
             delegate: OnboardingTrainingTypeViewDelegate(
-                path: $path,
                 dietPlanBuilder: .trainingTypeMock
             )
         )

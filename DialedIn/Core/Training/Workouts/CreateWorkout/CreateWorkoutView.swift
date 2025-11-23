@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PhotosUI
+import CustomRouting
 
 struct CreateWorkoutViewDelegate {
     var workoutTemplate: WorkoutTemplateModel?
@@ -14,14 +15,9 @@ struct CreateWorkoutViewDelegate {
 
 struct CreateWorkoutView: View {
 
-    @Environment(\.dismiss) private var dismiss
-
     @State var viewModel: CreateWorkoutViewModel
 
     var delegate: CreateWorkoutViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
-    @ViewBuilder var addExerciseModalView: (AddExerciseModalViewDelegate) -> AnyView
 
     var body: some View {
         NavigationStack {
@@ -50,14 +46,6 @@ struct CreateWorkoutView: View {
                     }
                 }
             }
-            #if DEBUG || MOCK
-            .sheet(isPresented: $viewModel.showDebugView, content: {
-                devSettingsView()
-            })
-            #endif
-            .sheet(isPresented: $viewModel.showAddExerciseModal) {
-                addExerciseModalView(AddExerciseModalViewDelegate(selectedExercises: $viewModel.exercises))
-            }
             .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
                 Button("OK") {
                     viewModel.saveError = nil
@@ -65,7 +53,6 @@ struct CreateWorkoutView: View {
             } message: {
                 Text(viewModel.saveError ?? "")
             }
-            .showCustomAlert(alert: $viewModel.alert)
         }
     }
     
@@ -181,7 +168,7 @@ struct CreateWorkoutView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.cancel(onDismiss: { dismiss() })
+                viewModel.cancel()
             } label: {
             Image(systemName: "xmark")
             }
@@ -190,7 +177,7 @@ struct CreateWorkoutView: View {
         ToolbarSpacer(.fixed, placement: .topBarLeading)
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -200,7 +187,7 @@ struct CreateWorkoutView: View {
             Button {
                 Task {
                     do {
-                        try await viewModel.onSavePressed(onDismiss: { dismiss() })
+                        try await viewModel.onSavePressed()
                     } catch {
                         await MainActor.run {
                             viewModel.saveError = "Failed to save workout. Please try again."
@@ -223,7 +210,9 @@ struct CreateWorkoutView: View {
         showingSheet = true
     }
     .sheet(isPresented: $showingSheet) {
-        builder.createWorkoutView(delegate: CreateWorkoutViewDelegate(workoutTemplate: .mock))
+        RouterView { router in
+            builder.createWorkoutView(router: router, delegate: CreateWorkoutViewDelegate(workoutTemplate: .mock))
+        }
     }
     .previewEnvironment()
 }
@@ -236,7 +225,9 @@ struct CreateWorkoutView: View {
         showingSheet = true
     }
     .sheet(isPresented: $showingSheet) {
-        builder.createWorkoutView(delegate: CreateWorkoutViewDelegate())
+        RouterView { router in
+            builder.createWorkoutView(router: router, delegate: CreateWorkoutViewDelegate())
+        }
     }
     .previewEnvironment()
 }

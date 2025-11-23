@@ -13,23 +13,21 @@ struct LogWeightView: View {
     @State var viewModel: LogWeightViewModel
     
     var body: some View {
-        NavigationStack {
-            List {
-                dateSection
-                unitPickerSection
-                weightPickerSection
-                notesSection
-                recentEntriesSection
-            }
-            .navigationTitle("Log Weight")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                toolbarContent
-            }
-            .showCustomAlert(alert: $viewModel.showAlert)
-            .task {
-                await viewModel.loadInitialData()
-            }
+        List {
+            dateSection
+            unitPickerSection
+            weightPickerSection
+            notesSection
+            recentEntriesSection
+        }
+        .navigationTitle("Log Weight")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            toolbarContent
+        }
+        .showCustomAlert(alert: $viewModel.showAlert)
+        .task {
+            await viewModel.loadInitialData()
         }
     }
     

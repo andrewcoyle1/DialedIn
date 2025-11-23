@@ -13,11 +13,19 @@ protocol AddGoalInteractor {
 
 extension CoreInteractor: AddGoalInteractor { }
 
+@MainActor
+protocol AddGoalRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: AddGoalRouter { }
+
 @Observable
 @MainActor
 class AddGoalViewModel {
     private let interactor: AddGoalInteractor
-    
+    private let router: AddGoalRouter
+
     var selectedType: GoalType = .consistency
     var targetValue: Double = 12
     var hasTargetDate = true
@@ -26,9 +34,11 @@ class AddGoalViewModel {
     private(set) var plan: TrainingPlan?
     
     init(
-        interactor: AddGoalInteractor
+        interactor: AddGoalInteractor,
+        router: AddGoalRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func addTrainingPlan(_ plan: TrainingPlan) {
@@ -52,5 +62,9 @@ class AddGoalViewModel {
         } catch {
             print("Error adding goal: \(error)")
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

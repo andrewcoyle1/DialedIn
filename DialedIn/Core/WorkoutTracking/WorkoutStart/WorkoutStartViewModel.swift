@@ -19,7 +19,8 @@ extension CoreInteractor: WorkoutStartInteractor { }
 
 @MainActor
 protocol WorkoutStartRouter {
-
+    func showWorkoutTrackerView(delegate: WorkoutTrackerViewDelegate)
+    func dismissScreen()
 }
 
 extension CoreRouter: WorkoutStartRouter { }
@@ -40,7 +41,6 @@ class WorkoutStartViewModel {
 
     var workoutNotes = ""
     var isStarting = false
-    var showingTracker = false
     private(set) var createdSession: WorkoutSessionModel?
     
     var activeSession: WorkoutSessionModel? {
@@ -109,7 +109,7 @@ class WorkoutStartViewModel {
                 
                 await MainActor.run {
                     interactor.startActiveSession(session)
-                    showingTracker = true
+                    router.showWorkoutTrackerView(delegate: WorkoutTrackerViewDelegate(workoutSession: session))
                 }
                 
             } catch {
@@ -119,5 +119,9 @@ class WorkoutStartViewModel {
                 }
             }
         }
+    }
+
+    func dismissScreen() {
+        router.dismissScreen()
     }
 }

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PhotosUI
+import CustomRouting
 
 struct ProfileEditView: View {
     @Environment(\.dismiss) private var dismiss
@@ -144,8 +145,9 @@ struct ProfileEditView: View {
 }
 
 #Preview {
-    NavigationStack {
-        ProfileEditView(viewModel: ProfileEditViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.profileEditView(router: router)
     }
     .previewEnvironment()
 }

@@ -22,6 +22,8 @@ extension CoreInteractor: MealLogInteractor { }
 @MainActor
 protocol MealLogRouter {
     func showAddMealView(delegate: AddMealSheetDelegate)
+    func showMealDetailView(delegate: MealDetailViewDelegate)
+    func showAlert(error: Error)
 }
 
 extension CoreRouter: MealLogRouter { }
@@ -38,8 +40,6 @@ class MealLogViewModel {
     private(set) var dailyTarget: DailyMacroTarget?
     private(set) var isLoading: Bool = false
     var selectedMealType: MealType = .breakfast
-    
-    var showAlert: AnyAppAlert?
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -83,7 +83,7 @@ class MealLogViewModel {
                 dailyTarget = try await interactor.getDailyTarget(for: selectedDate, userId: user.userId)
             }
         } catch {
-            showAlert = AnyAppAlert(error: error)
+            router.showAlert(error: error)
         }
     }
     
@@ -93,7 +93,7 @@ class MealLogViewModel {
             await loadMeals()
 
         } catch {
-            showAlert = AnyAppAlert(error: error)
+            router.showAlert(error: error)
         }
     }
     
@@ -106,12 +106,12 @@ class MealLogViewModel {
             )
             await loadMeals()
         } catch {
-            showAlert = AnyAppAlert(error: error)
+            router.showAlert(error: error)
         }
     }
 
-    func navToMealDetail(path: Binding<[TabBarPathOption]>, meal: MealLogModel) {
-        path.wrappedValue.append(.mealDetail(meal: meal))
+    func navToMealDetail(meal: MealLogModel) {
+        router.showMealDetailView(delegate: MealDetailViewDelegate(meal: meal))
     }
 
     func onAddMealPressed(mealType: MealType) {
@@ -122,14 +122,13 @@ class MealLogViewModel {
                 Task { [weak self] in
                     await self?.saveMeal(meal)
                 }
-            },
-            path: .constant([])
+            }
         )
         router.showAddMealView(delegate: delegate)
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -139,8 +138,8 @@ class MealLogViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

@@ -13,27 +13,40 @@ protocol OnboardingCompleteAccountSetupInteractor {
 
 extension CoreInteractor: OnboardingCompleteAccountSetupInteractor { }
 
+@MainActor
+protocol OnboardingCompleteAccountSetupRouter {
+    func showDevSettingsView()
+    func showOnboardingNamePhotoView()
+}
+
+extension CoreRouter: OnboardingCompleteAccountSetupRouter { }
+
 @Observable
 @MainActor
 class OnboardingCompleteAccountSetupViewModel {
     private let interactor: OnboardingCompleteAccountSetupInteractor
-        
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingCompleteAccountSetupInteractor) {
+    private let router: OnboardingCompleteAccountSetupRouter
+
+    init(
+        interactor: OnboardingCompleteAccountSetupInteractor,
+        router: OnboardingCompleteAccountSetupRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .namePhoto))
-        path.wrappedValue.append(.namePhoto)
+    func handleNavigation() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingNamePhotoView()
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
         
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -43,8 +56,8 @@ class OnboardingCompleteAccountSetupViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

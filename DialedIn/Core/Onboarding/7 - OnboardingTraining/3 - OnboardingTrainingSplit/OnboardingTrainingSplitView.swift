@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingTrainingSplitViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var trainingProgramBuilder: TrainingProgramBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingTrainingSplitView: View {
     @State var viewModel: OnboardingTrainingSplitViewModel
 
     var delegate: OnboardingTrainingSplitViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -49,11 +47,6 @@ struct OnboardingTrainingSplitView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .screenAppearAnalytics(name: "TrainingSplit")
     }
     
@@ -62,7 +55,7 @@ struct OnboardingTrainingSplitView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -71,7 +64,7 @@ struct OnboardingTrainingSplitView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToSchedule(path: delegate.path, builder: delegate.trainingProgramBuilder)
+                viewModel.navigateToSchedule(builder: delegate.trainingProgramBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -82,12 +75,11 @@ struct OnboardingTrainingSplitView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingTrainingSplitView(
+            router: router,
             delegate: OnboardingTrainingSplitViewDelegate(
-                path: $path,
                 trainingProgramBuilder: TrainingProgramBuilder()
             )
         )

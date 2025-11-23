@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct WorkoutTemplateListViewDelegate {
     let templateIds: [String]?
@@ -50,6 +51,11 @@ struct WorkoutTemplateListView: View {
  
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.workoutTemplateListView(delegate: WorkoutTemplateListViewDelegate(templateIds: []))
+    RouterView { router in
+        builder.workoutTemplateListView(
+            router: router,
+            delegate: WorkoutTemplateListViewDelegate(templateIds: [])
+        )
+    }
     .previewEnvironment()
 }

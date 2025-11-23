@@ -25,7 +25,6 @@ struct TabBarView: View {
     var tabs: [TabBarScreen]
     
     @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryViewDelegate) -> AnyView
-    @ViewBuilder var workoutTrackerView: (WorkoutTrackerViewDelegate) -> AnyView
 
     var body: some View {
         TabView {
@@ -39,17 +38,8 @@ struct TabBarView: View {
         .tabViewStyle(.tabBarOnly)
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory {
-            if let active = viewModel.active, !viewModel.trackerPresented {
+            if let active = viewModel.active {
                 tabViewAccessoryView(TabViewAccessoryViewDelegate(active: active))
-            }
-        }
-        .fullScreenCover(isPresented: Binding(get: {
-            viewModel.isTrackerPresented
-        }, set: { newValue in
-            viewModel.isTrackerPresented = newValue
-        })) {
-            if let session = viewModel.activeSession {
-                workoutTrackerView(WorkoutTrackerViewDelegate(workoutSession: session))
             }
         }
         .task {

@@ -13,11 +13,20 @@ protocol OnboardingHeightInteractor {
 
 extension CoreInteractor: OnboardingHeightInteractor { }
 
+@MainActor
+protocol OnboardingHeightRouter {
+    func showDevSettingsView()
+    func showOnboardingWeightView(delegate: OnboardingWeightViewDelegate)
+}
+
+extension CoreRouter: OnboardingHeightRouter { }
+
 @Observable
 @MainActor
 class OnboardingHeightViewModel {
     private let interactor: OnboardingHeightInteractor
-    
+    private let router: OnboardingHeightRouter
+
     var unit: UnitOfLength = .centimeters
     var selectedCentimeters: Int = 175
     var selectedFeet: Int = 5
@@ -55,12 +64,13 @@ class OnboardingHeightViewModel {
         }
     }
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-
-    init(interactor: OnboardingHeightInteractor) {
+    init(
+        interactor: OnboardingHeightInteractor,
+        router: OnboardingHeightRouter
+    ) {
         self.interactor = interactor
+        self.router = router
+
     }
     
     private var canSubmit: Bool {
@@ -72,11 +82,11 @@ class OnboardingHeightViewModel {
         }
     }
     
-    func navigateToWeightView(path: Binding<[OnboardingPathOption]>, userBuilder: UserModelBuilder) {
+    func navigateToWeightView(userBuilder: UserModelBuilder) {
         var builder = userBuilder
         builder.setHeight(Double(heightInCentimeters), lengthUnitPreference: preference)
-        interactor.trackEvent(event: Event.navigate(destination: .weight(userModelBuilder: builder)))
-        path.wrappedValue.append(.weight(userModelBuilder: builder))
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingWeightView(delegate: OnboardingWeightViewDelegate(userModelBuilder: builder))
     }
     
     func updateImperialFromCentimeters() {
@@ -90,8 +100,12 @@ class OnboardingHeightViewModel {
         selectedCentimeters = Int(Double(totalInches) * 2.54)
     }
 
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -101,8 +115,8 @@ class OnboardingHeightViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

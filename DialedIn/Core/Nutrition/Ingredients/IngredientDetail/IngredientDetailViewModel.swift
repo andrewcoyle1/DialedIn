@@ -22,7 +22,8 @@ extension CoreInteractor: IngredientDetailInteractor { }
 
 @MainActor
 protocol IngredientDetailRouter {
-
+    func showDevSettingsView()
+    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: IngredientDetailRouter { }
@@ -35,12 +36,7 @@ class IngredientDetailViewModel {
 
     var isBookmarked: Bool = false
     var isFavourited: Bool = false
-    var showAlert: AnyAppAlert?
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
+
     var currentUser: UserModel? {
         interactor.currentUser
     }
@@ -82,7 +78,7 @@ class IngredientDetailViewModel {
             interactor.trackEvent(event: Event.bookmarkIngredientSuccess)
         } catch {
             interactor.trackEvent(event: Event.bookmarkIngredientFail(error: error))
-            showAlert = AnyAppAlert(title: "Failed to update bookmark status", subtitle: "Please try again later")
+            router.showSimpleAlert(title: "Failed to update bookmark status", subtitle: "Please try again later")
         }
     }
     
@@ -106,10 +102,14 @@ class IngredientDetailViewModel {
             interactor.trackEvent(event: Event.favouriteIngredientSuccess)
         } catch {
             interactor.trackEvent(event: Event.favouriteIngredientFail(error: error))
-            showAlert = AnyAppAlert(title: "Failed to update favourite status", subtitle: "Please try again later")
+            router.showSimpleAlert(title: "Failed to update favourite status", subtitle: "Please try again later")
         }
     }
-    
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
         case favouriteIngredientStart
         case favouriteIngredientSuccess

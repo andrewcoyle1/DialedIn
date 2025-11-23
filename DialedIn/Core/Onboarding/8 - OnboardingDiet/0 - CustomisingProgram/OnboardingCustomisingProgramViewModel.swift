@@ -14,37 +14,49 @@ protocol OnboardingCustomisingProgramInteractor {
 
 extension CoreInteractor: OnboardingCustomisingProgramInteractor { }
 
+@MainActor
+protocol OnboardingCustomisingProgramRouter {
+    func showDevSettingsView()
+    func showOnboardingPreferredDietView()
+    func showOnboardingTrainingExperienceView(delegate: OnboardingTrainingExperienceViewDelegate)
+}
+
+extension CoreRouter: OnboardingCustomisingProgramRouter { }
+
 @Observable
 @MainActor
 class OnboardingCustomisingProgramViewModel {
     private let interactor: OnboardingCustomisingProgramInteractor
-    
+    private let router: OnboardingCustomisingProgramRouter
+
     var showAlert: AnyAppAlert?
     var isLoading: Bool = false
 
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
     init(
-        interactor: OnboardingCustomisingProgramInteractor
+        interactor: OnboardingCustomisingProgramInteractor,
+        router: OnboardingCustomisingProgramRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func navigateToTrainingExperience(path: Binding<[OnboardingPathOption]>) {
+    func navigateToTrainingExperience() {
         let builder = TrainingProgramBuilder()
-        interactor.trackEvent(event: Event.navigate(destination: .trainingExperience(trainingProgramBuilder: builder)))
-        path.wrappedValue.append(.trainingExperience(trainingProgramBuilder: builder))
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingTrainingExperienceView(delegate: OnboardingTrainingExperienceViewDelegate(trainingProgramBuilder: builder))
     }
     
-    func navigateToPreferredDiet(path: Binding<[OnboardingPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .preferredDiet))
-        path.wrappedValue.append(.preferredDiet)
+    func navigateToPreferredDiet() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingPreferredDietView()
     }
     
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -54,8 +66,8 @@ class OnboardingCustomisingProgramViewModel {
         
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
         

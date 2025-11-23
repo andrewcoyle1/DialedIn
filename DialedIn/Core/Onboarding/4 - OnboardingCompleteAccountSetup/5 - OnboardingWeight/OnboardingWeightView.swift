@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingWeightViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var userModelBuilder: UserModelBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingWeightView: View {
     @State var viewModel: OnboardingWeightViewModel
 
     var delegate: OnboardingWeightViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -34,11 +32,6 @@ struct OnboardingWeightView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     private var pickerSection: some View {
@@ -95,7 +88,7 @@ struct OnboardingWeightView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -104,7 +97,7 @@ struct OnboardingWeightView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToExerciseFrequency(path: delegate.path, userBuilder: delegate.userModelBuilder)
+                viewModel.navigateToExerciseFrequency(userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -114,14 +107,11 @@ struct OnboardingWeightView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingWeightView(
-            delegate: OnboardingWeightViewDelegate(
-                path: $path,
-                userModelBuilder: UserModelBuilder.weightMock
-            )
+            router: router,
+            delegate: OnboardingWeightViewDelegate(userModelBuilder: UserModelBuilder.weightMock)
         )
     }
     .previewEnvironment()

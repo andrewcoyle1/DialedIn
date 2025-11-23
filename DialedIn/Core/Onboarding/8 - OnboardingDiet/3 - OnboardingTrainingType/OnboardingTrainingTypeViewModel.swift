@@ -13,32 +13,45 @@ protocol OnboardingTrainingTypeInteractor {
 
 extension CoreInteractor: OnboardingTrainingTypeInteractor { }
 
+@MainActor
+protocol OnboardingTrainingTypeRouter {
+    func showDevSettingsView()
+    func showOnboardingCalorieDistributionView(delegate: OnboardingCalorieDistributionViewDelegate)
+}
+
+extension CoreRouter: OnboardingTrainingTypeRouter { }
+
 @Observable
 @MainActor
 class OnboardingTrainingTypeViewModel {
     private let interactor: OnboardingTrainingTypeInteractor
-        
+    private let router: OnboardingTrainingTypeRouter
+
     var selectedTrainingType: TrainingType?
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingTrainingTypeInteractor) {
+    init(
+        interactor: OnboardingTrainingTypeInteractor,
+        router: OnboardingTrainingTypeRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func navigateToCalorieDistribution(path: Binding<[OnboardingPathOption]>, dietPlanBuilder: DietPlanBuilder) {
+    func navigateToCalorieDistribution(dietPlanBuilder: DietPlanBuilder) {
         if let trainingType = selectedTrainingType {
             var builder = dietPlanBuilder
             builder.setTrainingType(trainingType)
-            interactor.trackEvent(event: Event.navigate(destination: .calorieDistribution(dietPlanBuilder: builder)))
-            path.wrappedValue.append(.calorieDistribution(dietPlanBuilder: builder))
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingCalorieDistributionView(delegate: OnboardingCalorieDistributionViewDelegate(dietPlanBuilder: builder))
         }
+    }
+    
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -48,8 +61,8 @@ class OnboardingTrainingTypeViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

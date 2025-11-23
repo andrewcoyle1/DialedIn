@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingExerciseFrequencyViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var userModelBuilder: UserModelBuilder
 }
 
@@ -18,8 +18,6 @@ struct OnboardingExerciseFrequencyView: View {
 
     var delegate: OnboardingExerciseFrequencyViewDelegate
 
-    @ViewBuilder var devSettingsView: () -> AnyView
-
     var body: some View {
         List {
             exerciseFrequencySection
@@ -28,11 +26,6 @@ struct OnboardingExerciseFrequencyView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     private var exerciseFrequencySection: some View {
@@ -54,7 +47,7 @@ struct OnboardingExerciseFrequencyView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -63,7 +56,7 @@ struct OnboardingExerciseFrequencyView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToOnboardingActivity(path: delegate.path, userBuilder: delegate.userModelBuilder)
+                viewModel.navigateToOnboardingActivity(userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -95,14 +88,11 @@ struct OnboardingExerciseFrequencyView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingExerciseFrequencyView(
-            delegate: OnboardingExerciseFrequencyViewDelegate(
-                path: $path,
-                userModelBuilder: UserModelBuilder.exerciseFrequencyMock
-            )
+            router: router,
+            delegate: OnboardingExerciseFrequencyViewDelegate(userModelBuilder: UserModelBuilder.exerciseFrequencyMock)
         )
     }
     .previewEnvironment()

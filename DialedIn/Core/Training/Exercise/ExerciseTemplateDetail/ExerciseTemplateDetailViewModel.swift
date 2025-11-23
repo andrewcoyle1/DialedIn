@@ -22,11 +22,19 @@ protocol ExerciseTemplateDetailInteractor {
 
 extension CoreInteractor: ExerciseTemplateDetailInteractor { }
 
+@MainActor
+protocol ExerciseTemplateDetailRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: ExerciseTemplateDetailRouter { }
+
 @Observable
 @MainActor
 class ExerciseTemplateDetailViewModel {
     private let interactor: ExerciseTemplateDetailInteractor
-    
+    private let router: ExerciseTemplateDetailRouter
+
     var section: CustomSection = .description
 
     private(set) var history: [ExerciseHistoryEntryModel] = []
@@ -37,14 +45,12 @@ class ExerciseTemplateDetailViewModel {
     private(set) var unitPreference: ExerciseUnitPreference?
     var showAlert: AnyAppAlert?
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
     init(
-        interactor: ExerciseTemplateDetailInteractor
+        interactor: ExerciseTemplateDetailInteractor,
+        router: ExerciseTemplateDetailRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     var currentUser: UserModel? {
@@ -167,6 +173,10 @@ class ExerciseTemplateDetailViewModel {
         } catch {
             showAlert = AnyAppAlert(title: "Failed to update favourite status", subtitle: "Please try again later")
         }
+    }
+    
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }
 

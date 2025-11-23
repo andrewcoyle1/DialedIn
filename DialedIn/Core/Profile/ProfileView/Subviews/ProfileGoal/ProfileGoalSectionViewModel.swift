@@ -15,10 +15,19 @@ protocol ProfileGoalSectionInteractor {
 
 extension CoreInteractor: ProfileGoalSectionInteractor { }
 
+@MainActor
+protocol ProfileGoalSectionRouter {
+    func showDevSettingsView()
+    func showProfileGoalsView()
+}
+
+extension CoreRouter: ProfileGoalSectionRouter { }
+
 @Observable
 @MainActor
 class ProfileGoalSectionViewModel {
     private let interactor: ProfileGoalSectionInteractor
+    private let router: ProfileGoalSectionRouter
 
     var showSetGoalSheet: Bool = false
 
@@ -30,8 +39,12 @@ class ProfileGoalSectionViewModel {
         interactor.currentGoal
     }
     
-    init(interactor: ProfileGoalSectionInteractor) {
+    init(
+        interactor: ProfileGoalSectionInteractor,
+        router: ProfileGoalSectionRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func formatWeight(_ weightKg: Double, unit: WeightUnitPreference) -> String {
@@ -44,13 +57,13 @@ class ProfileGoalSectionViewModel {
         }
     }
 
-    func navToProfileGoals(path: Binding<[TabBarPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .profileGoals))
-        path.wrappedValue.append(.profileGoals)
+    func navToProfileGoals() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showProfileGoalsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -60,8 +73,7 @@ class ProfileGoalSectionViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            default: return nil
             }
         }
 
@@ -71,5 +83,9 @@ class ProfileGoalSectionViewModel {
                 return .info
             }
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

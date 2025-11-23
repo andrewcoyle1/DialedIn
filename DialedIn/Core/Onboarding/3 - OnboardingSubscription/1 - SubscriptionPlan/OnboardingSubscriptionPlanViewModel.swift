@@ -16,25 +16,41 @@ protocol OnboardingSubscriptionPlanInteractor {
 
 extension CoreInteractor: OnboardingSubscriptionPlanInteractor { }
 
+@MainActor
+protocol OnboardingSubscriptionPlanRouter {
+    func showDevSettingsView()
+    func showOnboardingCompleteAccountSetupView()
+    func showOnboardingNotificationsView()
+    func showOnboardingHealthDataView()
+    func showOnboardingHealthDisclaimerView()
+    func showOnboardingGoalSettingView()
+    func showOnboardingCustomisingProgramView()
+    func showOnboardingCompletedView()
+}
+
+extension CoreRouter: OnboardingSubscriptionPlanRouter { }
+
 @Observable
 @MainActor
 class OnboardingSubscriptionPlanViewModel {
     private let interactor: OnboardingSubscriptionPlanInteractor
-    
+    private let router: OnboardingSubscriptionPlanRouter
+
     var selectedPlan: Plan = .annual
     var isPurchasing: Bool = false
     var showRestoreAlert: Bool = false
     var showAlert: AnyAppAlert?
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
+
     var currentUser: UserModel? {
         interactor.currentUser
     }
     
-    init(interactor: OnboardingSubscriptionPlanInteractor) {
+    init(
+        interactor: OnboardingSubscriptionPlanInteractor,
+        router: OnboardingSubscriptionPlanRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func setupView() async {
@@ -54,38 +70,76 @@ class OnboardingSubscriptionPlanViewModel {
         showRestoreAlert = true
     }
     
-    func onPurchase(path: Binding<[OnboardingPathOption]>) {
+    func onPurchase() {
         // Placeholder flow to simulate purchase
         isPurchasing = true
         Task {
             defer { isPurchasing = false }
             do {
                 try await interactor.purchase()
-                try await handleNavigation(path: path)
+                try await handleNavigation()
             } catch {
                 showAlert = AnyAppAlert(title: "Subscription Failed", subtitle: "We were unable to setup your subscription. Please try again.")
             }
         }
     }
 
-    func handleNavigation(path: Binding<[OnboardingPathOption]>) async throws {
-        if let userStep = interactor.currentUser?.onboardingStep {
-            if userStep.orderIndex > 2 {
-                interactor.trackEvent(event: Event.navigate(destination: userStep.onboardingPathOption))
-                path.wrappedValue.append(userStep.onboardingPathOption)
-            } else {
+    func handleNavigation() async throws {
+        guard let userStep = interactor.currentUser?.onboardingStep else { return }
+
+        if userStep.orderIndex > OnboardingStep.completeAccountSetup.orderIndex {
+            interactor.trackEvent(event: Event.navigate)
+            route(to: userStep)
+        } else {
+            do {
                 try await interactor.updateOnboardingStep(step: .completeAccountSetup)
-                interactor.trackEvent(event: Event.navigate(destination: .completeAccount))
-                path.wrappedValue.append(.completeAccount)
+                interactor.trackEvent(event: Event.navigate)
+                route(to: .completeAccountSetup)
+            } catch {
+                interactor.trackEvent(event: Event.updateOnboardingFail(error: error))
+                throw error
             }
         }
+    }
+    
+    private func route(to step: OnboardingStep) {
+        switch step {
+        case .auth, .subscription:
+            // For anything at/before subscription, move them into complete-account setup
+            router.showOnboardingCompleteAccountSetupView()
+
+        case .completeAccountSetup:
+            router.showOnboardingCompleteAccountSetupView()
+
+        case .notifications:
+            router.showOnboardingNotificationsView()
+
+        case .healthData:
+            router.showOnboardingHealthDataView()
+
+        case .healthDisclaimer:
+            router.showOnboardingHealthDisclaimerView()
+
+        case .goalSetting:
+            router.showOnboardingGoalSettingView()
+
+        case .customiseProgram:
+            router.showOnboardingCustomisingProgramView()
+
+        case .complete:
+            router.showOnboardingCompletedView()
+        }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
     
     enum Event: LoggableEvent {
         case updateOnboardingStart
         case updateOnboardingSuccess
         case updateOnboardingFail(error: Error)
-        case navigate(destination: OnboardingPathOption)
+        case navigate
         
         var eventName: String {
             switch self {
@@ -100,8 +154,8 @@ class OnboardingSubscriptionPlanViewModel {
             switch self {
             case .updateOnboardingFail(error: let error):
                 return error.eventParameters
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             default:
                 return nil
             }

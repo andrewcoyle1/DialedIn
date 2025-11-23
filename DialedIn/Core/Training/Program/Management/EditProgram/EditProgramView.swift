@@ -6,16 +6,14 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct EditProgramViewDelegate {
-    var path: Binding<[TabBarPathOption]>
     var plan: TrainingPlan
 }
 
 struct EditProgramView: View {
 
-    @Environment(\.dismiss) private var dismiss
-    
     @State var viewModel: EditProgramViewModel
     
     var delegate: EditProgramViewDelegate
@@ -141,7 +139,7 @@ struct EditProgramView: View {
     private var detailsSection: some View {
         Section {
             Button {
-                viewModel.navToProgramGoalsView(path: delegate.path, plan: delegate.plan)
+                viewModel.navToProgramGoalsView(plan: delegate.plan)
             } label: {
                 HStack {
                     Label("Manage Goals", systemImage: "target")
@@ -152,7 +150,7 @@ struct EditProgramView: View {
             }
 
             Button {
-                viewModel.navToProgramScheduleView(path: delegate.path, plan: delegate.plan)
+                viewModel.navToProgramScheduleView(plan: delegate.plan)
             } label: {
                 Label("View Schedule", systemImage: "calendar")
             }
@@ -166,7 +164,7 @@ struct EditProgramView: View {
         if delegate.plan.isActive {
             Section {
                 Button(role: .destructive) {
-                    viewModel.showDeleteActiveAlert(plan: delegate.plan, onDismiss: { dismiss() })
+                    viewModel.showDeleteActiveAlert(plan: delegate.plan)
                 } label: {
                     Label("Delete Program", systemImage: "trash")
                 }
@@ -180,15 +178,14 @@ struct EditProgramView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button("Cancel") {
-                dismiss()
-            }
+                viewModel.dismissScreen()            }
         }
 
         ToolbarItem(placement: .confirmationAction) {
             Button("Save") {
                 Task {
                     await viewModel.savePlan(plan: delegate.plan, onDismiss: {
-                        dismiss()
+                        viewModel.dismissScreen()
                     })
                 }
             }
@@ -198,14 +195,12 @@ struct EditProgramView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = EditProgramViewDelegate(
-        path: $path,
         plan: .mock
     )
-    builder.editProgramView(
-        delegate: delegate
-    )
+    RouterView { router in
+        builder.editProgramView(router: router, delegate: delegate)
+    }
     .previewEnvironment()
 }

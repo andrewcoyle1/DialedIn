@@ -13,35 +13,49 @@ protocol OnboardingTrainingScheduleInteractor {
 
 extension CoreInteractor: OnboardingTrainingScheduleInteractor { }
 
+@MainActor
+protocol OnboardingTrainingScheduleRouter {
+    func showDevSettingsView()
+    func showOnboardingTrainingEquipmentView(delegate: OnboardingTrainingEquipmentViewDelegate)
+}
+
+extension CoreRouter: OnboardingTrainingScheduleRouter { }
+
 @Observable
 @MainActor
 class OnboardingTrainingScheduleViewModel {
     private let interactor: OnboardingTrainingScheduleInteractor
-    
+    private let router: OnboardingTrainingScheduleRouter
+
     var selectedDays: Set<Int> = []
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingTrainingScheduleInteractor, builder: TrainingProgramBuilder? = nil) {
+        
+    init(
+        interactor: OnboardingTrainingScheduleInteractor,
+        router: OnboardingTrainingScheduleRouter,
+        builder: TrainingProgramBuilder? = nil
+    ) {
         self.interactor = interactor
+        self.router = router
         if let builder = builder, !builder.weeklySchedule.isEmpty {
             selectedDays = builder.weeklySchedule
         }
     }
     
-    func navigateToEquipment(path: Binding<[OnboardingPathOption]>, builder: TrainingProgramBuilder) {
+    func navigateToEquipment(builder: TrainingProgramBuilder) {
         guard !selectedDays.isEmpty else { return }
         
         var updatedBuilder = builder
         updatedBuilder.setWeeklySchedule(selectedDays)
-        interactor.trackEvent(event: Event.navigate(destination: .trainingEquipment(trainingProgramBuilder: updatedBuilder)))
-        path.wrappedValue.append(.trainingEquipment(trainingProgramBuilder: updatedBuilder))
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingTrainingEquipmentView(delegate: OnboardingTrainingEquipmentViewDelegate(trainingProgramBuilder: updatedBuilder))
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -51,8 +65,8 @@ class OnboardingTrainingScheduleViewModel {
         
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
         

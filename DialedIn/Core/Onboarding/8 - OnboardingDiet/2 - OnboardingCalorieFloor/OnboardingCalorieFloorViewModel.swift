@@ -14,21 +14,31 @@ protocol OnboardingCalorieFloorInteractor {
 
 extension CoreInteractor: OnboardingCalorieFloorInteractor { }
 
+@MainActor
+protocol OnboardingCalorieFloorRouter {
+    func showDevSettingsView()
+    func showOnboardingCalorieDistributionView(delegate: OnboardingCalorieDistributionViewDelegate)
+    func showOnboardingTrainingTypeView(delegate: OnboardingTrainingTypeViewDelegate)
+}
+
+extension CoreRouter: OnboardingCalorieFloorRouter { }
+
 @Observable
 @MainActor
 class OnboardingCalorieFloorViewModel {
     private let interactor: OnboardingCalorieFloorInteractor
-    
+    private let router: OnboardingCalorieFloorRouter
+
     var selectedFloor: CalorieFloor?
     var trainingDaysPerWeek: Int?
     var hasTrainingPlan: Bool = false
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingCalorieFloorInteractor) {
+
+    init(
+        interactor: OnboardingCalorieFloorInteractor,
+        router: OnboardingCalorieFloorRouter
+    ) {
         self.interactor = interactor
+        self.router = router
         loadTrainingContext()
     }
     
@@ -54,7 +64,7 @@ class OnboardingCalorieFloorViewModel {
         }
     }
     
-    func navigateToTrainingType(path: Binding<[OnboardingPathOption]>, dietPlanBuilder: DietPlanBuilder) {
+    func navigateToTrainingType(dietPlanBuilder: DietPlanBuilder) {
         guard let floor = selectedFloor else { return }
         
         var builder = dietPlanBuilder
@@ -65,20 +75,23 @@ class OnboardingCalorieFloorViewModel {
             // Auto-set training type based on plan (default to cardioAndWeightlifting)
             builder.setTrainingType(.cardioAndWeightlifting)
             interactor.trackEvent(event: Event.navigate(
-                destination: .calorieDistribution(dietPlanBuilder: builder),
                 skipReason: "training_plan_exists"
             ))
-            path.wrappedValue.append(.calorieDistribution(dietPlanBuilder: builder))
+            router.showOnboardingCalorieDistributionView(delegate: OnboardingCalorieDistributionViewDelegate(dietPlanBuilder: builder))
         } else {
-            interactor.trackEvent(event: Event.navigate(destination: .trainingType(dietPlanBuilder: builder)))
-            path.wrappedValue.append(.trainingType(dietPlanBuilder: builder))
+            interactor.trackEvent(event: Event.navigate())
+            router.showOnboardingTrainingTypeView(delegate: OnboardingTrainingTypeViewDelegate(dietPlanBuilder: builder))
         }
     }
 
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+    
     enum Event: LoggableEvent {
         case trainingContextLoaded(daysPerWeek: Int?)
         case calorieFloorPrefilled(floor: CalorieFloor, reason: String)
-        case navigate(destination: OnboardingPathOption, skipReason: String? = nil)
+        case navigate(skipReason: String? = nil)
 
         var eventName: String {
             switch self {
@@ -94,8 +107,8 @@ class OnboardingCalorieFloorViewModel {
                 return ["daysPerWeek": days as Any]
             case .calorieFloorPrefilled(floor: let floor, reason: let reason):
                 return ["floor": floor.rawValue, "reason": reason]
-            case .navigate(destination: let destination, skipReason: let skipReason):
-                var params = destination.eventParameters
+            case .navigate(skipReason: let skipReason):
+                var params: [String: Any] = [:]
                 if let skipReason = skipReason {
                     params["skipReason"] = skipReason
                 }

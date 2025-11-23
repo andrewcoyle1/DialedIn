@@ -14,10 +14,19 @@ protocol OnboardingTargetWeightInteractor {
 
 extension CoreInteractor: OnboardingTargetWeightInteractor { }
 
+@MainActor
+protocol OnboardingTargetWeightRouter {
+    func showDevSettingsView()
+    func showOnboardingWeightRateView(delegate: OnboardingWeightRateViewDelegate)
+}
+
+extension CoreRouter: OnboardingTargetWeightRouter { }
+
 @Observable
 @MainActor
 class OnboardingTargetWeightViewModel {
     private let interactor: OnboardingTargetWeightInteractor
+    private let router: OnboardingTargetWeightRouter
 
     let isStandaloneMode: Bool
     
@@ -28,15 +37,13 @@ class OnboardingTargetWeightViewModel {
     var selectedPounds: Int = 0
     var didInitialize: Bool = false
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
     init(
         interactor: OnboardingTargetWeightInteractor,
+        router: OnboardingTargetWeightRouter,
         isStandaloneMode: Bool = false
     ) {
         self.interactor = interactor
+        self.router = router
         self.isStandaloneMode = isStandaloneMode
     }
     
@@ -121,19 +128,23 @@ class OnboardingTargetWeightViewModel {
         selectedKilograms = Int(targetWeight.rounded())
     }
     
-    func navigateToWeightRate(path: Binding<[OnboardingPathOption]>, weightGoalBuilder: WeightGoalBuilder) {
+    func navigateToWeightRate(weightGoalBuilder: WeightGoalBuilder) {
         var builder = weightGoalBuilder
         builder.setTargetWeight(targetWeight)
-        interactor.trackEvent(event: Event.navigate(destination: .weightRate(weightGoalBuilder: builder)))
-        path.wrappedValue.append(.weightRate(weightGoalBuilder: builder))
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingWeightRateView(delegate: OnboardingWeightRateViewDelegate(weightGoalBuilder: builder))
     }
     
     private func clamp(initial: Int, within range: ClosedRange<Int>) -> Int {
         return min(max(initial, range.lowerBound), range.upperBound)
     }
 
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -143,8 +154,8 @@ class OnboardingTargetWeightViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

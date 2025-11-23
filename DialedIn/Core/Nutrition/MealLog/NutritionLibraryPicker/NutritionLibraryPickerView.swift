@@ -6,60 +6,55 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct NutritionLibraryPickerViewDelegate {
     var onPick: (MealItemModel) -> Void
-    var path: Binding<[TabBarPathOption]>
 }
 
 struct NutritionLibraryPickerView: View {
-
-    @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: NutritionLibraryPickerViewModel
 
     var delegate: NutritionLibraryPickerViewDelegate
 
     var body: some View {
-        NavigationStack {
-            List {
+        List {
+            Section {
+                Picker("Type", selection: $viewModel.mode) {
+                    Text("Ingredients").tag(NutritionLibraryPickerViewModel.PickerMode.ingredients)
+                    Text("Recipes").tag(NutritionLibraryPickerViewModel.PickerMode.recipes)
+                }
+                .pickerStyle(.segmented)
+            }
+            .listSectionSpacing(0)
+            .removeListRowFormatting()
+            
+            if viewModel.isLoading {
                 Section {
-                    Picker("Type", selection: $viewModel.mode) {
-                        Text("Ingredients").tag(NutritionLibraryPickerViewModel.PickerMode.ingredients)
-                        Text("Recipes").tag(NutritionLibraryPickerViewModel.PickerMode.recipes)
-                    }
-                    .pickerStyle(.segmented)
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
                 }
-                .listSectionSpacing(0)
-                .removeListRowFormatting()
-                
-                if viewModel.isLoading {
-                    Section {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                    }
-                } else {
-                    switch viewModel.mode {
-                    case .ingredients:
-                        ingredientsSection
-                    case .recipes:
-                        recipesSection
-                    }
+            } else {
+                switch viewModel.mode {
+                case .ingredients:
+                    ingredientsSection
+                case .recipes:
+                    recipesSection
                 }
             }
-            .navigationTitle("Add Item")
-            .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $viewModel.searchText)
-            .onChange(of: viewModel.searchText) { _, newValue in
-                Task { await viewModel.performSearch(query: newValue) }
-            }
-            .task {
-                await viewModel.loadInitial()
-            }
-            .toolbar {
-                toolbarContent
-            }
-            .showCustomAlert(alert: $viewModel.showAlert)
+        }
+        .navigationTitle("Add Item")
+        .navigationBarTitleDisplayMode(.large)
+        .searchable(text: $viewModel.searchText)
+        .onChange(of: viewModel.searchText) { _, newValue in
+            Task { await viewModel.performSearch(query: newValue) }
+        }
+        .task {
+            await viewModel.loadInitial()
+        }
+        .toolbar {
+            toolbarContent
         }
     }
     
@@ -67,7 +62,7 @@ struct NutritionLibraryPickerView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                dismiss()
+                viewModel.dismissScreen()
             } label: {
                 Image(systemName: "xmark")
             }
@@ -75,7 +70,7 @@ struct NutritionLibraryPickerView: View {
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                dismiss()
+                viewModel.dismissScreen()
             } label: {
                 Image(systemName: "checkmark")
             }
@@ -91,7 +86,7 @@ struct NutritionLibraryPickerView: View {
             } else {
                 ForEach(viewModel.ingredients) { ingredient in
                     Button {
-                        viewModel.navToIngredientAmount(path: delegate.path, ingredient, onPick: delegate.onPick)
+                        viewModel.navToIngredientAmount(ingredient, onPick: delegate.onPick)
                     } label: {
                         CustomListCellView(
                             imageName: ingredient.imageURL,
@@ -113,7 +108,7 @@ struct NutritionLibraryPickerView: View {
             } else {
                 ForEach(viewModel.recipes) { recipe in
                     Button {
-                        viewModel.navToRecipeAmount(path: delegate.path, recipe, onPick: delegate.onPick)
+                        viewModel.navToRecipeAmount(recipe, onPick: delegate.onPick)
                     } label: {
                         CustomListCellView(
                             imageName: nil,
@@ -129,15 +124,16 @@ struct NutritionLibraryPickerView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = NutritionLibraryPickerViewDelegate(
         onPick: { item in
             print(
                 item.displayName
             )
-        }, path: $path
+        }
     )
-    builder.nutritionLibraryPickerView(delegate: delegate)
+    RouterView { router in
+        builder.nutritionLibraryPickerView(router: router, delegate: delegate)
+    }
     .previewEnvironment()
 }

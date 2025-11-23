@@ -6,23 +6,18 @@
 //
 
 import SwiftUI
-
-struct ProfileGoalSectionDelegate {
-    var path: Binding<[TabBarPathOption]>
-}
+import CustomRouting
 
 struct ProfileGoalSection: View {
 
     @State var viewModel: ProfileGoalSectionViewModel
-
-    var delegate: ProfileGoalSectionDelegate
 
     var body: some View {
         Section {
             if let goal = viewModel.currentGoal,
                let user = viewModel.currentUser {
                 Button {
-                    viewModel.navToProfileGoals(path: delegate.path)
+                    viewModel.navToProfileGoals()
                 } label: {
                     
                     VStack(alignment: .leading, spacing: 8) {
@@ -105,8 +100,9 @@ struct ProfileGoalSection: View {
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.profileGoalSection(delegate: ProfileGoalSectionDelegate(path: $path))
+    RouterView { router in
+        builder.profileGoalSection(router: router)
+    }
     .previewEnvironment()
 }

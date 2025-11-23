@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingTrainingScheduleViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var trainingProgramBuilder: TrainingProgramBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingTrainingScheduleView: View {
     @State var viewModel: OnboardingTrainingScheduleViewModel
 
     var delegate: OnboardingTrainingScheduleViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     private let weekdays = [
         (1, "Sunday"),
@@ -72,11 +70,6 @@ struct OnboardingTrainingScheduleView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .screenAppearAnalytics(name: "TrainingSchedule")
     }
     
@@ -85,7 +78,7 @@ struct OnboardingTrainingScheduleView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -94,7 +87,7 @@ struct OnboardingTrainingScheduleView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToEquipment(path: delegate.path, builder: delegate.trainingProgramBuilder)
+                viewModel.navigateToEquipment(builder: delegate.trainingProgramBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -105,12 +98,11 @@ struct OnboardingTrainingScheduleView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingTrainingScheduleView(
+            router: router, 
             delegate: OnboardingTrainingScheduleViewDelegate(
-                path: $path,
                 trainingProgramBuilder: TrainingProgramBuilder(targetDaysPerWeek: 3)
             )
         )

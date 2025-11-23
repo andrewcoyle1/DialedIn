@@ -14,19 +14,30 @@ protocol ProfilePreferencesInteractor {
 
 extension CoreInteractor: ProfilePreferencesInteractor { }
 
+@MainActor
+protocol ProfilePreferencesRouter {
+    func showSettingsView()
+    func showDevSettingsView()
+}
+
+extension CoreRouter: ProfilePreferencesRouter { }
+
 @Observable
 @MainActor
 class ProfilePreferencesViewModel {
     private let interactor: ProfilePreferencesInteractor
-    
+    private let router: ProfilePreferencesRouter
+
     var currentUser: UserModel? {
         interactor.currentUser
     }
     
     init(
-        interactor: ProfilePreferencesInteractor
+        interactor: ProfilePreferencesInteractor,
+        router: ProfilePreferencesRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func formatUnitPreferences(length: LengthUnitPreference?, weight: WeightUnitPreference?) -> String {
@@ -40,13 +51,17 @@ class ProfilePreferencesViewModel {
         }
     }
 
-    func navToSettingsView(path: Binding<[TabBarPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .settingsView))
-        path.wrappedValue.append(.settingsView)
+    func navToSettingsView() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showSettingsView()
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -56,8 +71,8 @@ class ProfilePreferencesViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

@@ -14,12 +14,20 @@ protocol WorkoutTemplateListInteractor {
 
 extension CoreInteractor: WorkoutTemplateListInteractor { }
 
+@MainActor
+protocol WorkoutTemplateListRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: WorkoutTemplateListRouter { }
+
 // Typealias for backward compatibility
 typealias WorkoutTemplateListViewModel = GenericTemplateListViewModel<WorkoutTemplateModel>
 
 extension GenericTemplateListViewModel where Template == WorkoutTemplateModel {
     static func create(
         interactor: WorkoutTemplateListInteractor,
+        router: WorkoutTemplateListRouter
     ) -> WorkoutTemplateListViewModel {
         return GenericTemplateListViewModel<WorkoutTemplateModel>(
             configuration: .workout,

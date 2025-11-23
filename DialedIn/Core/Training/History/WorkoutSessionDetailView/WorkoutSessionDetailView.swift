@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct WorkoutSessionDetailViewDelegate {
     let workoutSession: WorkoutSessionModel
@@ -19,7 +20,6 @@ struct WorkoutSessionDetailView: View {
 
     var delegate: WorkoutSessionDetailViewDelegate
 
-    @ViewBuilder var addExerciseModalView: (AddExerciseModalViewDelegate) -> AnyView
     @ViewBuilder var editableExerciseCardWrapper: (EditableExerciseCardWrapperDelegate) -> AnyView
     var body: some View {
         List {
@@ -43,17 +43,14 @@ struct WorkoutSessionDetailView: View {
         .onAppear {
             viewModel.loadUnitPreferences(for: delegate.workoutSession)
         }
-        .sheet(isPresented: $viewModel.showAddExerciseSheet, onDismiss: viewModel.addSelectedExercises) {
-            addExerciseModalView(AddExerciseModalViewDelegate(selectedExercises: $viewModel.selectedExerciseTemplates))
-        }
     }
 }
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = WorkoutSessionDetailViewDelegate(workoutSession: .mock)
-    NavigationStack {
-        builder.workoutSessionDetailView(delegate: delegate)
+    RouterView { router in
+        builder.workoutSessionDetailView(router: router, delegate: delegate)
     }
     .previewEnvironment()
 }
@@ -156,7 +153,7 @@ extension WorkoutSessionDetailView {
                 
                 // Add Exercise button
                 Button {
-                    viewModel.showAddExerciseSheet = true
+                    viewModel.onAddExercisePressed()
                 } label: {
                     HStack {
                         Image(systemName: "plus.circle.fill")

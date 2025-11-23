@@ -15,11 +15,20 @@ protocol ProfilePhysicalMetricsInteractor {
 
 extension CoreInteractor: ProfilePhysicalMetricsInteractor { }
 
+@MainActor
+protocol ProfilePhysicalMetricsRouter {
+    func showPhysicalStatsView()
+    func showDevSettingsView()
+}
+
+extension CoreRouter: ProfilePhysicalMetricsRouter { }
+
 @Observable
 @MainActor
 class ProfilePhysicalMetricsViewModel {
     private let interactor: ProfilePhysicalMetricsInteractor
-    
+    private let router: ProfilePhysicalMetricsRouter
+
     var currentUser: UserModel? {
         interactor.currentUser
     }
@@ -28,8 +37,12 @@ class ProfilePhysicalMetricsViewModel {
         interactor.currentGoal
     }
     
-    init(interactor: ProfilePhysicalMetricsInteractor) {
+    init(
+        interactor: ProfilePhysicalMetricsInteractor,
+        router: ProfilePhysicalMetricsRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func formatHeight(_ heightCm: Double, unit: LengthUnitPreference) -> String {
@@ -89,13 +102,17 @@ class ProfilePhysicalMetricsViewModel {
         }
     }
 
-    func navToPhysicalStats(path: Binding<[TabBarPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .profilePhysicalStats))
-        path.wrappedValue.append(.profilePhysicalStats)
+    func navToPhysicalStats() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showPhysicalStatsView()
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -105,8 +122,8 @@ class ProfilePhysicalMetricsViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

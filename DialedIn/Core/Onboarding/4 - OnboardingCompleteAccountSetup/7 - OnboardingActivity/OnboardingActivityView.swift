@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingActivityViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var userModelBuilder: UserModelBuilder
 }
 
@@ -18,8 +18,6 @@ struct OnboardingActivityView: View {
 
     var delegate: OnboardingActivityViewDelegate
 
-    @ViewBuilder var devSettingsView: () -> AnyView
-
     var body: some View {
         List {
             dailyActivitySection
@@ -28,11 +26,6 @@ struct OnboardingActivityView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     private var dailyActivitySection: some View {
@@ -59,7 +52,7 @@ struct OnboardingActivityView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -68,7 +61,7 @@ struct OnboardingActivityView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToCardioFitness(path: delegate.path, userBuilder: delegate.userModelBuilder)
+                viewModel.navigateToCardioFitness(userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -103,14 +96,11 @@ struct OnboardingActivityView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingActivityView(
-            delegate: OnboardingActivityViewDelegate(
-                path: $path,
-                userModelBuilder: UserModelBuilder.activityLevelMock
-            )
+            router: router,
+            delegate: OnboardingActivityViewDelegate(userModelBuilder: UserModelBuilder.activityLevelMock)
         )
     }
     .previewEnvironment()

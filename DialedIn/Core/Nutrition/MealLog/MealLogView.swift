@@ -9,7 +9,6 @@ import SwiftUI
 import CustomRouting
 
 struct MealLogViewDelegate {
-    var path: Binding<[TabBarPathOption]>
     var isShowingInspector: Binding<Bool>
     var selectedIngredientTemplate: Binding<IngredientTemplateModel?>
     var selectedRecipeTemplate: Binding<RecipeTemplateModel?>
@@ -46,7 +45,6 @@ struct MealLogView: View {
                 await viewModel.loadMeals()
             }
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     // MARK: - Date Picker Section
@@ -154,7 +152,7 @@ struct MealLogView: View {
                 } else {
                     ForEach(mealsForType) { meal in
                         Button {
-                            viewModel.navToMealDetail(path: delegate.path, meal: meal)
+                            viewModel.navToMealDetail(meal: meal)
                         } label: {
                             MealLogRowView(meal: meal)
                         }
@@ -202,9 +200,7 @@ struct MealLogView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
     let delegate = MealLogViewDelegate(
-        path: $path,
         isShowingInspector: Binding.constant(false),
         selectedIngredientTemplate: Binding.constant(nil),
         selectedRecipeTemplate: Binding.constant(nil)

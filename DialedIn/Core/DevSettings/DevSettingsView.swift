@@ -13,27 +13,25 @@ struct DevSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationStack {
-            List {
-                debugActionsSection
-                authSection
-                userSection
-                deviceSection
-                activeWorkoutSessionSection
-                trainingPlanSection
-                localStorageDebugSection
-                firebaseTestSection
-                exerciseTemplateSection
-                workoutTemplateSection
-                seedingSection
-            }
-            .navigationTitle("Dev Settings 🫨")
-            .screenAppearAnalytics(name: "DevSettings")
-            .scrollIndicators(.hidden)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    backButtonView
-                }
+        List {
+            debugActionsSection
+            authSection
+            userSection
+            deviceSection
+            activeWorkoutSessionSection
+            trainingPlanSection
+            localStorageDebugSection
+            firebaseTestSection
+            exerciseTemplateSection
+            workoutTemplateSection
+            seedingSection
+        }
+        .navigationTitle("Dev Settings 🫨")
+        .screenAppearAnalytics(name: "DevSettings")
+        .scrollIndicators(.hidden)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                backButtonView
             }
         }
     }

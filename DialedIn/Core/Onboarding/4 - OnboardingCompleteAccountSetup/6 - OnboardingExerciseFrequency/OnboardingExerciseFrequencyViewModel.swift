@@ -13,36 +13,49 @@ protocol OnboardingExerciseFrequencyInteractor {
 
 extension CoreInteractor: OnboardingExerciseFrequencyInteractor { }
 
+@MainActor
+protocol OnboardingExerciseFrequencyRouter {
+    func showDevSettingsView()
+    func showOnboardingActivityView(delegate: OnboardingActivityViewDelegate)
+}
+
+extension CoreRouter: OnboardingExerciseFrequencyRouter { }
+
 @Observable
 @MainActor
 class OnboardingExerciseFrequencyViewModel {
     private let interactor: OnboardingExerciseFrequencyInteractor
-        
+    private let router: OnboardingExerciseFrequencyRouter
+
     var selectedFrequency: ExerciseFrequency?
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-
     var canSubmit: Bool {
         selectedFrequency != nil
     }
     
-    init(interactor: OnboardingExerciseFrequencyInteractor) {
+    init(
+        interactor: OnboardingExerciseFrequencyInteractor,
+        router: OnboardingExerciseFrequencyRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func navigateToOnboardingActivity(path: Binding<[OnboardingPathOption]>, userBuilder: UserModelBuilder) {
+    func navigateToOnboardingActivity(userBuilder: UserModelBuilder) {
         if let frequency = selectedFrequency {
             var builder = userBuilder
             builder.setExerciseFrequency(frequency)
-            interactor.trackEvent(event: Event.navigate(destination: .activityLevel(userModelBuilder: builder)))
-            path.wrappedValue.append(.activityLevel(userModelBuilder: builder))
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingActivityView(delegate: OnboardingActivityViewDelegate(userModelBuilder: builder))
         }
     }
 
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -52,8 +65,8 @@ class OnboardingExerciseFrequencyViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

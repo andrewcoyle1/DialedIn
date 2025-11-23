@@ -6,18 +6,11 @@
 //
 
 import SwiftUI
-
-struct OnboardingSubscriptionPlanViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct OnboardingSubscriptionPlanView: View {
 
     @State var viewModel: OnboardingSubscriptionPlanViewModel
-
-    var delegate: OnboardingSubscriptionPlanViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -42,11 +35,6 @@ struct OnboardingSubscriptionPlanView: View {
             get: { viewModel.showRestoreAlert ? AnyAppAlert(title: "Restore Purchases", subtitle: "Restoring purchases is not yet implemented.") : nil },
             set: { _ in viewModel.showRestoreAlert = false }
         ))
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     @ToolbarContentBuilder
@@ -54,7 +42,7 @@ struct OnboardingSubscriptionPlanView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -62,7 +50,7 @@ struct OnboardingSubscriptionPlanView: View {
         #endif
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onPurchase(path: delegate.path)
+                viewModel.onPurchase()
             } label: {
                 Text("Restore Purchases")
             }
@@ -70,7 +58,7 @@ struct OnboardingSubscriptionPlanView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onPurchase(path: delegate.path)
+                viewModel.onPurchase()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -163,14 +151,9 @@ struct OnboardingSubscriptionPlanView: View {
 }
 
 #Preview("Functioning") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingSubscriptionPlanView(
-            delegate: OnboardingSubscriptionPlanViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingSubscriptionPlanView(router: router)
     }
     .previewEnvironment()
 }

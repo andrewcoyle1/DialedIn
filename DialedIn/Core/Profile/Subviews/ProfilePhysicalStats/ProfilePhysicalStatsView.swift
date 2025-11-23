@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct ProfilePhysicalStatsView: View {
 
@@ -254,8 +255,8 @@ struct ProfilePhysicalStatsView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.profilePhysicalStatsView()
+    RouterView { router in
+        builder.profilePhysicalStatsView(router: router)
     }
     .previewEnvironment()
 }

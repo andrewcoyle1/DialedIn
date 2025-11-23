@@ -23,8 +23,6 @@ class TabBarViewModel {
     
     private let interactor: TabBarInteractor
 
-    var presentTracker: Bool = false
-
     var activeSession: WorkoutSessionModel? {
         get {
             interactor.activeSession
@@ -44,7 +42,7 @@ class TabBarViewModel {
     }
 
     init(
-        interactor: TabBarInteractor,
+        interactor: TabBarInteractor
     ) {
         self.interactor = interactor
     }

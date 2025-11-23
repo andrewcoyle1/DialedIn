@@ -157,11 +157,21 @@ protocol WorkoutTrackerInteractor {
 
 extension CoreInteractor: WorkoutTrackerInteractor { }
 
+@MainActor
+protocol WorkoutTrackerRouter {
+    func showDevSettingsView()
+    func showAddExercisesView(delegate: AddExerciseModalViewDelegate)
+}
+
+extension CoreRouter: WorkoutTrackerRouter { }
+
 @Observable
 @MainActor
 class WorkoutTrackerViewModel {
+
     let interactor: WorkoutTrackerInteractor
-    
+    private let router: WorkoutTrackerRouter
+
     // MARK: - State Properties
 
     var pendingSelectedTemplates: [ExerciseTemplateModel] = []
@@ -209,8 +219,12 @@ class WorkoutTrackerViewModel {
     
     // MARK: - Initialization
     
-    init(interactor: WorkoutTrackerInteractor) {
+    init(
+        interactor: WorkoutTrackerInteractor,
+        router: WorkoutTrackerRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func loadWorkoutSession(_ workoutSession: WorkoutSessionModel) {
@@ -711,6 +725,14 @@ class WorkoutTrackerViewModel {
     }
     
     func presentAddExercise() {
-        showingAddExercise = true
+        router.showAddExercisesView(delegate: AddExerciseModalViewDelegate(selectedExercises: Binding(
+            get: { self.pendingSelectedTemplates },
+            set: { self.pendingSelectedTemplates = $0 }
+        )))
     }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
 }

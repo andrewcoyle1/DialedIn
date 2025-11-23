@@ -16,6 +16,7 @@ extension CoreInteractor: AddMealSheetInteractor { }
 @MainActor
 protocol AddMealSheetRouter {
     func showNutritionLibraryPickerView(delegate: NutritionLibraryPickerViewDelegate)
+    func dismissScreen()
 }
 
 extension CoreRouter: AddMealSheetRouter { }
@@ -42,23 +43,19 @@ class AddMealSheetViewModel {
     var currentUser: UserModel? {
         interactor.currentUser
     }
-    
-    func onAddItemPressed() {
-        showLibraryPicker = true
-    }
-    
+        
     func deleteItems(at offsets: IndexSet) {
         items.remove(atOffsets: offsets)
     }
 
-    func onNutritionLibraryPickerViewPressed(delegate: NutritionLibraryPickerViewDelegate) {
+    func onNutritionLibraryPickerViewPressed() {
         let delegate = NutritionLibraryPickerViewDelegate(onPick: { newItem in
             self.items.append(newItem)
-        }, path: .constant([]))
+        })
         router.showNutritionLibraryPickerView(delegate: delegate)
     }
 
-    func saveMeal(onDismiss: () -> Void, selectedDate: Date, mealType: MealType, onSave: @escaping (MealLogModel) -> Void) {
+    func saveMeal(selectedDate: Date, mealType: MealType, onSave: @escaping (MealLogModel) -> Void) {
         guard let userId = interactor.currentUser?.userId else { return }
         
         // Combine selected date with selected time
@@ -96,6 +93,10 @@ class AddMealSheetViewModel {
         )
         
         onSave(meal)
-        onDismiss()
+        dismissScreen()
+    }
+
+    func dismissScreen() {
+        router.dismissScreen()
     }
 }

@@ -15,11 +15,19 @@ protocol ProfilePhysicalStatsInteractor {
 
 extension CoreInteractor: ProfilePhysicalStatsInteractor { }
 
+@MainActor
+protocol ProfilePhysicalStatsRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: ProfilePhysicalStatsRouter { }
+
 @Observable
 @MainActor
 class ProfilePhysicalStatsViewModel {
     private let interactor: ProfilePhysicalStatsInteractor
-    
+    private let router: ProfilePhysicalStatsRouter
+
     private(set) var weights: [WeightEntry] = []
 
     var showLogWeightSheet: Bool = false
@@ -32,9 +40,11 @@ class ProfilePhysicalStatsViewModel {
         interactor.weightHistory
     }
     init(
-        interactor: ProfilePhysicalStatsInteractor
+        interactor: ProfilePhysicalStatsInteractor,
+        router: ProfilePhysicalStatsRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func loadWeights() async {
@@ -156,5 +166,9 @@ class ProfilePhysicalStatsViewModel {
         case .advanced: return "Advanced"
         case .elite: return "Elite"
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

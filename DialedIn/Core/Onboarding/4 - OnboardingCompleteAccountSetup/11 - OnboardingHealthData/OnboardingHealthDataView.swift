@@ -6,18 +6,11 @@
 //
 
 import SwiftUI
-
-struct OnboardingHealthDataViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct OnboardingHealthDataView: View {
 
     @State var viewModel: OnboardingHealthDataViewModel
-
-    var delegate: OnboardingHealthDataViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -31,10 +24,6 @@ struct OnboardingHealthDataView: View {
         .showCustomAlert(alert: $viewModel.showAlert)
         #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
-        #else
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
         #endif
         .toolbar {
             toolbarContent
@@ -46,7 +35,7 @@ struct OnboardingHealthDataView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -56,7 +45,7 @@ struct OnboardingHealthDataView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onAllowAccessPressed(path: delegate.path)
+                viewModel.onAllowAccessPressed()
             } label: {
                 Text("Allow access to health data")
                     .padding(.horizontal)
@@ -66,7 +55,7 @@ struct OnboardingHealthDataView: View {
         ToolbarSpacer(.fixed, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.handleNavigation(path: delegate.path)
+                viewModel.handleNavigation()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -124,14 +113,9 @@ struct OnboardingHealthDataView: View {
 }
 
 #Preview("Proceed to Notifications") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingHealthDataView(
-            delegate: OnboardingHealthDataViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingHealthDataView(router: router)
     }
     .previewEnvironment()
 }

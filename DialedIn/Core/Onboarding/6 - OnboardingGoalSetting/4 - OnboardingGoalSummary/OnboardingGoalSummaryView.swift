@@ -6,11 +6,12 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingGoalSummaryViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var weightGoalBuilder: WeightGoalBuilder
 }
+
 struct OnboardingGoalSummaryView: View {
 
     @Environment(\.goalFlowDismissAction) private var dismissFlow
@@ -18,8 +19,6 @@ struct OnboardingGoalSummaryView: View {
     @State var viewModel: OnboardingGoalSummaryViewModel
 
     var delegate: OnboardingGoalSummaryViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -33,11 +32,6 @@ struct OnboardingGoalSummaryView: View {
         .onAppear {
             viewModel.onDismiss = dismissFlow
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .toolbar {
             toolbarContent
         }
@@ -49,7 +43,7 @@ struct OnboardingGoalSummaryView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -70,7 +64,7 @@ struct OnboardingGoalSummaryView: View {
                 .disabled(viewModel.isLoading || !viewModel.goalCreated)
             } else {
                 Button {
-                    viewModel.uploadGoalSettings(path: delegate.path, weightGoalBuilder: delegate.weightGoalBuilder)
+                    viewModel.uploadGoalSettings(weightGoalBuilder: delegate.weightGoalBuilder)
                 } label: {
                     Image(systemName: "chevron.right")
                 }
@@ -242,14 +236,11 @@ private extension OnboardingGoalSummaryView {
 }
 
 #Preview("Normal") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingGoalSummaryView(
-            delegate: OnboardingGoalSummaryViewDelegate(
-                path: $path,
-                weightGoalBuilder: .mock
-            )
+            router: router, 
+            delegate: OnboardingGoalSummaryViewDelegate(weightGoalBuilder: .mock)
         )
     }
     .previewEnvironment()

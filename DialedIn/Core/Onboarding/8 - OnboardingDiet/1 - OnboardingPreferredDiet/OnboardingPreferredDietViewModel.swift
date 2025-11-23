@@ -13,31 +13,44 @@ protocol OnboardingPreferredDietInteractor {
 
 extension CoreInteractor: OnboardingPreferredDietInteractor { }
 
+@MainActor
+protocol OnboardingPreferredDietRouter {
+    func showDevSettingsView()
+    func showOnboardingCalorieFloorView(delegate: OnboardingCalorieFloorViewDelegate)
+}
+
+extension CoreRouter: OnboardingPreferredDietRouter { }
+
 @Observable
 @MainActor
 class OnboardingPreferredDietViewModel {
     private let interactor: OnboardingPreferredDietInteractor
-    
+    private let router: OnboardingPreferredDietRouter
+
     var selectedDiet: PreferredDiet?
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingPreferredDietInteractor) {
+        
+    init(
+        interactor: OnboardingPreferredDietInteractor,
+        router: OnboardingPreferredDietRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func navigateToCalorieFloor(path: Binding<[OnboardingPathOption]>) {
+    func navigateToCalorieFloor() {
         if let diet = selectedDiet {
             let dietPlanBuilder = DietPlanBuilder(preferredDiet: diet)
-            interactor.trackEvent(event: Event.navigate(destination: .calorieFloor(dietPlanBuilder: dietPlanBuilder)))
-            path.wrappedValue.append(.calorieFloor(dietPlanBuilder: dietPlanBuilder))
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingCalorieFloorView(delegate: OnboardingCalorieFloorViewDelegate(dietPlanBuilder: dietPlanBuilder))
         }
     }
 
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+    
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -47,8 +60,8 @@ class OnboardingPreferredDietViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

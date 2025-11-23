@@ -18,8 +18,7 @@ struct AdaptiveMainView: View {
 
     var body: some View {
         #if targetEnvironment(macCatalyst)
-        let delegate = SplitViewDelegate(path: $viewModel.path, tab: $viewModel.tab)
-        splitViewContainer(delegate)
+        splitViewContainer()
         .layoutMode(.splitView)
         #else
         if horizontalSizeClass == .compact {

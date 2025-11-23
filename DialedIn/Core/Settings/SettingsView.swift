@@ -14,21 +14,19 @@ struct SettingsView: View {
     @State var viewModel: SettingsViewModel
 
     var body: some View {
-        NavigationStack {
-            List {
-                accountSection
-                purchaseSection
-                applicationSection
-            }
-            .navigationTitle("Settings")
-            .onAppear {
-                viewModel.setAnonymousAccountStatus()
-            }
-            .showCustomAlert(alert: $viewModel.showAlert)
-            .screenAppearAnalytics(name: "Settings")
-            .showModal(showModal: $viewModel.showRatingsModal) {
-                ratingsModal
-            }
+        List {
+            accountSection
+            purchaseSection
+            applicationSection
+        }
+        .navigationTitle("Settings")
+        .onAppear {
+            viewModel.setAnonymousAccountStatus()
+        }
+        .showCustomAlert(alert: $viewModel.showAlert)
+        .screenAppearAnalytics(name: "Settings")
+        .showModal(showModal: $viewModel.showRatingsModal) {
+            ratingsModal
         }
     }
 
@@ -71,7 +69,7 @@ struct SettingsView: View {
     private var purchaseSection: some View {
         Section {
             Button {
-                viewModel.navToManageSubscriptionView(path: .constant([]))
+                viewModel.navToManageSubscriptionView()
             } label: {
                 Text("Account status: \(viewModel.isPremium ? "PREMIUM" : "FREE")")
             }

@@ -14,45 +14,65 @@ protocol ProfileMyTemplatesInteractor {
 
 extension CoreInteractor: ProfileMyTemplatesInteractor { }
 
+@MainActor
+protocol ProfileMyTemplatesRouter {
+    func showDevSettingsView()
+    func showExerciseTemplateListView(delegate: ExerciseTemplateListViewDelegate)
+    func showWorkoutTemplateListView(delegate: WorkoutTemplateListViewDelegate)
+    func showIngredientTemplateListView(delegate: IngredientTemplateListViewDelegate)
+    func showRecipeTemplateListView(delegate: RecipeTemplateListViewDelegate)
+}
+
+extension CoreRouter: ProfileMyTemplatesRouter { }
+
 @Observable
 @MainActor
 class ProfileMyTemplatesViewModel {
     private let interactor: ProfileMyTemplatesInteractor
-    
+    private let router: ProfileMyTemplatesRouter
+
     var currentUser: UserModel? {
         interactor.currentUser
     }
     
-    init(interactor: ProfileMyTemplatesInteractor) {
+    init(
+        interactor: ProfileMyTemplatesInteractor,
+        router: ProfileMyTemplatesRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
 
-    func navToExerciseTemplateList(path: Binding<[TabBarPathOption]>) {
+    func navToExerciseTemplateList() {
         guard let templateIds = interactor.currentUser?.createdExerciseTemplateIds else { return }
-        interactor.trackEvent(event: Event.navigate(destination: .exerciseTemplateList(templateIds: templateIds)))
-        path.wrappedValue.append(.exerciseTemplateList(templateIds: templateIds))
+        interactor.trackEvent(event: Event.navigate)
+        router.showExerciseTemplateListView(delegate: ExerciseTemplateListViewDelegate(templateIds: templateIds))
     }
 
-    func navToWorkoutTemplateList(path: Binding<[TabBarPathOption]>) {
+    func navToWorkoutTemplateList() {
         guard let templateIds = interactor.currentUser?.createdWorkoutTemplateIds else { return }
-        interactor.trackEvent(event: Event.navigate(destination: .workoutTemplateList(templateIds: templateIds)))
-        path.wrappedValue.append(.workoutTemplateList(templateIds: templateIds))
+        interactor.trackEvent(event: Event.navigate)
+        router.showWorkoutTemplateListView(delegate: WorkoutTemplateListViewDelegate(templateIds: templateIds))
     }
 
-    func navToIngredientTemplateList(path: Binding<[TabBarPathOption]>) {
+    func navToIngredientTemplateList() {
         guard let templateIds = interactor.currentUser?.createdIngredientTemplateIds else { return }
-        interactor.trackEvent(event: Event.navigate(destination: .ingredientTemplateList(templateIds: templateIds)))
-        path.wrappedValue.append(.ingredientTemplateList(templateIds: templateIds))
+        interactor.trackEvent(event: Event.navigate)
+        router.showIngredientTemplateListView(delegate: IngredientTemplateListViewDelegate(templateIds: templateIds))
     }
 
-    func navToRecipeTemplateList(path: Binding<[TabBarPathOption]>) {
+    func navToRecipeTemplateList() {
         guard let templateIds = interactor.currentUser?.createdRecipeTemplateIds else { return }
-        interactor.trackEvent(event: Event.navigate(destination: .recipeTemplateList(templateIds: templateIds)))
-        path.wrappedValue.append(.recipeTemplateList(templateIds: templateIds))
+        interactor.trackEvent(event: Event.navigate)
+        router.showRecipeTemplateListView(delegate: RecipeTemplateListViewDelegate(templateIds: templateIds))
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -62,8 +82,8 @@ class ProfileMyTemplatesViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

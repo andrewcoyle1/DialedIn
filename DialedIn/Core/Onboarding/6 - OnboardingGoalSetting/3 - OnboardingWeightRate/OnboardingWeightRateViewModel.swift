@@ -14,11 +14,20 @@ protocol OnboardingWeightRateInteractor {
 
 extension CoreInteractor: OnboardingWeightRateInteractor { }
 
+@MainActor
+protocol OnboardingWeightRateRouter {
+    func showDevSettingsView()
+    func showOnboardingGoalSummaryView(delegate: OnboardingGoalSummaryViewDelegate)
+}
+
+extension CoreRouter: OnboardingWeightRateRouter { }
+
 @Observable
 @MainActor
 class OnboardingWeightRateViewModel {
     private let interactor: OnboardingWeightRateInteractor
-    
+    private let router: OnboardingWeightRateRouter
+
     let isStandaloneMode: Bool
     
     var currentWeight: Double = 0
@@ -27,11 +36,7 @@ class OnboardingWeightRateViewModel {
     var weightChangeRate: Double = 0.5 // kg/week
     var isLoading: Bool = false
     var showAlert: AnyAppAlert?
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
+        
     enum WeightRateCategory {
         case conservative, standard, aggressive
         
@@ -64,9 +69,11 @@ class OnboardingWeightRateViewModel {
 
     init(
         interactor: OnboardingWeightRateInteractor,
+        router: OnboardingWeightRateRouter,
         isStandaloneMode: Bool = false
     ) {
         self.interactor = interactor
+        self.router = router
         self.isStandaloneMode = isStandaloneMode
     }
 
@@ -93,11 +100,12 @@ class OnboardingWeightRateViewModel {
         didInitialize = true
     }
 
-    func navigateToGoalSummary(path: Binding<[OnboardingPathOption]>, weightGoalBuilder: WeightGoalBuilder) {
+    func navigateToGoalSummary(weightGoalBuilder: WeightGoalBuilder) {
         var builder = weightGoalBuilder
         builder.setWeeklyChange(weightChangeRate)
-        interactor.trackEvent(event: Event.navigate(destination: .goalSummary(weightGoalBuilder: builder)))
-        path.wrappedValue.append(.goalSummary(weightGoalBuilder: builder))
+        interactor.trackEvent(event: Event.navigate
+        )
+        router.showOnboardingGoalSummaryView(delegate: OnboardingGoalSummaryViewDelegate(weightGoalBuilder: builder))
     }
 
     func weeklyWeightChangeText(weightGoalBuilder: WeightGoalBuilder) -> String {
@@ -149,8 +157,12 @@ class OnboardingWeightRateViewModel {
         return "Approximate end date: \(formatter.string(from: endDate))"
     }
 
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -160,8 +172,8 @@ class OnboardingWeightRateViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

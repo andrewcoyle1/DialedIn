@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingCalorieFloorViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     let dietPlanBuilder: DietPlanBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingCalorieFloorView: View {
     @State var viewModel: OnboardingCalorieFloorViewModel
 
     var delegate: OnboardingCalorieFloorViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -59,11 +57,6 @@ struct OnboardingCalorieFloorView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     @ToolbarContentBuilder
@@ -71,7 +64,7 @@ struct OnboardingCalorieFloorView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -80,7 +73,7 @@ struct OnboardingCalorieFloorView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToTrainingType(path: delegate.path, dietPlanBuilder: delegate.dietPlanBuilder)
+                viewModel.navigateToTrainingType(dietPlanBuilder: delegate.dietPlanBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -91,12 +84,11 @@ struct OnboardingCalorieFloorView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingCalorieFloorView(
+            router: router,
             delegate: OnboardingCalorieFloorViewDelegate(
-                path: $path,
                 dietPlanBuilder: .mock
             )
         )

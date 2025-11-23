@@ -17,20 +17,35 @@ protocol NutritionLibraryPickerInteractor: Sendable {
 
 extension CoreInteractor: NutritionLibraryPickerInteractor, @unchecked Sendable { }
 
+@MainActor
+protocol NutritionLibraryPickerRouter {
+    func showIngredientAmountView(delegate: IngredientAmountViewDelegate)
+    func showRecipeAmountView(delegate: RecipeAmountViewDelegate)
+    func showDevSettingsView()
+    func showAlert(error: Error)
+    func dismissScreen()
+}
+
+extension CoreRouter: NutritionLibraryPickerRouter { }
+
 @Observable
 @MainActor
 class NutritionLibraryPickerViewModel {
     private let interactor: NutritionLibraryPickerInteractor
-    
+    private let router: NutritionLibraryPickerRouter
+
     var mode: PickerMode = .ingredients
     var searchText: String = ""
     private(set) var isLoading: Bool = false
-    var showAlert: AnyAppAlert?
     private(set) var ingredients: [IngredientTemplateModel] = []
     private(set) var recipes: [RecipeTemplateModel] = []
 
-    init(interactor: NutritionLibraryPickerInteractor) {
+    init(
+        interactor: NutritionLibraryPickerInteractor,
+        router: NutritionLibraryPickerRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func loadInitial() async {
@@ -43,7 +58,7 @@ class NutritionLibraryPickerViewModel {
             ingredients = ings
             recipes = recs
         } catch {
-            showAlert = AnyAppAlert(error: error)
+            router.showAlert(error: error)
         }
     }
     
@@ -63,18 +78,16 @@ class NutritionLibraryPickerViewModel {
                 recipes = try await interactor.getRecipeTemplatesByName(name: trimmed)
             }
         } catch {
-            showAlert = AnyAppAlert(error: error)
+            router.showAlert(error: error)
         }
     }
 
-    func navToIngredientAmount(path: Binding<[TabBarPathOption]>, _ ingredient: IngredientTemplateModel, onPick: @escaping (MealItemModel) -> Void) {
-        interactor.trackEvent(event: Event.navigate(destination: .ingredientAmountView(ingredient: ingredient, onPick: onPick)))
-        path.wrappedValue.append(.ingredientAmountView(ingredient: ingredient, onPick: onPick))
+    func navToIngredientAmount(_ ingredient: IngredientTemplateModel, onPick: @escaping (MealItemModel) -> Void) {
+        router.showIngredientAmountView(delegate: IngredientAmountViewDelegate(ingredient: ingredient, onPick: onPick))
     }
 
-    func navToRecipeAmount(path: Binding<[TabBarPathOption]>, _ recipe: RecipeTemplateModel, onPick: @escaping (MealItemModel) -> Void) {
-        interactor.trackEvent(event: Event.navigate(destination: .recipeAmountView(recipe: recipe, onPick: onPick)))
-        path.wrappedValue.append(.recipeAmountView(recipe: recipe, onPick: onPick))
+    func navToRecipeAmount(_ recipe: RecipeTemplateModel, onPick: @escaping (MealItemModel) -> Void) {
+        router.showRecipeAmountView(delegate: RecipeAmountViewDelegate(recipe: recipe, onPick: onPick))
     }
 
     enum PickerMode: String, CaseIterable, Hashable {
@@ -83,7 +96,7 @@ class NutritionLibraryPickerViewModel {
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -93,8 +106,8 @@ class NutritionLibraryPickerViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+                default:
+                return nil
             }
         }
 
@@ -104,5 +117,13 @@ class NutritionLibraryPickerViewModel {
                 return .info
             }
         }
+    }
+
+    func dismissScreen() {
+        router.dismissScreen()
+    }
+    
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

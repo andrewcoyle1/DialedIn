@@ -16,10 +16,18 @@ protocol WorkoutHistoryInteractor {
 
 extension CoreInteractor: WorkoutHistoryInteractor { }
 
+@MainActor
+protocol WorkoutHistoryRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: WorkoutHistoryRouter { }
+
 @Observable
 @MainActor
 class WorkoutHistoryViewModel {
     private let interactor: WorkoutHistoryInteractor
+    private let router: WorkoutHistoryRouter
 
     private(set) var sessions: [WorkoutSessionModel] = []
     private(set) var isLoading = false
@@ -27,8 +35,12 @@ class WorkoutHistoryViewModel {
     var selectedSession: WorkoutSessionModel?
     var showAlert: AnyAppAlert?
 
-    init(interactor: WorkoutHistoryInteractor) {
+    init(
+        interactor: WorkoutHistoryInteractor,
+        router: WorkoutHistoryRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onWorkoutSessionPressed(session: WorkoutSessionModel, layoutMode: LayoutMode, onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?) {
@@ -87,6 +99,10 @@ class WorkoutHistoryViewModel {
         }
     }
     
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
         case syncSessionsStart
         case syncSessionsSuccess

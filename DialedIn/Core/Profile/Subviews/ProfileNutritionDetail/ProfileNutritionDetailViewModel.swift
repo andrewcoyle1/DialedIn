@@ -13,17 +13,32 @@ protocol ProfileNutritionDetailInteractor {
 
 extension CoreInteractor: ProfileNutritionDetailInteractor { }
 
+@MainActor
+protocol ProfileNutritionDetailRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: ProfileNutritionDetailRouter { }
+
 @Observable
 @MainActor
 class ProfileNutritionDetailViewModel {
     private let interactor: ProfileNutritionDetailInteractor
-    
+    private let router: ProfileNutritionDetailRouter
+
     var currentDietPlan: DietPlan? {
         interactor.currentDietPlan
     }
+
     init(
-        interactor: ProfileNutritionDetailInteractor
+        interactor: ProfileNutritionDetailInteractor,
+        router: ProfileNutritionDetailRouter
     ) {
         self.interactor = interactor
+        self.router = router
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

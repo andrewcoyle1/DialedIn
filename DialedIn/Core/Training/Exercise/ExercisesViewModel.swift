@@ -20,10 +20,18 @@ protocol ExercisesInteractor {
 
 extension CoreInteractor: ExercisesInteractor { }
 
+@MainActor
+protocol ExercisesRouter {
+    func showCreateExerciseView()
+}
+
+extension CoreRouter: ExercisesRouter { }
+
 @Observable
 @MainActor
 class ExercisesViewModel {
     private let interactor: ExercisesInteractor
+    private let router: ExercisesRouter
 
     private(set) var isLoading: Bool = false
     private(set) var searchText: String = ""
@@ -37,8 +45,7 @@ class ExercisesViewModel {
 
     var selectedWorkoutTemplate: WorkoutTemplateModel?
     var selectedExerciseTemplate: ExerciseTemplateModel?
-    var showCreateExercise: Bool = false
-    
+
     var currentUser: UserModel? {
         interactor.currentUser
     }
@@ -80,13 +87,17 @@ class ExercisesViewModel {
         return trimmed.isEmpty ? trendingExercisesDeduped : exercises
     }
     
-    init(interactor: ExercisesInteractor) {
+    init(
+        interactor: ExercisesInteractor,
+        router: ExercisesRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onAddExercisePressed() {
         interactor.trackEvent(event: ExercisesViewEvents.onAddExercisePressed)
-        showCreateExercise = true
+        router.showCreateExerciseView()
     }
 
     func onExercisePressed(exercise: ExerciseTemplateModel, onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?) {
@@ -301,7 +312,7 @@ class ExercisesViewModel {
     func emptyStateShown() {
         interactor.trackEvent(event: ExercisesViewEvents.emptyStateShown)
     }
-    
+
     enum ExercisesViewEvents: LoggableEvent {
         case performExerciseSearchStart
         case performExerciseSearchSuccess(query: String, resultCount: Int)

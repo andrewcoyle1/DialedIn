@@ -6,17 +6,11 @@
 //
 
 import SwiftUI
+import CustomRouting
 
-struct OnboardingHealthDisclaimerViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
 struct OnboardingHealthDisclaimerView: View {
 
     @State var viewModel: OnboardingHealthDisclaimerViewModel
-
-    var delegate: OnboardingHealthDisclaimerViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -38,11 +32,6 @@ struct OnboardingHealthDisclaimerView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     private var disclaimerSection: some View {
@@ -79,7 +68,7 @@ struct OnboardingHealthDisclaimerView: View {
             You understand DialedIn does not provide medical advice and is for educational use only. You can review these terms at any time in Settings.
             """,
             primaryButtonTitle: "I Agree & Continue",
-            primaryButtonAction: { viewModel.onConfirmPressed(path: delegate.path) },
+            primaryButtonAction: { viewModel.onConfirmPressed() },
             secondaryButtonTitle: "Go Back",
             secondaryButtonAction: { viewModel.onCancelPressed() }
         )
@@ -90,7 +79,7 @@ struct OnboardingHealthDisclaimerView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -111,14 +100,9 @@ struct OnboardingHealthDisclaimerView: View {
 }
 
 #Preview("Health Disclaimer") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingHealthDisclaimerView(
-            delegate: OnboardingHealthDisclaimerViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingHealthDisclaimerView(router: router)
     }
     .previewEnvironment()
 }

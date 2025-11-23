@@ -6,18 +6,11 @@
 //
 
 import SwiftUI
-
-struct OnboardingPreferredDietViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct OnboardingPreferredDietView: View {
 
     @State var viewModel: OnboardingPreferredDietViewModel
-
-    var delegate: OnboardingPreferredDietViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -45,11 +38,6 @@ struct OnboardingPreferredDietView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     @ToolbarContentBuilder
@@ -57,7 +45,7 @@ struct OnboardingPreferredDietView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -66,7 +54,7 @@ struct OnboardingPreferredDietView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToCalorieFloor(path: delegate.path)
+                viewModel.navigateToCalorieFloor()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -77,13 +65,10 @@ struct OnboardingPreferredDietView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingPreferredDietView(
-            delegate: OnboardingPreferredDietViewDelegate(
-                path: $path
-            )
+            router: router
         )
     }
     .previewEnvironment()

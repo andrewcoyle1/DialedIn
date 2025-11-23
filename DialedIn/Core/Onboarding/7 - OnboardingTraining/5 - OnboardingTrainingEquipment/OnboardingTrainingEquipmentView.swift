@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingTrainingEquipmentViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var trainingProgramBuilder: TrainingProgramBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingTrainingEquipmentView: View {
     @State var viewModel: OnboardingTrainingEquipmentViewModel
 
     var delegate: OnboardingTrainingEquipmentViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -60,11 +58,6 @@ struct OnboardingTrainingEquipmentView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .screenAppearAnalytics(name: "TrainingEquipment")
     }
     
@@ -73,7 +66,7 @@ struct OnboardingTrainingEquipmentView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -82,7 +75,7 @@ struct OnboardingTrainingEquipmentView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToReview(path: delegate.path, builder: delegate.trainingProgramBuilder)
+                viewModel.navigateToReview(builder: delegate.trainingProgramBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -93,12 +86,11 @@ struct OnboardingTrainingEquipmentView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingTrainingEquipmentView(
+            router: router, 
             delegate: OnboardingTrainingEquipmentViewDelegate(
-                path: $path,
                 trainingProgramBuilder: TrainingProgramBuilder()
             )
         )

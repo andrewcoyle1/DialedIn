@@ -18,11 +18,20 @@ protocol OnboardingDietPlanInteractor {
 
 extension CoreInteractor: OnboardingDietPlanInteractor { }
 
+@MainActor
+protocol OnboardingDietPlanRouter {
+    func showDevSettingsView()
+    func showOnboardingCompletedView()
+}
+
+extension CoreRouter: OnboardingDietPlanRouter { }
+
 @Observable
 @MainActor
 class OnboardingDietPlanViewModel {
     private let interactor: OnboardingDietPlanInteractor
-    
+    private let router: OnboardingDietPlanRouter
+
     private(set) var plan: DietPlan?
     var trainingProgramName: String?
     var trainingDaysPerWeek: Int?
@@ -30,12 +39,12 @@ class OnboardingDietPlanViewModel {
     var showAlert: AnyAppAlert?
     var isLoading: Bool = false
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingDietPlanInteractor) {
+    init(
+        interactor: OnboardingDietPlanInteractor,
+        router: OnboardingDietPlanRouter
+    ) {
         self.interactor = interactor
+        self.router = router
         loadTrainingContext()
     }
     
@@ -57,7 +66,7 @@ class OnboardingDietPlanViewModel {
         plan = interactor.computeDietPlan(user: currentUser, builder: dietPlanBuilder)
     }
     
-    func navigate(path: Binding<[OnboardingPathOption]>) {
+    func navigate() {
         guard let plan = plan else { return }
         isLoading = true
         Task {
@@ -66,8 +75,8 @@ class OnboardingDietPlanViewModel {
                 try await interactor.saveDietPlan(plan: plan)
                 interactor.trackEvent(event: Event.saveDietPlanSuccess)
                 try? await interactor.updateOnboardingStep(step: .complete)
-                interactor.trackEvent(event: Event.navigate(destination: .complete))
-                path.wrappedValue.append(.complete)
+                interactor.trackEvent(event: Event.navigate)
+                router.showOnboardingCompletedView()
             } catch {
                 showAlert = AnyAppAlert(title: "Unable to update your profile", subtitle: "Please check your internet connection and try again")
                 interactor.trackEvent(event: Event.saveDietPlanFail(error: error))
@@ -75,12 +84,16 @@ class OnboardingDietPlanViewModel {
             isLoading = false
         }
     }
-    
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
         case saveDietPlanStart
         case saveDietPlanSuccess
         case saveDietPlanFail(error: Error)
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -95,8 +108,6 @@ class OnboardingDietPlanViewModel {
             switch self {
             case .saveDietPlanFail(error: let error):
                 return error.eventParameters
-            case .navigate(destination: let destination):
-                return destination.eventParameters
             default:
                 return nil
             }

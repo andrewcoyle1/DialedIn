@@ -14,24 +14,24 @@ struct ProfileView: View {
 
     @State var viewModel: ProfileViewModel
 
-    @ViewBuilder var profileHeaderView: (ProfileHeaderViewDelegate) -> AnyView
-    @ViewBuilder var profilePhysicalMetricsView: (ProfilePhysicalMetricsViewDelegate) -> AnyView
-    @ViewBuilder var profileGoalSection: (ProfileGoalSectionDelegate) -> AnyView
-    @ViewBuilder var profileNutritionPlanView: (ProfileNutritionPlanViewDelegate) -> AnyView
-    @ViewBuilder var profilePreferencesView: (ProfilePreferencesViewDelegate) -> AnyView
-    @ViewBuilder var profileMyTemplatesView: (ProfileMyTemplatesViewDelegate) -> AnyView
+    @ViewBuilder var profileHeaderView: () -> AnyView
+    @ViewBuilder var profilePhysicalMetricsView: () -> AnyView
+    @ViewBuilder var profileGoalSection: () -> AnyView
+    @ViewBuilder var profileNutritionPlanView: () -> AnyView
+    @ViewBuilder var profilePreferencesView: () -> AnyView
+    @ViewBuilder var profileMyTemplatesView: () -> AnyView
     @ViewBuilder var setGoalFlowView: () -> AnyView
 
     var body: some View {
         List {
             if let user = viewModel.currentUser,
                let firstName = user.firstName, !firstName.isEmpty {
-                profileHeaderView(ProfileHeaderViewDelegate(path: .constant([])))
-                profilePhysicalMetricsView(ProfilePhysicalMetricsViewDelegate(path: .constant([])))
-                profileGoalSection(ProfileGoalSectionDelegate(path: .constant([])))
-                profileNutritionPlanView(ProfileNutritionPlanViewDelegate(path: .constant([])))
-                profilePreferencesView(ProfilePreferencesViewDelegate(path: .constant([])))
-                profileMyTemplatesView(ProfileMyTemplatesViewDelegate(path: .constant([])))
+                profileHeaderView()
+                profilePhysicalMetricsView()
+                profileGoalSection()
+                profileNutritionPlanView()
+                profilePreferencesView()
+                profileMyTemplatesView()
             } else {
                 createProfileSection
             }
@@ -92,7 +92,7 @@ struct ProfileView: View {
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                viewModel.navToSettingsView(path: .constant([]))
+                viewModel.navToSettingsView()
             } label: {
                 Image(systemName: "gear")
             }

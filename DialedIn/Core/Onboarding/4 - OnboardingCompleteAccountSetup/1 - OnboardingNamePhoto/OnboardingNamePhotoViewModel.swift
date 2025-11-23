@@ -16,11 +16,20 @@ protocol OnboardingNamePhotoInteractor {
 
 extension CoreInteractor: OnboardingNamePhotoInteractor { }
 
+@MainActor
+protocol OnboardingNamePhotoRouter {
+    func showDevSettingsView()
+    func showOnboardingGenderView()
+}
+
+extension CoreRouter: OnboardingNamePhotoRouter { }
+
 @Observable
 @MainActor
 class OnboardingNamePhotoViewModel {
     private let interactor: OnboardingNamePhotoInteractor
-    
+    private let router: OnboardingNamePhotoRouter
+
     var firstName: String = ""
     var lastName: String = ""
     var selectedPhotoItem: PhotosPickerItem?
@@ -28,10 +37,6 @@ class OnboardingNamePhotoViewModel {
     var isImagePickerPresented: Bool = false
     var isSaving: Bool = false
     var showAlert: AnyAppAlert?
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
     
     var currentUser: UserModel? {
         interactor.currentUser
@@ -41,8 +46,12 @@ class OnboardingNamePhotoViewModel {
         !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
-    init(interactor: OnboardingNamePhotoInteractor) {
+    init(
+        interactor: OnboardingNamePhotoInteractor,
+        router: OnboardingNamePhotoRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func prefillFromCurrentUser() {
@@ -51,8 +60,12 @@ class OnboardingNamePhotoViewModel {
         lastName = user.lastName ?? lastName
         // Note: We don't prefill the image as it would require fetching from URL
     }
-    
-    func saveAndContinue(path: Binding<[OnboardingPathOption]>) async {
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func saveAndContinue() async {
 
         guard canContinue else { return }
 
@@ -90,8 +103,8 @@ class OnboardingNamePhotoViewModel {
             #endif
             
             interactor.trackEvent(event: Event.namePhotoSaveSuccess)
-            interactor.trackEvent(event: Event.navigate(destination: .gender))
-            path.wrappedValue.append(.gender)
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingGenderView()
         } catch {
             interactor.trackEvent(event: Event.namePhotoSaveFail(error: error))
             showAlert = AnyAppAlert(
@@ -130,7 +143,7 @@ class OnboardingNamePhotoViewModel {
         case namePhotoSaveStart
         case namePhotoSaveSuccess
         case namePhotoSaveFail(error: Error)
-        case navigate(destination: OnboardingPathOption)
+        case navigate
         case noUserId
 
         var eventName: String {
@@ -151,8 +164,8 @@ class OnboardingNamePhotoViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             case .profilePhotoLoadFail(error: let error), .namePhotoSaveFail(error: let error):
                 return error.eventParameters
             case .noUserId:

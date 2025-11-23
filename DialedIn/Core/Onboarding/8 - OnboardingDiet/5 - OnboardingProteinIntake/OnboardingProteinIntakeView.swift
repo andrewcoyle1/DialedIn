@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingProteinIntakeViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     let dietPlanBuilder: DietPlanBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingProteinIntakeView: View {
     @State var viewModel: OnboardingProteinIntakeViewModel
 
     var delegate: OnboardingProteinIntakeViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -44,11 +42,6 @@ struct OnboardingProteinIntakeView: View {
             ProgressView()
                 .tint(Color.white)
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     private var pickerSection: some View {
@@ -78,7 +71,7 @@ struct OnboardingProteinIntakeView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -87,7 +80,7 @@ struct OnboardingProteinIntakeView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigate(path: delegate.path, dietPlanBuilder: delegate.dietPlanBuilder)
+                viewModel.navigate(dietPlanBuilder: delegate.dietPlanBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -98,12 +91,11 @@ struct OnboardingProteinIntakeView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingProteinIntakeView(
+            router: router,
             delegate: OnboardingProteinIntakeViewDelegate(
-                path: $path,
                 dietPlanBuilder: .proteinIntakeMock
             )
         )

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct WorkoutHistoryViewDelegate {
     let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
@@ -137,8 +138,8 @@ private struct WorkoutHistoryRow: View {
 
 #Preview("Functioning") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.workoutHistoryView(delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
+    RouterView { router in
+        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -148,8 +149,8 @@ private struct WorkoutHistoryRow: View {
     let container = DevPreview.shared.container
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
     let builder = CoreBuilder(container: container)
-    return NavigationStack {
-        builder.workoutHistoryView(delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
+    return RouterView { router in
+        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -159,8 +160,8 @@ private struct WorkoutHistoryRow: View {
     let container = DevPreview.shared.container
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(sessions: [])))
     let builder = CoreBuilder(container: container)
-    return NavigationStack {
-        builder.workoutHistoryView(delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
+    return RouterView { router in
+        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -171,8 +172,8 @@ private struct WorkoutHistoryRow: View {
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 1, showErrorRemote: true)))
     let builder = CoreBuilder(container: container)
 
-    return NavigationStack {
-        builder.workoutHistoryView(delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
+    return RouterView { router in
+        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -184,8 +185,8 @@ private struct WorkoutHistoryRow: View {
         services: MockWorkoutSessionServices(delay: 3, showErrorLocal: true)))
     let builder = CoreBuilder(container: container)
 
-    return NavigationStack {
-        builder.workoutHistoryView(delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
+    return RouterView { router in
+        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()

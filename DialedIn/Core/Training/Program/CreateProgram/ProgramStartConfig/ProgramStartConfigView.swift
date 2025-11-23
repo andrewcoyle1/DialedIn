@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct ProgramStartConfigViewDelegate {
-    var path: Binding<[TabBarPathOption]>
     let template: ProgramTemplateModel
     let onStart: (Date, Date?, String?) -> Void
 }
@@ -21,21 +21,19 @@ struct ProgramStartConfigView: View {
     var delegate: ProgramStartConfigViewDelegate
 
     var body: some View {
-        NavigationStack {
-            Form {
-                programSection
-                configurationSection
-                previewSection
-            }
-            .navigationTitle("Start Program")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                toolbarContent
-            }
-            .onAppear {
-                // Initialize end date to default value based on template duration
-                viewModel.endDate = viewModel.calculateDefaultEndDate(template: delegate.template, from: viewModel.startDate)
-            }
+        Form {
+            programSection
+            configurationSection
+            previewSection
+        }
+        .navigationTitle("Start Program")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            toolbarContent
+        }
+        .onAppear {
+            // Initialize end date to default value based on template duration
+            viewModel.endDate = viewModel.calculateDefaultEndDate(template: delegate.template, from: viewModel.startDate)
         }
     }
     
@@ -115,7 +113,7 @@ struct ProgramStartConfigView: View {
             }
             
             Button {
-                viewModel.navToProgramPreviewView(path: delegate.path, template: delegate.template)
+                viewModel.navToProgramPreviewView(template: delegate.template)
             } label: {
                 Label("View Full Schedule", systemImage: "calendar")
                     .font(.subheadline)
@@ -146,12 +144,11 @@ struct ProgramStartConfigView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.programStartConfigView(
+            router: router, 
             delegate: ProgramStartConfigViewDelegate(
-                path: $path,
                 template: ProgramTemplateModel.mock,
                 onStart: { _, _, _ in
                     

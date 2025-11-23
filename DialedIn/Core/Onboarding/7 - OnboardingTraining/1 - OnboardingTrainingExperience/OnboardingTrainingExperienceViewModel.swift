@@ -13,32 +13,45 @@ protocol OnboardingTrainingExperienceInteractor {
 
 extension CoreInteractor: OnboardingTrainingExperienceInteractor { }
 
+@MainActor
+protocol OnboardingTrainingExperienceRouter {
+    func showDevSettingsView()
+    func showOnboardingTrainingDaysPerWeekView(delegate: OnboardingTrainingDaysPerWeekViewDelegate)
+}
+
+extension CoreRouter: OnboardingTrainingExperienceRouter { }
+
 @Observable
 @MainActor
 class OnboardingTrainingExperienceViewModel {
     private let interactor: OnboardingTrainingExperienceInteractor
-    
+    private let router: OnboardingTrainingExperienceRouter
+
     var selectedLevel: DifficultyLevel?
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingTrainingExperienceInteractor) {
+        
+    init(
+        interactor: OnboardingTrainingExperienceInteractor,
+        router: OnboardingTrainingExperienceRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func navigateToDaysPerWeek(path: Binding<[OnboardingPathOption]>, builder: TrainingProgramBuilder) {
+    func navigateToDaysPerWeek(builder: TrainingProgramBuilder) {
         guard let level = selectedLevel else { return }
         
         var updatedBuilder = builder
         updatedBuilder.setExperienceLevel(level)
-        interactor.trackEvent(event: Event.navigate(destination: .trainingDaysPerWeek(trainingProgramBuilder: updatedBuilder)))
-        path.wrappedValue.append(.trainingDaysPerWeek(trainingProgramBuilder: updatedBuilder))
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingTrainingDaysPerWeekView(delegate: OnboardingTrainingDaysPerWeekViewDelegate(trainingProgramBuilder: updatedBuilder))
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -48,8 +61,8 @@ class OnboardingTrainingExperienceViewModel {
         
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
         

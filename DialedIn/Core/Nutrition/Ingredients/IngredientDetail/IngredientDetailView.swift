@@ -18,8 +18,6 @@ struct IngredientDetailView: View {
 
     let delegate: IngredientDetailViewDelegate
 
-    @ViewBuilder var devSettingsView: () -> AnyView
-
     var body: some View {
         List {
             if let url = delegate.ingredientTemplate.imageURL {
@@ -39,7 +37,6 @@ struct IngredientDetailView: View {
         .navigationTitle(delegate.ingredientTemplate.name)
         .navigationSubtitle(delegate.ingredientTemplate.description ?? "")
         .navigationBarTitleDisplayMode(.large)
-        .showCustomAlert(alert: $viewModel.showAlert)
         .screenAppearAnalytics(name: "IngredientDetailView")
         .toolbar {
             toolbarContent
@@ -51,11 +48,6 @@ struct IngredientDetailView: View {
             viewModel.isBookmarked = isAuthor || (user?.bookmarkedIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false) || (user?.createdIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false)
             viewModel.isFavourited = user?.favouritedIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
 
     private func imageSection(url: String) -> some View {
@@ -200,7 +192,7 @@ struct IngredientDetailView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }

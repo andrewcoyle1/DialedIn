@@ -6,20 +6,11 @@
 //
 
 import SwiftUI
-
-struct ProgramTemplatePickerViewDelegate {
-    var path: Binding<[TabBarPathOption]>
-}
+import CustomRouting
 
 struct ProgramTemplatePickerView: View {
 
-    @Environment(\.dismiss) private var dismiss
-
     @State var viewModel: ProgramTemplatePickerViewModel
-
-    var delegate: ProgramTemplatePickerViewDelegate
-
-    @ViewBuilder var programStartConfigView: (ProgramStartConfigViewDelegate) -> AnyView
 
     var body: some View {
         NavigationStack {
@@ -32,27 +23,6 @@ struct ProgramTemplatePickerView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 toolbarContent
-            }
-            .navigationDestination(item: $viewModel.selectedTemplate) { template in
-                programStartConfigView(
-                    ProgramStartConfigViewDelegate(
-                        path: delegate.path,
-                        template: template,
-                        onStart: { startDate, endDate, customName in
-                            Task {
-                                await viewModel.createPlanFromTemplate(
-                                    template,
-                                    startDate: startDate,
-                                    endDate: endDate,
-                                    customName: customName,
-                                    onDismiss: {
-                                        dismiss()
-                                    }
-                                )
-                            }
-                        }
-                    )
-                )
             }
             .showCustomAlert(alert: $viewModel.showAlert)
             .showModal(showModal: $viewModel.isCreatingPlan, content: {
@@ -98,7 +68,7 @@ struct ProgramTemplatePickerView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button("Cancel") {
-                dismiss()
+                viewModel.dismissScreen()
             }
         }
     }
@@ -123,8 +93,7 @@ struct ProgramTemplatePickerView: View {
     private var customOptionSection: some View {
         Section {
             Button {
-                viewModel.navToCustomProgramBuilderView(path: delegate.path
-                )
+                viewModel.navToCustomProgramBuilderView()
             } label: {
                 Label("Create Custom Program", systemImage: "plus.circle.fill")
             }
@@ -135,8 +104,9 @@ struct ProgramTemplatePickerView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.programTemplatePickerView(delegate: ProgramTemplatePickerViewDelegate(path: $path))
+    RouterView { router in
+        builder.programTemplatePickerView(router: router)
+    }
     .previewEnvironment()
 }

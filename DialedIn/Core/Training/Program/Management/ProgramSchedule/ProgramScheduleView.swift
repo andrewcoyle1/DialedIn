@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct ProgramScheduleViewDelegate {
     let plan: TrainingPlan
@@ -68,5 +69,7 @@ struct ProgramScheduleView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.programScheduleView(delegate: ProgramScheduleViewDelegate(plan: .mock))
+    RouterView { router in
+        builder.programScheduleView(router: router, delegate: ProgramScheduleViewDelegate(plan: .mock))
+    }
 }

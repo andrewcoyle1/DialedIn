@@ -13,12 +13,20 @@ protocol RecipeTemplateListInteractor {
 
 extension CoreInteractor: RecipeTemplateListInteractor { }
 
+@MainActor
+protocol RecipeTemplateListRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: RecipeTemplateListRouter { }
+
 // Typealias for backward compatibility
 typealias RecipeTemplateListViewModel = GenericTemplateListViewModel<RecipeTemplateModel>
 
 extension GenericTemplateListViewModel where Template == RecipeTemplateModel {
     static func create(
         interactor: RecipeTemplateListInteractor,
+        router: RecipeTemplateListRouter,
         templateIds: [String]?
     ) -> RecipeTemplateListViewModel {
         return GenericTemplateListViewModel<RecipeTemplateModel>(
@@ -33,6 +41,7 @@ extension GenericTemplateListViewModel where Template == RecipeTemplateModel {
     // Convenience create for non-optional templateIds (backward compatibility)
     static func create(
         interactor: RecipeTemplateListInteractor,
+        router: RecipeTemplateListRouter,
         templateIds: [String]
     ) -> RecipeTemplateListViewModel {
         return GenericTemplateListViewModel<RecipeTemplateModel>(

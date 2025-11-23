@@ -7,80 +7,40 @@
 
 import SwiftUI
 import PhotosUI
+import CustomRouting
 
 struct CreateIngredientView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: CreateIngredientViewModel
 
-    @ViewBuilder var devSettingsView: () -> AnyView
-
     var body: some View {
-        NavigationStack {
-            List {
-                imageSection
-                nameSection
-                macroNutrientSection
-                essentialMacroMineralsSection
-                essentialTraceMineralsSection
-                fatSolubleMineralsSection
-                waterSolubleVitaminsSection
-                bioactiveCompounts
-            }
-            .navigationBarTitle("New Custom Ingredient")
-            .navigationSubtitle("Define ingredient details and nutrition")
-            .navigationBarTitleDisplayMode(.large)
-            .scrollIndicators(.hidden)
-            .screenAppearAnalytics(name: "CreateIngredientView")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        viewModel.onCancelPressed(onDismiss: {
-                            dismiss()
-                        })
-                    } label: {
-                        Image(systemName: "xmark")
-                    }
-                }
-                #if DEBUG || MOCK
-                ToolbarSpacer(.fixed, placement: .topBarLeading)
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        viewModel.showDebugView = true
-                    } label: {
-                        Image(systemName: "info")
-                    }
-                }
-                #endif
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task {
-                            await viewModel.onSavePressed(onDismiss: {
-                                dismiss()
-                            })
-                        }
-                    } label: {
-                        Image(systemName: "checkmark")
-                    }
-                    .buttonStyle(.glassProminent)
-                    .disabled(!viewModel.canSave || viewModel.isSaving)
-                }
-            }
-            .onChange(of: viewModel.selectedPhotoItem) {
-                guard let newItem = viewModel.selectedPhotoItem else { return }
-                
-                Task {
-                    await viewModel.onImageSelectorChanged(newItem)
-                }
-            }
-            #if DEBUG || MOCK
-            .sheet(isPresented: $viewModel.showDebugView) {
-                devSettingsView()
-            }
-            #endif
-            .showCustomAlert(alert: $viewModel.alert)
+        List {
+            imageSection
+            nameSection
+            macroNutrientSection
+            essentialMacroMineralsSection
+            essentialTraceMineralsSection
+            fatSolubleMineralsSection
+            waterSolubleVitaminsSection
+            bioactiveCompounts
         }
-        
+        .navigationBarTitle("New Custom Ingredient")
+        .navigationSubtitle("Define ingredient details and nutrition")
+        .navigationBarTitleDisplayMode(.large)
+        .scrollIndicators(.hidden)
+        .screenAppearAnalytics(name: "CreateIngredientView")
+        .toolbar {
+            toolbarContent
+        }
+        .onChange(of: viewModel.selectedPhotoItem) {
+            guard let newItem = viewModel.selectedPhotoItem else { return }
+
+            Task {
+                await viewModel.onImageSelectorChanged(newItem)
+            }
+        }
+        .showCustomAlert(alert: $viewModel.alert)
     }
 
     private var imageSection: some View {
@@ -263,6 +223,42 @@ struct CreateIngredientView: View {
                 .foregroundStyle(value.wrappedValue != nil ? .primary : .secondary)
         }
     }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                viewModel.onCancelPressed(onDismiss: {
+                    dismiss()
+                })
+            } label: {
+                Image(systemName: "xmark")
+            }
+        }
+        #if DEBUG || MOCK
+        ToolbarSpacer(.fixed, placement: .topBarLeading)
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                viewModel.onDevSettingsPressed()
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                Task {
+                    await viewModel.onSavePressed(onDismiss: {
+                        dismiss()
+                    })
+                }
+            } label: {
+                Image(systemName: "checkmark")
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(!viewModel.canSave || viewModel.isSaving)
+        }
+    }
 }
 
 #Preview("As sheet") {
@@ -274,7 +270,9 @@ struct CreateIngredientView: View {
         Text("Present")
     }
     .sheet(isPresented: $isPresented) {
-        builder.createIngredientView()
+        RouterView { router in
+            builder.createIngredientView(router: router)
+        }
     }
     .previewEnvironment()
 }
@@ -288,7 +286,9 @@ struct CreateIngredientView: View {
         Text("Present")
     }
     .sheet(isPresented: $isPresented) {
-        builder.createIngredientView()
+        RouterView { router in
+            builder.createIngredientView(router: router)
+        }
     }
     .previewEnvironment()
 }
@@ -303,7 +303,9 @@ struct CreateIngredientView: View {
         Text("Present")
     }
     .fullScreenCover(isPresented: $isPresented) {
-        builder.createIngredientView()
+        RouterView { router in
+            builder.createIngredientView(router: router)
+        }
     }
     .previewEnvironment()
     

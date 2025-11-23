@@ -493,20 +493,6 @@ enum OnboardingStep: String, Codable, Sendable {
     case customiseProgram
     case complete
     
-    var onboardingPathOption: OnboardingPathOption {
-        switch self {
-        case .auth: return .authOptions
-        case .subscription: return .subscriptionInfo
-        case .completeAccountSetup: return .completeAccount
-        case .notifications: return .notifications
-        case .healthData: return .healthData
-        case .healthDisclaimer: return .healthDisclaimer
-        case .goalSetting: return .goalSetting
-        case .customiseProgram: return .customiseProgram
-        case .complete: return .complete
-        }
-    }
-
     var eventParameters: [String: Any] {
         let params: [String: Any] = [
             "onboarding_step": self

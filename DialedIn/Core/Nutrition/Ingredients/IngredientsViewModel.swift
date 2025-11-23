@@ -22,6 +22,7 @@ extension CoreInteractor: IngredientsInteractor { }
 @MainActor
 protocol IngredientsRouter {
     func showIngredientDetailView(delegate: IngredientDetailViewDelegate)
+    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: IngredientsRouter {
@@ -36,7 +37,6 @@ class IngredientsViewModel {
 
     var isLoading: Bool = false
     var searchText: String = ""
-    var showAlert: AnyAppAlert?
     var searchIngredientTask: Task<Void, Never>?
     var myIngredients: [IngredientTemplateModel] = []
     var favouriteIngredients: [IngredientTemplateModel] = []
@@ -202,11 +202,7 @@ class IngredientsViewModel {
         interactor.trackEvent(event: Event.performIngredientSearchFail(error: error))
         isLoading = false
         ingredients = []
-        
-        showAlert = AnyAppAlert(
-            title: "No Ingredients Found",
-            subtitle: "We couldn't find any ingredient templates matching your search. Please try a different name or check your connection."
-        )
+        router.showSimpleAlert(title: "No Ingredients Found", subtitle: "We couldn't find any ingredient templates matching your search. Please try a different name or check your connection.")
     }
 
     func loadMyIngredientsIfNeeded() async {
@@ -218,10 +214,7 @@ class IngredientsViewModel {
             interactor.trackEvent(event: Event.loadMyIngredientsSuccess(count: mine.count))
         } catch {
             interactor.trackEvent(event: Event.loadMyIngredientsFail(error: error))
-            showAlert = AnyAppAlert(
-                title: "Unable to Load Your Ingredients",
-                subtitle: "We couldn't retrieve your custom ingredient templates. Please check your connection or try again later."
-            )
+            router.showSimpleAlert(title: "Unable to Load Your Ingredients", subtitle: "We couldn't retrieve your custom ingredient templates. Please check your connection or try again later.")
         }
     }
 
@@ -237,10 +230,7 @@ class IngredientsViewModel {
         } catch {
             isLoading = false
             interactor.trackEvent(event: Event.loadTopIngredientsFail(error: error))
-            showAlert = AnyAppAlert(
-                title: "Unable to Load Trending Ingredients",
-                subtitle: "We couldn't load top ingredients. Please try again later."
-            )
+            router.showSimpleAlert(title: "Unable to Load Trending Ingredients", subtitle: "We couldn't load top ingredients. Please try again later.")
         }
     }
 
@@ -273,10 +263,7 @@ class IngredientsViewModel {
             interactor.trackEvent(event: Event.syncIngredientsFromCurrentUserSuccess(favouriteCount: favs.count, bookmarkedCount: bookmarks.count))
         } catch {
             interactor.trackEvent(event: Event.syncIngredientsFromCurrentUserFail(error: error))
-            showAlert = AnyAppAlert(
-                title: "Unable to Load Saved Ingredients",
-                subtitle: "We couldn't retrieve your saved ingredient templates. Please try again later."
-            )
+            router.showSimpleAlert(title: "Unable to Load Saved Ingredients", subtitle: "We couldn't retrieve your saved ingredient templates. Please try again later.")
         }
     }
 

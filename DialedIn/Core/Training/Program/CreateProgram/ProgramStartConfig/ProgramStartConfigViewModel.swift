@@ -13,19 +13,32 @@ protocol ProgramStartConfigInteractor {
 
 extension CoreInteractor: ProgramStartConfigInteractor { }
 
+@MainActor
+protocol ProgramStartConfigRouter {
+    func showProgramPreviewView(delegate: ProgramPreviewViewDelegate)
+    func showDevSettingsView()
+}
+
+extension CoreRouter: ProgramStartConfigRouter { }
+
 @Observable
 @MainActor
 class ProgramStartConfigViewModel {
     private let interactor: ProgramStartConfigInteractor
-    
+    private let router: ProgramStartConfigRouter
+
     var startDate = Date()
     var hasEndDate = false
     var endDate = Date()
     var useCustomName = false
     var customName = ""
     
-    init(interactor: ProgramStartConfigInteractor) {
+    init(
+        interactor: ProgramStartConfigInteractor,
+        router: ProgramStartConfigRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func dayName(for dayOfWeek: Int) -> String {
@@ -64,13 +77,17 @@ class ProgramStartConfigViewModel {
         return max(weeks, 0)
     }
 
-    func navToProgramPreviewView(path: Binding<[TabBarPathOption]>, template: ProgramTemplateModel) {
-        interactor.trackEvent(event: Event.navigate(destination: .programPreview(template: template, startDate: startDate)))
-        path.wrappedValue.append(.programPreview(template: template, startDate: startDate))
+    func navToProgramPreviewView(template: ProgramTemplateModel) {
+        interactor.trackEvent(event: Event.navigate)
+        router.showProgramPreviewView(delegate: ProgramPreviewViewDelegate(template: template, startDate: startDate))
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -80,8 +97,8 @@ class ProgramStartConfigViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

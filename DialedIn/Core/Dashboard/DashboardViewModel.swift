@@ -31,11 +31,7 @@ class DashboardViewModel {
     var isShowingInspector: Bool = false
     private(set) var contributionChartData: [Double] = []
     private(set) var chartEndDate: Date = Date()
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
+        
     init(
         interactor: DashboardInteractor,
         router: DashboardRouter

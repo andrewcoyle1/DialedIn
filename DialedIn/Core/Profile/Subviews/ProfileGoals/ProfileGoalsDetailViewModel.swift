@@ -16,11 +16,19 @@ protocol ProfileGoalsDetailInteractor {
 
 extension CoreInteractor: ProfileGoalsDetailInteractor { }
 
+@MainActor
+protocol ProfileGoalsDetailRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: ProfileGoalsDetailRouter { }
+
 @Observable
 @MainActor
 class ProfileGoalsDetailViewModel {
     private let interactor: ProfileGoalsDetailInteractor
-    
+    private let router: ProfileGoalsDetailRouter
+
     private(set) var realWeightHistory: [WeightEntry] = []
     var showLogWeightSheet: Bool = false
 
@@ -33,9 +41,11 @@ class ProfileGoalsDetailViewModel {
     }
     
     init(
-        interactor: ProfileGoalsDetailInteractor
+        interactor: ProfileGoalsDetailInteractor,
+        router: ProfileGoalsDetailRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func getActiveGoal() async {
@@ -85,5 +95,9 @@ class ProfileGoalsDetailViewModel {
         } else {
             return "Maintaining your current weight is a fantastic goal! Focus on balanced nutrition and regular activity to keep your body healthy and strong. Consistency is key to long-term success."
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

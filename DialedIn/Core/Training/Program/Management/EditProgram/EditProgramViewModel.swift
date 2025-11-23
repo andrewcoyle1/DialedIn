@@ -19,11 +19,22 @@ protocol EditProgramInteractor {
 
 extension CoreInteractor: EditProgramInteractor { }
 
+@MainActor
+protocol EditProgramRouter {
+    func showProgramGoalsView(delegate: ProgramGoalsViewDelegate)
+    func showProgramScheduleView(delegate: ProgramScheduleViewDelegate)
+    func showDevSettingsView()
+    func dismissScreen()
+}
+
+extension CoreRouter: EditProgramRouter { }
+
 @Observable
 @MainActor
 class EditProgramViewModel {
     private let interactor: EditProgramInteractor
-    
+    private let router: EditProgramRouter
+
     // Editable fields
     var name: String = ""
     var description: String = ""
@@ -37,12 +48,21 @@ class EditProgramViewModel {
 
     var showAlert: AnyAppAlert?
 
-    init(interactor: EditProgramInteractor) {
+    init(
+        interactor: EditProgramInteractor,
+        router: EditProgramRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    init(interactor: EditProgramInteractor, plan: TrainingPlan) {
+    init(
+        interactor: EditProgramInteractor,
+        router: EditProgramRouter,
+        plan: TrainingPlan
+    ) {
         self.interactor = interactor
+        self.router = router
         self.name = plan.name
         self.description = plan.description ?? ""
         self.startDate = plan.startDate
@@ -74,7 +94,7 @@ class EditProgramViewModel {
         )
     }
 
-    func showDeleteActiveAlert(plan: TrainingPlan, onDismiss: @escaping @MainActor () -> Void) {
+    func showDeleteActiveAlert(plan: TrainingPlan) {
         showAlert = AnyAppAlert(
             title: "Delete Active Program",
             subtitle: "Are you sure you want to delete your active program '\(plan.name)'? This will remove all scheduled workouts and you'll need to create or select a new program.",
@@ -95,7 +115,7 @@ class EditProgramViewModel {
                                 await self.deleteActivePlan(
                                     plan: plan,
                                     onDismiss: {
-                                        onDismiss()
+                                        self.dismissScreen()
                                     }
                                 )
                             }
@@ -441,19 +461,27 @@ class EditProgramViewModel {
         return targetDate
     }
 
-    func navToProgramGoalsView(path: Binding<[TabBarPathOption]>, plan: TrainingPlan) {
-        interactor.trackEvent(event: Event.navigate(destination: .programGoalsView(plan: plan)))
-        path.wrappedValue.append(.programGoalsView(plan: plan))
+    func navToProgramGoalsView(plan: TrainingPlan) {
+        interactor.trackEvent(event: Event.navigate)
+        router.showProgramGoalsView(delegate: ProgramGoalsViewDelegate(plan: plan))
     }
 
-    func navToProgramScheduleView(path: Binding<[TabBarPathOption]>, plan: TrainingPlan) {
-        interactor.trackEvent(event: Event.navigate(destination: .programScheduleView(plan: plan)))
-        path.wrappedValue.append(.programScheduleView(plan: plan))
+    func navToProgramScheduleView(plan: TrainingPlan) {
+        interactor.trackEvent(event: Event.navigate)
+        router.showProgramScheduleView(delegate: ProgramScheduleViewDelegate(plan: plan))
 
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func dismissScreen() {
+        router.dismissScreen()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -463,8 +491,8 @@ class EditProgramViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

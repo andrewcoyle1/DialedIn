@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct WorkoutsViewDelegate {
     var onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)?
@@ -16,8 +17,6 @@ struct WorkoutsView: View {
     @State var viewModel: WorkoutsViewModel
 
     let delegate: WorkoutsViewDelegate
-
-    @ViewBuilder var createWorkoutView: (CreateWorkoutViewDelegate) -> AnyView
 
     var body: some View {
         List {
@@ -60,9 +59,6 @@ struct WorkoutsView: View {
             Task {
                 await viewModel.syncSavedWorkoutsFromUser()
             }
-        }
-        .sheet(isPresented: $viewModel.showCreateWorkout) {
-            createWorkoutView(CreateWorkoutViewDelegate())
         }
     }
 
@@ -216,8 +212,8 @@ struct WorkoutsView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.workoutsView(delegate: WorkoutsViewDelegate())
+    RouterView { router in
+        builder.workoutsView(router: router, delegate: WorkoutsViewDelegate())
     }
     .previewEnvironment()
 }

@@ -6,14 +6,13 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct AddExerciseModalViewDelegate {
     let selectedExercises: Binding<[ExerciseTemplateModel]>
 }
 
 struct AddExerciseModalView: View {
-
-    @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: AddExerciseModalViewModel
 
@@ -36,7 +35,7 @@ struct AddExerciseModalView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        dismiss()
+                        viewModel.dismissScreen()
                     } label: {
                         Image(systemName: "xmark")
                     }
@@ -112,7 +111,9 @@ struct AddExerciseModalView: View {
         showModal = true
     }
     .sheet(isPresented: $showModal) {
-        builder.addExerciseModalView(delegate: delegate)
+        RouterView { router in
+            builder.addExerciseModalView(router: router, delegate: delegate)
+        }
     }
     .previewEnvironment()
 }

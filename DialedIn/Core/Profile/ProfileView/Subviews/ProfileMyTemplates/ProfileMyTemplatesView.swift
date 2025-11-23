@@ -6,16 +6,11 @@
 //
 
 import SwiftUI
-
-struct ProfileMyTemplatesViewDelegate {
-    var path: Binding<[TabBarPathOption]>
-}
+import CustomRouting
 
 struct ProfileMyTemplatesView: View {
 
     @State var viewModel: ProfileMyTemplatesViewModel
-
-    var delegate: ProfileMyTemplatesViewDelegate
 
     var body: some View {
         Section {
@@ -34,7 +29,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
 
             Button {
-                viewModel.navToExerciseTemplateList(path: delegate.path)
+                viewModel.navToExerciseTemplateList()
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Exercise Templates")
@@ -54,7 +49,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             Button {
-                viewModel.navToWorkoutTemplateList(path: delegate.path)
+                viewModel.navToWorkoutTemplateList()
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Workout Templates")
@@ -74,7 +69,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             Button {
-                viewModel.navToRecipeTemplateList(path: delegate.path)
+                viewModel.navToRecipeTemplateList()
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Recipe Templates")
@@ -94,7 +89,7 @@ struct ProfileMyTemplatesView: View {
             let count = templateIds.count
             
             Button {
-                viewModel.navToIngredientTemplateList(path: delegate.path)
+                viewModel.navToIngredientTemplateList()
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Ingredient Templates")
@@ -110,11 +105,10 @@ struct ProfileMyTemplatesView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         List {
-            builder.profileMyTemplatesView(delegate: ProfileMyTemplatesViewDelegate(path: $path))
+            builder.profileMyTemplatesView(router: router)
         }
     }
     .previewEnvironment()

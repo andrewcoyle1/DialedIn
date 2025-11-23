@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingHeightViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var userModelBuilder: UserModelBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingHeightView: View {
     @State var viewModel: OnboardingHeightViewModel
 
     var delegate: OnboardingHeightViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -33,11 +31,6 @@ struct OnboardingHeightView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     private var pickerSection: some View {
@@ -120,7 +113,7 @@ struct OnboardingHeightView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -129,7 +122,7 @@ struct OnboardingHeightView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToWeightView(path: delegate.path, userBuilder: delegate.userModelBuilder)
+                viewModel.navigateToWeightView(userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -139,134 +132,12 @@ struct OnboardingHeightView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack(path: $path) {
+    RouterView { router in
         builder.onboardingHeightView(
-            delegate: OnboardingHeightViewDelegate(
-                path: $path,
-                userModelBuilder: UserModelBuilder.heightMock
-            )
+            router: router,
+            delegate: OnboardingHeightViewDelegate(userModelBuilder: UserModelBuilder.heightMock)
         )
     }
-    .navigationDestinationOnboardingModule(
-        path: $path,
-        onboardingIntroView: { 
-            Text("Intro View").any()
-        },
-        onboardingAuthOptionsView: { _ in
-            Text("Auth Option View").any()
-        },
-        onboardingSignInView: { _ in
-            Text("Sign In View").any()
-        },
-        onboardingSignUpView: { _ in
-            Text("Sign Up View").any()
-        },
-        onboardingEmailVerificationView: { _ in
-            Text("Email Verification View").any()
-        },
-        onboardingSubscriptionView: { _ in
-            Text("Subscription View").any()
-        },
-        onboardingSubscriptionPlanView: { _ in
-            Text("Subcription Plan View").any()
-        },
-        onboardingCompleteAccountSetupView: { _ in
-            Text("Complete Account Setup View").any()
-        },
-        onboardingNamePhotoView: { _ in
-            Text("Name & Photo View").any()
-        },
-        onboardingGenderView: { _ in
-            Text("Gender View").any()
-        },
-        onboardingDateOfBirthView: { _ in
-            Text("Date of Birth View").any()
-        },
-        onboardingHeightView: { _ in
-            Text("Height View").any()
-        },
-        onboardingWeightView: { _ in
-            Text("Weight View").any()
-        },
-        onboardingExerciseFrequencyView: { _ in
-            Text("Exercise Frequency View").any()
-        },
-        onboardingActivityView: { _ in
-            Text("Activity View").any()
-        },
-        onboardingCardioFitnessView: { _ in
-            Text("Cardio Fitness View").any()
-        },
-        onboardingExpenditureView: { _ in
-            Text("Expenditure View").any()
-        },
-        onboardingHealthDataView: { _ in
-            Text("Health Data View").any()
-        },
-        onboardingNotificationsView: { _ in
-            Text("Notifications View").any()
-        },
-        onboardingHealthDisclaimerView: { _ in
-            Text("Health Disclaimer View").any()
-        },
-        onboardingGoalSettingView: { _ in
-            Text("Goal Setting View").any()
-        },
-        onboardingOverarchingObjectiveView: { _ in
-            Text("Overarching Objective View").any()
-        },
-        onboardingTargetWeightView: { _ in
-            Text("Target Weight View").any()
-        },
-        onboardingWeightRateView: { _ in
-            Text("Weight Rate View").any()
-        },
-        onboardingGoalSummaryView: { _ in
-            Text("Goal Summary View").any()
-        },
-        onboardingCustomisingProgramView: { _ in
-            Text("Customising Program View").any()
-        },
-        onboardingTrainingExperienceView: { _ in
-            Text("Training Experience View").any()
-        },
-        onboardingTrainingDaysPerWeekView: { _ in
-            Text("Training Days Per Week View").any()
-        },
-        onboardingTrainingSplitView: { _ in
-            Text("Training Split View").any()
-        },
-        onboardingTrainingScheduleView: { _ in
-            Text("Training Schedule  View").any()
-        },
-        onboardingTrainingEquipmentView: { _ in
-            Text("Training Equipment View").any()
-        },
-        onboardingTrainingReviewView: { _ in
-            Text("Training Review View").any()
-        },
-        onboardingPreferredDietView: { _ in
-            Text("Preferred Diet View").any()
-        },
-        onboardingCalorieFloorView: { _ in
-            Text("Calorie Floor View").any()
-        },
-        onboardingTrainingTypeView: { _ in
-            Text("Training Type View").any()
-        },
-        onboardingCalorieDistributionView: { _ in
-            Text("Calorie Distribution View").any()
-        },
-        onboardingProteinIntakeView: { _ in
-            Text("Protein Intake View").any()
-        },
-        onboardingDietPlanView: { _ in
-            Text("Diet Plan View").any()
-        },
-        onboardingCompletedView: { _ in
-            Text("Onboarding Completed View").any()
-        }
-    )    .previewEnvironment()
+    .previewEnvironment()
 }

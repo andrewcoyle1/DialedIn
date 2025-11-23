@@ -7,6 +7,7 @@
 
 import SwiftUI
 import HealthKit
+import CustomRouting
 
 struct WorkoutTrackerViewDelegate {
     let workoutSession: WorkoutSessionModel
@@ -21,7 +22,6 @@ struct WorkoutTrackerView: View {
     
     let delegate: WorkoutTrackerViewDelegate
 
-    @ViewBuilder var addExerciseModalView: (AddExerciseModalViewDelegate) -> AnyView
     @ViewBuilder var exerciseTrackerCardView: (ExerciseTrackerCardViewDelegate) -> AnyView
 
     var body: some View {
@@ -59,13 +59,6 @@ struct WorkoutTrackerView: View {
                     viewModel.updateWorkoutNotes()
                 }
             }
-            .sheet(
-                isPresented: $viewModel.showingAddExercise,
-                onDismiss: { viewModel.addSelectedExercises() },
-                content: {
-                    addExerciseModalView(AddExerciseModalViewDelegate(selectedExercises: $viewModel.pendingSelectedTemplates))
-                }
-            )
         }
     }
 
@@ -401,6 +394,8 @@ struct WorkoutNotesView: View {
 
 #Preview("Tracker View") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.workoutTrackerView(delegate: WorkoutTrackerViewDelegate(workoutSession: .mock))
+    RouterView { router in
+        builder.workoutTrackerView(router: router, delegate: WorkoutTrackerViewDelegate(workoutSession: .mock))
+    }
     .previewEnvironment()
 }

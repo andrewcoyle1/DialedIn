@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingTrainingExperienceViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var trainingProgramBuilder: TrainingProgramBuilder
 }
 
@@ -18,8 +18,6 @@ struct OnboardingTrainingExperienceView: View {
 
     var delegate: OnboardingTrainingExperienceViewDelegate
 
-    @ViewBuilder var devSettingsView: () -> AnyView
-
     var body: some View {
         List {
             listContent
@@ -28,11 +26,6 @@ struct OnboardingTrainingExperienceView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .screenAppearAnalytics(name: "TrainingExperience")
     }
     
@@ -74,7 +67,7 @@ struct OnboardingTrainingExperienceView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -83,7 +76,7 @@ struct OnboardingTrainingExperienceView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToDaysPerWeek(path: delegate.path, builder: delegate.trainingProgramBuilder)
+                viewModel.navigateToDaysPerWeek(builder: delegate.trainingProgramBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -94,12 +87,11 @@ struct OnboardingTrainingExperienceView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingTrainingExperienceView(
+            router: router,
             delegate: OnboardingTrainingExperienceViewDelegate(
-                path: $path,
                 trainingProgramBuilder: TrainingProgramBuilder()
             )
         )

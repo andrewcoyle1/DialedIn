@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct IngredientTemplateListViewDelegate {
     var templateIds: [String]
@@ -36,6 +37,7 @@ struct IngredientTemplateListView: View {
     
     init(
         interactor: IngredientTemplateListInteractor,
+        router: IngredientTemplateListRouter,
         delegate: IngredientTemplateListViewDelegate,
         genericTemplateListView: @escaping (
             IngredientTemplateListViewModel,
@@ -46,6 +48,7 @@ struct IngredientTemplateListView: View {
     ) {
         self.viewModel = IngredientTemplateListViewModel.create(
             interactor: interactor,
+            router: router,
             delegate: delegate
         )
         self.genericTemplateListView = genericTemplateListView
@@ -63,9 +66,12 @@ struct IngredientTemplateListView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.ingredientTemplateListView(
-        delegate: IngredientTemplateListViewDelegate(
-            templateIds: []
+    RouterView { router in
+        builder.ingredientTemplateListView(
+            router: router, 
+            delegate: IngredientTemplateListViewDelegate(
+                templateIds: []
+            )
         )
-    )
+    }
 }

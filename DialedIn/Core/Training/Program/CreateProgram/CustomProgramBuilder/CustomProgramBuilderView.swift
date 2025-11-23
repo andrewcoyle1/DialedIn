@@ -6,21 +6,14 @@
 //
 
 import SwiftUI
-
-struct CustomProgramBuilderViewDelegate {
-    var path: Binding<[TabBarPathOption]>
-}
+import CustomRouting
 
 struct CustomProgramBuilderView: View {
 
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
 
     @State var viewModel: CustomProgramBuilderViewModel
 
-    var delegate: CustomProgramBuilderViewDelegate
-
-    @ViewBuilder var programStartConfigView: (ProgramStartConfigViewDelegate) -> AnyView
     @ViewBuilder var workoutPickerSheet: (WorkoutPickerSheetDelegate) -> AnyView
 
     var body: some View {
@@ -74,26 +67,6 @@ struct CustomProgramBuilderView: View {
                 }
             )
         }
-        .sheet(item: $viewModel.startConfigTemplate) { template in
-            programStartConfigView(
-                ProgramStartConfigViewDelegate(
-                    path: delegate.path,
-                    template: template
-                ) { startDate, endDate, customName in
-                    Task {
-                        await viewModel.startProgram(
-                            template: template,
-                            startDate: startDate,
-                            endDate: endDate,
-                            customName: customName,
-                            onDismiss: {
-                                dismiss()
-                            }
-                        )
-                    }
-                }
-            )
-        }
         .onChange(of: viewModel.durationWeeks) { _, newValue in
             viewModel.resizeWeeks(to: newValue)
         }
@@ -107,16 +80,14 @@ struct CustomProgramBuilderView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button("Cancel") {
-                dismiss()
+                viewModel.dismissScreen()
             }
         }
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 Task {
-                    await viewModel.saveTemplate(onDismiss: {
-                        dismiss()
-                    })
+                    await viewModel.saveTemplate()
                 }
             } label: {
                 Label("Save", systemImage: "square.and.arrow.down")
@@ -126,8 +97,7 @@ struct CustomProgramBuilderView: View {
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                guard let template = viewModel.buildTemplate() else { return }
-                viewModel.startConfigTemplate = template
+                viewModel.onStartProgramPressed()
             } label: {
                 Label("Start…", systemImage: "play.fill")
             }
@@ -277,10 +247,9 @@ struct CustomProgramBuilderView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.customProgramBuilderView(delegate: CustomProgramBuilderViewDelegate(path: $path))
+    RouterView { router in
+        builder.customProgramBuilderView(router: router)
     }
     .previewEnvironment()
 }

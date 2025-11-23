@@ -22,6 +22,7 @@ protocol ProfileRouter {
     func showNotificationsView()
     func showDevSettingsView()
     func showCreateAccountView()
+    func showSettingsView()
 }
 
 extension CoreRouter: ProfileRouter { }
@@ -62,9 +63,9 @@ class ProfileViewModel {
         }
     }
 
-    func navToSettingsView(path: Binding<[TabBarPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .settingsView))
-        path.wrappedValue.append(.settingsView)
+    func navToSettingsView() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showSettingsView()
     }
 
     func onNotificationsPressed() {
@@ -80,7 +81,7 @@ class ProfileViewModel {
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -90,8 +91,8 @@ class ProfileViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

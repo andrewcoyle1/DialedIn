@@ -15,11 +15,20 @@ protocol OnboardingHealthDisclaimerInteractor {
 
 extension CoreInteractor: OnboardingHealthDisclaimerInteractor { }
 
+@MainActor
+protocol OnboardingHealthDisclaimerRouter {
+    func showDevSettingsView()
+    func showOnboardingGoalSettingView()
+}
+
+extension CoreRouter: OnboardingHealthDisclaimerRouter { }
+
 @Observable
 @MainActor
 class OnboardingHealthDisclaimerViewModel {
     private let interactor: OnboardingHealthDisclaimerInteractor
-    
+    private let router: OnboardingHealthDisclaimerRouter
+
     var acceptedTerms: Bool = false
     var acceptedPrivacy: Bool = false
     var showModal: Bool = false
@@ -27,19 +36,19 @@ class OnboardingHealthDisclaimerViewModel {
     var showAlert: AnyAppAlert?
     
     var canContinue: Bool { acceptedTerms && acceptedPrivacy }
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
+        
     var disclaimerString: String = """
             DialedIn is not a medical device and does not provide medical advice. The information presented is for general educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment.
             Always consult a qualified healthcare provider before starting any diet, exercise, or weight‑loss program, changing medications, or if you have questions about a medical condition. 
             If you experience chest pain, shortness of breath, dizziness, or other concerning symptoms, stop activity and seek medical attention immediately. If you believe you may be experiencing a medical emergency, call your local emergency number right away.
             """
     
-    init(interactor: OnboardingHealthDisclaimerInteractor) {
+    init(
+        interactor: OnboardingHealthDisclaimerInteractor,
+        router: OnboardingHealthDisclaimerRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onContinuePressed() {
@@ -51,7 +60,7 @@ class OnboardingHealthDisclaimerViewModel {
         showModal = false
     }
     
-    func onConfirmPressed(path: Binding<[OnboardingPathOption]>) {
+    func onConfirmPressed() {
         showModal = false
         isLoading = true
         let disclaimerVersion = "2025.10.05"
@@ -63,7 +72,7 @@ class OnboardingHealthDisclaimerViewModel {
                 try await interactor.updateHealthConsents(disclaimerVersion: disclaimerVersion, step: .goalSetting, privacyVersion: privacyVersion, acceptedAt: now)
                 interactor.trackEvent(event: Event.consentHealthConfirmSuccess(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: now))
                 isLoading = false
-                handleNavigation(path: path)
+                handleNavigation()
             } catch {
                 interactor.trackEvent(event: Event.consentHealthConfirmFail(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, error: error))
                 isLoading = false
@@ -75,16 +84,20 @@ class OnboardingHealthDisclaimerViewModel {
         }
     }
 
-    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .goalSetting))
-        path.wrappedValue.append(.goalSetting)
+    func handleNavigation() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingGoalSettingView()
     }
-    
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
         case consentHealthConfirmStart(disclaimerVersion: String, privacyVersion: String)
         case consentHealthConfirmSuccess(disclaimerVersion: String, privacyVersion: String, acceptedAt: Date)
         case consentHealthConfirmFail(disclaimerVersion: String, privacyVersion: String, error: Error)
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -116,8 +129,7 @@ class OnboardingHealthDisclaimerViewModel {
                 
                 for (key, value) in error.eventParameters { dict[key] = value }
                 return dict
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            default: return nil
             }
         }
         

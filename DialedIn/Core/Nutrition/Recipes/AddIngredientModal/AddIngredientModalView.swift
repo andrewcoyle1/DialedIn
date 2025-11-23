@@ -30,59 +30,57 @@ struct AddIngredientModalView: View {
         }
     }
     var body: some View {
-        NavigationStack {
-            Group {
-                if viewModel.isLoading {
-                    VStack {
-                        ProgressView()
-                        Text("Loading ingredients...")
-                            .foregroundStyle(.secondary)
-                    }
-                } else if let errorMessage = viewModel.errorMessage {
-                    VStack(spacing: 16) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.largeTitle)
-                            .foregroundStyle(.orange)
-                        Text("Error Loading Ingredients")
-                            .font(.headline)
-                        Text(errorMessage)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                        Button("Try Again") {
-                            Task {
-                                await viewModel.loadIngredients()
-                            }
+        Group {
+            if viewModel.isLoading {
+                VStack {
+                    ProgressView()
+                    Text("Loading ingredients...")
+                        .foregroundStyle(.secondary)
+                }
+            } else if let errorMessage = viewModel.errorMessage {
+                VStack(spacing: 16) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.largeTitle)
+                        .foregroundStyle(.orange)
+                    Text("Error Loading Ingredients")
+                        .font(.headline)
+                    Text(errorMessage)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    Button("Try Again") {
+                        Task {
+                            await viewModel.loadIngredients()
                         }
-                        .buttonStyle(.borderedProminent)
                     }
-                    .padding()
-                } else {
-                    listSection
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding()
+            } else {
+                listSection
+            }
+        }
+        .searchable(text: $viewModel.searchText)
+        .navigationTitle("Add Ingredients")
+        .navigationSubtitle("Select one or more ingredients to add")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    viewModel.onDismissPressed(
+                        onDismiss: {
+                            dismiss()
+                        }
+                    )
+                } label: {
+                    Image(systemName: "xmark")
                 }
             }
-            .searchable(text: $viewModel.searchText)
-            .navigationTitle("Add Ingredients")
-            .navigationSubtitle("Select one or more ingredients to add")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        viewModel.onDismissPressed(
-                            onDismiss: {
-                                dismiss()
-                            }
-                        )
-                    } label: {
-                        Image(systemName: "xmark")
-                    }
-                }
-            }
-            .task {
-                await viewModel.loadIngredients()
-            }
-            .onChange(of: viewModel.searchText) {
-                Task {
-                    await viewModel.searchIngredients()
-                }
+        }
+        .task {
+            await viewModel.loadIngredients()
+        }
+        .onChange(of: viewModel.searchText) {
+            Task {
+                await viewModel.searchIngredients()
             }
         }
     }

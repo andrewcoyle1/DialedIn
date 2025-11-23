@@ -20,12 +20,21 @@ protocol WorkoutsInteractor {
 
 extension CoreInteractor: WorkoutsInteractor { }
 
+@MainActor
+protocol WorkoutsRouter {
+    func showDevSettingsView()
+    func showCreateWorkoutView(delegate: CreateWorkoutViewDelegate)
+}
+
+extension CoreRouter: WorkoutsRouter { }
+
 @Observable
 @MainActor
 class WorkoutsViewModel {
     
     private let interactor: WorkoutsInteractor
-    
+    private let router: WorkoutsRouter
+
     private(set) var isLoading: Bool = false
     private(set) var searchText: String = ""
     private(set) var showAlert: AnyAppAlert?
@@ -73,13 +82,17 @@ class WorkoutsViewModel {
         return trimmed.isEmpty ? trendingWorkoutsDeduped : workouts
     }
     
-    init(interactor: WorkoutsInteractor) {
+    init(
+        interactor: WorkoutsInteractor,
+        router: WorkoutsRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onAddWorkoutPressed() {
         interactor.trackEvent(event: Event.onAddWorkoutPressed)
-        showCreateWorkout = true
+        router.showCreateWorkoutView(delegate: CreateWorkoutViewDelegate(workoutTemplate: nil))
     }
 
     func onWorkoutPressed(workout: WorkoutTemplateModel, onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)? = nil) {
@@ -302,7 +315,11 @@ class WorkoutsViewModel {
     func systemTemplatesSectionViewed() {
         interactor.trackEvent(event: Event.systemTemplatesSectionViewed(count: systemWorkouts.count))
     }
-    
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
         case performWorkoutSearchStart
         case performWorkoutSearchSuccess(query: String, resultCount: Int)

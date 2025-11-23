@@ -15,6 +15,7 @@ extension CoreInteractor: OnboardingIntroInteractor { }
 
 protocol OnboardingIntroRouter {
     func showDevSettingsView()
+    func showAuthOptionsView()
 }
 
 extension CoreRouter: OnboardingIntroRouter { }
@@ -33,9 +34,9 @@ class OnboardingIntroViewModel {
         self.router = router
     }
     
-    func navigateToAuthOptions(path: Binding<[OnboardingPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .authOptions))
-        path.wrappedValue.append(.authOptions)
+    func navigateToAuthOptions() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showAuthOptionsView()
     }
 
     func onDevSettingsPressed() {
@@ -43,7 +44,7 @@ class OnboardingIntroViewModel {
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -53,8 +54,8 @@ class OnboardingIntroViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

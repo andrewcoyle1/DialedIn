@@ -14,26 +14,43 @@ protocol ProfileNutritionPlanInteractor {
 
 extension CoreInteractor: ProfileNutritionPlanInteractor { }
 
+@MainActor
+protocol ProfileNutritionPlanRouter {
+    func showProfileNutritionDetailView()
+    func showDevSettingsView()
+}
+
+extension CoreRouter: ProfileNutritionPlanRouter { }
+
 @Observable
 @MainActor
 class ProfileNutritionPlanViewModel {
     private let interactor: ProfileNutritionPlanInteractor
-   
+    private let router: ProfileNutritionPlanRouter
+
     var currentDietPlan: DietPlan? {
         interactor.currentDietPlan
     }
     
-    init(interactor: ProfileNutritionPlanInteractor) {
+    init(
+        interactor: ProfileNutritionPlanInteractor,
+        router: ProfileNutritionPlanRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
 
-    func navToNutritionDetail(path: Binding<[TabBarPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .profileNutritionDetail))
-        path.wrappedValue.append(.profileNutritionDetail)
+    func navToNutritionDetail() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showProfileNutritionDetailView()
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -43,8 +60,8 @@ class ProfileNutritionPlanViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

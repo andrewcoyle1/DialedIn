@@ -6,18 +6,11 @@
 //
 
 import SwiftUI
-
-struct OnboardingSubscriptionViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct OnboardingSubscriptionView: View {
 
     @State var viewModel: OnboardingSubscriptionViewModel
-
-    var delegate: OnboardingSubscriptionViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -29,11 +22,6 @@ struct OnboardingSubscriptionView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     @ToolbarContentBuilder
@@ -41,7 +29,7 @@ struct OnboardingSubscriptionView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -50,7 +38,7 @@ struct OnboardingSubscriptionView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToSubscriptionPlan(path: delegate.path)
+                viewModel.navigateToSubscriptionPlan()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -111,14 +99,9 @@ struct OnboardingSubscriptionView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingSubscriptionView(
-            delegate: OnboardingSubscriptionViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingSubscriptionView(router: router)
     }
     .previewEnvironment()
 }

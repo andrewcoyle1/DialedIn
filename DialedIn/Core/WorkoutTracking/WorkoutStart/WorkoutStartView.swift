@@ -20,13 +20,10 @@ struct WorkoutStartViewDelegate {
 }
 
 struct WorkoutStartView: View {
-    @Environment(\.dismiss) private var dismiss
-    
+
     @State var viewModel: WorkoutStartViewModel
     
     let delegate: WorkoutStartViewDelegate
-
-    @ViewBuilder var workoutTrackerView: (WorkoutTrackerViewDelegate) -> AnyView
 
     var body: some View {
         NavigationStack {
@@ -47,17 +44,6 @@ struct WorkoutStartView: View {
                 toolbarContent
             }
         }
-        
-        .adaptiveFullScreenCover(isPresented: $viewModel.showingTracker, onDismiss: {
-            // Start screen dismisses itself when tracker is dismissed if no active session
-            if viewModel.activeSession == nil {
-                dismiss()
-            }
-        }, content: {
-            if let session = viewModel.createdSession {
-                workoutTrackerView(WorkoutTrackerViewDelegate(workoutSession: session))
-            }
-        })
     }
         
     private var workoutPreview: some View {
@@ -157,7 +143,7 @@ struct WorkoutStartView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button("Cancel") {
-                dismiss()
+                viewModel.dismissScreen()
             }
         }
     }

@@ -23,21 +23,30 @@ protocol OnboardingTrainingReviewInteractor {
 
 extension CoreInteractor: OnboardingTrainingReviewInteractor { }
 
+@MainActor
+protocol OnboardingTrainingReviewRouter {
+    func showDevSettingsView()
+    func showOnboardingCustomisingProgramView()
+}
+
+extension CoreRouter: OnboardingTrainingReviewRouter { }
+
 @Observable
 @MainActor
 class OnboardingTrainingReviewViewModel {
     private let interactor: OnboardingTrainingReviewInteractor
-    
+    private let router: OnboardingTrainingReviewRouter
+
     var recommendedTemplate: ProgramTemplateModel?
     var isLoading: Bool = false
     var showAlert: AnyAppAlert?
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingTrainingReviewInteractor) {
+    init(
+        interactor: OnboardingTrainingReviewInteractor,
+        router: OnboardingTrainingReviewRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func loadRecommendation(builder: TrainingProgramBuilder) {
@@ -57,7 +66,7 @@ class OnboardingTrainingReviewViewModel {
         ))
     }
     
-    func createPlanAndContinue(path: Binding<[OnboardingPathOption]>, builder: TrainingProgramBuilder) {
+    func createPlanAndContinue(builder: TrainingProgramBuilder) {
         guard let template = recommendedTemplate else {
             showAlert = AnyAppAlert(
                 title: "Unable to create program",
@@ -92,9 +101,9 @@ class OnboardingTrainingReviewViewModel {
                 interactor.trackEvent(event: Event.createPlanSuccess(planId: plan.planId))
                 
                 // Navigate to diet flow
-                interactor.trackEvent(event: Event.navigate(destination: .preferredDiet))
-                path.wrappedValue.append(.preferredDiet)
-                
+                interactor.trackEvent(event: Event.navigate)
+                router.showOnboardingCustomisingProgramView()
+
             } catch {
                 showAlert = AnyAppAlert(
                     title: "Unable to create program",
@@ -106,13 +115,17 @@ class OnboardingTrainingReviewViewModel {
             isLoading = false
         }
     }
-    
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
         case recommendationLoaded(templateId: String?, preference: ProgramPreference)
         case createPlanStart
         case createPlanSuccess(planId: String)
         case createPlanFail(error: Error)
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -137,8 +150,6 @@ class OnboardingTrainingReviewViewModel {
                 return ["planId": planId]
             case .createPlanFail(error: let error):
                 return error.eventParameters
-            case .navigate(destination: let destination):
-                return destination.eventParameters
             default:
                 return nil
             }

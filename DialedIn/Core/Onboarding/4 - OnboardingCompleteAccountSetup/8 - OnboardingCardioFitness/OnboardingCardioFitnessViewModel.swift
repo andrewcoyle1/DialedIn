@@ -13,38 +13,51 @@ protocol OnboardingCardioFitnessInteractor {
 
 extension CoreInteractor: OnboardingCardioFitnessInteractor { }
 
+@MainActor
+protocol OnboardingCardioFitnessRouter {
+    func showDevSettingsView()
+    func showOnboardingExpenditureView(delegate: OnboardingExpenditureViewDelegate)
+}
+
+extension CoreRouter: OnboardingCardioFitnessRouter { }
+
 @Observable
 @MainActor
 class OnboardingCardioFitnessViewModel {
     private let interactor: OnboardingCardioFitnessInteractor
-    
+    private let router: OnboardingCardioFitnessRouter
+
     var selectedCardioFitness: CardioFitnessLevel?
     var isSaving: Bool = false
     var currentSaveTask: Task<Void, Never>?
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
+        
     var canSubmit: Bool {
         selectedCardioFitness != nil
     }
 
-    init(interactor: OnboardingCardioFitnessInteractor) {
+    init(
+        interactor: OnboardingCardioFitnessInteractor,
+        router: OnboardingCardioFitnessRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func navigateToExpenditure(path: Binding<[OnboardingPathOption]>, userBuilder: UserModelBuilder) {
+    func navigateToExpenditure(userBuilder: UserModelBuilder) {
         if let cardioFitness = selectedCardioFitness {
             var builder = userBuilder
             builder.setCardioFitness(cardioFitness)
-            interactor.trackEvent(event: Event.navigate(destination: .expenditure(userModelBuilder: builder)))
-            path.wrappedValue.append(.expenditure(userModelBuilder: builder))
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingExpenditureView(delegate: OnboardingExpenditureViewDelegate(userBuilder: builder))
         }
     }
 
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -54,8 +67,8 @@ class OnboardingCardioFitnessViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

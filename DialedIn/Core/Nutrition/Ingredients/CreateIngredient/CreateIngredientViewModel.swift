@@ -21,11 +21,19 @@ protocol CreateIngredientInteractor {
 
 extension CoreInteractor: CreateIngredientInteractor { }
 
+@MainActor
+protocol CreateIngredientRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: CreateIngredientRouter { }
+
 @Observable
 @MainActor
 class CreateIngredientViewModel {
     private let interactor: CreateIngredientInteractor
-    
+    private let router: CreateIngredientRouter
+
     var selectedPhotoItem: PhotosPickerItem?
     var selectedImageData: Data?
     var isImagePickerPresented: Bool = false
@@ -77,10 +85,6 @@ class CreateIngredientViewModel {
     var caffeineMg: Double?
     var cholesterolMg: Double?
 
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-
     var isGenerating: Bool = false
     var generatedImage: UIImage?
     var alert: AnyAppAlert?
@@ -92,9 +96,11 @@ class CreateIngredientViewModel {
     }
     
     init(
-        interactor: CreateIngredientInteractor
+        interactor: CreateIngredientInteractor,
+        router: CreateIngredientRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onImageSelectorPressed() {
@@ -210,6 +216,10 @@ class CreateIngredientViewModel {
             }
             isGenerating = false
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {

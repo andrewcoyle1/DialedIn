@@ -6,20 +6,13 @@
 //
 
 import SwiftUI
-
-struct EmailVerificationViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct EmailVerificationView: View {
 
     @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: EmailVerificationViewModel
-
-    var delegate: EmailVerificationViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -42,13 +35,8 @@ struct EmailVerificationView: View {
                 toastMessageSection(toastMessage: toastMessage)
             }
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .onFirstTask {
-            viewModel.setup(path: delegate.path)
+            viewModel.setup()
         }
         .onDisappear {
             viewModel.cleanUp()
@@ -87,7 +75,7 @@ struct EmailVerificationView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -111,7 +99,7 @@ struct EmailVerificationView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onDonePressed(path: delegate.path)
+                viewModel.onDonePressed()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -124,92 +112,57 @@ struct EmailVerificationView: View {
 // MARK: - Previews
 
 #Preview("Default") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingEmailVerificationView(
-            delegate: EmailVerificationViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingEmailVerificationView(router: router)
     }
     .previewEnvironment()
 }
 
 #Preview("Initial Send - Success") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingEmailVerificationView(
-            delegate: EmailVerificationViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingEmailVerificationView(router: router)
     }
     .previewEnvironment()
 }
 
 #Preview("Initial Send - Slow") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingEmailVerificationView(
-            delegate: EmailVerificationViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingEmailVerificationView(router: router)
     }
     .previewEnvironment()
 }
 
 #Preview("Initial Send - Failure") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingEmailVerificationView(
-            delegate: EmailVerificationViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingEmailVerificationView(router: router)
     }
     .previewEnvironment()
 }
 
 #Preview("Check - Not Verified") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingEmailVerificationView(
-            delegate: EmailVerificationViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingEmailVerificationView(router: router)
     }
     .previewEnvironment()
 }
 
 #Preview("Check - Verified") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingEmailVerificationView(
-            delegate: EmailVerificationViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingEmailVerificationView(router: router)
     }
     .previewEnvironment()
 }
 
 #Preview("No Current User - Error") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingEmailVerificationView(
-            delegate: EmailVerificationViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingEmailVerificationView(router: router)
     }
     .previewEnvironment()
 }

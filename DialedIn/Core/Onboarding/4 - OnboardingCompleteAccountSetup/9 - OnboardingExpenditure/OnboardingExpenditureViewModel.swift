@@ -19,11 +19,22 @@ protocol OnboardingExpenditureInteractor: Sendable {
 
 extension CoreInteractor: OnboardingExpenditureInteractor { }
 
+@MainActor
+protocol OnboardingExpenditureRouter {
+    func showDevSettingsView()
+    func showOnboardingNotificationsView()
+    func showOnboardingHealthDataView()
+    func showOnboardingHealthDisclaimerView()
+}
+
+extension CoreRouter: OnboardingExpenditureRouter { }
+
 @Observable
 @MainActor
 class OnboardingExpenditureViewModel {
     private let interactor: OnboardingExpenditureInteractor
-    
+    private let router: OnboardingExpenditureRouter
+
     private var canRequestNotifications: Bool?
     private var canRequestHealthData: Bool?
 
@@ -73,11 +84,7 @@ class OnboardingExpenditureViewModel {
     var showAlert: AnyAppAlert?
     var isSaving: Bool = false
     var currentSaveTask: Task<Void, Never>?
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
+        
     private func ageYears(dateOfBirth: Date) -> Int {
         let years = Calendar.current.dateComponents([.year], from: dateOfBirth, to: Date()).year ?? 30
         return max(14, years)
@@ -162,8 +169,12 @@ class OnboardingExpenditureViewModel {
         )
     }
 
-    init(interactor: OnboardingExpenditureInteractor) {
+    init(
+        interactor: OnboardingExpenditureInteractor,
+        router: OnboardingExpenditureRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     struct Breakdown: Identifiable {
@@ -178,9 +189,29 @@ class OnboardingExpenditureViewModel {
         self.canRequestNotifications = await interactor.canRequestNotificationAuthorisation()
     }
 
-    private func navigateForward(path: Binding<[OnboardingPathOption]>, targetStep: OnboardingStep) async {
-        interactor.trackEvent(event: Event.navigate(destination: targetStep.onboardingPathOption))
-        path.wrappedValue.append(targetStep.onboardingPathOption)
+    private func navigateForward(targetStep: OnboardingStep) async {
+        interactor.trackEvent(event: Event.navigate)
+        switch targetStep {
+
+        case .auth:
+            router.showOnboardingNotificationsView()
+        case .subscription:
+            router.showOnboardingNotificationsView()
+        case .completeAccountSetup:
+            router.showOnboardingNotificationsView()
+        case .notifications:
+            router.showOnboardingNotificationsView()
+        case .healthData:
+            router.showOnboardingHealthDataView()
+        case .healthDisclaimer:
+            router.showOnboardingHealthDisclaimerView()
+        case .goalSetting:
+            router.showOnboardingNotificationsView()
+        case .customiseProgram:
+            router.showOnboardingNotificationsView()
+        case .complete:
+            router.showOnboardingNotificationsView()
+        }
     }
     
     func progress(for item: Breakdown) -> Double {
@@ -225,7 +256,7 @@ class OnboardingExpenditureViewModel {
         canContinue = true
     }
 
-    func saveAndNavigate(path: Binding<[OnboardingPathOption]>, userModelBuilder: UserModelBuilder) {
+    func saveAndNavigate(userModelBuilder: UserModelBuilder) {
         // Cancel any existing save to prevent race conditions
         currentSaveTask?.cancel()
 
@@ -247,7 +278,7 @@ class OnboardingExpenditureViewModel {
                       userModelBuilder.cardioFitness != nil,
                       userModelBuilder.lengthUnitPreference != nil,
                       userModelBuilder.weightUnitPreferene != nil else {
-                    handleMissingUserDraft(path: path, userModelBuilder: userModelBuilder)
+                    handleMissingUserDraft(userModelBuilder: userModelBuilder)
                     return
                 }
 
@@ -260,17 +291,17 @@ class OnboardingExpenditureViewModel {
                 }
                 interactor.trackEvent(event: Event.profileSaveSuccess)
                 isLoading = false
-                await navigateForward(path: path, targetStep: targetStep)
+                await navigateForward(targetStep: targetStep)
             } catch {
                 interactor.trackEvent(event: Event.profileSaveFail(error: error))
-                handleSaveError(error, path: path, userModelBuilder: userModelBuilder)
+                handleSaveError(error, userModelBuilder: userModelBuilder)
             }
         }
     }
     
     // MARK: - Error Handling Helpers
     
-    private func handleSaveError(_ error: Error, path: Binding<[OnboardingPathOption]>, userModelBuilder: UserModelBuilder) {
+    private func handleSaveError(_ error: Error, userModelBuilder: UserModelBuilder) {
 
         let errorInfo = interactor.handleAuthError(error, operation: "save profile")
         
@@ -282,7 +313,7 @@ class OnboardingExpenditureViewModel {
                     HStack {
                         Button("Cancel") { }
                         if errorInfo.isRetryable {
-                            Button("Try Again") { self.saveAndNavigate(path: path, userModelBuilder: userModelBuilder) }
+                            Button("Try Again") { self.saveAndNavigate(userModelBuilder: userModelBuilder) }
                         }
                     }
                 )
@@ -290,7 +321,7 @@ class OnboardingExpenditureViewModel {
         )
     }
 
-    private func handleMissingUserDraft(path: Binding<[OnboardingPathOption]>, userModelBuilder: UserModelBuilder) {
+    private func handleMissingUserDraft(userModelBuilder: UserModelBuilder) {
         isSaving = false
         isLoading = false
         showAlert = AnyAppAlert(
@@ -300,7 +331,7 @@ class OnboardingExpenditureViewModel {
                 AnyView(
                     HStack {
                         Button("Cancel") { }
-                        Button("Try Again") { self.saveAndNavigate(path: path, userModelBuilder: userModelBuilder) }
+                        Button("Try Again") { self.saveAndNavigate(userModelBuilder: userModelBuilder) }
                     }
                 )
             }
@@ -394,12 +425,16 @@ class OnboardingExpenditureViewModel {
         case .elite: return .elite
         }
     }
-    
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
         case profileSaveStart
         case profileSaveSuccess
         case profileSaveFail(error: Error)
-        case navigate(destination: OnboardingPathOption)
+        case navigate
         
         var eventName: String {
             switch self {
@@ -414,8 +449,6 @@ class OnboardingExpenditureViewModel {
             switch self {
             case .profileSaveFail(error: let error):
                 return error.eventParameters
-            case .navigate(destination: let destination):
-                return destination.eventParameters
             default:
                 return nil
             }

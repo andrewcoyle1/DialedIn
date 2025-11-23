@@ -6,18 +6,11 @@
 //
 
 import SwiftUI
-
-struct OnboardingCompletedViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct OnboardingCompletedView: View {
 
     @State var viewModel: OnboardingCompletedViewModel
-
-    var delegate: OnboardingCompletedViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         VStack {
@@ -36,14 +29,11 @@ struct OnboardingCompletedView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    viewModel.showDebugView = true
+                    viewModel.onDevSettingsPressed()
                 } label: {
                     Image(systemName: "info")
                 }
             }
-        }
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
         }
         #endif
     }
@@ -89,12 +79,9 @@ struct OnboardingCompletedView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.onboardingCompletedView(
-        delegate: OnboardingCompletedViewDelegate(
-            path: $path
-        )
-    )
+    RouterView { router in
+        builder.onboardingCompletedView(router: router)
+    }
     .previewEnvironment()
 }

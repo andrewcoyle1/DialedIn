@@ -13,18 +13,32 @@ protocol ProgramScheduleInteractor {
 
 extension CoreInteractor: ProgramScheduleInteractor { }
 
+@MainActor
+protocol ProgramScheduleRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: ProgramScheduleRouter { }
+
 @Observable
 @MainActor
 class ProgramScheduleViewModel {
     private let interactor: ProgramScheduleInteractor
-    
+    private let router: ProgramScheduleRouter
+
     init(
-        interactor: ProgramScheduleInteractor
+        interactor: ProgramScheduleInteractor,
+        router: ProgramScheduleRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func weeks(for plan: TrainingPlan) -> [TrainingWeek] {
         plan.weeks.sorted(by: { $0.weekNumber < $1.weekNumber })
+    }
+    
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

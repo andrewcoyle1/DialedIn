@@ -20,27 +20,45 @@ protocol AuthOptionsInteractor {
 
 extension CoreInteractor: AuthOptionsInteractor { }
 
+@MainActor
+protocol AuthOptionsRouter {
+    func showDevSettingsView()
+    func showSignInView()
+    func showSignUpView()
+    func showEmailVerificationView()
+    func showOnboardingCompleteAccountSetupView()
+    func showOnboardingNotificationsView()
+    func showOnboardingHealthDataView()
+    func showOnboardingHealthDisclaimerView()
+    func showOnboardingGoalSettingView()
+    func showOnboardingCustomisingProgramView()
+    func showOnboardingCompletedView()
+}
+
+extension CoreRouter: AuthOptionsRouter { }
+
 @Observable
 @MainActor
 class AuthOptionsViewModel {
     private let interactor: AuthOptionsInteractor
-    
+    private let router: AuthOptionsRouter
+
     private(set) var didTriggerLogin: Bool = false
     private(set) var currentAuthTask: Task<Void, Never>?
     
     var isLoading: Bool = false
     var showAlert: AnyAppAlert?
 
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-
     var currentUser: UserModel? {
         interactor.currentUser
     }
 
-    init(interactor: AuthOptionsInteractor) {
+    init(
+        interactor: AuthOptionsInteractor,
+        router: AuthOptionsRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func endTask() {
@@ -49,7 +67,7 @@ class AuthOptionsViewModel {
     }
     
     // MARK: Sign In Apple
-    func onSignInApplePressed(path: Binding<[OnboardingPathOption]>) {
+    func onSignInApplePressed() {
         // Cancel any existing auth task to prevent race conditions
         currentAuthTask?.cancel()
         
@@ -68,13 +86,13 @@ class AuthOptionsViewModel {
                 interactor.trackEvent(event: Event.appleAuthSuccess)
 
                 // Proceed immediately to signing in the user on success
-                handleOnAuthSuccess(user: result, path: path)
+                handleOnAuthSuccess(user: result)
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
                     handleAuthError(error, provider: "Apple") {
                         Task { @MainActor in
-                            self.onSignInApplePressed(path: path)
+                            self.onSignInApplePressed()
                         }
                     }
                 }
@@ -83,7 +101,7 @@ class AuthOptionsViewModel {
     }
 
     // MARK: Sign In Google
-    func onSignInGooglePressed(path: Binding<[OnboardingPathOption]>) {
+    func onSignInGooglePressed() {
         // Cancel any existing auth task to prevent race conditions
         currentAuthTask?.cancel()
         
@@ -101,13 +119,13 @@ class AuthOptionsViewModel {
                 interactor.trackEvent(event: Event.googleAuthSuccess)
 
                 // Proceed immediately to signing in the user on success
-                handleOnAuthSuccess(user: result, path: path)
+                handleOnAuthSuccess(user: result)
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
                     handleAuthError(error, provider: "Google") {
                         Task { @MainActor in
-                            self.onSignInGooglePressed(path: path)
+                            self.onSignInGooglePressed()
                         }
                     }
                 }
@@ -116,7 +134,7 @@ class AuthOptionsViewModel {
     }
     
     // MARK: User Log In
-    func handleOnAuthSuccess(user: UserAuthInfo, path: Binding<[OnboardingPathOption]>) {
+    func handleOnAuthSuccess(user: UserAuthInfo) {
         // Cancel any existing auth task to prevent conflicts
         currentAuthTask?.cancel()
         
@@ -138,7 +156,7 @@ class AuthOptionsViewModel {
                 if let user = currentUser {
                     if user.onboardingStep != .complete {
                         // Navigate to appropriate view
-                        handleNavigation(path: path)
+                        handleNavigation()
                     } else {
                         interactor.updateAppState(showTabBarView: true)
                     }
@@ -148,7 +166,7 @@ class AuthOptionsViewModel {
                 if !Task.isCancelled {
                     handleUserLoginError(error) {
                         Task { @MainActor in
-                            self.handleOnAuthSuccess(user: user, path: path)
+                            self.handleOnAuthSuccess(user: user)
                         }
                     }
                 }
@@ -157,15 +175,44 @@ class AuthOptionsViewModel {
     }
     
     // MARK: Handle Navigation
-    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
+    func handleNavigation() {
         // Navigate based on user's current onboarding step
         if let currentUser = interactor.currentUser {
-            let pathOption = currentUser.onboardingStep.onboardingPathOption
-            interactor.trackEvent(event: Event.navigate(destination: pathOption))
-            path.wrappedValue.append(pathOption)
+            let step = currentUser.onboardingStep
+            interactor.trackEvent(event: Event.navigate)
+            route(to: step)
         }
     }
-    
+
+    private func route(to step: OnboardingStep) {
+        switch step {
+        case .auth, .subscription:
+            // For anything at/before subscription, move them into complete-account setup
+            router.showOnboardingCompleteAccountSetupView()
+
+        case .completeAccountSetup:
+            router.showOnboardingCompleteAccountSetupView()
+
+        case .notifications:
+            router.showOnboardingNotificationsView()
+
+        case .healthData:
+            router.showOnboardingHealthDataView()
+
+        case .healthDisclaimer:
+            router.showOnboardingHealthDisclaimerView()
+
+        case .goalSetting:
+            router.showOnboardingGoalSettingView()
+
+        case .customiseProgram:
+            router.showOnboardingCustomisingProgramView()
+
+        case .complete:
+            router.showOnboardingCompletedView()
+        }
+    }
+
     // MARK: Auth Error
     func handleAuthError(_ error: Error, provider: String, retryAction: @escaping @Sendable () -> Void) {
         let errorInfo = interactor.handleAuthError(error, operation: "sign in", provider: provider)
@@ -215,15 +262,15 @@ class AuthOptionsViewModel {
     }
     
     // MARK: Sign Up Pressed
-    func signUpPressed(path: Binding<[OnboardingPathOption]>) {
+    func signUpPressed() {
         interactor.trackEvent(event: Event.signUpPressed)
-        path.wrappedValue.append(.signUp)
+        router.showSignUpView()
     }
     
     // MARK: Sign In Pressed
-    func signInPressed(path: Binding<[OnboardingPathOption]>) {
+    func signInPressed() {
         interactor.trackEvent(event: Event.signUpPressed)
-        path.wrappedValue.append(.signIn)
+        router.showSignInView()
     }
     
     // MARK: Cleanup Tasks
@@ -232,7 +279,11 @@ class AuthOptionsViewModel {
         currentAuthTask = nil
         isLoading = false
     }
-    
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     // MARK: Events
     enum Event: LoggableEvent {
         case appleAuthStart
@@ -247,7 +298,7 @@ class AuthOptionsViewModel {
         case userLoginSuccess
         case userLoginFail(error: Error)
 
-        case navigate(destination: OnboardingPathOption)
+        case navigate
         case signInPressed
         case signUpPressed
 
@@ -272,8 +323,6 @@ class AuthOptionsViewModel {
             switch self {
             case .appleAuthFail(error: let error), .googleAuthFail(error: let error), .userLoginFail(error: let error):
                 return error.eventParameters
-            case .navigate(destination: let destination):
-                return destination.eventParameters
             default:
                 return nil
             }

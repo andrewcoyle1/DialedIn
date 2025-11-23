@@ -16,75 +16,38 @@ struct CreateRecipeView: View {
     @State var viewModel: CreateRecipeViewModel
 
     var body: some View {
-        NavigationStack {
-            List {
-                imageSection
-                nameSection
-                ingredientTemplatesSection
-            }
-            .navigationTitle("Create Recipe")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        viewModel.cancel(onDismiss: {
-                            dismiss()
-                        })
-                    } label: {
-                        Image(systemName: "xmark")
-                    }
-                }
-                #if DEBUG || MOCK
-                ToolbarSpacer(.fixed, placement: .topBarLeading)
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        viewModel.onDevSettingsPressed()
-                    } label: {
-                        Image(systemName: "info")
-                    }
-                }
-                #endif
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task {
-                            do {
-                                try await viewModel.onSavePressed(onDismiss: { dismiss() })
-                            } catch {
-                                await MainActor.run {
-                                    viewModel.saveError = "Failed to save recipe. Please try again."
-                                }
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "checkmark")
-                    }
-                    .buttonStyle(.glassProminent)
-                    .disabled(!viewModel.canSave || viewModel.isSaving)
-                }
-            }
-            .onChange(of: viewModel.selectedPhotoItem) {
-                guard let newItem = viewModel.selectedPhotoItem else { return }
-                
-                Task {
-                    do {
-                        if let data = try await newItem.loadTransferable(type: Data.self) {
-                            await MainActor.run {
-                                viewModel.selectedImageData = data
-                            }
-                        }
-                    } catch {
-                        
-                    }
-                }
-            }
-            .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
-                Button("OK") {
-                    viewModel.saveError = nil
-                }
-            } message: {
-                Text(viewModel.saveError ?? "")
-            }
-            .showCustomAlert(alert: $viewModel.alert)
+        List {
+            imageSection
+            nameSection
+            ingredientTemplatesSection
         }
+        .navigationTitle("Create Recipe")
+        .toolbar {
+            toolbarContent
+        }
+        .onChange(of: viewModel.selectedPhotoItem) {
+            guard let newItem = viewModel.selectedPhotoItem else { return }
+
+            Task {
+                do {
+                    if let data = try await newItem.loadTransferable(type: Data.self) {
+                        await MainActor.run {
+                            viewModel.selectedImageData = data
+                        }
+                    }
+                } catch {
+
+                }
+            }
+        }
+        .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
+            Button("OK") {
+                viewModel.saveError = nil
+            }
+        } message: {
+            Text(viewModel.saveError ?? "")
+        }
+        .showCustomAlert(alert: $viewModel.alert)
     }
     
     private var imageSection: some View {
@@ -208,6 +171,46 @@ struct CreateRecipeView: View {
                     Image(systemName: "plus.circle.fill")
                 }
             }
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                viewModel.cancel(onDismiss: {
+                    dismiss()
+                })
+            } label: {
+                Image(systemName: "xmark")
+            }
+        }
+        #if DEBUG || MOCK
+        ToolbarSpacer(.fixed, placement: .topBarLeading)
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                viewModel.onDevSettingsPressed()
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                Task {
+                    do {
+                        try await viewModel.onSavePressed(onDismiss: { dismiss() })
+                    } catch {
+                        await MainActor.run {
+                            viewModel.saveError = "Failed to save recipe. Please try again."
+                        }
+                    }
+                }
+            } label: {
+                Image(systemName: "checkmark")
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(!viewModel.canSave || viewModel.isSaving)
         }
     }
 }

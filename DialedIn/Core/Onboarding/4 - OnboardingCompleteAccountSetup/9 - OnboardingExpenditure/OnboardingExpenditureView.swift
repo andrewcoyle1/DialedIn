@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingExpenditureViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var userBuilder: UserModelBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingExpenditureView: View {
     @State var viewModel: OnboardingExpenditureViewModel
 
     var delegate: OnboardingExpenditureViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -44,11 +42,6 @@ struct OnboardingExpenditureView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     @ToolbarContentBuilder
@@ -56,7 +49,7 @@ struct OnboardingExpenditureView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -65,7 +58,7 @@ struct OnboardingExpenditureView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.saveAndNavigate(path: delegate.path, userModelBuilder: delegate.userBuilder)
+                viewModel.saveAndNavigate(userModelBuilder: delegate.userBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -257,14 +250,11 @@ struct OnboardingExpenditureView: View {
 }
 
 #Preview("Functioning") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingExpenditureView(
-            delegate: OnboardingExpenditureViewDelegate(
-                path: $path,
-                userBuilder: .mock
-            )
+            router: router, 
+            delegate: OnboardingExpenditureViewDelegate(userBuilder: .mock)
         )
     }
     .previewEnvironment()

@@ -16,11 +16,20 @@ protocol ProgramManagementInteractor {
 
 extension CoreInteractor: ProgramManagementInteractor { }
 
+@MainActor
+protocol ProgramManagementRouter {
+    func showDevSettingsView()
+    func dismissScreen()
+}
+
+extension CoreRouter: ProgramManagementRouter { }
+
 @Observable
 @MainActor
 class ProgramManagementViewModel {
     private let interactor: ProgramManagementInteractor
-    
+    private let router: ProgramManagementRouter
+
     private(set) var isLoading = false
 
     var showCreateSheet = false
@@ -37,9 +46,11 @@ class ProgramManagementViewModel {
     }
     
     init(
-        interactor: ProgramManagementInteractor
+        interactor: ProgramManagementInteractor,
+        router: ProgramManagementRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func setActivePlan(_ plan: TrainingPlan) async {
@@ -58,5 +69,13 @@ class ProgramManagementViewModel {
         } catch {
             print("Error deleting plan: \(error)")
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func dismissScreen() {
+        router.dismissScreen()
     }
 }

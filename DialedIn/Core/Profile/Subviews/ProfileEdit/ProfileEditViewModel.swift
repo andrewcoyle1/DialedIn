@@ -16,11 +16,19 @@ protocol ProfileEditInteractor {
 
 extension CoreInteractor: ProfileEditInteractor { }
 
+@MainActor
+protocol ProfileEditRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: ProfileEditRouter { }
+
 @Observable
 @MainActor
 class ProfileEditViewModel {
     private let interactor: ProfileEditInteractor
-    
+    private let router: ProfileEditRouter
+
     private(set) var isSaving: Bool = false
 
     var firstName: String = ""
@@ -41,9 +49,11 @@ class ProfileEditViewModel {
     }
     
     init(
-        interactor: ProfileEditInteractor
+        interactor: ProfileEditInteractor,
+        router: ProfileEditRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func presentImagePicker() {
@@ -110,5 +120,9 @@ class ProfileEditViewModel {
             )
         }
         isSaving = false
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

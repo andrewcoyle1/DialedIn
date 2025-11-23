@@ -97,7 +97,6 @@ struct DashboardView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
         builder.dashboardView(router: router)

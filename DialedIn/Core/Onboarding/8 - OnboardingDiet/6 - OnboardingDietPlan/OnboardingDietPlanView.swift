@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingDietPlanViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     let dietPlanBuilder: DietPlanBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingDietPlanView: View {
     @State var viewModel: OnboardingDietPlanViewModel
 
     var delegate: OnboardingDietPlanViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -40,11 +38,6 @@ struct OnboardingDietPlanView: View {
         .onAppear {
             viewModel.createPlan(dietPlanBuilder: delegate.dietPlanBuilder)
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .showCustomAlert(alert: $viewModel.showAlert)
         .showModal(showModal: $viewModel.isLoading) {
             ProgressView()
@@ -107,7 +100,7 @@ struct OnboardingDietPlanView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -116,7 +109,7 @@ struct OnboardingDietPlanView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigate(path: delegate.path)
+                viewModel.navigate()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -136,12 +129,11 @@ struct OnboardingDietPlanView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingDietPlanView(
+            router: router,
             delegate: OnboardingDietPlanViewDelegate(
-                path: $path,
                 dietPlanBuilder: .mock
             )
         )

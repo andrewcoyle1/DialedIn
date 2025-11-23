@@ -20,9 +20,7 @@ struct NutritionView: View {
     @ViewBuilder var mealLogView: (MealLogViewDelegate) -> AnyView
     @ViewBuilder var recipesView: (RecipesViewDelegate) -> AnyView
     @ViewBuilder var ingredientsView: (IngredientsViewDelegate) -> AnyView
-    @ViewBuilder var ingredientDetailView: (IngredientDetailViewDelegate) -> AnyView
-    @ViewBuilder var recipeDetailView: (RecipeDetailViewDelegate) -> AnyView
-    
+
     var body: some View {
         List {
             pickerSection
@@ -36,14 +34,6 @@ struct NutritionView: View {
         .toolbar {
             toolbarContent
         }
-//        .onChange(of: viewModel.selectedIngredientTemplate) { _, ingredient in
-//            guard layoutMode == .splitView else { return }
-//            if let ingredient { delegate.path.wrappedValue = [.ingredientTemplateDetail(template: ingredient)] }
-//        }
-//        .onChange(of: viewModel.selectedRecipeTemplate) { _, recipe in
-//            guard layoutMode == .splitView else { return }
-//            if let recipe { delegate.path.wrappedValue = [.recipeTemplateDetail(template: recipe)] }
-//        }
     }
 
     private var pickerSection: some View {
@@ -65,7 +55,6 @@ struct NutritionView: View {
             case .log:
                 mealLogView(
                     MealLogViewDelegate(
-                        path: .constant([]),
                         isShowingInspector: $viewModel.isShowingInspector,
                         selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
                         selectedRecipeTemplate: $viewModel.selectedRecipeTemplate
@@ -91,33 +80,6 @@ struct NutritionView: View {
                 )
             }
         }
-    }
-    
-    private var inspectorContent: some View {
-        Group {
-            if let ingredient = viewModel.selectedIngredientTemplate {
-                NavigationStack {
-                    ingredientDetailView(
-                        IngredientDetailViewDelegate(
-                            ingredientTemplate: ingredient
-                        )
-                    )
-                }
-            } else if let recipe = viewModel.selectedRecipeTemplate {
-                NavigationStack {
-                    recipeDetailView(
-                        RecipeDetailViewDelegate(
-                            recipeTemplate: recipe
-                        )
-                    )
-                }
-            } else {
-                Text("Select an item")
-                    .foregroundStyle(.secondary)
-                    .padding()
-            }
-        }
-        .inspectorColumnWidth(min: 300, ideal: 400, max: 600)
     }
 
     @ToolbarContentBuilder

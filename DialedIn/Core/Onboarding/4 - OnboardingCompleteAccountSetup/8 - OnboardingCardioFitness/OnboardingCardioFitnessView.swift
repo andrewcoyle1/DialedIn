@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingCardioFitnessViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var userModelBuilder: UserModelBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingCardioFitnessView: View {
     @State var viewModel: OnboardingCardioFitnessViewModel
 
     var delegate: OnboardingCardioFitnessViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -38,11 +36,6 @@ struct OnboardingCardioFitnessView: View {
             viewModel.currentSaveTask = nil
             viewModel.isSaving = false
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     private var cardioFitnessSection: some View {
@@ -74,7 +67,7 @@ struct OnboardingCardioFitnessView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -83,7 +76,7 @@ struct OnboardingCardioFitnessView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToExpenditure(path: delegate.path, userBuilder: delegate.userModelBuilder)
+                viewModel.navigateToExpenditure(userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -118,14 +111,11 @@ struct OnboardingCardioFitnessView: View {
 }
 
 #Preview("Default - Ready to submit") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingCardioFitnessView(
-            delegate: OnboardingCardioFitnessViewDelegate(
-                path: $path, 
-                userModelBuilder: UserModelBuilder.cardioFitnessMock
-            )
+            router: router,
+            delegate: OnboardingCardioFitnessViewDelegate(userModelBuilder: UserModelBuilder.cardioFitnessMock)
         )
     }
     .previewEnvironment()

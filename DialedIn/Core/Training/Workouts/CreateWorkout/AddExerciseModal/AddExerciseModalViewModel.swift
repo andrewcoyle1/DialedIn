@@ -16,11 +16,20 @@ protocol AddExerciseInteractor {
 
 extension CoreInteractor: AddExerciseInteractor { }
 
+@MainActor
+protocol AddExerciseModalRouter {
+    func showDevSettingsView()
+    func dismissScreen()
+}
+
+extension CoreRouter: AddExerciseModalRouter { }
+
 @Observable
 @MainActor
 class AddExerciseModalViewModel {
     private let interactor: AddExerciseInteractor
-    
+    private let router: AddExerciseModalRouter
+
     private(set) var exercises: [ExerciseTemplateModel] = []
     var searchText: String = ""
     private(set) var isLoading: Bool = false
@@ -40,8 +49,12 @@ class AddExerciseModalViewModel {
         }
     }
     
-    init(interactor: AddExerciseInteractor) {
+    init(
+        interactor: AddExerciseInteractor,
+        router: AddExerciseModalRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onExercisePressed(exercise: ExerciseTemplateModel, selectedExercises: Binding<[ExerciseTemplateModel]>) {
@@ -126,5 +139,13 @@ class AddExerciseModalViewModel {
                 exercises = systemExercises
             }
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func dismissScreen() {
+        router.dismissScreen()
     }
 }

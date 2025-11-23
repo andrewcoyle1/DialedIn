@@ -15,21 +15,29 @@ protocol OnboardingCompletedInteractor {
 
 extension CoreInteractor: OnboardingCompletedInteractor { }
 
+@MainActor
+protocol OnboardingCompletedRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: OnboardingCompletedRouter { }
+
 @Observable
 @MainActor
 class OnboardingCompletedViewModel {
     private let interactor: OnboardingCompletedInteractor
-    
+    private let router: OnboardingCompletedRouter
+
     private(set) var isCompletingProfileSetup: Bool = false
 
     var showAlert: AnyAppAlert?
 
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingCompletedInteractor) {
+    init(
+        interactor: OnboardingCompletedInteractor,
+        router: OnboardingCompletedRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onFinishButtonPressed() {
@@ -47,6 +55,10 @@ class OnboardingCompletedViewModel {
                 interactor.trackEvent(event: Event.finishFail(error: error))
             }
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {

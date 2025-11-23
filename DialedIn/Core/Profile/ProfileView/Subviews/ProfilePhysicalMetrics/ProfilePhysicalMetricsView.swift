@@ -6,22 +6,17 @@
 //
 
 import SwiftUI
-
-struct ProfilePhysicalMetricsViewDelegate {
-    var path: Binding<[TabBarPathOption]>
-}
+import CustomRouting
 
 struct ProfilePhysicalMetricsView: View {
     
     @State var viewModel: ProfilePhysicalMetricsViewModel
 
-    var delegate: ProfilePhysicalMetricsViewDelegate
-
     var body: some View {
         Section {
             if let user = viewModel.currentUser {
                 Button {
-                    viewModel.navToPhysicalStats(path: delegate.path)
+                    viewModel.navToPhysicalStats()
                 } label: {
 
                         VStack(spacing: 8) {
@@ -88,9 +83,10 @@ struct ProfilePhysicalMetricsView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    List {
-        builder.profilePhysicalMetricsView(delegate: ProfilePhysicalMetricsViewDelegate(path: $path))
+    RouterView { router in
+        List {
+            builder.profilePhysicalMetricsView(router: router)
+        }
     }
 }

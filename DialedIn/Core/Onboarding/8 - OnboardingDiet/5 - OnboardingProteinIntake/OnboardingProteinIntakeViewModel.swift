@@ -16,24 +16,32 @@ protocol OnboardingProteinIntakeInteractor {
 
 extension CoreInteractor: OnboardingProteinIntakeInteractor { }
 
-@Observable
+@MainActor
+protocol OnboardingProteinIntakeRouter {
+    func showDevSettingsView()
+    func showOnboardingDietPlanView(delegate: OnboardingDietPlanViewDelegate)
+}
 
+extension CoreRouter: OnboardingProteinIntakeRouter { }
+
+@Observable
 @MainActor
 class OnboardingProteinIntakeViewModel {
     private let interactor: OnboardingProteinIntakeInteractor
-        
+    private let router: OnboardingProteinIntakeRouter
+
     var selectedProteinIntake: ProteinIntake?
     var navigateToNextStep: Bool = false
     var showModal: Bool = false
     var trainingDifficulty: DifficultyLevel?
     var hasTrainingPlan: Bool = false
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingProteinIntakeInteractor) {
+
+    init(
+        interactor: OnboardingProteinIntakeInteractor,
+        router: OnboardingProteinIntakeRouter
+    ) {
         self.interactor = interactor
+        self.router = router
         loadTrainingContext()
     }
     
@@ -68,19 +76,23 @@ class OnboardingProteinIntakeViewModel {
         }
     }
 
-    func navigate(path: Binding<[OnboardingPathOption]>, dietPlanBuilder: DietPlanBuilder) {
+    func navigate(dietPlanBuilder: DietPlanBuilder) {
         if let proteinIntake = selectedProteinIntake {
             var builder = dietPlanBuilder
             builder.setProteinIntake(proteinIntake)
-            interactor.trackEvent(event: Event.navigate(destination: .dietPlan(dietPlanBuilder: builder)))
-            path.wrappedValue.append(.dietPlan(dietPlanBuilder: builder))
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingDietPlanView(delegate: OnboardingDietPlanViewDelegate(dietPlanBuilder: builder))
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
         case trainingContextLoaded(difficulty: DifficultyLevel?)
         case proteinIntakePrefilled(intake: ProteinIntake, reason: String)
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -96,8 +108,8 @@ class OnboardingProteinIntakeViewModel {
                 return ["difficulty": difficulty?.rawValue as Any]
             case .proteinIntakePrefilled(intake: let intake, reason: let reason):
                 return ["intake": intake.rawValue, "reason": reason]
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
         

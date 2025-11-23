@@ -6,18 +6,11 @@
 //
 
 import SwiftUI
-
-struct SignInViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct SignInView: View {
 
     @State var viewModel: SignInViewModel
-
-    var delegate: SignInViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -38,11 +31,6 @@ struct SignInView: View {
         .onDisappear {
             viewModel.cleanup()
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     private var emailSection: some View {
@@ -95,7 +83,7 @@ struct SignInView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -104,7 +92,7 @@ struct SignInView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onSignInPressed(path: delegate.path)
+                viewModel.onSignInPressed()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -114,10 +102,9 @@ struct SignInView: View {
 }
 
 #Preview("Sign In") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingSignInView(delegate: SignInViewDelegate(path: $path))
+    RouterView { router in
+        builder.onboardingSignInView(router: router)
     }
     .previewEnvironment()
 }

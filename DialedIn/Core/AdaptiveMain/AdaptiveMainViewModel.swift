@@ -17,10 +17,7 @@ extension CoreInteractor: AdaptiveMainInteractor { }
 @MainActor
 class AdaptiveMainViewModel {
     private let interactor: AdaptiveMainInteractor
-    
-    var path: [TabBarPathOption] = []
-    var tab: TabBarOption = .dashboard
-    
+        
     init(interactor: AdaptiveMainInteractor) {
         self.interactor = interactor
     }

@@ -14,32 +14,43 @@ protocol OnboardingTrainingProgramInteractor {
 
 extension CoreInteractor: OnboardingTrainingProgramInteractor { }
 
+@MainActor
+protocol OnboardingTrainingProgramRouter {
+    func showDevSettingsView()
+    func showOnboardingTrainingExperienceView(delegate: OnboardingTrainingExperienceViewDelegate)
+}
+
+extension CoreRouter: OnboardingTrainingProgramRouter { }
+
 @Observable
 @MainActor
 class OnboardingTrainingProgramViewModel {
     private let interactor: OnboardingTrainingProgramInteractor
+    private let router: OnboardingTrainingProgramRouter
 
     var showAlert: AnyAppAlert?
     var isLoading: Bool = false
 
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
     init(
-        interactor: OnboardingTrainingProgramInteractor
+        interactor: OnboardingTrainingProgramInteractor,
+        router: OnboardingTrainingProgramRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func navigateToTrainingExperience(path: Binding<[OnboardingPathOption]>) {
+    func navigateToTrainingExperience() {
         let builder = TrainingProgramBuilder()
-        interactor.trackEvent(event: Event.navigate(destination: .trainingExperience(trainingProgramBuilder: builder)))
-        path.wrappedValue.append(.trainingExperience(trainingProgramBuilder: builder))
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingTrainingExperienceView(delegate: OnboardingTrainingExperienceViewDelegate(trainingProgramBuilder: builder))
     }
-    
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -49,8 +60,7 @@ class OnboardingTrainingProgramViewModel {
         
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+                default: return nil
             }
         }
         

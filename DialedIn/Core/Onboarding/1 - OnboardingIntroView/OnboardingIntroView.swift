@@ -110,7 +110,7 @@ struct OnboardingIntroView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToAuthOptions(path: .constant([]))
+                viewModel.navigateToAuthOptions()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -119,7 +119,6 @@ struct OnboardingIntroView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
         builder.onboardingIntroView(router: router)

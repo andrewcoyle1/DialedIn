@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct ExercisesViewDelegate {
     let onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?
@@ -18,8 +19,6 @@ struct ExercisesView: View {
     @State var viewModel: ExercisesViewModel
 
     let delegate: ExercisesViewDelegate
-
-    @ViewBuilder var createExerciseView: () -> AnyView
 
     var body: some View {
         List {
@@ -68,9 +67,6 @@ struct ExercisesView: View {
             Task {
                 await viewModel.syncSavedExercisesFromUser()
             }
-        }
-        .sheet(isPresented: $viewModel.showCreateExercise) {
-            createExerciseView()
         }
     }
     
@@ -206,7 +202,7 @@ struct ExercisesView: View {
                 Text("My Templates")
                 Spacer()
                 Button {
-                    viewModel.showCreateExercise = true
+                    viewModel.onAddExercisePressed()
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20))
@@ -269,8 +265,8 @@ struct ExercisesView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.exercisesView(delegate: ExercisesViewDelegate(onExerciseSelectionChanged: nil))
+    RouterView { router in
+        builder.exercisesView(router: router, delegate: ExercisesViewDelegate(onExerciseSelectionChanged: nil))
     }
     .previewEnvironment()
 }

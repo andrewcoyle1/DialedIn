@@ -20,11 +20,19 @@ protocol CreateExerciseInteractor {
 
 extension CoreInteractor: CreateExerciseInteractor { }
 
+@MainActor
+protocol CreateExerciseRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: CreateExerciseRouter { }
+
 @Observable
 @MainActor
 class CreateExerciseViewModel {
     private let interactor: CreateExerciseInteractor
-    
+    private let router: CreateExerciseRouter
+
     var selectedPhotoItem: PhotosPickerItem?
     private(set) var selectedImageData: Data?
     var isImagePickerPresented: Bool = false
@@ -48,9 +56,11 @@ class CreateExerciseViewModel {
     }
     
     init(
-        interactor: CreateExerciseInteractor
+        interactor: CreateExerciseInteractor,
+        router: CreateExerciseRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onImageSelectorPressed() {
@@ -155,6 +165,10 @@ class CreateExerciseViewModel {
 
     func onCancelPressed(onDismiss: @escaping () -> Void) {
         onDismiss()
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {

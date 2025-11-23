@@ -13,15 +13,29 @@ protocol DayScheduleScheetInteractor {
 
 extension CoreInteractor: DayScheduleScheetInteractor { }
 
+@MainActor
+protocol DayScheduleSheetRouter {
+    func showDevSettingsView()
+    func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailViewDelegate)
+}
+
+extension CoreRouter: DayScheduleSheetRouter { }
+
 @Observable
 @MainActor
 class DayScheduleSheetViewModel {
-    let interactor: DayScheduleScheetInteractor
+    private let interactor: DayScheduleScheetInteractor
+    private let router: DayScheduleSheetRouter
+
     var sessionToShow: WorkoutSessionModel?
     var showAlert: AnyAppAlert?
     
-    init(interactor: DayScheduleScheetInteractor) {
+    init(
+        interactor: DayScheduleScheetInteractor,
+        router: DayScheduleSheetRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func openCompletedSession(for workout: ScheduledWorkout) async {
@@ -34,5 +48,13 @@ class DayScheduleSheetViewModel {
         } catch {
             showAlert = AnyAppAlert(error: error)
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func onWorkoutSessionPressed(session: WorkoutSessionModel) {
+        router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailViewDelegate(workoutSession: session))
     }
 }

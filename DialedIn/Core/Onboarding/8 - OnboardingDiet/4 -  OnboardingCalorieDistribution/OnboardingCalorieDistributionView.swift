@@ -6,10 +6,10 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 // swiftlint:disable:next type_name
 struct OnboardingCalorieDistributionViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     let dietPlanBuilder: DietPlanBuilder
 }
 
@@ -18,8 +18,6 @@ struct OnboardingCalorieDistributionView: View {
     @State var viewModel: OnboardingCalorieDistributionViewModel
 
     var delegate: OnboardingCalorieDistributionViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -41,11 +39,6 @@ struct OnboardingCalorieDistributionView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     private var itemSection: some View {
@@ -75,7 +68,7 @@ struct OnboardingCalorieDistributionView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -84,7 +77,7 @@ struct OnboardingCalorieDistributionView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToProteinIntake(path: delegate.path, dietPlanBuilder: delegate.dietPlanBuilder)
+                viewModel.navigateToProteinIntake(dietPlanBuilder: delegate.dietPlanBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -95,12 +88,11 @@ struct OnboardingCalorieDistributionView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingCalorieDistributionView(
+            router: router,
             delegate: OnboardingCalorieDistributionViewDelegate(
-                path: $path,
                 dietPlanBuilder: .calorieDistributionMock
             )
         )

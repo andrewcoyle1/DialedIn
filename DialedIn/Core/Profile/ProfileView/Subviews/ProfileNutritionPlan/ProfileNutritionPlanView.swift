@@ -6,22 +6,17 @@
 //
 
 import SwiftUI
-
-struct ProfileNutritionPlanViewDelegate {
-    var path: Binding<[TabBarPathOption]>
-}
+import CustomRouting
 
 struct ProfileNutritionPlanView: View {
 
     @State var viewModel: ProfileNutritionPlanViewModel
 
-    var delegate: ProfileNutritionPlanViewDelegate
-
     var body: some View {
         Section {
             if let plan = viewModel.currentDietPlan {
                 Button {
-                    viewModel.navToNutritionDetail(path: delegate.path)
+                    viewModel.navToNutritionDetail()
                 } label: {
                     VStack(spacing: 8) {
                         MetricRow(
@@ -100,11 +95,10 @@ struct ProfileNutritionPlanView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         List {
-            builder.profileNutritionPlanView(delegate: ProfileNutritionPlanViewDelegate(path: $path))
+            builder.profileNutritionPlanView(router: router)
         }
     }
     .previewEnvironment()

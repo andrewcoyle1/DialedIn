@@ -17,10 +17,19 @@ protocol SignUpInteractor: Sendable {
 
 extension CoreInteractor: SignUpInteractor { }
 
+@MainActor
+protocol SignUpRouter {
+    func showDevSettingsView()
+    func showEmailVerificationView()
+}
+
+extension CoreRouter: SignUpRouter { }
+
 @Observable
 @MainActor
 class SignUpViewModel {
     private let interactor: SignUpInteractor
+    private let router: SignUpRouter
 
     var email: String = ""
     var password: String = ""
@@ -36,16 +45,16 @@ class SignUpViewModel {
     var showAlert: AnyAppAlert?
     var currentAuthTask: Task<Void, Never>?
 
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-
-    init(interactor: SignUpInteractor) {
+    init(
+        interactor: SignUpInteractor,
+        router: SignUpRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
 
     // MARK: Sign Up Pressed
-    func onSignUpPressed(path: Binding<[OnboardingPathOption]>) {
+    func onSignUpPressed() {
         // Cancel any existing auth task to prevent race conditions
         currentAuthTask?.cancel()
 
@@ -62,7 +71,7 @@ class SignUpViewModel {
             do {
                 try await performAuthWithTimeout {
                     let auth = try await self.interactor.createUser(email: self.email, password: self.password)
-                    await self.handleOnAuthSuccess(user: auth, path: path)
+                    await self.handleOnAuthSuccess(user: auth)
                 }
 
                 interactor.trackEvent(event: Event.signUpSuccess)
@@ -71,7 +80,7 @@ class SignUpViewModel {
                 if !Task.isCancelled {
                     handleAuthError(error, operation: "sign up") {
                         Task { @MainActor in
-                            self.onSignUpPressed(path: path)
+                            self.onSignUpPressed()
                         }
                     }
                 }
@@ -80,10 +89,10 @@ class SignUpViewModel {
     }
 
     // MARK: Handle Auth Success
-    func handleOnAuthSuccess(user: UserAuthInfo, path: Binding<[OnboardingPathOption]>) {
+    func handleOnAuthSuccess(user: UserAuthInfo) {
         // Cancel any existing auth task to prevent conflicts
         currentAuthTask?.cancel()
-
+        
         currentAuthTask = Task {
 
             // Task Management
@@ -92,24 +101,24 @@ class SignUpViewModel {
                 isLoadingUser = false
                 currentAuthTask = nil
             }
-
+            
             interactor.trackEvent(event: Event.userLoginStart)
             do {
                 try await performAuthWithTimeout {
                     try await self.interactor.logIn(auth: user, image: nil)
                 }
                 interactor.trackEvent(event: Event.userLoginSuccess)
-
+                
                 // Only navigate if task wasn't cancelled
                 if !Task.isCancelled {
-                    handleNavigation(path: path)
+                    handleNavigation()
                 }
             } catch {
                 // Only show error if task wasn't cancelled
                 if !Task.isCancelled {
                     handleUserLoginError(error) {
                         Task { @MainActor in
-                            self.handleOnAuthSuccess(user: user, path: path)
+                            self.handleOnAuthSuccess(user: user)
                         }
                     }
                 }
@@ -117,9 +126,9 @@ class SignUpViewModel {
         }
     }
 
-    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .emailVerification))
-        path.wrappedValue.append(.emailVerification)
+    func handleNavigation() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showEmailVerificationView()
     }
     
     // MARK: Cleanup Tasks
@@ -129,6 +138,10 @@ class SignUpViewModel {
         currentAuthTask = nil
         isLoadingAuth = false
         isLoadingUser = false
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     // MARK: Perform Auth with Timeout
@@ -202,7 +215,7 @@ class SignUpViewModel {
         case signUpStart
         case signUpSuccess
         case signUpFail(error: Error)
-        case navigate(destination: OnboardingPathOption)
+        case navigate
         case userLoginStart
         case userLoginSuccess
         case userLoginFail(error: Error)
@@ -223,8 +236,6 @@ class SignUpViewModel {
             switch self {
             case .signUpFail(error: let error), .userLoginFail(error: let error):
                 return error.eventParameters
-            case .navigate(destination: let destination):
-                return destination.eventParameters
             default:
                 return nil
             }

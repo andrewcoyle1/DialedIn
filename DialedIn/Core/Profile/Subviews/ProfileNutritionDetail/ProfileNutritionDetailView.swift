@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct ProfileNutritionDetailView: View {
     @State var viewModel: ProfileNutritionDetailViewModel
@@ -152,7 +153,8 @@ private extension Array {
 }
 
 #Preview {
-    NavigationStack {
-        ProfileNutritionDetailView(viewModel: ProfileNutritionDetailViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.profileNutritionDetailView(router: router)
     }
 }

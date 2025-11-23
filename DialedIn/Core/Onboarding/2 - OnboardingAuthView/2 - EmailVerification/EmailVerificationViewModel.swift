@@ -19,10 +19,25 @@ protocol EmailVerificationInteractor: Sendable {
 
 extension CoreInteractor: EmailVerificationInteractor { }
 
+@MainActor
+protocol EmailVerificationRouter {
+    func showDevSettingsView()
+    func showOnboardingCompleteAccountSetupView()
+    func showOnboardingNotificationsView()
+    func showOnboardingHealthDataView()
+    func showOnboardingHealthDisclaimerView()
+    func showOnboardingGoalSettingView()
+    func showOnboardingCustomisingProgramView()
+    func showOnboardingCompletedView()
+}
+
+extension CoreRouter: EmailVerificationRouter { }
+
 @Observable
 @MainActor
 class EmailVerificationViewModel {
     private let interactor: EmailVerificationInteractor
+    private let router: EmailVerificationRouter
 
     var isLoadingCheck: Bool = false
     var isLoadingResend: Bool = false
@@ -34,17 +49,17 @@ class EmailVerificationViewModel {
     private let pollIntervalSeconds: Double = 7
     var showAlert: AnyAppAlert?
 
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-
-    init(interactor: EmailVerificationInteractor) {
+    init(
+        interactor: EmailVerificationInteractor,
+        router: EmailVerificationRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
 
-    func setup(path: Binding<[OnboardingPathOption]>) {
+    func setup() {
         startSendVerificationEmail(isInitial: true)
-        startPolling(path: path)
+        startPolling()
     }
 
     // MARK: Send Verification Email
@@ -98,7 +113,7 @@ class EmailVerificationViewModel {
     }
 
     // MARK: On Done Pressed
-    func onDonePressed(path: Binding<[OnboardingPathOption]>, onDismiss: @escaping @Sendable () -> Void = {}) {
+    func onDonePressed(onDismiss: @escaping @Sendable () -> Void = {}) {
         // If user is not signed in, show recovery alert
         guard interactor.auth != nil else {
             self.showNotSignedInAlert(onDismiss: onDismiss)
@@ -120,7 +135,7 @@ class EmailVerificationViewModel {
                     return try await self.interactor.checkVerificationEmail()
                 }
                 interactor.trackEvent(event: Event.checkEmailVerificationSuccess(isVerified: isVerified))
-                handleDidCheckEmailVerification(isVerified: isVerified, path: path, onDismiss: onDismiss)
+                handleDidCheckEmailVerification(isVerified: isVerified, onDismiss: onDismiss)
             } catch {
                 if !Task.isCancelled {
                     interactor.trackEvent(event: Event.checkEmailVerificationFail(error: error))
@@ -134,7 +149,7 @@ class EmailVerificationViewModel {
                                     Button("Cancel") { }
                                     if errorInfo.isRetryable {
                                         Button("Try Again") {
-                                            self.onDonePressed(path: path, onDismiss: onDismiss)
+                                            self.onDonePressed(onDismiss: onDismiss)
                                         }
                                     }
                                 }
@@ -147,9 +162,9 @@ class EmailVerificationViewModel {
     }
 
     // MARK: HandleDidCheckEmailVerification
-    func handleDidCheckEmailVerification(isVerified: Bool, path: Binding<[OnboardingPathOption]>, onDismiss: @escaping @Sendable () -> Void) {
+    func handleDidCheckEmailVerification(isVerified: Bool, onDismiss: @escaping @Sendable () -> Void) {
         if isVerified && !Task.isCancelled {
-            handleNavigation(path: path)
+            handleNavigation()
             currentPollingTask?.cancel()
             currentPollingTask = nil
         } else if !Task.isCancelled {
@@ -169,7 +184,7 @@ class EmailVerificationViewModel {
                                 )
                             }
                             Button("Check Again") {
-                                self.onDonePressed(path: path, onDismiss: { onDismiss() })
+                                self.onDonePressed(onDismiss: { onDismiss() })
                             }
                             Button("Cancel") { }
                         }
@@ -181,11 +196,40 @@ class EmailVerificationViewModel {
 
     // MARK: Handle Navigation
 
-    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
+    func handleNavigation() {
         // Navigate based on user's current onboarding step
-        let pathOption = interactor.currentUser?.onboardingStep.onboardingPathOption ?? .subscriptionInfo
-        interactor.trackEvent(event: Event.navigate(destination: pathOption))
-        path.wrappedValue.append(pathOption)
+        let step = interactor.currentUser?.onboardingStep ?? .subscription
+        interactor.trackEvent(event: Event.navigate)
+        route(to: step)
+    }
+
+    private func route(to step: OnboardingStep) {
+        switch step {
+        case .auth, .subscription:
+            // For anything at/before subscription, move them into complete-account setup
+            router.showOnboardingCompleteAccountSetupView()
+
+        case .completeAccountSetup:
+            router.showOnboardingCompleteAccountSetupView()
+
+        case .notifications:
+            router.showOnboardingNotificationsView()
+
+        case .healthData:
+            router.showOnboardingHealthDataView()
+
+        case .healthDisclaimer:
+            router.showOnboardingHealthDisclaimerView()
+
+        case .goalSetting:
+            router.showOnboardingGoalSettingView()
+
+        case .customiseProgram:
+            router.showOnboardingCustomisingProgramView()
+
+        case .complete:
+            router.showOnboardingCompletedView()
+        }
     }
 
     // MARK: - Timeout Helper
@@ -210,6 +254,10 @@ class EmailVerificationViewModel {
         }
     }
 
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     // MARK: - Alerts
     func showNotSignedInAlert(onDismiss: @escaping @Sendable () -> Void) {
         showAlert = AnyAppAlert(
@@ -229,7 +277,7 @@ class EmailVerificationViewModel {
     }
 
     // MARK: - Polling & Toast
-    func startPolling(path: Binding<[OnboardingPathOption]>) {
+    func startPolling() {
         // Avoid multiple polling tasks
         currentPollingTask?.cancel()
         currentPollingTask = Task {
@@ -241,7 +289,7 @@ class EmailVerificationViewModel {
                             try await self.interactor.checkVerificationEmail()
                         }
                         if isVerified && !Task.isCancelled {
-                            handleNavigation(path: path)
+                            handleNavigation()
                         }
                     } catch {
                         // Ignore transient polling errors
@@ -292,7 +340,7 @@ class EmailVerificationViewModel {
         case checkEmailVerificationStart
         case checkEmailVerificationSuccess(isVerified: Bool)
         case checkEmailVerificationFail(error: Error)
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -310,8 +358,6 @@ class EmailVerificationViewModel {
             switch self {
             case .sendEmailVerificationFail(error: let error), .checkEmailVerificationFail(error: let error):
                 return error.eventParameters
-            case .navigate(destination: let destination):
-                return destination.eventParameters
             default:
                 return nil
             }

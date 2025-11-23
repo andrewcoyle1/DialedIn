@@ -18,6 +18,16 @@ extension CoreInteractor: OnboardingWelcomeInteractor { }
 @MainActor
 protocol OnboardingWelcomeRouter {
     func showDevSettingsView()
+    func showOnboardingIntroView()
+    func showAuthOptionsView()
+    func showSubscriptionView()
+    func showOnboardingCompleteAccountSetupView()
+    func showOnboardingNotificationsView()
+    func showOnboardingHealthDataView()
+    func showOnboardingHealthDisclaimerView()
+    func showOnboardingGoalSettingView()
+    func showOnboardingCustomisingProgramView()
+    func showOnboardingCompletedView()
 }
 
 extension CoreRouter: OnboardingWelcomeRouter { }
@@ -30,8 +40,6 @@ class OnboardingWelcomeViewModel {
 
     var imageName: String = Constants.randomImage
     var showSignInView: Bool = false
-    
-    var path: [OnboardingPathOption] = []
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -46,20 +54,51 @@ class OnboardingWelcomeViewModel {
     }
     
     func navToAppropriateView() {
-        navigate(step: currentUser?.onboardingStep.onboardingPathOption ?? .intro)
+        if let step = currentUser?.onboardingStep {
+            navigate(step: step)
+        } else {
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingIntroView()
+        }
     }
 
-    func navigate(step: OnboardingPathOption) {
-        interactor.trackEvent(event: Event.navigate(destination: step))
-        path.append(step)
-    }
+    func navigate(step: OnboardingStep) {
+        interactor.trackEvent(event: Event.navigate)
+        switch step {
+        case .auth:
+            router.showAuthOptionsView()
+            
+        case .subscription:
+            router.showSubscriptionView()
+
+        case .completeAccountSetup:
+            router.showOnboardingCompleteAccountSetupView()
+
+        case .notifications:
+            router.showOnboardingNotificationsView()
+
+        case .healthData:
+            router.showOnboardingHealthDataView()
+
+        case .healthDisclaimer:
+            router.showOnboardingHealthDisclaimerView()
+
+        case .goalSetting:
+            router.showOnboardingGoalSettingView()
+
+        case .customiseProgram:
+            router.showOnboardingCustomisingProgramView()
+
+        case .complete:
+            router.showOnboardingCompletedView()
+        }    }
 
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -69,8 +108,8 @@ class OnboardingWelcomeViewModel {
         
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
         

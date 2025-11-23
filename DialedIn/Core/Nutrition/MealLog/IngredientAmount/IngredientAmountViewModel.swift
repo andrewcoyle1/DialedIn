@@ -13,10 +13,19 @@ protocol IngredientAmountInteractor {
 
 extension CoreInteractor: IngredientAmountInteractor { }
 
+@MainActor
+protocol IngredientAmountRouter {
+    func showDevSettingsView()
+    func dismissScreen()
+}
+
+extension CoreRouter: IngredientAmountRouter { }
+
 @Observable
 @MainActor
 class IngredientAmountViewModel {
     private let interactor: IngredientAmountInteractor
+    private let router: IngredientAmountRouter
 
     var amountText: String = "100"
 
@@ -34,8 +43,12 @@ class IngredientAmountViewModel {
     func carbs(ingredient: IngredientTemplateModel) -> Double? { ingredient.carbs.map { $0 * scale } }
     func fat(ingredient: IngredientTemplateModel) -> Double? { ingredient.fatTotal.map { $0 * scale } }
 
-    init(interactor: IngredientAmountInteractor) {
+    init(
+        interactor: IngredientAmountInteractor,
+        router: IngredientAmountRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
 
     func add(ingredient: IngredientTemplateModel, onConfirm: @escaping (MealItemModel) -> Void) {
@@ -56,5 +69,13 @@ class IngredientAmountViewModel {
             fatGrams: fat(ingredient: ingredient)
         )
         onConfirm(item)
+    }
+
+    func dismissScreen() {
+        router.dismissScreen()
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingTrainingReviewViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var trainingProgramBuilder: TrainingProgramBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingTrainingReviewView: View {
     @State var viewModel: OnboardingTrainingReviewViewModel
 
     var delegate: OnboardingTrainingReviewViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -69,11 +67,6 @@ struct OnboardingTrainingReviewView: View {
                 .padding()
         }
         .showCustomAlert(alert: $viewModel.showAlert)
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .screenAppearAnalytics(name: "TrainingReview")
         .onFirstAppear {
             viewModel.loadRecommendation(builder: delegate.trainingProgramBuilder)
@@ -108,7 +101,7 @@ struct OnboardingTrainingReviewView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -117,7 +110,7 @@ struct OnboardingTrainingReviewView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.createPlanAndContinue(path: delegate.path, builder: delegate.trainingProgramBuilder)
+                viewModel.createPlanAndContinue(builder: delegate.trainingProgramBuilder)
             } label: {
                 Text("Create Program")
             }
@@ -128,12 +121,11 @@ struct OnboardingTrainingReviewView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingTrainingReviewView(
+            router: router,
             delegate: OnboardingTrainingReviewViewDelegate(
-                path: $path,
                 trainingProgramBuilder: TrainingProgramBuilder(
                     experienceLevel: .intermediate,
                     targetDaysPerWeek: 4,

@@ -6,19 +6,11 @@
 //
 
 import SwiftUI
-
-// swiftlint:disable:next type_name
-struct OnboardingOverarchingObjectiveViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct OnboardingOverarchingObjectiveView: View {
 
     @State var viewModel: OnboardingOverarchingObjectiveViewModel
-
-    var delegate: OnboardingOverarchingObjectiveViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -28,11 +20,6 @@ struct OnboardingOverarchingObjectiveView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
     }
     
     private var objectiveSection: some View {
@@ -77,7 +64,7 @@ struct OnboardingOverarchingObjectiveView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -86,7 +73,7 @@ struct OnboardingOverarchingObjectiveView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToNextStep(path: delegate.path)
+                viewModel.navigateToNextStep()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -97,14 +84,9 @@ struct OnboardingOverarchingObjectiveView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingOverarchingObjectiveView(
-            delegate: OnboardingOverarchingObjectiveViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingOverarchingObjectiveView(router: router)
     }
     .previewEnvironment()
 }

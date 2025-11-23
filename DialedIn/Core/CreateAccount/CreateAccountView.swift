@@ -50,14 +50,12 @@ struct CreateAccountView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        Text("Hello")
-            .sheet(isPresented: Binding.constant(true)) {
-                RouterView { router in
-                    builder.createAccountView(router: router)
-                }
+    Text("Hello")
+        .sheet(isPresented: Binding.constant(true)) {
+            RouterView { router in
+                builder.createAccountView(router: router)
             }
-            .presentationDetents([.fraction(0.25)])
-    }
+        }
+        .presentationDetents([.fraction(0.25)])
     .previewEnvironment()
 }

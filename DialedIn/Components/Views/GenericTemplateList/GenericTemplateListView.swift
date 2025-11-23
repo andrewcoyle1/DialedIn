@@ -47,7 +47,8 @@ struct GenericTemplateListView<Template: TemplateModel>: View {
                             subtitle: template.description
                         )
                         .anyButton(.highlight) {
-                            viewModel.path.append(viewModel.navigationDestination(for: template))
+//                            
+//                            viewModel.path.append(viewModel.navigationDestination(for: template))
                         }
                         .removeListRowFormatting()
                     }

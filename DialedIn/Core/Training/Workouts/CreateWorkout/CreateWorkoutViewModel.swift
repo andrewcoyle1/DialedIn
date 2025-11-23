@@ -21,12 +21,23 @@ protocol CreateWorkoutInteractor {
 
 extension CoreInteractor: CreateWorkoutInteractor { }
 
+@MainActor
+protocol CreateWorkoutRouter {
+    func showDevSettingsView()
+    func showAddExercisesView(delegate: AddExerciseModalViewDelegate)
+    func dismissScreen()
+    func showAlert(error: Error)
+}
+
+extension CoreRouter: CreateWorkoutRouter { }
+
 @Observable
 @MainActor
 class CreateWorkoutViewModel {
     
     private let interactor: CreateWorkoutInteractor
-    
+    private let router: CreateWorkoutRouter
+
     // Optional template for edit mode
     var workoutTemplate: WorkoutTemplateModel?
     
@@ -37,17 +48,11 @@ class CreateWorkoutViewModel {
     var isImagePickerPresented: Bool = false
     var exercises: [ExerciseTemplateModel] = []
 
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-
     var isSaving: Bool = false
-    var showAddExerciseModal: Bool = false
     var saveError: String?
     private(set) var isGenerating: Bool = false
     var generatedImage: UIImage?
-    var alert: AnyAppAlert?
-    
+
     var canSave: Bool {
         !workoutName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
@@ -56,8 +61,12 @@ class CreateWorkoutViewModel {
         workoutTemplate != nil
     }
     
-    init(interactor: CreateWorkoutInteractor) {
+    init(
+        interactor: CreateWorkoutInteractor,
+        router: CreateWorkoutRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onImageSelectorPressed() {
@@ -74,11 +83,11 @@ class CreateWorkoutViewModel {
         exercises = template.exercises
     }
     
-    func cancel(onDismiss: @escaping () -> Void) {
-        onDismiss()
+    func cancel() {
+        router.dismissScreen()
     }
-    
-    func onSavePressed(onDismiss: @escaping () -> Void) async throws {
+
+    func onSavePressed() async throws {
         guard !isSaving, canSave else { return }
         isSaving = true
         
@@ -99,7 +108,7 @@ class CreateWorkoutViewModel {
             throw error // Re-throw to allow caller to handle the error
         }
         isSaving = false
-        onDismiss()
+        router.dismissScreen()
     }
     
     func updateExistingWorkout(existingTemplate: WorkoutTemplateModel, userId: String) async throws {
@@ -154,7 +163,18 @@ class CreateWorkoutViewModel {
     }
     
     func onAddExercisePressed() {
-        showAddExerciseModal = true
+        router.showAddExercisesView(
+            delegate: AddExerciseModalViewDelegate(
+                selectedExercises: Binding(
+                    get: {
+                        self.exercises
+                    },
+                    set: { newValue in
+                        self.exercises = newValue
+                    }
+                )
+            )
+        )
     }
 
     func onGenerateImagePressed() {
@@ -181,9 +201,14 @@ class CreateWorkoutViewModel {
                 interactor.trackEvent(eventName: "AI_Image_Generate_Success", parameters: [:], type: .analytic)
             } catch {
                 interactor.trackEvent(eventName: "AI_Image_Generate_Fail", parameters: error.eventParameters, type: .severe)
-                alert = AnyAppAlert(error: error)
+                router.showAlert(error: error)
             }
             isGenerating = false
         }
     }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
 }

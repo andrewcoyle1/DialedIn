@@ -13,32 +13,45 @@ protocol OnboardingTrainingEquipmentInteractor {
 
 extension CoreInteractor: OnboardingTrainingEquipmentInteractor { }
 
+@MainActor
+protocol OnboardingTrainingEquipmentRouter {
+    func showDevSettingsView()
+    func showOnboardingTrainingReviewView(delegate: OnboardingTrainingReviewViewDelegate)
+}
+
+extension CoreRouter: OnboardingTrainingEquipmentRouter { }
+
 @Observable
 @MainActor
 class OnboardingTrainingEquipmentViewModel {
     private let interactor: OnboardingTrainingEquipmentInteractor
-    
+    private let router: OnboardingTrainingEquipmentRouter
+
     var selectedEquipment: Set<EquipmentType> = []
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingTrainingEquipmentInteractor) {
+    init(
+        interactor: OnboardingTrainingEquipmentInteractor,
+        router: OnboardingTrainingEquipmentRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func navigateToReview(path: Binding<[OnboardingPathOption]>, builder: TrainingProgramBuilder) {
+    func navigateToReview(builder: TrainingProgramBuilder) {
         guard !selectedEquipment.isEmpty else { return }
         
         var updatedBuilder = builder
         updatedBuilder.setAvailableEquipment(selectedEquipment)
-        interactor.trackEvent(event: Event.navigate(destination: .trainingReview(trainingProgramBuilder: updatedBuilder)))
-        path.wrappedValue.append(.trainingReview(trainingProgramBuilder: updatedBuilder))
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingTrainingReviewView(delegate: OnboardingTrainingReviewViewDelegate(trainingProgramBuilder: updatedBuilder))
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -48,8 +61,8 @@ class OnboardingTrainingEquipmentViewModel {
         
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
         

@@ -25,6 +25,7 @@ extension CoreInteractor: SettingsInteractor { }
 @MainActor
 protocol SettingsRouter {
     func showCreateAccountView()
+    func showManageSubscriptionView()
 }
 
 extension CoreRouter: SettingsRouter { }
@@ -123,9 +124,9 @@ class SettingsViewModel {
         )
     }
 
-    func navToManageSubscriptionView(path: Binding<[TabBarPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .manageSubscription))
-        path.wrappedValue.append(.manageSubscription)
+    func navToManageSubscriptionView() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showManageSubscriptionView()
     }
 
     private func onDeleteAccountConfirmed(onDismiss: @escaping () -> Void) {
@@ -172,7 +173,7 @@ class SettingsViewModel {
         case ratingsPressed
         case ratingsYesPressed
         case ratingsNoPressed
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -196,8 +197,6 @@ class SettingsViewModel {
             switch self {
             case .signOutFail(error: let error), .deleteAccountFail(error: let error):
                 return error.eventParameters
-            case .navigate(destination: let destination):
-                return destination.eventParameters
             default:
                 return nil
             }

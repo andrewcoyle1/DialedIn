@@ -11,17 +11,10 @@ struct SetGoalFlowView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State var path: [OnboardingPathOption] = []
-
-    @ViewBuilder var onboardingOverarchingObjectiveView: (OnboardingOverarchingObjectiveViewDelegate) -> AnyView
+    @ViewBuilder var onboardingOverarchingObjectiveView: () -> AnyView
 
     var body: some View {
-        NavigationStack {
-            onboardingOverarchingObjectiveView(
-                OnboardingOverarchingObjectiveViewDelegate(
-                    path: $path
-                )
-            )
+        onboardingOverarchingObjectiveView()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -29,7 +22,6 @@ struct SetGoalFlowView: View {
                     }
                 }
             }
-        }
         .environment(\.goalFlowDismissAction, { dismiss() })
     }
 }

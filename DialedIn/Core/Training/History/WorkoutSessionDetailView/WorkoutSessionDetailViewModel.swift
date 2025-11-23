@@ -20,11 +20,20 @@ protocol WorkoutSessionDetailInteractor {
 
 extension CoreInteractor: WorkoutSessionDetailInteractor { }
 
+@MainActor
+protocol WorkoutSessionDetailRouter {
+    func showDevSettingsView()
+    func showAddExercisesView(delegate: AddExerciseModalViewDelegate)
+}
+
+extension CoreRouter: WorkoutSessionDetailRouter { }
+
 @Observable
 @MainActor
 class WorkoutSessionDetailViewModel {
     private let interactor: WorkoutSessionDetailInteractor
-    
+    private let router: WorkoutSessionDetailRouter
+
     private(set) var isEditMode = false
     private(set) var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
     
@@ -32,7 +41,6 @@ class WorkoutSessionDetailViewModel {
     var isDeleting = false
     var editedSession: WorkoutSessionModel?
     var isSaving = false
-    var showAddExerciseSheet = false
     var isLoading: Bool {
         isSaving || isDeleting
     }
@@ -46,8 +54,12 @@ class WorkoutSessionDetailViewModel {
         editedSession != session
     }
     
-    init(interactor: WorkoutSessionDetailInteractor) {
+    init(
+        interactor: WorkoutSessionDetailInteractor,
+        router: WorkoutSessionDetailRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func totalSets(session: WorkoutSessionModel) -> Int {
@@ -345,5 +357,24 @@ class WorkoutSessionDetailViewModel {
                 }
             )
         }
+    }
+
+    func onAddExercisePressed() {
+        router.showAddExercisesView(
+            delegate: AddExerciseModalViewDelegate(
+                selectedExercises: Binding(
+                    get: {
+                        self.selectedExerciseTemplates
+                    },
+                    set: { newValue in
+                        self.selectedExerciseTemplates = newValue
+                    }
+                )
+            )
+        )
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

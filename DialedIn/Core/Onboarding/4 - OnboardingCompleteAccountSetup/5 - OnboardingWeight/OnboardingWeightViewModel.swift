@@ -13,11 +13,20 @@ protocol OnboardingWeightInteractor {
 
 extension CoreInteractor: OnboardingWeightInteractor { }
 
+@MainActor
+protocol OnboardingWeightRouter {
+    func showDevSettingsView()
+    func showOnboardingExerciseFrequencyView(delegate: OnboardingExerciseFrequencyViewDelegate)
+}
+
+extension CoreRouter: OnboardingWeightRouter { }
+
 @Observable
 @MainActor
 class OnboardingWeightViewModel {
     private let interactor: OnboardingWeightInteractor
-        
+    private let router: OnboardingWeightRouter
+
     var unit: UnitOfWeight = .kilograms
     var selectedKilograms: Int = 70
     var selectedPounds: Int = 154
@@ -47,10 +56,6 @@ class OnboardingWeightViewModel {
         case pounds
     }
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
     var canSubmit: Bool {
         switch unit {
         case .kilograms:
@@ -68,19 +73,27 @@ class OnboardingWeightViewModel {
         selectedKilograms = Int(Double(selectedPounds) / 2.20462)
     }
     
-    init(interactor: OnboardingWeightInteractor) {
+    init(
+        interactor: OnboardingWeightInteractor,
+        router: OnboardingWeightRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func navigateToExerciseFrequency(path: Binding<[OnboardingPathOption]>, userBuilder: UserModelBuilder) {
+    func navigateToExerciseFrequency(userBuilder: UserModelBuilder) {
         var builder = userBuilder
         builder.setWeight(weight, weightUnitPreferene: preference)
-        interactor.trackEvent(event: Event.navigate(destination: .exerciseFrequency(userModelBuilder: builder)))
-        path.wrappedValue.append(.exerciseFrequency(userModelBuilder: builder))
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingExerciseFrequencyView(delegate: OnboardingExerciseFrequencyViewDelegate(userModelBuilder: builder))
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -90,8 +103,8 @@ class OnboardingWeightViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

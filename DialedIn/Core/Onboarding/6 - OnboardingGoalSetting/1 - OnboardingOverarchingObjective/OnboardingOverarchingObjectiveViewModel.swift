@@ -14,19 +14,25 @@ protocol OnboardingOverarchingObjectiveInteractor {
 
 extension CoreInteractor: OnboardingOverarchingObjectiveInteractor { }
 
+@MainActor
+protocol OnboardingOverarchingObjectiveRouter {
+    func showDevSettingsView()
+    func showOnboardingTargetWeightView(delegate: OnboardingTargetWeightViewDelegate)
+    func showOnboardingGoalSummaryView(delegate: OnboardingGoalSummaryViewDelegate)
+}
+
+extension CoreRouter: OnboardingOverarchingObjectiveRouter { }
+
 @Observable
 @MainActor
 class OnboardingOverarchingObjectiveViewModel {
     private let interactor: OnboardingOverarchingObjectiveInteractor
-    
+    private let router: OnboardingOverarchingObjectiveRouter
+
     let isStandaloneMode: Bool
     
     var selectedObjective: OverarchingObjective?
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
+        
     var userWeight: Double? {
         interactor.currentUser?.weightKilograms
     }
@@ -35,27 +41,33 @@ class OnboardingOverarchingObjectiveViewModel {
     
     init(
         interactor: OnboardingOverarchingObjectiveInteractor,
+        router: OnboardingOverarchingObjectiveRouter,
         isStandaloneMode: Bool = false
     ) {
         self.interactor = interactor
+        self.router = router
         self.isStandaloneMode = isStandaloneMode
     }
     
-    func navigateToNextStep(path: Binding<[OnboardingPathOption]>) {
+    func navigateToNextStep() {
         guard let objective = selectedObjective else { return }
         if objective == .maintain {
             let weightGoalBuilder = WeightGoalBuilder(objective: objective, targetWeightKg: 0, weeklyChangeKg: 0)
-            interactor.trackEvent(event: Event.navigate(destination: .goalSummary(weightGoalBuilder: weightGoalBuilder)))
-            path.wrappedValue.append(.goalSummary(weightGoalBuilder: weightGoalBuilder))
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingGoalSummaryView(delegate: OnboardingGoalSummaryViewDelegate(weightGoalBuilder: weightGoalBuilder))
         } else {
             let weightGoalBuilder = WeightGoalBuilder(objective: objective)
-            interactor.trackEvent(event: Event.navigate(destination: .targetWeight(weightGoalBuilder: weightGoalBuilder)))
-            path.wrappedValue.append(.targetWeight(weightGoalBuilder: weightGoalBuilder))
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingTargetWeightView(delegate: OnboardingTargetWeightViewDelegate(weightGoalBuilder: weightGoalBuilder))
         }
     }
 
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -65,8 +77,8 @@ class OnboardingOverarchingObjectiveViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

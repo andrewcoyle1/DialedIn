@@ -17,9 +17,6 @@ struct TrainingView: View {
 
     @State var viewModel: TrainingViewModel
 
-    @ViewBuilder var exerciseTemplateDetailView: (ExerciseTemplateDetailViewDelegate) -> AnyView
-    @ViewBuilder var workoutTemplateDetailView: (WorkoutTemplateDetailViewDelegate) -> AnyView
-    @ViewBuilder var workoutSessionDetailView: (WorkoutSessionDetailViewDelegate) -> AnyView
     @ViewBuilder var programView: (ProgramViewDelegate) -> AnyView
     @ViewBuilder var workoutsView: (WorkoutsViewDelegate) -> AnyView
     @ViewBuilder var exercisesView: (ExercisesViewDelegate) -> AnyView

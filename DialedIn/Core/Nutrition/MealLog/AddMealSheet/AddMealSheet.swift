@@ -12,39 +12,24 @@ struct AddMealSheetDelegate {
     let selectedDate: Date
     let mealType: MealType
     let onSave: (MealLogModel) -> Void
-    var path: Binding<[TabBarPathOption]>
 }
 
 struct AddMealSheet: View {
-
-    @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: AddMealSheetViewModel
 
     let delegate: AddMealSheetDelegate
 
-    @ViewBuilder var nutritionLibraryPickerView: (NutritionLibraryPickerViewDelegate) -> AnyView
-
     var body: some View {
-        NavigationStack {
-            List {
-                timeSection
-                notesSection
-                itemsSection
-            }
-            .navigationTitle("Add \(delegate.mealType.rawValue.capitalized)")
-            .navigationBarTitleDisplayMode(.inline)
-            .sheet(isPresented: $viewModel.showLibraryPicker) {
-                nutritionLibraryPickerView(
-                    NutritionLibraryPickerViewDelegate(onPick: { newItem in
-                        viewModel.items.append(newItem)
-                        viewModel.showLibraryPicker = false
-                    }, path: delegate.path)
-                )
-            }
-            .toolbar {
-                toolbarContent
-            }
+        List {
+            timeSection
+            notesSection
+            itemsSection
+        }
+        .navigationTitle("Add \(delegate.mealType.rawValue.capitalized)")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            toolbarContent
         }
     }
 
@@ -90,7 +75,7 @@ struct AddMealSheet: View {
             }
 
             Button {
-                viewModel.onAddItemPressed()
+                viewModel.onNutritionLibraryPickerViewPressed()
             } label: {
                 Label("Add Item", systemImage: "plus.circle.fill")
             }
@@ -103,13 +88,13 @@ struct AddMealSheet: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button("Cancel") {
-                dismiss()
+                viewModel.dismissScreen()
             }
         }
 
         ToolbarItem(placement: .confirmationAction) {
             Button("Save") {
-                viewModel.saveMeal(onDismiss: { dismiss() }, selectedDate: delegate.selectedDate, mealType: delegate.mealType, onSave: delegate.onSave)
+                viewModel.saveMeal(selectedDate: delegate.selectedDate, mealType: delegate.mealType, onSave: delegate.onSave)
             }
             .disabled(viewModel.items.isEmpty)
         }
@@ -117,15 +102,13 @@ struct AddMealSheet: View {
 }
 
 #Preview("Breakfast") {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = AddMealSheetDelegate(
         selectedDate: Date(),
         mealType: .breakfast,
         onSave: { _ in
 
-        },
-        path: $path
+        }
     )
     RouterView { router in
         builder.addMealSheet(router: router, delegate: delegate)
@@ -134,15 +117,13 @@ struct AddMealSheet: View {
 }
 
 #Preview("Lunch") {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = AddMealSheetDelegate(
         selectedDate: Date(),
         mealType: .lunch,
         onSave: { _ in
 
-        },
-        path: $path
+        }
     )
     RouterView { router in
         builder.addMealSheet(router: router, delegate: delegate)
@@ -151,15 +132,13 @@ struct AddMealSheet: View {
 }
 
 #Preview("Dinner") {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = AddMealSheetDelegate(
         selectedDate: Date(),
         mealType: .dinner,
         onSave: { _ in
 
-        },
-        path: $path
+        }
     )
     RouterView { router in
         builder.addMealSheet(router: router, delegate: delegate)
@@ -168,15 +147,13 @@ struct AddMealSheet: View {
 }
 
 #Preview("Snack") {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = AddMealSheetDelegate(
         selectedDate: Date(),
         mealType: .snack,
         onSave: { _ in
 
-        },
-        path: $path
+        }
     )
     RouterView { router in
         builder.addMealSheet(router: router, delegate: delegate)

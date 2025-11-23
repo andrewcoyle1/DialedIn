@@ -16,28 +16,37 @@ protocol OnboardingHealthDataInteractor {
 
 extension CoreInteractor: OnboardingHealthDataInteractor { }
 
+@MainActor
+protocol OnboardingHealthDataRouter {
+    func showDevSettingsView()
+    func showOnboardingHealthDisclaimerView()
+}
+
+extension CoreRouter: OnboardingHealthDataRouter { }
+
 @Observable
 @MainActor
 class OnboardingHealthDataViewModel {
     private let interactor: OnboardingHealthDataInteractor
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
+    private let router: OnboardingHealthDataRouter
     
     var showAlert: AnyAppAlert?
         
-    init(interactor: OnboardingHealthDataInteractor) {
+    init(
+        interactor: OnboardingHealthDataInteractor,
+        router: OnboardingHealthDataRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func onAllowAccessPressed(path: Binding<[OnboardingPathOption]>) {
+    func onAllowAccessPressed() {
         Task {
             interactor.trackEvent(event: Event.enableHealthKitStart)
             do {
                 try await interactor.requestHealthKitAuthorisation()
                 interactor.trackEvent(event: Event.enableHealthKitSuccess)
-                handleNavigation(path: path)
+                handleNavigation()
             } catch {
                 interactor.trackEvent(event: Event.enableHealthKitFail(error: error))
                 showAlert = AnyAppAlert(error: error)
@@ -45,19 +54,23 @@ class OnboardingHealthDataViewModel {
         }
     }
     
-    func handleNavigation(path: Binding<[OnboardingPathOption]>) {
+    func handleNavigation() {
         Task {
             try? await interactor.updateOnboardingStep(step: .healthDisclaimer)
-            interactor.trackEvent(event: Event.navigate(destination: .healthDisclaimer))
-            path.wrappedValue.append(.healthDisclaimer)
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingHealthDisclaimerView()
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
         case enableHealthKitStart
         case enableHealthKitSuccess
         case enableHealthKitFail(error: Error)
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -72,8 +85,6 @@ class OnboardingHealthDataViewModel {
             switch self {
             case .enableHealthKitFail(error: let error):
                 return error.eventParameters
-            case .navigate(destination: let destination):
-                return destination.eventParameters
             default:
                 return nil
             }

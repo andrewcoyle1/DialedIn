@@ -13,30 +13,28 @@ struct NotificationsView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationStack {
-            Group {
-                if viewModel.isLoading {
-                    ProgressView()
-                } else {
-                    content
+        Group {
+            if viewModel.isLoading {
+                ProgressView()
+            } else {
+                content
+            }
+        }
+        .navigationTitle("Notifications")
+        .navigationBarTitleDisplayMode(.large)
+        .scrollIndicators(.hidden)
+        .screenAppearAnalytics(name: "NotificationsView")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    viewModel.onDismissPressed(onDismiss: { dismiss() })
+                } label: {
+                    Text("Done")
                 }
             }
-            .navigationTitle("Notifications")
-            .navigationBarTitleDisplayMode(.large)
-            .scrollIndicators(.hidden)
-            .screenAppearAnalytics(name: "NotificationsView")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        viewModel.onDismissPressed(onDismiss: { dismiss() })
-                    } label: {
-                        Text("Done")
-                    }
-                }
-            }
-            .task {
-                await viewModel.loadNotifications()
-            }
+        }
+        .task {
+            await viewModel.loadNotifications()
         }
     }
     

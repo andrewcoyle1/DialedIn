@@ -6,21 +6,12 @@
 //
 
 import SwiftUI
-
-struct ProgramManagementViewDelegate {
-    var path: Binding<[TabBarPathOption]>
-}
+import CustomRouting
 
 struct ProgramManagementView: View {
 
-    @Environment(\.dismiss) private var dismiss
-
     @State var viewModel: ProgramManagementViewModel
 
-    var delegate: ProgramManagementViewDelegate
-
-    @ViewBuilder var programTemplatePickerView: (ProgramTemplatePickerViewDelegate) -> AnyView
-    @ViewBuilder var editProgramView: (EditProgramViewDelegate) -> AnyView
     @ViewBuilder var programRowView: (ProgramRowViewDelegate) -> AnyView
 
     var body: some View {
@@ -36,27 +27,8 @@ struct ProgramManagementView: View {
             .navigationTitle("My Programs")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-                
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        viewModel.showCreateSheet = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                }
+                toolbarContent
             }
-            .sheet(isPresented: $viewModel.showCreateSheet) {
-                programTemplatePickerView(ProgramTemplatePickerViewDelegate(path: delegate.path))
-            }
-            .sheet(item: $viewModel.editingPlan) { plan in
-                editProgramView(EditProgramViewDelegate(path: delegate.path, plan: plan))
-            }
-            .showCustomAlert(alert: $viewModel.showDeleteAlert)
             .overlay {
                 if viewModel.isLoading {
                     ProgressView()
@@ -165,12 +137,30 @@ struct ProgramManagementView: View {
             }
             .buttonStyle(.borderedProminent)
         }
-    }    
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button("Done") {
+                viewModel.dismissScreen()
+            }
+        }
+
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                viewModel.showCreateSheet = true
+            } label: {
+                Image(systemName: "plus")
+            }
+        }
+    }
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.programManagementView(delegate: ProgramManagementViewDelegate(path: $path))
+    RouterView { router in
+        builder.programManagementView(router: router)
+    }
     .previewEnvironment()
 }

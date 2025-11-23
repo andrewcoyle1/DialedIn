@@ -6,18 +6,11 @@
 //
 
 import SwiftUI
-
-struct OnboardingNotificationsViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct OnboardingNotificationsView: View {
 
     @State var viewModel: OnboardingNotificationsViewModel
-
-    var delegate: OnboardingNotificationsViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -29,10 +22,6 @@ struct OnboardingNotificationsView: View {
         .navigationBarTitleDisplayMode(.large)
         #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
-        #else
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
         #endif
         .toolbar {
             toolbarContent
@@ -48,7 +37,7 @@ struct OnboardingNotificationsView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -67,7 +56,7 @@ struct OnboardingNotificationsView: View {
         ToolbarSpacer(.fixed)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onSkipForNowPressed(path: delegate.path)
+                viewModel.onSkipForNowPressed()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -124,7 +113,7 @@ struct OnboardingNotificationsView: View {
             .buttonStyle(.glassProminent)
 
             Button {
-                viewModel.onSkipForNowPressed(path: delegate.path)
+                viewModel.onSkipForNowPressed()
             } label: {
                 Text("Not now")
                     .frame(maxWidth: .infinity)
@@ -140,7 +129,7 @@ struct OnboardingNotificationsView: View {
             subtitle: "We will send you reminders and updates",
             primaryButtonTitle: "Enable",
             primaryButtonAction: {
-                viewModel.onEnablePushNotificationsPressed(path: delegate.path)
+                viewModel.onEnablePushNotificationsPressed()
             },
             secondaryButtonTitle: "Cancel",
             secondaryButtonAction: {
@@ -151,14 +140,9 @@ struct OnboardingNotificationsView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingNotificationsView(
-            delegate: OnboardingNotificationsViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingNotificationsView(router: router)
     }
     .previewEnvironment()
 }

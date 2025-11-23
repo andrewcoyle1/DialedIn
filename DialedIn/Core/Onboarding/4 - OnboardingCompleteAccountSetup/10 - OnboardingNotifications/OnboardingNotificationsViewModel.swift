@@ -16,19 +16,29 @@ protocol OnboardingNotificationsInteractor {
 
 extension CoreInteractor: OnboardingNotificationsInteractor { }
 
+@MainActor
+protocol OnboardingNotificationsRouter {
+    func showDevSettingsView()
+    func showOnboardingHealthDataView()
+    func showOnboardingHealthDisclaimerView()
+}
+
+extension CoreRouter: OnboardingNotificationsRouter { }
+
 @Observable
 @MainActor
 class OnboardingNotificationsViewModel {
     private let interactor: OnboardingNotificationsInteractor
-    
+    private let router: OnboardingNotificationsRouter
+
     var showEnablePushNotificationsModal: Bool = false
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-        
-    init(interactor: OnboardingNotificationsInteractor) {
+    init(
+        interactor: OnboardingNotificationsInteractor,
+        router: OnboardingNotificationsRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onEnableNotificationsPressed() {
@@ -36,7 +46,7 @@ class OnboardingNotificationsViewModel {
         interactor.trackEvent(event: Event.pushNotificationsModalShow)
     }
     
-    func onEnablePushNotificationsPressed(path: Binding<[OnboardingPathOption]>) {
+    func onEnablePushNotificationsPressed() {
         showEnablePushNotificationsModal = false
         interactor.trackEvent(event: Event.enableNotificationsStart)
         Task {
@@ -44,22 +54,22 @@ class OnboardingNotificationsViewModel {
                 let isAuthorised = try await interactor.requestPushAuthorisation()
 
                 interactor.trackEvent(event: Event.enableNotificationsSuccess(isAuthorised: isAuthorised))
-                await handleNavigation(path: path)
+                await handleNavigation()
             } catch {
                 interactor.trackEvent(event: Event.enableNotficiationsFail(error: error))
             }
         }
     }
 
-    func handleNavigation(path: Binding<[OnboardingPathOption]>) async {
+    private func handleNavigation() async {
         if interactor.canRequestHealthDataAuthorisation() {
             try? await interactor.updateOnboardingStep(step: .healthData)
-            interactor.trackEvent(event: Event.navigate(destination: .healthData))
-            path.wrappedValue.append(.healthData)
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingHealthDataView()
         } else {
             try? await interactor.updateOnboardingStep(step: .healthDisclaimer)
-            interactor.trackEvent(event: Event.navigate(destination: .healthDisclaimer))
-            path.wrappedValue.append(.healthDisclaimer)
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingHealthDisclaimerView()
         }
     }
 
@@ -68,9 +78,15 @@ class OnboardingNotificationsViewModel {
         showEnablePushNotificationsModal = false
     }
 
-    func onSkipForNowPressed(path: Binding<[OnboardingPathOption]>) {
+    func onSkipForNowPressed() {
         interactor.trackEvent(event: Event.skipForNow)
-        path.wrappedValue.append(.gender)
+        Task {
+            await handleNavigation()
+        }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
@@ -80,7 +96,7 @@ class OnboardingNotificationsViewModel {
         case enableNotificationsSuccess(isAuthorised: Bool)
         case enableNotficiationsFail(error: Error)
         case skipForNow
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -102,8 +118,6 @@ class OnboardingNotificationsViewModel {
                 ] as [String: Any]
             case .enableNotficiationsFail(error: let error):
                 return error.eventParameters
-            case .navigate(destination: let destination):
-                return destination.eventParameters
             default:
                 return nil
             }

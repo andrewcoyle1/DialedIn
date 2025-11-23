@@ -23,11 +23,22 @@ protocol ProgramTemplatePickerInteractor {
 
 extension CoreInteractor: ProgramTemplatePickerInteractor { }
 
+@MainActor
+protocol ProgramTemplatePickerRouter {
+    func showDevSettingsView()
+    func dismissScreen()
+    func showProgramStartConfigView(delegate: ProgramStartConfigViewDelegate)
+    func showCustomProgramBuilderView()
+}
+
+extension CoreRouter: ProgramTemplatePickerRouter { }
+
 @Observable
 @MainActor
 class ProgramTemplatePickerViewModel {
     private let interactor: ProgramTemplatePickerInteractor
-    
+    private let router: ProgramTemplatePickerRouter
+
     var selectedTemplate: ProgramTemplateModel?
     private(set) var showStartDate = false
     private(set) var startDate = Date()
@@ -47,8 +58,12 @@ class ProgramTemplatePickerViewModel {
         interactor.isBuiltIn(template)
     }
     
-    init(interactor: ProgramTemplatePickerInteractor) {
+    init(
+        interactor: ProgramTemplatePickerInteractor,
+        router: ProgramTemplatePickerRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func createPlanFromTemplate(_ template: ProgramTemplateModel, startDate: Date, endDate: Date?, customName: String?, onDismiss: () -> Void) async {
@@ -72,13 +87,41 @@ class ProgramTemplatePickerViewModel {
         isCreatingPlan = false
     }
 
-    func navToCustomProgramBuilderView(path: Binding<[TabBarPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .customProgramBuilderView))
-        path.wrappedValue.append(.customProgramBuilderView)
+    func navToCustomProgramBuilderView() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showCustomProgramBuilderView()
+    }
+
+    func onProgramStartConfigPressed(template: ProgramTemplateModel) {
+        let delegate = ProgramStartConfigViewDelegate(
+            template: template,
+            onStart: { startDate, endDate, customName in
+                Task {
+                    await self.createPlanFromTemplate(
+                        template,
+                        startDate: startDate,
+                        endDate: endDate,
+                        customName: customName,
+                        onDismiss: {
+                            self.dismissScreen()
+                        }
+                    )
+                }
+            }
+        )
+        router.showProgramStartConfigView(delegate: delegate)
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func dismissScreen() {
+        router.dismissScreen()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -88,8 +131,8 @@ class ProgramTemplatePickerViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

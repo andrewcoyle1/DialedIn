@@ -13,26 +13,39 @@ protocol OnboardingSubscriptionInteractor {
 
 extension CoreInteractor: OnboardingSubscriptionInteractor { }
 
+@MainActor
+protocol OnboardingSubscriptionRouter {
+    func showDevSettingsView()
+    func showSubscriptionPlanView()
+}
+
+extension CoreRouter: OnboardingSubscriptionRouter { }
+
 @Observable
 @MainActor
 class OnboardingSubscriptionViewModel {
     private let interactor: OnboardingSubscriptionInteractor
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingSubscriptionInteractor) {
+    private let router: OnboardingSubscriptionRouter
+
+    init(
+        interactor: OnboardingSubscriptionInteractor,
+        router: OnboardingSubscriptionRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func navigateToSubscriptionPlan(path: Binding<[OnboardingPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .subscriptionPlan))
-        path.wrappedValue.append(.subscriptionPlan)
+    func navigateToSubscriptionPlan() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showSubscriptionPlanView()
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -42,8 +55,8 @@ class OnboardingSubscriptionViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

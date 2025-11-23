@@ -14,26 +14,43 @@ protocol ProfileHeaderInteractor {
 
 extension CoreInteractor: ProfileHeaderInteractor { }
 
+@MainActor
+protocol ProfileHeaderRouter {
+    func showProfileEditView()
+    func showDevSettingsView()
+}
+
+extension CoreRouter: ProfileHeaderRouter { }
+
 @Observable
 @MainActor
 class ProfileHeaderViewModel {
     private let interactor: ProfileHeaderInteractor
+    private let router: ProfileHeaderRouter
 
     var currentUser: UserModel? {
         interactor.currentUser
     }
     
-    init(interactor: ProfileHeaderInteractor) {
+    init(
+        interactor: ProfileHeaderInteractor,
+        router: ProfileHeaderRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
 
-    func navToProfileEdit(path: Binding<[TabBarPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .profileEdit))
-        path.wrappedValue.append(.profileEdit)
+    func navToProfileEdit() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showProfileEditView()
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
-        case navigate(destination: TabBarPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -43,8 +60,8 @@ class ProfileHeaderViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 

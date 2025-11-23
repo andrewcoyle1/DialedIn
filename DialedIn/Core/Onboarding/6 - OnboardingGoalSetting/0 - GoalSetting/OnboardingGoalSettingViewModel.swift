@@ -14,29 +14,42 @@ protocol OnboardingGoalSettingInteractor {
 
 extension CoreInteractor: OnboardingGoalSettingInteractor { }
 
+@MainActor
+protocol OnboardingGoalSettingRouter {
+    func showDevSettingsView()
+    func showOnboardingOverarchingObjectiveView()
+}
+
+extension CoreRouter: OnboardingGoalSettingRouter { }
+
 @Observable
 @MainActor
 class OnboardingGoalSettingViewModel {
     private let interactor: OnboardingGoalSettingInteractor
-    
+    private let router: OnboardingGoalSettingRouter
+
     var showAlert: AnyAppAlert?
     var isLoading: Bool = false
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingGoalSettingInteractor) {
+    init(
+        interactor: OnboardingGoalSettingInteractor,
+        router: OnboardingGoalSettingRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func navigateToOverarchingObjective(path: Binding<[OnboardingPathOption]>) {
-        interactor.trackEvent(event: Event.navigate(destination: .overarchingObjective))
-        path.wrappedValue.append(.overarchingObjective)
+    func navigateToOverarchingObjective() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingOverarchingObjectiveView()
     }
-    
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -46,8 +59,7 @@ class OnboardingGoalSettingViewModel {
         
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            default: return nil
             }
         }
         

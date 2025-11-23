@@ -73,8 +73,6 @@ struct SplitViewContainer: View {
 }
 
 #Preview {
-    @Previewable @State var path: [TabBarPathOption] = []
-    @Previewable @State var tab: TabBarOption = .dashboard
     let builder = CoreBuilder(container: DevPreview.shared.container)
     builder.splitViewContainer()
     .previewEnvironment()

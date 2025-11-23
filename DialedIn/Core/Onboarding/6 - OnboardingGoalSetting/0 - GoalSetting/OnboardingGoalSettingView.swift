@@ -6,18 +6,11 @@
 //
 
 import SwiftUI
-
-struct OnboardingGoalSettingViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct OnboardingGoalSettingView: View {
 
     @State var viewModel: OnboardingGoalSettingViewModel
-
-    var delegate: OnboardingGoalSettingViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -28,11 +21,6 @@ struct OnboardingGoalSettingView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .showModal(showModal: $viewModel.isLoading) {
             ProgressView()
                 .tint(.white)
@@ -55,7 +43,7 @@ struct OnboardingGoalSettingView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -64,7 +52,7 @@ struct OnboardingGoalSettingView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToOverarchingObjective(path: delegate.path)
+                viewModel.navigateToOverarchingObjective()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -74,14 +62,9 @@ struct OnboardingGoalSettingView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingGoalSettingView(
-            delegate: OnboardingGoalSettingViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingGoalSettingView(router: router)
     }
     .previewEnvironment()
 }

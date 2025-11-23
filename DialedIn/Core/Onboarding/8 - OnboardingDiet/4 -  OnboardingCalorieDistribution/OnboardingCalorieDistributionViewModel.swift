@@ -14,21 +14,30 @@ protocol OnboardingCalorieDistributionInteractor {
 
 extension CoreInteractor: OnboardingCalorieDistributionInteractor { }
 
+@MainActor
+protocol OnboardingCalorieDistributionRouter {
+    func showDevSettingsView()
+    func showOnboardingProteinIntakeView(delegate: OnboardingProteinIntakeViewDelegate)
+}
+
+extension CoreRouter: OnboardingCalorieDistributionRouter { }
+
 @Observable
 @MainActor
 class OnboardingCalorieDistributionViewModel {
     private let interactor: OnboardingCalorieDistributionInteractor
-        
+    private let router: OnboardingCalorieDistributionRouter
+
     var selectedCalorieDistribution: CalorieDistribution?
     var trainingDaysPerWeek: Int?
     var hasTrainingPlan: Bool = false
     
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
-    init(interactor: OnboardingCalorieDistributionInteractor) {
+    init(
+        interactor: OnboardingCalorieDistributionInteractor,
+        router: OnboardingCalorieDistributionRouter
+    ) {
         self.interactor = interactor
+        self.router = router
         loadTrainingContext()
     }
     
@@ -60,19 +69,23 @@ class OnboardingCalorieDistributionViewModel {
         }
     }
     
-    func navigateToProteinIntake(path: Binding<[OnboardingPathOption]>, dietPlanBuilder: DietPlanBuilder) {
+    func navigateToProteinIntake(dietPlanBuilder: DietPlanBuilder) {
         if let calorieDistribution = selectedCalorieDistribution {
             var builder = dietPlanBuilder
             builder.setCalorieDistribution(calorieDistribution)
-            interactor.trackEvent(event: Event.navigate(destination: .proteinIntake(dietPlanBuilder: builder)))
-            path.wrappedValue.append(.proteinIntake(dietPlanBuilder: builder))
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingProteinIntakeView(delegate: OnboardingProteinIntakeViewDelegate(dietPlanBuilder: builder))
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
         case trainingContextLoaded(daysPerWeek: Int?)
         case calorieDistributionPrefilled(distribution: CalorieDistribution, reason: String)
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -88,8 +101,8 @@ class OnboardingCalorieDistributionViewModel {
                 return ["daysPerWeek": days as Any]
             case .calorieDistributionPrefilled(distribution: let dist, reason: let reason):
                 return ["distribution": dist.rawValue, "reason": reason]
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
         

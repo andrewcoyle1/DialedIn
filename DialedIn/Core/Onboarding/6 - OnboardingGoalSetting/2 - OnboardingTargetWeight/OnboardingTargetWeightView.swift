@@ -6,9 +6,9 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct OnboardingTargetWeightViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
     var weightGoalBuilder: WeightGoalBuilder
 }
 
@@ -17,8 +17,6 @@ struct OnboardingTargetWeightView: View {
     @State var viewModel: OnboardingTargetWeightViewModel
 
     var delegate: OnboardingTargetWeightViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -34,11 +32,6 @@ struct OnboardingTargetWeightView: View {
         .onFirstAppear {
             viewModel.onAppear(weightGoalBuilder: delegate.weightGoalBuilder)
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .toolbar {
             toolbarSection
         }
@@ -49,7 +42,7 @@ struct OnboardingTargetWeightView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -58,7 +51,7 @@ struct OnboardingTargetWeightView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToWeightRate(path: delegate.path, weightGoalBuilder: delegate.weightGoalBuilder)
+                viewModel.navigateToWeightRate(weightGoalBuilder: delegate.weightGoalBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -116,28 +109,22 @@ struct OnboardingTargetWeightView: View {
 }
 
 #Preview("Gain Weight") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingTargetWeightView(
-            delegate: OnboardingTargetWeightViewDelegate(
-                path: $path,
-                weightGoalBuilder: .targetWeightMock
-            )
+            router: router,
+            delegate: OnboardingTargetWeightViewDelegate(weightGoalBuilder: .targetWeightMock)
         )
     }
     .previewEnvironment()
 }
 
 #Preview("Lose Weight") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.onboardingTargetWeightView(
-            delegate: OnboardingTargetWeightViewDelegate(
-                path: $path,
-                weightGoalBuilder: .targetWeightMock
-            )
+            router: router,
+            delegate: OnboardingTargetWeightViewDelegate(weightGoalBuilder: .targetWeightMock)
         )
     }
     .previewEnvironment()

@@ -21,11 +21,21 @@ protocol CustomProgramBuilderInteractor {
 
 extension CoreInteractor: CustomProgramBuilderInteractor { }
 
+@MainActor
+protocol CustomProgramBuilderRouter {
+    func showProgramStartConfigView(delegate: ProgramStartConfigViewDelegate)
+    func showDevSettingsView()
+    func dismissScreen()
+}
+
+extension CoreRouter: CustomProgramBuilderRouter { }
+
 @Observable
 @MainActor
 class CustomProgramBuilderViewModel {
     private let interactor: CustomProgramBuilderInteractor
-    
+    private let router: CustomProgramBuilderRouter
+
     private(set) var isSaving: Bool = false
     private(set) var isStarting: Bool = false
     var name: String = ""
@@ -46,9 +56,11 @@ class CustomProgramBuilderViewModel {
     }
     
     init(
-        interactor: CustomProgramBuilderInteractor
+        interactor: CustomProgramBuilderInteractor,
+        router: CustomProgramBuilderRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func resizeWeeks(to count: Int) {
@@ -65,7 +77,24 @@ class CustomProgramBuilderViewModel {
             if selectedWeek > count { selectedWeek = count }
         }
     }
-    
+
+    func onStartProgramPressed() {
+        guard let template = buildTemplate() else { return }
+        router.showProgramStartConfigView(delegate: ProgramStartConfigViewDelegate(template: template, onStart: { startDate, endDate, customName in
+            Task {
+                await self.startProgram(
+                    template: template,
+                    startDate: startDate,
+                    endDate: endDate,
+                    customName: customName,
+                    onDismiss: {
+                        self.dismissScreen()
+                    }
+                )
+            }
+        }))
+
+    }
     func assign(workout: WorkoutTemplateModel, to dayOfWeek: Int, inWeek weekNumber: Int) {
         guard let index = weeks.firstIndex(where: { $0.weekNumber == weekNumber }) else { return }
         weeks[index].mappings[dayOfWeek] = SelectedWorkout(id: workout.workoutId, name: workout.name)
@@ -126,13 +155,13 @@ class CustomProgramBuilderViewModel {
         )
     }
     
-    func saveTemplate(onDismiss: () -> Void) async {
+    func saveTemplate() async {
         guard let template = buildTemplate() else { return }
         isSaving = true
         defer { isSaving = false }
         do {
             try await interactor.create(template)
-            onDismiss()
+            dismissScreen()
         } catch {
             showAlert = AnyAppAlert(error: error)
         }
@@ -154,6 +183,14 @@ class CustomProgramBuilderViewModel {
         } catch {
             showAlert = AnyAppAlert(error: error)
         }
+    }
+
+    func dismissScreen() {
+        router.dismissScreen()
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }
 

@@ -6,18 +6,11 @@
 //
 
 import SwiftUI
-
-struct OnboardingTrainingProgramViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct OnboardingTrainingProgramView: View {
 
     @State var viewModel: OnboardingTrainingProgramViewModel
-
-    var delegate: OnboardingTrainingProgramViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -27,11 +20,6 @@ struct OnboardingTrainingProgramView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .showModal(showModal: $viewModel.isLoading) {
             ProgressView()
                 .tint(.white)
@@ -60,7 +48,7 @@ struct OnboardingTrainingProgramView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -69,7 +57,7 @@ struct OnboardingTrainingProgramView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToTrainingExperience(path: delegate.path)
+                viewModel.navigateToTrainingExperience()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -79,21 +67,9 @@ struct OnboardingTrainingProgramView: View {
 }
 
 #Preview {
-    @Previewable @State var path: [OnboardingPathOption] = []
-    NavigationStack {
-        OnboardingTrainingProgramView(
-            viewModel: OnboardingTrainingProgramViewModel(
-                interactor: CoreInteractor(
-                    container: DevPreview.shared.container
-                )
-            ),
-            delegate: OnboardingTrainingProgramViewDelegate(
-                path: $path
-            ),
-            devSettingsView: {
-                Color.red.any()
-            }
-        )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.onboardingTrainingProgramView(router: router)
     }
     .previewEnvironment()
 }

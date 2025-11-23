@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PhotosUI
+import CustomRouting
 
 struct CreateExerciseView: View {
 
@@ -14,64 +15,28 @@ struct CreateExerciseView: View {
 
     @State var viewModel: CreateExerciseViewModel
 
-    @ViewBuilder var devSettingsView: () -> AnyView
-
     var body: some View {
-        NavigationStack {
-            List {
-                imageSection
-                nameSection
-                muscleGroupSection
-                categorySection
-            }
-            .navigationBarTitle("New Custom Exercise")
-            .navigationSubtitle("Define details and muscle groups")
-            .navigationBarTitleDisplayMode(.large)
-            .scrollIndicators(.hidden)
-            .screenAppearAnalytics(name: "CreateExerciseView")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        viewModel.onCancelPressed(onDismiss: { dismiss() })
-                    } label: {
-                        Image(systemName: "xmark")
-                    }
-                }
-                #if DEBUG || MOCK
-                ToolbarSpacer(.fixed, placement: .topBarLeading)
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        viewModel.showDebugView = true
-                    } label: {
-                        Image(systemName: "info")
-                    }
-                }
-                #endif
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task {
-                            await viewModel.onSavePressed(onDismiss: { dismiss() })
-                        }
-                    } label: {
-                        Image(systemName: "checkmark")
-                    }
-                    .buttonStyle(.glassProminent)
-                    .disabled(!viewModel.canSave || viewModel.isSaving)
-                }
-            }
-            .onChange(of: viewModel.selectedPhotoItem) {
-                guard let newItem = viewModel.selectedPhotoItem else { return }
-                Task {
-                    await viewModel.onImageSelectorChanged(newItem)
-                }
-            }
-            #if DEBUG || MOCK
-            .sheet(isPresented: $viewModel.showDebugView) {
-                devSettingsView()
-            }
-            #endif
-            .showCustomAlert(alert: $viewModel.alert)
+        List {
+            imageSection
+            nameSection
+            muscleGroupSection
+            categorySection
         }
+        .navigationBarTitle("New Custom Exercise")
+        .navigationSubtitle("Define details and muscle groups")
+        .navigationBarTitleDisplayMode(.large)
+        .scrollIndicators(.hidden)
+        .screenAppearAnalytics(name: "CreateExerciseView")
+        .toolbar {
+            toolbarContent
+        }
+        .onChange(of: viewModel.selectedPhotoItem) {
+            guard let newItem = viewModel.selectedPhotoItem else { return }
+            Task {
+                await viewModel.onImageSelectorChanged(newItem)
+            }
+        }
+        .showCustomAlert(alert: $viewModel.alert)
     }
 
     private var imageSection: some View {
@@ -189,6 +154,39 @@ struct CreateExerciseView: View {
             Text("Category")
         }
     }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                viewModel.onCancelPressed(onDismiss: { dismiss() })
+            } label: {
+                Image(systemName: "xmark")
+            }
+        }
+        #if DEBUG || MOCK
+        ToolbarSpacer(.fixed, placement: .topBarLeading)
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                viewModel.onDevSettingsPressed()
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                Task {
+                    await viewModel.onSavePressed(onDismiss: { dismiss() })
+                }
+            } label: {
+                Image(systemName: "checkmark")
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(!viewModel.canSave || viewModel.isSaving)
+        }
+
+    }
 }
 
 #Preview("As sheet") {
@@ -200,7 +198,9 @@ struct CreateExerciseView: View {
         Text("Present")
     }
     .sheet(isPresented: $isPresented) {
-        builder.createExerciseView()
+        RouterView { router in
+            builder.createExerciseView(router: router)
+        }
     }
     .previewEnvironment()
 }
@@ -214,7 +214,9 @@ struct CreateExerciseView: View {
         Text("Present")
     }
     .sheet(isPresented: $isPresented) {
-        builder.createExerciseView()
+        RouterView { router in
+            builder.createExerciseView(router: router)
+        }
     }
     .previewEnvironment()
 }
@@ -228,7 +230,9 @@ struct CreateExerciseView: View {
         Text("Present")
     }
     .fullScreenCover(isPresented: $isPresented) {
-        builder.createExerciseView()
+        RouterView { router in
+            builder.createExerciseView(router: router)
+        }
     }
     .previewEnvironment()
     

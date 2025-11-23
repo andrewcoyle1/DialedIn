@@ -24,37 +24,44 @@ protocol OnboardingGoalSummaryInteractor {
 
 extension CoreInteractor: OnboardingGoalSummaryInteractor { }
 
+@MainActor
+protocol OnboardingGoalSummaryRouter {
+    func showDevSettingsView()
+    func showOnboardingTrainingProgramView()
+}
+
+extension CoreRouter: OnboardingGoalSummaryRouter { }
+
 @Observable
 @MainActor
 class OnboardingGoalSummaryViewModel {
     private let interactor: OnboardingGoalSummaryInteractor
-    
+    private let router: OnboardingGoalSummaryRouter
+
     let isStandaloneMode: Bool
 
     var isLoading: Bool = false
     var goalCreated: Bool = false
     var showAlert: AnyAppAlert?
     var onDismiss: (() -> Void)?
-    
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
-    
+        
     init(
         interactor: OnboardingGoalSummaryInteractor,
+        router: OnboardingGoalSummaryRouter,
         isStandaloneMode: Bool = false
     ) {
         self.interactor = interactor
+        self.router = router
         self.isStandaloneMode = isStandaloneMode
     }
     
-    private func navigateToCustomisingProgram(path: Binding<[OnboardingPathOption]>) async {
+    private func navigateToCustomisingProgram() async {
         try? await interactor.updateOnboardingStep(step: .customiseProgram)
-        interactor.trackEvent(event: Event.navigate(destination: .customiseProgram))
-        path.wrappedValue.append(.customiseProgram)
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingTrainingProgramView()
     }
     
-    func uploadGoalSettings(path: Binding<[OnboardingPathOption]>, weightGoalBuilder: WeightGoalBuilder) {
+    func uploadGoalSettings(weightGoalBuilder: WeightGoalBuilder) {
         interactor.trackEvent(event: Event.goalSaveStart)
         defer { isLoading = false }
 
@@ -88,7 +95,7 @@ class OnboardingGoalSummaryViewModel {
                     onDismiss?()
                 }
 
-                await navigateToCustomisingProgram(path: path)
+                await navigateToCustomisingProgram()
             } catch {
                 interactor.trackEvent(event: Event.goalSaveFail(error: error))
                 handleSaveError(error)
@@ -156,12 +163,16 @@ class OnboardingGoalSummaryViewModel {
             return "Building healthy weight takes time and dedication. Focus on nutrient-dense foods and progressive strength training. Your body will thank you for the consistent effort."
         }
     }
-    
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
         case goalSaveStart
         case goalSaveSuccess
         case goalSaveFail(error: Error)
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -176,8 +187,6 @@ class OnboardingGoalSummaryViewModel {
             switch self {
             case let .goalSaveFail(error):
                 return error.eventParameters
-            case .navigate(destination: let destination):
-                return destination.eventParameters
             default:
                 return nil
             }

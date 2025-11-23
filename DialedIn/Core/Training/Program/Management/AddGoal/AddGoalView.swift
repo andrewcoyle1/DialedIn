@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct AddGoalViewDelegate {
     let plan: TrainingPlan
@@ -81,5 +82,7 @@ struct AddGoalView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.addGoalView(delegate: AddGoalViewDelegate(plan: .mock))
+    RouterView { router in
+        builder.addGoalView(router: router, delegate: AddGoalViewDelegate(plan: .mock))
+    }
 }

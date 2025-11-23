@@ -6,18 +6,11 @@
 //
 
 import SwiftUI
-
-struct SignUpViewDelegate {
-    var path: Binding<[OnboardingPathOption]>
-}
+import CustomRouting
 
 struct SignUpView: View {
 
     @State var viewModel: SignUpViewModel
-
-    var delegate: SignUpViewDelegate
-
-    @ViewBuilder var devSettingsView: () -> AnyView
 
     var body: some View {
         List {
@@ -29,11 +22,6 @@ struct SignUpView: View {
         .toolbar {
             toolbarContent
         }
-        #if DEBUG || MOCK
-        .sheet(isPresented: $viewModel.showDebugView) {
-            devSettingsView()
-        }
-        #endif
         .showCustomAlert(alert: $viewModel.showAlert)
         .showModal(showModal: $viewModel.isLoadingUser) {
             ProgressView()
@@ -104,7 +92,7 @@ struct SignUpView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.showDebugView = true
+                viewModel.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -113,7 +101,7 @@ struct SignUpView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onSignUpPressed(path: delegate.path)
+                viewModel.onSignUpPressed()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -123,14 +111,9 @@ struct SignUpView: View {
 }
 
 #Preview("Sign Up") {
-    @Previewable @State var path: [OnboardingPathOption] = []
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
-        builder.onboardingSignUpView(
-            delegate: SignUpViewDelegate(
-                path: $path
-            )
-        )
+    RouterView { router in
+        builder.onboardingSignUpView(router: router)
     }
     .previewEnvironment()
 }

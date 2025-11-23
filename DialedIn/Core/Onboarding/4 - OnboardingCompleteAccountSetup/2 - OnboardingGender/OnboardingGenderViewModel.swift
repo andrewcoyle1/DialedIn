@@ -13,35 +13,48 @@ protocol OnboardingGenderInteractor {
 
 extension CoreInteractor: OnboardingGenderInteractor { }
 
+@MainActor
+protocol OnboardingGenderRouter {
+    func showDevSettingsView()
+    func showOnboardingDateOfBirthView(delegate: OnboardingDateOfBirthViewDelegate)
+}
+
+extension CoreRouter: OnboardingGenderRouter { }
+
 @Observable
 @MainActor
 class OnboardingGenderViewModel {
     private let interactor: OnboardingGenderInteractor
-    
-    var selectedGender: Gender?
+    private let router: OnboardingGenderRouter
 
-    #if DEBUG || MOCK
-    var showDebugView: Bool = false
-    #endif
+    var selectedGender: Gender?
     
     var canSubmit: Bool {
         selectedGender != nil
     }
     
-    init(interactor: OnboardingGenderInteractor) {
+    init(
+        interactor: OnboardingGenderInteractor,
+        router: OnboardingGenderRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
-    func navigateToDateOfBirth(path: Binding<[OnboardingPathOption]>) {
+    func navigateToDateOfBirth() {
         if let gender = selectedGender {
             let userBuilder = UserModelBuilder(gender: gender)
-            interactor.trackEvent(event: Event.navigate(destination: .dateOfBirth(userModelBuilder: userBuilder)))
-            path.wrappedValue.append(.dateOfBirth(userModelBuilder: userBuilder))
+            interactor.trackEvent(event: Event.navigate)
+            router.showOnboardingDateOfBirthView(delegate: OnboardingDateOfBirthViewDelegate(userModelBuilder: userBuilder))
         }
     }
 
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
     enum Event: LoggableEvent {
-        case navigate(destination: OnboardingPathOption)
+        case navigate
 
         var eventName: String {
             switch self {
@@ -51,8 +64,8 @@ class OnboardingGenderViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate(destination: let destination):
-                return destination.eventParameters
+            case .navigate:
+                return nil
             }
         }
 
