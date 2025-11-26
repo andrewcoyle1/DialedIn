@@ -14,8 +14,6 @@ struct CustomProgramBuilderView: View {
 
     @State var viewModel: CustomProgramBuilderViewModel
 
-    @ViewBuilder var workoutPickerSheet: (WorkoutPickerSheetDelegate) -> AnyView
-
     var body: some View {
         List {
             detailsSection
@@ -26,47 +24,6 @@ struct CustomProgramBuilderView: View {
         .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
         .toolbar { toolbarContent }
-        .sheet(isPresented: $viewModel.showingWorkoutPicker) {
-            if let day = viewModel.editingDayOfWeek {
-                NavigationStack {
-                    workoutPickerSheet(
-                        WorkoutPickerSheetDelegate(
-                            onSelect: { workout in
-                                viewModel.assign(
-                                    workout: workout,
-                                    to: day,
-                                    inWeek: viewModel.selectedWeek
-                                )
-                                viewModel.showingWorkoutPicker = false
-                                viewModel.editingDayOfWeek = nil
-                            },
-                            onCancel: {
-                                viewModel.showingWorkoutPicker = false
-                                viewModel.editingDayOfWeek = nil
-                            }
-                        )
-                    )
-                }
-            }
-        }
-        .sheet(isPresented: $viewModel.showingCopyWeekPicker) {
-            CopyWeekPickerSheet(
-                availableWeeks: (1..<viewModel.selectedWeek).map { $0 },
-                onSelect: { sourceWeek in
-                    let success = viewModel.copySchedule(from: sourceWeek, to: viewModel.selectedWeek)
-                    viewModel.showingCopyWeekPicker = false
-                    if !success {
-                        viewModel.showAlert = AnyAppAlert(
-                            title: "Error",
-                            subtitle: "Failed to copy schedule. Please try again."
-                        )
-                    }
-                },
-                onCancel: {
-                    viewModel.showingCopyWeekPicker = false
-                }
-            )
-        }
         .onChange(of: viewModel.durationWeeks) { _, newValue in
             viewModel.resizeWeeks(to: newValue)
         }
@@ -202,7 +159,7 @@ struct CustomProgramBuilderView: View {
                     if let selection = viewModel.weeks[safe: viewModel.selectedWeek - 1]?.mappings[day] {
                         Button {
                             viewModel.editingDayOfWeek = day
-                            viewModel.showingWorkoutPicker = true
+                            viewModel.onWorkoutPickerPressed(day: day)
                         } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "dumbbell.fill")
@@ -213,7 +170,7 @@ struct CustomProgramBuilderView: View {
                     } else {
                         Button {
                             viewModel.editingDayOfWeek = day
-                            viewModel.showingWorkoutPicker = true
+                            viewModel.onWorkoutPickerPressed(day: day)
                         } label: {
                             Label("Select Workout", systemImage: "plus.circle")
                                 .foregroundStyle(.blue)

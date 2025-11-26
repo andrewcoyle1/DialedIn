@@ -10,8 +10,7 @@ import CustomRouting
 
 struct CreateAccountView: View {
     @State var viewModel: CreateAccountViewModel
-    @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         VStack(spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
@@ -30,13 +29,13 @@ struct CreateAccountView: View {
                 cornerRadius: 28
             )
             .anyButton(.press) {
-                viewModel.onSignInApplePressed(onDismiss: { dismiss() })
+                viewModel.onSignInApplePressed()
             }
             .frame(height: 56)
             .frame(maxWidth: 320)
             
             SignInWithGoogleButtonView(style: .light, scheme: .signUpWithGoogle) {
-                viewModel.onSignInGooglePressed(onDismiss: { dismiss() })
+                viewModel.onSignInGooglePressed()
             }
             .frame(height: 56)
             .frame(maxWidth: 350)
@@ -50,12 +49,8 @@ struct CreateAccountView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    Text("Hello")
-        .sheet(isPresented: Binding.constant(true)) {
-            RouterView { router in
-                builder.createAccountView(router: router)
-            }
-        }
-        .presentationDetents([.fraction(0.25)])
+    RouterView { router in
+        builder.createAccountView(router: router)
+    }
     .previewEnvironment()
 }

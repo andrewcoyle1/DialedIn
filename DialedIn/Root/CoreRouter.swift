@@ -262,8 +262,8 @@ struct CoreRouter {
     // MARK: MAIN APP
 
     func showDevSettingsView() {
-        router.showScreen(.fullScreenCover) { _ in
-            builder.devSettingsView()
+        router.showScreen(.fullScreenCover) { router in
+            builder.devSettingsView(router: router)
         }
     }
 
@@ -322,8 +322,8 @@ struct CoreRouter {
     }
 
     func showAddIngredientView(delegate: AddIngredientModalViewDelegate) {
-        router.showScreen(.sheet) { _ in
-            builder.addIngredientModalView(delegate: delegate)
+        router.showScreen(.sheet) { router in
+            builder.addIngredientModalView(router: router, delegate: delegate)
         }
     }
 
@@ -341,7 +341,7 @@ struct CoreRouter {
 
     func showRecipeAmountView(delegate: RecipeAmountViewDelegate) {
         router.showScreen(.push) { router in
-            builder.recipeAmountView(delegate: delegate)
+            builder.recipeAmountView(router: router, delegate: delegate)
         }
     }
 
@@ -354,6 +354,12 @@ struct CoreRouter {
     func showNutritionLibraryPickerView(delegate: NutritionLibraryPickerViewDelegate) {
         router.showScreen(.sheet) { router in
             builder.nutritionLibraryPickerView(router: router, delegate: delegate)
+        }
+    }
+
+    func showWorkoutPickerView(delegate: WorkoutPickerSheetDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.workoutPickerSheet(router: router, delegate: delegate)
         }
     }
 
@@ -385,9 +391,9 @@ struct CoreRouter {
         }
     }
 
-    func showManageSubscriptionView() {
-        router.showScreen(.push) { _ in
-            builder.manageSubscriptionView()
+    func showManageSubscriptionView(delegate: ManageSubscriptionDelegate) {
+        router.showScreen(.push) { router in
+            builder.manageSubscriptionView(router: router, delegate: delegate)
         }
     }
 
@@ -410,26 +416,32 @@ struct CoreRouter {
     }
 
     func showProgressDashboardView() {
-        router.showScreen(.sheet) { _ in
-            builder.progressDashboardView()
+        router.showScreen(.sheet) { router in
+            builder.progressDashboardView(router: router)
         }
     }
 
     func showStrengthProgressView() {
-        router.showScreen(.sheet) { _ in
-            builder.strengthProgressView()
+        router.showScreen(.sheet) { router in
+            builder.strengthProgressView(router: router)
+        }
+    }
+
+    func showCopyWeekPickerView(delegate: CopyWeekPickerDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.copyWeekPickerView(router: router, delegate: delegate)
         }
     }
 
     func showWorkoutHeatmapView() {
-        router.showScreen(.sheet) { _ in
-            builder.workoutHeatmapView()
+        router.showScreen(.sheet) { router in
+            builder.workoutHeatmapView(router: router)
         }
     }
 
     func showProgramPreviewView(delegate: ProgramPreviewViewDelegate) {
         router.showScreen(.push) { router in
-            builder.programPreviewView(delegate: delegate)
+            builder.programPreviewView(router: router, delegate: delegate)
         }
     }
 
@@ -481,6 +493,18 @@ struct CoreRouter {
         }
     }
 
+    func showSetGoalFlowView() {
+        router.showScreen(.fullScreenCover) { router in
+            builder.setGoalFlowView(router: router)
+        }
+    }
+
+    func showWorkoutNotesView(delegate: WorkoutNotesViewDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.workoutNotesView(router: router, delegate: delegate)
+        }
+    }
+
     func showProfileNutritionDetailView() {
         router.showScreen(.push) { router in
             builder.profileNutritionDetailView(router: router)
@@ -489,7 +513,7 @@ struct CoreRouter {
 
     func showMealDetailView(delegate: MealDetailViewDelegate) {
         router.showScreen(.sheet) { router in
-            builder.mealDetailView(delegate: delegate)
+            builder.mealDetailView(router: router, delegate: delegate)
         }
     }
 
@@ -501,7 +525,7 @@ struct CoreRouter {
 
     func showLogWeightView() {
         router.showScreen(.push) { router in
-            builder.logWeightView()
+            builder.logWeightView(router: router)
         }
     }
 
@@ -521,5 +545,30 @@ struct CoreRouter {
 
     func showSimpleAlert(title: String, subtitle: String?) {
         router.showAlert(.alert, title: title, subtitle: subtitle, buttons: nil)
+    }
+
+    // MARK: Modals
+
+    func dismissModal() {
+        router.dismissModal()
+    }
+
+    func showWarmupSetInfoModal(primaryButtonAction: @escaping () -> Void) {
+        router.showModal(
+            backgroundColor: .black,
+            transition: .move(edge: .bottom),
+            destination: {
+                CustomModalView(
+                    title: "Warmup Sets",
+                    subtitle: "Warmup sets are lighter weight sets performed before your working sets to prepare your muscles and joints. They don't count toward your total volume or personal records.",
+                    primaryButtonTitle: "Got it",
+                    primaryButtonAction: {
+                        primaryButtonAction()
+                    },
+                    secondaryButtonTitle: "",
+                    secondaryButtonAction: {}
+                )
+            }
+        )
     }
 }

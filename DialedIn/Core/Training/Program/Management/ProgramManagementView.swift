@@ -15,27 +15,25 @@ struct ProgramManagementView: View {
     @ViewBuilder var programRowView: (ProgramRowViewDelegate) -> AnyView
 
     var body: some View {
-        NavigationStack {
-            List {
-                if !viewModel.trainingPlans.isEmpty {
-                    activeProgramSection
-                    otherProgramsSection
-                } else {
-                    emptyState
-                }
+        List {
+            if !viewModel.trainingPlans.isEmpty {
+                activeProgramSection
+                otherProgramsSection
+            } else {
+                emptyState
             }
-            .navigationTitle("My Programs")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                toolbarContent
-            }
-            .overlay {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .padding()
-                        .background(.regularMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
+        }
+        .navigationTitle("My Programs")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            toolbarContent
+        }
+        .overlay {
+            if viewModel.isLoading {
+                ProgressView()
+                    .padding()
+                    .background(.regularMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
     }

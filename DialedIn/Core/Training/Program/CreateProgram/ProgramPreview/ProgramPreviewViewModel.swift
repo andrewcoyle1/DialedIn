@@ -20,11 +20,19 @@ protocol ProgramPreviewInteractor {
 
 extension CoreInteractor: ProgramPreviewInteractor { }
 
+@MainActor
+protocol ProgramPreviewRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: ProgramPreviewRouter { }
+
 @Observable
 @MainActor
 class ProgramPreviewViewModel {
     private let interactor: ProgramPreviewInteractor
-    
+    private let router: ProgramPreviewRouter
+
     private(set) var previewPlan: TrainingPlan?
     private(set) var template: ProgramTemplateModel?
     private(set) var startDate: Date?
@@ -34,9 +42,11 @@ class ProgramPreviewViewModel {
     }
     
     init(
-        interactor: ProgramPreviewInteractor
+        interactor: ProgramPreviewInteractor,
+        router: ProgramPreviewRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func setTemplate(_ template: ProgramTemplateModel) {
@@ -61,5 +71,9 @@ class ProgramPreviewViewModel {
     
     func dayOfWeekName(for date: Date) -> String {
         date.formatted(.dateTime.weekday(.wide))
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

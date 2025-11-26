@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct SetTrackerRowViewDelegate {
     var set: WorkoutSetModel
@@ -24,12 +25,15 @@ struct SetTrackerRowView: View {
 
     var delegate: SetTrackerRowViewDelegate
 
-    private var cellHeight: CGFloat = 35
-
-    init(viewModel: SetTrackerRowViewModel, delegate: SetTrackerRowViewDelegate) {
+    init(
+        viewModel: SetTrackerRowViewModel,
+        delegate: SetTrackerRowViewDelegate
+    ) {
         self.viewModel = viewModel
         self.delegate = delegate
     }
+
+    private var cellHeight: CGFloat = 35
 
     var body: some View {
         VStack {
@@ -55,20 +59,6 @@ struct SetTrackerRowView: View {
             restSelector
         }
         .padding(.vertical, 4)
-        .showCustomAlert(alert: $viewModel.showAlert)
-        .sheet(isPresented: $viewModel.showWarmupHelp) {
-            CustomModalView(
-                title: "Warmup Sets",
-                subtitle: "Warmup sets are lighter weight sets performed before your working sets to prepare your muscles and joints. They don't count toward your total volume or personal records.",
-                primaryButtonTitle: "Got it",
-                primaryButtonAction: {
-                    viewModel.showWarmupHelp = false
-                },
-                secondaryButtonTitle: "",
-                secondaryButtonAction: {}
-            )
-            .presentationDetents([.medium])
-        }
     }
     
     private var setNumber: some View {
@@ -86,7 +76,7 @@ struct SetTrackerRowView: View {
                 }
                 
                 Button {
-                    viewModel.showWarmupHelp = true
+                    viewModel.onWarmupSetHelpPressed()
                 } label: {
                     Label("What's a warmup set?", systemImage: "info.circle")
                 }
@@ -486,7 +476,9 @@ extension SetTrackerRowView {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
-    builder.setTrackerRowView(delegate: delegate)
+    RouterView { router in
+        builder.setTrackerRowView(router: router, delegate: delegate)
+    }
     .padding()
 }
 
@@ -511,7 +503,9 @@ extension SetTrackerRowView {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
-    builder.setTrackerRowView(delegate: delegate)
+    RouterView { router in
+        builder.setTrackerRowView(router: router, delegate: delegate)
+    }
 }
 #Preview("Duration - Incomplete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
@@ -534,7 +528,9 @@ extension SetTrackerRowView {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
-    builder.setTrackerRowView(delegate: delegate)
+    RouterView { router in
+        builder.setTrackerRowView(router: router, delegate: delegate)
+    }
 }
 
 #Preview("Duration - Complete") {
@@ -558,7 +554,9 @@ extension SetTrackerRowView {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
-    builder.setTrackerRowView(delegate: delegate)
+    RouterView { router in
+        builder.setTrackerRowView(router: router, delegate: delegate)
+    }
 }
 
 #Preview("Distance - Incomplete") {
@@ -582,7 +580,9 @@ extension SetTrackerRowView {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
-    builder.setTrackerRowView(delegate: delegate)
+    RouterView { router in
+        builder.setTrackerRowView(router: router, delegate: delegate)
+    }
 }
 
 #Preview("Distance - Complete") {
@@ -606,7 +606,9 @@ extension SetTrackerRowView {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
-    builder.setTrackerRowView(delegate: delegate)
+    RouterView { router in
+        builder.setTrackerRowView(router: router, delegate: delegate)
+    }
 }
 
 #Preview("Warmup Set") {
@@ -630,7 +632,9 @@ extension SetTrackerRowView {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
-    builder.setTrackerRowView(delegate: delegate)
+    RouterView { router in
+        builder.setTrackerRowView(router: router, delegate: delegate)
+    }
 }
 
 #Preview("All Fields Populated") {
@@ -654,7 +658,9 @@ extension SetTrackerRowView {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
-    builder.setTrackerRowView(delegate: delegate)
+    RouterView { router in
+        builder.setTrackerRowView(router: router, delegate: delegate)
+    }
 }
 
 #Preview("Edge: No Data") {
@@ -678,5 +684,7 @@ extension SetTrackerRowView {
         onRestBeforeChange: { _ in },
         onUpdate: { _ in }
     )
-    builder.setTrackerRowView(delegate: delegate)
+    RouterView { router in
+        builder.setTrackerRowView(router: router, delegate: delegate)
+    }
 }

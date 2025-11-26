@@ -6,13 +6,54 @@
 //
 
 import SwiftUI
+import CustomRouting
+
+protocol ManageSubscriptionInteractor {
+
+}
+
+extension CoreInteractor: ManageSubscriptionInteractor { }
+
+@MainActor
+protocol ManageSubscriptionRouter {
+    func dismissScreen()
+}
+
+extension CoreRouter: ManageSubscriptionRouter { }
+
+@Observable
+@MainActor
+class ManageSubscriptionViewModel {
+    private let interactor: ManageSubscriptionInteractor
+    private let router: ManageSubscriptionRouter
+
+    var isPremium: Bool = false
+    var selectedPlan: PlanOption = .annual
+    private(set) var isLoading: Bool = false
+    private(set) var showLegalDisclaimer: Bool = true
+
+    init(
+        interactor: ManageSubscriptionInteractor,
+        router: ManageSubscriptionRouter
+    ) {
+        self.interactor = interactor
+        self.router = router
+    }
+
+    func onDismiss() {
+        router.dismissScreen()
+    }
+}
+
+struct ManageSubscriptionDelegate {
+
+}
 
 struct ManageSubscriptionView: View {
+    @State var viewModel: ManageSubscriptionViewModel
+
+    var delegate: ManageSubscriptionDelegate
     // UI-only state; wiring will be added later
-    @State var isPremium: Bool = false
-    @State private var isLoading: Bool = false
-    @State private var selectedPlan: PlanOption = .annual
-    @State private var showLegalDisclaimer: Bool = true
 
     private let benefits: [String] = [
         "Unlimited workouts & templates",
@@ -39,17 +80,19 @@ struct ManageSubscriptionView: View {
 }
 
 #Preview("Free User") {
-    NavigationStack {
-        ManageSubscriptionView()
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.manageSubscriptionView(router: router, delegate: ManageSubscriptionDelegate())
     }
-        .previewEnvironment()
+    .previewEnvironment()
 }
 
 #Preview("Paid User") {
-    NavigationStack {
-        ManageSubscriptionView(isPremium: true)
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.manageSubscriptionView(router: router, delegate: ManageSubscriptionDelegate())
     }
-        .previewEnvironment()
+    .previewEnvironment()
 }
 
 // MARK: - Subviews
@@ -59,13 +102,13 @@ extension ManageSubscriptionView {
         Section {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .center, spacing: 12) {
-                    Image(systemName: isPremium ? "crown.fill" : "person.crop.circle")
-                        .foregroundStyle(isPremium ? .yellow : .secondary)
+                    Image(systemName: viewModel.isPremium ? "crown.fill" : "person.crop.circle")
+                        .foregroundStyle(viewModel.isPremium ? .yellow : .secondary)
                         .font(.system(size: 30))
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(isPremium ? "DialedIn Pro" : "DialedIn Free")
+                        Text(viewModel.isPremium ? "DialedIn Pro" : "DialedIn Free")
                             .font(.headline)
-                        if isPremium {
+                        if viewModel.isPremium {
                             Text("You're subscribed to Pro.")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
@@ -78,7 +121,7 @@ extension ManageSubscriptionView {
                     Spacer(minLength: 0)
                     statusBadge
                 }
-                if isPremium {
+                if viewModel.isPremium {
                     HStack(spacing: 8) {
                         Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
                         Text("Auto-renewing")
@@ -102,7 +145,7 @@ extension ManageSubscriptionView {
 
     private var statusBadge: some View {
         Group {
-            if isPremium {
+            if viewModel.isPremium {
                 Text("PRO")
                     .font(.caption.weight(.semibold))
                     .padding(.horizontal, 8)
@@ -130,18 +173,18 @@ extension ManageSubscriptionView {
                     subtitle: "Best value",
                     price: "$59.99/year",
                     trial: "7‑day free trial",
-                    isSelected: selectedPlan == .annual
+                    isSelected: viewModel.selectedPlan == .annual
                 ) {
-                    selectedPlan = .annual
+                    viewModel.selectedPlan = .annual
                 }
                 planRow(
                     title: "Monthly",
                     subtitle: "Flexible",
                     price: "$7.99/month",
                     trial: "7‑day free trial",
-                    isSelected: selectedPlan == .monthly
+                    isSelected: viewModel.selectedPlan == .monthly
                 ) {
-                    selectedPlan = .monthly
+                    viewModel.selectedPlan = .monthly
                 }
             }
         }
@@ -216,7 +259,7 @@ extension ManageSubscriptionView {
                     Text("Restore Purchases")
                 }   
             }
-            .disabled(isLoading)
+            .disabled(viewModel.isLoading)
 
             Button {
 
@@ -227,7 +270,7 @@ extension ManageSubscriptionView {
                     Text("Manage via App Store")
                 }
             }
-            .disabled(isLoading)
+            .disabled(viewModel.isLoading)
         }
     }
 
@@ -256,7 +299,7 @@ extension ManageSubscriptionView {
 
     private var legalFooter: some View {
         Group {
-            if showLegalDisclaimer {
+            if viewModel.showLegalDisclaimer {
                 Text("Payment will be charged to your Apple ID account upon confirmation of purchase. Subscription automatically renews unless canceled at least 24 hours before the end of the current period. You can manage and cancel your subscription in your App Store account settings.")
             }
         }
@@ -277,12 +320,12 @@ extension ManageSubscriptionView {
             Button {
                 
             } label: {
-                Text(isPremium ? "Manage" : primaryButtonTitle)
+                Text(viewModel.isPremium ? "Manage" : primaryButtonTitle)
                     .frame(minWidth: 140)
                     .frame(height: 44)
             }
             .buttonStyle(.glassProminent)
-            .disabled(isLoading)
+            .disabled(viewModel.isLoading)
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
@@ -290,35 +333,31 @@ extension ManageSubscriptionView {
     }
 
     private var ctaTitle: String {
-        if isPremium { return "You're on Pro" }
-        switch selectedPlan {
+        if viewModel.isPremium { return "You're on Pro" }
+        switch viewModel.selectedPlan {
         case .annual: return "Start 7‑day free trial"
         case .monthly: return "Start 7‑day free trial"
         }
     }
 
     private var ctaSubtitle: String {
-        if isPremium { return "Auto‑renewing. Cancel anytime." }
-        switch selectedPlan {
+        if viewModel.isPremium { return "Auto‑renewing. Cancel anytime." }
+        switch viewModel.selectedPlan {
         case .annual: return "$59.99/year after trial"
         case .monthly: return "$7.99/month after trial"
         }
     }
 
     private var primaryButtonTitle: String {
-        if isPremium { return "Manage" }
-        switch selectedPlan {
+        if viewModel.isPremium { return "Manage" }
+        switch viewModel.selectedPlan {
         case .annual: return "Continue"
         case .monthly: return "Continue"
         }
     }
 }
 
-// MARK: - Models
-
-extension ManageSubscriptionView {
-    enum PlanOption: Hashable {
-        case monthly
-        case annual
-    }
+enum PlanOption: Hashable {
+    case monthly
+    case annual
 }

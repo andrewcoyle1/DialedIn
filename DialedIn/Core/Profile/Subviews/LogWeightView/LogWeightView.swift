@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct LogWeightView: View {
     @Environment(\.dismiss) private var dismiss
@@ -157,6 +158,9 @@ struct LogWeightView: View {
 }
 
 #Preview {
-    LogWeightView(viewModel: LogWeightViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.logWeightView(router: router)
+    }
+    .previewEnvironment()
 }

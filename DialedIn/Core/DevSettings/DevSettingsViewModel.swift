@@ -31,11 +31,18 @@ protocol DevSettingsInteractor {
 
 extension CoreInteractor: DevSettingsInteractor { }
 
+@MainActor
+protocol DevSettingsRouter {
+    func dismissScreen()
+}
+
+extension CoreRouter: DevSettingsRouter { }
+
 @Observable
 @MainActor
 class DevSettingsViewModel {
     private let interactor: DevSettingsInteractor
-    
+    private let router: DevSettingsRouter
     private(set) var isReseeding = false
     private(set) var reseedingMessage = ""
     private(set) var fetchedSession: WorkoutSessionModel?
@@ -45,9 +52,11 @@ class DevSettingsViewModel {
     var testSessionId = ""
 
     init(
-        interactor: DevSettingsInteractor
+        interactor: DevSettingsInteractor,
+        router: DevSettingsRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func authParams() -> [(key: String, value: Any)] {
@@ -208,6 +217,7 @@ class DevSettingsViewModel {
     }
     
     func onForceFreshAnonUser() {
+        defer { router.dismissScreen()}
         interactor.trackEvent(event: Event.forceSignOutStart)
         Task {
             guard let userId = interactor.currentUser?.userId else {
@@ -255,7 +265,11 @@ class DevSettingsViewModel {
             interactor.trackEvent(event: Event.authSignOutFail(error: error))
         }
     }
-    
+
+    func onDismissPressed() {
+        router.dismissScreen()
+    }
+
     enum Event: LoggableEvent {
         case forceSignOutStart
         case forceSignOutSuccess

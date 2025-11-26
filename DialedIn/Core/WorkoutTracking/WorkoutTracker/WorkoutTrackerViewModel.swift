@@ -161,6 +161,7 @@ extension CoreInteractor: WorkoutTrackerInteractor { }
 protocol WorkoutTrackerRouter {
     func showDevSettingsView()
     func showAddExercisesView(delegate: AddExerciseModalViewDelegate)
+    func showWorkoutNotesView(delegate: WorkoutNotesViewDelegate)
 }
 
 extension CoreRouter: WorkoutTrackerRouter { }
@@ -721,7 +722,21 @@ class WorkoutTrackerViewModel {
     }
     
     func presentWorkoutNotes() {
-        showingWorkoutNotes = true
+        router.showWorkoutNotesView(
+            delegate: WorkoutNotesViewDelegate(
+                notes: Binding(
+                    get: {
+                        self.workoutNotes
+                    },
+                    set: { newValue in
+                        self.workoutNotes = newValue
+                    }
+                ),
+                onSave: {
+                    self.updateWorkoutNotes()
+                }
+            )
+        )
     }
     
     func presentAddExercise() {
@@ -734,5 +749,4 @@ class WorkoutTrackerViewModel {
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }
-
 }

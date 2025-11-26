@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct SetGoalFlowView: View {
 
@@ -28,6 +29,8 @@ struct SetGoalFlowView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.setGoalFlowView()
-        .previewEnvironment()
+    RouterView { router in
+        builder.setGoalFlowView(router: router)
+    }
+    .previewEnvironment()
 }

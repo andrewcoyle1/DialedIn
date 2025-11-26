@@ -15,20 +15,30 @@ protocol AddIngredientModalInteractor {
 
 extension CoreInteractor: AddIngredientModalInteractor { }
 
+@MainActor
+protocol AddIngredientModalRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: AddIngredientModalRouter { }
+
 @Observable
 @MainActor
 class AddIngredientModalViewModel {
     private let interactor: AddIngredientModalInteractor
-    
+    private let router: AddIngredientModalRouter
+
     private(set) var ingredients: [IngredientTemplateModel] = []
     private(set) var isLoading: Bool = false
     var errorMessage: String?
     var searchText: String = ""
     
     init(
-        interactor: AddIngredientModalInteractor
+        interactor: AddIngredientModalInteractor,
+        router: AddIngredientModalRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func onIngredientPressed(ingredient: IngredientTemplateModel, selectedIngredients: inout [IngredientTemplateModel]) {
@@ -92,5 +102,9 @@ class AddIngredientModalViewModel {
         } catch {
             // Don't show error for search failures, just keep current results
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

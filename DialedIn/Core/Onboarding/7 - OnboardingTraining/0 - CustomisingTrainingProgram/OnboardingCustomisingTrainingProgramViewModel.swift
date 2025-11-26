@@ -60,7 +60,7 @@ class OnboardingTrainingProgramViewModel {
         
         var parameters: [String: Any]? {
             switch self {
-                default: return nil
+            default: return nil
             }
         }
         

@@ -7,52 +7,51 @@
 
 import SwiftUI
 import Charts
+import CustomRouting
 
 struct ProgressDashboardView: View {
-    @State var viewModel: ProgressDashboardViewModel
-    @Environment(\.dismiss) private var dismiss
     
+    @State var viewModel: ProgressDashboardViewModel
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Period selector
-                    periodPicker
-                    
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .padding(40)
-                    } else if let snapshot = viewModel.progressSnapshot {
-                        // Performance metrics
-                        performanceSection(snapshot.performanceMetrics)
-                        
-                        // Volume metrics
-                        volumeSection(snapshot.volumeMetrics)
-                        
-                        // Strength metrics
-                        strengthSection(snapshot.strengthMetrics)
-                    } else {
-                        emptyState
-                    }
-                }
-                .padding()
-            }
-            .navigationTitle("Progress Analytics")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
-                        dismiss()
-                    }
+        ScrollView {
+            VStack(spacing: 20) {
+                // Period selector
+                periodPicker
+
+                if viewModel.isLoading {
+                    ProgressView()
+                        .padding(40)
+                } else if let snapshot = viewModel.progressSnapshot {
+                    // Performance metrics
+                    performanceSection(snapshot.performanceMetrics)
+
+                    // Volume metrics
+                    volumeSection(snapshot.volumeMetrics)
+
+                    // Strength metrics
+                    strengthSection(snapshot.strengthMetrics)
+                } else {
+                    emptyState
                 }
             }
-            .task {
+            .padding()
+        }
+        .navigationTitle("Progress Analytics")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Done") {
+                    viewModel.onDismissPressed()
+                }
+            }
+        }
+        .task {
+            await viewModel.loadProgressData()
+        }
+        .onChange(of: viewModel.selectedPeriod) { _, _ in
+            Task {
                 await viewModel.loadProgressData()
-            }
-            .onChange(of: viewModel.selectedPeriod) { _, _ in
-                Task {
-                    await viewModel.loadProgressData()
-                }
             }
         }
     }
@@ -228,6 +227,9 @@ struct ProgressDashboardView: View {
 }
 
 #Preview {
-    return ProgressDashboardView(viewModel: ProgressDashboardViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.progressDashboardView(router: router)
+    }
+    .previewEnvironment()
 }

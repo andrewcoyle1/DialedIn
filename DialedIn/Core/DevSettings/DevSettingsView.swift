@@ -6,12 +6,12 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct DevSettingsView: View {
     
     @State var viewModel: DevSettingsViewModel
-    @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         List {
             debugActionsSection
@@ -39,14 +39,10 @@ struct DevSettingsView: View {
     private var backButtonView: some View {
         Image(systemName: "xmark")
             .anyButton {
-                onBackButtonPressed()
+                viewModel.onDismissPressed()
             }
     }
-    
-    private func onBackButtonPressed() {
-        viewModel.dismiss(dismiss())
-    }
-    
+
     private var authSection: some View {
         Section {
             let array = viewModel.authParams()
@@ -440,10 +436,7 @@ struct DevSettingsView: View {
     private var debugActionsSection: some View {
         Section {
             Button(role: .destructive) {
-                defer {
-                    viewModel.onForceFreshAnonUser()
-                }
-                dismiss()
+                viewModel.onForceFreshAnonUser()
             } label: {
                 Text("Clear local data & sign out")
             }
@@ -486,13 +479,9 @@ struct DevSettingsView: View {
 }
 
 #Preview {
-    let container = DevPreview.shared.container
-    DevSettingsView(
-        viewModel: DevSettingsViewModel(
-            interactor: CoreInteractor(
-                container: container
-            )
-        )
-    )
-        .previewEnvironment()
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.devSettingsView(router: router)
+    }
+    .previewEnvironment()
 }

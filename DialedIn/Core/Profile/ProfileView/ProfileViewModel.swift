@@ -23,6 +23,7 @@ protocol ProfileRouter {
     func showDevSettingsView()
     func showCreateAccountView()
     func showSettingsView()
+    func showSetGoalFlowView()
 }
 
 extension CoreRouter: ProfileRouter { }
@@ -34,9 +35,7 @@ class ProfileViewModel {
     private let router: ProfileRouter
 
     private(set) var activeGoal: WeightGoal?
-    
-    var showSetGoalSheet: Bool = false
-    
+
     var currentUser: UserModel? {
         interactor.currentUser
     }
@@ -78,6 +77,10 @@ class ProfileViewModel {
 
     func onCreateAccountPressed() {
         router.showCreateAccountView()
+    }
+
+    func onSetGoalPressed() {
+        router.showSetGoalFlowView()
     }
 
     enum Event: LoggableEvent {

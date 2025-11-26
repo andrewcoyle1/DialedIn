@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct ExerciseTrackerCardViewDelegate {
     var exercise: WorkoutExerciseModel
@@ -275,63 +276,67 @@ private struct ExerciseTrackerCardPreviewContainer: View {
     @State private var isExpandedOther = false
 
     var body: some View {
-        List {
-            // Current exercise styled card
-            builder.exerciseTrackerCardView(
-                delegate: ExerciseTrackerCardViewDelegate(
-                    exercise: exercise,
-                    exerciseIndex: 0,
-                    isCurrentExercise: true,
-                    weightUnit: .kilograms,
-                    distanceUnit: .meters,
-                    previousSetsByIndex: [:],
-                    onSetUpdate: handleUpdate,
-                    onAddSet: handleAdd,
-                    onDeleteSet: handleDelete,
-                    onHeaderLongPress: {},
-                    onNotesChange: { exercise.notes = $0 },
-                    onWeightUnitChange: { _ in },
-                    onDistanceUnitChange: { _ in },
-                    restBeforeSecForSet: { _ in nil },
-                    onRestBeforeChange: { _, _ in },
-                    onRequestRestPicker: { _, _ in },
-                    getLatestExercise: { exercise },
-                    getLatestExerciseIndex: { 0 },
-                    getLatestIsCurrentExercise: { true },
-                    getLatestWeightUnit: { .kilograms },
-                    getLatestDistanceUnit: { .meters },
-                    getLatestPreviousSets: { [:] },
-                    isExpanded: $isExpandedCurrent
+        RouterView { router in
+            List {
+                // Current exercise styled card
+                builder.exerciseTrackerCardView(
+                    router: router,
+                    delegate: ExerciseTrackerCardViewDelegate(
+                        exercise: exercise,
+                        exerciseIndex: 0,
+                        isCurrentExercise: true,
+                        weightUnit: .kilograms,
+                        distanceUnit: .meters,
+                        previousSetsByIndex: [:],
+                        onSetUpdate: handleUpdate,
+                        onAddSet: handleAdd,
+                        onDeleteSet: handleDelete,
+                        onHeaderLongPress: {},
+                        onNotesChange: { exercise.notes = $0 },
+                        onWeightUnitChange: { _ in },
+                        onDistanceUnitChange: { _ in },
+                        restBeforeSecForSet: { _ in nil },
+                        onRestBeforeChange: { _, _ in },
+                        onRequestRestPicker: { _, _ in },
+                        getLatestExercise: { exercise },
+                        getLatestExerciseIndex: { 0 },
+                        getLatestIsCurrentExercise: { true },
+                        getLatestWeightUnit: { .kilograms },
+                        getLatestDistanceUnit: { .meters },
+                        getLatestPreviousSets: { [:] },
+                        isExpanded: $isExpandedCurrent
+                    )
                 )
-            )
-            // Non-current exercise styled card
-            builder.exerciseTrackerCardView(
-                delegate: ExerciseTrackerCardViewDelegate(
-                    exercise: exercise,
-                    exerciseIndex: 1,
-                    isCurrentExercise: false,
-                    weightUnit: .kilograms,
-                    distanceUnit: .meters,
-                    previousSetsByIndex: [:],
-                    onSetUpdate: handleUpdate,
-                    onAddSet: handleAdd,
-                    onDeleteSet: handleDelete,
-                    onHeaderLongPress: {},
-                    onNotesChange: { exercise.notes = $0 },
-                    onWeightUnitChange: { _ in },
-                    onDistanceUnitChange: { _ in },
-                    restBeforeSecForSet: { _ in nil },
-                    onRestBeforeChange: { _, _ in },
-                    onRequestRestPicker: { _, _ in },
-                    getLatestExercise: { exercise },
-                    getLatestExerciseIndex: { 1 },
-                    getLatestIsCurrentExercise: { false },
-                    getLatestWeightUnit: { .kilograms },
-                    getLatestDistanceUnit: { .meters },
-                    getLatestPreviousSets: { [:] },
-                    isExpanded: $isExpandedOther
+                // Non-current exercise styled card
+                builder.exerciseTrackerCardView(
+                    router: router,
+                    delegate: ExerciseTrackerCardViewDelegate(
+                        exercise: exercise,
+                        exerciseIndex: 1,
+                        isCurrentExercise: false,
+                        weightUnit: .kilograms,
+                        distanceUnit: .meters,
+                        previousSetsByIndex: [:],
+                        onSetUpdate: handleUpdate,
+                        onAddSet: handleAdd,
+                        onDeleteSet: handleDelete,
+                        onHeaderLongPress: {},
+                        onNotesChange: { exercise.notes = $0 },
+                        onWeightUnitChange: { _ in },
+                        onDistanceUnitChange: { _ in },
+                        restBeforeSecForSet: { _ in nil },
+                        onRestBeforeChange: { _, _ in },
+                        onRequestRestPicker: { _, _ in },
+                        getLatestExercise: { exercise },
+                        getLatestExerciseIndex: { 1 },
+                        getLatestIsCurrentExercise: { false },
+                        getLatestWeightUnit: { .kilograms },
+                        getLatestDistanceUnit: { .meters },
+                        getLatestPreviousSets: { [:] },
+                        isExpanded: $isExpandedOther
+                    )
                 )
-            )
+            }
         }
     }
 

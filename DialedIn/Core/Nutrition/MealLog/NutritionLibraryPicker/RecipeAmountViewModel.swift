@@ -13,17 +13,29 @@ protocol RecipeAmountInteractor {
 
 extension CoreInteractor: RecipeAmountInteractor { }
 
+@MainActor
+protocol RecipeAmountRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: RecipeAmountRouter { }
+
 @Observable
 @MainActor
 class RecipeAmountViewModel {
     private let interactor: RecipeAmountInteractor
+    private let router: RecipeAmountRouter
 
     var servingsText: String = "1"
 
     var servings: Double { max(Double(servingsText) ?? 0, 0) }
 
-    init(interactor: RecipeAmountInteractor) {
+    init(
+        interactor: RecipeAmountInteractor,
+        router: RecipeAmountRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
 
     private func aggregate(_ keyPath: (IngredientTemplateModel) -> Double?, recipe: RecipeTemplateModel) -> Double? {
@@ -82,5 +94,9 @@ class RecipeAmountViewModel {
             fatGrams: fat
         )
         onConfirm(item)
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

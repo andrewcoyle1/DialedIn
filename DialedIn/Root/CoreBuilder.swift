@@ -501,7 +501,7 @@ class CoreBuilder {
             viewModel: WorkoutTrackerViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
             exerciseTrackerCardView: { delegate in
-                self.exerciseTrackerCardView(delegate: delegate)
+                self.exerciseTrackerCardView(router: router, delegate: delegate)
             }
         )
         .any()
@@ -573,9 +573,6 @@ class CoreBuilder {
         ProgramView(
             viewModel: ProgramViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
-            addGoalView: { delegate in
-                self.addGoalView(router: router, delegate: delegate)
-            },
             workoutSummaryCardView: { delegate in
                 self.workoutSummaryCardView(delegate: delegate)
             },
@@ -592,9 +589,9 @@ class CoreBuilder {
         .any()
     }
 
-    func devSettingsView() -> AnyView {
+    func devSettingsView(router: Router) -> AnyView {
         DevSettingsView(
-            viewModel: DevSettingsViewModel(interactor: interactor)
+            viewModel: DevSettingsViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
@@ -622,9 +619,9 @@ class CoreBuilder {
         .any()
     }
 
-    func addIngredientModalView(delegate: AddIngredientModalViewDelegate) -> AnyView {
+    func addIngredientModalView(router: Router, delegate: AddIngredientModalViewDelegate) -> AnyView {
         AddIngredientModalView(
-            viewModel: AddIngredientModalViewModel(interactor: interactor),
+            viewModel: AddIngredientModalViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
         .any()
@@ -858,23 +855,23 @@ class CoreBuilder {
         .any()
     }
 
-    func progressDashboardView() -> AnyView {
+    func progressDashboardView(router: Router) -> AnyView {
         ProgressDashboardView(
-            viewModel: ProgressDashboardViewModel(interactor: interactor)
+            viewModel: ProgressDashboardViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func strengthProgressView() -> AnyView {
+    func strengthProgressView(router: Router) -> AnyView {
         StrengthProgressView(
-            viewModel: StrengthProgressViewModel(interactor: interactor)
+            viewModel: StrengthProgressViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func workoutHeatmapView() -> AnyView {
+    func workoutHeatmapView(router: Router) -> AnyView {
         WorkoutHeatmapView(
-            viewModel: WorkoutHeatmapViewModel(interactor: interactor)
+            viewModel: WorkoutHeatmapViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
@@ -905,9 +902,9 @@ class CoreBuilder {
         .any()
     }
 
-    func mealDetailView(delegate: MealDetailViewDelegate) -> AnyView {
+    func mealDetailView(router: Router, delegate: MealDetailViewDelegate) -> AnyView {
         MealDetailView(
-            viewModel: MealDetailViewModel(interactor: interactor),
+            viewModel: MealDetailViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
         .any()
@@ -936,8 +933,7 @@ class CoreBuilder {
 
     func profilePhysicalStatsView(router: Router) -> AnyView {
         ProfilePhysicalStatsView(
-            viewModel: ProfilePhysicalStatsViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            logWeightView: { self.logWeightView() }
+            viewModel: ProfilePhysicalStatsViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
@@ -1003,9 +999,9 @@ class CoreBuilder {
         .any()
     }
 
-    func logWeightView() -> AnyView {
+    func logWeightView(router: Router) -> AnyView {
         LogWeightView(
-            viewModel: LogWeightViewModel(interactor: interactor)
+            viewModel: LogWeightViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
@@ -1095,30 +1091,42 @@ class CoreBuilder {
 
     func customProgramBuilderView(router: Router) -> AnyView {
         CustomProgramBuilderView(
-            viewModel: CustomProgramBuilderViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            workoutPickerSheet: { delegate in
-                self.workoutPickerSheet(delegate: delegate)
-            }
+            viewModel: CustomProgramBuilderViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func programPreviewView(delegate: ProgramPreviewViewDelegate) -> AnyView {
+    func programPreviewView(router: Router, delegate: ProgramPreviewViewDelegate) -> AnyView {
         ProgramPreviewView(
-            viewModel: ProgramPreviewViewModel(interactor: interactor),
+            viewModel: ProgramPreviewViewModel(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
             delegate: delegate
         )
         .any()
     }
 
-    func manageSubscriptionView() -> AnyView {
-        ManageSubscriptionView()
-            .any()
+    func manageSubscriptionView(router: Router, delegate: ManageSubscriptionDelegate) -> AnyView {
+        ManageSubscriptionView(
+            viewModel: ManageSubscriptionViewModel(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
+        )
+        .any()
     }
 
-    func recipeAmountView(delegate: RecipeAmountViewDelegate) -> AnyView {
+    func recipeAmountView(router: Router, delegate: RecipeAmountViewDelegate) -> AnyView {
         RecipeAmountView(
-            viewModel: RecipeAmountViewModel(interactor: interactor),
+            viewModel: RecipeAmountViewModel(
+                interactor: interactor,
+                router: CoreRouter(
+                    router: router,
+                    builder: self
+                )
+            ),
             delegate: delegate
         )
         .any()
@@ -1132,9 +1140,9 @@ class CoreBuilder {
         .any()
     }
 
-    func volumeChartsView() -> AnyView {
+    func volumeChartsView(router: Router) -> AnyView {
          VolumeChartsView(
-            viewModel: VolumeChartsViewModel(interactor: interactor),
+            viewModel: VolumeChartsViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             trendSummarySection: { delegate in
                 self.trendSummarySection(delegate: delegate)
             }
@@ -1142,9 +1150,18 @@ class CoreBuilder {
          .any()
     }
 
-    func workoutPickerSheet(delegate: WorkoutPickerSheetDelegate) -> AnyView {
+    func copyWeekPickerView(router: Router, delegate: CopyWeekPickerDelegate) -> AnyView {
+        CopyWeekPickerSheet(
+            viewModel: CopyWeekPickerViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+        .any()
+    }
+
+    func workoutPickerSheet(router: Router, delegate: WorkoutPickerSheetDelegate) -> AnyView {
         WorkoutPickerSheet(
             interactor: interactor,
+            router: CoreRouter(router: router, builder: self),
             delegate: delegate
         )
         .any()
@@ -1158,22 +1175,30 @@ class CoreBuilder {
         .any()
     }
 
-    func setTrackerRowView(delegate: SetTrackerRowViewDelegate) -> AnyView {
+    func setTrackerRowView(router: Router, delegate: SetTrackerRowViewDelegate) -> AnyView {
         SetTrackerRowView(
-            viewModel: SetTrackerRowViewModel(interactor: interactor),
+            viewModel: SetTrackerRowViewModel(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
         )
         .any()
     }
 
-    func setGoalFlowView() -> AnyView {
+    func setGoalFlowView(router: Router) -> AnyView {
         SetGoalFlowView(
             onboardingOverarchingObjectiveView: {
-                RouterView { router in
-                    self.onboardingOverarchingObjectiveView(router: router)
-                }
-                .any()
+                self.onboardingOverarchingObjectiveView(router: router)
             }
+        )
+        .any()
+    }
+
+    func workoutNotesView(router: Router, delegate: WorkoutNotesViewDelegate) -> AnyView {
+        WorkoutNotesView(
+            viewModel: WorkoutNotesViewModel(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
         )
         .any()
     }
@@ -1198,8 +1223,7 @@ class CoreBuilder {
             },
             profileMyTemplatesView: { 
                 self.profileMyTemplatesView(router: router)
-            },
-            setGoalFlowView: { self.setGoalFlowView() }
+            }
         )
         .any()
     }
@@ -1233,12 +1257,12 @@ class CoreBuilder {
         .any()
     }
 
-    func exerciseTrackerCardView(delegate: ExerciseTrackerCardViewDelegate) -> AnyView {
+    func exerciseTrackerCardView(router: Router, delegate: ExerciseTrackerCardViewDelegate) -> AnyView {
         ExerciseTrackerCardView(
             delegate: delegate,
             interactor: interactor,
             setTrackerRowView: { delegate in
-                self.setTrackerRowView(delegate: delegate)
+                self.setTrackerRowView(router: router, delegate: delegate)
             }
         )
         .any()

@@ -12,8 +12,6 @@ struct ProfilePhysicalStatsView: View {
 
     @State var viewModel: ProfilePhysicalStatsViewModel
 
-    @ViewBuilder var logWeightView: () -> AnyView
-    
     var body: some View {
         List {
             if let user = viewModel.currentUser {
@@ -33,9 +31,6 @@ struct ProfilePhysicalStatsView: View {
         .toolbar {
             toolbarContent
         }
-        .sheet(isPresented: $viewModel.showLogWeightSheet) {
-            logWeightView()
-        }
         .task {
             await viewModel.loadWeights()
             
@@ -46,7 +41,7 @@ struct ProfilePhysicalStatsView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
             Button {
-                viewModel.showLogWeightSheet = true
+                viewModel.onLogWeightPressed()
             } label: {
                 Label("Log Weight", systemImage: "plus.circle.fill")
             }

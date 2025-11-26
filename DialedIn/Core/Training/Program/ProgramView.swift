@@ -20,7 +20,6 @@ struct ProgramView: View {
 
     let delegate: ProgramViewDelegate
 
-    @ViewBuilder var addGoalView: (AddGoalViewDelegate) -> AnyView
     @ViewBuilder var workoutSummaryCardView: (WorkoutSummaryCardViewDelegate) -> AnyView
     @ViewBuilder var todaysWorkoutCardView: (TodaysWorkoutCardViewDelegate) -> AnyView
     @ViewBuilder var workoutCalendarView: (WorkoutCalendarViewDelegate) -> AnyView
@@ -44,11 +43,6 @@ struct ProgramView: View {
         }
         .refreshable {
             await viewModel.refreshData()
-        }
-        .sheet(isPresented: $viewModel.showAddGoalSheet) {
-            if let plan = viewModel.currentTrainingPlan {
-                addGoalView(AddGoalViewDelegate(plan: plan))
-            }
         }
     }
     
@@ -277,7 +271,7 @@ struct ProgramView: View {
                         } actions: {
                             Button {
                                 if viewModel.currentTrainingPlan != nil {
-                                    viewModel.showAddGoalSheet = true
+                                    viewModel.onAddGoalPressed()
                                 }
                             } label: {
                                 Image(systemName: "plus")

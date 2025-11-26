@@ -39,9 +39,6 @@ struct SplitViewContainer: View {
             .frame(minWidth: 150)
         } content: {
             tabs.first!.screen()
-//            NavigationStack {
-//                tabRootView(delegate.tab.wrappedValue, delegate.path)
-//            }
             .background(
                 Color(uiColor: .systemGroupedBackground)
             )
@@ -66,9 +63,6 @@ struct SplitViewContainer: View {
                 viewModel.activeSession = active
             }
         }
-//        .onChange(of: tab) { _, _ in
-//            path.clear()
-//        }
     }
 }
 

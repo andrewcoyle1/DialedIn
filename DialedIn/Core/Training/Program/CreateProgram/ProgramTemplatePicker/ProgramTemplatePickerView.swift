@@ -13,7 +13,6 @@ struct ProgramTemplatePickerView: View {
     @State var viewModel: ProgramTemplatePickerViewModel
 
     var body: some View {
-        NavigationStack {
             List {
                 builtInTemplatesSection
                 userTemplatesSection
@@ -29,8 +28,6 @@ struct ProgramTemplatePickerView: View {
                 ProgressView("Creating Program...")
                     .padding()
             })
-            
-        }
     }
     
     private var userTemplatesSection: some View {

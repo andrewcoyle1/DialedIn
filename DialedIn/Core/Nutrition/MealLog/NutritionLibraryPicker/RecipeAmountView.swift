@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct RecipeAmountViewDelegate {
     let recipe: RecipeTemplateModel
@@ -67,12 +68,15 @@ struct RecipeAmountView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.recipeAmountView(
-        delegate: RecipeAmountViewDelegate(
-            recipe: RecipeTemplateModel.mock,
-            onPick: { meal in
-                print(meal.id)
-            }
+    RouterView { router in
+        builder.recipeAmountView(
+            router: router, 
+            delegate: RecipeAmountViewDelegate(
+                recipe: RecipeTemplateModel.mock,
+                onPick: { meal in
+                    print(meal.id)
+                }
+            )
         )
-    )
+    }
 }

@@ -261,52 +261,10 @@ struct CreateIngredientView: View {
     }
 }
 
-#Preview("As sheet") {
-    @Previewable @State var isPresented: Bool = true
+#Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    Button {
-        isPresented = true
-    } label: {
-        Text("Present")
-    }
-    .sheet(isPresented: $isPresented) {
-        RouterView { router in
-            builder.createIngredientView(router: router)
-        }
+    RouterView { router in
+        builder.createIngredientView(router: router)
     }
     .previewEnvironment()
-}
-
-#Preview("Is saving") {
-    @Previewable @State var isPresented: Bool = true
-    let builder = CoreBuilder(container: DevPreview.shared.container)
-    Button {
-        isPresented = true
-    } label: {
-        Text("Present")
-    }
-    .sheet(isPresented: $isPresented) {
-        RouterView { router in
-            builder.createIngredientView(router: router)
-        }
-    }
-    .previewEnvironment()
-}
-
-#Preview("As fullscreen cover") {
-    @Previewable @State var isPresented: Bool = true
-    let builder = CoreBuilder(container: DevPreview.shared.container)
-
-    Button {
-        isPresented = true
-    } label: {
-        Text("Present")
-    }
-    .fullScreenCover(isPresented: $isPresented) {
-        RouterView { router in
-            builder.createIngredientView(router: router)
-        }
-    }
-    .previewEnvironment()
-    
 }

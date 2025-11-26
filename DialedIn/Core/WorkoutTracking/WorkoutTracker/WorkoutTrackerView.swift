@@ -26,24 +26,22 @@ struct WorkoutTrackerView: View {
 
     var body: some View {
         TimelineView(.periodic(from: delegate.workoutSession.dateCreated, by: 1.0)) { _ in
-            NavigationStack {
-                List {
-                    workoutOverviewCard
-                    exerciseSection
-                }
-                .navigationTitle(viewModel.workoutSession?.name ?? delegate.workoutSession.name)
-                .navigationSubtitle(viewModel.elapsedTimeString)
-                .navigationBarTitleDisplayMode(.large)
-                .scrollIndicators(.hidden)
-                .environment(\.editMode, $viewModel.editMode)
-                .toolbar {
-                    toolbarContent
-                }
-                .safeAreaInset(edge: .bottom) {
-                    timerHeaderView()
-                }
-                .showCustomAlert(alert: $viewModel.showAlert)
+            List {
+                workoutOverviewCard
+                exerciseSection
             }
+            .navigationTitle(viewModel.workoutSession?.name ?? delegate.workoutSession.name)
+            .navigationSubtitle(viewModel.elapsedTimeString)
+            .navigationBarTitleDisplayMode(.large)
+            .scrollIndicators(.hidden)
+            .environment(\.editMode, $viewModel.editMode)
+            .toolbar {
+                toolbarContent
+            }
+            .safeAreaInset(edge: .bottom) {
+                timerHeaderView()
+            }
+            .showCustomAlert(alert: $viewModel.showAlert)
             .task {
                 viewModel.loadWorkoutSession(delegate.workoutSession)
                 await viewModel.onAppear()
@@ -53,11 +51,6 @@ struct WorkoutTrackerView: View {
             }
             .showModal(showModal: $viewModel.isRestPickerOpen) {
                 setRestModal
-            }
-            .sheet(isPresented: $viewModel.showingWorkoutNotes) {
-                WorkoutNotesView(notes: $viewModel.workoutNotes) {
-                    viewModel.updateWorkoutNotes()
-                }
             }
         }
     }
@@ -359,33 +352,68 @@ struct WorkoutTrackerView: View {
     }
 }
 
-struct WorkoutNotesView: View {
-    @Binding var notes: String
-    @Environment(\.dismiss) private var dismiss
+protocol WorkoutNotesInteractor {
+
+}
+
+extension CoreInteractor: WorkoutNotesInteractor { }
+
+@MainActor
+protocol WorkoutNotesRouter {
+    func dismissScreen()
+}
+
+extension CoreRouter: WorkoutNotesRouter { }
+
+@Observable
+@MainActor
+class WorkoutNotesViewModel {
+    let interactor: WorkoutNotesInteractor
+    let router: WorkoutNotesRouter
+
+    init(
+        interactor: WorkoutNotesInteractor,
+        router: WorkoutNotesRouter
+    ) {
+        self.interactor = interactor
+        self.router = router
+    }
+
+    func onDismissPressed() {
+        router.dismissScreen()
+    }
+}
+
+struct WorkoutNotesViewDelegate {
+    var notes: Binding<String>
     let onSave: () -> Void
-    
+}
+
+struct WorkoutNotesView: View {
+
+    @State var viewModel: WorkoutNotesViewModel
+    var delegate: WorkoutNotesViewDelegate
+
     var body: some View {
-        NavigationStack {
-            VStack {
-                TextEditor(text: $notes)
-                    .padding()
-                
-                Spacer()
-            }
-            .navigationTitle("Workout Notes")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+        VStack {
+            TextEditor(text: delegate.notes)
+                .padding()
+
+            Spacer()
+        }
+        .navigationTitle("Workout Notes")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Cancel") {
+                    viewModel.onDismissPressed()
                 }
-                
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Save") {
-                        onSave()
-                        dismiss()
-                    }
+            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Save") {
+                    delegate.onSave()
+                    viewModel.onDismissPressed()
                 }
             }
         }

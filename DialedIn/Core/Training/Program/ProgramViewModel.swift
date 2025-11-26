@@ -29,6 +29,7 @@ protocol ProgramRouter {
     func showProgressDashboardView()
     func showStrengthProgressView()
     func showWorkoutHeatmapView()
+    func showAddGoalView(delegate: AddGoalViewDelegate)
 }
 
 extension CoreRouter: ProgramRouter { }
@@ -45,7 +46,6 @@ class ProgramViewModel {
     private(set) var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
 
     private(set) var isShowingAddGoals: Bool = false
-    var showAddGoalSheet: Bool = false
     var selectedHistorySession: WorkoutSessionModel?
     var activeSheet: ActiveSheet?
     var showAlert: AnyAppAlert?
@@ -226,6 +226,11 @@ class ProgramViewModel {
 
     func onWorkoutHeatmapPressed() {
         router.showWorkoutHeatmapView()
+    }
+
+    func onAddGoalPressed() {
+        guard let plan = currentTrainingPlan else { return }
+        router.showAddGoalView(delegate: AddGoalViewDelegate(plan: plan))
     }
 
     enum Event: LoggableEvent {

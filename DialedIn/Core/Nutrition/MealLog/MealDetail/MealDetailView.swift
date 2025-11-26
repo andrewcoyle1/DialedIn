@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct MealDetailViewDelegate {
     let meal: MealLogModel
@@ -23,5 +24,7 @@ struct MealDetailView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.mealDetailView(delegate: MealDetailViewDelegate(meal: .mock))
+    RouterView { router in
+        builder.mealDetailView(router: router, delegate: MealDetailViewDelegate(meal: .mock))
+    }
 }

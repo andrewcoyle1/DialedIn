@@ -5,6 +5,8 @@
 //  Created by Andrew Coyle on 22/10/2025.
 //
 
+import SwiftUI
+
 protocol WorkoutHeatmapInteractor {
     func getProgressSnapshot(for period: DateInterval) async throws -> ProgressSnapshot
     func getCompletedSessions(in period: DateInterval) async -> [WorkoutSessionModel]
@@ -12,12 +14,20 @@ protocol WorkoutHeatmapInteractor {
 
 extension CoreInteractor: WorkoutHeatmapInteractor { }
 
-import SwiftUI
+@MainActor
+protocol WorkoutHeatmapRouter {
+    func showDevSettingsView()
+    func dismissScreen()
+}
+
+extension CoreRouter: WorkoutHeatmapRouter { }
 
 @Observable
 @MainActor
 class WorkoutHeatmapViewModel {
     private let interactor: WorkoutHeatmapInteractor
+    private let router: WorkoutHeatmapRouter
+
     let calendar = Calendar.current
     let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
     
@@ -28,8 +38,10 @@ class WorkoutHeatmapViewModel {
     
     init(
         interactor: WorkoutHeatmapInteractor,
+        router: WorkoutHeatmapRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func daysInMonth() -> [Date?] {
@@ -98,5 +110,13 @@ class WorkoutHeatmapViewModel {
         } catch {
             print("Error loading heatmap data: \(error)")
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func onDismissPressed() {
+        router.dismissScreen()
     }
 }

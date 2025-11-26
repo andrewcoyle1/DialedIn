@@ -18,7 +18,7 @@ extension CoreInteractor: CreateAccountInteractor { }
 
 @MainActor
 protocol CreateAccountRouter {
-
+    func dismissScreen()
 }
 
 extension CoreRouter: CreateAccountRouter { }
@@ -41,7 +41,7 @@ class CreateAccountViewModel {
         self.router = router
     }
     
-    func onSignInApplePressed(onDismiss: @escaping () -> Void) {
+    func onSignInApplePressed() {
         interactor.trackEvent(event: Event.appleAuthStart)
         Task {
             do {
@@ -52,14 +52,14 @@ class CreateAccountViewModel {
                 interactor.trackEvent(event: Event.appleAuthLoginSuccess(user: result))
 
                 onDidSignIn?(result.isNewUser)
-                onDismiss()
+                self.onDismissPressed()
             } catch {
                 interactor.trackEvent(event: Event.appleAuthFail(error: error))
             }
         }
     }
     
-    func onSignInGooglePressed(onDismiss: @escaping () -> Void) {
+    func onSignInGooglePressed() {
         interactor.trackEvent(event: Event.googleAuthStart)
         Task {
             do {
@@ -70,11 +70,15 @@ class CreateAccountViewModel {
                 interactor.trackEvent(event: Event.googleAuthLoginSuccess(user: result))
 
                 onDidSignIn?(result.isNewUser)
-                onDismiss()
+                self.onDismissPressed()
             } catch {
                 interactor.trackEvent(event: Event.googleAuthFail(error: error))
             }
         }
+    }
+
+    func onDismissPressed() {
+        router.dismissScreen()
     }
 
     enum Event: LoggableEvent {

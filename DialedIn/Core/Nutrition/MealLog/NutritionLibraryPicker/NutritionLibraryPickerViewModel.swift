@@ -106,7 +106,7 @@ class NutritionLibraryPickerViewModel {
 
         var parameters: [String: Any]? {
             switch self {
-                default:
+            default:
                 return nil
             }
         }

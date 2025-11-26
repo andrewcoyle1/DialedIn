@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct ProgramPreviewViewDelegate {
     let template: ProgramTemplateModel
@@ -77,8 +78,9 @@ struct ProgramPreviewView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    NavigationStack {
+    RouterView { router in
         builder.programPreviewView(
+            router: router, 
             delegate: ProgramPreviewViewDelegate(
                 template: .pushPullLegs,
                 startDate: Date()

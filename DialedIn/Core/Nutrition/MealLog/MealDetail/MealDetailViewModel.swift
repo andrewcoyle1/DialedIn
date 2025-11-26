@@ -13,12 +13,28 @@ protocol MealDetailInteractor {
 
 extension CoreInteractor: MealDetailInteractor { }
 
+@MainActor
+protocol MealDetailRouter {
+    func showDevSettingsView()
+}
+
+extension CoreRouter: MealDetailRouter { }
+
 @Observable
 @MainActor
 class MealDetailViewModel {
     private let interactor: MealDetailInteractor
+    private let router: MealDetailRouter
 
-    init(interactor: MealDetailInteractor) {
+    init(
+        interactor: MealDetailInteractor,
+        router: MealDetailRouter
+    ) {
         self.interactor = interactor
+        self.router = router
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

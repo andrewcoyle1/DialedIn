@@ -13,19 +13,30 @@ protocol VolumeChartsInteractor {
 
 extension CoreInteractor: VolumeChartsInteractor { }
 
+@MainActor
+protocol VolumeChartsRouter {
+    func showDevSettingsView()
+    func dismissScreen()
+}
+
+extension CoreRouter: VolumeChartsRouter { }
+
 @Observable
 @MainActor
 class VolumeChartsViewModel {
     private let interactor: VolumeChartsInteractor
-    
+    private let router: VolumeChartsRouter
+
     private(set) var volumeTrend: VolumeTrend?
     private(set) var isLoading = false
     var selectedPeriod: TimePeriod = .lastMonth
 
     init(
-        interactor: VolumeChartsInteractor
+        interactor: VolumeChartsInteractor,
+        router: VolumeChartsRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func loadVolumeData() async {
@@ -36,5 +47,13 @@ class VolumeChartsViewModel {
             interval: .weekOfYear
         )
         volumeTrend = trend
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func onDismissPressed() {
+        router.dismissScreen()
     }
 }

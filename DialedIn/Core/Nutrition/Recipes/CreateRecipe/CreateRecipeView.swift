@@ -216,31 +216,19 @@ struct CreateRecipeView: View {
 }
 
 #Preview("With Ingredients") {
-    @Previewable @State var showingSheet: Bool = true
     let builder = CoreBuilder(container: DevPreview.shared.container)
 
-    Button("Show Sheet") {
-        showingSheet = true
-    }
-    .sheet(isPresented: $showingSheet) {
-        RouterView { router in
-            builder.createRecipeView(router: router)
-        }
+    RouterView { router in
+        builder.createRecipeView(router: router)
     }
     .previewEnvironment()
 }
 
 #Preview("Without Ingredients") {
-    @Previewable @State var showingSheet: Bool = true
     let builder = CoreBuilder(container: DevPreview.shared.container)
 
-    Button("Show Sheet") {
-        showingSheet = true
-    }
-    .sheet(isPresented: $showingSheet) {
-        RouterView { router in
-            builder.createRecipeView(router: router)
-        }
+    RouterView { router in
+        builder.createRecipeView(router: router)
     }
     .previewEnvironment()
 }

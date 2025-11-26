@@ -7,13 +7,12 @@
 
 import SwiftUI
 import Charts
+import CustomRouting
 
 struct StrengthProgressView: View {
     @State var viewModel: StrengthProgressViewModel
-    @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
-        NavigationStack {
             List {
                 // Period picker
                 Section {
@@ -47,7 +46,7 @@ struct StrengthProgressView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
-                        dismiss()
+                        viewModel.onDismissPressed()
                     }
                 }
             }
@@ -69,7 +68,6 @@ struct StrengthProgressView: View {
                     }
                 }
             }
-        }
     }
     
     private func personalRecordsSection(_ metrics: StrengthMetrics) -> some View {
@@ -203,16 +201,25 @@ struct StrengthProgressView: View {
 }
 
 #Preview("Main State") {
-    StrengthProgressView(viewModel: StrengthProgressViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.strengthProgressView(router: router)
+    }
+    .previewEnvironment()
 }
 
 #Preview("Is Loading") {
-    StrengthProgressView(viewModel: StrengthProgressViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.strengthProgressView(router: router)
+    }
+    .previewEnvironment()
 }
 
 #Preview("No Data") {
-    StrengthProgressView(viewModel: StrengthProgressViewModel(interactor: CoreInteractor(container: DevPreview.shared.container)))
-        .previewEnvironment()
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.strengthProgressView(router: router)
+    }
+    .previewEnvironment()
 }

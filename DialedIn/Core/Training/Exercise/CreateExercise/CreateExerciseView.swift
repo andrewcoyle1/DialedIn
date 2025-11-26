@@ -190,17 +190,9 @@ struct CreateExerciseView: View {
 }
 
 #Preview("As sheet") {
-    @Previewable @State var isPresented: Bool = true
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    Button {
-        isPresented = true
-    } label: {
-        Text("Present")
-    }
-    .sheet(isPresented: $isPresented) {
-        RouterView { router in
-            builder.createExerciseView(router: router)
-        }
+    RouterView { router in
+        builder.createExerciseView(router: router)
     }
     .previewEnvironment()
 }
@@ -208,15 +200,8 @@ struct CreateExerciseView: View {
 #Preview("Is saving") {
     @Previewable @State var isPresented: Bool = true
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    Button {
-        isPresented = true
-    } label: {
-        Text("Present")
-    }
-    .sheet(isPresented: $isPresented) {
-        RouterView { router in
-            builder.createExerciseView(router: router)
-        }
+    RouterView { router in
+        builder.createExerciseView(router: router)
     }
     .previewEnvironment()
 }
@@ -224,16 +209,8 @@ struct CreateExerciseView: View {
 #Preview("As fullscreen cover") {
     @Previewable @State var isPresented: Bool = true
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    Button {
-        isPresented = true
-    } label: {
-        Text("Present")
-    }
-    .fullScreenCover(isPresented: $isPresented) {
-        RouterView { router in
-            builder.createExerciseView(router: router)
-        }
+    RouterView { router in
+        builder.createExerciseView(router: router)
     }
     .previewEnvironment()
-    
 }

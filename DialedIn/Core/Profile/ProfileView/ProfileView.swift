@@ -20,7 +20,6 @@ struct ProfileView: View {
     @ViewBuilder var profileNutritionPlanView: () -> AnyView
     @ViewBuilder var profilePreferencesView: () -> AnyView
     @ViewBuilder var profileMyTemplatesView: () -> AnyView
-    @ViewBuilder var setGoalFlowView: () -> AnyView
 
     var body: some View {
         List {
@@ -40,9 +39,6 @@ struct ProfileView: View {
         .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
         .scrollIndicators(.hidden)
         .navigationBarTitleDisplayMode(.large)
-        .sheet(isPresented: $viewModel.showSetGoalSheet) {
-            setGoalFlowView()
-        }
         .toolbar {
             toolbarContent
         }

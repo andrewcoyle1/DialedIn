@@ -7,17 +7,15 @@
 
 import SwiftUI
 import Charts
+import CustomRouting
 
 struct VolumeChartsView: View {
-
-    @Environment(\.dismiss) private var dismiss
 
     @State var viewModel: VolumeChartsViewModel
 
     @ViewBuilder var trendSummarySection: (TrendSummarySectionDelegate) -> AnyView
 
     var body: some View {
-        NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     // Period picker
@@ -46,7 +44,7 @@ struct VolumeChartsView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
-                        dismiss()
+                        viewModel.onDismissPressed()
                     }
                 }
             }
@@ -58,12 +56,13 @@ struct VolumeChartsView: View {
                     await viewModel.loadVolumeData()
                 }
             }
-        }
     }
 }
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.volumeChartsView()
+    RouterView { router in
+        builder.volumeChartsView(router: router)
+    }
     .previewEnvironment()
 }

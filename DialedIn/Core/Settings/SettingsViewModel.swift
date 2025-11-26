@@ -25,7 +25,7 @@ extension CoreInteractor: SettingsInteractor { }
 @MainActor
 protocol SettingsRouter {
     func showCreateAccountView()
-    func showManageSubscriptionView()
+    func showManageSubscriptionView(delegate: ManageSubscriptionDelegate)
 }
 
 extension CoreRouter: SettingsRouter { }
@@ -126,7 +126,7 @@ class SettingsViewModel {
 
     func navToManageSubscriptionView() {
         interactor.trackEvent(event: Event.navigate)
-        router.showManageSubscriptionView()
+        router.showManageSubscriptionView(delegate: ManageSubscriptionDelegate())
     }
 
     private func onDeleteAccountConfirmed(onDismiss: @escaping () -> Void) {

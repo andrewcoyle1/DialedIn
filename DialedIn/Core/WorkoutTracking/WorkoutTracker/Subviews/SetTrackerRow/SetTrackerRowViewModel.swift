@@ -13,18 +13,29 @@ protocol SetTrackerRowInteractor {
 
 extension CoreInteractor: SetTrackerRowInteractor { }
 
+@MainActor
+protocol SetTrackerRowRouter {
+    func showDevSettingsView()
+    func showWarmupSetInfoModal(primaryButtonAction: @escaping () -> Void)
+    func dismissModal()
+    func showSimpleAlert(title: String, subtitle: String?)
+}
+
+extension CoreRouter: SetTrackerRowRouter { }
+
 @Observable
 @MainActor
 class SetTrackerRowViewModel {
 
     private let interactor: SetTrackerRowInteractor
+    private let router: SetTrackerRowRouter
 
-    // Validation state
-    var showAlert: AnyAppAlert?
-    var showWarmupHelp = false
-    
-    init(interactor: SetTrackerRowInteractor) {
+    init(
+        interactor: SetTrackerRowInteractor,
+        router: SetTrackerRowRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func buttonColor(set: WorkoutSetModel, canComplete: Bool) -> Color {
@@ -73,13 +84,13 @@ class SetTrackerRowViewModel {
     func validateWeightReps(set: WorkoutSetModel) -> Bool {
         // Weight must be non-negative (including 0 for bodyweight exercises)
         if let weight = set.weightKg, weight < 0 {
-            showAlert = AnyAppAlert(title: "Invalid Set Data", subtitle: "Weight must be a non-negative number")
+            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Weight must be a non-negative number")
             return false
         }
         
         // Reps must be positive
         guard let reps = set.reps, reps > 0 else {
-            showAlert = AnyAppAlert(title: "Invalid Set Data", subtitle: "Reps must be a positive number")
+            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Reps must be a positive number")
             return false
         }
         
@@ -89,7 +100,7 @@ class SetTrackerRowViewModel {
     func validateRepsOnly(set: WorkoutSetModel) -> Bool {
         // Reps must be positive
         guard let reps = set.reps, reps > 0 else {
-            showAlert = AnyAppAlert(title: "Invalid Set Data", subtitle: "Reps must be a positive number")
+            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Reps must be a positive number")
             return false
         }
         
@@ -99,7 +110,7 @@ class SetTrackerRowViewModel {
     func validateTimeOnly(set: WorkoutSetModel) -> Bool {
         // Time must be positive
         guard let duration = set.durationSec, duration > 0 else {
-            showAlert = AnyAppAlert(title: "Invalid Set Data", subtitle: "Duration must be a positive time")
+            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Duration must be a positive time")
             return false
         }
         
@@ -109,16 +120,26 @@ class SetTrackerRowViewModel {
     func validateDistanceTime(set: WorkoutSetModel) -> Bool {
         // Distance must be positive
         guard let distance = set.distanceMeters, distance > 0 else {
-            showAlert = AnyAppAlert(title: "Invalid Set Data", subtitle: "Distance must be a positive number")
+            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Distance must be a positive number")
             return false
         }
         
         // Time must be positive
         guard let duration = set.durationSec, duration > 0 else {
-            showAlert = AnyAppAlert(title: "Invalid Set Data", subtitle: "Duration must be a positive time")
+            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Duration must be a positive time")
             return false
         }
         
         return true
+    }
+
+    func onWarmupSetHelpPressed() {
+        router.showWarmupSetInfoModal {
+            self.router.dismissModal()
+        }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
     }
 }

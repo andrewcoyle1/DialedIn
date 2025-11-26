@@ -19,35 +19,33 @@ struct AddExerciseModalView: View {
     var delegate: AddExerciseModalViewDelegate
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if viewModel.isLoading {
-                    progressSection
-                } else if let errorMessage = viewModel.errorMessage {
-                    errorSection(errorMessage: errorMessage)
-                } else {
-                    listSection
+        Group {
+            if viewModel.isLoading {
+                progressSection
+            } else if let errorMessage = viewModel.errorMessage {
+                errorSection(errorMessage: errorMessage)
+            } else {
+                listSection
+            }
+        }
+        .searchable(text: $viewModel.searchText)
+        .navigationTitle("Add Exercises")
+        .navigationSubtitle("Select one or more exercises to add")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    viewModel.dismissScreen()
+                } label: {
+                    Image(systemName: "xmark")
                 }
             }
-            .searchable(text: $viewModel.searchText)
-            .navigationTitle("Add Exercises")
-            .navigationSubtitle("Select one or more exercises to add")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        viewModel.dismissScreen()
-                    } label: {
-                        Image(systemName: "xmark")
-                    }
-                }
-            }
-            .task {
-                await viewModel.loadExercises()
-            }
-            .onChange(of: viewModel.searchText) {
-                Task {
-                    await viewModel.searchExercises()
-                }
+        }
+        .task {
+            await viewModel.loadExercises()
+        }
+        .onChange(of: viewModel.searchText) {
+            Task {
+                await viewModel.searchExercises()
             }
         }
     }

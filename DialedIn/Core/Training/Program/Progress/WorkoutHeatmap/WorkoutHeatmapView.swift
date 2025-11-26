@@ -6,55 +6,53 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct WorkoutHeatmapView: View {
     @State var viewModel: WorkoutHeatmapViewModel
-    @Environment(\.dismiss) private var dismiss
-   
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Month selector
-                    monthNavigator
-                    
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .padding(40)
-                    } else {
-                        // Weekday headers
-                        weekdayHeaders
-                        
-                        // Calendar grid
-                        calendarGrid
-                        
-                        // Legend
-                        heatmapLegend
-                        
-                        // Stats
-                        if let metrics = viewModel.performanceMetrics {
-                            heatmapStatsSection(metrics)
-                        }
-                    }
-                }
-                .padding()
-            }
-            .navigationTitle("Training Frequency")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
-                        dismiss()
+        ScrollView {
+            VStack(spacing: 20) {
+                // Month selector
+                monthNavigator
+
+                if viewModel.isLoading {
+                    ProgressView()
+                        .padding(40)
+                } else {
+                    // Weekday headers
+                    weekdayHeaders
+
+                    // Calendar grid
+                    calendarGrid
+
+                    // Legend
+                    heatmapLegend
+
+                    // Stats
+                    if let metrics = viewModel.performanceMetrics {
+                        heatmapStatsSection(metrics)
                     }
                 }
             }
-            .task {
+            .padding()
+        }
+        .navigationTitle("Training Frequency")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Done") {
+                    viewModel.onDismissPressed()
+                }
+            }
+        }
+        .task {
+            await viewModel.loadHeatmapData()
+        }
+        .onChange(of: viewModel.selectedMonth) { _, _ in
+            Task {
                 await viewModel.loadHeatmapData()
-            }
-            .onChange(of: viewModel.selectedMonth) { _, _ in
-                Task {
-                    await viewModel.loadHeatmapData()
-                }
             }
         }
     }
@@ -228,28 +226,25 @@ struct WorkoutHeatmapView: View {
 }
 
 #Preview("Loaded") {
-    WorkoutHeatmapView(
-        viewModel: WorkoutHeatmapViewModel(
-            interactor: CoreInteractor(container: DevPreview.shared.container)
-        )
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.workoutHeatmapView(router: router)
+    }
     .previewEnvironment()
 }
 
 #Preview("Is Loading") {
-    WorkoutHeatmapView(
-        viewModel: WorkoutHeatmapViewModel(
-            interactor: CoreInteractor(container: DevPreview.shared.container)
-        )
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.workoutHeatmapView(router: router)
+    }
     .previewEnvironment()
 }
 
 #Preview("Fail") {
-    WorkoutHeatmapView(
-        viewModel: WorkoutHeatmapViewModel(
-            interactor: CoreInteractor(container: DevPreview.shared.container)
-        )
-    )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        builder.workoutHeatmapView(router: router)
+    }
     .previewEnvironment()
 }

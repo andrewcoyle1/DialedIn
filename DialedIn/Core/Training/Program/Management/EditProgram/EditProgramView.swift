@@ -19,29 +19,27 @@ struct EditProgramView: View {
     var delegate: EditProgramViewDelegate
 
     var body: some View {
-        NavigationStack {
-            Form {
-                basicInfoSection
-                scheduleSection
-                statisticsSection
-                detailsSection
-                deletePlanSection()
-            }
-            .navigationTitle("Edit Program")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                toolbarContent
-            }
-            .overlay {
-                if viewModel.isSaving {
-                    ProgressView()
-                        .padding()
-                        .background(.regularMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-            }
-            .showCustomAlert(alert: $viewModel.showAlert)
+        Form {
+            basicInfoSection
+            scheduleSection
+            statisticsSection
+            detailsSection
+            deletePlanSection()
         }
+        .navigationTitle("Edit Program")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            toolbarContent
+        }
+        .overlay {
+            if viewModel.isSaving {
+                ProgressView()
+                    .padding()
+                    .background(.regularMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+        }
+        .showCustomAlert(alert: $viewModel.showAlert)
     }
 
     private var basicInfoSection: some View {

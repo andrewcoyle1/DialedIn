@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct AddIngredientModalViewDelegate {
     var selectedIngredients: Binding<[IngredientTemplateModel]>
@@ -100,15 +101,10 @@ struct AddIngredientModalView: View {
 }
 
 #Preview {
-    @Previewable @State var showModal: Bool = true
     @Previewable @State var selectedIngredients: [IngredientTemplateModel] = [IngredientTemplateModel.mock]
     let builder = CoreBuilder(container: DevPreview.shared.container)
-
-    Button("Show Modal") {
-        showModal = true
-    }
-    .sheet(isPresented: $showModal) {
-        builder.addIngredientModalView(delegate: AddIngredientModalViewDelegate(selectedIngredients: $selectedIngredients))
+    RouterView { router in
+        builder.addIngredientModalView(router: router, delegate: AddIngredientModalViewDelegate(selectedIngredients: $selectedIngredients))
     }
     .previewEnvironment()
 }

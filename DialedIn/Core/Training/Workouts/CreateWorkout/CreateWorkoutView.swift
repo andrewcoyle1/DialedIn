@@ -20,39 +20,37 @@ struct CreateWorkoutView: View {
     var delegate: CreateWorkoutViewDelegate
 
     var body: some View {
-        NavigationStack {
-            List {
-                imageSection
-                nameSection
-                exerciseTemplatesSection
-            }
-            .navigationTitle(viewModel.isEditMode ? "Edit Workout" : "Create Workout")
-            .onAppear { viewModel.loadInitialState(workoutTemplate: delegate.workoutTemplate) }
-            .toolbar {
-                toolbarContent
-            }
-            .onChange(of: viewModel.selectedPhotoItem) {
-                guard let newItem = viewModel.selectedPhotoItem else { return }
-                
-                Task {
-                    do {
-                        if let data = try await newItem.loadTransferable(type: Data.self) {
-                            await MainActor.run {
-                                viewModel.selectedImageData = data
-                            }
+        List {
+            imageSection
+            nameSection
+            exerciseTemplatesSection
+        }
+        .navigationTitle(viewModel.isEditMode ? "Edit Workout" : "Create Workout")
+        .onAppear { viewModel.loadInitialState(workoutTemplate: delegate.workoutTemplate) }
+        .toolbar {
+            toolbarContent
+        }
+        .onChange(of: viewModel.selectedPhotoItem) {
+            guard let newItem = viewModel.selectedPhotoItem else { return }
+            
+            Task {
+                do {
+                    if let data = try await newItem.loadTransferable(type: Data.self) {
+                        await MainActor.run {
+                            viewModel.selectedImageData = data
                         }
-                    } catch {
-                        
                     }
+                } catch {
+                    
                 }
             }
-            .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
-                Button("OK") {
-                    viewModel.saveError = nil
-                }
-            } message: {
-                Text(viewModel.saveError ?? "")
+        }
+        .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
+            Button("OK") {
+                viewModel.saveError = nil
             }
+        } message: {
+            Text(viewModel.saveError ?? "")
         }
     }
     
@@ -204,30 +202,18 @@ struct CreateWorkoutView: View {
 }
 
 #Preview("With Exercises") {
-    @Previewable @State var showingSheet: Bool = true
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    Button("Show Sheet") {
-        showingSheet = true
-    }
-    .sheet(isPresented: $showingSheet) {
         RouterView { router in
             builder.createWorkoutView(router: router, delegate: CreateWorkoutViewDelegate(workoutTemplate: .mock))
         }
-    }
     .previewEnvironment()
 }
 
 #Preview("Without Exercises") {
-    @Previewable @State var showingSheet: Bool = true
     let builder = CoreBuilder(container: DevPreview.shared.container)
 
-    Button("Show Sheet") {
-        showingSheet = true
-    }
-    .sheet(isPresented: $showingSheet) {
-        RouterView { router in
-            builder.createWorkoutView(router: router, delegate: CreateWorkoutViewDelegate())
-        }
+    RouterView { router in
+        builder.createWorkoutView(router: router, delegate: CreateWorkoutViewDelegate())
     }
     .previewEnvironment()
 }

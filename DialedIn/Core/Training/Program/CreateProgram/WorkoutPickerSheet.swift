@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct WorkoutPickerSheetDelegate: GenericTemplateListViewDelegate {
     /// Strongly-typed callbacks used by calling code
@@ -39,6 +40,7 @@ typealias WorkoutPickerSheetViewModel = GenericTemplatePickerViewModel<WorkoutTe
 extension GenericTemplatePickerView where Template == WorkoutTemplateModel {
     init(
         interactor: CoreInteractor,
+        router: CoreRouter,
         delegate: WorkoutPickerSheetDelegate
     ) {
         let viewModel = GenericTemplatePickerViewModel<WorkoutTemplateModel>(
@@ -64,7 +66,7 @@ extension GenericTemplatePickerView where Template == WorkoutTemplateModel {
 }
 
 #Preview {
-    let interactor = CoreInteractor(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = WorkoutPickerSheetDelegate(
         onSelect: { template in
             print(template.name)
@@ -73,9 +75,7 @@ extension GenericTemplatePickerView where Template == WorkoutTemplateModel {
             print("Cancel")
         }
     )
-
-    WorkoutPickerSheet(
-        interactor: interactor,
-        delegate: delegate
-    )
+    RouterView { router in
+        builder.workoutPickerSheet(router: router, delegate: delegate)
+    }
 }

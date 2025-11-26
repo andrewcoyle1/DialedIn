@@ -14,11 +14,20 @@ protocol StrengthProgressInteractor {
 
 extension CoreInteractor: StrengthProgressInteractor { }
 
+@MainActor
+protocol StrengthProgressRouter {
+    func showDevSettingsView()
+    func dismissScreen()
+}
+
+extension CoreRouter: StrengthProgressRouter { }
+
 @Observable
 @MainActor
 class StrengthProgressViewModel {
     private let interactor: StrengthProgressInteractor
-    
+    private let router: StrengthProgressRouter
+
     private(set) var strengthMetrics: StrengthMetrics?
     private(set) var isLoading = false
     var selectedPeriod: TimePeriod = .lastThreeMonths
@@ -26,9 +35,11 @@ class StrengthProgressViewModel {
     var exerciseProgression: StrengthProgression?
 
     init(
-        interactor: StrengthProgressInteractor
+        interactor: StrengthProgressInteractor,
+        router: StrengthProgressRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func loadStrengthData() async {
@@ -58,5 +69,13 @@ class StrengthProgressViewModel {
         } catch {
             print("Error loading exercise progression: \(error)")
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func onDismissPressed() {
+        router.dismissScreen()
     }
 }

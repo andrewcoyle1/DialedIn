@@ -26,7 +26,6 @@ struct WorkoutStartView: View {
     let delegate: WorkoutStartViewDelegate
 
     var body: some View {
-        NavigationStack {
             List {
                 workoutPreview
                 exercisesSection
@@ -43,7 +42,6 @@ struct WorkoutStartView: View {
             .toolbar {
                 toolbarContent
             }
-        }
     }
         
     private var workoutPreview: some View {

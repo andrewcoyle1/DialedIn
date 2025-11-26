@@ -18,6 +18,7 @@ extension CoreInteractor: ProfilePhysicalStatsInteractor { }
 @MainActor
 protocol ProfilePhysicalStatsRouter {
     func showDevSettingsView()
+    func showLogWeightView()
 }
 
 extension CoreRouter: ProfilePhysicalStatsRouter { }
@@ -29,8 +30,6 @@ class ProfilePhysicalStatsViewModel {
     private let router: ProfilePhysicalStatsRouter
 
     private(set) var weights: [WeightEntry] = []
-
-    var showLogWeightSheet: Bool = false
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -52,7 +51,11 @@ class ProfilePhysicalStatsViewModel {
             weights = (try? await interactor.getWeightHistory(userId: user.userId, limit: 5)) ?? []
         }
     }
-    
+
+    func onLogWeightPressed() {
+        router.showLogWeightView()
+    }
+
     func formatHeight(_ heightCm: Double, unit: LengthUnitPreference) -> String {
         switch unit {
         case .centimeters:

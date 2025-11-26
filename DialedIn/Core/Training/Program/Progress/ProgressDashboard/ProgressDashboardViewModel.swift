@@ -13,19 +13,30 @@ protocol ProgressDashboardInteractor {
 
 extension CoreInteractor: ProgressDashboardInteractor { }
 
+@MainActor
+protocol ProgressDashboardRouter {
+    func showDevSettingsView()
+    func dismissScreen()
+}
+
+extension CoreRouter: ProgressDashboardRouter { }
+
 @Observable
 @MainActor
 class ProgressDashboardViewModel {
     private let interactor: ProgressDashboardInteractor
-    
+    private let router: ProgressDashboardRouter
+
     var selectedPeriod: TimePeriod = .lastMonth
     private(set) var progressSnapshot: ProgressSnapshot?
     private(set) var isLoading = false
     
     init(
-        interactor: ProgressDashboardInteractor
+        interactor: ProgressDashboardInteractor,
+        router: ProgressDashboardRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     func loadProgressData() async {
@@ -39,6 +50,14 @@ class ProgressDashboardViewModel {
             print("Error loading progress: \(error)")
             progressSnapshot = .empty
         }
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    func onDismissPressed() {
+        router.dismissScreen()
     }
 }
 

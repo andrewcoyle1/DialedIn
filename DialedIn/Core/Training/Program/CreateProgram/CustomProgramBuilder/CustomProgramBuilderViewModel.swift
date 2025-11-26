@@ -24,11 +24,14 @@ extension CoreInteractor: CustomProgramBuilderInteractor { }
 @MainActor
 protocol CustomProgramBuilderRouter {
     func showProgramStartConfigView(delegate: ProgramStartConfigViewDelegate)
+    func showWorkoutPickerView(delegate: WorkoutPickerSheetDelegate)
+    func showCopyWeekPickerView(delegate: CopyWeekPickerDelegate)
     func showDevSettingsView()
     func dismissScreen()
 }
 
-extension CoreRouter: CustomProgramBuilderRouter { }
+extension CoreRouter: CustomProgramBuilderRouter {
+}
 
 @Observable
 @MainActor
@@ -46,7 +49,6 @@ class CustomProgramBuilderViewModel {
     var weeks: [WeekScheduleState] = [WeekScheduleState(weekNumber: 1)]
     var selectedWeek: Int = 1
     var editingDayOfWeek: Int?
-    var showingWorkoutPicker: Bool = false
     var showingCopyWeekPicker: Bool = false
     var startConfigTemplate: ProgramTemplateModel?
     var showAlert: AnyAppAlert?
@@ -154,7 +156,39 @@ class CustomProgramBuilderViewModel {
             authorId: interactor.auth?.uid
         )
     }
-    
+
+    func onWorkoutPickerPressed(day: Int) {
+        let delegate = WorkoutPickerSheetDelegate(
+            onSelect: { workout in
+                self.assign(
+                    workout: workout,
+                    to: day,
+                    inWeek: self.selectedWeek
+                )
+                self.editingDayOfWeek = nil
+            },
+            onCancel: {
+                self.editingDayOfWeek = nil
+            }
+        )
+        router.showWorkoutPickerView(delegate: delegate)
+    }
+
+    func onCopyWeekPickerPressed() {
+        let delegate = CopyWeekPickerDelegate(
+            availableWeeks: (1..<self.selectedWeek).map { $0 },
+            onSelect: { sourceWeek in
+                let success = self.copySchedule(from: sourceWeek, to: self.selectedWeek)
+                if !success {
+                    self.showAlert = AnyAppAlert(
+                        title: "Error",
+                        subtitle: "Failed to copy schedule. Please try again."
+                    )
+                }
+            }
+        )
+    }
+
     func saveTemplate() async {
         guard let template = buildTemplate() else { return }
         isSaving = true
