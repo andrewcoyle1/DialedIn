@@ -8,14 +8,10 @@
 import SwiftUI
 import CustomRouting
 
-struct RecipeTemplateListViewDelegate {
-    var templateIds: [String]
-}
-
 struct RecipeTemplateListView: View {
-    @State var viewModel: RecipeTemplateListViewModel
+    @State var presenter: RecipeTemplateListPresenter
     let genericTemplateListView: (
-        RecipeTemplateListViewModel,
+        RecipeTemplateListPresenter,
         TemplateListConfiguration<RecipeTemplateModel>,
         Bool,
         [String]?
@@ -24,15 +20,15 @@ struct RecipeTemplateListView: View {
     init(
         interactor: RecipeTemplateListInteractor,
         router: RecipeTemplateListRouter,
-        delegate: RecipeTemplateListViewDelegate,
+        delegate: RecipeTemplateListDelegate,
         genericTemplateListView: @escaping (
-            RecipeTemplateListViewModel,
+            RecipeTemplateListPresenter,
             TemplateListConfiguration<RecipeTemplateModel>,
             Bool,
             [String]?
         ) -> AnyView
     ) {
-        self.viewModel = RecipeTemplateListViewModel.create(
+        self.presenter = RecipeTemplateListPresenter.create(
             interactor: interactor,
             router: router,
             templateIds: delegate.templateIds
@@ -42,10 +38,10 @@ struct RecipeTemplateListView: View {
 
     var body: some View {
         genericTemplateListView(
-            viewModel,
+            presenter,
             .recipe,
             true,
-            viewModel.templateIds
+            presenter.templateIds
         )
     }
 }
@@ -56,7 +52,7 @@ struct RecipeTemplateListView: View {
     RouterView { router in
         builder.recipeTemplateListView(
             router: router,
-            delegate: RecipeTemplateListViewDelegate(templateIds: [])
+            delegate: RecipeTemplateListDelegate(templateIds: [])
         )
     }
 }

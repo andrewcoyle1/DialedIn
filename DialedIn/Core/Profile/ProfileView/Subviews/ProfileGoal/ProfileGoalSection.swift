@@ -10,14 +10,14 @@ import CustomRouting
 
 struct ProfileGoalSection: View {
 
-    @State var viewModel: ProfileGoalSectionViewModel
+    @State var presenter: ProfileGoalSectionPresenter
 
     var body: some View {
         Section {
-            if let goal = viewModel.currentGoal,
-               let user = viewModel.currentUser {
+            if let goal = presenter.currentGoal,
+               let user = presenter.currentUser {
                 Button {
-                    viewModel.navToProfileGoals()
+                    presenter.navToProfileGoals()
                 } label: {
                     
                     VStack(alignment: .leading, spacing: 8) {
@@ -28,11 +28,11 @@ struct ProfileGoalSection: View {
                         if let currentWeight = user.weightKilograms {
                             let unit = user.weightUnitPreference ?? .kilograms
                             HStack(spacing: 8) {
-                                Text(viewModel.formatWeight(currentWeight, unit: unit))
+                                Text(presenter.formatWeight(currentWeight, unit: unit))
                                 Image(systemName: "arrow.right")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-                                Text(viewModel.formatWeight(goal.targetWeightKg, unit: unit))
+                                Text(presenter.formatWeight(goal.targetWeightKg, unit: unit))
                             }
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -40,7 +40,7 @@ struct ProfileGoalSection: View {
                         
                         if goal.weeklyChangeKg > 0 {
                             let unit = user.weightUnitPreference ?? .kilograms
-                            Text("Weekly rate: \(viewModel.formatWeight(goal.weeklyChangeKg, unit: unit))/week")
+                            Text("Weekly rate: \(presenter.formatWeight(goal.weeklyChangeKg, unit: unit))/week")
                                 .font(.caption)
                                 .foregroundStyle(.tertiary)
                         }
@@ -64,9 +64,9 @@ struct ProfileGoalSection: View {
                         }
                     }
                 }
-            } else if viewModel.currentUser != nil {
+            } else if presenter.currentUser != nil {
                 Button {
-                    viewModel.showSetGoalSheet = true
+                    presenter.showSetGoalSheet = true
                 } label: {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Define your weight goal to start tracking progress")

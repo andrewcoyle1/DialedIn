@@ -13,7 +13,7 @@ struct GoalRowDelegate {
 }
 
 struct GoalRow: View {
-    @State var viewModel: GoalRowViewModel
+    @State var presenter: GoalRowPresenter
 
     let delegate: GoalRowDelegate
 
@@ -46,7 +46,7 @@ struct GoalRow: View {
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 Task {
-                    await viewModel.removeGoal(goal: delegate.goal)
+                    await presenter.removeGoal(goal: delegate.goal)
                 }
             } label: {
                 Label("Delete", systemImage: "trash")

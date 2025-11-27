@@ -10,18 +10,18 @@ import CustomRouting
 
 struct ProfilePreferencesView: View {
 
-    @State var viewModel: ProfilePreferencesViewModel
+    @State var presenter: ProfilePreferencesPresenter
 
     var body: some View {
         Section {
             Button {
-                viewModel.navToSettingsView()
+                presenter.navToSettingsView()
             } label: {
-                if let user = viewModel.currentUser {
+                if let user = presenter.currentUser {
                     VStack(spacing: 8) {
                         MetricRow(
                             label: "Units",
-                            value: viewModel.formatUnitPreferences(
+                            value: presenter.formatUnitPreferences(
                                 length: user.lengthUnitPreference,
                                 weight: user.weightUnitPreference
                             )

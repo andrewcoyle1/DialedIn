@@ -1,5 +1,5 @@
 //
-//  GenericTemplatePickerViewModel.swift
+//  GenericTemplatePickerPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 27/10/2025.
@@ -10,7 +10,7 @@ import Foundation
 /// Generic view model for template picker views
 @Observable
 @MainActor
-class GenericTemplatePickerViewModel<Template: TemplateModel> {
+class GenericTemplatePickerPresenter<Template: TemplateModel> {
     private let getAllLocalTemplates: () throws -> [Template]
     private let getTemplatesByName: (String) async throws -> [Template]
     private let getTopTemplatesByClicks: (Int) async throws -> [Template]
@@ -26,7 +26,6 @@ class GenericTemplatePickerViewModel<Template: TemplateModel> {
     var officialResults: [Template] = []
     var userResults: [Template] = []
     var isLoading: Bool = false
-    var error: AnyAppAlert?
 
     init(
         getAllLocalTemplates: @escaping () throws -> [Template],

@@ -10,7 +10,7 @@ import CustomRouting
 
 struct ProgramTemplatePickerView: View {
 
-    @State var viewModel: ProgramTemplatePickerViewModel
+    @State var presenter: ProgramTemplatePickerPresenter
 
     var body: some View {
             List {
@@ -23,8 +23,7 @@ struct ProgramTemplatePickerView: View {
             .toolbar {
                 toolbarContent
             }
-            .showCustomAlert(alert: $viewModel.showAlert)
-            .showModal(showModal: $viewModel.isCreatingPlan, content: {
+            .showModal(showModal: $presenter.isCreatingPlan, content: {
                 ProgressView("Creating Program...")
                     .padding()
             })
@@ -32,11 +31,11 @@ struct ProgramTemplatePickerView: View {
     
     private var userTemplatesSection: some View {
         Section {
-            if let userId = viewModel.uid {
+            if let userId = presenter.uid {
                 // Access templates directly to trigger observation
-                let allTemplates = viewModel.programTemplates
+                let allTemplates = presenter.programTemplates
                 let userTemplates = allTemplates
-                    .filter { $0.authorId == userId && !viewModel.isBuiltIn($0) }
+                    .filter { $0.authorId == userId && !presenter.isBuiltIn($0) }
                     .sorted { $0.modifiedAt > $1.modifiedAt }
                 
                 if userTemplates.isEmpty {
@@ -45,7 +44,7 @@ struct ProgramTemplatePickerView: View {
                 } else {
                     ForEach(userTemplates) { template in
                         Button {
-                            viewModel.selectedTemplate = template
+                            presenter.selectedTemplate = template
                         } label: {
                             ProgramTemplateCard(template: template)
                         }
@@ -65,16 +64,16 @@ struct ProgramTemplatePickerView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button("Cancel") {
-                viewModel.dismissScreen()
+                presenter.dismissScreen()
             }
         }
     }
     
     private var builtInTemplatesSection: some View {
         Section {
-            ForEach(viewModel.programTemplates) { template in
+            ForEach(presenter.programTemplates) { template in
                 Button {
-                    viewModel.selectedTemplate = template
+                    presenter.selectedTemplate = template
                 } label: {
                     ProgramTemplateCard(template: template)
                 }
@@ -90,7 +89,7 @@ struct ProgramTemplatePickerView: View {
     private var customOptionSection: some View {
         Section {
             Button {
-                viewModel.navToCustomProgramBuilderView()
+                presenter.navToCustomProgramBuilderView()
             } label: {
                 Label("Create Custom Program", systemImage: "plus.circle.fill")
             }

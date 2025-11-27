@@ -11,18 +11,18 @@ struct GenericTemplateListView<Template: TemplateModel>: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State var viewModel: GenericTemplateListViewModel<Template>
+    @State var presenter: GenericTemplateListPresenter<Template>
     let configuration: TemplateListConfiguration<Template>
     let supportsRefresh: Bool
     let templateIdsOverride: [String]?
 
     init(
-        viewModel: GenericTemplateListViewModel<Template>,
+        presenter: GenericTemplateListPresenter<Template>,
         configuration: TemplateListConfiguration<Template>,
         supportsRefresh: Bool = false,
         templateIdsOverride: [String]? = nil
     ) {
-        self.viewModel = viewModel
+        self.presenter = presenter
         self.configuration = configuration
         self.supportsRefresh = supportsRefresh
         self.templateIdsOverride = templateIdsOverride
@@ -30,9 +30,9 @@ struct GenericTemplateListView<Template: TemplateModel>: View {
     
     var body: some View {
         Group {
-            if viewModel.isLoading {
+            if presenter.isLoading {
                 ProgressView()
-            } else if viewModel.templates.isEmpty {
+            } else if presenter.templates.isEmpty {
                 ContentUnavailableView(
                     configuration.emptyStateTitle,
                     systemImage: configuration.emptyStateIcon,
@@ -40,7 +40,7 @@ struct GenericTemplateListView<Template: TemplateModel>: View {
                 )
             } else {
                 List {
-                    ForEach(viewModel.templates) { template in
+                    ForEach(presenter.templates) { template in
                         CustomListCellView(
                             imageName: template.imageURL,
                             title: template.name,
@@ -48,7 +48,7 @@ struct GenericTemplateListView<Template: TemplateModel>: View {
                         )
                         .anyButton(.highlight) {
 //                            
-//                            viewModel.path.append(viewModel.navigationDestination(for: template))
+//                            presenter.path.append(presenter.navigationDestination(for: template))
                         }
                         .removeListRowFormatting()
                     }
@@ -67,14 +67,13 @@ struct GenericTemplateListView<Template: TemplateModel>: View {
             }
         }
         .task {
-            await viewModel.loadTemplates(templateIds: templateIdsOverride ?? viewModel.templateIds)
+            await presenter.loadTemplates(templateIds: templateIdsOverride ?? presenter.templateIds)
         }
         .if(supportsRefresh) { view in
             view.refreshable {
-                await viewModel.loadTemplates(templateIds: templateIdsOverride ?? viewModel.templateIds)
+                await presenter.loadTemplates(templateIds: templateIdsOverride ?? presenter.templateIds)
             }
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
 }
 

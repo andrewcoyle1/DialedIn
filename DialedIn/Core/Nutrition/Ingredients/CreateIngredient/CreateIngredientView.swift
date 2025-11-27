@@ -12,7 +12,7 @@ import CustomRouting
 struct CreateIngredientView: View {
     @Environment(\.dismiss) private var dismiss
 
-    @State var viewModel: CreateIngredientViewModel
+    @State var presenter: CreateIngredientPresenter
 
     var body: some View {
         List {
@@ -33,14 +33,13 @@ struct CreateIngredientView: View {
         .toolbar {
             toolbarContent
         }
-        .onChange(of: viewModel.selectedPhotoItem) {
-            guard let newItem = viewModel.selectedPhotoItem else { return }
+        .onChange(of: presenter.selectedPhotoItem) {
+            guard let newItem = presenter.selectedPhotoItem else { return }
 
             Task {
-                await viewModel.onImageSelectorChanged(newItem)
+                await presenter.onImageSelectorChanged(newItem)
             }
         }
-        .showCustomAlert(alert: $viewModel.alert)
     }
 
     private var imageSection: some View {
@@ -48,13 +47,13 @@ struct CreateIngredientView: View {
             HStack {
                 Spacer()
                 Button {
-                    viewModel.onImageSelectorPressed()
+                    presenter.onImageSelectorPressed()
                 } label: {
                     ZStack {
                         Rectangle()
                             .fill(Color.secondary.opacity(0.001))
                         Group {
-                            if let data = viewModel.selectedImageData {
+                            if let data = presenter.selectedImageData {
                                 #if canImport(UIKit)
                                 if let uiImage = UIImage(data: data) {
                                     Image(uiImage: uiImage)
@@ -70,7 +69,7 @@ struct CreateIngredientView: View {
                                 #endif
                             } else {
                                 #if canImport(UIKit)
-                                if let generatedImage = viewModel.generatedImage {
+                                if let generatedImage = presenter.generatedImage {
                                     Image(uiImage: generatedImage)
                                         .resizable()
                                         .scaledToFill()
@@ -89,7 +88,7 @@ struct CreateIngredientView: View {
                     }
                     .frame(width: 120, height: 120)
                 }
-                .photosPicker(isPresented: $viewModel.isImagePickerPresented, selection: $viewModel.selectedPhotoItem, matching: .images)
+                .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
                 Spacer()
             }
         } header: {
@@ -97,12 +96,12 @@ struct CreateIngredientView: View {
                 Text("Ingredient Image")
                 Spacer()
                 Button {
-                    viewModel.onGenerateImagePressed()
+                    presenter.onGenerateImagePressed()
                 } label: {
                     Image(systemName: "wand.and.sparkles")
                         .font(.system(size: 20))
                 }
-                .disabled(viewModel.isGenerating || (viewModel.name?.isEmpty ?? true))
+                .disabled(presenter.isGenerating || (presenter.name?.isEmpty ?? true))
             }
         }
         .removeListRowFormatting()
@@ -111,15 +110,15 @@ struct CreateIngredientView: View {
     private var nameSection: some View {
         Section {
             TextField("Add name", text: Binding(
-                get: { viewModel.name ?? "" },
+                get: { presenter.name ?? "" },
                 set: { newValue in
-                    viewModel.name = newValue.isEmpty ? nil : newValue
+                    presenter.name = newValue.isEmpty ? nil : newValue
                 }
             ))
             TextField("Add description", text: Binding(
-                get: { viewModel.description ?? "" },
+                get: { presenter.description ?? "" },
                 set: { newValue in
-                    viewModel.description = newValue.isEmpty ? nil : newValue
+                    presenter.description = newValue.isEmpty ? nil : newValue
                 }
             ))
         } header: {
@@ -129,15 +128,15 @@ struct CreateIngredientView: View {
     
     private var macroNutrientSection: some View {
         Section {
-            inputRow(label: "Calories", value: $viewModel.calories, unit: "kcal")
-            inputRow(label: "Protein", value: $viewModel.protein, unit: "g")
-            inputRow(label: "Carbs", value: $viewModel.carbs, unit: "g")
-            inputRow(label: "Total Fat", value: $viewModel.fatTotal, unit: "g")
-            inputRow(label: "Saturated Fat", value: $viewModel.fatSaturated, unit: "g")
-            inputRow(label: "Monounsaturated Fat", value: $viewModel.fatMonounsaturated, unit: "g")
-            inputRow(label: "Polyunsaturated Fat", value: $viewModel.fatPolyunsaturated, unit: "g")
-            inputRow(label: "Fiber", value: $viewModel.fiber, unit: "g")
-            inputRow(label: "Sugar", value: $viewModel.sugar, unit: "g")
+            inputRow(label: "Calories", value: $presenter.calories, unit: "kcal")
+            inputRow(label: "Protein", value: $presenter.protein, unit: "g")
+            inputRow(label: "Carbs", value: $presenter.carbs, unit: "g")
+            inputRow(label: "Total Fat", value: $presenter.fatTotal, unit: "g")
+            inputRow(label: "Saturated Fat", value: $presenter.fatSaturated, unit: "g")
+            inputRow(label: "Monounsaturated Fat", value: $presenter.fatMonounsaturated, unit: "g")
+            inputRow(label: "Polyunsaturated Fat", value: $presenter.fatPolyunsaturated, unit: "g")
+            inputRow(label: "Fiber", value: $presenter.fiber, unit: "g")
+            inputRow(label: "Sugar", value: $presenter.sugar, unit: "g")
         } header: {
             Text("Macronutrients")
         }
@@ -146,12 +145,12 @@ struct CreateIngredientView: View {
     private var essentialMacroMineralsSection: some View {
         Section {
             // Essential Macrominerals - Required in larger amounts
-            inputRow(label: "Calcium", value: $viewModel.calciumMg, unit: "mg")
-            inputRow(label: "Phosphorus", value: $viewModel.phosphorusMg, unit: "mg")
-            inputRow(label: "Magnesium", value: $viewModel.magnesiumMg, unit: "mg")
-            inputRow(label: "Sodium", value: $viewModel.sodiumMg, unit: "mg")
-            inputRow(label: "Potassium", value: $viewModel.potassiumMg, unit: "mg")
-            inputRow(label: "Chloride", value: $viewModel.chlorideMg, unit: "mg")
+            inputRow(label: "Calcium", value: $presenter.calciumMg, unit: "mg")
+            inputRow(label: "Phosphorus", value: $presenter.phosphorusMg, unit: "mg")
+            inputRow(label: "Magnesium", value: $presenter.magnesiumMg, unit: "mg")
+            inputRow(label: "Sodium", value: $presenter.sodiumMg, unit: "mg")
+            inputRow(label: "Potassium", value: $presenter.potassiumMg, unit: "mg")
+            inputRow(label: "Chloride", value: $presenter.chlorideMg, unit: "mg")
         } header: {
             Text("Essential Macrominerals")
         }
@@ -160,14 +159,14 @@ struct CreateIngredientView: View {
     private var essentialTraceMineralsSection: some View {
         Section {
             // Essential Trace Minerals - Required in smaller amounts
-            inputRow(label: "Iron", value: $viewModel.ironMg, unit: "mg")
-            inputRow(label: "Zinc", value: $viewModel.zincMg, unit: "mg")
-            inputRow(label: "Copper", value: $viewModel.copperMg, unit: "mg")
-            inputRow(label: "Manganese", value: $viewModel.manganeseMg, unit: "mg")
-            inputRow(label: "Iodine", value: $viewModel.iodineMcg, unit: "μg")
-            inputRow(label: "Selenium", value: $viewModel.seleniumMcg, unit: "μg")
-            inputRow(label: "Molybdenum", value: $viewModel.molybdenumMcg, unit: "μg")
-            inputRow(label: "Chromium", value: $viewModel.chromiumMcg, unit: "μg")
+            inputRow(label: "Iron", value: $presenter.ironMg, unit: "mg")
+            inputRow(label: "Zinc", value: $presenter.zincMg, unit: "mg")
+            inputRow(label: "Copper", value: $presenter.copperMg, unit: "mg")
+            inputRow(label: "Manganese", value: $presenter.manganeseMg, unit: "mg")
+            inputRow(label: "Iodine", value: $presenter.iodineMcg, unit: "μg")
+            inputRow(label: "Selenium", value: $presenter.seleniumMcg, unit: "μg")
+            inputRow(label: "Molybdenum", value: $presenter.molybdenumMcg, unit: "μg")
+            inputRow(label: "Chromium", value: $presenter.chromiumMcg, unit: "μg")
         } header: {
             Text("Essential Trace Minerals")
         }
@@ -176,10 +175,10 @@ struct CreateIngredientView: View {
     private var fatSolubleMineralsSection: some View {
         Section {
             // Fat-Soluble Vitamins - A, D, E, K
-            inputRow(label: "Vitamin A", value: $viewModel.vitaminAMcg, unit: "μg RAE")
-            inputRow(label: "Vitamin D", value: $viewModel.vitaminDMcg, unit: "μg")
-            inputRow(label: "Vitamin E", value: $viewModel.vitaminEMg, unit: "mg α-tocopherol")
-            inputRow(label: "Vitamin K", value: $viewModel.vitaminKMcg, unit: "μg")
+            inputRow(label: "Vitamin A", value: $presenter.vitaminAMcg, unit: "μg RAE")
+            inputRow(label: "Vitamin D", value: $presenter.vitaminDMcg, unit: "μg")
+            inputRow(label: "Vitamin E", value: $presenter.vitaminEMg, unit: "mg α-tocopherol")
+            inputRow(label: "Vitamin K", value: $presenter.vitaminKMcg, unit: "μg")
         } header: {
             Text("Fat-Soluble Vitamins")
         }
@@ -188,15 +187,15 @@ struct CreateIngredientView: View {
     private var waterSolubleVitaminsSection: some View {
         Section {
             // Water-Soluble Vitamins - B-Complex & C
-            inputRow(label: "Thiamin - B1", value: $viewModel.thiaminMg, unit: "mg")
-            inputRow(label: "Riboflavin - B2", value: $viewModel.riboflavinMg, unit: "mg")
-            inputRow(label: "Niacin - B3", value: $viewModel.niacinMg, unit: "mg NE")
-            inputRow(label: "Pantothenic Acid - B5", value: $viewModel.pantothenicAcidMg, unit: "mg")
-            inputRow(label: "Vitamin B6", value: $viewModel.vitaminB6Mg, unit: "mg")
-            inputRow(label: "Biotin - B7", value: $viewModel.biotinMcg, unit: "μg")
-            inputRow(label: "Folate - B9", value: $viewModel.folateMcg, unit: "μg DFE")
-            inputRow(label: "Vitamin B12", value: $viewModel.vitaminB12Mcg, unit: "μg")
-            inputRow(label: "Vitamin C", value: $viewModel.vitaminCMg, unit: "mg")
+            inputRow(label: "Thiamin - B1", value: $presenter.thiaminMg, unit: "mg")
+            inputRow(label: "Riboflavin - B2", value: $presenter.riboflavinMg, unit: "mg")
+            inputRow(label: "Niacin - B3", value: $presenter.niacinMg, unit: "mg NE")
+            inputRow(label: "Pantothenic Acid - B5", value: $presenter.pantothenicAcidMg, unit: "mg")
+            inputRow(label: "Vitamin B6", value: $presenter.vitaminB6Mg, unit: "mg")
+            inputRow(label: "Biotin - B7", value: $presenter.biotinMcg, unit: "μg")
+            inputRow(label: "Folate - B9", value: $presenter.folateMcg, unit: "μg DFE")
+            inputRow(label: "Vitamin B12", value: $presenter.vitaminB12Mcg, unit: "μg")
+            inputRow(label: "Vitamin C", value: $presenter.vitaminCMg, unit: "mg")
         } header: {
             Text("Water-Soluble Vitamins")
         }
@@ -204,8 +203,8 @@ struct CreateIngredientView: View {
     private var bioactiveCompounts: some View {
         Section {
             // Bioactive Compounds
-            inputRow(label: "Cholesterol", value: $viewModel.cholesterolMg, unit: "mg")
-            inputRow(label: "Caffeine", value: $viewModel.caffeineMg, unit: "mg")
+            inputRow(label: "Cholesterol", value: $presenter.cholesterolMg, unit: "mg")
+            inputRow(label: "Caffeine", value: $presenter.caffeineMg, unit: "mg")
         } header: {
             Text("Bioactive Compounds")
         }
@@ -228,7 +227,7 @@ struct CreateIngredientView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onCancelPressed(onDismiss: {
+                presenter.onCancelPressed(onDismiss: {
                     dismiss()
                 })
             } label: {
@@ -239,7 +238,7 @@ struct CreateIngredientView: View {
         ToolbarSpacer(.fixed, placement: .topBarLeading)
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -248,7 +247,7 @@ struct CreateIngredientView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 Task {
-                    await viewModel.onSavePressed(onDismiss: {
+                    await presenter.onSavePressed(onDismiss: {
                         dismiss()
                     })
                 }
@@ -256,7 +255,7 @@ struct CreateIngredientView: View {
                 Image(systemName: "checkmark")
             }
             .buttonStyle(.glassProminent)
-            .disabled(!viewModel.canSave || viewModel.isSaving)
+            .disabled(!presenter.canSave || presenter.isSaving)
         }
     }
 }

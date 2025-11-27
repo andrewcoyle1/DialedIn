@@ -8,20 +8,16 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingHeightViewDelegate {
-    var userModelBuilder: UserModelBuilder
-}
-
 struct OnboardingHeightView: View {
 
-    @State var viewModel: OnboardingHeightViewModel
+    @State var presenter: OnboardingHeightPresenter
 
-    var delegate: OnboardingHeightViewDelegate
+    var delegate: OnboardingHeightDelegate
 
     var body: some View {
         List {
             pickerSection
-            if viewModel.unit == .centimeters {
+            if presenter.unit == .centimeters {
                 metricSection
             } else {
                 imperialSection
@@ -35,7 +31,7 @@ struct OnboardingHeightView: View {
     
     private var pickerSection: some View {
         Section {
-            Picker("Units", selection: $viewModel.unit) {
+            Picker("Units", selection: $presenter.unit) {
                 Text("Metric").tag(UnitOfLength.centimeters)
                 Text("Imperial").tag(UnitOfLength.inches)
             }
@@ -48,7 +44,7 @@ struct OnboardingHeightView: View {
     private var metricSection: some View {
         Section {
             VStack {
-                Picker("Centimeters", selection: $viewModel.selectedCentimeters) {
+                Picker("Centimeters", selection: $presenter.selectedCentimeters) {
                     ForEach((100...250).reversed(), id: \.self) { value in
                         Text("\(value) cm").tag(value)
                     }
@@ -57,8 +53,8 @@ struct OnboardingHeightView: View {
                 .frame(height: 150)
                 .frame(maxWidth: 150)
                 .clipped()
-                .onChange(of: viewModel.selectedCentimeters) { _, _ in
-                    viewModel.updateImperialFromCentimeters()
+                .onChange(of: presenter.selectedCentimeters) { _, _ in
+                    presenter.updateImperialFromCentimeters()
                 }
             }
             .frame(maxWidth: .infinity)
@@ -73,7 +69,7 @@ struct OnboardingHeightView: View {
             HStack(spacing: 12) {
                 Spacer(minLength: 0)
 
-                Picker("Feet", selection: $viewModel.selectedFeet) {
+                Picker("Feet", selection: $presenter.selectedFeet) {
                     ForEach((3...8).reversed(), id: \.self) { feet in
                         Text("\(feet) ft").tag(feet)
                     }
@@ -82,12 +78,12 @@ struct OnboardingHeightView: View {
                 .frame(height: 150)
                 .frame(maxWidth: 150)
                 .clipped()
-                .onChange(of: viewModel.selectedFeet) { _, _ in
-                    viewModel.updateCentimetersFromImperial()
+                .onChange(of: presenter.selectedFeet) { _, _ in
+                    presenter.updateCentimetersFromImperial()
                 }
                 Spacer(minLength: 0)
 
-                Picker("Inches", selection: $viewModel.selectedInches) {
+                Picker("Inches", selection: $presenter.selectedInches) {
                     ForEach((0...11).reversed(), id: \.self) { inch in
                         Text("\(inch) in").tag(inch)
                     }
@@ -96,8 +92,8 @@ struct OnboardingHeightView: View {
                 .frame(height: 150)
                 .frame(maxWidth: 150)
                 .clipped()
-                .onChange(of: viewModel.selectedInches) { _, _ in
-                    viewModel.updateCentimetersFromImperial()
+                .onChange(of: presenter.selectedInches) { _, _ in
+                    presenter.updateCentimetersFromImperial()
                 }
                 Spacer(minLength: 0)
             }
@@ -113,7 +109,7 @@ struct OnboardingHeightView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -122,7 +118,7 @@ struct OnboardingHeightView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToWeightView(userBuilder: delegate.userModelBuilder)
+                presenter.navigateToWeightView(userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -136,7 +132,7 @@ struct OnboardingHeightView: View {
     RouterView { router in
         builder.onboardingHeightView(
             router: router,
-            delegate: OnboardingHeightViewDelegate(userModelBuilder: UserModelBuilder.heightMock)
+            delegate: OnboardingHeightDelegate(userModelBuilder: UserModelBuilder.heightMock)
         )
     }
     .previewEnvironment()

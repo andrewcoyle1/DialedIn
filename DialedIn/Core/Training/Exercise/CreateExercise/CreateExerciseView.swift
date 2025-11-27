@@ -13,7 +13,7 @@ struct CreateExerciseView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State var viewModel: CreateExerciseViewModel
+    @State var presenter: CreateExercisePresenter
 
     var body: some View {
         List {
@@ -30,13 +30,12 @@ struct CreateExerciseView: View {
         .toolbar {
             toolbarContent
         }
-        .onChange(of: viewModel.selectedPhotoItem) {
-            guard let newItem = viewModel.selectedPhotoItem else { return }
+        .onChange(of: presenter.selectedPhotoItem) {
+            guard let newItem = presenter.selectedPhotoItem else { return }
             Task {
-                await viewModel.onImageSelectorChanged(newItem)
+                await presenter.onImageSelectorChanged(newItem)
             }
         }
-        .showCustomAlert(alert: $viewModel.alert)
     }
 
     private var imageSection: some View {
@@ -44,13 +43,13 @@ struct CreateExerciseView: View {
             HStack {
                 Spacer()
                 Button {
-                    viewModel.onImageSelectorPressed()
+                    presenter.onImageSelectorPressed()
                 } label: {
                     ZStack {
                         Rectangle()
                             .fill(Color.secondary.opacity(0.001))
                         Group {
-                            if let data = viewModel.selectedImageData {
+                            if let data = presenter.selectedImageData {
                                 #if canImport(UIKit)
                                 if let uiImage = UIImage(data: data) {
                                     Image(uiImage: uiImage)
@@ -66,7 +65,7 @@ struct CreateExerciseView: View {
                                 #endif
                             } else {
                                 #if canImport(UIKit)
-                                if let generatedImage = viewModel.generatedImage {
+                                if let generatedImage = presenter.generatedImage {
                                     Image(uiImage: generatedImage)
                                         .resizable()
                                         .scaledToFill()
@@ -85,7 +84,7 @@ struct CreateExerciseView: View {
                     }
                     .frame(width: 120, height: 120)
                 }
-                .photosPicker(isPresented: $viewModel.isImagePickerPresented, selection: $viewModel.selectedPhotoItem, matching: .images)
+                .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
                 Spacer()
             }
         } header: {
@@ -93,12 +92,12 @@ struct CreateExerciseView: View {
                 Text("Exercise Image")
                 Spacer()
                 Button {
-                    viewModel.onGenerateImagePressed()
+                    presenter.onGenerateImagePressed()
                 } label: {
                     Image(systemName: "wand.and.sparkles")
                         .font(.system(size: 20))
                 }
-                .disabled(viewModel.isGenerating || (viewModel.exerciseName?.isEmpty ?? true))
+                .disabled(presenter.isGenerating || (presenter.exerciseName?.isEmpty ?? true))
             }
         }
         .removeListRowFormatting()
@@ -107,15 +106,15 @@ struct CreateExerciseView: View {
     private var nameSection: some View {
         Section {
             TextField("Add name", text: Binding(
-                get: { viewModel.exerciseName ?? "" },
+                get: { presenter.exerciseName ?? "" },
                 set: { newValue in
-                    viewModel.exerciseName = newValue.isEmpty ? nil : newValue
+                    presenter.exerciseName = newValue.isEmpty ? nil : newValue
                 }
             ))
             TextField("Add description", text: Binding(
-                get: { viewModel.exerciseDescription ?? "" },
+                get: { presenter.exerciseDescription ?? "" },
                 set: { newValue in
-                    viewModel.exerciseDescription = newValue.isEmpty ? nil : newValue
+                    presenter.exerciseDescription = newValue.isEmpty ? nil : newValue
                 }
             ))
         } header: {
@@ -128,12 +127,12 @@ struct CreateExerciseView: View {
             ForEach(MuscleGroup.allCases.filter { $0 != .none }, id: \.self) { group in
                 MultipleSelectionRow(
                     title: group.description,
-                    isSelected: viewModel.muscleGroups.contains(group)
+                    isSelected: presenter.muscleGroups.contains(group)
                 ) {
-                    if viewModel.muscleGroups.contains(group) {
-                        viewModel.muscleGroups.removeAll(where: { $0 == group })
+                    if presenter.muscleGroups.contains(group) {
+                        presenter.muscleGroups.removeAll(where: { $0 == group })
                     } else {
-                        viewModel.muscleGroups.append(group)
+                        presenter.muscleGroups.append(group)
                     }
                 }
             }
@@ -144,7 +143,7 @@ struct CreateExerciseView: View {
     
     private var categorySection: some View {
         Section {
-            Picker("Select Category", selection: $viewModel.category) {
+            Picker("Select Category", selection: $presenter.category) {
                 ForEach(ExerciseCategory.allCases, id: \.self) { cat in
                     Text(cat.description).tag(cat)
                 }
@@ -159,7 +158,7 @@ struct CreateExerciseView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onCancelPressed(onDismiss: { dismiss() })
+                presenter.onCancelPressed(onDismiss: { dismiss() })
             } label: {
                 Image(systemName: "xmark")
             }
@@ -168,7 +167,7 @@ struct CreateExerciseView: View {
         ToolbarSpacer(.fixed, placement: .topBarLeading)
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -177,13 +176,13 @@ struct CreateExerciseView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 Task {
-                    await viewModel.onSavePressed(onDismiss: { dismiss() })
+                    await presenter.onSavePressed(onDismiss: { dismiss() })
                 }
             } label: {
                 Image(systemName: "checkmark")
             }
             .buttonStyle(.glassProminent)
-            .disabled(!viewModel.canSave || viewModel.isSaving)
+            .disabled(!presenter.canSave || presenter.isSaving)
         }
 
     }

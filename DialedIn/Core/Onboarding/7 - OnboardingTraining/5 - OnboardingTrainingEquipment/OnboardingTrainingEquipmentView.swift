@@ -8,15 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingTrainingEquipmentViewDelegate {
-    var trainingProgramBuilder: TrainingProgramBuilder
-}
-
 struct OnboardingTrainingEquipmentView: View {
 
-    @State var viewModel: OnboardingTrainingEquipmentViewModel
+    @State var presenter: OnboardingTrainingEquipmentPresenter
 
-    var delegate: OnboardingTrainingEquipmentViewDelegate
+    var delegate: OnboardingTrainingEquipmentDelegate
 
     var body: some View {
         List {
@@ -40,12 +36,12 @@ struct OnboardingTrainingEquipmentView: View {
                             .font(.headline)
                         Spacer()
                         Toggle("", isOn: Binding(
-                            get: { viewModel.selectedEquipment.contains(equipment) },
+                            get: { presenter.selectedEquipment.contains(equipment) },
                             set: { isOn in
                                 if isOn {
-                                    viewModel.selectedEquipment.insert(equipment)
+                                    presenter.selectedEquipment.insert(equipment)
                                 } else {
-                                    viewModel.selectedEquipment.remove(equipment)
+                                    presenter.selectedEquipment.remove(equipment)
                                 }
                             }
                         ))
@@ -66,7 +62,7 @@ struct OnboardingTrainingEquipmentView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -75,12 +71,12 @@ struct OnboardingTrainingEquipmentView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToReview(builder: delegate.trainingProgramBuilder)
+                presenter.navigateToReview(builder: delegate.trainingProgramBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.selectedEquipment.isEmpty)
+            .disabled(presenter.selectedEquipment.isEmpty)
         }
     }
 }
@@ -90,7 +86,7 @@ struct OnboardingTrainingEquipmentView: View {
     RouterView { router in
         builder.onboardingTrainingEquipmentView(
             router: router, 
-            delegate: OnboardingTrainingEquipmentViewDelegate(
+            delegate: OnboardingTrainingEquipmentDelegate(
                 trainingProgramBuilder: TrainingProgramBuilder()
             )
         )

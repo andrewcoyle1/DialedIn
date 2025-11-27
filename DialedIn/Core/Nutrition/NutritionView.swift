@@ -15,11 +15,11 @@ struct NutritionView: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
-    @State var viewModel: NutritionViewModel
+    @State var presenter: NutritionPresenter
 
-    @ViewBuilder var mealLogView: (MealLogViewDelegate) -> AnyView
-    @ViewBuilder var recipesView: (RecipesViewDelegate) -> AnyView
-    @ViewBuilder var ingredientsView: (IngredientsViewDelegate) -> AnyView
+    @ViewBuilder var mealLogView: (MealLogDelegate) -> AnyView
+    @ViewBuilder var recipesView: (RecipesDelegate) -> AnyView
+    @ViewBuilder var ingredientsView: (IngredientsDelegate) -> AnyView
 
     var body: some View {
         List {
@@ -27,7 +27,6 @@ struct NutritionView: View {
             listContents
         }
         .scrollIndicators(.hidden)
-        .showCustomAlert(alert: $viewModel.showAlert)
         .navigationTitle("Nutrition")
         .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
         .navigationBarTitleDisplayMode(.large)
@@ -38,10 +37,10 @@ struct NutritionView: View {
 
     private var pickerSection: some View {
         Section {
-            Picker("Section", selection: $viewModel.presentationMode) {
-                Text("Meal Log").tag(NutritionViewModel.NutritionPresentationMode.log)
-                Text("Recipes").tag(NutritionViewModel.NutritionPresentationMode.recipes)
-                Text("Ingredients").tag(NutritionViewModel.NutritionPresentationMode.ingredients)
+            Picker("Section", selection: $presenter.presentationMode) {
+                Text("Meal Log").tag(NutritionPresenter.NutritionPresentationMode.log)
+                Text("Recipes").tag(NutritionPresenter.NutritionPresentationMode.recipes)
+                Text("Ingredients").tag(NutritionPresenter.NutritionPresentationMode.ingredients)
             }
             .pickerStyle(.segmented)
         }
@@ -51,30 +50,30 @@ struct NutritionView: View {
     
     private var listContents: some View {
         Group {
-            switch viewModel.presentationMode {
+            switch presenter.presentationMode {
             case .log:
                 mealLogView(
-                    MealLogViewDelegate(
-                        isShowingInspector: $viewModel.isShowingInspector,
-                        selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
-                        selectedRecipeTemplate: $viewModel.selectedRecipeTemplate
+                    MealLogDelegate(
+                        isShowingInspector: $presenter.isShowingInspector,
+                        selectedIngredientTemplate: $presenter.selectedIngredientTemplate,
+                        selectedRecipeTemplate: $presenter.selectedRecipeTemplate
                     )
                 )
             case .recipes:
                 recipesView(
-                    RecipesViewDelegate(
+                    RecipesDelegate(
                         showCreateRecipe: .constant(false),
-                        selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
-                        selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
-                        isShowingInspector: $viewModel.isShowingInspector
+                        selectedIngredientTemplate: $presenter.selectedIngredientTemplate,
+                        selectedRecipeTemplate: $presenter.selectedRecipeTemplate,
+                        isShowingInspector: $presenter.isShowingInspector
                     )
                 )
             case .ingredients:
                 ingredientsView(
-                    IngredientsViewDelegate(
-                        isShowingInspector: $viewModel.isShowingInspector,
-                        selectedIngredientTemplate: $viewModel.selectedIngredientTemplate,
-                        selectedRecipeTemplate: $viewModel.selectedRecipeTemplate,
+                    IngredientsDelegate(
+                        isShowingInspector: $presenter.isShowingInspector,
+                        selectedIngredientTemplate: $presenter.selectedIngredientTemplate,
+                        selectedRecipeTemplate: $presenter.selectedRecipeTemplate,
                         showCreateIngredient: .constant(false)
                     )
                 )
@@ -87,7 +86,7 @@ struct NutritionView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -96,7 +95,7 @@ struct NutritionView: View {
         
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onNotificationsPressed()
+                presenter.onNotificationsPressed()
             } label: {
                 Image(systemName: "bell")
             }

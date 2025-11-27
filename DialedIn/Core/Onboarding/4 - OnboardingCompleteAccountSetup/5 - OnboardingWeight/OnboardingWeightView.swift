@@ -8,21 +8,17 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingWeightViewDelegate {
-    var userModelBuilder: UserModelBuilder
-}
-
 struct OnboardingWeightView: View {
 
-    @State var viewModel: OnboardingWeightViewModel
+    @State var presenter: OnboardingWeightPresenter
 
-    var delegate: OnboardingWeightViewDelegate
+    var delegate: OnboardingWeightDelegate
 
     var body: some View {
         List {
             pickerSection
             
-            if viewModel.unit == .kilograms {
+            if presenter.unit == .kilograms {
                 metricSection
             } else {
                 imperialSection
@@ -36,7 +32,7 @@ struct OnboardingWeightView: View {
     
     private var pickerSection: some View {
         Section {
-            Picker("Units", selection: $viewModel.unit) {
+            Picker("Units", selection: $presenter.unit) {
                 Text("Metric").tag(UnitOfWeight.kilograms)
                 Text("Imperial").tag(UnitOfWeight.pounds)
             }
@@ -47,7 +43,7 @@ struct OnboardingWeightView: View {
     
     private var metricSection: some View {
         Section {
-            Picker("Kilograms", selection: $viewModel.selectedKilograms) {
+            Picker("Kilograms", selection: $presenter.selectedKilograms) {
                 ForEach((30...200).reversed(), id: \.self) { value in
                     Text("\(value) kg").tag(value)
                 }
@@ -55,8 +51,8 @@ struct OnboardingWeightView: View {
             .pickerStyle(.wheel)
             .frame(height: 150)
             .clipped()
-            .onChange(of: viewModel.selectedKilograms) { _, _ in
-                viewModel.updatePoundsFromKilograms()
+            .onChange(of: presenter.selectedKilograms) { _, _ in
+                presenter.updatePoundsFromKilograms()
             }
         } header: {
             Text("Metric")
@@ -66,7 +62,7 @@ struct OnboardingWeightView: View {
     
     private var imperialSection: some View {
         Section {
-            Picker("Pounds", selection: $viewModel.selectedPounds) {
+            Picker("Pounds", selection: $presenter.selectedPounds) {
                 ForEach((66...440).reversed(), id: \.self) { value in
                     Text("\(value) lbs").tag(value)
                 }
@@ -74,8 +70,8 @@ struct OnboardingWeightView: View {
             .pickerStyle(.wheel)
             .frame(height: 150)
             .clipped()
-            .onChange(of: viewModel.selectedPounds) { _, _ in
-                viewModel.updateKilogramsFromPounds()
+            .onChange(of: presenter.selectedPounds) { _, _ in
+                presenter.updateKilogramsFromPounds()
             }
         } header: {
             Text("Imperial")
@@ -88,7 +84,7 @@ struct OnboardingWeightView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -97,7 +93,7 @@ struct OnboardingWeightView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToExerciseFrequency(userBuilder: delegate.userModelBuilder)
+                presenter.navigateToExerciseFrequency(userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -111,7 +107,7 @@ struct OnboardingWeightView: View {
     RouterView { router in
         builder.onboardingWeightView(
             router: router,
-            delegate: OnboardingWeightViewDelegate(userModelBuilder: UserModelBuilder.weightMock)
+            delegate: OnboardingWeightDelegate(userModelBuilder: UserModelBuilder.weightMock)
         )
     }
     .previewEnvironment()

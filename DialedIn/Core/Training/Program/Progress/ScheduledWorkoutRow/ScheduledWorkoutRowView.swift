@@ -7,20 +7,20 @@
 
 import SwiftUI
 
-struct ScheduledWorkoutRowViewDelegate {
+struct ScheduledWorkoutRowDelegate {
     let scheduledWorkout: ScheduledWorkout
 }
 
 struct ScheduledWorkoutRowView: View {
 
-    @State var viewModel: ScheduledWorkoutRowViewModel
+    @State var presenter: ScheduledWorkoutRowPresenter
 
-    let delegate: ScheduledWorkoutRowViewDelegate
+    let delegate: ScheduledWorkoutRowDelegate
 
     var body: some View {
         HStack(spacing: 16) {
-            Image(systemName: viewModel.statusIcon(scheduledWorkout: delegate.scheduledWorkout))
-                .foregroundStyle(viewModel.statusColor(scheduledWorkout: delegate.scheduledWorkout))
+            Image(systemName: presenter.statusIcon(scheduledWorkout: delegate.scheduledWorkout))
+                .foregroundStyle(presenter.statusColor(scheduledWorkout: delegate.scheduledWorkout))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(delegate.scheduledWorkout.workoutName ?? "Workout") // Would fetch template name
@@ -50,6 +50,6 @@ struct ScheduledWorkoutRowView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     List {
-        builder.scheduledWorkoutRowView(delegate: ScheduledWorkoutRowViewDelegate(scheduledWorkout: ScheduledWorkout.mocksWeek1.first!))
+        builder.scheduledWorkoutRowView(delegate: ScheduledWorkoutRowDelegate(scheduledWorkout: ScheduledWorkout.mocksWeek1.first!))
     }
 }

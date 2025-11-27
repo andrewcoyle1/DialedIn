@@ -8,15 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingTrainingSplitViewDelegate {
-    var trainingProgramBuilder: TrainingProgramBuilder
-}
-
 struct OnboardingTrainingSplitView: View {
 
-    @State var viewModel: OnboardingTrainingSplitViewModel
+    @State var presenter: OnboardingTrainingSplitPresenter
 
-    var delegate: OnboardingTrainingSplitViewDelegate
+    var delegate: OnboardingTrainingSplitDelegate
 
     var body: some View {
         List {
@@ -34,11 +30,11 @@ struct OnboardingTrainingSplitView: View {
                                 .foregroundStyle(.tertiary)
                         }
                         Spacer(minLength: 8)
-                        Image(systemName: viewModel.selectedSplit == split ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(viewModel.selectedSplit == split ? .accent : .secondary)
+                        Image(systemName: presenter.selectedSplit == split ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(presenter.selectedSplit == split ? .accent : .secondary)
                     }
                     .contentShape(Rectangle())
-                    .onTapGesture { viewModel.selectedSplit = split }
+                    .onTapGesture { presenter.selectedSplit = split }
                     .padding(.vertical)
                 }
             }
@@ -55,7 +51,7 @@ struct OnboardingTrainingSplitView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -64,12 +60,12 @@ struct OnboardingTrainingSplitView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToSchedule(builder: delegate.trainingProgramBuilder)
+                presenter.navigateToSchedule(builder: delegate.trainingProgramBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.selectedSplit == nil)
+            .disabled(presenter.selectedSplit == nil)
         }
     }
 }
@@ -79,7 +75,7 @@ struct OnboardingTrainingSplitView: View {
     RouterView { router in
         builder.onboardingTrainingSplitView(
             router: router,
-            delegate: OnboardingTrainingSplitViewDelegate(
+            delegate: OnboardingTrainingSplitDelegate(
                 trainingProgramBuilder: TrainingProgramBuilder()
             )
         )

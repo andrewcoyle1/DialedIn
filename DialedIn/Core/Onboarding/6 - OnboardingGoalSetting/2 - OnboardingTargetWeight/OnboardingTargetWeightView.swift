@@ -8,21 +8,17 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingTargetWeightViewDelegate {
-    var weightGoalBuilder: WeightGoalBuilder
-}
-
 struct OnboardingTargetWeightView: View {
 
-    @State var viewModel: OnboardingTargetWeightViewModel
+    @State var presenter: OnboardingTargetWeightPresenter
 
-    var delegate: OnboardingTargetWeightViewDelegate
+    var delegate: OnboardingTargetWeightDelegate
 
     var body: some View {
         List {
-            if viewModel.didInitialize && viewModel.weightUnit == .kilograms {
+            if presenter.didInitialize && presenter.weightUnit == .kilograms {
                 kilogramsSection
-            } else if viewModel.didInitialize {
+            } else if presenter.didInitialize {
                 poundsSection
             } else {
                 loadingSection
@@ -30,7 +26,7 @@ struct OnboardingTargetWeightView: View {
         }
         .navigationTitle("Target Weight")
         .onFirstAppear {
-            viewModel.onAppear(weightGoalBuilder: delegate.weightGoalBuilder)
+            presenter.onAppear(weightGoalBuilder: delegate.weightGoalBuilder)
         }
         .toolbar {
             toolbarSection
@@ -42,7 +38,7 @@ struct OnboardingTargetWeightView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -51,27 +47,27 @@ struct OnboardingTargetWeightView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToWeightRate(weightGoalBuilder: delegate.weightGoalBuilder)
+                presenter.navigateToWeightRate(weightGoalBuilder: delegate.weightGoalBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(!viewModel.canContinue)
+            .disabled(!presenter.canContinue)
         }
     }
     
     private var kilogramsSection: some View {
         Section {
-            Picker("Kilograms", selection: $viewModel.selectedKilograms) {
-                ForEach(viewModel.kilogramRange(weightGoalBuilder: delegate.weightGoalBuilder).reversed(), id: \.self) { value in
+            Picker("Kilograms", selection: $presenter.selectedKilograms) {
+                ForEach(presenter.kilogramRange(weightGoalBuilder: delegate.weightGoalBuilder).reversed(), id: \.self) { value in
                     Text("\(value) kg").tag(value)
                 }
             }
             .pickerStyle(.wheel)
             .frame(height: 150)
             .clipped()
-            .onChange(of: viewModel.selectedKilograms) { _, _ in
-                viewModel.updateFromKilograms()
+            .onChange(of: presenter.selectedKilograms) { _, _ in
+                presenter.updateFromKilograms()
             }
         } header: {
             Text("Metric")
@@ -81,16 +77,16 @@ struct OnboardingTargetWeightView: View {
     
     private var poundsSection: some View {
         Section {
-            Picker("Pounds", selection: $viewModel.selectedPounds) {
-                ForEach(viewModel.poundRange(weightGoalBuilder: delegate.weightGoalBuilder).reversed(), id: \.self) { value in
+            Picker("Pounds", selection: $presenter.selectedPounds) {
+                ForEach(presenter.poundRange(weightGoalBuilder: delegate.weightGoalBuilder).reversed(), id: \.self) { value in
                     Text("\(value) lbs").tag(value)
                 }
             }
             .pickerStyle(.wheel)
             .frame(height: 150)
             .clipped()
-            .onChange(of: viewModel.selectedPounds) { _, _ in
-                viewModel.updateFromPounds()
+            .onChange(of: presenter.selectedPounds) { _, _ in
+                presenter.updateFromPounds()
             }
         } header: {
             Text("Imperial")
@@ -113,7 +109,7 @@ struct OnboardingTargetWeightView: View {
     RouterView { router in
         builder.onboardingTargetWeightView(
             router: router,
-            delegate: OnboardingTargetWeightViewDelegate(weightGoalBuilder: .targetWeightMock)
+            delegate: OnboardingTargetWeightDelegate(weightGoalBuilder: .targetWeightMock)
         )
     }
     .previewEnvironment()
@@ -124,7 +120,7 @@ struct OnboardingTargetWeightView: View {
     RouterView { router in
         builder.onboardingTargetWeightView(
             router: router,
-            delegate: OnboardingTargetWeightViewDelegate(weightGoalBuilder: .targetWeightMock)
+            delegate: OnboardingTargetWeightDelegate(weightGoalBuilder: .targetWeightMock)
         )
     }
     .previewEnvironment()

@@ -1,5 +1,5 @@
 //
-//  IngredientsViewModel.swift
+//  IngredientsPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 26/10/2025.
@@ -21,7 +21,7 @@ extension CoreInteractor: IngredientsInteractor { }
 
 @MainActor
 protocol IngredientsRouter {
-    func showIngredientDetailView(delegate: IngredientDetailViewDelegate)
+    func showIngredientDetailView(delegate: IngredientDetailDelegate)
     func showSimpleAlert(title: String, subtitle: String?)
 }
 
@@ -31,7 +31,7 @@ extension CoreRouter: IngredientsRouter {
 
 @Observable
 @MainActor
-class IngredientsViewModel {
+class IngredientsPresenter {
     private let interactor: IngredientsInteractor
     private let router: IngredientsRouter
 
@@ -119,7 +119,7 @@ class IngredientsViewModel {
                 interactor.trackEvent(event: Event.incrementIngredientFail(error: error))
             }
         }
-        router.showIngredientDetailView(delegate: IngredientDetailViewDelegate(ingredientTemplate: ingredient))
+        router.showIngredientDetailView(delegate: IngredientDetailDelegate(ingredientTemplate: ingredient))
     }
     
     func onIngredientPressedFromFavourites(ingredient: IngredientTemplateModel) {

@@ -6,33 +6,29 @@
 //
 
 import SwiftUI
-
-struct WorkoutCalendarViewDelegate {
-    let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
-    let onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout?) -> Void)?
-}
+import CustomRouting
 
 struct WorkoutCalendarView: View {
 
-    @State var viewModel: WorkoutCalendarViewModel
+    @State var presenter: WorkoutCalendarPresenter
 
-    let delegate: WorkoutCalendarViewDelegate
+    let delegate: WorkoutCalendarDelegate
 
-    @ViewBuilder var enhancedScheduleView: (EnhancedScheduleViewDelegate) -> AnyView
+    @ViewBuilder var enhancedScheduleView: (EnhancedScheduleDelegate) -> AnyView
 
     var body: some View {
-        Section(isExpanded: $viewModel.isShowingCalendar) {
+        Section(isExpanded: $presenter.isShowingCalendar) {
             enhancedScheduleView(
-                EnhancedScheduleViewDelegate(
+                EnhancedScheduleDelegate(
                     getScheduledWorkouts: {
-                        viewModel.scheduledWorkouts
+                        presenter.scheduledWorkouts
                     },
                     onDateSelected: { date in
-                        viewModel.selectedDate = date
-                        viewModel.collapsedSubtitle = "Next: \(date.formatted(.dateTime.day().month()))"
+                        presenter.selectedDate = date
+                        presenter.collapsedSubtitle = "Next: \(date.formatted(.dateTime.day().month()))"
                     },
                     onDateTapped: { date in
-                        viewModel.handleDateTapped(
+                        presenter.handleDateTapped(
                             date
                         )
                     }
@@ -41,31 +37,31 @@ struct WorkoutCalendarView: View {
         } header: {
             HStack(alignment: .firstTextBaseline) {
                 Text("Plan")
-                if !viewModel.isShowingCalendar {
-                    Text(viewModel.collapsedSubtitle)
+                if !presenter.isShowingCalendar {
+                    Text(presenter.collapsedSubtitle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
                 Spacer()
                 Image(systemName: "chevron.down")
-                    .rotationEffect(.degrees(viewModel.isShowingCalendar ? 0 : 90))
+                    .rotationEffect(.degrees(presenter.isShowingCalendar ? 0 : 90))
             }
             .contentShape(Rectangle())
             .onTapGesture {
-                viewModel.onCalendarToggled()
+                presenter.onCalendarToggled()
             }
-            .animation(.easeInOut, value: viewModel.isShowingCalendar)
+            .animation(.easeInOut, value: presenter.isShowingCalendar)
         }
         .confirmationDialog(
-            viewModel.selectedDate?.formatted(date: .long, time: .omitted) ?? "Select Workout",
-            isPresented: $viewModel.showWorkoutMenu,
+            presenter.selectedDate?.formatted(date: .long, time: .omitted) ?? "Select Workout",
+            isPresented: $presenter.showWorkoutMenu,
             titleVisibility: .visible
         ) {
-            ForEach(viewModel.workoutsForMenu) { workout in
+            ForEach(presenter.workoutsForMenu) { workout in
                 Button {
                     Task {
-                        await viewModel.handleWorkoutSelection(workout)
+                        await presenter.handleWorkoutSelection(workout)
                     }
                 } label: {
                     if let name = workout.workoutName {
@@ -77,20 +73,24 @@ struct WorkoutCalendarView: View {
             }
             Button("Cancel", role: .cancel) { }
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
         .onAppear {
-            viewModel.loadScheduledWorkouts()
+            presenter.loadScheduledWorkouts()
         }
-        .onChange(of: viewModel.trainingPlan) { _, _ in
-            viewModel.loadScheduledWorkouts()
+        .onChange(of: presenter.trainingPlan) { _, _ in
+            presenter.loadScheduledWorkouts()
         }
     }
 }
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    List {
-        builder.workoutCalendarView(delegate: WorkoutCalendarViewDelegate(onSessionSelectionChanged: nil, onWorkoutStartRequested: nil))
+    RouterView { router in
+        List {
+            builder.workoutCalendarView(
+                router: router,
+                delegate: WorkoutCalendarDelegate(onSessionSelectionChanged: nil, onWorkoutStartRequested: nil)
+            )
+        }
     }
     .previewEnvironment()
 }

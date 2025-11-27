@@ -10,7 +10,7 @@ import CustomRouting
 
 struct ProfileMyTemplatesView: View {
 
-    @State var viewModel: ProfileMyTemplatesViewModel
+    @State var presenter: ProfileMyTemplatesPresenter
 
     var body: some View {
         Section {
@@ -25,11 +25,11 @@ struct ProfileMyTemplatesView: View {
     
     private var exerciseTemplateSection: some View {
         Group {
-            let templateIds = viewModel.currentUser?.createdExerciseTemplateIds ?? []
+            let templateIds = presenter.currentUser?.createdExerciseTemplateIds ?? []
             let count = templateIds.count
 
             Button {
-                viewModel.navToExerciseTemplateList()
+                presenter.navToExerciseTemplateList()
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Exercise Templates")
@@ -45,11 +45,11 @@ struct ProfileMyTemplatesView: View {
     
     private var workoutTemplateSection: some View {
         Group {
-            let templateIds = viewModel.currentUser?.createdWorkoutTemplateIds ?? []
+            let templateIds = presenter.currentUser?.createdWorkoutTemplateIds ?? []
             let count = templateIds.count
             
             Button {
-                viewModel.navToWorkoutTemplateList()
+                presenter.navToWorkoutTemplateList()
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Workout Templates")
@@ -65,11 +65,11 @@ struct ProfileMyTemplatesView: View {
     
     private var recipeTemplateSection: some View {
         Group {
-            let templateIds = viewModel.currentUser?.createdRecipeTemplateIds ?? []
+            let templateIds = presenter.currentUser?.createdRecipeTemplateIds ?? []
             let count = templateIds.count
             
             Button {
-                viewModel.navToRecipeTemplateList()
+                presenter.navToRecipeTemplateList()
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Recipe Templates")
@@ -85,11 +85,11 @@ struct ProfileMyTemplatesView: View {
     
     private var ingredientTemplateSection: some View {
         Group {
-            let templateIds = viewModel.currentUser?.createdIngredientTemplateIds ?? []
+            let templateIds = presenter.currentUser?.createdIngredientTemplateIds ?? []
             let count = templateIds.count
             
             Button {
-                viewModel.navToIngredientTemplateList()
+                presenter.navToIngredientTemplateList()
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Ingredient Templates")

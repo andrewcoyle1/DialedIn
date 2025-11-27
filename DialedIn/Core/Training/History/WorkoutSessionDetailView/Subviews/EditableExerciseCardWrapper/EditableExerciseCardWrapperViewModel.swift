@@ -1,5 +1,5 @@
 //
-//  EditableExerciseCardWrapperViewModel.swift
+//  EditableExerciseCardWrapperPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 22/10/2025.
@@ -15,7 +15,7 @@ extension CoreInteractor: EditableExerciseCardWrapperInteractor { }
 
 @Observable
 @MainActor
-class EditableExerciseCardWrapperViewModel {
+class EditableExerciseCardWrapperPresenter {
     private let interactor: EditableExerciseCardWrapperInteractor
 
     // Local, mutable copy of the exercise used for editing

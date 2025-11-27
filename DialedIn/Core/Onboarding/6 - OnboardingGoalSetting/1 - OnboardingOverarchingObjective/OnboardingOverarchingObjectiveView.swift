@@ -10,7 +10,7 @@ import CustomRouting
 
 struct OnboardingOverarchingObjectiveView: View {
 
-    @State var viewModel: OnboardingOverarchingObjectiveViewModel
+    @State var presenter: OnboardingOverarchingObjectivePresenter
 
     var body: some View {
         List {
@@ -45,12 +45,12 @@ struct OnboardingOverarchingObjectiveView: View {
                     .foregroundColor(.secondary)
             }
             Spacer(minLength: 8)
-            Image(systemName: viewModel.selectedObjective == objective ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(viewModel.selectedObjective == objective ? Color.accent : Color.secondary)
+            Image(systemName: presenter.selectedObjective == objective ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(presenter.selectedObjective == objective ? Color.accent : Color.secondary)
         }
         .contentShape(Rectangle())
         .anyButton(.press) {
-            viewModel.selectedObjective = objective
+            presenter.selectedObjective = objective
         }
         .padding(12)
         .background(
@@ -64,7 +64,7 @@ struct OnboardingOverarchingObjectiveView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -73,12 +73,12 @@ struct OnboardingOverarchingObjectiveView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToNextStep()
+                presenter.navigateToNextStep()
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(!viewModel.canContinue)
+            .disabled(!presenter.canContinue)
         }
     }
 }

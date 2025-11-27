@@ -8,15 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingTrainingScheduleViewDelegate {
-    var trainingProgramBuilder: TrainingProgramBuilder
-}
-
 struct OnboardingTrainingScheduleView: View {
 
-    @State var viewModel: OnboardingTrainingScheduleViewModel
+    @State var presenter: OnboardingTrainingSchedulePresenter
 
-    var delegate: OnboardingTrainingScheduleViewDelegate
+    var delegate: OnboardingTrainingScheduleDelegate
 
     private let weekdays = [
         (1, "Sunday"),
@@ -52,12 +48,12 @@ struct OnboardingTrainingScheduleView: View {
                             .font(.headline)
                         Spacer()
                         Toggle("", isOn: Binding(
-                            get: { viewModel.selectedDays.contains(dayNumber) },
+                            get: { presenter.selectedDays.contains(dayNumber) },
                             set: { isOn in
                                 if isOn {
-                                    viewModel.selectedDays.insert(dayNumber)
+                                    presenter.selectedDays.insert(dayNumber)
                                 } else {
-                                    viewModel.selectedDays.remove(dayNumber)
+                                    presenter.selectedDays.remove(dayNumber)
                                 }
                             }
                         ))
@@ -78,7 +74,7 @@ struct OnboardingTrainingScheduleView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -87,12 +83,12 @@ struct OnboardingTrainingScheduleView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToEquipment(builder: delegate.trainingProgramBuilder)
+                presenter.navigateToEquipment(builder: delegate.trainingProgramBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.selectedDays.isEmpty)
+            .disabled(presenter.selectedDays.isEmpty)
         }
     }
 }
@@ -102,7 +98,7 @@ struct OnboardingTrainingScheduleView: View {
     RouterView { router in
         builder.onboardingTrainingScheduleView(
             router: router, 
-            delegate: OnboardingTrainingScheduleViewDelegate(
+            delegate: OnboardingTrainingScheduleDelegate(
                 trainingProgramBuilder: TrainingProgramBuilder(targetDaysPerWeek: 3)
             )
         )

@@ -10,11 +10,11 @@ import CustomRouting
 
 struct ProfilePhysicalStatsView: View {
 
-    @State var viewModel: ProfilePhysicalStatsViewModel
+    @State var presenter: ProfilePhysicalStatsPresenter
 
     var body: some View {
         List {
-            if let user = viewModel.currentUser {
+            if let user = presenter.currentUser {
                 bodyMetricsSection(user)
                 weightHistorySection(user)
                 fitnessMetricsSection(user)
@@ -32,7 +32,7 @@ struct ProfilePhysicalStatsView: View {
             toolbarContent
         }
         .task {
-            await viewModel.loadWeights()
+            await presenter.loadWeights()
             
         }
     }
@@ -41,7 +41,7 @@ struct ProfilePhysicalStatsView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
             Button {
-                viewModel.onLogWeightPressed()
+                presenter.onLogWeightPressed()
             } label: {
                 Label("Log Weight", systemImage: "plus.circle.fill")
             }
@@ -54,7 +54,7 @@ struct ProfilePhysicalStatsView: View {
                 metricCard(
                     icon: "ruler",
                     label: "Height",
-                    value: viewModel.formatHeight(height, unit: user.lengthUnitPreference ?? .centimeters),
+                    value: presenter.formatHeight(height, unit: user.lengthUnitPreference ?? .centimeters),
                     color: .blue
                 )
             }
@@ -63,7 +63,7 @@ struct ProfilePhysicalStatsView: View {
                 metricCard(
                     icon: "scalemass",
                     label: "Current Weight",
-                    value: viewModel.formatWeight(weight, unit: user.weightUnitPreference ?? .kilograms),
+                    value: presenter.formatWeight(weight, unit: user.weightUnitPreference ?? .kilograms),
                     color: .green
                 )
             }
@@ -91,7 +91,7 @@ struct ProfilePhysicalStatsView: View {
     
     private func weightHistorySection(_ user: UserModel) -> some View {
         Section {
-            if viewModel.weightHistory.isEmpty {
+            if presenter.weightHistory.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "scalemass")
                         .font(.largeTitle)
@@ -106,14 +106,14 @@ struct ProfilePhysicalStatsView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
             } else {
-                ForEach(viewModel.weightHistory.prefix(5)) { entry in
+                ForEach(presenter.weightHistory.prefix(5)) { entry in
                     weightEntryRow(entry, unit: user.weightUnitPreference ?? .kilograms)
                 }
             }
         } header: {
             Text("Weight History")
         } footer: {
-            if !viewModel.weightHistory.isEmpty {
+            if !presenter.weightHistory.isEmpty {
                 Text("Showing recent entries")
             }
         }
@@ -122,7 +122,7 @@ struct ProfilePhysicalStatsView: View {
     private func weightEntryRow(_ entry: WeightEntry, unit: WeightUnitPreference) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(viewModel.formatWeight(entry.weightKg, unit: unit))
+                Text(presenter.formatWeight(entry.weightKg, unit: unit))
                     .font(.headline)
                 Text(entry.date.formatted(date: .abbreviated, time: .omitted))
                     .font(.caption)
@@ -151,7 +151,7 @@ struct ProfilePhysicalStatsView: View {
                 metricCard(
                     icon: "figure.walk",
                     label: "Exercise Frequency",
-                    value: viewModel.formatExerciseFrequency(frequency),
+                    value: presenter.formatExerciseFrequency(frequency),
                     color: .orange
                 )
             }
@@ -160,7 +160,7 @@ struct ProfilePhysicalStatsView: View {
                 metricCard(
                     icon: "figure.run",
                     label: "Daily Activity Level",
-                    value: viewModel.formatActivityLevel(activity),
+                    value: presenter.formatActivityLevel(activity),
                     color: .red
                 )
             }
@@ -169,7 +169,7 @@ struct ProfilePhysicalStatsView: View {
                 metricCard(
                     icon: "heart.fill",
                     label: "Cardio Fitness Level",
-                    value: viewModel.formatCardioFitness(cardio),
+                    value: presenter.formatCardioFitness(cardio),
                     color: .pink
                 )
             }
@@ -179,8 +179,8 @@ struct ProfilePhysicalStatsView: View {
     private func bmiSection(_ user: UserModel) -> some View {
         Group {
             if let height = user.heightCentimeters, let weight = user.weightKilograms {
-                let bmi = viewModel.calculateBMI(heightCm: height, weightKg: weight)
-                let category = viewModel.getBMICategory(bmi)
+                let bmi = presenter.calculateBMI(heightCm: height, weightKg: weight)
+                let category = presenter.getBMICategory(bmi)
                 
                 Section("Body Mass Index") {
                     VStack(spacing: 8) {

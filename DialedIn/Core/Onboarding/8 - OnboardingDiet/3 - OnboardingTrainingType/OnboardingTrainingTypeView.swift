@@ -8,15 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingTrainingTypeViewDelegate {
-    let dietPlanBuilder: DietPlanBuilder
-}
-
 struct OnboardingTrainingTypeView: View {
 
-    @State var viewModel: OnboardingTrainingTypeViewModel
+    @State var presenter: OnboardingTrainingTypePresenter
 
-    var delegate: OnboardingTrainingTypeViewDelegate
+    var delegate: OnboardingTrainingTypeDelegate
 
     var body: some View {
         List {
@@ -31,11 +27,11 @@ struct OnboardingTrainingTypeView: View {
                                 .foregroundStyle(.secondary)
                         }
                         Spacer(minLength: 8)
-                        Image(systemName: viewModel.selectedTrainingType == type ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(viewModel.selectedTrainingType == type ? .accent : .secondary)
+                        Image(systemName: presenter.selectedTrainingType == type ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(presenter.selectedTrainingType == type ? .accent : .secondary)
                     }
                     .contentShape(Rectangle())
-                    .onTapGesture { viewModel.selectedTrainingType = type }
+                    .onTapGesture { presenter.selectedTrainingType = type }
                     .padding(.vertical)
                 }
             }
@@ -52,7 +48,7 @@ struct OnboardingTrainingTypeView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -61,12 +57,12 @@ struct OnboardingTrainingTypeView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToCalorieDistribution(dietPlanBuilder: delegate.dietPlanBuilder)
+                presenter.navigateToCalorieDistribution(dietPlanBuilder: delegate.dietPlanBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.selectedTrainingType == nil)
+            .disabled(presenter.selectedTrainingType == nil)
         }
     }
 }
@@ -76,7 +72,7 @@ struct OnboardingTrainingTypeView: View {
     RouterView { router in
         builder.onboardingTrainingTypeView(
             router: router,
-            delegate: OnboardingTrainingTypeViewDelegate(
+            delegate: OnboardingTrainingTypeDelegate(
                 dietPlanBuilder: .trainingTypeMock
             )
         )

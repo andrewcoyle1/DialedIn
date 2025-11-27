@@ -10,32 +10,32 @@ import CustomRouting
 
 struct ProfilePhysicalMetricsView: View {
     
-    @State var viewModel: ProfilePhysicalMetricsViewModel
+    @State var presenter: ProfilePhysicalMetricsPresenter
 
     var body: some View {
         Section {
-            if let user = viewModel.currentUser {
+            if let user = presenter.currentUser {
                 Button {
-                    viewModel.navToPhysicalStats()
+                    presenter.navToPhysicalStats()
                 } label: {
 
                         VStack(spacing: 8) {
                             if let height = user.heightCentimeters {
                                 MetricRow(
                                     label: "Height",
-                                    value: viewModel.formatHeight(height, unit: user.lengthUnitPreference ?? .centimeters)
+                                    value: presenter.formatHeight(height, unit: user.lengthUnitPreference ?? .centimeters)
                                 )
                             }
                             
                             if let weight = user.weightKilograms {
                                 MetricRow(
                                     label: "Weight",
-                                    value: viewModel.formatWeight(weight, unit: user.weightUnitPreference ?? .kilograms)
+                                    value: presenter.formatWeight(weight, unit: user.weightUnitPreference ?? .kilograms)
                                 )
                             }
                             
                             if let height = user.heightCentimeters, let weight = user.weightKilograms {
-                                let bmi = viewModel.calculateBMI(heightCm: height, weightKg: weight)
+                                let bmi = presenter.calculateBMI(heightCm: height, weightKg: weight)
                                 MetricRow(
                                     label: "BMI",
                                     value: String(format: "%.1f", bmi)
@@ -45,21 +45,21 @@ struct ProfilePhysicalMetricsView: View {
                             if let frequency = user.exerciseFrequency {
                                 MetricRow(
                                     label: "Exercise Frequency",
-                                    value: viewModel.formatExerciseFrequency(frequency)
+                                    value: presenter.formatExerciseFrequency(frequency)
                                 )
                             }
                             
                             if let activity = user.dailyActivityLevel {
                                 MetricRow(
                                     label: "Activity Level",
-                                    value: viewModel.formatActivityLevel(activity)
+                                    value: presenter.formatActivityLevel(activity)
                                 )
                             }
                             
                             if let cardio = user.cardioFitnessLevel {
                                 MetricRow(
                                     label: "Cardio Fitness",
-                                    value: viewModel.formatCardioFitness(cardio)
+                                    value: presenter.formatCardioFitness(cardio)
                                 )
                             }
                         }

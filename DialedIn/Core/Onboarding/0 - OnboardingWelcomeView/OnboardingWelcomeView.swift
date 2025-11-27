@@ -12,11 +12,11 @@ struct OnboardingWelcomeView: View {
 
     @Environment(\.dismiss) private var dismiss
     
-    @State var viewModel: OnboardingWelcomeViewModel
+    @State var presenter: OnboardingWelcomePresenter
 
     var body: some View {
         VStack(spacing: 8) {
-            ImageLoaderView(urlString: viewModel.imageName)
+            ImageLoaderView(urlString: presenter.imageName)
                 .ignoresSafeArea()
             titleSection
                 .padding(.top, 8)
@@ -37,7 +37,7 @@ struct OnboardingWelcomeView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -46,7 +46,7 @@ struct OnboardingWelcomeView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navToAppropriateView()
+                presenter.navToAppropriateView()
             } label: {
                 Image(systemName: "chevron.right")
             }

@@ -10,7 +10,7 @@ import CustomRouting
 
 struct OnboardingHealthDisclaimerView: View {
 
-    @State var viewModel: OnboardingHealthDisclaimerViewModel
+    @State var presenter: OnboardingHealthDisclaimerPresenter
 
     var body: some View {
         List {
@@ -21,11 +21,10 @@ struct OnboardingHealthDisclaimerView: View {
         .safeAreaInset(edge: .bottom) {
             buttonSection
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
-        .showModal(showModal: $viewModel.showModal, content: {
+        .showModal(showModal: $presenter.showModal, content: {
             confirmationModal
         })
-        .showModal(showModal: $viewModel.isLoading) {
+        .showModal(showModal: $presenter.isLoading) {
             ProgressView()
                 .tint(.white)
         }
@@ -36,7 +35,7 @@ struct OnboardingHealthDisclaimerView: View {
     
     private var disclaimerSection: some View {
         Section {
-            Text(viewModel.disclaimerString)
+            Text(presenter.disclaimerString)
         } header: {
             Text("Health Disclaimer")
         }
@@ -44,11 +43,11 @@ struct OnboardingHealthDisclaimerView: View {
     
     private var buttonSection: some View {
         VStack {
-            Toggle(isOn: $viewModel.acceptedTerms) {
+            Toggle(isOn: $presenter.acceptedTerms) {
                 Text("I acknowledge and accept the Terms of the Health Disclaimer")
                     .font(.callout)
             }
-            Toggle(isOn: $viewModel.acceptedPrivacy) {
+            Toggle(isOn: $presenter.acceptedPrivacy) {
                 Text("I acknowledge and accept the Terms of the Consumer Health Privacy Notice")
                     .font(.callout)
             }
@@ -68,9 +67,9 @@ struct OnboardingHealthDisclaimerView: View {
             You understand DialedIn does not provide medical advice and is for educational use only. You can review these terms at any time in Settings.
             """,
             primaryButtonTitle: "I Agree & Continue",
-            primaryButtonAction: { viewModel.onConfirmPressed() },
+            primaryButtonAction: { presenter.onConfirmPressed() },
             secondaryButtonTitle: "Go Back",
-            secondaryButtonAction: { viewModel.onCancelPressed() }
+            secondaryButtonAction: { presenter.onCancelPressed() }
         )
     }
     
@@ -79,7 +78,7 @@ struct OnboardingHealthDisclaimerView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -88,13 +87,13 @@ struct OnboardingHealthDisclaimerView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onContinuePressed()
+                presenter.onContinuePressed()
             } label: {
                 Text("Continue")
                     .padding()
             }
             .buttonStyle(.glassProminent)
-            .disabled(!viewModel.canContinue)
+            .disabled(!presenter.canContinue)
         }
     }
 }

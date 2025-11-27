@@ -6,16 +6,12 @@
 //
 
 import SwiftUI
-
-struct WorkoutSummaryCardViewDelegate {
-    let scheduledWorkout: ScheduledWorkout
-    let onTap: () -> Void
-}
+import CustomRouting
 
 struct WorkoutSummaryCardView: View {
-    @State var viewModel: WorkoutSummaryCardViewModel
+    @State var presenter: WorkoutSummaryCardPresenter
 
-    let delegate: WorkoutSummaryCardViewDelegate
+    let delegate: WorkoutSummaryCardDelegate
 
     var body: some View {
         Button {
@@ -28,7 +24,7 @@ struct WorkoutSummaryCardView: View {
                 
                 // Workout info
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(viewModel.session?.name ?? delegate.scheduledWorkout.workoutName ?? "Workout")
+                    Text(presenter.session?.name ?? delegate.scheduledWorkout.workoutName ?? "Workout")
                         .font(.subheadline)
                     
                         summaryMetrics
@@ -39,14 +35,13 @@ struct WorkoutSummaryCardView: View {
         }
         .buttonStyle(.plain)
         .task {
-            await viewModel.loadSession(scheduledWorkout: delegate.scheduledWorkout)
+            await presenter.loadSession(scheduledWorkout: delegate.scheduledWorkout)
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     private var summaryMetrics: some View {
         HStack(spacing: 16) {
-            if let session = viewModel.session {
+            if let session = presenter.session {
                 // Date
                 MetricView(
                     label: "date",
@@ -59,16 +54,16 @@ struct WorkoutSummaryCardView: View {
                     let duration = endedAt.timeIntervalSince(session.dateCreated)
                     MetricView(
                         label: "Duration",
-                        value: viewModel.formatDuration(duration),
+                        value: presenter.formatDuration(duration),
                         icon: "clock",
-                        isLoading: viewModel.isLoading
+                        isLoading: presenter.isLoading
                     )
                 } else {
                     MetricView(
                         label: "Duration",
                         value: "—",
                         icon: "clock",
-                        isLoading: viewModel.isLoading
+                        isLoading: presenter.isLoading
                     )
                 }
 
@@ -81,7 +76,7 @@ struct WorkoutSummaryCardView: View {
                 )
 
                 // Volume (if applicable)
-                let volume = viewModel.calculateTotalVolume(session: session)
+                let volume = presenter.calculateTotalVolume(session: session)
                 if volume > 0 {
                     MetricView(
                         label: "Volume",
@@ -140,15 +135,18 @@ struct MetricView: View {
     )
 
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    return List {
-        builder.workoutSummaryCardView(
-            delegate: WorkoutSummaryCardViewDelegate(
-                scheduledWorkout: scheduledWorkout,
-                onTap: {
-                    print("Row tapped.")
-                }
+    return RouterView { router in
+        List {
+            builder.workoutSummaryCardView(
+                router: router,
+                delegate: WorkoutSummaryCardDelegate(
+                    scheduledWorkout: scheduledWorkout,
+                    onTap: {
+                        print("Row tapped.")
+                    }
+                )
             )
-        )
+        }
     }
     .previewEnvironment()
 }
@@ -166,15 +164,18 @@ struct MetricView: View {
     let container = DevPreview.shared.container
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
     let builder = CoreBuilder(container: container)
-    return List {
-        builder.workoutSummaryCardView(
-            delegate: WorkoutSummaryCardViewDelegate(
-                scheduledWorkout: scheduledWorkout,
-                onTap: {
-                    print("Row tapped.")
-                }
+    return RouterView { router in
+        List {
+            builder.workoutSummaryCardView(
+                router: router,
+                delegate: WorkoutSummaryCardDelegate(
+                    scheduledWorkout: scheduledWorkout,
+                    onTap: {
+                        print("Row tapped.")
+                    }
+                )
             )
-        )
+        }
     }
     .previewEnvironment()
 }

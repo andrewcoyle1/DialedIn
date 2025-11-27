@@ -8,7 +8,7 @@
 import SwiftUI
 import CustomRouting
 
-struct IngredientsViewDelegate {
+struct IngredientsDelegate {
     var isShowingInspector: Binding<Bool>
     var selectedIngredientTemplate: Binding<IngredientTemplateModel?>
     var selectedRecipeTemplate: Binding<RecipeTemplateModel?>
@@ -16,25 +16,25 @@ struct IngredientsViewDelegate {
 }
 
 struct IngredientsView: View {
-    @State var viewModel: IngredientsViewModel
+    @State var presenter: IngredientsPresenter
 
-    var delegate: IngredientsViewDelegate
+    var delegate: IngredientsDelegate
 
     var body: some View {
         Group {
-            if viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 
-                if !viewModel.favouriteIngredients.isEmpty {
+                if !presenter.favouriteIngredients.isEmpty {
                     favouriteIngredientTemplatesSection
                 }
 
                 myIngredientSection
 
-                if !viewModel.bookmarkedOnlyIngredients.isEmpty {
+                if !presenter.bookmarkedOnlyIngredients.isEmpty {
                     bookmarkedIngredientTemplatesSection
                 }
 
-                if !viewModel.trendingIngredientsDeduped.isEmpty {
+                if !presenter.trendingIngredientsDeduped.isEmpty {
                     ingredientTemplateSection
                 }
             } else {
@@ -44,13 +44,13 @@ struct IngredientsView: View {
         }
         .screenAppearAnalytics(name: "IngredientsView")
         .task {
-            await viewModel.loadMyIngredientsIfNeeded()
-            await viewModel.loadTopIngredientsIfNeeded()
-            await viewModel.syncSavedIngredientsFromUser()
+            await presenter.loadMyIngredientsIfNeeded()
+            await presenter.loadTopIngredientsIfNeeded()
+            await presenter.syncSavedIngredientsFromUser()
         }
-        .onChange(of: viewModel.currentUser) {
+        .onChange(of: presenter.currentUser) {
             Task {
-                await viewModel.syncSavedIngredientsFromUser()
+                await presenter.syncSavedIngredientsFromUser()
             }
         }
     }
@@ -58,7 +58,7 @@ struct IngredientsView: View {
     // MARK: UI Components
     private var favouriteIngredientTemplatesSection: some View {
         Section {
-            ForEach(viewModel.favouriteIngredients) { ingredient in
+            ForEach(presenter.favouriteIngredients) { ingredient in
                 CustomListCellView(
                     imageName: ingredient.imageURL,
                     title: ingredient.name,
@@ -73,13 +73,13 @@ struct IngredientsView: View {
             Text("Favourites")
         }
         .onAppear {
-            viewModel.favouriteIngredientsShown()
+            presenter.favouriteIngredientsShown()
         }
     }
 
     private var bookmarkedIngredientTemplatesSection: some View {
         Section {
-            ForEach(viewModel.bookmarkedOnlyIngredients) { ingredient in
+            ForEach(presenter.bookmarkedOnlyIngredients) { ingredient in
                 CustomListCellView(
                     imageName: ingredient.imageURL,
                     title: ingredient.name,
@@ -94,13 +94,13 @@ struct IngredientsView: View {
             Text("Bookmarked")
         }
         .onAppear {
-            viewModel.bookmarkedIngredientsShown()
+            presenter.bookmarkedIngredientsShown()
         }
     }
 
     private var ingredientTemplateSection: some View {
         Section {
-            if viewModel.isLoading {
+            if presenter.isLoading {
                 HStack {
                     ProgressView()
                     Text("Loading...")
@@ -108,7 +108,7 @@ struct IngredientsView: View {
                 .foregroundStyle(Color.secondary)
                 .removeListRowFormatting()
             }
-            ForEach(viewModel.visibleIngredientTemplates) { ingredient in
+            ForEach(presenter.visibleIngredientTemplates) { ingredient in
                 CustomListCellView(
                     imageName: ingredient.imageURL,
                     title: ingredient.name,
@@ -120,17 +120,17 @@ struct IngredientsView: View {
                 .removeListRowFormatting()
             }
         } header: {
-            Text(viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
+            Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
         }
         .onAppear {
-            viewModel.trendingSectionShown()
+            presenter.trendingSectionShown()
             
         }
     }
 
     private var myIngredientSection: some View {
         Section {
-            if viewModel.myIngredientsVisible.isEmpty {
+            if presenter.myIngredientsVisible.isEmpty {
                 HStack {
                     Image(systemName: "tray")
                         .foregroundColor(.secondary)
@@ -142,10 +142,10 @@ struct IngredientsView: View {
                 .padding(.vertical, 12)
                 .removeListRowFormatting()
                 .onAppear {
-                    viewModel.emptyStateShown()
+                    presenter.emptyStateShown()
                 }
             } else {
-                ForEach(viewModel.myIngredientsVisible) { ingredient in
+                ForEach(presenter.myIngredientsVisible) { ingredient in
                     CustomListCellView(
                         imageName: ingredient.imageURL,
                         title: ingredient.name,
@@ -170,33 +170,33 @@ struct IngredientsView: View {
             }
         }
         .onAppear {
-            viewModel.onMyTemplatesShown()
+            presenter.onMyTemplatesShown()
         }
     }
     
     // MARK: - Actions
     private func onIngredientPressedFromFavourites(ingredient: IngredientTemplateModel) {
-        viewModel.onIngredientPressedFromFavourites(ingredient: ingredient)
+        presenter.onIngredientPressedFromFavourites(ingredient: ingredient)
         updateBindings(ingredient: ingredient)
     }
     
     private func onIngredientPressedFromBookmarked(ingredient: IngredientTemplateModel) {
-        viewModel.onIngredientPressedFromBookmarked(ingredient: ingredient)
+        presenter.onIngredientPressedFromBookmarked(ingredient: ingredient)
         updateBindings(ingredient: ingredient)
     }
     
     private func onIngredientPressedFromTrending(ingredient: IngredientTemplateModel) {
-        viewModel.onIngredientPressedFromTrending(ingredient: ingredient)
+        presenter.onIngredientPressedFromTrending(ingredient: ingredient)
         updateBindings(ingredient: ingredient)
     }
     
     private func onIngredientPressedFromMyTemplates(ingredient: IngredientTemplateModel) {
-        viewModel.onIngredientPressedFromMyTemplates(ingredient: ingredient)
+        presenter.onIngredientPressedFromMyTemplates(ingredient: ingredient)
         updateBindings(ingredient: ingredient)
     }
     
     private func onAddIngredientPressed() {
-        viewModel.onAddIngredientPressed()
+        presenter.onAddIngredientPressed()
         delegate.showCreateIngredient.wrappedValue = true
     }
     
@@ -213,7 +213,7 @@ struct IngredientsView: View {
         RouterView { router in
             builder.ingredientsView(
                 router: router, 
-                delegate: IngredientsViewDelegate(
+                delegate: IngredientsDelegate(
                     isShowingInspector: Binding.constant(
                         false
                     ),

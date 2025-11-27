@@ -1,5 +1,5 @@
 //
-//  WorkoutHistoryViewModel.swift
+//  WorkoutHistoryPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 20/10/2025.
@@ -19,13 +19,15 @@ extension CoreInteractor: WorkoutHistoryInteractor { }
 @MainActor
 protocol WorkoutHistoryRouter {
     func showDevSettingsView()
+
+    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: WorkoutHistoryRouter { }
 
 @Observable
 @MainActor
-class WorkoutHistoryViewModel {
+class WorkoutHistoryPresenter {
     private let interactor: WorkoutHistoryInteractor
     private let router: WorkoutHistoryRouter
 
@@ -33,7 +35,6 @@ class WorkoutHistoryViewModel {
     private(set) var isLoading = false
     
     var selectedSession: WorkoutSessionModel?
-    var showAlert: AnyAppAlert?
 
     init(
         interactor: WorkoutHistoryInteractor,
@@ -68,7 +69,7 @@ class WorkoutHistoryViewModel {
                 .sorted { ($0.dateCreated) > ($1.dateCreated) }
         } catch {
             interactor.trackEvent(event: Event.loadInitialSessionsFail(error: error))
-            showAlert = AnyAppAlert(
+            router.showSimpleAlert(
                 title: "We couldn't retrieve your sessions.",
                 subtitle: "Please try again later."
             )
@@ -92,7 +93,7 @@ class WorkoutHistoryViewModel {
 
         } catch {
             interactor.trackEvent(event: Event.syncSessionsFail(error: error))
-            showAlert = AnyAppAlert(
+            router.showSimpleAlert(
                 title: "We couldn't retrieve your sessions.",
                 subtitle: "Please check your internet connection and try again."
             )

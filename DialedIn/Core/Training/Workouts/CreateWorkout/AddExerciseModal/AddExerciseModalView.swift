@@ -8,44 +8,44 @@
 import SwiftUI
 import CustomRouting
 
-struct AddExerciseModalViewDelegate {
+struct AddExerciseModalDelegate {
     let selectedExercises: Binding<[ExerciseTemplateModel]>
 }
 
 struct AddExerciseModalView: View {
 
-    @State var viewModel: AddExerciseModalViewModel
+    @State var presenter: AddExerciseModalPresenter
 
-    var delegate: AddExerciseModalViewDelegate
+    var delegate: AddExerciseModalDelegate
 
     var body: some View {
         Group {
-            if viewModel.isLoading {
+            if presenter.isLoading {
                 progressSection
-            } else if let errorMessage = viewModel.errorMessage {
+            } else if let errorMessage = presenter.errorMessage {
                 errorSection(errorMessage: errorMessage)
             } else {
                 listSection
             }
         }
-        .searchable(text: $viewModel.searchText)
+        .searchable(text: $presenter.searchText)
         .navigationTitle("Add Exercises")
         .navigationSubtitle("Select one or more exercises to add")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    viewModel.dismissScreen()
+                    presenter.dismissScreen()
                 } label: {
                     Image(systemName: "xmark")
                 }
             }
         }
         .task {
-            await viewModel.loadExercises()
+            await presenter.loadExercises()
         }
-        .onChange(of: viewModel.searchText) {
+        .onChange(of: presenter.searchText) {
             Task {
-                await viewModel.searchExercises()
+                await presenter.searchExercises()
             }
         }
     }
@@ -70,7 +70,7 @@ struct AddExerciseModalView: View {
                 .multilineTextAlignment(.center)
             Button("Try Again") {
                 Task {
-                    await viewModel.loadExercises()
+                    await presenter.loadExercises()
                 }
             }
             .buttonStyle(.borderedProminent)
@@ -80,7 +80,7 @@ struct AddExerciseModalView: View {
 
     private var listSection: some View {
         List {
-            ForEach(viewModel.filteredExercises) { exercise in
+            ForEach(presenter.filteredExercises) { exercise in
                 CustomListCellView(
                     imageName: exercise.imageURL,
                     title: exercise.name,
@@ -91,7 +91,7 @@ struct AddExerciseModalView: View {
                         })
                 )
                     .anyButton {
-                        viewModel.onExercisePressed(exercise: exercise, selectedExercises: delegate.selectedExercises)
+                        presenter.onExercisePressed(exercise: exercise, selectedExercises: delegate.selectedExercises)
                     }
                     .removeListRowFormatting()
             }
@@ -101,17 +101,11 @@ struct AddExerciseModalView: View {
 }
 
 #Preview {
-    @Previewable @State var showModal: Bool = true
     @Previewable @State var selectedExercises: [ExerciseTemplateModel] = [ExerciseTemplateModel.mock]
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = AddExerciseModalViewDelegate(selectedExercises: $selectedExercises)
-    Button("Show Modal") {
-        showModal = true
-    }
-    .sheet(isPresented: $showModal) {
-        RouterView { router in
-            builder.addExerciseModalView(router: router, delegate: delegate)
-        }
+    let delegate = AddExerciseModalDelegate(selectedExercises: $selectedExercises)
+    RouterView { router in
+        builder.addExerciseModalView(router: router, delegate: delegate)
     }
     .previewEnvironment()
 }

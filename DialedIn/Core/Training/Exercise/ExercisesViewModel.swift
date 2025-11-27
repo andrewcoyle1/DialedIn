@@ -1,5 +1,5 @@
 //
-//  ExercisesViewModel.swift
+//  ExercisesPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 21/10/2025.
@@ -23,19 +23,19 @@ extension CoreInteractor: ExercisesInteractor { }
 @MainActor
 protocol ExercisesRouter {
     func showCreateExerciseView()
+    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: ExercisesRouter { }
 
 @Observable
 @MainActor
-class ExercisesViewModel {
+class ExercisesPresenter {
     private let interactor: ExercisesInteractor
     private let router: ExercisesRouter
 
     private(set) var isLoading: Bool = false
     private(set) var searchText: String = ""
-    private(set) var showAlert: AnyAppAlert?
     private(set) var searchExerciseTask: Task<Void, Never>?
     private(set) var myExercises: [ExerciseTemplateModel] = []
     private(set) var favouriteExercises: [ExerciseTemplateModel] = []
@@ -200,7 +200,7 @@ class ExercisesViewModel {
         isLoading = false
         exercises = []
 
-        showAlert = AnyAppAlert(
+        router.showSimpleAlert(
             title: "No Exercises Found",
             subtitle: "We couldn't find any exercise templates matching your search. Please try a different name or check your connection."
         )
@@ -215,7 +215,7 @@ class ExercisesViewModel {
             interactor.trackEvent(event: ExercisesViewEvents.loadMyExercisesSuccess(count: mine.count))
         } catch {
             interactor.trackEvent(event: ExercisesViewEvents.loadMyExercisesFail(error: error))
-            showAlert = AnyAppAlert(
+            router.showSimpleAlert(
                 title: "Unable to Load Your Exercises",
                 subtitle: "We couldn't retrieve your custom exercise templates. Please check your connection or try again later."
             )
@@ -246,7 +246,7 @@ class ExercisesViewModel {
         } catch {
             isLoading = false
             interactor.trackEvent(event: ExercisesViewEvents.loadTopExercisesFail(error: error))
-            showAlert = AnyAppAlert(
+            router.showSimpleAlert(
                 title: "Unable to Load Trending Templates",
                 subtitle: "We couldn't load top exercise templates. Please try again later."
             )
@@ -282,7 +282,7 @@ class ExercisesViewModel {
             interactor.trackEvent(event: ExercisesViewEvents.syncExercisesFromCurrentUserSuccess(favouriteCount: favs.count, bookmarkedCount: bookmarks.count))
         } catch {
             interactor.trackEvent(event: ExercisesViewEvents.syncExercisesFromCurrentUserFail(error: error))
-            showAlert = AnyAppAlert(
+            router.showSimpleAlert(
                 title: "Unable to Load Saved Exercises",
                 subtitle: "We couldn't retrieve your saved exercises. Please try again later."
             )

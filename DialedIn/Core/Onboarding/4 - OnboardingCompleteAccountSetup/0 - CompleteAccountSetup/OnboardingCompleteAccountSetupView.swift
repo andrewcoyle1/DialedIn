@@ -10,7 +10,7 @@ import CustomRouting
 
 struct OnboardingCompleteAccountSetupView: View {
 
-    @State var viewModel: OnboardingCompleteAccountSetupViewModel
+    @State var presenter: OnboardingCompleteAccountSetupPresenter
 
     var body: some View {
         List {
@@ -28,7 +28,7 @@ struct OnboardingCompleteAccountSetupView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -37,7 +37,7 @@ struct OnboardingCompleteAccountSetupView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.handleNavigation()
+                presenter.handleNavigation()
             } label: {
                 Image(systemName: "chevron.right")
             }

@@ -8,15 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingExerciseFrequencyViewDelegate {
-    var userModelBuilder: UserModelBuilder
-}
-
 struct OnboardingExerciseFrequencyView: View {
 
-    @State var viewModel: OnboardingExerciseFrequencyViewModel
+    @State var presenter: OnboardingExerciseFrequencyPresenter
 
-    var delegate: OnboardingExerciseFrequencyViewDelegate
+    var delegate: OnboardingExerciseFrequencyDelegate
 
     var body: some View {
         List {
@@ -47,7 +43,7 @@ struct OnboardingExerciseFrequencyView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -56,12 +52,12 @@ struct OnboardingExerciseFrequencyView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToOnboardingActivity(userBuilder: delegate.userModelBuilder)
+                presenter.navigateToOnboardingActivity(userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(!viewModel.canSubmit)
+            .disabled(!presenter.canSubmit)
         }
     }
     
@@ -72,12 +68,12 @@ struct OnboardingExerciseFrequencyView: View {
                     .font(.headline)
             }
             Spacer(minLength: 8)
-            Image(systemName: viewModel.selectedFrequency == frequency ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(viewModel.selectedFrequency == frequency ? Color.accent : Color.secondary)
+            Image(systemName: presenter.selectedFrequency == frequency ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(presenter.selectedFrequency == frequency ? Color.accent : Color.secondary)
         }
         .contentShape(Rectangle())
         .anyButton(.press) {
-            viewModel.selectedFrequency = frequency
+            presenter.selectedFrequency = frequency
         }
         .padding(12)
         .background(
@@ -92,7 +88,7 @@ struct OnboardingExerciseFrequencyView: View {
     RouterView { router in
         builder.onboardingExerciseFrequencyView(
             router: router,
-            delegate: OnboardingExerciseFrequencyViewDelegate(userModelBuilder: UserModelBuilder.exerciseFrequencyMock)
+            delegate: OnboardingExerciseFrequencyDelegate(userModelBuilder: UserModelBuilder.exerciseFrequencyMock)
         )
     }
     .previewEnvironment()

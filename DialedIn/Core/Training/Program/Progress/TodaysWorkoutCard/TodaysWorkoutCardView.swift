@@ -6,26 +6,22 @@
 //
 
 import SwiftUI
-
-struct TodaysWorkoutCardViewDelegate {
-    let scheduledWorkout: ScheduledWorkout
-    let onStart: () -> Void
-}
+import CustomRouting
 
 struct TodaysWorkoutCardView: View {
-    @State var viewModel: TodaysWorkoutCardViewModel
+    @State var presenter: TodaysWorkoutCardPresenter
 
-    let delegate: TodaysWorkoutCardViewDelegate
+    let delegate: TodaysWorkoutCardDelegate
 
     var body: some View {
         HStack(spacing: 16) {            
             // Workout info
             VStack(alignment: .leading, spacing: 6) {
-                Text(viewModel.templateName)
+                Text(presenter.templateName)
                     .font(.headline)
                 
                 HStack {
-                    Label("\(viewModel.exerciseCount) exercises", systemImage: "figure.strengthtraining.traditional")
+                    Label("\(presenter.exerciseCount) exercises", systemImage: "figure.strengthtraining.traditional")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     
@@ -38,7 +34,7 @@ struct TodaysWorkoutCardView: View {
                 .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .loadingRedaction(isLoading: viewModel.isLoading)
+            .loadingRedaction(isLoading: presenter.isLoading)
 
             // Start button
             if !delegate.scheduledWorkout.isCompleted {
@@ -57,38 +53,43 @@ struct TodaysWorkoutCardView: View {
             }
         }
         .task {
-            await viewModel.loadWorkoutDetails(scheduledWorkout: delegate.scheduledWorkout)
+            await presenter.loadWorkoutDetails(scheduledWorkout: delegate.scheduledWorkout)
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
 }
 
 #Preview("Functioning") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    List {
-        builder.todaysWorkoutCardView(
-            delegate: TodaysWorkoutCardViewDelegate(
-                scheduledWorkout: ScheduledWorkout.mocksWeek1.first!,
-                onStart: {
-                    print("Start workout")
-                }
+    RouterView { router in
+        List {
+            builder.todaysWorkoutCardView(
+                router: router,
+                delegate: TodaysWorkoutCardDelegate(
+                    scheduledWorkout: ScheduledWorkout.mocksWeek1.first!,
+                    onStart: {
+                        print("Start workout")
+                    }
+                )
             )
-        )
+        }
     }
     .previewEnvironment()
 }
 
 #Preview("Slow Loading") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    List {
-        builder.todaysWorkoutCardView(
-            delegate: TodaysWorkoutCardViewDelegate(
-                scheduledWorkout: ScheduledWorkout.mocksWeek2.first!,
-                onStart: {
-                    print("Start workout")
-                }
+    RouterView { router in
+        List {
+            builder.todaysWorkoutCardView(
+                router: router,
+                delegate: TodaysWorkoutCardDelegate(
+                    scheduledWorkout: ScheduledWorkout.mocksWeek2.first!,
+                    onStart: {
+                        print("Start workout")
+                    }
+                )
             )
-        )
+        }
     }
     .previewEnvironment()
 }
@@ -96,15 +97,18 @@ struct TodaysWorkoutCardView: View {
 #Preview("Failure") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
 
-    List(ScheduledWorkout.mocksWeek3) { workout in
-        builder.todaysWorkoutCardView(
-            delegate: TodaysWorkoutCardViewDelegate(
-                scheduledWorkout: workout,
-                onStart: {
-                    print("Start workout")
-                }
+    RouterView { router in
+        List(ScheduledWorkout.mocksWeek3) { workout in
+            builder.todaysWorkoutCardView(
+                router: router,
+                delegate: TodaysWorkoutCardDelegate(
+                    scheduledWorkout: workout,
+                    onStart: {
+                        print("Start workout")
+                    }
+                )
             )
-        )
+        }
     }
     .previewEnvironment()
 }

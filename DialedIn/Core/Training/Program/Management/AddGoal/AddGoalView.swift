@@ -8,23 +8,19 @@
 import SwiftUI
 import CustomRouting
 
-struct AddGoalViewDelegate {
-    let plan: TrainingPlan
-}
-
 struct AddGoalView: View {
-    @State var viewModel: AddGoalViewModel
+    @State var presenter: AddGoalPresenter
     @Environment(\.dismiss) private var dismiss
         
-    init(viewModel: AddGoalViewModel, delegate: AddGoalViewDelegate) {
-        self.viewModel = viewModel
-        viewModel.addTrainingPlan(delegate.plan)
+    init(presenter: AddGoalPresenter, delegate: AddGoalDelegate) {
+        self.presenter = presenter
+        presenter.addTrainingPlan(delegate.plan)
     }
     
     var body: some View {
         Form {
             Section {
-                Picker("Goal Type", selection: $viewModel.selectedType) {
+                Picker("Goal Type", selection: $presenter.selectedType) {
                     ForEach(GoalType.allCases, id: \.self) { type in
                         Text(type.description).tag(type)
                     }
@@ -37,10 +33,10 @@ struct AddGoalView: View {
                 HStack {
                     Text("Target")
                     Spacer()
-                    TextField("Value", value: $viewModel.targetValue, format: .number)
+                    TextField("Value", value: $presenter.targetValue, format: .number)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
-                    Text(viewModel.selectedType.unit)
+                    Text(presenter.selectedType.unit)
                         .foregroundStyle(.secondary)
                 }
             } header: {
@@ -48,10 +44,10 @@ struct AddGoalView: View {
             }
             
             Section {
-                Toggle("Set Target Date", isOn: $viewModel.hasTargetDate)
+                Toggle("Set Target Date", isOn: $presenter.hasTargetDate)
                 
-                if viewModel.hasTargetDate {
-                    DatePicker("Target Date", selection: $viewModel.targetDate, displayedComponents: .date)
+                if presenter.hasTargetDate {
+                    DatePicker("Target Date", selection: $presenter.targetDate, displayedComponents: .date)
                 }
             } header: {
                 Text("Timeline")
@@ -69,10 +65,10 @@ struct AddGoalView: View {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Add") {
                     Task {
-                        await viewModel.addGoal(onDismiss: { dismiss() })
+                        await presenter.addGoal(onDismiss: { dismiss() })
                     }
                 }
-                .disabled(viewModel.isSaving || viewModel.targetValue <= 0)
+                .disabled(presenter.isSaving || presenter.targetValue <= 0)
             }
         }
     }
@@ -81,6 +77,6 @@ struct AddGoalView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.addGoalView(router: router, delegate: AddGoalViewDelegate(plan: .mock))
+        builder.addGoalView(router: router, delegate: AddGoalDelegate(plan: .mock))
     }
 }

@@ -8,19 +8,15 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingCalorieFloorViewDelegate {
-    let dietPlanBuilder: DietPlanBuilder
-}
-
 struct OnboardingCalorieFloorView: View {
 
-    @State var viewModel: OnboardingCalorieFloorViewModel
+    @State var presenter: OnboardingCalorieFloorPresenter
 
-    var delegate: OnboardingCalorieFloorViewDelegate
+    var delegate: OnboardingCalorieFloorDelegate
 
     var body: some View {
         List {
-            if let daysPerWeek = viewModel.trainingDaysPerWeek {
+            if let daysPerWeek = presenter.trainingDaysPerWeek {
                 Section {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Based on your \(daysPerWeek)-day training program")
@@ -43,11 +39,11 @@ struct OnboardingCalorieFloorView: View {
                                 .foregroundStyle(.secondary)
                         }
                         Spacer(minLength: 8)
-                        Image(systemName: viewModel.selectedFloor == type ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(viewModel.selectedFloor == type ? .accent : .secondary)
+                        Image(systemName: presenter.selectedFloor == type ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(presenter.selectedFloor == type ? .accent : .secondary)
                     }
                     .contentShape(Rectangle())
-                    .onTapGesture { viewModel.selectedFloor = type }
+                    .onTapGesture { presenter.selectedFloor = type }
                     .padding(.vertical)
                 }
             }
@@ -64,7 +60,7 @@ struct OnboardingCalorieFloorView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -73,12 +69,12 @@ struct OnboardingCalorieFloorView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToTrainingType(dietPlanBuilder: delegate.dietPlanBuilder)
+                presenter.navigateToTrainingType(dietPlanBuilder: delegate.dietPlanBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.selectedFloor == nil)
+            .disabled(presenter.selectedFloor == nil)
         }
     }
 }
@@ -88,7 +84,7 @@ struct OnboardingCalorieFloorView: View {
     RouterView { router in
         builder.onboardingCalorieFloorView(
             router: router,
-            delegate: OnboardingCalorieFloorViewDelegate(
+            delegate: OnboardingCalorieFloorDelegate(
                 dietPlanBuilder: .mock
             )
         )

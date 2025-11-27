@@ -10,7 +10,7 @@ import CustomRouting
 
 struct OnboardingIntroView: View {
 
-    @State var viewModel: OnboardingIntroViewModel
+    @State var presenter: OnboardingIntroPresenter
 
     var body: some View {
         List {
@@ -100,7 +100,7 @@ struct OnboardingIntroView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -110,7 +110,7 @@ struct OnboardingIntroView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToAuthOptions()
+                presenter.navigateToAuthOptions()
             } label: {
                 Image(systemName: "chevron.right")
             }

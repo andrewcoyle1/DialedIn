@@ -10,7 +10,7 @@ import CustomRouting
 
 struct OnboardingPreferredDietView: View {
 
-    @State var viewModel: OnboardingPreferredDietViewModel
+    @State var presenter: OnboardingPreferredDietPresenter
 
     var body: some View {
         List {
@@ -25,11 +25,11 @@ struct OnboardingPreferredDietView: View {
                                 .foregroundStyle(.secondary)
                         }
                         Spacer(minLength: 8)
-                        Image(systemName: viewModel.selectedDiet == diet ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(viewModel.selectedDiet == diet ? .accent : .secondary)
+                        Image(systemName: presenter.selectedDiet == diet ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(presenter.selectedDiet == diet ? .accent : .secondary)
                     }
                     .contentShape(Rectangle())
-                    .onTapGesture { viewModel.selectedDiet = diet }
+                    .onTapGesture { presenter.selectedDiet = diet }
                     .padding(.vertical)
                 }
             }
@@ -45,7 +45,7 @@ struct OnboardingPreferredDietView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -54,12 +54,12 @@ struct OnboardingPreferredDietView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToCalorieFloor()
+                presenter.navigateToCalorieFloor()
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.selectedDiet == nil)
+            .disabled(presenter.selectedDiet == nil)
         }
     }
 }

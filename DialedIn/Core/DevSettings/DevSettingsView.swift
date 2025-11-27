@@ -10,7 +10,7 @@ import CustomRouting
 
 struct DevSettingsView: View {
     
-    @State var viewModel: DevSettingsViewModel
+    @State var presenter: DevSettingsPresenter
 
     var body: some View {
         List {
@@ -39,13 +39,13 @@ struct DevSettingsView: View {
     private var backButtonView: some View {
         Image(systemName: "xmark")
             .anyButton {
-                viewModel.onDismissPressed()
+                presenter.onDismissPressed()
             }
     }
 
     private var authSection: some View {
         Section {
-            let array = viewModel.authParams()
+            let array = presenter.authParams()
             ForEach(array, id: \.key) { item in
                 itemRow(item: item)
             }
@@ -56,7 +56,7 @@ struct DevSettingsView: View {
     
     private var userSection: some View {
         Section {
-            let array = viewModel.userParams()
+            let array = presenter.userParams()
             ForEach(array, id: \.key) { item in
                 itemRow(item: item)
             }
@@ -67,7 +67,7 @@ struct DevSettingsView: View {
     
     private var deviceSection: some View {
         Section {
-            let array = viewModel.deviceParams()
+            let array = presenter.deviceParams()
             ForEach(array, id: \.key) { item in
                 itemRow(item: item)
             }
@@ -78,7 +78,7 @@ struct DevSettingsView: View {
     
     private var exerciseTemplateSection: some View {
         Group {
-            let array = viewModel.getLocalExercises()
+            let array = presenter.getLocalExercises()
             Section {
                 ForEach(array, id: \.exerciseId) { item in
                     CustomListCellView(imageName: item.imageURL, title: item.name, subtitle: item.description)
@@ -97,7 +97,7 @@ struct DevSettingsView: View {
     
     private var workoutTemplateSection: some View {
         Group {
-            let workouts = viewModel.getLocalWorkoutTemplates()
+            let workouts = presenter.getLocalWorkoutTemplates()
             Section {
                 ForEach(workouts, id: \.workoutId) { workout in
                     VStack(alignment: .leading, spacing: 4) {
@@ -146,7 +146,7 @@ struct DevSettingsView: View {
     
     private var trainingPlanSection: some View {
         Section {
-            if let plan = viewModel.getLocalTrainingPlan() {
+            if let plan = presenter.getLocalTrainingPlan() {
                 VStack(alignment: .leading, spacing: 8) {
                     // Plan basics
                     debugRow(label: "Plan ID", value: plan.planId)
@@ -155,12 +155,12 @@ struct DevSettingsView: View {
                     debugRow(label: "Is Active", value: "\(plan.isActive)")
                     debugRow(label: "Weeks Count", value: "\(plan.weeks.count)")
                     
-                    if let currentWeek = viewModel.getCurrentTrainingPlanWeek() {
+                    if let currentWeek = presenter.getCurrentTrainingPlanWeek() {
                         debugRow(label: "Current Week #", value: "\(currentWeek.weekNumber)")
                     }
                     
                     // Today's workouts detail
-                    let todaysWorkouts = viewModel.getTodaysWorkouts()
+                    let todaysWorkouts = presenter.getTodaysWorkouts()
                     if !todaysWorkouts.isEmpty {
                         Divider()
                         Text("Today's Workouts (\(todaysWorkouts.count))")
@@ -193,14 +193,14 @@ struct DevSettingsView: View {
                         
                         Button {
                             Task {
-                                await viewModel.resetTodaysWorkouts()
+                                await presenter.resetTodaysWorkouts()
                             }
                         } label: {
                             Label("Reset Today's Workouts", systemImage: "arrow.counterclockwise")
                                 .font(.caption)
                         }
                         .buttonStyle(.bordered)
-                        .disabled(viewModel.isReseeding)
+                        .disabled(presenter.isReseeding)
                     }
                 }
                 .padding(.vertical, 4)
@@ -218,7 +218,7 @@ struct DevSettingsView: View {
     
     private var activeWorkoutSessionSection: some View {
         Section {
-            if let session = viewModel.getActiveSession() {
+            if let session = presenter.getActiveSession() {
                 VStack(alignment: .leading, spacing: 8) {
                     debugRow(label: "Session ID", value: session.id)
                     debugRow(label: "Name", value: session.name)
@@ -254,7 +254,7 @@ struct DevSettingsView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 // Active session from local storage
-                if let activeSession = viewModel.getActiveLocalWorkoutSession() {
+                if let activeSession = presenter.getActiveLocalWorkoutSession() {
                     Text("Active Session (Local)")
                         .font(.caption)
                         .fontWeight(.semibold)
@@ -279,7 +279,7 @@ struct DevSettingsView: View {
                 Divider()
                 
                 // Recent sessions
-                let recentSessions = viewModel.getRecentWorkoutSessions()
+                let recentSessions = presenter.getRecentWorkoutSessions()
                 let last3 = Array(recentSessions.sorted(by: { $0.dateCreated > $1.dateCreated }).prefix(3))
                 
                 Text("Recent Sessions (Last 3)")
@@ -327,16 +327,16 @@ struct DevSettingsView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)
                 
-                TextField("Session ID", text: $viewModel.testSessionId)
+                TextField("Session ID", text: $presenter.testSessionId)
                     .textFieldStyle(.roundedBorder)
                     .font(.caption)
                 
                 Button {
                     Task {
-                        await viewModel.fetchSessionFromFirebase()
+                        await presenter.fetchSessionFromFirebase()
                     }
                 } label: {
-                    if viewModel.isFetchingSession {
+                    if presenter.isFetchingSession {
                         ProgressView()
                             .controlSize(.small)
                     } else {
@@ -345,16 +345,16 @@ struct DevSettingsView: View {
                     }
                 }
                 .buttonStyle(.bordered)
-                .disabled(viewModel.testSessionId.isEmpty || viewModel.isFetchingSession)
+                .disabled(presenter.testSessionId.isEmpty || presenter.isFetchingSession)
                 
-                if let error = viewModel.fetchError {
+                if let error = presenter.fetchError {
                     Text(error)
                         .font(.caption2)
                         .foregroundStyle(.red)
                         .padding(.top, 4)
                 }
                 
-                if let session = viewModel.fetchedSession {
+                if let session = presenter.fetchedSession {
                     Divider()
                     
                     Text("Fetched Session")
@@ -392,35 +392,35 @@ struct DevSettingsView: View {
         Section {
             Button {
                 Task {
-                    await viewModel.resetExerciseSeeding()
+                    await presenter.resetExerciseSeeding()
                 }
             } label: {
                 Label("Reset Exercise Seeding", systemImage: "arrow.clockwise")
             }
-            .disabled(viewModel.isReseeding)
+            .disabled(presenter.isReseeding)
             
             Button {
                 Task {
-                    await viewModel.resetWorkoutSeeding()
+                    await presenter.resetWorkoutSeeding()
                 }
             } label: {
                 Label("Reset Workout Seeding", systemImage: "arrow.clockwise")
             }
-            .disabled(viewModel.isReseeding)
+            .disabled(presenter.isReseeding)
             
             Button {
                 Task {
-                    await viewModel.resetAllSeeding()
+                    await presenter.resetAllSeeding()
                 }
             } label: {
                 Label("Reset All Seeding", systemImage: "arrow.clockwise.circle.fill")
             }
-            .disabled(viewModel.isReseeding)
+            .disabled(presenter.isReseeding)
             
-            if viewModel.isReseeding {
+            if presenter.isReseeding {
                 HStack {
                     ProgressView()
-                    Text(viewModel.reseedingMessage)
+                    Text(presenter.reseedingMessage)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -436,7 +436,7 @@ struct DevSettingsView: View {
     private var debugActionsSection: some View {
         Section {
             Button(role: .destructive) {
-                viewModel.onForceFreshAnonUser()
+                presenter.onForceFreshAnonUser()
             } label: {
                 Text("Clear local data & sign out")
             }

@@ -8,7 +8,7 @@
 import SwiftUI
 import CustomRouting
 
-struct DayScheduleSheetViewDelegate {
+struct DayScheduleDelegate {
     let date: Date
     let scheduledWorkouts: [ScheduledWorkout]
     let onStartWorkout: (ScheduledWorkout) -> Void
@@ -18,12 +18,12 @@ struct DayScheduleSheetView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State var viewModel: DayScheduleSheetViewModel
+    @State var presenter: DayScheduleSheetPresenter
 
-    let delegate: DayScheduleSheetViewDelegate
+    let delegate: DayScheduleDelegate
 
-    @ViewBuilder var workoutSummaryCardView: (WorkoutSummaryCardViewDelegate) -> AnyView
-    @ViewBuilder var todaysWorkoutCardView: (TodaysWorkoutCardViewDelegate) -> AnyView
+    @ViewBuilder var workoutSummaryCardView: (WorkoutSummaryCardDelegate) -> AnyView
+    @ViewBuilder var todaysWorkoutCardView: (TodaysWorkoutCardDelegate) -> AnyView
 
     var body: some View {
         List {
@@ -38,17 +38,17 @@ struct DayScheduleSheetView: View {
                     ForEach(delegate.scheduledWorkouts) { workout in
                         if workout.isCompleted {
                             workoutSummaryCardView(
-                                WorkoutSummaryCardViewDelegate(
+                                WorkoutSummaryCardDelegate(
                                     scheduledWorkout: workout, onTap: {
                                         Task {
-                                            await viewModel.openCompletedSession(for: workout)
+                                            await presenter.openCompletedSession(for: workout)
                                         }
                                     }
                                 )
                             )
                         } else {
                             todaysWorkoutCardView(
-                                TodaysWorkoutCardViewDelegate(
+                                TodaysWorkoutCardDelegate(
                                     scheduledWorkout: workout, onStart: {
                                         Task {
                                             dismiss()
@@ -73,14 +73,13 @@ struct DayScheduleSheetView: View {
                 }
             }
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
 }
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.dayScheduleSheetView(router: router, delegate: DayScheduleSheetViewDelegate(date: Date(), scheduledWorkouts: ScheduledWorkout.mocksWeek1, onStartWorkout: { _ in }))
+        builder.dayScheduleSheetView(router: router, delegate: DayScheduleDelegate(date: Date(), scheduledWorkouts: ScheduledWorkout.mocksWeek1, onStartWorkout: { _ in }))
     }
     .previewEnvironment()
 }
@@ -88,7 +87,7 @@ struct DayScheduleSheetView: View {
 #Preview("No Workouts Scheduled") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.dayScheduleSheetView(router: router, delegate: DayScheduleSheetViewDelegate(date: Date(), scheduledWorkouts: [], onStartWorkout: { _ in }))
+        builder.dayScheduleSheetView(router: router, delegate: DayScheduleDelegate(date: Date(), scheduledWorkouts: [], onStartWorkout: { _ in }))
     }
     .previewEnvironment()
 }

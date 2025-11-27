@@ -9,7 +9,8 @@ import SwiftUI
 import CustomRouting
 
 struct WorkoutHeatmapView: View {
-    @State var viewModel: WorkoutHeatmapViewModel
+    
+    @State var presenter: WorkoutHeatmapPresenter
 
     var body: some View {
         ScrollView {
@@ -17,7 +18,7 @@ struct WorkoutHeatmapView: View {
                 // Month selector
                 monthNavigator
 
-                if viewModel.isLoading {
+                if presenter.isLoading {
                     ProgressView()
                         .padding(40)
                 } else {
@@ -31,7 +32,7 @@ struct WorkoutHeatmapView: View {
                     heatmapLegend
 
                     // Stats
-                    if let metrics = viewModel.performanceMetrics {
+                    if let metrics = presenter.performanceMetrics {
                         heatmapStatsSection(metrics)
                     }
                 }
@@ -43,16 +44,16 @@ struct WorkoutHeatmapView: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Done") {
-                    viewModel.onDismissPressed()
+                    presenter.onDismissPressed()
                 }
             }
         }
         .task {
-            await viewModel.loadHeatmapData()
+            await presenter.loadHeatmapData()
         }
-        .onChange(of: viewModel.selectedMonth) { _, _ in
+        .onChange(of: presenter.selectedMonth) { _, _ in
             Task {
-                await viewModel.loadHeatmapData()
+                await presenter.loadHeatmapData()
             }
         }
     }
@@ -60,8 +61,8 @@ struct WorkoutHeatmapView: View {
     private var monthNavigator: some View {
         HStack {
             Button {
-                if let newMonth = viewModel.calendar.date(byAdding: .month, value: -1, to: viewModel.selectedMonth) {
-                    viewModel.selectedMonth = newMonth
+                if let newMonth = presenter.calendar.date(byAdding: .month, value: -1, to: presenter.selectedMonth) {
+                    presenter.selectedMonth = newMonth
                 }
             } label: {
                 Image(systemName: "chevron.left")
@@ -70,28 +71,28 @@ struct WorkoutHeatmapView: View {
             
             Spacer()
             
-            Text(viewModel.selectedMonth.formatted(.dateTime.month(.wide).year()))
+            Text(presenter.selectedMonth.formatted(.dateTime.month(.wide).year()))
                 .font(.headline)
             
             Spacer()
             
             Button {
-                if let newMonth = viewModel.calendar.date(byAdding: .month, value: 1, to: viewModel.selectedMonth),
+                if let newMonth = presenter.calendar.date(byAdding: .month, value: 1, to: presenter.selectedMonth),
                    newMonth <= Date() {
-                    viewModel.selectedMonth = newMonth
+                    presenter.selectedMonth = newMonth
                 }
             } label: {
                 Image(systemName: "chevron.right")
                     .font(.title3)
             }
-            .disabled(viewModel.calendar.isDate(viewModel.selectedMonth, equalTo: Date(), toGranularity: .month))
+            .disabled(presenter.calendar.isDate(presenter.selectedMonth, equalTo: Date(), toGranularity: .month))
         }
         .padding(.horizontal)
     }
     
     private var weekdayHeaders: some View {
-        LazyVGrid(columns: viewModel.columns, spacing: 4) {
-            ForEach(Array(viewModel.calendar.veryShortWeekdaySymbols.enumerated()), id: \.offset) { _, symbol in
+        LazyVGrid(columns: presenter.columns, spacing: 4) {
+            ForEach(Array(presenter.calendar.veryShortWeekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                 Text(symbol)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -102,8 +103,8 @@ struct WorkoutHeatmapView: View {
     }
     
     private var calendarGrid: some View {
-        LazyVGrid(columns: viewModel.columns, spacing: 4) {
-            ForEach(viewModel.daysInMonth(), id: \.self) { date in
+        LazyVGrid(columns: presenter.columns, spacing: 4) {
+            ForEach(presenter.daysInMonth(), id: \.self) { date in
                 if let date = date {
                     dayCell(for: date)
                 } else {
@@ -116,9 +117,9 @@ struct WorkoutHeatmapView: View {
     }
     
     private func dayCell(for date: Date) -> some View {
-        let workoutCount = viewModel.heatmapData[viewModel.calendar.startOfDay(for: date)] ?? 0
-        let intensity = viewModel.intensityColor(for: workoutCount)
-        let isToday = viewModel.calendar.isDateInToday(date)
+        let workoutCount = presenter.heatmapData[presenter.calendar.startOfDay(for: date)] ?? 0
+        let intensity = presenter.intensityColor(for: workoutCount)
+        let isToday = presenter.calendar.isDateInToday(date)
         
         return ZStack {
             RoundedRectangle(cornerRadius: 8)
@@ -130,7 +131,7 @@ struct WorkoutHeatmapView: View {
             }
             
             VStack(spacing: 2) {
-                Text("\(viewModel.calendar.component(.day, from: date))")
+                Text("\(presenter.calendar.component(.day, from: date))")
                     .font(.caption)
                     .fontWeight(isToday ? .bold : .regular)
                     .foregroundStyle(workoutCount > 0 ? .white : .primary)
@@ -181,7 +182,7 @@ struct WorkoutHeatmapView: View {
                     
                     HStack(spacing: 8) {
                         ForEach(metrics.restDayPattern.prefix(3), id: \.self) { dayIndex in
-                            Text(viewModel.calendar.weekdaySymbols[dayIndex - 1])
+                            Text(presenter.calendar.weekdaySymbols[dayIndex - 1])
                                 .font(.caption)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
@@ -210,7 +211,7 @@ struct WorkoutHeatmapView: View {
                 
                 ForEach(0...4, id: \.self) { level in
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(viewModel.intensityColor(for: level))
+                        .fill(presenter.intensityColor(for: level))
                         .frame(width: 16, height: 16)
                 }
                 

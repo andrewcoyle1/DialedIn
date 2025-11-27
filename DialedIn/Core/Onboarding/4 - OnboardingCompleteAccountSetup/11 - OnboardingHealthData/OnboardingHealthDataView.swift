@@ -10,7 +10,7 @@ import CustomRouting
 
 struct OnboardingHealthDataView: View {
 
-    @State var viewModel: OnboardingHealthDataViewModel
+    @State var presenter: OnboardingHealthDataPresenter
 
     var body: some View {
         List {
@@ -21,7 +21,6 @@ struct OnboardingHealthDataView: View {
         .navigationTitle("Health Data")
         .screenAppearAnalytics(name: "OnboardingHealthData")
         .navigationBarTitleDisplayMode(.large)
-        .showCustomAlert(alert: $viewModel.showAlert)
         #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
         #endif
@@ -35,7 +34,7 @@ struct OnboardingHealthDataView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -45,7 +44,7 @@ struct OnboardingHealthDataView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onAllowAccessPressed()
+                presenter.onAllowAccessPressed()
             } label: {
                 Text("Allow access to health data")
                     .padding(.horizontal)
@@ -55,7 +54,7 @@ struct OnboardingHealthDataView: View {
         ToolbarSpacer(.fixed, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.handleNavigation()
+                presenter.handleNavigation()
             } label: {
                 Image(systemName: "chevron.right")
             }

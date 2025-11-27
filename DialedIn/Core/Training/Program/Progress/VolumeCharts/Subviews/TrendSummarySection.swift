@@ -12,7 +12,7 @@ struct TrendSummarySectionDelegate {
 }
 
 struct TrendSummarySection: View {
-    @State var viewModel: TrendSummarySectionViewModel
+    @State var presenter: TrendSummarySectionPresenter
 
     let delegate: TrendSummarySectionDelegate
 
@@ -39,12 +39,12 @@ struct TrendSummarySection: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     HStack(spacing: 4) {
-                        Image(systemName: viewModel.trendIcon(trend: delegate.trend))
-                            .foregroundStyle(viewModel.trendColor(trend: delegate.trend))
-                        Text(viewModel.trendText(trend: delegate.trend))
+                        Image(systemName: presenter.trendIcon(trend: delegate.trend))
+                            .foregroundStyle(presenter.trendColor(trend: delegate.trend))
+                        Text(presenter.trendText(trend: delegate.trend))
                             .font(.title3)
                             .fontWeight(.semibold)
-                            .foregroundStyle(viewModel.trendColor(trend: delegate.trend))
+                            .foregroundStyle(presenter.trendColor(trend: delegate.trend))
                     }
                 }
             }
@@ -54,7 +54,7 @@ struct TrendSummarySection: View {
                 HStack(spacing: 8) {
                     Image(systemName: "lightbulb.fill")
                         .foregroundStyle(.yellow)
-                    Text(viewModel.trendInsight(trend: delegate.trend))
+                    Text(presenter.trendInsight(trend: delegate.trend))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

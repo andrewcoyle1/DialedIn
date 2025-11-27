@@ -10,12 +10,12 @@ import CustomRouting
 
 struct ProfileGoalsDetailView: View {
 
-    @State var viewModel: ProfileGoalsDetailViewModel
+    @State var presenter: ProfileGoalsDetailPresenter
 
     var body: some View {
         List {
-            if let goal = viewModel.currentGoal,
-               let user = viewModel.currentUser {
+            if let goal = presenter.currentGoal,
+               let user = presenter.currentUser {
                 goalOverviewSection(goal: goal)
                 weightDetailsSection(goal: goal, currentWeight: user.weightKilograms, unit: user.weightUnitPreference ?? .kilograms)
                 timelineSection(goal: goal, currentWeight: user.weightKilograms, unit: user.weightUnitPreference ?? .kilograms)
@@ -35,7 +35,7 @@ struct ProfileGoalsDetailView: View {
             toolbarContent
         }
         .task {
-            await viewModel.getActiveGoal()
+            await presenter.getActiveGoal()
         }
     }
     
@@ -43,7 +43,7 @@ struct ProfileGoalsDetailView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
             Button {
-                viewModel.showLogWeightSheet = true
+                presenter.showLogWeightSheet = true
             } label: {
                 Label("Log Weight", systemImage: "plus")
             }
@@ -57,12 +57,12 @@ struct ProfileGoalsDetailView: View {
                 Text(goal.objective.description.capitalized)
                     .font(.system(size: 20, weight: .bold))
                 Spacer()
-                Image(systemName: viewModel.objectiveIcon(goal.objective.description))
+                Image(systemName: presenter.objectiveIcon(goal.objective.description))
                     .font(.system(size: 20))
                     .foregroundStyle(.accent)
             }
             
-            Text(viewModel.objectiveDescription(goal.objective.description))
+            Text(presenter.objectiveDescription(goal.objective.description))
                 .font(.subheadline)
                 .foregroundStyle(.tertiary)
         } header: {
@@ -138,7 +138,7 @@ struct ProfileGoalsDetailView: View {
                     .font(.subheadline)
                     .foregroundStyle(.tertiary)
 
-                Text("Based on your selected rate of \(viewModel.formatWeight(goal.weeklyChangeKg, unit: unit)) per week")
+                Text("Based on your selected rate of \(presenter.formatWeight(goal.weeklyChangeKg, unit: unit)) per week")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -212,7 +212,7 @@ struct ProfileGoalsDetailView: View {
                 Spacer()
             }
             
-            Text(viewModel.motivationalMessage(goal.objective.description))
+            Text(presenter.motivationalMessage(goal.objective.description))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -229,7 +229,7 @@ struct ProfileGoalsDetailView: View {
                 Text(label)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                Text(viewModel.formatWeight(weight, unit: unit) + suffix)
+                Text(presenter.formatWeight(weight, unit: unit) + suffix)
                     .font(.title3)
                     .fontWeight(.semibold)
             }
@@ -284,7 +284,7 @@ struct ProfileGoalsDetailView: View {
                     Text("Starting Weight")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text(viewModel.formatWeight(progressState.startingWeight, unit: progressState.unit))
+                    Text(presenter.formatWeight(progressState.startingWeight, unit: progressState.unit))
                         .font(.headline)
                 }
                 
@@ -300,7 +300,7 @@ struct ProfileGoalsDetailView: View {
                     Text("Current Weight")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text(viewModel.formatWeight(progressState.currentWeight, unit: progressState.unit))
+                    Text(presenter.formatWeight(progressState.currentWeight, unit: progressState.unit))
                         .font(.headline)
                 }
             }
@@ -368,7 +368,7 @@ struct ProfileGoalsDetailView: View {
                 
                 Spacer()
                 
-                if !viewModel.realWeightHistory.isEmpty {
+                if !presenter.realWeightHistory.isEmpty {
                     Text("Real Data")
                         .font(.caption2)
                         .foregroundStyle(.green)
@@ -387,8 +387,8 @@ struct ProfileGoalsDetailView: View {
                 }
             }
             
-            let history: [WeightDataPoint] = !viewModel.realWeightHistory.isEmpty
-            ? viewModel.realWeightHistory.map { entry in
+            let history: [WeightDataPoint] = !presenter.realWeightHistory.isEmpty
+            ? presenter.realWeightHistory.map { entry in
                 WeightDataPoint(date: entry.date, weightKg: entry.weightKg)
               }
             : generateMockWeightHistory(
@@ -520,13 +520,13 @@ struct ProfileGoalsDetailView: View {
                 
                 // Labels
                 HStack {
-                    Text(viewModel.formatWeight(minWeight, unit: unit))
+                    Text(presenter.formatWeight(minWeight, unit: unit))
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                     
                     Spacer()
                     
-                    Text(viewModel.formatWeight(maxWeight, unit: unit))
+                    Text(presenter.formatWeight(maxWeight, unit: unit))
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }

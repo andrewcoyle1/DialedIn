@@ -8,7 +8,7 @@
 import SwiftUI
 import CustomRouting
 
-struct WorkoutStartViewDelegate {
+struct WorkoutStartDelegate {
 
     let template: WorkoutTemplateModel
     let scheduledWorkout: ScheduledWorkout?
@@ -21,9 +21,9 @@ struct WorkoutStartViewDelegate {
 
 struct WorkoutStartView: View {
 
-    @State var viewModel: WorkoutStartViewModel
+    @State var presenter: WorkoutStartPresenter
     
-    let delegate: WorkoutStartViewDelegate
+    let delegate: WorkoutStartDelegate
 
     var body: some View {
             List {
@@ -53,13 +53,13 @@ struct WorkoutStartView: View {
                     label: "Exercises",
                 )
                 StatCard(
-                    value: viewModel.estimatedTime(
+                    value: presenter.estimatedTime(
                         template: delegate.template
                     ),
                     label: "Est. Time"
                 )
                 StatCard(
-                    value: viewModel.primaryMuscleGroup(
+                    value: presenter.primaryMuscleGroup(
                         template: delegate.template
                     ),
                     label: "Focus"
@@ -105,7 +105,7 @@ struct WorkoutStartView: View {
     
     private var notesSection: some View {
         Section {
-            TextEditor(text: $viewModel.workoutNotes)
+            TextEditor(text: $presenter.workoutNotes)
                 .frame(minHeight: 80)
                 .padding(8)
                 .cornerRadius(8)
@@ -117,23 +117,23 @@ struct WorkoutStartView: View {
         
     private var startButton: some View {
         Button {
-            viewModel.startWorkout(template: delegate.template, scheduledWorkout: delegate.scheduledWorkout)
+            presenter.startWorkout(template: delegate.template, scheduledWorkout: delegate.scheduledWorkout)
         } label: {
             HStack {
-                if viewModel.isStarting {
+                if presenter.isStarting {
                     ProgressView()
                         .scaleEffect(0.8)
                 } else {
                     Image(systemName: "play.fill")
                 }
                 
-                Text(viewModel.isStarting ? "Starting..." : "Start Workout")
+                Text(presenter.isStarting ? "Starting..." : "Start Workout")
             }
             .frame(maxWidth: .infinity)
             .frame(height: 55)
         }
         .buttonStyle(.glassProminent)
-        .disabled(viewModel.isStarting)
+        .disabled(presenter.isStarting)
         .padding(.horizontal)
     }
     
@@ -141,7 +141,7 @@ struct WorkoutStartView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button("Cancel") {
-                viewModel.dismissScreen()
+                presenter.dismissScreen()
             }
         }
     }
@@ -180,7 +180,7 @@ extension ExerciseCategory {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = WorkoutStartViewDelegate(template: .mock)
+    let delegate = WorkoutStartDelegate(template: .mock)
     RouterView { router in
         builder.workoutStartView(router: router, delegate: delegate)
     }

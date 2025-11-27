@@ -8,21 +8,17 @@
 import SwiftUI
 import CustomRouting
 
-struct AddIngredientModalViewDelegate {
-    var selectedIngredients: Binding<[IngredientTemplateModel]>
-}
-
 struct AddIngredientModalView: View {
     @Environment(\.dismiss) private var dismiss
 
-    @State var viewModel: AddIngredientModalViewModel
+    @State var presenter: AddIngredientModalPresenter
 
-    var delegate: AddIngredientModalViewDelegate
+    var delegate: AddIngredientModalDelegate
 
     private var filteredIngredients: [IngredientTemplateModel] {
-        let query = viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return viewModel.ingredients }
-        return viewModel.ingredients.filter { ingredient in
+        let query = presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return presenter.ingredients }
+        return presenter.ingredients.filter { ingredient in
             var fields: [String] = [
                 ingredient.name
             ]
@@ -32,13 +28,13 @@ struct AddIngredientModalView: View {
     }
     var body: some View {
         Group {
-            if viewModel.isLoading {
+            if presenter.isLoading {
                 VStack {
                     ProgressView()
                     Text("Loading ingredients...")
                         .foregroundStyle(.secondary)
                 }
-            } else if let errorMessage = viewModel.errorMessage {
+            } else if let errorMessage = presenter.errorMessage {
                 VStack(spacing: 16) {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.largeTitle)
@@ -50,7 +46,7 @@ struct AddIngredientModalView: View {
                         .multilineTextAlignment(.center)
                     Button("Try Again") {
                         Task {
-                            await viewModel.loadIngredients()
+                            await presenter.loadIngredients()
                         }
                     }
                     .buttonStyle(.borderedProminent)
@@ -60,13 +56,13 @@ struct AddIngredientModalView: View {
                 listSection
             }
         }
-        .searchable(text: $viewModel.searchText)
+        .searchable(text: $presenter.searchText)
         .navigationTitle("Add Ingredients")
         .navigationSubtitle("Select one or more ingredients to add")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    viewModel.onDismissPressed(
+                    presenter.onDismissPressed(
                         onDismiss: {
                             dismiss()
                         }
@@ -77,11 +73,11 @@ struct AddIngredientModalView: View {
             }
         }
         .task {
-            await viewModel.loadIngredients()
+            await presenter.loadIngredients()
         }
-        .onChange(of: viewModel.searchText) {
+        .onChange(of: presenter.searchText) {
             Task {
-                await viewModel.searchIngredients()
+                await presenter.searchIngredients()
             }
         }
     }
@@ -91,7 +87,7 @@ struct AddIngredientModalView: View {
             ForEach(filteredIngredients) { ingredient in
                 CustomListCellView(imageName: ingredient.imageURL, title: ingredient.name, subtitle: ingredient.description, isSelected: delegate.selectedIngredients.contains(where: { $0.id == ingredient.id }))
                     .anyButton {
-                        viewModel.onIngredientPressed(ingredient: ingredient, selectedIngredients: &delegate.selectedIngredients.wrappedValue)
+                        presenter.onIngredientPressed(ingredient: ingredient, selectedIngredients: &delegate.selectedIngredients.wrappedValue)
                     }
                     .removeListRowFormatting()
             }
@@ -104,7 +100,7 @@ struct AddIngredientModalView: View {
     @Previewable @State var selectedIngredients: [IngredientTemplateModel] = [IngredientTemplateModel.mock]
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.addIngredientModalView(router: router, delegate: AddIngredientModalViewDelegate(selectedIngredients: $selectedIngredients))
+        builder.addIngredientModalView(router: router, delegate: AddIngredientModalDelegate(selectedIngredients: $selectedIngredients))
     }
     .previewEnvironment()
 }

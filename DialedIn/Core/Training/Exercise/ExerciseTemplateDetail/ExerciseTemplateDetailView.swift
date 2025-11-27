@@ -8,20 +8,20 @@
 import SwiftUI
 import CustomRouting
 
-struct ExerciseTemplateDetailViewDelegate {
+struct ExerciseTemplateDetailDelegate {
     var exerciseTemplate: ExerciseTemplateModel
 }
 
 struct ExerciseTemplateDetailView: View {
 
-    @State var viewModel: ExerciseTemplateDetailViewModel
+    @State var presenter: ExerciseTemplateDetailPresenter
 
-    var delegate: ExerciseTemplateDetailViewDelegate
+    var delegate: ExerciseTemplateDetailDelegate
 
     var body: some View {
         List {
             pickerSection
-            switch viewModel.section {
+            switch presenter.section {
             case .description:
                 aboutSection
             case .history:
@@ -33,18 +33,17 @@ struct ExerciseTemplateDetailView: View {
             }
         }
         .navigationTitle(delegate.exerciseTemplate.name)
-        .navigationSubtitle(viewModel.performedSubtitle)
+        .navigationSubtitle(presenter.performedSubtitle)
         .navigationBarTitleDisplayMode(.large)
-        .showCustomAlert(alert: $viewModel.showAlert)
         .toolbar {
             toolbarContent
         }
-        .task { await viewModel.loadInitialState(exerciseTemplate: delegate.exerciseTemplate) }
-        .onChange(of: viewModel.currentUser) { _, _ in
-            let user = viewModel.currentUser
+        .task { await presenter.loadInitialState(exerciseTemplate: delegate.exerciseTemplate) }
+        .onChange(of: presenter.currentUser) { _, _ in
+            let user = presenter.currentUser
             let isAuthor = user?.userId == delegate.exerciseTemplate.authorId
-            viewModel.isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false)
-            viewModel.isFavourited = user?.favouritedExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false
+            presenter.isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false)
+            presenter.isFavourited = user?.favouritedExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false
         }
     }
     
@@ -78,14 +77,14 @@ struct ExerciseTemplateDetailView: View {
     private var historySection: some View {
         Group {
             Section(header: Text("History")) {
-                if viewModel.isLoadingHistory {
+                if presenter.isLoadingHistory {
                     ProgressView()
                         .frame(maxWidth: .infinity)
-                } else if viewModel.history.isEmpty {
+                } else if presenter.history.isEmpty {
                     Text("No history yet.")
                         .foregroundColor(.secondary)
                 } else {
-                    ForEach(viewModel.history, id: \.id) { entry in
+                    ForEach(presenter.history, id: \.id) { entry in
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 Text(entry.performedAt, style: .date)
@@ -94,7 +93,7 @@ struct ExerciseTemplateDetailView: View {
                                 Spacer()
                                 if let first = entry.sets.first {
                                     if let reps = first.reps { Text("\(reps) reps").font(.caption).foregroundColor(.secondary) }
-                                    if let weightKg = first.weightKg, let pref = viewModel.unitPreference {
+                                    if let weightKg = first.weightKg, let pref = presenter.unitPreference {
                                         let displayWeight = UnitConversion.formatWeight(weightKg, unit: pref.weightUnit)
                                         Text("\(displayWeight) \(pref.weightUnit.abbreviation)").font(.caption).foregroundColor(.secondary)
                                     }
@@ -125,7 +124,7 @@ struct ExerciseTemplateDetailView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Weight lifted over last sessions")
                     .font(.subheadline)
-                let weights: [Double] = viewModel.history.compactMap { $0.sets.first?.weightKg }
+                let weights: [Double] = presenter.history.compactMap { $0.sets.first?.weightKg }
                 HStack(alignment: .bottom, spacing: 4) {
                     ForEach(Array(weights.enumerated()), id: \.offset) { _, weightKg in
                         RoundedRectangle(cornerRadius: 2)
@@ -134,7 +133,7 @@ struct ExerciseTemplateDetailView: View {
                     }
                 }
                 .padding(.vertical, 8)
-                if let pref = viewModel.unitPreference {
+                if let pref = presenter.unitPreference {
                     Text(weights.map { UnitConversion.formatWeight($0, unit: pref.weightUnit) + pref.weightUnit.abbreviation }.joined(separator: ", "))
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -153,7 +152,7 @@ struct ExerciseTemplateDetailView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Reps performed over last sessions")
                     .font(.subheadline)
-                let reps: [Int] = viewModel.history.compactMap { $0.sets.first?.reps }
+                let reps: [Int] = presenter.history.compactMap { $0.sets.first?.reps }
                 HStack(alignment: .bottom, spacing: 4) {
                     ForEach(Array(reps.enumerated()), id: \.offset) { _, reps in
                         RoundedRectangle(cornerRadius: 2)
@@ -215,7 +214,7 @@ struct ExerciseTemplateDetailView: View {
     
     private var recentRecordsSubSection: some View {
         Section {
-            ForEach(viewModel.records, id: \.0) { date, record in
+            ForEach(presenter.records, id: \.0) { date, record in
                 HStack {
                     Text(record)
                         .font(.body)
@@ -267,7 +266,7 @@ struct ExerciseTemplateDetailView: View {
     
     private var pickerSection: some View {
         Section {
-            Picker("Section", selection: $viewModel.section) {
+            Picker("Section", selection: $presenter.section) {
                 Text("About").tag(CustomSection.description)
                 Text("History").tag(CustomSection.history)
                 Text("Charts").tag(CustomSection.charts)
@@ -362,7 +361,7 @@ struct ExerciseTemplateDetailView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -371,21 +370,21 @@ struct ExerciseTemplateDetailView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 Task {
-                    await viewModel.onFavoritePressed(exerciseTemplate: delegate.exerciseTemplate)
+                    await presenter.onFavoritePressed(exerciseTemplate: delegate.exerciseTemplate)
                 }
             } label: {
-                Image(systemName: viewModel.isFavourited ? "heart.fill" : "heart")
+                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
             }
         }
         // Hide bookmark button when the current user is the author
-        if viewModel.currentUser?.userId != nil && viewModel.currentUser?.userId != delegate.exerciseTemplate.authorId {
+        if presenter.currentUser?.userId != nil && presenter.currentUser?.userId != delegate.exerciseTemplate.authorId {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
-                        await viewModel.onBookmarkPressed(exerciseTemplate: delegate.exerciseTemplate)
+                        await presenter.onBookmarkPressed(exerciseTemplate: delegate.exerciseTemplate)
                     }
                 } label: {
-                    Image(systemName: viewModel.isBookmarked ? "book.closed.fill" : "book.closed")
+                    Image(systemName: presenter.isBookmarked ? "book.closed.fill" : "book.closed")
                 }
             }
         }
@@ -397,7 +396,7 @@ struct ExerciseTemplateDetailView: View {
     RouterView { router in
         builder.exerciseTemplateDetailView(
             router: router,
-            delegate: ExerciseTemplateDetailViewDelegate(
+            delegate: ExerciseTemplateDetailDelegate(
                 exerciseTemplate: ExerciseTemplateModel.mocks[0]
             )
         )

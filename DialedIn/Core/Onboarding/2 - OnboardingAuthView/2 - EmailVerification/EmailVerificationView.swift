@@ -12,7 +12,7 @@ struct EmailVerificationView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State var viewModel: EmailVerificationViewModel
+    @State var presenter: EmailVerificationPresenter
 
     var body: some View {
         List {
@@ -22,24 +22,23 @@ struct EmailVerificationView: View {
             toolbarContent
         }
         .navigationTitle("Email Verification")
-        .showCustomAlert(alert: $viewModel.showAlert)
         .showModal(showModal: Binding(
-            get: { viewModel.isLoadingCheck || viewModel.isLoadingResend },
+            get: { presenter.isLoadingCheck || presenter.isLoadingResend },
             set: { _ in }
         )) {
             ProgressView()
                 .tint(.white)
         }
         .overlay(alignment: .bottom) {
-            if let toastMessage = viewModel.toastMessage {
+            if let toastMessage = presenter.toastMessage {
                 toastMessageSection(toastMessage: toastMessage)
             }
         }
         .onFirstTask {
-            viewModel.setup()
+            presenter.setup()
         }
         .onDisappear {
-            viewModel.cleanUp()
+            presenter.cleanUp()
         }
     }
 
@@ -75,7 +74,7 @@ struct EmailVerificationView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -83,7 +82,7 @@ struct EmailVerificationView: View {
         #endif
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.startSendVerificationEmail(
+                presenter.startSendVerificationEmail(
                     isInitial: false,
                     onDismiss: {
                         Task { @MainActor in
@@ -94,17 +93,17 @@ struct EmailVerificationView: View {
             } label: {
                 Image(systemName: "arrow.trianglehead.clockwise")
             }
-            .disabled(viewModel.isLoadingCheck || viewModel.isLoadingResend)
+            .disabled(presenter.isLoadingCheck || presenter.isLoadingResend)
         }
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onDonePressed()
+                presenter.onDonePressed()
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.isLoadingCheck || viewModel.isLoadingResend)
+            .disabled(presenter.isLoadingCheck || presenter.isLoadingResend)
         }
     }
 }

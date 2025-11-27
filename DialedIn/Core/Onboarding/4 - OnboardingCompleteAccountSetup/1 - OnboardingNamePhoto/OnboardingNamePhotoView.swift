@@ -11,7 +11,7 @@ import CustomRouting
 
 struct OnboardingNamePhotoView: View {
 
-    @State var viewModel: OnboardingNamePhotoViewModel
+    @State var presenter: OnboardingNamePhotoPresenter
 
     var body: some View {
         List {
@@ -24,14 +24,13 @@ struct OnboardingNamePhotoView: View {
         .toolbar {
             toolbarContent
         }
-        .onAppear(perform: viewModel.prefillFromCurrentUser)
-        .onChange(of: viewModel.selectedPhotoItem) {
+        .onAppear(perform: presenter.prefillFromCurrentUser)
+        .onChange(of: presenter.selectedPhotoItem) {
             Task {
-                await viewModel.handlePhotoSelection()
+                await presenter.handlePhotoSelection()
             }
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
-        .showModal(showModal: $viewModel.isSaving) {
+        .showModal(showModal: $presenter.isSaving) {
             ProgressView()
                 .tint(.white)
         }
@@ -39,13 +38,13 @@ struct OnboardingNamePhotoView: View {
     
     private var imageSection: some View {
         Button {
-            viewModel.isImagePickerPresented = true
+            presenter.isImagePickerPresented = true
         } label: {
             ZStack {
                 Rectangle()
                     .fill(Color.secondary.opacity(0.001))
                 Group {
-                    if let data = viewModel.selectedImageData {
+                    if let data = presenter.selectedImageData {
                         #if canImport(UIKit)
                         if let uiImage = UIImage(data: data) {
                             Image(uiImage: uiImage)
@@ -59,7 +58,7 @@ struct OnboardingNamePhotoView: View {
                                 .scaledToFill()
                         }
                         #endif
-                    } else if let user = viewModel.currentUser,
+                    } else if let user = presenter.currentUser,
                               let cachedImage = ProfileImageCache.shared.getCachedImage(userId: user.userId) {
                         // Show cached image if available
                         #if canImport(UIKit)
@@ -86,16 +85,16 @@ struct OnboardingNamePhotoView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 120)
         }
-        .photosPicker(isPresented: $viewModel.isImagePickerPresented, selection: $viewModel.selectedPhotoItem, matching: .images)
+        .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
         .removeListRowFormatting()
     }
     
     private var nameSection: some View {
         Section {
-            TextField("First name", text: $viewModel.firstName)
+            TextField("First name", text: $presenter.firstName)
                 .textContentType(.givenName)
                 .autocapitalization(.words)
-            TextField("Last name (optional)", text: $viewModel.lastName)
+            TextField("Last name (optional)", text: $presenter.lastName)
                 .textContentType(.familyName)
                 .autocapitalization(.words)
         } header: {
@@ -110,7 +109,7 @@ struct OnboardingNamePhotoView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -120,13 +119,13 @@ struct OnboardingNamePhotoView: View {
         ToolbarItem(placement: .bottomBar) {
             Button {
                 Task {
-                    await viewModel.saveAndContinue()
+                    await presenter.saveAndContinue()
                 }
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.isSaving || !viewModel.canContinue)
+            .disabled(presenter.isSaving || !presenter.canContinue)
         }
     }
 }

@@ -21,7 +21,7 @@ struct EditableExerciseCardWrapperDelegate {
 
 struct EditableExerciseCardWrapper: View {
     
-    @State var viewModel: EditableExerciseCardWrapperViewModel
+    @State var presenter: EditableExerciseCardWrapperPresenter
 
     var delegate: EditableExerciseCardWrapperDelegate
 
@@ -30,8 +30,8 @@ struct EditableExerciseCardWrapper: View {
         interactor: EditableExerciseCardWrapperInteractor
     ) {
         self.delegate = delegate
-        _viewModel = State(
-            wrappedValue: EditableExerciseCardWrapperViewModel(
+        _presenter = State(
+            wrappedValue: EditableExerciseCardWrapperPresenter(
                 interactor: interactor,
                 exercise: delegate.exercise,
                 index: delegate.index,
@@ -43,10 +43,10 @@ struct EditableExerciseCardWrapper: View {
     
     var body: some View {
         EditableExerciseCardView(
-            exercise: $viewModel.localExercise,
-            index: viewModel.index,
-            weightUnit: viewModel.weightUnit,
-            distanceUnit: viewModel.distanceUnit,
+            exercise: $presenter.localExercise,
+            index: presenter.index,
+            weightUnit: presenter.weightUnit,
+            distanceUnit: presenter.distanceUnit,
             onAddSet: {
                 delegate.onAddSet()
             },
@@ -55,14 +55,14 @@ struct EditableExerciseCardWrapper: View {
             },
             onWeightUnitChange: { unit in
                 delegate.onWeightUnitChange(unit)
-                viewModel.weightUnit = unit
+                presenter.weightUnit = unit
             },
             onDistanceUnitChange: { unit in
                 delegate.onDistanceUnitChange(unit)
-                viewModel.distanceUnit = unit
+                presenter.distanceUnit = unit
             }
         )
-        .onChange(of: viewModel.localExercise) { _, newValue in
+        .onChange(of: presenter.localExercise) { _, newValue in
             delegate.onExerciseUpdate(newValue)
         }
     }

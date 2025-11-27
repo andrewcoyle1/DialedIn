@@ -12,7 +12,7 @@ struct ProfileView: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
-    @State var viewModel: ProfileViewModel
+    @State var presenter: ProfilePresenter
 
     @ViewBuilder var profileHeaderView: () -> AnyView
     @ViewBuilder var profilePhysicalMetricsView: () -> AnyView
@@ -23,7 +23,7 @@ struct ProfileView: View {
 
     var body: some View {
         List {
-            if let user = viewModel.currentUser,
+            if let user = presenter.currentUser,
                let firstName = user.firstName, !firstName.isEmpty {
                 profileHeaderView()
                 profilePhysicalMetricsView()
@@ -43,7 +43,7 @@ struct ProfileView: View {
             toolbarContent
         }
         .task {
-            await viewModel.getActiveGoal()
+            await presenter.getActiveGoal()
 
         }
     }
@@ -51,7 +51,7 @@ struct ProfileView: View {
     var createProfileSection: some View {
         Section {
             Button {
-                viewModel.onCreateAccountPressed()
+                presenter.onCreateAccountPressed()
             } label: {
                 CustomListCellView(
                     imageName: nil,
@@ -73,7 +73,7 @@ struct ProfileView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -81,14 +81,14 @@ struct ProfileView: View {
         #endif
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onNotificationsPressed()
+                presenter.onNotificationsPressed()
             } label: {
                 Image(systemName: "bell")
             }
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                viewModel.navToSettingsView()
+                presenter.navToSettingsView()
             } label: {
                 Image(systemName: "gear")
             }

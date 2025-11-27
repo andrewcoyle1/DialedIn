@@ -8,24 +8,19 @@
 import SwiftUI
 import CustomRouting
 
-struct IngredientAmountViewDelegate {
-    var ingredient: IngredientTemplateModel
-    let onPick: (MealItemModel) -> Void
-}
-
 struct IngredientAmountView: View {
 
-    @State var viewModel: IngredientAmountViewModel
+    @State var presenter: IngredientAmountPresenter
 
-    var delegate: IngredientAmountViewDelegate
+    var delegate: IngredientAmountDelegate
 
     var body: some View {
         Form {
             Section("Amount") {
                 HStack {
-                    TextField("Amount", text: $viewModel.amountText)
+                    TextField("Amount", text: $presenter.amountText)
                         .keyboardType(.decimalPad)
-                    Text(viewModel.unitLabel(ingredient: delegate.ingredient))
+                    Text(presenter.unitLabel(ingredient: delegate.ingredient))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -34,25 +29,25 @@ struct IngredientAmountView: View {
                 HStack {
                     Text("Calories")
                     Spacer()
-                    Text(viewModel.calories(ingredient: delegate.ingredient).map { String(Int(round($0))) } ?? "-")
+                    Text(presenter.calories(ingredient: delegate.ingredient).map { String(Int(round($0))) } ?? "-")
                         .foregroundStyle(.secondary)
                 }
                 HStack {
                     Text("Protein")
                     Spacer()
-                    Text(viewModel.protein(ingredient: delegate.ingredient).map { String(format: "%.1f g", $0) } ?? "-")
+                    Text(presenter.protein(ingredient: delegate.ingredient).map { String(format: "%.1f g", $0) } ?? "-")
                         .foregroundStyle(.secondary)
                 }
                 HStack {
                     Text("Carbs")
                     Spacer()
-                    Text(viewModel.carbs(ingredient: delegate.ingredient).map { String(format: "%.1f g", $0) } ?? "-")
+                    Text(presenter.carbs(ingredient: delegate.ingredient).map { String(format: "%.1f g", $0) } ?? "-")
                         .foregroundStyle(.secondary)
                 }
                 HStack {
                     Text("Fat")
                     Spacer()
-                    Text(viewModel.fat(ingredient: delegate.ingredient).map { String(format: "%.1f g", $0) } ?? "-")
+                    Text(presenter.fat(ingredient: delegate.ingredient).map { String(format: "%.1f g", $0) } ?? "-")
                         .foregroundStyle(.secondary)
                 }
             }
@@ -60,8 +55,8 @@ struct IngredientAmountView: View {
         .navigationTitle(delegate.ingredient.name)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("Add") { viewModel.add(ingredient: delegate.ingredient, onConfirm: delegate.onPick) }
-                    .disabled((Double(viewModel.amountText) ?? 0) <= 0)
+                Button("Add") { presenter.add(ingredient: delegate.ingredient, onConfirm: delegate.onPick) }
+                    .disabled((Double(presenter.amountText) ?? 0) <= 0)
             }
         }
     }
@@ -72,7 +67,7 @@ struct IngredientAmountView: View {
     RouterView { router in
         builder.ingredientAmountView(
             router: router, 
-            delegate: IngredientAmountViewDelegate(
+            delegate: IngredientAmountDelegate(
                 ingredient: IngredientTemplateModel.mock,
                 onPick: {ingredient in
                     print(

@@ -9,15 +9,15 @@ import SwiftUI
 import PhotosUI
 import CustomRouting
 
-struct CreateWorkoutViewDelegate {
+struct CreateWorkoutDelegate {
     var workoutTemplate: WorkoutTemplateModel?
 }
 
 struct CreateWorkoutView: View {
 
-    @State var viewModel: CreateWorkoutViewModel
+    @State var presenter: CreateWorkoutPresenter
 
-    var delegate: CreateWorkoutViewDelegate
+    var delegate: CreateWorkoutDelegate
 
     var body: some View {
         List {
@@ -25,19 +25,19 @@ struct CreateWorkoutView: View {
             nameSection
             exerciseTemplatesSection
         }
-        .navigationTitle(viewModel.isEditMode ? "Edit Workout" : "Create Workout")
-        .onAppear { viewModel.loadInitialState(workoutTemplate: delegate.workoutTemplate) }
+        .navigationTitle(presenter.isEditMode ? "Edit Workout" : "Create Workout")
+        .onAppear { presenter.loadInitialState(workoutTemplate: delegate.workoutTemplate) }
         .toolbar {
             toolbarContent
         }
-        .onChange(of: viewModel.selectedPhotoItem) {
-            guard let newItem = viewModel.selectedPhotoItem else { return }
+        .onChange(of: presenter.selectedPhotoItem) {
+            guard let newItem = presenter.selectedPhotoItem else { return }
             
             Task {
                 do {
                     if let data = try await newItem.loadTransferable(type: Data.self) {
                         await MainActor.run {
-                            viewModel.selectedImageData = data
+                            presenter.selectedImageData = data
                         }
                     }
                 } catch {
@@ -45,12 +45,12 @@ struct CreateWorkoutView: View {
                 }
             }
         }
-        .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
+        .alert("Error", isPresented: .constant(presenter.saveError != nil)) {
             Button("OK") {
-                viewModel.saveError = nil
+                presenter.saveError = nil
             }
         } message: {
-            Text(viewModel.saveError ?? "")
+            Text(presenter.saveError ?? "")
         }
     }
     
@@ -59,13 +59,13 @@ struct CreateWorkoutView: View {
             HStack {
                 Spacer()
                 Button {
-                    viewModel.onImageSelectorPressed()
+                    presenter.onImageSelectorPressed()
                 } label: {
                     ZStack {
                         Rectangle()
                             .fill(Color.secondary.opacity(0.001))
                         Group {
-                            if let data = viewModel.selectedImageData {
+                            if let data = presenter.selectedImageData {
                                 #if canImport(UIKit)
                                 if let uiImage = UIImage(data: data) {
                                     Image(uiImage: uiImage)
@@ -81,7 +81,7 @@ struct CreateWorkoutView: View {
                                 #endif
                             } else {
                                 #if canImport(UIKit)
-                                if let image = viewModel.generatedImage {
+                                if let image = presenter.generatedImage {
                                     Image(uiImage: image)
                                         .resizable()
                                         .scaledToFill()
@@ -100,7 +100,7 @@ struct CreateWorkoutView: View {
                     }
                     .frame(width: 120, height: 120)
                 }
-                .photosPicker(isPresented: $viewModel.isImagePickerPresented, selection: $viewModel.selectedPhotoItem, matching: .images)
+                .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
                 Spacer()
             }
         } header: {
@@ -108,12 +108,12 @@ struct CreateWorkoutView: View {
                 Text("Workout Image")
                 Spacer()
                 Button {
-                    viewModel.onGenerateImagePressed()
+                    presenter.onGenerateImagePressed()
                 } label: {
                     Image(systemName: "wand.and.sparkles")
                         .font(.system(size: 20))
                 }
-                .disabled(viewModel.isGenerating || viewModel.workoutName.isEmpty)
+                .disabled(presenter.isGenerating || presenter.workoutName.isEmpty)
             }
         }
         .removeListRowFormatting()
@@ -121,11 +121,11 @@ struct CreateWorkoutView: View {
     
     private var nameSection: some View {
         Section {
-            TextField("Enter workout name", text: $viewModel.workoutName)
+            TextField("Enter workout name", text: $presenter.workoutName)
             TextField("Enter workout description", text: Binding(
-                get: { viewModel.workoutTemplateDescription ?? "" },
+                get: { presenter.workoutTemplateDescription ?? "" },
                 set: { newValue in
-                    viewModel.workoutTemplateDescription = newValue.isEmpty ? nil : newValue
+                    presenter.workoutTemplateDescription = newValue.isEmpty ? nil : newValue
                 }
             ))
         } header: {
@@ -135,8 +135,8 @@ struct CreateWorkoutView: View {
     
     private var exerciseTemplatesSection: some View {
         Section {
-            if !viewModel.exercises.isEmpty {
-                ForEach(viewModel.exercises) {exercise in
+            if !presenter.exercises.isEmpty {
+                ForEach(presenter.exercises) {exercise in
                     CustomListCellView(imageName: exercise.imageURL, title: exercise.name, subtitle: exercise.description)
                         .removeListRowFormatting()
                 }
@@ -145,7 +145,7 @@ struct CreateWorkoutView: View {
                     .foregroundStyle(.secondary)
             }
             Button {
-                viewModel.onAddExercisePressed()
+                presenter.onAddExercisePressed()
             } label: {
                 Text("Add exercise template")
             }
@@ -154,7 +154,7 @@ struct CreateWorkoutView: View {
                 Text("Exercise templates")
                 Spacer()
                 Button {
-                    viewModel.onAddExercisePressed()
+                    presenter.onAddExercisePressed()
                 } label: {
                     Image(systemName: "plus.circle.fill")
                 }
@@ -166,7 +166,7 @@ struct CreateWorkoutView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.cancel()
+                presenter.cancel()
             } label: {
             Image(systemName: "xmark")
             }
@@ -175,7 +175,7 @@ struct CreateWorkoutView: View {
         ToolbarSpacer(.fixed, placement: .topBarLeading)
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -185,10 +185,10 @@ struct CreateWorkoutView: View {
             Button {
                 Task {
                     do {
-                        try await viewModel.onSavePressed()
+                        try await presenter.onSavePressed()
                     } catch {
                         await MainActor.run {
-                            viewModel.saveError = "Failed to save workout. Please try again."
+                            presenter.saveError = "Failed to save workout. Please try again."
                         }
                     }
                 }
@@ -196,7 +196,7 @@ struct CreateWorkoutView: View {
             Image(systemName: "checkmark")
             }
             .buttonStyle(.glassProminent)
-            .disabled(!viewModel.canSave || viewModel.isSaving)
+            .disabled(!presenter.canSave || presenter.isSaving)
         }
     }
 }
@@ -204,7 +204,7 @@ struct CreateWorkoutView: View {
 #Preview("With Exercises") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
         RouterView { router in
-            builder.createWorkoutView(router: router, delegate: CreateWorkoutViewDelegate(workoutTemplate: .mock))
+            builder.createWorkoutView(router: router, delegate: CreateWorkoutDelegate(workoutTemplate: .mock))
         }
     .previewEnvironment()
 }
@@ -213,7 +213,7 @@ struct CreateWorkoutView: View {
     let builder = CoreBuilder(container: DevPreview.shared.container)
 
     RouterView { router in
-        builder.createWorkoutView(router: router, delegate: CreateWorkoutViewDelegate())
+        builder.createWorkoutView(router: router, delegate: CreateWorkoutDelegate())
     }
     .previewEnvironment()
 }

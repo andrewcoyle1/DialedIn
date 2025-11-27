@@ -8,17 +8,13 @@
 import SwiftUI
 import CustomRouting
 
-struct ProgramScheduleViewDelegate {
-    let plan: TrainingPlan
-}
-
 struct ProgramScheduleView: View {
-    @State var viewModel: ProgramScheduleViewModel
+    @State var presenter: ProgramSchedulePresenter
 
-    let delegate: ProgramScheduleViewDelegate
+    let delegate: ProgramScheduleDelegate
 
     var body: some View {
-        List(viewModel.weeks(for: delegate.plan)) { week in
+        List(presenter.weeks(for: delegate.plan)) { week in
             weekSection(week)
         }
         .navigationTitle("Schedule")
@@ -70,6 +66,6 @@ struct ProgramScheduleView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.programScheduleView(router: router, delegate: ProgramScheduleViewDelegate(plan: .mock))
+        builder.programScheduleView(router: router, delegate: ProgramScheduleDelegate(plan: .mock))
     }
 }

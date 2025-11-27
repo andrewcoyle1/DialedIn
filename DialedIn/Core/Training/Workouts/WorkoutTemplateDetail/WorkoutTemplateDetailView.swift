@@ -8,7 +8,7 @@
 import SwiftUI
 import CustomRouting
 
-struct WorkoutTemplateDetailViewDelegate {
+struct WorkoutTemplateDetailDelegate {
     let workoutTemplate: WorkoutTemplateModel
 }
 
@@ -17,12 +17,12 @@ struct WorkoutTemplateDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.editMode) private var editMode
 
-    @State var viewModel: WorkoutTemplateDetailViewModel
+    @State var presenter: WorkoutTemplateDetailPresenter
     
-    let delegate: WorkoutTemplateDetailViewDelegate
+    let delegate: WorkoutTemplateDetailDelegate
 
     private var isAuthor: Bool {
-        viewModel.currentUser?.userId == delegate.workoutTemplate.authorId
+        presenter.currentUser?.userId == delegate.workoutTemplate.authorId
     }
     
     var body: some View {
@@ -36,16 +36,15 @@ struct WorkoutTemplateDetailView: View {
         .navigationSubtitle(delegate.workoutTemplate.description ?? "")
         .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
-        .showCustomAlert(alert: $viewModel.showAlert)
         .toolbar {
             toolbarContent
         }
-        .onAppear { viewModel.loadInitialState(template: delegate.workoutTemplate)}
-        .onChange(of: viewModel.currentUser) {_, _ in
-            let user = viewModel.currentUser
+        .onAppear { presenter.loadInitialState(template: delegate.workoutTemplate)}
+        .onChange(of: presenter.currentUser) {_, _ in
+            let user = presenter.currentUser
             let isAuthor = user?.userId == delegate.workoutTemplate.authorId
-            viewModel.isBookmarked = isAuthor || (viewModel.currentUser?.bookmarkedWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false) || (user?.createdWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false)
-            viewModel.isFavourited = user?.favouritedWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false
+            presenter.isBookmarked = isAuthor || (presenter.currentUser?.bookmarkedWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false) || (user?.createdWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false)
+            presenter.isFavourited = user?.favouritedWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false
         }
     }
 
@@ -62,7 +61,7 @@ struct WorkoutTemplateDetailView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -79,22 +78,22 @@ struct WorkoutTemplateDetailView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 Task {
-                    await viewModel.onFavoritePressed(template: delegate.workoutTemplate)
+                    await presenter.onFavoritePressed(template: delegate.workoutTemplate)
                 }
             } label: {
-                Image(systemName: viewModel.isFavourited ? "heart.fill" : "heart")
+                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
             }
-            .disabled(viewModel.activeSession != nil)
+            .disabled(presenter.activeSession != nil)
         }
         // Hide bookmark button when the current user is the author
-        if viewModel.currentUser?.userId != nil && viewModel.currentUser?.userId != delegate.workoutTemplate.authorId {
+        if presenter.currentUser?.userId != nil && presenter.currentUser?.userId != delegate.workoutTemplate.authorId {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
-                        await viewModel.onBookmarkPressed(template: delegate.workoutTemplate)
+                        await presenter.onBookmarkPressed(template: delegate.workoutTemplate)
                     }
                 } label: {
-                    Image(systemName: viewModel.isBookmarked ? "book.closed.fill" : "book.closed")
+                    Image(systemName: presenter.isBookmarked ? "book.closed.fill" : "book.closed")
                 }
             }
         }
@@ -103,7 +102,7 @@ struct WorkoutTemplateDetailView: View {
         if isAuthor && editMode?.wrappedValue != .active {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    viewModel.onEditWorkoutPressed(template: delegate.workoutTemplate)
+                    presenter.onEditWorkoutPressed(template: delegate.workoutTemplate)
                 } label: {
                     Image(systemName: "pencil")
                 }
@@ -114,17 +113,17 @@ struct WorkoutTemplateDetailView: View {
         if isAuthor && editMode?.wrappedValue == .active {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(role: .destructive) {
-                    viewModel.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate, onDismiss: {
+                    presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate, onDismiss: {
                         dismiss()
                     })
                 } label: {
-                    if viewModel.isDeleting {
+                    if presenter.isDeleting {
                         ProgressView()
                     } else {
                         Image(systemName: "trash")
                     }
                 }
-                .disabled(viewModel.isDeleting)
+                .disabled(presenter.isDeleting)
             }
         }
 
@@ -132,7 +131,7 @@ struct WorkoutTemplateDetailView: View {
         if editMode?.wrappedValue != .active {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    viewModel.onStartWorkoutPressed(workoutTemplate: delegate.workoutTemplate)
+                    presenter.onStartWorkoutPressed(workoutTemplate: delegate.workoutTemplate)
                 } label: {
                     Label("Start", systemImage: "play.fill")
                 }
@@ -171,7 +170,7 @@ struct WorkoutTemplateDetailView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.workoutTemplateDetailView(router: router, delegate: WorkoutTemplateDetailViewDelegate(workoutTemplate: WorkoutTemplateModel.mock))
+        builder.workoutTemplateDetailView(router: router, delegate: WorkoutTemplateDetailDelegate(workoutTemplate: WorkoutTemplateModel.mock))
     }
     .previewEnvironment()
 }

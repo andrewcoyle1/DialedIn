@@ -1,5 +1,5 @@
 //
-//  IngredientDetailViewModel.swift
+//  IngredientDetailPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 26/10/2025.
@@ -30,7 +30,7 @@ extension CoreRouter: IngredientDetailRouter { }
 
 @Observable
 @MainActor
-class IngredientDetailViewModel {
+class IngredientDetailPresenter {
     private let interactor: IngredientDetailInteractor
     private let router: IngredientDetailRouter
 

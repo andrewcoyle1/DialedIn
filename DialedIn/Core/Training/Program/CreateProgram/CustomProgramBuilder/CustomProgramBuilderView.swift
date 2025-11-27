@@ -12,7 +12,7 @@ struct CustomProgramBuilderView: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
-    @State var viewModel: CustomProgramBuilderViewModel
+    @State var presenter: CustomProgramBuilderPresenter
 
     var body: some View {
         List {
@@ -24,59 +24,58 @@ struct CustomProgramBuilderView: View {
         .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
         .toolbar { toolbarContent }
-        .onChange(of: viewModel.durationWeeks) { _, newValue in
-            viewModel.resizeWeeks(to: newValue)
+        .onChange(of: presenter.durationWeeks) { _, newValue in
+            presenter.resizeWeeks(to: newValue)
         }
         .onAppear {
-            viewModel.resizeWeeks(to: viewModel.durationWeeks)
+            presenter.resizeWeeks(to: presenter.durationWeeks)
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button("Cancel") {
-                viewModel.dismissScreen()
+                presenter.dismissScreen()
             }
         }
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 Task {
-                    await viewModel.saveTemplate()
+                    await presenter.saveTemplate()
                 }
             } label: {
                 Label("Save", systemImage: "square.and.arrow.down")
             }
-            .disabled(!viewModel.canContinue)
+            .disabled(!presenter.canContinue)
         }
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                viewModel.onStartProgramPressed()
+                presenter.onStartProgramPressed()
             } label: {
                 Label("Start…", systemImage: "play.fill")
             }
             .buttonStyle(.borderedProminent)
-            .disabled(!viewModel.canContinue)
+            .disabled(!presenter.canContinue)
         }
     }
     
     private var detailsSection: some View {
         Section("Details") {
-            TextField("Program name", text: $viewModel.name)
-            TextField("Description (optional)", text: $viewModel.descriptionText, axis: .vertical)
+            TextField("Program name", text: $presenter.name)
+            TextField("Description (optional)", text: $presenter.descriptionText, axis: .vertical)
                 .lineLimit(1...4)
-            Stepper(value: $viewModel.durationWeeks, in: 1...52) {
+            Stepper(value: $presenter.durationWeeks, in: 1...52) {
                 HStack {
                     Text("Duration")
                     Spacer()
-                    Text("\(viewModel.durationWeeks) week\(viewModel.durationWeeks == 1 ? "" : "s")")
+                    Text("\(presenter.durationWeeks) week\(presenter.durationWeeks == 1 ? "" : "s")")
                         .foregroundStyle(.secondary)
                 }
             }
-            Picker("Difficulty", selection: $viewModel.difficulty) {
+            Picker("Difficulty", selection: $presenter.difficulty) {
                 ForEach(DifficultyLevel.allCases, id: \.self) { level in
                     Label(level.description, systemImage: level.systemImage)
                         .tag(level)
@@ -90,12 +89,12 @@ struct CustomProgramBuilderView: View {
         Section {
             WrappingChips(
                 items: FocusArea.allCases,
-                isSelected: { viewModel.selectedFocusAreas.contains($0) },
+                isSelected: { presenter.selectedFocusAreas.contains($0) },
                 toggle: { area in
-                    if viewModel.selectedFocusAreas.contains(area) {
-                        viewModel.selectedFocusAreas.remove(area)
+                    if presenter.selectedFocusAreas.contains(area) {
+                        presenter.selectedFocusAreas.remove(area)
                     } else {
-                        viewModel.selectedFocusAreas.insert(area)
+                        presenter.selectedFocusAreas.insert(area)
                     }
                 },
                 label: { area in
@@ -117,11 +116,11 @@ struct CustomProgramBuilderView: View {
     
     private var scheduleSection: some View {
         Section {
-            CarouselView(items: viewModel.weeks) { week in
+            CarouselView(items: presenter.weeks) { week in
                 weekSchedule(week: week)
             } onSelectionChange: { selectedWeek in
                 if let selectedWeek = selectedWeek {
-                    viewModel.selectedWeek = selectedWeek.weekNumber
+                    presenter.selectedWeek = selectedWeek.weekNumber
                 }
             }
             .removeListRowFormatting()
@@ -129,16 +128,16 @@ struct CustomProgramBuilderView: View {
             HStack {
                 Text("Schedule")
                 Spacer()
-                if viewModel.selectedWeek > 1 {
+                if presenter.selectedWeek > 1 {
                     Button {
-                        viewModel.showingCopyWeekPicker = true
+                        presenter.showingCopyWeekPicker = true
                     } label: {
                         Label("Copy", systemImage: "doc.on.doc")
                             .font(.subheadline)
                     }
                     .buttonStyle(.borderless)
                 }
-                Text("Week \(viewModel.selectedWeek)")
+                Text("Week \(presenter.selectedWeek)")
                     .font(.subheadline)
             }
         }
@@ -156,10 +155,10 @@ struct CustomProgramBuilderView: View {
                 HStack {
                     Text(label)
                     Spacer()
-                    if let selection = viewModel.weeks[safe: viewModel.selectedWeek - 1]?.mappings[day] {
+                    if let selection = presenter.weeks[safe: presenter.selectedWeek - 1]?.mappings[day] {
                         Button {
-                            viewModel.editingDayOfWeek = day
-                            viewModel.onWorkoutPickerPressed(day: day)
+                            presenter.editingDayOfWeek = day
+                            presenter.onWorkoutPickerPressed(day: day)
                         } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "dumbbell.fill")
@@ -169,8 +168,8 @@ struct CustomProgramBuilderView: View {
                         .buttonStyle(.borderless)
                     } else {
                         Button {
-                            viewModel.editingDayOfWeek = day
-                            viewModel.onWorkoutPickerPressed(day: day)
+                            presenter.editingDayOfWeek = day
+                            presenter.onWorkoutPickerPressed(day: day)
                         } label: {
                             Label("Select Workout", systemImage: "plus.circle")
                                 .foregroundStyle(.blue)
@@ -181,19 +180,19 @@ struct CustomProgramBuilderView: View {
             }
             
             Toggle("Deload week", isOn: Binding(
-                get: { viewModel.weeks[safe: viewModel.selectedWeek - 1]?.isDeloadWeek ?? false },
+                get: { presenter.weeks[safe: presenter.selectedWeek - 1]?.isDeloadWeek ?? false },
                 set: { newValue in
-                    if let index = viewModel.weeks.firstIndex(where: { $0.weekNumber == viewModel.selectedWeek }) {
-                        viewModel.weeks[index].isDeloadWeek = newValue
+                    if let index = presenter.weeks.firstIndex(where: { $0.weekNumber == presenter.selectedWeek }) {
+                        presenter.weeks[index].isDeloadWeek = newValue
                     }
                 }
             ))
             
             TextField("Notes (optional)", text: Binding(
-                get: { viewModel.weeks[safe: viewModel.selectedWeek - 1]?.notes ?? "" },
+                get: { presenter.weeks[safe: presenter.selectedWeek - 1]?.notes ?? "" },
                 set: { newValue in
-                    if let index = viewModel.weeks.firstIndex(where: { $0.weekNumber == viewModel.selectedWeek }) {
-                        viewModel.weeks[index].notes = newValue
+                    if let index = presenter.weeks.firstIndex(where: { $0.weekNumber == presenter.selectedWeek }) {
+                        presenter.weeks[index].notes = newValue
                     }
                 }
             ), axis: .vertical)

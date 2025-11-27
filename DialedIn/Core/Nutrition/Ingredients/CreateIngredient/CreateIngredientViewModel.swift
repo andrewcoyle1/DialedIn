@@ -1,5 +1,5 @@
 //
-//  CreateIngredientViewModel.swift
+//  CreateIngredientPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 26/10/2025.
@@ -24,13 +24,14 @@ extension CoreInteractor: CreateIngredientInteractor { }
 @MainActor
 protocol CreateIngredientRouter {
     func showDevSettingsView()
+    func showAlert(error: Error)
 }
 
 extension CoreRouter: CreateIngredientRouter { }
 
 @Observable
 @MainActor
-class CreateIngredientViewModel {
+class CreateIngredientPresenter {
     private let interactor: CreateIngredientInteractor
     private let router: CreateIngredientRouter
 
@@ -87,7 +88,6 @@ class CreateIngredientViewModel {
 
     var isGenerating: Bool = false
     var generatedImage: UIImage?
-    var alert: AnyAppAlert?
 
     private(set) var isSaving: Bool = false
     
@@ -212,7 +212,7 @@ class CreateIngredientViewModel {
                 interactor.trackEvent(eventName: "AI_Image_Generate_Success", parameters: [:], type: .analytic)
             } catch {
                 interactor.trackEvent(eventName: "AI_Image_Generate_Fail", parameters: error.eventParameters, type: .severe)
-                alert = AnyAppAlert(error: error)
+                router.showAlert(error: error)
             }
             isGenerating = false
         }

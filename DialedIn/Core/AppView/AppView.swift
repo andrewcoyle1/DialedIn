@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AppView: View {
 
-    @State var viewModel: AppViewModel
+    @State var presenter: AppPresenter
 
     @ViewBuilder var adaptiveMainView: () -> AnyView
     @ViewBuilder var onboardingWelcomeView: () -> AnyView
@@ -20,7 +20,7 @@ struct AppView: View {
                 onApplicationDidAppear: nil,
                 onApplicationWillEnterForeground: { _ in
                     Task {
-                        await viewModel.checkUserStatus()
+                        await presenter.checkUserStatus()
                     }
                 },
                 onApplicationDidBecomeActive: nil,
@@ -31,7 +31,7 @@ struct AppView: View {
             content: {
                 AppViewBuilder(
                     showTabBar:
-                        viewModel.showTabBar,
+                        presenter.showTabBar,
                     tabBarView: {
                         adaptiveMainView()
                     },
@@ -40,12 +40,12 @@ struct AppView: View {
                     }
                 )
                 .onFirstAppear {
-                    viewModel.schedulePushNotifications()
+                    presenter.schedulePushNotifications()
                 }
                 .task {
-                    await viewModel.checkUserStatus()
+                    await presenter.checkUserStatus()
                     try? await Task.sleep(for: .seconds(2))
-                    await viewModel.showATTPromptIfNeeded()
+                    await presenter.showATTPromptIfNeeded()
                 }
             }
         )

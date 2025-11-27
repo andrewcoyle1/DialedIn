@@ -8,19 +8,15 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingDateOfBirthViewDelegate {
-    var userModelBuilder: UserModelBuilder
-
-}
 struct OnboardingDateOfBirthView: View {
 
-    @State var viewModel: OnboardingDateOfBirthViewModel
+    @State var presenter: OnboardingDateOfBirthPresenter
 
-    var delegate: OnboardingDateOfBirthViewDelegate
+    var delegate: OnboardingDateOfBirthDelegate
 
     var body: some View {
         List {
-            DatePicker(selection: $viewModel.dateOfBirth, displayedComponents: .date) {
+            DatePicker(selection: $presenter.dateOfBirth, displayedComponents: .date) {
                 Text("When were you born?")
                     .foregroundStyle(Color.secondary)
             }
@@ -37,7 +33,7 @@ struct OnboardingDateOfBirthView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -46,7 +42,7 @@ struct OnboardingDateOfBirthView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToOnboardingHeight(userBuilder: delegate.userModelBuilder)
+                presenter.navigateToOnboardingHeight(userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -60,7 +56,7 @@ struct OnboardingDateOfBirthView: View {
     RouterView { router in
         builder.onboardingDateOfBirthView(
             router: router,
-            delegate: OnboardingDateOfBirthViewDelegate(
+            delegate: OnboardingDateOfBirthDelegate(
                 userModelBuilder: UserModelBuilder.dobMock
             )
         )

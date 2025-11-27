@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct EnhancedScheduleViewDelegate {
+struct EnhancedScheduleDelegate {
     var getScheduledWorkouts: () -> [ScheduledWorkout]
     var onDateSelected: (Date) -> Void
     var onDateTapped: (Date) -> Void
@@ -15,9 +15,9 @@ struct EnhancedScheduleViewDelegate {
 
 struct EnhancedScheduleView: View {
     
-    @State var viewModel: EnhancedScheduleViewModel
+    @State var presenter: EnhancedSchedulePresenter
 
-    var delegate: EnhancedScheduleViewDelegate
+    var delegate: EnhancedScheduleDelegate
 
     var body: some View {
         VStack(spacing: 16) {
@@ -35,8 +35,8 @@ struct EnhancedScheduleView: View {
     private var monthNavigator: some View {
         HStack {
             Button {
-                if let newDate = viewModel.calendar.date(byAdding: .month, value: -1, to: viewModel.selectedDate) {
-                    viewModel.selectedDate = newDate
+                if let newDate = presenter.calendar.date(byAdding: .month, value: -1, to: presenter.selectedDate) {
+                    presenter.selectedDate = newDate
                 }
             } label: {
                 Image(systemName: "chevron.left")
@@ -44,14 +44,14 @@ struct EnhancedScheduleView: View {
             .buttonStyle(.borderedProminent)
             Spacer()
             
-            Text(viewModel.selectedDate.formatted(.dateTime.month(.wide).year()))
+            Text(presenter.selectedDate.formatted(.dateTime.month(.wide).year()))
                 .font(.headline)
             
             Spacer()
             
             Button {
-                if let newDate = viewModel.calendar.date(byAdding: .month, value: 1, to: viewModel.selectedDate) {
-                    viewModel.selectedDate = newDate
+                if let newDate = presenter.calendar.date(byAdding: .month, value: 1, to: presenter.selectedDate) {
+                    presenter.selectedDate = newDate
                 }
             } label: {
                 Image(systemName: "chevron.right")
@@ -62,7 +62,7 @@ struct EnhancedScheduleView: View {
     
     private var weekdayHeaders: some View {
         HStack(spacing: 0) {
-            ForEach(Array(viewModel.calendar.veryShortWeekdaySymbols.enumerated()), id: \.offset) { _, symbol in
+            ForEach(Array(presenter.calendar.veryShortWeekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                 Text(symbol)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -72,7 +72,7 @@ struct EnhancedScheduleView: View {
     }
     
     private var calendarGrid: some View {
-        let days = viewModel.daysInMonth()
+        let days = presenter.daysInMonth()
         let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
         
         return LazyVGrid(columns: columns, spacing: 4) {
@@ -85,25 +85,25 @@ struct EnhancedScheduleView: View {
                 }
             }
         }
-        .id("\(viewModel.calendar.component(.month, from: viewModel.selectedDate))-\(viewModel.calendar.component(.year, from: viewModel.selectedDate))")
+        .id("\(presenter.calendar.component(.month, from: presenter.selectedDate))-\(presenter.calendar.component(.year, from: presenter.selectedDate))")
     }
     
     private func dayCell(for date: Date) -> some View {
-        let workouts = viewModel.workoutsForDate(date, getScheduledWorkouts: delegate.getScheduledWorkouts)
-        let isToday = viewModel.calendar.isDateInToday(date)
+        let workouts = presenter.workoutsForDate(date, getScheduledWorkouts: delegate.getScheduledWorkouts)
+        let isToday = presenter.calendar.isDateInToday(date)
         let hasWorkouts = !workouts.isEmpty
         let completedCount = workouts.filter { $0.isCompleted }.count
         let missedCount = workouts.filter { $0.isMissed }.count
         
         return Button {
-            viewModel.selectedDate = date
+            presenter.selectedDate = date
             delegate.onDateTapped(date)
             if hasWorkouts {
                 delegate.onDateSelected(date)
             }
         } label: {
             VStack(spacing: 4) {
-                Text("\(viewModel.calendar.component(.day, from: date))")
+                Text("\(presenter.calendar.component(.day, from: date))")
                     .font(.system(size: 16))
                     .fontWeight(isToday ? .bold : .regular)
                     .foregroundStyle(isToday ? .blue : .primary)
@@ -146,7 +146,7 @@ struct EnhancedScheduleView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     builder.enhancedScheduleView(
-        delegate: EnhancedScheduleViewDelegate(
+        delegate: EnhancedScheduleDelegate(
             getScheduledWorkouts: { ScheduledWorkout.mocksWeek1 },
             onDateSelected: { _ in
 

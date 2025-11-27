@@ -8,20 +8,15 @@
 import SwiftUI
 import CustomRouting
 
-// swiftlint:disable:next type_name
-struct OnboardingCalorieDistributionViewDelegate {
-    let dietPlanBuilder: DietPlanBuilder
-}
-
 struct OnboardingCalorieDistributionView: View {
 
-    @State var viewModel: OnboardingCalorieDistributionViewModel
+    @State var presenter: OnboardingCalorieDistributionPresenter
 
-    var delegate: OnboardingCalorieDistributionViewDelegate
+    var delegate: OnboardingCalorieDistributionDelegate
 
     var body: some View {
         List {
-            if viewModel.hasTrainingPlan {
+            if presenter.hasTrainingPlan {
                 Section {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("We'll bias carbs toward your training days.")
@@ -53,11 +48,11 @@ struct OnboardingCalorieDistributionView: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer(minLength: 8)
-                    Image(systemName: viewModel.selectedCalorieDistribution == type ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(viewModel.selectedCalorieDistribution == type ? .accent : .secondary)
+                    Image(systemName: presenter.selectedCalorieDistribution == type ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(presenter.selectedCalorieDistribution == type ? .accent : .secondary)
                 }
                 .contentShape(Rectangle())
-                .onTapGesture { viewModel.selectedCalorieDistribution = type }
+                .onTapGesture { presenter.selectedCalorieDistribution = type }
                 .padding(.vertical)
             }
         }
@@ -68,7 +63,7 @@ struct OnboardingCalorieDistributionView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -77,12 +72,12 @@ struct OnboardingCalorieDistributionView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToProteinIntake(dietPlanBuilder: delegate.dietPlanBuilder)
+                presenter.navigateToProteinIntake(dietPlanBuilder: delegate.dietPlanBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.selectedCalorieDistribution == nil)
+            .disabled(presenter.selectedCalorieDistribution == nil)
         }
     }
 }
@@ -92,7 +87,7 @@ struct OnboardingCalorieDistributionView: View {
     RouterView { router in
         builder.onboardingCalorieDistributionView(
             router: router,
-            delegate: OnboardingCalorieDistributionViewDelegate(
+            delegate: OnboardingCalorieDistributionDelegate(
                 dietPlanBuilder: .calorieDistributionMock
             )
         )

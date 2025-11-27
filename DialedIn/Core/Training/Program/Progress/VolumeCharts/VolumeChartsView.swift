@@ -11,7 +11,7 @@ import CustomRouting
 
 struct VolumeChartsView: View {
 
-    @State var viewModel: VolumeChartsViewModel
+    @State var presenter: VolumeChartsPresenter
 
     @ViewBuilder var trendSummarySection: (TrendSummarySectionDelegate) -> AnyView
 
@@ -19,7 +19,7 @@ struct VolumeChartsView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     // Period picker
-                    Picker("Period", selection: $viewModel.selectedPeriod) {
+                    Picker("Period", selection: $presenter.selectedPeriod) {
                         ForEach(TimePeriod.allCases, id: \.self) { period in
                             Text(period.rawValue).tag(period)
                         }
@@ -27,10 +27,10 @@ struct VolumeChartsView: View {
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
                     
-                    if viewModel.isLoading {
+                    if presenter.isLoading {
                         ProgressView()
                             .padding(40)
-                    } else if let trend = viewModel.volumeTrend {
+                    } else if let trend = presenter.volumeTrend {
                         VolumeChartSection(trend: trend)
                         trendSummarySection(TrendSummarySectionDelegate(trend: trend))
                     } else {
@@ -44,16 +44,16 @@ struct VolumeChartsView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
-                        viewModel.onDismissPressed()
+                        presenter.onDismissPressed()
                     }
                 }
             }
             .task {
-                await viewModel.loadVolumeData()
+                await presenter.loadVolumeData()
             }
-            .onChange(of: viewModel.selectedPeriod) { _, _ in
+            .onChange(of: presenter.selectedPeriod) { _, _ in
                 Task {
-                    await viewModel.loadVolumeData()
+                    await presenter.loadVolumeData()
                 }
             }
     }

@@ -8,15 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-struct RecipeStartViewDelegate {
-    var recipe: RecipeTemplateModel
-}
-
 struct RecipeStartView: View {
 
-    @State var viewModel: RecipeStartViewModel
+    @State var presenter: RecipeStartPresenter
 
-    var delegate: RecipeStartViewDelegate
+    var delegate: RecipeStartDelegate
 
     var body: some View {
         List {
@@ -44,6 +40,6 @@ struct RecipeStartView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.recipeStartView(router: router, delegate: RecipeStartViewDelegate(recipe: .mock))
+        builder.recipeStartView(router: router, delegate: RecipeStartDelegate(recipe: .mock))
     }
 }

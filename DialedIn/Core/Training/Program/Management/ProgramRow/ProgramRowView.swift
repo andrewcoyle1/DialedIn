@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ProgramRowViewDelegate {
+struct ProgramRowDelegate {
     let plan: TrainingPlan
     let isActive: Bool
     var onActivate: () -> Void = {}
@@ -16,9 +16,9 @@ struct ProgramRowViewDelegate {
 }
 
 struct ProgramRowView: View {
-    @State var viewModel: ProgramRowViewModel
+    @State var presenter: ProgramRowPresenter
 
-    let delegate: ProgramRowViewDelegate
+    let delegate: ProgramRowDelegate
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -49,7 +49,7 @@ struct ProgramRowView: View {
                 if delegate.plan.endDate != nil {
                     StatLabel(
                         icon: "calendar",
-                        text: "\(viewModel.programDuration(plan: delegate.plan)) weeks"
+                        text: "\(presenter.programDuration(plan: delegate.plan)) weeks"
                     )
                 } else {
                     StatLabel(
@@ -60,7 +60,7 @@ struct ProgramRowView: View {
                 
                 StatLabel(
                     icon: "figure.strengthtraining.traditional",
-                    text: "\(viewModel.totalWorkouts(plan: delegate.plan)) workouts"
+                    text: "\(presenter.totalWorkouts(plan: delegate.plan)) workouts"
                 )
                 
                 if delegate.plan.isActive {
@@ -125,7 +125,7 @@ struct ProgramRowView: View {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     List {
         builder.programRowView(
-            delegate: ProgramRowViewDelegate(
+            delegate: ProgramRowDelegate(
                 plan: .mock,
                 isActive: false,
                 onActivate: {

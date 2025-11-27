@@ -8,15 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingActivityViewDelegate {
-    var userModelBuilder: UserModelBuilder
-}
-
 struct OnboardingActivityView: View {
 
-    @State var viewModel: OnboardingActivityViewModel
+    @State var presenter: OnboardingActivityPresenter
 
-    var delegate: OnboardingActivityViewDelegate
+    var delegate: OnboardingActivityDelegate
 
     var body: some View {
         List {
@@ -52,7 +48,7 @@ struct OnboardingActivityView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -61,12 +57,12 @@ struct OnboardingActivityView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToCardioFitness(userBuilder: delegate.userModelBuilder)
+                presenter.navigateToCardioFitness(userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(!viewModel.canSubmit)
+            .disabled(!presenter.canSubmit)
         }
     }
     
@@ -80,12 +76,12 @@ struct OnboardingActivityView: View {
                     .foregroundColor(.secondary)
             }
             Spacer(minLength: 8)
-            Image(systemName: viewModel.selectedActivityLevel == level ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(viewModel.selectedActivityLevel == level ? Color.accent : Color.secondary)
+            Image(systemName: presenter.selectedActivityLevel == level ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(presenter.selectedActivityLevel == level ? Color.accent : Color.secondary)
         }
         .contentShape(Rectangle())
         .anyButton(.press) {
-            viewModel.selectedActivityLevel = level
+            presenter.selectedActivityLevel = level
         }
         .padding(12)
         .background(
@@ -100,7 +96,7 @@ struct OnboardingActivityView: View {
     RouterView { router in
         builder.onboardingActivityView(
             router: router,
-            delegate: OnboardingActivityViewDelegate(userModelBuilder: UserModelBuilder.activityLevelMock)
+            delegate: OnboardingActivityDelegate(userModelBuilder: UserModelBuilder.activityLevelMock)
         )
     }
     .previewEnvironment()

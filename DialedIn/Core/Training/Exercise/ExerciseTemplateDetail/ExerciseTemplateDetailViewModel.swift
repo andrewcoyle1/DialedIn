@@ -1,5 +1,5 @@
 //
-//  ExerciseTemplateDetailViewModel.swift
+//  ExerciseTemplateDetailPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 21/10/2025.
@@ -25,13 +25,14 @@ extension CoreInteractor: ExerciseTemplateDetailInteractor { }
 @MainActor
 protocol ExerciseTemplateDetailRouter {
     func showDevSettingsView()
+    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: ExerciseTemplateDetailRouter { }
 
 @Observable
 @MainActor
-class ExerciseTemplateDetailViewModel {
+class ExerciseTemplateDetailPresenter {
     private let interactor: ExerciseTemplateDetailInteractor
     private let router: ExerciseTemplateDetailRouter
 
@@ -43,8 +44,7 @@ class ExerciseTemplateDetailViewModel {
     var isBookmarked: Bool = false
     var isFavourited: Bool = false
     private(set) var unitPreference: ExerciseUnitPreference?
-    var showAlert: AnyAppAlert?
-    
+
     init(
         interactor: ExerciseTemplateDetailInteractor,
         router: ExerciseTemplateDetailRouter
@@ -150,7 +150,7 @@ class ExerciseTemplateDetailViewModel {
             }
             isBookmarked = newState
         } catch {
-            showAlert = AnyAppAlert(title: "Failed to update bookmark status", subtitle: "Please try again later")
+            router.showSimpleAlert(title: "Failed to update bookmark status", subtitle: "Please try again later")
         }
     }
     
@@ -171,7 +171,7 @@ class ExerciseTemplateDetailViewModel {
             }
             isFavourited = newState
         } catch {
-            showAlert = AnyAppAlert(title: "Failed to update favourite status", subtitle: "Please try again later")
+            router.showSimpleAlert(title: "Failed to update favourite status", subtitle: "Please try again later")
         }
     }
     

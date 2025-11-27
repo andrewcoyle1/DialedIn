@@ -6,23 +6,27 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct WorkoutScheduleRowView: View {
-    @State var viewModel: WorkoutScheduleRowViewModel
-        
+
+    @State var presenter: WorkoutScheduleRowPresenter
+
+    let delegate: WorkoutScheduleRowDelegate
+
     var body: some View {
         HStack {
             // Status indicator
-            Image(systemName: viewModel.statusIcon)
-                .foregroundStyle(viewModel.statusColor)
+            Image(systemName: presenter.statusIcon(workout: delegate.workout))
+                .foregroundStyle(presenter.statusColor(workout: delegate.workout))
                 .font(.title3)
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(viewModel.templateName)
+                Text(presenter.templateName)
                     .font(.subheadline)
                     .fontWeight(.medium)
                 
-                if let date = viewModel.workout.scheduledDate {
+                if let date = delegate.workout.scheduledDate {
                     Text(date.formatted(date: .omitted, time: .shortened))
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -31,57 +35,37 @@ struct WorkoutScheduleRowView: View {
             
             Spacer()
             
-            if viewModel.workout.isCompleted {
+            if delegate.workout.isCompleted {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(.green)
             }
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
         .task {
-            do {
-                try await viewModel.loadTemplateName()
-            } catch {
-                viewModel.showAlert = AnyAppAlert(error: error)
-            }
+            await presenter.loadTemplateName(workout: delegate.workout)
         }
     }
 }
 
 #Preview {
-    List {
-        Section {
-            ForEach(ScheduledWorkout.mocksWeek1) { workout in
-                WorkoutScheduleRowView(
-                    viewModel: WorkoutScheduleRowViewModel(
-                        interactor: CoreInteractor(
-                            container: DevPreview.shared.container
-                        ),
-                        workout: workout
-                    )
-                )
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    RouterView { router in
+        List {
+            Section {
+                ForEach(ScheduledWorkout.mocksWeek1) { workout in
+                    let delegate = WorkoutScheduleRowDelegate(workout: workout)
+                    builder.workoutScheduleRowView(router: router, delegate: delegate)
+                }
+                ForEach(ScheduledWorkout.mocksWeek2) { workout in
+                    let delegate = WorkoutScheduleRowDelegate(workout: workout)
+                    builder.workoutScheduleRowView(router: router, delegate: delegate)
+                }
+                ForEach(ScheduledWorkout.mocksWeek2) { workout in
+                    let delegate = WorkoutScheduleRowDelegate(workout: workout)
+                    builder.workoutScheduleRowView(router: router, delegate: delegate)
+                }
+            } header: {
+                Text("This Week's Workouts")
             }
-            ForEach(ScheduledWorkout.mocksWeek2) { workout in
-                WorkoutScheduleRowView(
-                    viewModel: WorkoutScheduleRowViewModel(
-                        interactor: CoreInteractor(
-                            container: DevPreview.shared.container
-                        ),
-                        workout: workout
-                    )
-                )
-            }
-            ForEach(ScheduledWorkout.mocksWeek2) { workout in
-                WorkoutScheduleRowView(
-                    viewModel: WorkoutScheduleRowViewModel(
-                        interactor: CoreInteractor(
-                            container: DevPreview.shared.container
-                        ),
-                        workout: workout
-                    )
-                )
-            }
-        } header: {
-            Text("This Week's Workouts")
         }
     }
     .previewEnvironment()

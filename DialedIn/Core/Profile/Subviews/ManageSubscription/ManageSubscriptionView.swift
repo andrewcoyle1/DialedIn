@@ -8,49 +8,8 @@
 import SwiftUI
 import CustomRouting
 
-protocol ManageSubscriptionInteractor {
-
-}
-
-extension CoreInteractor: ManageSubscriptionInteractor { }
-
-@MainActor
-protocol ManageSubscriptionRouter {
-    func dismissScreen()
-}
-
-extension CoreRouter: ManageSubscriptionRouter { }
-
-@Observable
-@MainActor
-class ManageSubscriptionViewModel {
-    private let interactor: ManageSubscriptionInteractor
-    private let router: ManageSubscriptionRouter
-
-    var isPremium: Bool = false
-    var selectedPlan: PlanOption = .annual
-    private(set) var isLoading: Bool = false
-    private(set) var showLegalDisclaimer: Bool = true
-
-    init(
-        interactor: ManageSubscriptionInteractor,
-        router: ManageSubscriptionRouter
-    ) {
-        self.interactor = interactor
-        self.router = router
-    }
-
-    func onDismiss() {
-        router.dismissScreen()
-    }
-}
-
-struct ManageSubscriptionDelegate {
-
-}
-
 struct ManageSubscriptionView: View {
-    @State var viewModel: ManageSubscriptionViewModel
+    @State var presenter: ManageSubscriptionPresenter
 
     var delegate: ManageSubscriptionDelegate
     // UI-only state; wiring will be added later
@@ -102,13 +61,13 @@ extension ManageSubscriptionView {
         Section {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .center, spacing: 12) {
-                    Image(systemName: viewModel.isPremium ? "crown.fill" : "person.crop.circle")
-                        .foregroundStyle(viewModel.isPremium ? .yellow : .secondary)
+                    Image(systemName: presenter.isPremium ? "crown.fill" : "person.crop.circle")
+                        .foregroundStyle(presenter.isPremium ? .yellow : .secondary)
                         .font(.system(size: 30))
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(viewModel.isPremium ? "DialedIn Pro" : "DialedIn Free")
+                        Text(presenter.isPremium ? "DialedIn Pro" : "DialedIn Free")
                             .font(.headline)
-                        if viewModel.isPremium {
+                        if presenter.isPremium {
                             Text("You're subscribed to Pro.")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
@@ -121,7 +80,7 @@ extension ManageSubscriptionView {
                     Spacer(minLength: 0)
                     statusBadge
                 }
-                if viewModel.isPremium {
+                if presenter.isPremium {
                     HStack(spacing: 8) {
                         Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
                         Text("Auto-renewing")
@@ -145,7 +104,7 @@ extension ManageSubscriptionView {
 
     private var statusBadge: some View {
         Group {
-            if viewModel.isPremium {
+            if presenter.isPremium {
                 Text("PRO")
                     .font(.caption.weight(.semibold))
                     .padding(.horizontal, 8)
@@ -173,18 +132,18 @@ extension ManageSubscriptionView {
                     subtitle: "Best value",
                     price: "$59.99/year",
                     trial: "7‑day free trial",
-                    isSelected: viewModel.selectedPlan == .annual
+                    isSelected: presenter.selectedPlan == .annual
                 ) {
-                    viewModel.selectedPlan = .annual
+                    presenter.selectedPlan = .annual
                 }
                 planRow(
                     title: "Monthly",
                     subtitle: "Flexible",
                     price: "$7.99/month",
                     trial: "7‑day free trial",
-                    isSelected: viewModel.selectedPlan == .monthly
+                    isSelected: presenter.selectedPlan == .monthly
                 ) {
-                    viewModel.selectedPlan = .monthly
+                    presenter.selectedPlan = .monthly
                 }
             }
         }
@@ -259,7 +218,7 @@ extension ManageSubscriptionView {
                     Text("Restore Purchases")
                 }   
             }
-            .disabled(viewModel.isLoading)
+            .disabled(presenter.isLoading)
 
             Button {
 
@@ -270,7 +229,7 @@ extension ManageSubscriptionView {
                     Text("Manage via App Store")
                 }
             }
-            .disabled(viewModel.isLoading)
+            .disabled(presenter.isLoading)
         }
     }
 
@@ -299,7 +258,7 @@ extension ManageSubscriptionView {
 
     private var legalFooter: some View {
         Group {
-            if viewModel.showLegalDisclaimer {
+            if presenter.showLegalDisclaimer {
                 Text("Payment will be charged to your Apple ID account upon confirmation of purchase. Subscription automatically renews unless canceled at least 24 hours before the end of the current period. You can manage and cancel your subscription in your App Store account settings.")
             }
         }
@@ -320,12 +279,12 @@ extension ManageSubscriptionView {
             Button {
                 
             } label: {
-                Text(viewModel.isPremium ? "Manage" : primaryButtonTitle)
+                Text(presenter.isPremium ? "Manage" : primaryButtonTitle)
                     .frame(minWidth: 140)
                     .frame(height: 44)
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.isLoading)
+            .disabled(presenter.isLoading)
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
@@ -333,24 +292,24 @@ extension ManageSubscriptionView {
     }
 
     private var ctaTitle: String {
-        if viewModel.isPremium { return "You're on Pro" }
-        switch viewModel.selectedPlan {
+        if presenter.isPremium { return "You're on Pro" }
+        switch presenter.selectedPlan {
         case .annual: return "Start 7‑day free trial"
         case .monthly: return "Start 7‑day free trial"
         }
     }
 
     private var ctaSubtitle: String {
-        if viewModel.isPremium { return "Auto‑renewing. Cancel anytime." }
-        switch viewModel.selectedPlan {
+        if presenter.isPremium { return "Auto‑renewing. Cancel anytime." }
+        switch presenter.selectedPlan {
         case .annual: return "$59.99/year after trial"
         case .monthly: return "$7.99/month after trial"
         }
     }
 
     private var primaryButtonTitle: String {
-        if viewModel.isPremium { return "Manage" }
-        switch viewModel.selectedPlan {
+        if presenter.isPremium { return "Manage" }
+        switch presenter.selectedPlan {
         case .annual: return "Continue"
         case .monthly: return "Continue"
         }

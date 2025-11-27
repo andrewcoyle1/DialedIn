@@ -8,15 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-struct EditProgramViewDelegate {
-    var plan: TrainingPlan
-}
-
 struct EditProgramView: View {
 
-    @State var viewModel: EditProgramViewModel
+    @State var presenter: EditProgramPresenter
     
-    var delegate: EditProgramViewDelegate
+    var delegate: EditProgramDelegate
 
     var body: some View {
         Form {
@@ -32,21 +28,20 @@ struct EditProgramView: View {
             toolbarContent
         }
         .overlay {
-            if viewModel.isSaving {
+            if presenter.isSaving {
                 ProgressView()
                     .padding()
                     .background(.regularMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
 
     private var basicInfoSection: some View {
         Section {
-            TextField("Program Name", text: $viewModel.name)
+            TextField("Program Name", text: $presenter.name)
 
-            TextField("Description (Optional)", text: $viewModel.description, axis: .vertical)
+            TextField("Description (Optional)", text: $presenter.description, axis: .vertical)
                 .lineLimit(3...6)
         } header: {
             Text("Basic Information")
@@ -56,33 +51,33 @@ struct EditProgramView: View {
     private var scheduleSection: some View {
         Section {
             DatePicker("Start Date", selection: Binding(
-                get: { viewModel.startDate },
+                get: { presenter.startDate },
                 set: { newDate in
-                    if !delegate.plan.weeks.flatMap({ $0.scheduledWorkouts }).isEmpty && newDate != viewModel.originalStartDate {
-                        viewModel.pendingStartDate = newDate
-                        viewModel.showDateChangeAlert(startDate: $viewModel.startDate)
+                    if !delegate.plan.weeks.flatMap({ $0.scheduledWorkouts }).isEmpty && newDate != presenter.originalStartDate {
+                        presenter.pendingStartDate = newDate
+                        presenter.showDateChangeAlert(startDate: $presenter.startDate)
                     } else {
-                        viewModel.startDate = newDate
+                        presenter.startDate = newDate
                     }
                 }
             ), displayedComponents: .date)
 
-            Toggle("Set End Date", isOn: $viewModel.hasEndDate)
+            Toggle("Set End Date", isOn: $presenter.hasEndDate)
 
-            if viewModel.hasEndDate {
+            if presenter.hasEndDate {
                 DatePicker("End Date", selection: Binding(
-                    get: { viewModel.endDate ?? viewModel.startDate },
-                    set: { viewModel.endDate = $0 }
+                    get: { presenter.endDate ?? presenter.startDate },
+                    set: { presenter.endDate = $0 }
                 ), displayedComponents: .date)
             }
         } header: {
             Text("Schedule")
         } footer: {
             VStack(alignment: .leading, spacing: 4) {
-                if !viewModel.hasEndDate {
+                if !presenter.hasEndDate {
                     Text("Program will continue indefinitely")
                 }
-                if viewModel.startDate != viewModel.originalStartDate {
+                if presenter.startDate != presenter.originalStartDate {
                     Text("Changing the start date will automatically reschedule all workouts")
                         .foregroundStyle(.orange)
                 }
@@ -95,8 +90,8 @@ struct EditProgramView: View {
             HStack {
                 Text("Duration")
                 Spacer()
-                if viewModel.hasEndDate, let end = viewModel.endDate {
-                    Text("\(viewModel.calculateWeeks(from: viewModel.startDate, to: end)) weeks")
+                if presenter.hasEndDate, let end = presenter.endDate {
+                    Text("\(presenter.calculateWeeks(from: presenter.startDate, to: end)) weeks")
                         .foregroundStyle(.secondary)
                 } else {
                     Text("Ongoing")
@@ -114,20 +109,20 @@ struct EditProgramView: View {
             HStack {
                 Text("Total Workouts")
                 Spacer()
-                Text("\(viewModel.totalWorkouts(for: delegate.plan))")
+                Text("\(presenter.totalWorkouts(for: delegate.plan))")
                     .foregroundStyle(.secondary)
             }
 
             HStack {
                 Text("Completed")
                 Spacer()
-                Text("\(viewModel.completedWorkouts(for: delegate.plan))")
+                Text("\(presenter.completedWorkouts(for: delegate.plan))")
                     .foregroundStyle(.secondary)
             }
         } header: {
             Text("Statistics")
         } footer: {
-            if viewModel.hasEndDate, let end = viewModel.endDate, viewModel.startDate != viewModel.originalStartDate || end != delegate.plan.endDate {
+            if presenter.hasEndDate, let end = presenter.endDate, presenter.startDate != presenter.originalStartDate || end != delegate.plan.endDate {
                 Text("Program duration will be adjusted based on new dates")
                     .foregroundStyle(.blue)
             }
@@ -137,7 +132,7 @@ struct EditProgramView: View {
     private var detailsSection: some View {
         Section {
             Button {
-                viewModel.navToProgramGoalsView(plan: delegate.plan)
+                presenter.navToProgramGoalsView(plan: delegate.plan)
             } label: {
                 HStack {
                     Label("Manage Goals", systemImage: "target")
@@ -148,7 +143,7 @@ struct EditProgramView: View {
             }
 
             Button {
-                viewModel.navToProgramScheduleView(plan: delegate.plan)
+                presenter.navToProgramScheduleView(plan: delegate.plan)
             } label: {
                 Label("View Schedule", systemImage: "calendar")
             }
@@ -162,7 +157,7 @@ struct EditProgramView: View {
         if delegate.plan.isActive {
             Section {
                 Button(role: .destructive) {
-                    viewModel.showDeleteActiveAlert(plan: delegate.plan)
+                    presenter.showDeleteActiveAlert(plan: delegate.plan)
                 } label: {
                     Label("Delete Program", systemImage: "trash")
                 }
@@ -176,25 +171,25 @@ struct EditProgramView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button("Cancel") {
-                viewModel.dismissScreen()            }
+                presenter.dismissScreen()            }
         }
 
         ToolbarItem(placement: .confirmationAction) {
             Button("Save") {
                 Task {
-                    await viewModel.savePlan(plan: delegate.plan, onDismiss: {
-                        viewModel.dismissScreen()
+                    await presenter.savePlan(plan: delegate.plan, onDismiss: {
+                        presenter.dismissScreen()
                     })
                 }
             }
-            .disabled(viewModel.name.isEmpty || viewModel.isSaving)
+            .disabled(presenter.name.isEmpty || presenter.isSaving)
         }
     }
 }
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = EditProgramViewDelegate(
+    let delegate = EditProgramDelegate(
         plan: .mock
     )
     RouterView { router in

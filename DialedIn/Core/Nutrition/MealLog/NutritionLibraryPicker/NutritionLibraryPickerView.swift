@@ -8,35 +8,31 @@
 import SwiftUI
 import CustomRouting
 
-struct NutritionLibraryPickerViewDelegate {
-    var onPick: (MealItemModel) -> Void
-}
-
 struct NutritionLibraryPickerView: View {
 
-    @State var viewModel: NutritionLibraryPickerViewModel
+    @State var presenter: NutritionLibraryPickerPresenter
 
-    var delegate: NutritionLibraryPickerViewDelegate
+    var delegate: NutritionLibraryPickerDelegate
 
     var body: some View {
         List {
             Section {
-                Picker("Type", selection: $viewModel.mode) {
-                    Text("Ingredients").tag(NutritionLibraryPickerViewModel.PickerMode.ingredients)
-                    Text("Recipes").tag(NutritionLibraryPickerViewModel.PickerMode.recipes)
+                Picker("Type", selection: $presenter.mode) {
+                    Text("Ingredients").tag(NutritionLibraryPickerPresenter.PickerMode.ingredients)
+                    Text("Recipes").tag(NutritionLibraryPickerPresenter.PickerMode.recipes)
                 }
                 .pickerStyle(.segmented)
             }
             .listSectionSpacing(0)
             .removeListRowFormatting()
             
-            if viewModel.isLoading {
+            if presenter.isLoading {
                 Section {
                     ProgressView()
                         .frame(maxWidth: .infinity)
                 }
             } else {
-                switch viewModel.mode {
+                switch presenter.mode {
                 case .ingredients:
                     ingredientsSection
                 case .recipes:
@@ -46,12 +42,12 @@ struct NutritionLibraryPickerView: View {
         }
         .navigationTitle("Add Item")
         .navigationBarTitleDisplayMode(.large)
-        .searchable(text: $viewModel.searchText)
-        .onChange(of: viewModel.searchText) { _, newValue in
-            Task { await viewModel.performSearch(query: newValue) }
+        .searchable(text: $presenter.searchText)
+        .onChange(of: presenter.searchText) { _, newValue in
+            Task { await presenter.performSearch(query: newValue) }
         }
         .task {
-            await viewModel.loadInitial()
+            await presenter.loadInitial()
         }
         .toolbar {
             toolbarContent
@@ -62,7 +58,7 @@ struct NutritionLibraryPickerView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.dismissScreen()
+                presenter.dismissScreen()
             } label: {
                 Image(systemName: "xmark")
             }
@@ -70,7 +66,7 @@ struct NutritionLibraryPickerView: View {
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                viewModel.dismissScreen()
+                presenter.dismissScreen()
             } label: {
                 Image(systemName: "checkmark")
             }
@@ -80,13 +76,13 @@ struct NutritionLibraryPickerView: View {
     
     private var ingredientsSection: some View {
         Section {
-            if viewModel.ingredients.isEmpty {
-                Text(viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No ingredients to show yet" : "No results")
+            if presenter.ingredients.isEmpty {
+                Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No ingredients to show yet" : "No results")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(viewModel.ingredients) { ingredient in
+                ForEach(presenter.ingredients) { ingredient in
                     Button {
-                        viewModel.navToIngredientAmount(ingredient, onPick: delegate.onPick)
+                        presenter.navToIngredientAmount(ingredient, onPick: delegate.onPick)
                     } label: {
                         CustomListCellView(
                             imageName: ingredient.imageURL,
@@ -102,13 +98,13 @@ struct NutritionLibraryPickerView: View {
     
     private var recipesSection: some View {
         Section {
-            if viewModel.recipes.isEmpty {
-                Text(viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No recipes to show yet" : "No results")
+            if presenter.recipes.isEmpty {
+                Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No recipes to show yet" : "No results")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(viewModel.recipes) { recipe in
+                ForEach(presenter.recipes) { recipe in
                     Button {
-                        viewModel.navToRecipeAmount(recipe, onPick: delegate.onPick)
+                        presenter.navToRecipeAmount(recipe, onPick: delegate.onPick)
                     } label: {
                         CustomListCellView(
                             imageName: nil,
@@ -125,7 +121,7 @@ struct NutritionLibraryPickerView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = NutritionLibraryPickerViewDelegate(
+    let delegate = NutritionLibraryPickerDelegate(
         onPick: { item in
             print(
                 item.displayName

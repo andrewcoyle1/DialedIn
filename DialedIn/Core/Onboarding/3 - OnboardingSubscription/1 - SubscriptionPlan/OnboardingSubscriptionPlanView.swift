@@ -10,7 +10,7 @@ import CustomRouting
 
 struct OnboardingSubscriptionPlanView: View {
 
-    @State var viewModel: OnboardingSubscriptionPlanViewModel
+    @State var presenter: OnboardingSubscriptionPlanPresenter
 
     var body: some View {
         List {
@@ -19,22 +19,17 @@ struct OnboardingSubscriptionPlanView: View {
             tsAndCsSection
         }
         .onFirstTask {
-            await viewModel.setupView()
+            await presenter.setupView()
         }
         .navigationTitle("Subscription Plans")
         .navigationBarTitleDisplayMode(.large)
-        .showModal(showModal: $viewModel.isPurchasing, content: {
+        .showModal(showModal: $presenter.isPurchasing, content: {
             ProgressView()
                 .tint(Color.white)
         })
-        .showCustomAlert(alert: $viewModel.showAlert)
         .toolbar {
             toolbarContent
         }
-        .showCustomAlert(alert: Binding(
-            get: { viewModel.showRestoreAlert ? AnyAppAlert(title: "Restore Purchases", subtitle: "Restoring purchases is not yet implemented.") : nil },
-            set: { _ in viewModel.showRestoreAlert = false }
-        ))
     }
     
     @ToolbarContentBuilder
@@ -42,7 +37,7 @@ struct OnboardingSubscriptionPlanView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -50,7 +45,7 @@ struct OnboardingSubscriptionPlanView: View {
         #endif
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onPurchase()
+                presenter.onPurchase()
             } label: {
                 Text("Restore Purchases")
             }
@@ -58,7 +53,7 @@ struct OnboardingSubscriptionPlanView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onPurchase()
+                presenter.onPurchase()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -73,7 +68,7 @@ struct OnboardingSubscriptionPlanView: View {
                     planRow(plan)
                         .contentShape(Rectangle())
                         .anyButton(.press) {
-                            viewModel.selectedPlan = plan
+                            presenter.selectedPlan = plan
                         }
                 }
             }
@@ -129,8 +124,8 @@ struct OnboardingSubscriptionPlanView: View {
                     .foregroundStyle(Color.secondary)
             }
             Spacer(minLength: 8)
-            Image(systemName: viewModel.selectedPlan == plan ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(viewModel.selectedPlan == plan ? Color.accent : Color.secondary)
+            Image(systemName: presenter.selectedPlan == plan ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(presenter.selectedPlan == plan ? Color.accent : Color.secondary)
         }
         .padding(12)
         .background(

@@ -1,5 +1,5 @@
 //
-//  WorkoutSessionDetailViewModel.swift
+//  WorkoutSessionDetailPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 21/10/2025.
@@ -23,21 +23,23 @@ extension CoreInteractor: WorkoutSessionDetailInteractor { }
 @MainActor
 protocol WorkoutSessionDetailRouter {
     func showDevSettingsView()
-    func showAddExercisesView(delegate: AddExerciseModalViewDelegate)
+    func showAddExercisesView(delegate: AddExerciseModalDelegate)
+
+    func showSimpleAlert(title: String, subtitle: String?)
+    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
 }
 
 extension CoreRouter: WorkoutSessionDetailRouter { }
 
 @Observable
 @MainActor
-class WorkoutSessionDetailViewModel {
+class WorkoutSessionDetailPresenter {
     private let interactor: WorkoutSessionDetailInteractor
     private let router: WorkoutSessionDetailRouter
 
     private(set) var isEditMode = false
     private(set) var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
     
-    var showAlert: AnyAppAlert?
     var isDeleting = false
     var editedSession: WorkoutSessionModel?
     var isSaving = false
@@ -105,7 +107,7 @@ class WorkoutSessionDetailViewModel {
     }
     
     func showDiscardChangesAlert(session: WorkoutSessionModel) {
-        showAlert = AnyAppAlert(
+        router.showAlert(
             title: "Discard changes?",
             subtitle: "You have unsaved changes. This will discard them.",
             buttons: {
@@ -113,10 +115,9 @@ class WorkoutSessionDetailViewModel {
                     VStack {
                         Button("Discard Changes", role: .destructive) {
                             self.cancelEditing(session: session)
-                            self.showAlert = nil
                         }
                         Button("Keep Editing", role: .cancel) {
-                            self.showAlert = nil
+
                         }
                     }
                 )
@@ -148,7 +149,7 @@ class WorkoutSessionDetailViewModel {
             // Dismiss to refresh parent view
             onDismiss()
         } catch {
-            showAlert = AnyAppAlert(
+            router.showSimpleAlert(
                 title: "Save Failed",
                 subtitle: "Unable to save changes. Please try again."
             )
@@ -338,7 +339,7 @@ class WorkoutSessionDetailViewModel {
             // Delete from remote in background
             try await interactor.deleteWorkoutSession(id: session.id)
         } catch {
-            showAlert = AnyAppAlert(
+            router.showAlert(
                 title: "Delete Failed",
                 subtitle: "Unable to delete workout session. Please try again.",
                 buttons: {
@@ -361,7 +362,7 @@ class WorkoutSessionDetailViewModel {
 
     func onAddExercisePressed() {
         router.showAddExercisesView(
-            delegate: AddExerciseModalViewDelegate(
+            delegate: AddExerciseModalDelegate(
                 selectedExercises: Binding(
                     get: {
                         self.selectedExerciseTemplates

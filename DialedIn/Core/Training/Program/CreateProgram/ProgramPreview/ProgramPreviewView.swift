@@ -8,19 +8,14 @@
 import SwiftUI
 import CustomRouting
 
-struct ProgramPreviewViewDelegate {
-    let template: ProgramTemplateModel
-    var startDate: Date
-}
-
 struct ProgramPreviewView: View {
-    @State var viewModel: ProgramPreviewViewModel
+    @State var presenter: ProgramPreviewPresenter
     @State private var previewPlan: TrainingPlan?
     
-    init(viewModel: ProgramPreviewViewModel, delegate: ProgramPreviewViewDelegate) {
-        self.viewModel = viewModel
-        self.viewModel.setTemplate(delegate.template)
-        self.viewModel.setStartDate(delegate.startDate)
+    init(presenter: ProgramPreviewPresenter, delegate: ProgramPreviewDelegate) {
+        self.presenter = presenter
+        self.presenter.setTemplate(delegate.template)
+        self.presenter.setStartDate(delegate.startDate)
     }
     
     var body: some View {
@@ -31,7 +26,7 @@ struct ProgramPreviewView: View {
                         Text("Start Date")
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Text(viewModel.currentStartDate.formatted(date: .long, time: .omitted))
+                        Text(presenter.currentStartDate.formatted(date: .long, time: .omitted))
                     }
                     .font(.subheadline)
                 }
@@ -51,7 +46,7 @@ struct ProgramPreviewView: View {
                                         Text(date.formatted(date: .complete, time: .omitted))
                                             .font(.caption)
                                             .foregroundStyle(.secondary)
-                                        Text(viewModel.dayOfWeekName(for: date))
+                                        Text(presenter.dayOfWeekName(for: date))
                                             .font(.caption2)
                                             .foregroundStyle(.blue)
                                     }
@@ -68,10 +63,10 @@ struct ProgramPreviewView: View {
         .navigationTitle("Schedule Preview")
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            viewModel.generatePreview()
+            presenter.generatePreview()
         }
-        .onChange(of: viewModel.currentStartDate) { _, _ in
-            viewModel.generatePreview()
+        .onChange(of: presenter.currentStartDate) { _, _ in
+            presenter.generatePreview()
         }
     }
 }
@@ -81,7 +76,7 @@ struct ProgramPreviewView: View {
     RouterView { router in
         builder.programPreviewView(
             router: router, 
-            delegate: ProgramPreviewViewDelegate(
+            delegate: ProgramPreviewDelegate(
                 template: .pushPullLegs,
                 startDate: Date()
             )

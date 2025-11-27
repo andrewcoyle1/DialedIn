@@ -10,13 +10,13 @@ import CustomRouting
 
 struct ProfileNutritionPlanView: View {
 
-    @State var viewModel: ProfileNutritionPlanViewModel
+    @State var presenter: ProfileNutritionPlanPresenter
 
     var body: some View {
         Section {
-            if let plan = viewModel.currentDietPlan {
+            if let plan = presenter.currentDietPlan {
                 Button {
-                    viewModel.navToNutritionDetail()
+                    presenter.navToNutritionDetail()
                 } label: {
                     VStack(spacing: 8) {
                         MetricRow(

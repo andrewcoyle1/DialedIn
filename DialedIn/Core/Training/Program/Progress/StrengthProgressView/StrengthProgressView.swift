@@ -10,13 +10,13 @@ import Charts
 import CustomRouting
 
 struct StrengthProgressView: View {
-    @State var viewModel: StrengthProgressViewModel
+    @State var presenter: StrengthProgressPresenter
 
     var body: some View {
             List {
                 // Period picker
                 Section {
-                    Picker("Period", selection: $viewModel.selectedPeriod) {
+                    Picker("Period", selection: $presenter.selectedPeriod) {
                         ForEach(TimePeriod.allCases, id: \.self) { period in
                             Text(period.rawValue).tag(period)
                         }
@@ -26,15 +26,15 @@ struct StrengthProgressView: View {
                 .removeListRowFormatting()
                 .listSectionSpacing(0)
                 
-                if viewModel.isLoading {
+                if presenter.isLoading {
                     ProgressView()
                         .frame(maxWidth: .infinity)
                         .padding(.top, 200)
                         .removeListRowFormatting()
-                } else if let metrics = viewModel.strengthMetrics {
+                } else if let metrics = presenter.strengthMetrics {
                     personalRecordsSection(metrics)
                     
-                    if let progression = viewModel.exerciseProgression {
+                    if let progression = presenter.exerciseProgression {
                         progressionChartSection(progression)
                     }
                 } else {
@@ -46,25 +46,25 @@ struct StrengthProgressView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
-                        viewModel.onDismissPressed()
+                        presenter.onDismissPressed()
                     }
                 }
             }
             .task {
-                await viewModel.loadStrengthData()
+                await presenter.loadStrengthData()
             }
-            .onChange(of: viewModel.selectedPeriod) { _, _ in
+            .onChange(of: presenter.selectedPeriod) { _, _ in
                 Task {
-                    await viewModel.loadStrengthData()
-                    if let id = viewModel.selectedExerciseId {
-                        await viewModel.loadExerciseProgression(id)
+                    await presenter.loadStrengthData()
+                    if let id = presenter.selectedExerciseId {
+                        await presenter.loadExerciseProgression(id)
                     }
                 }
             }
-            .onChange(of: viewModel.selectedExerciseId) { _, newValue in
+            .onChange(of: presenter.selectedExerciseId) { _, newValue in
                 if let exerciseId = newValue {
                     Task {
-                        await viewModel.loadExerciseProgression(exerciseId)
+                        await presenter.loadExerciseProgression(exerciseId)
                     }
                 }
             }
@@ -75,9 +75,9 @@ struct StrengthProgressView: View {
             if !metrics.personalRecords.isEmpty {
                 ForEach(metrics.personalRecords.prefix(10)) { personalRecord in
                     Button {
-                        viewModel.selectedExerciseId = personalRecord.exerciseId
+                        presenter.selectedExerciseId = personalRecord.exerciseId
                     } label: {
-                        PRCard(record: personalRecord, isSelected: viewModel.selectedExerciseId == personalRecord.exerciseId)
+                        PRCard(record: personalRecord, isSelected: presenter.selectedExerciseId == personalRecord.exerciseId)
                             .tappableBackground()
                     }
                     .buttonStyle(.plain)
@@ -111,10 +111,10 @@ struct StrengthProgressView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button {
-                    viewModel.selectedExerciseId = nil
-                    viewModel.exerciseProgression = nil
+                    presenter.selectedExerciseId = nil
+                    presenter.exerciseProgression = nil
                 } label: {
-                    if viewModel.selectedExerciseId != nil {
+                    if presenter.selectedExerciseId != nil {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(Color.accent)
                     }
@@ -179,7 +179,7 @@ struct StrengthProgressView: View {
             }
             .frame(height: 200)
             .chartYAxisLabel("Estimated 1RM (kg)")
-            .chartXScale(domain: viewModel.selectedPeriod.dateInterval.start ... viewModel.selectedPeriod.dateInterval.end)
+            .chartXScale(domain: presenter.selectedPeriod.dateInterval.start ... presenter.selectedPeriod.dateInterval.end)
         }
     }
     

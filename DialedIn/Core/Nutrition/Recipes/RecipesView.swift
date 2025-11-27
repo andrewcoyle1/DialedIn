@@ -8,33 +8,27 @@
 import SwiftUI
 import CustomRouting
 
-struct RecipesViewDelegate {
-    var showCreateRecipe: Binding<Bool>
-    var selectedIngredientTemplate: Binding<IngredientTemplateModel?>
-    var selectedRecipeTemplate: Binding<RecipeTemplateModel?>
-    var isShowingInspector: Binding<Bool>
-}
-
 struct RecipesView: View {
-    @State var viewModel: RecipesViewModel
 
-    var delegate: RecipesViewDelegate
+    @State var presenter: RecipesPresenter
+
+    var delegate: RecipesDelegate
     
     var body: some View {
         Group {
-            if viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 
-                if !viewModel.favouriteRecipes.isEmpty {
+                if !presenter.favouriteRecipes.isEmpty {
                     favouriteRecipeTemplatesSection
                 }
 
                 myRecipeSection
 
-                if !viewModel.bookmarkedOnlyRecipes.isEmpty {
+                if !presenter.bookmarkedOnlyRecipes.isEmpty {
                     bookmarkedRecipeTemplatesSection
                 }
 
-                if !viewModel.trendingRecipesDeduped.isEmpty {
+                if !presenter.trendingRecipesDeduped.isEmpty {
                     recipeTemplateSection
                 }
             } else {
@@ -44,18 +38,18 @@ struct RecipesView: View {
         }
         .screenAppearAnalytics(name: "RecipesView")
         .onFirstTask {
-            await viewModel.loadMyRecipesIfNeeded()
-            await viewModel.loadTopRecipesIfNeeded()
-            await viewModel.syncSavedRecipesFromUser()
+            await presenter.loadMyRecipesIfNeeded()
+            await presenter.loadTopRecipesIfNeeded()
+            await presenter.syncSavedRecipesFromUser()
         }
         .refreshable {
-            await viewModel.loadMyRecipesIfNeeded()
-            await viewModel.loadTopRecipesIfNeeded()
-            await viewModel.syncSavedRecipesFromUser()
+            await presenter.loadMyRecipesIfNeeded()
+            await presenter.loadTopRecipesIfNeeded()
+            await presenter.syncSavedRecipesFromUser()
         }
-        .onChange(of: viewModel.currentUser) {
+        .onChange(of: presenter.currentUser) {
             Task {
-                await viewModel.syncSavedRecipesFromUser()
+                await presenter.syncSavedRecipesFromUser()
             }
         }
     }
@@ -63,14 +57,14 @@ struct RecipesView: View {
     // MARK: UI Components
     private var favouriteRecipeTemplatesSection: some View {
         Section {
-            ForEach(viewModel.favouriteRecipes) { recipe in
+            ForEach(presenter.favouriteRecipes) { recipe in
                 CustomListCellView(
                     imageName: recipe.imageURL,
                     title: recipe.name,
                     subtitle: recipe.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onRecipePressed(recipe: recipe)
+                    presenter.onRecipePressed(recipe: recipe)
                 }
                 .removeListRowFormatting()
             }
@@ -78,20 +72,20 @@ struct RecipesView: View {
             Text("Favourites")
         }
         .onAppear {
-            viewModel.favouritesSectionViewed()
+            presenter.favouritesSectionViewed()
         }
     }
 
     private var bookmarkedRecipeTemplatesSection: some View {
         Section {
-            ForEach(viewModel.bookmarkedOnlyRecipes) { recipe in
+            ForEach(presenter.bookmarkedOnlyRecipes) { recipe in
                 CustomListCellView(
                     imageName: recipe.imageURL,
                     title: recipe.name,
                     subtitle: recipe.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onRecipePressed(recipe: recipe)
+                    presenter.onRecipePressed(recipe: recipe)
                 }
                 .removeListRowFormatting()
             }
@@ -99,13 +93,13 @@ struct RecipesView: View {
             Text("Bookmarked")
         }
         .onAppear {
-            viewModel.bookmarksSectionViewed()
+            presenter.bookmarksSectionViewed()
         }
     }
 
     private var recipeTemplateSection: some View {
         Section {
-            if viewModel.isLoading {
+            if presenter.isLoading {
                 HStack {
                     ProgressView()
                     Text("Loading...")
@@ -113,28 +107,28 @@ struct RecipesView: View {
                 .foregroundStyle(Color.secondary)
                 .removeListRowFormatting()
             }
-            ForEach(viewModel.visibleRecipeTemplates) { recipe in
+            ForEach(presenter.visibleRecipeTemplates) { recipe in
                 CustomListCellView(
                     imageName: recipe.imageURL,
                     title: recipe.name,
                     subtitle: recipe.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onRecipePressed(recipe: recipe)
+                    presenter.onRecipePressed(recipe: recipe)
                 }
                 .removeListRowFormatting()
             }
         } header: {
-            Text(viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
+            Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
         }
         .onAppear {
-            viewModel.trendingSectionViewed()
+            presenter.trendingSectionViewed()
         }
     }
 
     private var myRecipeSection: some View {
         Section {
-            if viewModel.myRecipesVisible.isEmpty {
+            if presenter.myRecipesVisible.isEmpty {
                 HStack {
                     Image(systemName: "tray")
                         .foregroundColor(.secondary)
@@ -146,17 +140,17 @@ struct RecipesView: View {
                 .padding(.vertical, 12)
                 .removeListRowFormatting()
                 .onAppear {
-                    viewModel.emptyStateShown()
+                    presenter.emptyStateShown()
                 }
             } else {
-                ForEach(viewModel.myRecipesVisible) { recipe in
+                ForEach(presenter.myRecipesVisible) { recipe in
                     CustomListCellView(
                         imageName: recipe.imageURL,
                         title: recipe.name,
                         subtitle: recipe.description
                     )
                     .anyButton(.highlight) {
-                        viewModel.onRecipePressed(recipe: recipe)
+                        presenter.onRecipePressed(recipe: recipe)
                     }
                     .removeListRowFormatting()
                 }
@@ -166,7 +160,7 @@ struct RecipesView: View {
                 Text("My Templates")
                 Spacer()
                 Button {
-                    viewModel.onAddRecipePressed(showCreateRecipe: delegate.showCreateRecipe)
+                    presenter.onAddRecipePressed(showCreateRecipe: delegate.showCreateRecipe)
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20))
@@ -174,14 +168,14 @@ struct RecipesView: View {
             }
         }
         .onAppear {
-            viewModel.myTemplatesSectionViewed()
+            presenter.myTemplatesSectionViewed()
         }
     }
 }
 
 #Preview("Recipes View") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = RecipesViewDelegate(
+    let delegate = RecipesDelegate(
         showCreateRecipe: Binding.constant(
             false
         ),

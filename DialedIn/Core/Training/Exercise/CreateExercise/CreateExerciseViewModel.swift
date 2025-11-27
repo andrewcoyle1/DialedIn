@@ -1,5 +1,5 @@
 //
-//  CreateExerciseViewModel.swift
+//  CreateExercisePresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 21/10/2025.
@@ -23,13 +23,14 @@ extension CoreInteractor: CreateExerciseInteractor { }
 @MainActor
 protocol CreateExerciseRouter {
     func showDevSettingsView()
+    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: CreateExerciseRouter { }
 
 @Observable
 @MainActor
-class CreateExerciseViewModel {
+class CreateExercisePresenter {
     private let interactor: CreateExerciseInteractor
     private let router: CreateExerciseRouter
 
@@ -48,7 +49,6 @@ class CreateExerciseViewModel {
 
     private(set) var isGenerating: Bool = false
     private(set) var generatedImage: UIImage?
-    var alert: AnyAppAlert?
     var isSaving: Bool = false
 
     var canSave: Bool {
@@ -126,7 +126,7 @@ class CreateExerciseViewModel {
             interactor.trackEvent(event: Event.createExerciseSuccess)
         } catch {
             interactor.trackEvent(event: Event.createExerciseFail(error: error))
-            alert = AnyAppAlert(title: "Unable to save exercise", subtitle: "Please check your internet connection and try again.")
+            router.showSimpleAlert(title: "Unable to save exercise", subtitle: "Please check your internet connection and try again.")
             isSaving = false
             return
         }
@@ -157,7 +157,7 @@ class CreateExerciseViewModel {
                 interactor.trackEvent(event: Event.exerciseGenerateImageSuccess)
             } catch {
                 interactor.trackEvent(event: Event.exerciseGenerateImageFail(error: error))
-                alert = AnyAppAlert(title: "Unable to generate image", subtitle: "Please try again later.")
+                router.showSimpleAlert(title: "Unable to generate image", subtitle: "Please try again later.")
             }
             isGenerating = false
         }

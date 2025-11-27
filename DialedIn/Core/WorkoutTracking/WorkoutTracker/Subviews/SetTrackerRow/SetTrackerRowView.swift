@@ -8,28 +8,16 @@
 import SwiftUI
 import CustomRouting
 
-struct SetTrackerRowViewDelegate {
-    var set: WorkoutSetModel
-    let trackingMode: TrackingMode
-    var weightUnit: ExerciseWeightUnit = .kilograms
-    var distanceUnit: ExerciseDistanceUnit = .meters
-    var previousSet: WorkoutSetModel?
-    var restBeforeSec: Int?
-    let onRestBeforeChange: (Int?) -> Void
-    var onRequestRestPicker: (String, Int?) -> Void = { _, _ in }
-    let onUpdate: (WorkoutSetModel) -> Void
-}
-
 struct SetTrackerRowView: View {
-    @State var viewModel: SetTrackerRowViewModel
+    @State var presenter: SetTrackerRowPresenter
 
-    var delegate: SetTrackerRowViewDelegate
+    var delegate: SetTrackerRowDelegate
 
     init(
-        viewModel: SetTrackerRowViewModel,
-        delegate: SetTrackerRowViewDelegate
+        presenter: SetTrackerRowPresenter,
+        delegate: SetTrackerRowDelegate
     ) {
-        self.viewModel = viewModel
+        self.presenter = presenter
         self.delegate = delegate
     }
 
@@ -76,7 +64,7 @@ struct SetTrackerRowView: View {
                 }
                 
                 Button {
-                    viewModel.onWarmupSetHelpPressed()
+                    presenter.onWarmupSetHelpPressed()
                 } label: {
                     Label("What's a warmup set?", systemImage: "info.circle")
                 }
@@ -404,7 +392,7 @@ struct SetTrackerRowView: View {
         Button {
             if delegate.set.completedAt == nil {
                 // Validate before completing
-                if viewModel.validateSetData(trackingMode: delegate.trackingMode, set: delegate.set) {
+                if presenter.validateSetData(trackingMode: delegate.trackingMode, set: delegate.set) {
                     updateSet { $0.completedAt = Date() }
                 }
             } else {
@@ -419,7 +407,7 @@ struct SetTrackerRowView: View {
                 }
                 Image(systemName: delegate.set.completedAt != nil ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    .foregroundColor(viewModel.buttonColor(set: delegate.set, canComplete: viewModel.canComplete(trackingMode: delegate.trackingMode, set: delegate.set)))
+                    .foregroundColor(presenter.buttonColor(set: delegate.set, canComplete: presenter.canComplete(trackingMode: delegate.trackingMode, set: delegate.set)))
                     .frame(height: cellHeight)
             }
         }
@@ -457,7 +445,7 @@ extension SetTrackerRowView {
 }
 #Preview("Weight & Reps - Incomplete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = SetTrackerRowViewDelegate(
+    let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "1",
             authorId: "user1",
@@ -484,7 +472,7 @@ extension SetTrackerRowView {
 
 #Preview("Weight & Reps - Complete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = SetTrackerRowViewDelegate(
+    let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "2",
             authorId: "user1",
@@ -509,7 +497,7 @@ extension SetTrackerRowView {
 }
 #Preview("Duration - Incomplete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = SetTrackerRowViewDelegate(
+    let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "3",
             authorId: "user2",
@@ -535,7 +523,7 @@ extension SetTrackerRowView {
 
 #Preview("Duration - Complete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = SetTrackerRowViewDelegate(
+    let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "4",
             authorId: "user2",
@@ -561,7 +549,7 @@ extension SetTrackerRowView {
 
 #Preview("Distance - Incomplete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = SetTrackerRowViewDelegate(
+    let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "5",
             authorId: "user3",
@@ -587,7 +575,7 @@ extension SetTrackerRowView {
 
 #Preview("Distance - Complete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = SetTrackerRowViewDelegate(
+    let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "6",
             authorId: "user3",
@@ -613,7 +601,7 @@ extension SetTrackerRowView {
 
 #Preview("Warmup Set") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = SetTrackerRowViewDelegate(
+    let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "7",
             authorId: "user4",
@@ -639,7 +627,7 @@ extension SetTrackerRowView {
 
 #Preview("All Fields Populated") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = SetTrackerRowViewDelegate(
+    let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "8",
             authorId: "user5",
@@ -665,7 +653,7 @@ extension SetTrackerRowView {
 
 #Preview("Edge: No Data") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = SetTrackerRowViewDelegate(
+    let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "9",
             authorId: "user6",

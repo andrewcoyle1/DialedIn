@@ -8,15 +8,15 @@
 import SwiftUI
 import CustomRouting
 
-struct IngredientDetailViewDelegate {
+struct IngredientDetailDelegate {
     let ingredientTemplate: IngredientTemplateModel
 }
 
 struct IngredientDetailView: View {
 
-    @State var viewModel: IngredientDetailViewModel
+    @State var presenter: IngredientDetailPresenter
 
-    let delegate: IngredientDetailViewDelegate
+    let delegate: IngredientDetailDelegate
 
     var body: some View {
         List {
@@ -41,12 +41,12 @@ struct IngredientDetailView: View {
         .toolbar {
             toolbarContent
         }
-        .task { await viewModel.loadInitialState(ingredientTemplate: delegate.ingredientTemplate) }
-        .onChange(of: viewModel.currentUser) { _, _ in
-            let user = viewModel.currentUser
+        .task { await presenter.loadInitialState(ingredientTemplate: delegate.ingredientTemplate) }
+        .onChange(of: presenter.currentUser) { _, _ in
+            let user = presenter.currentUser
             let isAuthor = user?.userId == delegate.ingredientTemplate.authorId
-            viewModel.isBookmarked = isAuthor || (user?.bookmarkedIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false) || (user?.createdIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false)
-            viewModel.isFavourited = user?.favouritedIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false
+            presenter.isBookmarked = isAuthor || (user?.bookmarkedIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false) || (user?.createdIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false)
+            presenter.isFavourited = user?.favouritedIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false
         }
     }
 
@@ -192,7 +192,7 @@ struct IngredientDetailView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -201,21 +201,21 @@ struct IngredientDetailView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 Task {
-                    await viewModel.onFavoritePressed(ingredientTemplate: delegate.ingredientTemplate)
+                    await presenter.onFavoritePressed(ingredientTemplate: delegate.ingredientTemplate)
                 }
             } label: {
-                Image(systemName: viewModel.isFavourited ? "heart.fill" : "heart")
+                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
             }
         }
         // Hide bookmark button when the current user is the author
-        if viewModel.currentUser?.userId != nil && viewModel.currentUser?.userId != delegate.ingredientTemplate.authorId {
+        if presenter.currentUser?.userId != nil && presenter.currentUser?.userId != delegate.ingredientTemplate.authorId {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
-                        await viewModel.onBookmarkPressed(ingredientTemplate: delegate.ingredientTemplate)
+                        await presenter.onBookmarkPressed(ingredientTemplate: delegate.ingredientTemplate)
                     }
                 } label: {
-                    Image(systemName: viewModel.isBookmarked ? "book.closed.fill" : "book.closed")
+                    Image(systemName: presenter.isBookmarked ? "book.closed.fill" : "book.closed")
                 }
             }
         }
@@ -227,7 +227,7 @@ struct IngredientDetailView: View {
     RouterView { router in
         builder.ingredientDetailView(
             router: router,
-            delegate: IngredientDetailViewDelegate(
+            delegate: IngredientDetailDelegate(
                 ingredientTemplate: IngredientTemplateModel.mocks[0]
             )
         )

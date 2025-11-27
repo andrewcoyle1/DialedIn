@@ -11,7 +11,7 @@ struct AdaptiveMainView: View {
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-    @State var viewModel: AdaptiveMainViewModel
+    @State var presenter: AdaptiveMainPresenter
 
     @ViewBuilder var tabBarView: () -> AnyView
     @ViewBuilder var splitViewContainer: () -> AnyView

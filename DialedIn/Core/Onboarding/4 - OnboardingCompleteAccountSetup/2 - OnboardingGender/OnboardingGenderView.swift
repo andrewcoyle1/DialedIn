@@ -12,7 +12,7 @@ struct OnboardingGenderView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State var viewModel: OnboardingGenderViewModel
+    @State var presenter: OnboardingGenderPresenter
 
     var body: some View {
         List {
@@ -39,7 +39,7 @@ struct OnboardingGenderView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -48,12 +48,12 @@ struct OnboardingGenderView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToDateOfBirth()
+                presenter.navigateToDateOfBirth()
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(!viewModel.canSubmit)
+            .disabled(!presenter.canSubmit)
         }
     }
     
@@ -64,12 +64,12 @@ struct OnboardingGenderView: View {
                     .font(.headline)
             }
             Spacer(minLength: 8)
-            Image(systemName: viewModel.selectedGender == gender ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(viewModel.selectedGender == gender ? Color.accent : Color.secondary)
+            Image(systemName: presenter.selectedGender == gender ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(presenter.selectedGender == gender ? Color.accent : Color.secondary)
         }
         .contentShape(Rectangle())
         .anyButton(.press) {
-            viewModel.selectedGender = gender
+            presenter.selectedGender = gender
         }
         .padding(12)
         .background(

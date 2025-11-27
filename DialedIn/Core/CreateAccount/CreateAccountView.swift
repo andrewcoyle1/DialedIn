@@ -9,15 +9,15 @@ import SwiftUI
 import CustomRouting
 
 struct CreateAccountView: View {
-    @State var viewModel: CreateAccountViewModel
+    @State var presenter: CreateAccountPresenter
 
     var body: some View {
         VStack(spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(viewModel.title)
+                Text(presenter.title)
                     .font(.largeTitle)
                     .fontWeight(.semibold)
-                Text(viewModel.subtitle)
+                Text(presenter.subtitle)
                     .font(.body)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -29,13 +29,13 @@ struct CreateAccountView: View {
                 cornerRadius: 28
             )
             .anyButton(.press) {
-                viewModel.onSignInApplePressed()
+                presenter.onSignInApplePressed()
             }
             .frame(height: 56)
             .frame(maxWidth: 320)
             
             SignInWithGoogleButtonView(style: .light, scheme: .signUpWithGoogle) {
-                viewModel.onSignInGooglePressed()
+                presenter.onSignInGooglePressed()
             }
             .frame(height: 56)
             .frame(maxWidth: 350)

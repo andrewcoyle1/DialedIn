@@ -11,7 +11,7 @@ import CustomRouting
 
 struct ProgressDashboardView: View {
     
-    @State var viewModel: ProgressDashboardViewModel
+    @State var presenter: ProgressDashboardPresenter
 
     var body: some View {
         ScrollView {
@@ -19,10 +19,10 @@ struct ProgressDashboardView: View {
                 // Period selector
                 periodPicker
 
-                if viewModel.isLoading {
+                if presenter.isLoading {
                     ProgressView()
                         .padding(40)
-                } else if let snapshot = viewModel.progressSnapshot {
+                } else if let snapshot = presenter.progressSnapshot {
                     // Performance metrics
                     performanceSection(snapshot.performanceMetrics)
 
@@ -42,22 +42,22 @@ struct ProgressDashboardView: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Done") {
-                    viewModel.onDismissPressed()
+                    presenter.onDismissPressed()
                 }
             }
         }
         .task {
-            await viewModel.loadProgressData()
+            await presenter.loadProgressData()
         }
-        .onChange(of: viewModel.selectedPeriod) { _, _ in
+        .onChange(of: presenter.selectedPeriod) { _, _ in
             Task {
-                await viewModel.loadProgressData()
+                await presenter.loadProgressData()
             }
         }
     }
     
     private var periodPicker: some View {
-        Picker("Period", selection: $viewModel.selectedPeriod) {
+        Picker("Period", selection: $presenter.selectedPeriod) {
             ForEach(TimePeriod.allCases, id: \.self) { period in
                 Text(period.rawValue).tag(period)
             }

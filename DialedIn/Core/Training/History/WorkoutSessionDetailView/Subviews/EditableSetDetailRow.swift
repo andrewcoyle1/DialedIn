@@ -14,8 +14,7 @@ struct EditableSetDetailRow: View {
     let distanceUnit: ExerciseDistanceUnit
     
     @State private var showWarmupHelp = false
-    @State private var showAlert: AnyAppAlert?
-    
+
     private var cellHeight: CGFloat = 35
     
     init(
@@ -46,7 +45,6 @@ struct EditableSetDetailRow: View {
             rpeField
         }
         .padding(.vertical, 4)
-        .showCustomAlert(alert: $showAlert)
         .sheet(isPresented: $showWarmupHelp) {
             CustomModalView(
                 title: "Warmup Sets",

@@ -8,81 +8,80 @@
 import SwiftUI
 
 // swiftlint:disable:next class_delegate_protocol
-protocol GenericTemplateListViewDelegate {
+protocol GenericTemplateListDelegate {
     var onSelect: (any TemplateModel) -> Void { get }
     var onCancel: () -> Void { get }
 }
 
 struct GenericTemplatePickerView<Template: TemplateModel>: View {
-    @State var viewModel: GenericTemplatePickerViewModel<Template>
+    @State var presenter: GenericTemplatePickerPresenter<Template>
     
-    init(viewModel: GenericTemplatePickerViewModel<Template>, delegate: GenericTemplateListViewDelegate) {
-        self.viewModel = viewModel
+    init(presenter: GenericTemplatePickerPresenter<Template>, delegate: GenericTemplateListDelegate) {
+        self.presenter = presenter
         self.delegate = delegate
     }
 
-    let delegate: GenericTemplateListViewDelegate
+    let delegate: GenericTemplateListDelegate
 
     var body: some View {
         List {
-            if viewModel.isLoading {
+            if presenter.isLoading {
                 Section { ProgressView().frame(maxWidth: .infinity) }
             }
-            if !viewModel.userResults.isEmpty {
+            if !presenter.userResults.isEmpty {
                 Section {
-                    ForEach(viewModel.userResults, id: \.id) { template in
+                    ForEach(presenter.userResults, id: \.id) { template in
                         CustomListCellView(
                             imageName: template.imageURL,
                             title: template.name,
                             subtitle: template.description
                         )
                         .anyButton(.highlight) {
-                            viewModel.onSelect(template)
+                            presenter.onSelect(template)
                         }
                         .removeListRowFormatting()
                     }
                 } header: {
-                    Text(viewModel.configuration.userSectionTitle)
+                    Text(presenter.configuration.userSectionTitle)
                 }
             }
-            if !viewModel.officialResults.isEmpty {
+            if !presenter.officialResults.isEmpty {
                 Section {
-                    ForEach(viewModel.officialResults, id: \.id) { template in
+                    ForEach(presenter.officialResults, id: \.id) { template in
                         CustomListCellView(
                             imageName: template.imageURL,
                             title: template.name,
                             subtitle: template.description
                         )
                         .anyButton(.highlight) {
-                            viewModel.onSelect(template)
+                            presenter.onSelect(template)
                         }
                         .removeListRowFormatting()
                     }
                 } header: {
-                    Text(viewModel.configuration.officialSectionTitle)
+                    Text(presenter.configuration.officialSectionTitle)
                 }
             }
-            if !viewModel.isLoading && viewModel.userResults.isEmpty && viewModel.officialResults.isEmpty {
+            if !presenter.isLoading && presenter.userResults.isEmpty && presenter.officialResults.isEmpty {
                 Section {
-                    Text(viewModel.configuration.emptyStateMessage)
+                    Text(presenter.configuration.emptyStateMessage)
                         .foregroundStyle(.secondary)
                 }
             }
         }
-        .navigationTitle(viewModel.configuration.title)
+        .navigationTitle(presenter.configuration.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { 
-                Button("Cancel", action: viewModel.onCancel) 
+                Button("Cancel", action: presenter.onCancel) 
             }
         }
-        .searchable(text: $viewModel.searchText, placement: .navigationBarDrawer(displayMode: .always))
+        .searchable(text: $presenter.searchText, placement: .navigationBarDrawer(displayMode: .always))
         .onSubmit(of: .search) {
-            Task { await viewModel.runSearch() }
+            Task { await presenter.runSearch() }
         }
         .task {
-            await viewModel.loadTopTemplates()
+            await presenter.loadTopTemplates()
         }
-        .showCustomAlert(alert: $viewModel.error)
     }
 }

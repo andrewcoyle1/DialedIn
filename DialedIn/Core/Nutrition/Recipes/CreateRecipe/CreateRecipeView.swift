@@ -11,9 +11,7 @@ import CustomRouting
 
 struct CreateRecipeView: View {
 
-    @Environment(\.dismiss) private var dismiss
-
-    @State var viewModel: CreateRecipeViewModel
+    @State var presenter: CreateRecipePresenter
 
     var body: some View {
         List {
@@ -25,14 +23,14 @@ struct CreateRecipeView: View {
         .toolbar {
             toolbarContent
         }
-        .onChange(of: viewModel.selectedPhotoItem) {
-            guard let newItem = viewModel.selectedPhotoItem else { return }
+        .onChange(of: presenter.selectedPhotoItem) {
+            guard let newItem = presenter.selectedPhotoItem else { return }
 
             Task {
                 do {
                     if let data = try await newItem.loadTransferable(type: Data.self) {
                         await MainActor.run {
-                            viewModel.selectedImageData = data
+                            presenter.selectedImageData = data
                         }
                     }
                 } catch {
@@ -40,14 +38,13 @@ struct CreateRecipeView: View {
                 }
             }
         }
-        .alert("Error", isPresented: .constant(viewModel.saveError != nil)) {
+        .alert("Error", isPresented: .constant(presenter.saveError != nil)) {
             Button("OK") {
-                viewModel.saveError = nil
+                presenter.saveError = nil
             }
         } message: {
-            Text(viewModel.saveError ?? "")
+            Text(presenter.saveError ?? "")
         }
-        .showCustomAlert(alert: $viewModel.alert)
     }
     
     private var imageSection: some View {
@@ -55,13 +52,13 @@ struct CreateRecipeView: View {
             HStack {
                 Spacer()
                 Button {
-                    viewModel.onImageSelectorPressed()
+                    presenter.onImageSelectorPressed()
                 } label: {
                     ZStack {
                         Rectangle()
                             .fill(Color.secondary.opacity(0.001))
                         Group {
-                            if let data = viewModel.selectedImageData {
+                            if let data = presenter.selectedImageData {
                                 #if canImport(UIKit)
                                 if let uiImage = UIImage(data: data) {
                                     Image(uiImage: uiImage)
@@ -77,7 +74,7 @@ struct CreateRecipeView: View {
                                 #endif
                             } else {
                                 #if canImport(UIKit)
-                                if let generatedImage = viewModel.generatedImage {
+                                if let generatedImage = presenter.generatedImage {
                                     Image(uiImage: generatedImage)
                                         .resizable()
                                         .scaledToFill()
@@ -96,7 +93,7 @@ struct CreateRecipeView: View {
                     }
                     .frame(width: 120, height: 120)
                 }
-                .photosPicker(isPresented: $viewModel.isImagePickerPresented, selection: $viewModel.selectedPhotoItem, matching: .images)
+                .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
                 Spacer()
             }
         } header: {
@@ -104,12 +101,12 @@ struct CreateRecipeView: View {
                 Text("Recipe Image")
                 Spacer()
                 Button {
-                    viewModel.onGenerateImagePressed()
+                    presenter.onGenerateImagePressed()
                 } label: {
                     Image(systemName: "wand.and.sparkles")
                         .font(.system(size: 20))
                 }
-                .disabled(viewModel.isGenerating || viewModel.recipeName.isEmpty)
+                .disabled(presenter.isGenerating || presenter.recipeName.isEmpty)
             }
         }
         .removeListRowFormatting()
@@ -117,11 +114,11 @@ struct CreateRecipeView: View {
     
     private var nameSection: some View {
         Section {
-            TextField("Enter recipe name", text: $viewModel.recipeName)
+            TextField("Enter recipe name", text: $presenter.recipeName)
             TextField("Enter recipe description", text: Binding(
-                get: { viewModel.recipeTemplateDescription ?? "" },
+                get: { presenter.recipeTemplateDescription ?? "" },
                 set: { newValue in
-                    viewModel.recipeTemplateDescription = newValue.isEmpty ? nil : newValue
+                    presenter.recipeTemplateDescription = newValue.isEmpty ? nil : newValue
                 }
             ))
         } header: {
@@ -131,8 +128,8 @@ struct CreateRecipeView: View {
     
     private var ingredientTemplatesSection: some View {
         Section {
-            if !viewModel.ingredients.isEmpty {
-                ForEach($viewModel.ingredients) { $wrapper in
+            if !presenter.ingredients.isEmpty {
+                ForEach($presenter.ingredients) { $wrapper in
                     HStack(alignment: .center, spacing: 12) {
                         CustomListCellView(imageName: wrapper.ingredient.imageURL, title: wrapper.ingredient.name, subtitle: wrapper.ingredient.description)
                         Spacer()
@@ -157,7 +154,7 @@ struct CreateRecipeView: View {
                     .foregroundStyle(.secondary)
             }
             Button {
-                viewModel.onAddIngredientPressed()
+                presenter.onAddIngredientPressed()
             } label: {
                 Text("Add ingredient")
             }
@@ -166,7 +163,7 @@ struct CreateRecipeView: View {
                 Text("Ingredients")
                 Spacer()
                 Button {
-                    viewModel.onAddIngredientPressed()
+                    presenter.onAddIngredientPressed()
                 } label: {
                     Image(systemName: "plus.circle.fill")
                 }
@@ -178,9 +175,7 @@ struct CreateRecipeView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.cancel(onDismiss: {
-                    dismiss()
-                })
+                presenter.cancel()
             } label: {
                 Image(systemName: "xmark")
             }
@@ -189,7 +184,7 @@ struct CreateRecipeView: View {
         ToolbarSpacer(.fixed, placement: .topBarLeading)
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -199,10 +194,10 @@ struct CreateRecipeView: View {
             Button {
                 Task {
                     do {
-                        try await viewModel.onSavePressed(onDismiss: { dismiss() })
+                        try await presenter.onSavePressed()
                     } catch {
                         await MainActor.run {
-                            viewModel.saveError = "Failed to save recipe. Please try again."
+                            presenter.saveError = "Failed to save recipe. Please try again."
                         }
                     }
                 }
@@ -210,7 +205,7 @@ struct CreateRecipeView: View {
                 Image(systemName: "checkmark")
             }
             .buttonStyle(.glassProminent)
-            .disabled(!viewModel.canSave || viewModel.isSaving)
+            .disabled(!presenter.canSave || presenter.isSaving)
         }
     }
 }

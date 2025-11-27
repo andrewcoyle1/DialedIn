@@ -9,20 +9,15 @@ import SwiftUI
 import HealthKit
 import CustomRouting
 
-struct WorkoutTrackerViewDelegate {
-    let workoutSession: WorkoutSessionModel
-}
-
 struct WorkoutTrackerView: View {
-    @Environment(\.dismiss) var dismiss
     @Environment(\.scenePhase) private var scenePhase
     
-    // ViewModel
-    @State var viewModel: WorkoutTrackerViewModel
+    // Presenter
+    @State var presenter: WorkoutTrackerPresenter
     
-    let delegate: WorkoutTrackerViewDelegate
+    let delegate: WorkoutTrackerDelegate
 
-    @ViewBuilder var exerciseTrackerCardView: (ExerciseTrackerCardViewDelegate) -> AnyView
+    @ViewBuilder var exerciseTrackerCardView: (ExerciseTrackerCardDelegate) -> AnyView
 
     var body: some View {
         TimelineView(.periodic(from: delegate.workoutSession.dateCreated, by: 1.0)) { _ in
@@ -30,26 +25,25 @@ struct WorkoutTrackerView: View {
                 workoutOverviewCard
                 exerciseSection
             }
-            .navigationTitle(viewModel.workoutSession?.name ?? delegate.workoutSession.name)
-            .navigationSubtitle(viewModel.elapsedTimeString)
+            .navigationTitle(presenter.workoutSession?.name ?? delegate.workoutSession.name)
+            .navigationSubtitle(presenter.elapsedTimeString)
             .navigationBarTitleDisplayMode(.large)
             .scrollIndicators(.hidden)
-            .environment(\.editMode, $viewModel.editMode)
+            .environment(\.editMode, $presenter.editMode)
             .toolbar {
                 toolbarContent
             }
             .safeAreaInset(edge: .bottom) {
                 timerHeaderView()
             }
-            .showCustomAlert(alert: $viewModel.showAlert)
             .task {
-                viewModel.loadWorkoutSession(delegate.workoutSession)
-                await viewModel.onAppear()
+                presenter.loadWorkoutSession(delegate.workoutSession)
+                await presenter.onAppear()
             }
             .onChange(of: scenePhase) { oldPhase, newPhase in
-                viewModel.onScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
+                presenter.onScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
             }
-            .showModal(showModal: $viewModel.isRestPickerOpen) {
+            .showModal(showModal: $presenter.isRestPickerOpen) {
                 setRestModal
             }
         }
@@ -60,7 +54,7 @@ struct WorkoutTrackerView: View {
     
     private var workoutOverviewCard: some View {
         Section {
-            if let workoutSession = viewModel.workoutSession {
+            if let workoutSession = presenter.workoutSession {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
@@ -79,7 +73,7 @@ struct WorkoutTrackerView: View {
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             
-                            Text("\(viewModel.completedSetsCount)/\(viewModel.totalSetsCount)")
+                            Text("\(presenter.completedSetsCount)/\(presenter.totalSetsCount)")
                                 .font(.headline)
                                 .foregroundColor(.green)
                         }
@@ -88,14 +82,14 @@ struct WorkoutTrackerView: View {
                     // Quick stats
                     HStack(spacing: 20) {
                         StatCard(
-                            value: "\(viewModel.currentExerciseIndex + 1)/\(workoutSession.exercises.count)",
+                            value: "\(presenter.currentExerciseIndex + 1)/\(workoutSession.exercises.count)",
                             label: "Exercise",
                         )
                         StatCard(
-                            value: viewModel.formattedVolume,
+                            value: presenter.formattedVolume,
                             label: "Volume"
                         )
-                        if !viewModel.workoutNotes.isEmpty {
+                        if !presenter.workoutNotes.isEmpty {
                             StatCard(
                                 value: "Added",
                                 label: "Notes"
@@ -114,78 +108,78 @@ struct WorkoutTrackerView: View {
     private var exerciseSection: some View {
         // Exercise List
         Section {
-            if let workoutSession = viewModel.workoutSession {
+            if let workoutSession = presenter.workoutSession {
                 ForEach(workoutSession.exercises, id: \.id) { exercise in
                     let index = workoutSession.exercises.firstIndex(where: { $0.id == exercise.id }) ?? 0
-                    let preference = viewModel.exerciseUnitPreferences[exercise.templateId]
+                    let preference = presenter.exerciseUnitPreferences[exercise.templateId]
                     let weightUnit = preference?.weightUnit ?? .kilograms
                     let distanceUnit = preference?.distanceUnit ?? .meters
-                    let previousSets = viewModel.buildPreviousLookup(for: exercise)
+                    let previousSets = presenter.buildPreviousLookup(for: exercise)
                     let exerciseId = exercise.id
                     exerciseTrackerCardView(
-                        ExerciseTrackerCardViewDelegate(
+                        ExerciseTrackerCardDelegate(
                             exercise: exercise,
                             exerciseIndex: index,
-                            isCurrentExercise: index == viewModel.currentExerciseIndex,
+                            isCurrentExercise: index == presenter.currentExerciseIndex,
                             weightUnit: weightUnit,
                             distanceUnit: distanceUnit,
                             previousSetsByIndex: previousSets,
-                            onSetUpdate: { updatedSet in viewModel.updateSet(updatedSet, in: exerciseId) },
-                            onAddSet: { viewModel.addSet(to: exerciseId) },
-                            onDeleteSet: { setId in viewModel.deleteSet(setId, from: exerciseId) },
+                            onSetUpdate: { updatedSet in presenter.updateSet(updatedSet, in: exerciseId) },
+                            onAddSet: { presenter.addSet(to: exerciseId) },
+                            onDeleteSet: { setId in presenter.deleteSet(setId, from: exerciseId) },
                             onHeaderLongPress: { /* no-op: reordering via drag on header */ },
-                            onNotesChange: { notes in viewModel.updateExerciseNotes(notes, for: exerciseId) },
-                            onWeightUnitChange: { unit in viewModel.updateWeightUnit(unit, for: exercise.templateId) },
-                            onDistanceUnitChange: { unit in viewModel.updateDistanceUnit(unit, for: exercise.templateId) },
-                            restBeforeSecForSet: { setId in viewModel.getRestBeforeSet(setId: setId) },
-                            onRestBeforeChange: { setId, value in viewModel.updateRestBeforeSet(setId: setId, value: value) },
+                            onNotesChange: { notes in presenter.updateExerciseNotes(notes, for: exerciseId) },
+                            onWeightUnitChange: { unit in presenter.updateWeightUnit(unit, for: exercise.templateId) },
+                            onDistanceUnitChange: { unit in presenter.updateDistanceUnit(unit, for: exercise.templateId) },
+                            restBeforeSecForSet: { setId in presenter.getRestBeforeSet(setId: setId) },
+                            onRestBeforeChange: { setId, value in presenter.updateRestBeforeSet(setId: setId, value: value) },
                             onRequestRestPicker: { setId, current in
-                                viewModel.openRestPicker(for: setId, currentValue: current)
-                                viewModel.isRestPickerOpen = true
+                                presenter.openRestPicker(for: setId, currentValue: current)
+                                presenter.isRestPickerOpen = true
                             },
                             getLatestExercise: {
-                                viewModel.workoutSession?.exercises.first(where: { $0.id == exerciseId })
+                                presenter.workoutSession?.exercises.first(where: { $0.id == exerciseId })
                             },
                             getLatestExerciseIndex: {
-                                viewModel.workoutSession?.exercises.firstIndex(where: { $0.id == exerciseId }) ?? 0
+                                presenter.workoutSession?.exercises.firstIndex(where: { $0.id == exerciseId }) ?? 0
                             },
                             getLatestIsCurrentExercise: {
-                                guard let workoutSession = viewModel.workoutSession else { return false }
+                                guard let workoutSession = presenter.workoutSession else { return false }
                                 let currentIndex = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) ?? 0
-                                return currentIndex == viewModel.currentExerciseIndex
+                                return currentIndex == presenter.currentExerciseIndex
                             },
                             getLatestWeightUnit: {
-                                guard let workoutSession = viewModel.workoutSession,
+                                guard let workoutSession = presenter.workoutSession,
                                       let latestExercise = workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
                                     return .kilograms
                                 }
-                                let preference = viewModel.exerciseUnitPreferences[latestExercise.templateId]
+                                let preference = presenter.exerciseUnitPreferences[latestExercise.templateId]
                                 return preference?.weightUnit ?? .kilograms
                             },
                             getLatestDistanceUnit: {
-                                guard let workoutSession = viewModel.workoutSession,
+                                guard let workoutSession = presenter.workoutSession,
                                       let latestExercise = workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
                                     return .meters
                                 }
-                                let preference = viewModel.exerciseUnitPreferences[latestExercise.templateId]
+                                let preference = presenter.exerciseUnitPreferences[latestExercise.templateId]
                                 return preference?.distanceUnit ?? .meters
                             },
                             getLatestPreviousSets: {
-                                guard let workoutSession = viewModel.workoutSession,
+                                guard let workoutSession = presenter.workoutSession,
                                       let latestExercise = workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
                                     return [:]
                                 }
-                                return viewModel.buildPreviousLookup(for: latestExercise)
+                                return presenter.buildPreviousLookup(for: latestExercise)
                             },
                             isExpanded: Binding(
-                                get: { viewModel.expandedExerciseIds.contains(exercise.id) },
+                                get: { presenter.expandedExerciseIds.contains(exercise.id) },
                                 set: { newValue in
                                     if newValue {
                                         // Allow only one expanded at a time: collapse current first
-                                        viewModel.expandedExerciseIds.removeAll()
-                                        viewModel.expandedExerciseIds.insert(exercise.id)
+                                        presenter.expandedExerciseIds.removeAll()
+                                        presenter.expandedExerciseIds.insert(exercise.id)
                                     } else {
-                                        viewModel.expandedExerciseIds.remove(exercise.id)
+                                        presenter.expandedExerciseIds.remove(exercise.id)
                                     }
                                 }
                             )
@@ -193,7 +187,7 @@ struct WorkoutTrackerView: View {
                     )
                 }
                 .onMove { source, destination in
-                    viewModel.moveExercises(from: source, to: destination)
+                    presenter.moveExercises(from: source, to: destination)
                 }
             }
         } header: {
@@ -204,14 +198,14 @@ struct WorkoutTrackerView: View {
     // MARK: - Timer Header
     @ViewBuilder
     private func timerHeaderView() -> some View {
-        if viewModel.isRestActive {
+        if presenter.isRestActive {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(viewModel.isRestActive ? "Rest Timer" : "Workout Time")
+                    Text(presenter.isRestActive ? "Rest Timer" : "Workout Time")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-                    if let end = viewModel.restEndTime {
+                    if let end = presenter.restEndTime {
                         let now = Date()
                         if now < end {
                             Text(timerInterval: now...end)
@@ -223,7 +217,7 @@ struct WorkoutTrackerView: View {
                                 .foregroundColor(.primary)
                         }
                     } else {
-                        Text((viewModel.workoutSession?.dateCreated ?? delegate.workoutSession.dateCreated), style: .timer)
+                        Text((presenter.workoutSession?.dateCreated ?? delegate.workoutSession.dateCreated), style: .timer)
                             .font(.title2.bold())
                             .foregroundColor(.primary)
                     }
@@ -241,7 +235,7 @@ struct WorkoutTrackerView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.minimizeSession(onDismiss: { dismiss() })
+                presenter.minimizeSession()
             } label: {
                 Image(systemName: "xmark")
             }
@@ -249,21 +243,7 @@ struct WorkoutTrackerView: View {
         ToolbarSpacer(.fixed, placement: .topBarLeading)
         ToolbarItem(placement: .topBarLeading) {
             Button(role: .destructive) {
-                viewModel.showAlert = AnyAppAlert(
-                    title: "End Workout?",
-                    subtitle: "Are you sure you want to discard this workout?"
-                ) {
-                    AnyView(
-                        VStack {
-                            Button("Cancel", role: .cancel) {
-                                viewModel.showAlert = nil
-                            }
-                            Button("Discard", role: .destructive) {
-                                viewModel.discardWorkout(onDismiss: { dismiss() })
-                            }
-                        }
-                    )
-                }
+                presenter.onDiscardWorkoutPressed()
             } label: {
                 Image(systemName: "trash")
             }
@@ -271,7 +251,7 @@ struct WorkoutTrackerView: View {
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                viewModel.presentWorkoutNotes()
+                presenter.presentWorkoutNotes()
             } label: {
                 Image(systemName: "long.text.page.and.pencil")
             }
@@ -279,7 +259,7 @@ struct WorkoutTrackerView: View {
 
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                viewModel.finishWorkout(onDismiss: { dismiss() })
+                presenter.finishWorkout()
             } label: {
                 Image(systemName: "checkmark")
             }
@@ -288,14 +268,14 @@ struct WorkoutTrackerView: View {
         
         ToolbarItem(placement: .bottomBar) {
             Button {
-                if viewModel.isRestActive {
-                    viewModel.cancelRestTimer()
+                if presenter.isRestActive {
+                    presenter.cancelRestTimer()
                 } else {
-                    viewModel.startRestTimer()
+                    presenter.startRestTimer()
                 }
             } label: {
-                Image(systemName: viewModel.isRestActive ? "stop" : "timer")
-                    .foregroundColor(viewModel.isRestActive ? .red : .accent)
+                Image(systemName: presenter.isRestActive ? "stop" : "timer")
+                    .foregroundColor(presenter.isRestActive ? .red : .accent)
             }
         }
         
@@ -303,8 +283,8 @@ struct WorkoutTrackerView: View {
         
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.pendingSelectedTemplates = []
-                viewModel.presentAddExercise()
+                presenter.pendingSelectedTemplates = []
+                presenter.presentAddExercise()
             } label: {
                 Image(systemName: "plus")
             }
@@ -317,16 +297,16 @@ struct WorkoutTrackerView: View {
             subtitle: nil,
             primaryButtonTitle: "Save",
             primaryButtonAction: {
-                viewModel.saveRestPickerValue()
-                viewModel.isRestPickerOpen = false
+                presenter.saveRestPickerValue()
+                presenter.isRestPickerOpen = false
             },
             secondaryButtonTitle: "Cancel",
-            secondaryButtonAction: { viewModel.isRestPickerOpen = false },
+            secondaryButtonAction: { presenter.isRestPickerOpen = false },
             middleContent: AnyView(
                 HStack(spacing: 16) {
                     Picker("Minutes", selection: Binding(
-                        get: { viewModel.restPickerMinutesSelection },
-                        set: { viewModel.restPickerMinutesSelection = $0 }
+                        get: { presenter.restPickerMinutesSelection },
+                        set: { presenter.restPickerMinutesSelection = $0 }
                     )) {
                         ForEach(0..<60, id: \.self) { minute in
                             Text("\(minute) m").tag(minute)
@@ -336,8 +316,8 @@ struct WorkoutTrackerView: View {
                     .frame(maxWidth: .infinity)
                     
                     Picker("Seconds", selection: Binding(
-                        get: { viewModel.restPickerSecondsSelection },
-                        set: { viewModel.restPickerSecondsSelection = $0 }
+                        get: { presenter.restPickerSecondsSelection },
+                        set: { presenter.restPickerSecondsSelection = $0 }
                     )) {
                         ForEach(0..<60, id: \.self) { second in
                             Text("\(second) s").tag(second)
@@ -367,7 +347,7 @@ extension CoreRouter: WorkoutNotesRouter { }
 
 @Observable
 @MainActor
-class WorkoutNotesViewModel {
+class WorkoutNotesPresenter {
     let interactor: WorkoutNotesInteractor
     let router: WorkoutNotesRouter
 
@@ -384,15 +364,15 @@ class WorkoutNotesViewModel {
     }
 }
 
-struct WorkoutNotesViewDelegate {
+struct WorkoutNotesDelegate {
     var notes: Binding<String>
     let onSave: () -> Void
 }
 
 struct WorkoutNotesView: View {
 
-    @State var viewModel: WorkoutNotesViewModel
-    var delegate: WorkoutNotesViewDelegate
+    @State var presenter: WorkoutNotesPresenter
+    var delegate: WorkoutNotesDelegate
 
     var body: some View {
         VStack {
@@ -406,14 +386,14 @@ struct WorkoutNotesView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button("Cancel") {
-                    viewModel.onDismissPressed()
+                    presenter.onDismissPressed()
                 }
             }
 
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Save") {
                     delegate.onSave()
-                    viewModel.onDismissPressed()
+                    presenter.onDismissPressed()
                 }
             }
         }
@@ -423,7 +403,7 @@ struct WorkoutNotesView: View {
 #Preview("Tracker View") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.workoutTrackerView(router: router, delegate: WorkoutTrackerViewDelegate(workoutSession: .mock))
+        builder.workoutTrackerView(router: router, delegate: WorkoutTrackerDelegate(workoutSession: .mock))
     }
     .previewEnvironment()
 }

@@ -8,15 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingExpenditureViewDelegate {
-    var userBuilder: UserModelBuilder
-}
-
 struct OnboardingExpenditureView: View {
 
-    @State var viewModel: OnboardingExpenditureViewModel
+    @State var presenter: OnboardingExpenditurePresenter
 
-    var delegate: OnboardingExpenditureViewDelegate
+    var delegate: OnboardingExpenditureDelegate
 
     var body: some View {
         List {
@@ -28,16 +24,15 @@ struct OnboardingExpenditureView: View {
         .navigationTitle("Expenditure")
         .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
-        .showCustomAlert(alert: $viewModel.showAlert)
-        .showModal(showModal: $viewModel.isLoading, content: {
+        .showModal(showModal: $presenter.isLoading, content: {
             ProgressView()
                 .tint(.white)
         })
         .onFirstTask {
-            await viewModel.checkCanRequestPermissions()
+            await presenter.checkCanRequestPermissions()
         }
         .onFirstAppear {
-            viewModel.estimateExpenditure(userModelBuilder: delegate.userBuilder)
+            presenter.estimateExpenditure(userModelBuilder: delegate.userBuilder)
         }
         .toolbar {
             toolbarContent
@@ -49,7 +44,7 @@ struct OnboardingExpenditureView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -58,7 +53,7 @@ struct OnboardingExpenditureView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.saveAndNavigate(userModelBuilder: delegate.userBuilder)
+                presenter.saveAndNavigate(userModelBuilder: delegate.userBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -70,7 +65,7 @@ struct OnboardingExpenditureView: View {
         Section {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text("\(viewModel.displayedKcal)")
+                    Text("\(presenter.displayedKcal)")
                         .font(.system(size: 56, weight: .bold, design: .rounded))
                         .monospacedDigit()
                         .contentTransition(.numericText())
@@ -87,7 +82,7 @@ struct OnboardingExpenditureView: View {
         }
     }
     
-    private var breakdownItems: [OnboardingExpenditureViewModel.Breakdown] {
+    private var breakdownItems: [OnboardingExpenditurePresenter.Breakdown] {
         let userBuilder = delegate.userBuilder
         guard let weight = userBuilder.weight,
               let height = userBuilder.height,
@@ -96,7 +91,7 @@ struct OnboardingExpenditureView: View {
               let exerciseFrequency = userBuilder.exerciseFrequency else {
             return []
         }
-        let context = OnboardingExpenditureViewModel.ExpenditureContext(
+        let context = OnboardingExpenditurePresenter.ExpenditureContext(
             weight: weight,
             height: height,
             dateOfBirth: dateOfBirth,
@@ -104,7 +99,7 @@ struct OnboardingExpenditureView: View {
             activityLevel: activityLevel,
             exerciseFrequency: exerciseFrequency
         )
-        return viewModel.breakdownItems(context: context)
+        return presenter.breakdownItems(context: context)
     }
     
     private var breakdownSection: some View {
@@ -119,9 +114,9 @@ struct OnboardingExpenditureView: View {
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
-                    ProgressView(value: viewModel.animateBreakdown ? viewModel.progress(for: item) : 0)
+                    ProgressView(value: presenter.animateBreakdown ? presenter.progress(for: item) : 0)
                         .tint(item.color)
-                        .animation(.easeOut(duration: 1.0), value: viewModel.animateBreakdown)
+                        .animation(.easeOut(duration: 1.0), value: presenter.animateBreakdown)
                 }
                 .padding(.vertical, 6)
             }
@@ -191,7 +186,7 @@ struct OnboardingExpenditureView: View {
               let dateOfBirth = userBuilder.dateOfBirth else {
             return 0
         }
-        return viewModel.bmrInt(
+        return presenter.bmrInt(
             weight: weight,
             height: height,
             dateOfBirth: dateOfBirth,
@@ -204,28 +199,28 @@ struct OnboardingExpenditureView: View {
         guard let activityLevel = delegate.userBuilder.activityLevel else {
             return "N/A"
         }
-        return viewModel.activityDescription(activityLevel: activityLevel)
+        return presenter.activityDescription(activityLevel: activityLevel)
     }
     
     private var calculatedBaseActivityMultiplier: Double {
         guard let activityLevel = delegate.userBuilder.activityLevel else {
             return 1.0
         }
-        return viewModel.baseActivityMultiplier(activityLevel: activityLevel)
+        return presenter.baseActivityMultiplier(activityLevel: activityLevel)
     }
     
     private var exerciseDescriptionText: String {
         guard let exerciseFrequency = delegate.userBuilder.exerciseFrequency else {
             return "N/A"
         }
-        return viewModel.exerciseDescription(exerciseFrequency: exerciseFrequency)
+        return presenter.exerciseDescription(exerciseFrequency: exerciseFrequency)
     }
     
     private var calculatedExerciseAdjustment: Double {
         guard let exerciseFrequency = delegate.userBuilder.exerciseFrequency else {
             return 0.0
         }
-        return viewModel.exerciseAdjustment(exerciseFrequency: exerciseFrequency)
+        return presenter.exerciseAdjustment(exerciseFrequency: exerciseFrequency)
     }
     
     private var calculatedTdeeInt: Int {
@@ -237,7 +232,7 @@ struct OnboardingExpenditureView: View {
               let exerciseFrequency = userBuilder.exerciseFrequency else {
             return 0
         }
-        let context = OnboardingExpenditureViewModel.ExpenditureContext(
+        let context = OnboardingExpenditurePresenter.ExpenditureContext(
             weight: weight,
             height: height,
             dateOfBirth: dateOfBirth,
@@ -245,7 +240,7 @@ struct OnboardingExpenditureView: View {
             activityLevel: activityLevel,
             exerciseFrequency: exerciseFrequency
         )
-        return viewModel.tdeeInt(context: context)
+        return presenter.tdeeInt(context: context)
     }
 }
 
@@ -254,7 +249,7 @@ struct OnboardingExpenditureView: View {
     RouterView { router in
         builder.onboardingExpenditureView(
             router: router, 
-            delegate: OnboardingExpenditureViewDelegate(userBuilder: .mock)
+            delegate: OnboardingExpenditureDelegate(userBuilder: .mock)
         )
     }
     .previewEnvironment()

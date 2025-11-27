@@ -1,5 +1,5 @@
 //
-//  IngredientTemplateListViewModel.swift
+//  IngredientTemplateListPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 26/10/2025.
@@ -16,22 +16,26 @@ extension CoreInteractor: IngredientTemplateListInteractor { }
 @MainActor
 protocol IngredientTemplateListRouter {
     func showDevSettingsView()
+    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: IngredientTemplateListRouter { }
 
 // Typealias for backward compatibility
-typealias IngredientTemplateListViewModel = GenericTemplateListViewModel<IngredientTemplateModel>
+typealias IngredientTemplateListPresenter = GenericTemplateListPresenter<IngredientTemplateModel>
 
-extension GenericTemplateListViewModel where Template == IngredientTemplateModel {
+extension GenericTemplateListPresenter where Template == IngredientTemplateModel {
     static func create(
         interactor: IngredientTemplateListInteractor,
         router: IngredientTemplateListRouter,
         templateIds: [String]?
-    ) -> IngredientTemplateListViewModel {
-        return GenericTemplateListViewModel<IngredientTemplateModel>(
+    ) -> IngredientTemplateListPresenter {
+        return GenericTemplateListPresenter<IngredientTemplateModel>(
             configuration: .ingredient,
             templateIds: templateIds,
+            showAlert: { title, subtitle in
+                router.showSimpleAlert(title: title, subtitle: subtitle)
+            },
             fetchTemplatesByIds: { ids, limit in
                 try await interactor.getIngredientTemplates(ids: ids, limitTo: limit)
             }
@@ -42,11 +46,14 @@ extension GenericTemplateListViewModel where Template == IngredientTemplateModel
     static func create(
         interactor: IngredientTemplateListInteractor,
         router: IngredientTemplateListRouter,
-        delegate: IngredientTemplateListViewDelegate
-    ) -> IngredientTemplateListViewModel {
-        return GenericTemplateListViewModel<IngredientTemplateModel>(
+        delegate: IngredientTemplateListDelegate
+    ) -> IngredientTemplateListPresenter {
+        return GenericTemplateListPresenter<IngredientTemplateModel>(
             configuration: .ingredient,
             templateIds: delegate.templateIds,
+            showAlert: { title, subtitle in
+                router.showSimpleAlert(title: title, subtitle: subtitle)
+            },
             fetchTemplatesByIds: { ids, limit in
                 try await interactor.getIngredientTemplates(ids: ids, limitTo: limit)
             }

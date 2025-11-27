@@ -10,13 +10,13 @@ import CustomRouting
 
 struct ProgramManagementView: View {
 
-    @State var viewModel: ProgramManagementViewModel
+    @State var presenter: ProgramManagementPresenter
 
-    @ViewBuilder var programRowView: (ProgramRowViewDelegate) -> AnyView
+    @ViewBuilder var programRowView: (ProgramRowDelegate) -> AnyView
 
     var body: some View {
         List {
-            if !viewModel.trainingPlans.isEmpty {
+            if !presenter.trainingPlans.isEmpty {
                 activeProgramSection
                 otherProgramsSection
             } else {
@@ -29,7 +29,7 @@ struct ProgramManagementView: View {
             toolbarContent
         }
         .overlay {
-            if viewModel.isLoading {
+            if presenter.isLoading {
                 ProgressView()
                     .padding()
                     .background(.regularMaterial)
@@ -40,30 +40,15 @@ struct ProgramManagementView: View {
     
     private var activeProgramSection: some View {
         Group {
-            if let activePlan = viewModel.activePlan {
+            if let activePlan = presenter.activePlan {
                 Section {
-                    let delegate = ProgramRowViewDelegate(
+                    let delegate = ProgramRowDelegate(
                         plan: activePlan,
                         isActive: true,
-                        onEdit: { viewModel.editingPlan = activePlan },
+                        onEdit: { presenter.editingPlan = activePlan },
                         onDelete: {
-                            viewModel.planToDelete = activePlan
-                            viewModel.showDeleteAlert = AnyAppAlert(
-                                title: "Delete Program",
-                                subtitle: "Are you sure you want to delete your active program '\(activePlan.name)'? This will remove all scheduled workouts and you'll need to create or select a new program.",
-                                buttons: {
-                                    AnyView(
-                                        Group {
-                                            Button("Cancel", role: .cancel) { }
-                                            Button("Delete", role: .destructive) {
-                                                Task {
-                                                    await viewModel.deletePlan(activePlan)
-                                                }
-                                            }
-                                        }
-                                    )
-                                }
-                            )
+                            presenter.planToDelete = activePlan
+                            presenter.showDeleteAlert(activePlan: activePlan)
                         }
                     )
                     programRowView(delegate)
@@ -78,39 +63,24 @@ struct ProgramManagementView: View {
     
     private var otherProgramsSection: some View {
         Group {
-            let inactivePlans = viewModel.trainingPlans.filter { !$0.isActive }
+            let inactivePlans = presenter.trainingPlans.filter { !$0.isActive }
             
             if !inactivePlans.isEmpty {
                 Section {
                     ForEach(inactivePlans) { plan in
                         programRowView(
-                            ProgramRowViewDelegate(
+                            ProgramRowDelegate(
                                 plan: plan,
                                 isActive: false,
                                 onActivate: {
                                     Task {
-                                        await viewModel.setActivePlan(plan)
+                                        await presenter.setActivePlan(plan)
                                     }
                                 },
-                                onEdit: { viewModel.editingPlan = plan },
+                                onEdit: { presenter.editingPlan = plan },
                                 onDelete: {
-                                    viewModel.planToDelete = plan
-                                    viewModel.showDeleteAlert = AnyAppAlert(
-                                        title: "Delete Program",
-                                        subtitle: "Are you sure you want to delete '\(plan.name)'? This action cannot be undone.",
-                                        buttons: {
-                                            AnyView(
-                                                Group {
-                                                    Button("Cancel", role: .cancel) { }
-                                                    Button("Delete", role: .destructive) {
-                                                        Task {
-                                                            await viewModel.deletePlan(plan)
-                                                        }
-                                                    }
-                                                }
-                                            )
-                                        }
-                                    )
+                                    presenter.planToDelete = plan
+                                    presenter.showDeleteAlert(activePlan: plan)
                                 }
                             )
                         )
@@ -129,7 +99,7 @@ struct ProgramManagementView: View {
             Text("Create your first training program to get started")
         } actions: {
             Button {
-                viewModel.showCreateSheet = true
+                presenter.showCreateSheet = true
             } label: {
                 Text("Create Program")
             }
@@ -141,13 +111,13 @@ struct ProgramManagementView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button("Done") {
-                viewModel.dismissScreen()
+                presenter.dismissScreen()
             }
         }
 
         ToolbarItem(placement: .primaryAction) {
             Button {
-                viewModel.showCreateSheet = true
+                presenter.showCreateSheet = true
             } label: {
                 Image(systemName: "plus")
             }

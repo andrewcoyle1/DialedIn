@@ -9,14 +9,14 @@ import SwiftUI
 
 struct SplitViewContainer: View {
 
-    @State var viewModel: SplitViewContainerViewModel
+    @State var presenter: SplitViewContainerPresenter
     var tabs: [TabBarScreen]
 
-    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryViewDelegate) -> AnyView
-    @ViewBuilder var workoutTrackerView: (WorkoutTrackerViewDelegate) -> AnyView
+    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> AnyView
+    @ViewBuilder var workoutTrackerView: (WorkoutTrackerDelegate) -> AnyView
 
     var body: some View {
-        NavigationSplitView(columnVisibility: .constant(.all), preferredCompactColumn: $viewModel.preferredColumn) {
+        NavigationSplitView(columnVisibility: .constant(.all), preferredCompactColumn: $presenter.preferredColumn) {
             // Sidebar
             List {
                 Section {
@@ -30,8 +30,8 @@ struct SplitViewContainer: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                if let active = viewModel.activeSession, !viewModel.isTrackerPresented {
-                    tabViewAccessoryView(TabViewAccessoryViewDelegate(active: active))
+                if let active = presenter.activeSession, !presenter.isTrackerPresented {
+                    tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
                         .padding()
                         .buttonStyle(.bordered)
                 }
@@ -49,18 +49,18 @@ struct SplitViewContainer: View {
         }
         .navigationSplitViewStyle(.balanced)
         .sheet(isPresented: Binding(get: {
-            viewModel.isTrackerPresented
+            presenter.isTrackerPresented
         }, set: { newValue in
-            viewModel.isTrackerPresented = newValue
+            presenter.isTrackerPresented = newValue
         })) {
-            if let session = viewModel.activeSession {
-                workoutTrackerView(WorkoutTrackerViewDelegate(workoutSession: session))
+            if let session = presenter.activeSession {
+                workoutTrackerView(WorkoutTrackerDelegate(workoutSession: session))
             }
         }
         .task {
             // Load any active session from local storage when the SplitView appears
-            if let active = try? viewModel.getActiveLocalWorkoutSession() {
-                viewModel.activeSession = active
+            if let active = try? presenter.getActiveLocalWorkoutSession() {
+                presenter.activeSession = active
             }
         }
     }

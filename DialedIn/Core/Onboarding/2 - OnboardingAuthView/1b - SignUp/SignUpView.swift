@@ -10,7 +10,7 @@ import CustomRouting
 
 struct SignUpView: View {
 
-    @State var viewModel: SignUpViewModel
+    @State var presenter: SignUpPresenter
 
     var body: some View {
         List {
@@ -22,29 +22,28 @@ struct SignUpView: View {
         .toolbar {
             toolbarContent
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
-        .showModal(showModal: $viewModel.isLoadingUser) {
+        .showModal(showModal: $presenter.isLoadingUser) {
             ProgressView()
                 .tint(.white)
         }
         .onDisappear {
-            viewModel.cleanup()
+            presenter.cleanup()
         }
     }
     
     private var emailSection: some View {
         Section {
             TextField("Please enter your email",
-                      text: $viewModel.email
+                      text: $presenter.email
             )
             .textContentType(.emailAddress)
             .keyboardType(.emailAddress)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
-            .onChange(of: viewModel.email) { _, _ in
-                viewModel.emailTouched = true
+            .onChange(of: presenter.email) { _, _ in
+                presenter.emailTouched = true
             }
-            if let error = viewModel.emailValidationError {
+            if let error = presenter.emailValidationError {
                 Text(error)
                     .font(.footnote)
                     .foregroundStyle(Color.red)
@@ -58,24 +57,24 @@ struct SignUpView: View {
         Section {
             SecureField(
                 "Please enter your password",
-                text: $viewModel.password
+                text: $presenter.password
             )
             .textContentType(.newPassword)
-            .onChange(of: viewModel.password) { _, _ in
-                viewModel.passwordTouched = true
+            .onChange(of: presenter.password) { _, _ in
+                presenter.passwordTouched = true
             }
             
-            if let error = viewModel.passwordValidationError {
+            if let error = presenter.passwordValidationError {
                 Text(error)
                     .font(.footnote)
                     .foregroundStyle(Color.red)
             }
             SecureField("Please re-enter your password",
-                        text: $viewModel.passwordReenter
+                        text: $presenter.passwordReenter
             )
             .textContentType(.newPassword)
-            .onChange(of: viewModel.passwordReenter) { _, _ in viewModel.passwordReenterTouched = true }
-            if let error = viewModel.passwordReenterValidationError {
+            .onChange(of: presenter.passwordReenter) { _, _ in presenter.passwordReenterTouched = true }
+            if let error = presenter.passwordReenterValidationError {
                 Text(error)
                     .font(.footnote)
                     .foregroundStyle(Color.red)
@@ -92,7 +91,7 @@ struct SignUpView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -101,7 +100,7 @@ struct SignUpView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onSignUpPressed()
+                presenter.onSignUpPressed()
             } label: {
                 Image(systemName: "chevron.right")
             }

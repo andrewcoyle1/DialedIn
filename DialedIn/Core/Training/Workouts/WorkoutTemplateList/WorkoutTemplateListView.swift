@@ -8,32 +8,32 @@
 import SwiftUI
 import CustomRouting
 
-struct WorkoutTemplateListViewDelegate {
+struct WorkoutTemplateListDelegate {
     let templateIds: [String]?
 }
 
 struct WorkoutTemplateListView: View {
-    @State var viewModel: WorkoutTemplateListViewModel
-    let delegate: WorkoutTemplateListViewDelegate
+    @State var presenter: WorkoutTemplateListPresenter
+    let delegate: WorkoutTemplateListDelegate
     let config: TemplateListConfiguration<WorkoutTemplateModel>
     let genericTemplateListView: (
-        WorkoutTemplateListViewModel,
+        WorkoutTemplateListPresenter,
         TemplateListConfiguration<WorkoutTemplateModel>,
         Bool,
         [String]?
     ) -> AnyView
 
     init(
-        viewModel: WorkoutTemplateListViewModel,
-        delegate: WorkoutTemplateListViewDelegate,
+        presenter: WorkoutTemplateListPresenter,
+        delegate: WorkoutTemplateListDelegate,
         genericTemplateListView: @escaping (
-            WorkoutTemplateListViewModel,
+            WorkoutTemplateListPresenter,
             TemplateListConfiguration<WorkoutTemplateModel>,
             Bool,
             [String]?
         ) -> AnyView
     ) {
-        self.viewModel = viewModel
+        self.presenter = presenter
         self.delegate = delegate
         self.config = delegate.templateIds != nil ? .workout : .workout(customTitle: "Workout Templates", customEmptyDescription: "No workout templates available.")
         self.genericTemplateListView = genericTemplateListView
@@ -41,7 +41,7 @@ struct WorkoutTemplateListView: View {
 
     var body: some View {
         genericTemplateListView(
-            viewModel,
+            presenter,
             config,
             false,
             delegate.templateIds
@@ -54,7 +54,7 @@ struct WorkoutTemplateListView: View {
     RouterView { router in
         builder.workoutTemplateListView(
             router: router,
-            delegate: WorkoutTemplateListViewDelegate(templateIds: [])
+            delegate: WorkoutTemplateListDelegate(templateIds: [])
         )
     }
     .previewEnvironment()

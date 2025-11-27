@@ -8,19 +8,15 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingTrainingReviewViewDelegate {
-    var trainingProgramBuilder: TrainingProgramBuilder
-}
-
 struct OnboardingTrainingReviewView: View {
 
-    @State var viewModel: OnboardingTrainingReviewViewModel
+    @State var presenter: OnboardingTrainingReviewPresenter
 
-    var delegate: OnboardingTrainingReviewViewDelegate
+    var delegate: OnboardingTrainingReviewDelegate
 
     var body: some View {
         List {
-            if let recommendedTemplate = viewModel.recommendedTemplate {
+            if let recommendedTemplate = presenter.recommendedTemplate {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Recommended Program")
@@ -62,14 +58,13 @@ struct OnboardingTrainingReviewView: View {
         .toolbar {
             toolbarContent
         }
-        .showModal(showModal: $viewModel.isLoading) {
+        .showModal(showModal: $presenter.isLoading) {
             ProgressView("Creating your program...")
                 .padding()
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
         .screenAppearAnalytics(name: "TrainingReview")
         .onFirstAppear {
-            viewModel.loadRecommendation(builder: delegate.trainingProgramBuilder)
+            presenter.loadRecommendation(builder: delegate.trainingProgramBuilder)
         }
     }
     
@@ -101,7 +96,7 @@ struct OnboardingTrainingReviewView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -110,12 +105,12 @@ struct OnboardingTrainingReviewView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.createPlanAndContinue(builder: delegate.trainingProgramBuilder)
+                presenter.createPlanAndContinue(builder: delegate.trainingProgramBuilder)
             } label: {
                 Text("Create Program")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.recommendedTemplate == nil || viewModel.isLoading)
+            .disabled(presenter.recommendedTemplate == nil || presenter.isLoading)
         }
     }
 }
@@ -125,7 +120,7 @@ struct OnboardingTrainingReviewView: View {
     RouterView { router in
         builder.onboardingTrainingReviewView(
             router: router,
-            delegate: OnboardingTrainingReviewViewDelegate(
+            delegate: OnboardingTrainingReviewDelegate(
                 trainingProgramBuilder: TrainingProgramBuilder(
                     experienceLevel: .intermediate,
                     targetDaysPerWeek: 4,

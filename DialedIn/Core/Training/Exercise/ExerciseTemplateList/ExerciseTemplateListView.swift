@@ -8,32 +8,32 @@
 import SwiftUI
 import CustomRouting
 
-struct ExerciseTemplateListViewDelegate {
+struct ExerciseTemplateListDelegate {
     let templateIds: [String]?
 }
 
 struct ExerciseTemplateListView: View {
-    @State var viewModel: ExerciseTemplateListViewModel
-    let delegate: ExerciseTemplateListViewDelegate
+    @State var presenter: ExerciseTemplateListPresenter
+    let delegate: ExerciseTemplateListDelegate
     let config: TemplateListConfiguration<ExerciseTemplateModel>
     let genericTemplateListView: (
-        ExerciseTemplateListViewModel,
+        ExerciseTemplateListPresenter,
         TemplateListConfiguration<ExerciseTemplateModel>,
         Bool,
         [String]?
     ) -> AnyView
 
     init(
-        viewModel: ExerciseTemplateListViewModel,
-        delegate: ExerciseTemplateListViewDelegate,
+        presenter: ExerciseTemplateListPresenter,
+        delegate: ExerciseTemplateListDelegate,
         genericTemplateListView: @escaping (
-            ExerciseTemplateListViewModel,
+            ExerciseTemplateListPresenter,
             TemplateListConfiguration<ExerciseTemplateModel>,
             Bool,
             [String]?
         ) -> AnyView
     ) {
-        self.viewModel = viewModel
+        self.presenter = presenter
         self.delegate = delegate
         self.config = delegate.templateIds != nil ? .exercise : .exercise(customTitle: "Exercise Templates")
         self.genericTemplateListView = genericTemplateListView
@@ -41,7 +41,7 @@ struct ExerciseTemplateListView: View {
     
     var body: some View {
         genericTemplateListView(
-            viewModel,
+            presenter,
             config,
             false,
             delegate.templateIds
@@ -54,7 +54,7 @@ struct ExerciseTemplateListView: View {
     RouterView { router in
         builder.exerciseTemplateListView(
             router: router, 
-            delegate: ExerciseTemplateListViewDelegate(templateIds: [])
+            delegate: ExerciseTemplateListDelegate(templateIds: [])
         )
     }
     .previewEnvironment()

@@ -10,7 +10,7 @@ import CustomRouting
 
 struct OnboardingSubscriptionView: View {
 
-    @State var viewModel: OnboardingSubscriptionViewModel
+    @State var presenter: OnboardingSubscriptionPresenter
 
     var body: some View {
         List {
@@ -29,7 +29,7 @@ struct OnboardingSubscriptionView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -38,7 +38,7 @@ struct OnboardingSubscriptionView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToSubscriptionPlan()
+                presenter.navigateToSubscriptionPlan()
             } label: {
                 Image(systemName: "chevron.right")
             }

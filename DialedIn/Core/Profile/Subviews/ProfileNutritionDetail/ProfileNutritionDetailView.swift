@@ -9,11 +9,12 @@ import SwiftUI
 import CustomRouting
 
 struct ProfileNutritionDetailView: View {
-    @State var viewModel: ProfileNutritionDetailViewModel
+    
+    @State var presenter: ProfileNutritionDetailPresenter
     
     var body: some View {
         List {
-            if let plan = viewModel.currentDietPlan {
+            if let plan = presenter.currentDietPlan {
                 overviewSection(plan)
                 weeklyBreakdownSection(plan)
                 chartSection(plan)

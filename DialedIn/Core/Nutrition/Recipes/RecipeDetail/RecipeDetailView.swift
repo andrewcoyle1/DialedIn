@@ -8,17 +8,13 @@
 import SwiftUI
 import CustomRouting
 
-struct RecipeDetailViewDelegate {
-    let recipeTemplate: RecipeTemplateModel
-}
-
 struct RecipeDetailView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State var viewModel: RecipeDetailViewModel
+    @State var presenter: RecipeDetailPresenter
 
-    let delegate: RecipeDetailViewDelegate
+    let delegate: RecipeDetailDelegate
 
     var body: some View {
         List {
@@ -35,16 +31,15 @@ struct RecipeDetailView: View {
         .navigationTitle(delegate.recipeTemplate.name)
         .navigationSubtitle(delegate.recipeTemplate.description ?? "")
         .navigationBarTitleDisplayMode(.large)
-        .showCustomAlert(alert: $viewModel.showAlert)
         .toolbar {
             toolbarContent
         }
-        .onAppear { viewModel.loadInitialState(recipeTemplate: delegate.recipeTemplate)}
-        .onChange(of: viewModel.currentUser) {_, _ in
-            let user = viewModel.currentUser
+        .onAppear { presenter.loadInitialState(recipeTemplate: delegate.recipeTemplate)}
+        .onChange(of: presenter.currentUser) {_, _ in
+            let user = presenter.currentUser
             let isAuthor = user?.userId == delegate.recipeTemplate.authorId
-            viewModel.isBookmarked = isAuthor || (user?.bookmarkedRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false) || (user?.createdRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false)
-            viewModel.isFavourited = user?.favouritedRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false
+            presenter.isBookmarked = isAuthor || (user?.bookmarkedRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false) || (user?.createdRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false)
+            presenter.isFavourited = user?.favouritedRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false
         }
     }
     
@@ -62,7 +57,7 @@ struct RecipeDetailView: View {
                 Text(wrapper.ingredient.name)
                     .fontWeight(.semibold)
                 Spacer()
-                Text("\(Int(wrapper.amount)) \(viewModel.displayUnit(wrapper.unit))")
+                Text("\(Int(wrapper.amount)) \(presenter.displayUnit(wrapper.unit))")
                     .foregroundStyle(.secondary)
             }
             if let notes = wrapper.ingredient.description, !notes.isEmpty {
@@ -78,7 +73,7 @@ struct RecipeDetailView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -88,28 +83,28 @@ struct RecipeDetailView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 Task {
-                    await viewModel.onFavoritePressed(recipeTemplate: delegate.recipeTemplate)
+                    await presenter.onFavoritePressed(recipeTemplate: delegate.recipeTemplate)
                 }
             } label: {
-                Image(systemName: viewModel.isFavourited ? "heart.fill" : "heart")
+                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
             }
         }
         // Hide bookmark button when the current user is the author
-        if viewModel.currentUser?.userId != nil && viewModel.currentUser?.userId != delegate.recipeTemplate.authorId {
+        if presenter.currentUser?.userId != nil && presenter.currentUser?.userId != delegate.recipeTemplate.authorId {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
-                        await viewModel.onBookmarkPressed(recipeTemplate: delegate.recipeTemplate)
+                        await presenter.onBookmarkPressed(recipeTemplate: delegate.recipeTemplate)
                     }
                 } label: {
-                    Image(systemName: viewModel.isBookmarked ? "book.closed.fill" : "book.closed")
+                    Image(systemName: presenter.isBookmarked ? "book.closed.fill" : "book.closed")
                 }
             }
         }
 
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                viewModel.onStartRecipePressed(recipe: delegate.recipeTemplate)
+                presenter.onStartRecipePressed(recipe: delegate.recipeTemplate)
             } label: {
                 Label("Start", systemImage: "play.fill")
             }
@@ -121,7 +116,7 @@ struct RecipeDetailView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.recipeDetailView(router: router, delegate: RecipeDetailViewDelegate(recipeTemplate: .mock))
+        builder.recipeDetailView(router: router, delegate: RecipeDetailDelegate(recipeTemplate: .mock))
     }
     .previewEnvironment()
 }

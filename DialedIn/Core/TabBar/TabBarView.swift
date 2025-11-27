@@ -20,11 +20,11 @@ struct TabBarScreen: Identifiable {
 
 struct TabBarView: View {
 
-    @State var viewModel: TabBarViewModel
+    @State var presenter: TabBarPresenter
 
     var tabs: [TabBarScreen]
     
-    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryViewDelegate) -> AnyView
+    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> AnyView
 
     var body: some View {
         TabView {
@@ -38,12 +38,12 @@ struct TabBarView: View {
         .tabViewStyle(.tabBarOnly)
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory {
-            if let active = viewModel.active {
-                tabViewAccessoryView(TabViewAccessoryViewDelegate(active: active))
+            if let active = presenter.active {
+                tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
             }
         }
         .task {
-            _ = viewModel.checkForActiveSession()
+            _ = presenter.checkForActiveSession()
         }
     }
 }

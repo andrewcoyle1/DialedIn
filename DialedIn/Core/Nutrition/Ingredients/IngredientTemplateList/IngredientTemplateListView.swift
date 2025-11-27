@@ -8,45 +8,45 @@
 import SwiftUI
 import CustomRouting
 
-struct IngredientTemplateListViewDelegate {
+struct IngredientTemplateListDelegate {
     var templateIds: [String]
 }
 
 struct IngredientTemplateListView: View {
-    @State var viewModel: IngredientTemplateListViewModel
+    @State var presenter: IngredientTemplateListPresenter
     let genericTemplateListView: (
-        IngredientTemplateListViewModel,
+        IngredientTemplateListPresenter,
         TemplateListConfiguration<IngredientTemplateModel>,
         Bool,
         [String]?
     ) -> AnyView
 
     init(
-        viewModel: IngredientTemplateListViewModel,
-        delegate: IngredientTemplateListViewDelegate,
+        presenter: IngredientTemplateListPresenter,
+        delegate: IngredientTemplateListDelegate,
         genericTemplateListView: @escaping (
-            IngredientTemplateListViewModel,
+            IngredientTemplateListPresenter,
             TemplateListConfiguration<IngredientTemplateModel>,
             Bool,
             [String]?
         ) -> AnyView
     ) {
-        self.viewModel = viewModel
+        self.presenter = presenter
         self.genericTemplateListView = genericTemplateListView
     }
     
     init(
         interactor: IngredientTemplateListInteractor,
         router: IngredientTemplateListRouter,
-        delegate: IngredientTemplateListViewDelegate,
+        delegate: IngredientTemplateListDelegate,
         genericTemplateListView: @escaping (
-            IngredientTemplateListViewModel,
+            IngredientTemplateListPresenter,
             TemplateListConfiguration<IngredientTemplateModel>,
             Bool,
             [String]?
         ) -> AnyView
     ) {
-        self.viewModel = IngredientTemplateListViewModel.create(
+        self.presenter = IngredientTemplateListPresenter.create(
             interactor: interactor,
             router: router,
             delegate: delegate
@@ -56,10 +56,10 @@ struct IngredientTemplateListView: View {
 
     var body: some View {
         genericTemplateListView(
-            viewModel,
+            presenter,
             .ingredient,
             true,
-            viewModel.templateIds
+            presenter.templateIds
         )
     }
 }
@@ -69,7 +69,7 @@ struct IngredientTemplateListView: View {
     RouterView { router in
         builder.ingredientTemplateListView(
             router: router, 
-            delegate: IngredientTemplateListViewDelegate(
+            delegate: IngredientTemplateListDelegate(
                 templateIds: []
             )
         )

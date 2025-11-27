@@ -8,14 +8,10 @@
 import SwiftUI
 import CustomRouting
 
-struct MealDetailViewDelegate {
-    let meal: MealLogModel
-}
-
 struct MealDetailView: View {
-    @State var viewModel: MealDetailViewModel
+    @State var presenter: MealDetailPresenter
 
-    let delegate: MealDetailViewDelegate
+    let delegate: MealDetailDelegate
 
     var body: some View {
         Text(delegate.meal.id)
@@ -25,6 +21,6 @@ struct MealDetailView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.mealDetailView(router: router, delegate: MealDetailViewDelegate(meal: .mock))
+        builder.mealDetailView(router: router, delegate: MealDetailDelegate(meal: .mock))
     }
 }

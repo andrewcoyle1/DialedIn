@@ -9,9 +9,8 @@ import SwiftUI
 import CustomRouting
 
 struct SettingsView: View {
-    @Environment(\.dismiss) private var dismiss
 
-    @State var viewModel: SettingsViewModel
+    @State var presenter: SettingsPresenter
 
     var body: some View {
         List {
@@ -21,11 +20,10 @@ struct SettingsView: View {
         }
         .navigationTitle("Settings")
         .onAppear {
-            viewModel.setAnonymousAccountStatus()
+            presenter.setAnonymousAccountStatus()
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
         .screenAppearAnalytics(name: "Settings")
-        .showModal(showModal: $viewModel.showRatingsModal) {
+        .showModal(showModal: $presenter.showRatingsModal) {
             ratingsModal
         }
     }
@@ -35,31 +33,29 @@ struct SettingsView: View {
             title: "Are you enjoying Dialed?",
             subtitle: "We'd love to hear your feedback!",
             primaryButtonTitle: "Yes",
-            primaryButtonAction: { viewModel.onEnjoyingAppYesPressed() },
+            primaryButtonAction: { presenter.onEnjoyingAppYesPressed() },
             secondaryButtonTitle: "Not now",
-            secondaryButtonAction: { viewModel.onEnjoyingAppNoPressed() }
+            secondaryButtonAction: { presenter.onEnjoyingAppNoPressed() }
         )
     }
     private var accountSection: some View {
         Section {
-            if viewModel.isAnonymousUser {
+            if presenter.isAnonymousUser {
                 Text("Save & back-up account")
                     .anyButton(.highlight) {
-                        viewModel.onCreateAccountPressed()
+                        presenter.onCreateAccountPressed()
                     }
             } else {
                 Text("Sign out")
                     .anyButton(.highlight) {
-                        viewModel.onSignOutPressed(onDismiss: { dismiss() })
+                        presenter.onSignOutPressed()
                     }
             }
             
             Text("Delete account")
                 .foregroundStyle(.red)
                 .anyButton(.highlight) {
-                    viewModel.onDeleteAccountPressed(onDismiss: {
-                        dismiss()
-                    })
+                    presenter.onDeleteAccountPressed()
                 }
         } header: {
             Text("Account")
@@ -69,9 +65,9 @@ struct SettingsView: View {
     private var purchaseSection: some View {
         Section {
             Button {
-                viewModel.navToManageSubscriptionView()
+                presenter.navToManageSubscriptionView()
             } label: {
-                Text("Account status: \(viewModel.isPremium ? "PREMIUM" : "FREE")")
+                Text("Account status: \(presenter.isPremium ? "PREMIUM" : "FREE")")
             }
             
         } header: {
@@ -82,7 +78,7 @@ struct SettingsView: View {
     private var applicationSection: some View {
         Section {
             Button {
-                viewModel.onRatingsButtonPressed()
+                presenter.onRatingsButtonPressed()
             } label: {
                 Text("Rate us on the App Store")
             }
@@ -90,19 +86,19 @@ struct SettingsView: View {
             HStack(spacing: 8) {
                 Text("Version")
                 Spacer(minLength: 0)
-                Text(viewModel.appVersion)
+                Text(presenter.appVersion)
                     .foregroundStyle(.secondary)
             }
             
             HStack(spacing: 8) {
                 Text("Build Number")
                 Spacer(minLength: 0)
-                Text(viewModel.appBuild)
+                Text(presenter.appBuild)
                     .foregroundStyle(.secondary)
             }
 
             Button {
-                viewModel.onContactUsPressed()
+                presenter.onContactUsPressed()
             } label: {
                 Text("Contact us")
             }

@@ -8,7 +8,7 @@
 import SwiftUI
 import CustomRouting
 
-struct ExercisesViewDelegate {
+struct ExercisesDelegate {
     let onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?
 }
 
@@ -16,29 +16,29 @@ struct ExercisesView: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
-    @State var viewModel: ExercisesViewModel
+    @State var presenter: ExercisesPresenter
 
-    let delegate: ExercisesViewDelegate
+    let delegate: ExercisesDelegate
 
     var body: some View {
         List {
-            if viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 
-                if !viewModel.favouriteExercises.isEmpty {
+                if !presenter.favouriteExercises.isEmpty {
                     favouriteExerciseTemplatesSection
                 }
 
                 myExercisesSection
                 
-                if !viewModel.officialExercisesVisible.isEmpty {
+                if !presenter.officialExercisesVisible.isEmpty {
                     officialExercisesSection
                 }
 
-                if !viewModel.bookmarkedOnlyExercises.isEmpty {
+                if !presenter.bookmarkedOnlyExercises.isEmpty {
                     bookmarkedExerciseTemplatesSection
                 }
 
-                if !viewModel.trendingExercisesDeduped.isEmpty {
+                if !presenter.trendingExercisesDeduped.isEmpty {
                     exerciseTemplateSection
                 }
             } else {
@@ -48,38 +48,38 @@ struct ExercisesView: View {
         }
         .screenAppearAnalytics(name: "ExercisesView")
         .navigationTitle("Exercises")
-        .navigationSubtitle("\(viewModel.exercises.count) exercises")
+        .navigationSubtitle("\(presenter.exercises.count) exercises")
         .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
         .onFirstTask {
-            await viewModel.loadMyExercisesIfNeeded()
-            await viewModel.loadOfficialExercises()
-            await viewModel.loadTopExercisesIfNeeded()
-            await viewModel.syncSavedExercisesFromUser()
+            await presenter.loadMyExercisesIfNeeded()
+            await presenter.loadOfficialExercises()
+            await presenter.loadTopExercisesIfNeeded()
+            await presenter.syncSavedExercisesFromUser()
         }
         .refreshable {
-            await viewModel.loadMyExercisesIfNeeded()
-            await viewModel.loadOfficialExercises()
-            await viewModel.loadTopExercisesIfNeeded()
-            await viewModel.syncSavedExercisesFromUser()
+            await presenter.loadMyExercisesIfNeeded()
+            await presenter.loadOfficialExercises()
+            await presenter.loadTopExercisesIfNeeded()
+            await presenter.syncSavedExercisesFromUser()
         }
-        .onChange(of: viewModel.currentUser) {
+        .onChange(of: presenter.currentUser) {
             Task {
-                await viewModel.syncSavedExercisesFromUser()
+                await presenter.syncSavedExercisesFromUser()
             }
         }
     }
     
     private var favouriteExerciseTemplatesSection: some View {
         Section {
-            ForEach(viewModel.favouriteExercises) { exercise in
+            ForEach(presenter.favouriteExercises) { exercise in
                 CustomListCellView(
                     imageName: exercise.imageURL,
                     title: exercise.name,
                     subtitle: exercise.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
+                    presenter.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
                 }
                 .removeListRowFormatting()
             }
@@ -87,20 +87,20 @@ struct ExercisesView: View {
             Text("Favourites")
         }
         .onAppear {
-            viewModel.favouritesSectionViewed()
+            presenter.favouritesSectionViewed()
         }
     }
 
     private var bookmarkedExerciseTemplatesSection: some View {
         Section {
-            ForEach(viewModel.bookmarkedOnlyExercises) { exercise in
+            ForEach(presenter.bookmarkedOnlyExercises) { exercise in
                 CustomListCellView(
                     imageName: exercise.imageURL,
                     title: exercise.name,
                     subtitle: exercise.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
+                    presenter.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
                 }
                 .removeListRowFormatting()
             }
@@ -108,13 +108,13 @@ struct ExercisesView: View {
             Text("Bookmarked")
         }
         .onAppear {
-            viewModel.bookmarkedSectionViewed()
+            presenter.bookmarkedSectionViewed()
         }
     }
 
     private var exerciseTemplateSection: some View {
         Section {
-            if viewModel.isLoading {
+            if presenter.isLoading {
                 HStack {
                     ProgressView()
                     Text("Loading...")
@@ -122,7 +122,7 @@ struct ExercisesView: View {
                 .foregroundStyle(Color.secondary)
                 .removeListRowFormatting()
             }
-            ForEach(viewModel.visibleExerciseTemplates) { exercise in
+            ForEach(presenter.visibleExerciseTemplates) { exercise in
                 HStack(spacing: 8) {
                     ZStack {
                         if let imageName = exercise.imageURL {
@@ -156,21 +156,21 @@ struct ExercisesView: View {
                 .padding(.vertical, 4)
                 .background(Color(uiColor: .systemBackground))
                 .anyButton(.highlight) {
-                    viewModel.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
+                    presenter.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
                 }
                 .removeListRowFormatting()
             }
         } header: {
-            Text(viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
+            Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
         }
         .onAppear {
-            viewModel.trendingSectionViewed()
+            presenter.trendingSectionViewed()
         }
     }
 
     private var myExercisesSection: some View {
         Section {
-            if viewModel.myExercisesVisible.isEmpty {
+            if presenter.myExercisesVisible.isEmpty {
                 HStack {
                     Image(systemName: "tray")
                         .foregroundColor(.secondary)
@@ -182,17 +182,17 @@ struct ExercisesView: View {
                 .padding(.vertical, 12)
                 .removeListRowFormatting()
                 .onAppear {
-                    viewModel.emptyStateShown()
+                    presenter.emptyStateShown()
                 }
             } else {
-                ForEach(viewModel.myExercisesVisible) { exercise in
+                ForEach(presenter.myExercisesVisible) { exercise in
                     CustomListCellView(
                         imageName: exercise.imageURL,
                         title: exercise.name,
                         subtitle: exercise.description
                     )
                     .anyButton(.highlight) {
-                        viewModel.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
+                        presenter.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
                     }
                     .removeListRowFormatting()
                 }
@@ -202,7 +202,7 @@ struct ExercisesView: View {
                 Text("My Templates")
                 Spacer()
                 Button {
-                    viewModel.onAddExercisePressed()
+                    presenter.onAddExercisePressed()
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20))
@@ -210,13 +210,13 @@ struct ExercisesView: View {
             }
         }
         .onAppear {
-            viewModel.myTemplatesViewed()
+            presenter.myTemplatesViewed()
         }
     }
     
     private var officialExercisesSection: some View {
         Section {
-            ForEach(viewModel.officialExercisesVisible) { exercise in
+            ForEach(presenter.officialExercisesVisible) { exercise in
                 HStack(spacing: 8) {
                     ZStack {
                         if let imageName = exercise.imageURL {
@@ -250,7 +250,7 @@ struct ExercisesView: View {
                 .padding(.vertical, 4)
                 .background(Color(uiColor: .systemBackground))
                 .anyButton(.highlight) {
-                    viewModel.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
+                    presenter.onExercisePressed(exercise: exercise, onExerciseSelectionChanged: delegate.onExerciseSelectionChanged)
                 }
                 .removeListRowFormatting()
             }
@@ -258,7 +258,7 @@ struct ExercisesView: View {
             Text("Official Exercises")
         }
         .onAppear {
-            viewModel.officialSectionViewed()
+            presenter.officialSectionViewed()
         }
     }
 }
@@ -266,7 +266,7 @@ struct ExercisesView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.exercisesView(router: router, delegate: ExercisesViewDelegate(onExerciseSelectionChanged: nil))
+        builder.exercisesView(router: router, delegate: ExercisesDelegate(onExerciseSelectionChanged: nil))
     }
     .previewEnvironment()
 }

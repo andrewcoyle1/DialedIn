@@ -1,5 +1,5 @@
 //
-//  WorkoutStartViewModel.swift
+//  WorkoutStartPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 21/10/2025.
@@ -19,7 +19,7 @@ extension CoreInteractor: WorkoutStartInteractor { }
 
 @MainActor
 protocol WorkoutStartRouter {
-    func showWorkoutTrackerView(delegate: WorkoutTrackerViewDelegate)
+    func showWorkoutTrackerView(delegate: WorkoutTrackerDelegate)
     func dismissScreen()
 }
 
@@ -27,7 +27,7 @@ extension CoreRouter: WorkoutStartRouter { }
 
 @Observable
 @MainActor
-class WorkoutStartViewModel {
+class WorkoutStartPresenter {
     private let interactor: WorkoutStartInteractor
     private let router: WorkoutStartRouter
 
@@ -109,7 +109,7 @@ class WorkoutStartViewModel {
                 
                 await MainActor.run {
                     interactor.startActiveSession(session)
-                    router.showWorkoutTrackerView(delegate: WorkoutTrackerViewDelegate(workoutSession: session))
+                    router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSession: session))
                 }
                 
             } catch {

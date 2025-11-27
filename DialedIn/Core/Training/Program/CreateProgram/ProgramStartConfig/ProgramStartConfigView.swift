@@ -8,17 +8,12 @@
 import SwiftUI
 import CustomRouting
 
-struct ProgramStartConfigViewDelegate {
-    let template: ProgramTemplateModel
-    let onStart: (Date, Date?, String?) -> Void
-}
-
 struct ProgramStartConfigView: View {
     @Environment(\.dismiss) private var dismiss
     
-    @State var viewModel: ProgramStartConfigViewModel
+    @State var presenter: ProgramStartConfigPresenter
 
-    var delegate: ProgramStartConfigViewDelegate
+    var delegate: ProgramStartConfigDelegate
 
     var body: some View {
         Form {
@@ -33,7 +28,7 @@ struct ProgramStartConfigView: View {
         }
         .onAppear {
             // Initialize end date to default value based on template duration
-            viewModel.endDate = viewModel.calculateDefaultEndDate(template: delegate.template, from: viewModel.startDate)
+            presenter.endDate = presenter.calculateDefaultEndDate(template: delegate.template, from: presenter.startDate)
         }
     }
     
@@ -55,30 +50,30 @@ struct ProgramStartConfigView: View {
     
     private var configurationSection: some View {
         Section {
-            DatePicker("Start Date", selection: $viewModel.startDate, displayedComponents: .date)
-                .onChange(of: viewModel.startDate) { _, newValue in
+            DatePicker("Start Date", selection: $presenter.startDate, displayedComponents: .date)
+                .onChange(of: presenter.startDate) { _, newValue in
                     // Update end date to maintain duration when start date changes
-                    if !viewModel.hasEndDate {
-                        viewModel.endDate = viewModel.calculateDefaultEndDate(template: delegate.template, from: newValue)
+                    if !presenter.hasEndDate {
+                        presenter.endDate = presenter.calculateDefaultEndDate(template: delegate.template, from: newValue)
                     }
                 }
             
-            Toggle("Set End Date", isOn: $viewModel.hasEndDate)
+            Toggle("Set End Date", isOn: $presenter.hasEndDate)
             
-            if viewModel.hasEndDate {
-                DatePicker("End Date", selection: $viewModel.endDate, in: viewModel.startDate..., displayedComponents: .date)
+            if presenter.hasEndDate {
+                DatePicker("End Date", selection: $presenter.endDate, in: presenter.startDate..., displayedComponents: .date)
             }
             
-            Toggle("Custom Name", isOn: $viewModel.useCustomName)
+            Toggle("Custom Name", isOn: $presenter.useCustomName)
             
-            if viewModel.useCustomName {
-                TextField("Program Name", text: $viewModel.customName)
+            if presenter.useCustomName {
+                TextField("Program Name", text: $presenter.customName)
             }
         } header: {
             Text("Configuration")
         } footer: {
-            if viewModel.hasEndDate {
-                let weeks = viewModel.calculateWeeks(from: viewModel.startDate, to: viewModel.endDate)
+            if presenter.hasEndDate {
+                let weeks = presenter.calculateWeeks(from: presenter.startDate, to: presenter.endDate)
                 Text("Custom duration: \(weeks) week\(weeks == 1 ? "" : "s"). Only workouts within this range will be scheduled.")
             } else {
                 Text("This program will run for \(delegate.template.duration) weeks from your start date.")
@@ -96,10 +91,10 @@ struct ProgramStartConfigView: View {
                     ForEach(week.workoutSchedule) { mapping in
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(viewModel.dayName(for: mapping.dayOfWeek))
+                                Text(presenter.dayName(for: mapping.dayOfWeek))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-                                Text(viewModel.calculatedDate(for: mapping.dayOfWeek).formatted(date: .abbreviated, time: .omitted))
+                                Text(presenter.calculatedDate(for: mapping.dayOfWeek).formatted(date: .abbreviated, time: .omitted))
                                     .font(.caption2)
                                     .foregroundStyle(.blue)
                             }
@@ -113,7 +108,7 @@ struct ProgramStartConfigView: View {
             }
             
             Button {
-                viewModel.navToProgramPreviewView(template: delegate.template)
+                presenter.navToProgramPreviewView(template: delegate.template)
             } label: {
                 Label("View Full Schedule", systemImage: "calendar")
                     .font(.subheadline)
@@ -135,9 +130,9 @@ struct ProgramStartConfigView: View {
         
         ToolbarItem(placement: .confirmationAction) {
             Button("Start") {
-                let name = viewModel.useCustomName && !viewModel.customName.isEmpty ? viewModel.customName : nil
-                let finalEndDate = viewModel.hasEndDate ? viewModel.endDate : nil
-                delegate.onStart(viewModel.startDate, finalEndDate, name)
+                let name = presenter.useCustomName && !presenter.customName.isEmpty ? presenter.customName : nil
+                let finalEndDate = presenter.hasEndDate ? presenter.endDate : nil
+                delegate.onStart(presenter.startDate, finalEndDate, name)
             }
         }
     }
@@ -148,7 +143,7 @@ struct ProgramStartConfigView: View {
     RouterView { router in
         builder.programStartConfigView(
             router: router, 
-            delegate: ProgramStartConfigViewDelegate(
+            delegate: ProgramStartConfigDelegate(
                 template: ProgramTemplateModel.mock,
                 onStart: { _, _, _ in
                     

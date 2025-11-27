@@ -7,30 +7,26 @@
 
 import SwiftUI
 
-struct TabViewAccessoryViewDelegate {
+struct TabViewAccessoryDelegate {
     var active: WorkoutSessionModel
 }
 
 struct TabViewAccessoryView: View {
-    @State var viewModel: TabViewAccessoryViewModel
-    let delegate: TabViewAccessoryViewDelegate
+    @State var presenter: TabViewAccessoryPresenter
+    let delegate: TabViewAccessoryDelegate
 
     var body: some View {
-//        Button {
-//            viewModel.reopenActiveSession()
-//        } label: {
             HStack {
                 iconSection
                 workoutDescriptionSection
             }
-//        }
         .frame(maxWidth: .infinity)
     }
     
     private var iconSection: some View {
         // Icon
-        Image(systemName: viewModel.isRestActive ? "timer" : "figure.strengthtraining.traditional")
-            .foregroundStyle(viewModel.isRestActive ? .orange : .accent)
+        Image(systemName: presenter.isRestActive ? "timer" : "figure.strengthtraining.traditional")
+            .foregroundStyle(presenter.isRestActive ? .orange : .accent)
     }
     
     private var workoutDescriptionSection: some View {
@@ -40,7 +36,7 @@ struct TabViewAccessoryView: View {
                 Spacer()
                 timeSection(workoutSession: delegate.active)
             }
-            ProgressView(value: viewModel.progress)
+            ProgressView(value: presenter.progress)
         }
         .padding(.bottom, 6)
     }
@@ -55,7 +51,7 @@ struct TabViewAccessoryView: View {
 
     private func timeSection(workoutSession active: WorkoutSessionModel) -> some View {
         Group {
-            if let restEndTime = viewModel.restEndTime {
+            if let restEndTime = presenter.restEndTime {
                 let now = Date()
                 if now < restEndTime {
                     // Rest timer
@@ -100,7 +96,7 @@ struct TabViewAccessoryView: View {
     }
     .tabViewBottomAccessory {
         builder.tabViewAccessoryView(
-            delegate: TabViewAccessoryViewDelegate(active: .mock)
+            delegate: TabViewAccessoryDelegate(active: .mock)
         )
     }
     .previewEnvironment()

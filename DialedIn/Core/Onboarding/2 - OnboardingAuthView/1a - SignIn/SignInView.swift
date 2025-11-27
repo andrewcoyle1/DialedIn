@@ -10,7 +10,7 @@ import CustomRouting
 
 struct SignInView: View {
 
-    @State var viewModel: SignInViewModel
+    @State var presenter: SignInPresenter
 
     var body: some View {
         List {
@@ -22,30 +22,29 @@ struct SignInView: View {
         .toolbar {
             toolbarContent
         }
-        // .modifier(NavigationDestinationsModifier(navigationDestination: $viewModel.navigationDestination))
-        .showCustomAlert(alert: $viewModel.showAlert)
-        .showModal(showModal: $viewModel.isLoadingUser) {
+        // .modifier(NavigationDestinationsModifier(navigationDestination: $presenter.navigationDestination))
+        .showModal(showModal: $presenter.isLoadingUser) {
             ProgressView()
                 .tint(.white)
         }
         .onDisappear {
-            viewModel.cleanup()
+            presenter.cleanup()
         }
     }
     
     private var emailSection: some View {
         Section {
             TextField("Please enter your email",
-                      text: $viewModel.email
+                      text: $presenter.email
             )
             .textContentType(.emailAddress)
             .keyboardType(.emailAddress)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
-            .onChange(of: viewModel.email) { _, _ in
-                viewModel.emailTouched = true
+            .onChange(of: presenter.email) { _, _ in
+                presenter.emailTouched = true
             }
-            if let error = viewModel.emailValidationError {
+            if let error = presenter.emailValidationError {
                 Text(error)
                     .font(.footnote)
                     .foregroundStyle(Color.red)
@@ -59,14 +58,14 @@ struct SignInView: View {
         Section {
             SecureField(
                 "Please enter your password",
-                text: $viewModel.password
+                text: $presenter.password
             )
             .textContentType(.password)
-            .onChange(of: viewModel.password) { _, _ in
-                viewModel.passwordTouched = true
+            .onChange(of: presenter.password) { _, _ in
+                presenter.passwordTouched = true
             }
             
-            if let error = viewModel.passwordValidationError {
+            if let error = presenter.passwordValidationError {
                 Text(error)
                     .font(.footnote)
                     .foregroundStyle(Color.red)
@@ -83,7 +82,7 @@ struct SignInView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -92,7 +91,7 @@ struct SignInView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onSignInPressed()
+                presenter.onSignInPressed()
             } label: {
                 Image(systemName: "chevron.right")
             }

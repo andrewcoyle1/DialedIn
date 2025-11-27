@@ -8,26 +8,22 @@
 import SwiftUI
 import CustomRouting
 
-struct ProgramViewDelegate {
-    var onSessionSelectionChangeded: (WorkoutSessionModel?) -> Void
-}
-
 struct ProgramView: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
-    @State var viewModel: ProgramViewModel
+    @State var presenter: ProgramPresenter
 
-    let delegate: ProgramViewDelegate
+    let delegate: ProgramDelegate
 
-    @ViewBuilder var workoutSummaryCardView: (WorkoutSummaryCardViewDelegate) -> AnyView
-    @ViewBuilder var todaysWorkoutCardView: (TodaysWorkoutCardViewDelegate) -> AnyView
-    @ViewBuilder var workoutCalendarView: (WorkoutCalendarViewDelegate) -> AnyView
-    @ViewBuilder var scheduledWorkoutRowView: (ScheduledWorkoutRowViewDelegate) -> AnyView
+    @ViewBuilder var workoutSummaryCardView: (WorkoutSummaryCardDelegate) -> AnyView
+    @ViewBuilder var todaysWorkoutCardView: (TodaysWorkoutCardDelegate) -> AnyView
+    @ViewBuilder var workoutCalendarView: (WorkoutCalendarDelegate) -> AnyView
+    @ViewBuilder var scheduledWorkoutRowView: (ScheduledWorkoutRowDelegate) -> AnyView
 
     var body: some View {
         List {
-            if viewModel.currentTrainingPlan != nil {
+            if presenter.currentTrainingPlan != nil {
                 activeProgramView
             } else {
                 noProgramView
@@ -35,14 +31,13 @@ struct ProgramView: View {
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Training")
-        .navigationSubtitle(viewModel.navigationSubtitle)
+        .navigationSubtitle(presenter.navigationSubtitle)
         .navigationBarTitleDisplayMode(.large)
-        .showCustomAlert(alert: $viewModel.showAlert)
         .onFirstTask {
-            await viewModel.loadData()
+            await presenter.loadData()
         }
         .refreshable {
-            await viewModel.refreshData()
+            await presenter.refreshData()
         }
     }
     
@@ -59,7 +54,7 @@ struct ProgramView: View {
     
     private var programOverviewSection: some View {
         Section {
-            if let plan = viewModel.currentTrainingPlan {
+            if let plan = presenter.currentTrainingPlan {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
@@ -75,25 +70,25 @@ struct ProgramView: View {
                         Spacer()
                         Menu {
                             Button {
-                                viewModel.onProgramManagementPressed()
+                                presenter.onProgramManagementPressed()
                             } label: {
                                 Label("Manage Programs", systemImage: "list.bullet")
                             }
                             
                             Button {
-                                viewModel.onProgessDashboardPressed()
+                                presenter.onProgessDashboardPressed()
                             } label: {
                                 Label("View Analytics", systemImage: "chart.xyaxis.line")
                             }
 
                             Button {
-                                viewModel.onStrengthProgressPressed()
+                                presenter.onStrengthProgressPressed()
                             } label: {
                                 Label("Strength Progress", systemImage: "chart.line.uptrend.xyaxis")
                             }
 
                             Button {
-                                viewModel.onWorkoutHeatmapPressed()
+                                presenter.onWorkoutHeatmapPressed()
                             } label: {
                                 Label("Training Frequency", systemImage: "square.grid.3x3.fill.square")
                             }
@@ -105,14 +100,14 @@ struct ProgramView: View {
                     // Quick stats
                     HStack(spacing: 20) {
                         StatCard(
-                            value: "\(Int(viewModel.adherenceRate*100))%",
+                            value: "\(Int(presenter.adherenceRate*100))%",
                             label: "Adherence",
                             icon: "checkmark.circle.fill",
-                            color: viewModel.adherenceColor(viewModel.adherenceRate)
+                            color: presenter.adherenceColor(presenter.adherenceRate)
                         )
                         
-                        if let currentWeek = viewModel.currentWeek {
-                            let progress = viewModel.getWeeklyProgress(weekNumber: currentWeek.weekNumber)
+                        if let currentWeek = presenter.currentWeek {
+                            let progress = presenter.getWeeklyProgress(weekNumber: currentWeek.weekNumber)
                             StatCard(
                                 value: "\(progress.completedWorkouts)/\(progress.totalWorkouts)",
                                 label: "This Week",
@@ -121,7 +116,7 @@ struct ProgramView: View {
                             )
                         }
                         
-                        let upcomingCount = viewModel.upcomingWorkouts.count
+                        let upcomingCount = presenter.upcomingWorkouts.count
                         StatCard(
                             value: "\(upcomingCount)",
                             label: "Upcoming",
@@ -132,13 +127,13 @@ struct ProgramView: View {
                     
                     // Program timeline
                     if let endDate = plan.endDate {
-                        ProgressView(value: viewModel.progressValue(start: plan.startDate, end: endDate)) {
+                        ProgressView(value: presenter.progressValue(start: plan.startDate, end: endDate)) {
                             HStack {
-                                Text("Week \(viewModel.currentWeekNumber(start: plan.startDate)) of \(viewModel.totalWeeks(start: plan.startDate, end: endDate))")
+                                Text("Week \(presenter.currentWeekNumber(start: plan.startDate)) of \(presenter.totalWeeks(start: plan.startDate, end: endDate))")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                 Spacer()
-                                Text(viewModel.daysRemaining(until: endDate))
+                                Text(presenter.daysRemaining(until: endDate))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -154,16 +149,16 @@ struct ProgramView: View {
     
     private var todaysWorkoutSection: some View {
         Group {
-            let todaysWorkouts = viewModel.todaysWorkouts
+            let todaysWorkouts = presenter.todaysWorkouts
             if !todaysWorkouts.isEmpty {
                 Section {
                     ForEach(todaysWorkouts) { workout in
                         if workout.isCompleted {
                             workoutSummaryCardView(
-                                WorkoutSummaryCardViewDelegate(
+                                WorkoutSummaryCardDelegate(
                                     scheduledWorkout: workout,
                                     onTap: {
-                                        viewModel.openCompletedSession(
+                                        presenter.openCompletedSession(
                                             for: workout
                                         )
                                     }
@@ -172,11 +167,11 @@ struct ProgramView: View {
                             .id(workout.id)
                         } else {
                             todaysWorkoutCardView(
-                                TodaysWorkoutCardViewDelegate(
+                                TodaysWorkoutCardDelegate(
                                     scheduledWorkout: workout,
                                     onStart: {
                                         Task {
-                                            await viewModel.startWorkout(workout)
+                                            await presenter.startWorkout(workout)
                                         }
                                     }
                                 )
@@ -192,15 +187,15 @@ struct ProgramView: View {
     
     private var calendarSection: some View {
         workoutCalendarView(
-            WorkoutCalendarViewDelegate(
+            WorkoutCalendarDelegate(
                 onSessionSelectionChanged: { session in
-                    viewModel.selectedHistorySession = session
-                    viewModel
+                    presenter.selectedHistorySession = session
+                    presenter
                         .handleSessionSelectionChanged(
                             session
                         )
                 },
-                onWorkoutStartRequested: viewModel.handleWorkoutStartRequest
+                onWorkoutStartRequested: presenter.handleWorkoutStartRequest
             )
         )
     }
@@ -221,7 +216,7 @@ struct ProgramView: View {
     @ViewBuilder
     private func dayWorkoutRow(dayOffset: Int, weekStart: Date, calendar: Calendar) -> some View {
         let day = calendar.date(byAdding: .day, value: dayOffset, to: weekStart) ?? weekStart
-        let workoutsForDay = viewModel.getWorkoutsForDay(day, calendar: calendar)
+        let workoutsForDay = presenter.getWorkoutsForDay(day, calendar: calendar)
         
         if workoutsForDay.isEmpty {
             RestDayRow(date: day)
@@ -229,22 +224,22 @@ struct ProgramView: View {
             ForEach(workoutsForDay) { workout in
                 if workout.isCompleted {
                     workoutSummaryCardView(
-                        WorkoutSummaryCardViewDelegate(
+                        WorkoutSummaryCardDelegate(
                             scheduledWorkout: workout, onTap: {
-                                viewModel.openCompletedSession(for: workout)
+                                presenter.openCompletedSession(for: workout)
                                 
                             }
                         )
                     )
                     .id(workout.id)
                 } else {
-                    scheduledWorkoutRowView(ScheduledWorkoutRowViewDelegate(scheduledWorkout: workout))
+                    scheduledWorkoutRowView(ScheduledWorkoutRowDelegate(scheduledWorkout: workout))
                     .contentShape(
                         Rectangle()
                     )
                     .onTapGesture {
                         Task {
-                            await viewModel.startWorkout(
+                            await presenter.startWorkout(
                                 workout
                             )
                         }
@@ -256,7 +251,7 @@ struct ProgramView: View {
 
     private var goalsSection: some View {
         Group {
-            if let plan = viewModel.currentTrainingPlan {
+            if let plan = presenter.currentTrainingPlan {
                 Section {
                     if !plan.goals.isEmpty {
                         ForEach(plan.goals) { goal in
@@ -270,8 +265,8 @@ struct ProgramView: View {
                             Text("No training goals set. Tap the plus button to add one.")
                         } actions: {
                             Button {
-                                if viewModel.currentTrainingPlan != nil {
-                                    viewModel.onAddGoalPressed()
+                                if presenter.currentTrainingPlan != nil {
+                                    presenter.onAddGoalPressed()
                                 }
                             } label: {
                                 Image(systemName: "plus")
@@ -291,7 +286,7 @@ struct ProgramView: View {
         Section {
             Button {
                 DispatchQueue.main.async {
-                    viewModel.activeSheet = .progressDashboard
+                    presenter.activeSheet = .progressDashboard
                 }
             } label: {
                 HStack {
@@ -335,7 +330,7 @@ struct ProgramView: View {
                 
                 Button {
                     DispatchQueue.main.async {
-                        viewModel.activeSheet = .programPicker
+                        presenter.activeSheet = .programPicker
                     }
                 } label: {
                     Label("Choose Program", systemImage: "plus.circle.fill")
@@ -358,7 +353,7 @@ struct ProgramView: View {
     return RouterView { router in
         builder.programView(
             router: router,
-            delegate: ProgramViewDelegate(
+            delegate: ProgramDelegate(
                 onSessionSelectionChangeded: { _ in
                     
                 }
@@ -384,7 +379,7 @@ struct ProgramView: View {
     return RouterView { router in
         builder.programView(
             router: router,
-            delegate: ProgramViewDelegate(
+            delegate: ProgramDelegate(
                 onSessionSelectionChangeded: { _ in
 
                 }
@@ -403,7 +398,7 @@ struct ProgramView: View {
     return RouterView { router in
         builder.programView(
             router: router,
-            delegate: ProgramViewDelegate(
+            delegate: ProgramDelegate(
                 onSessionSelectionChangeded: { _ in
 
                 }
@@ -422,7 +417,7 @@ struct ProgramView: View {
     return RouterView { router in
         builder.programView(
             router: router,
-            delegate: ProgramViewDelegate(
+            delegate: ProgramDelegate(
                 onSessionSelectionChangeded: { _ in
 
                 }
@@ -441,7 +436,7 @@ struct ProgramView: View {
     return RouterView { router in
         builder.programView(
             router: router,
-            delegate: ProgramViewDelegate(
+            delegate: ProgramDelegate(
                 onSessionSelectionChangeded: { _ in
 
                 }
@@ -460,7 +455,7 @@ struct ProgramView: View {
     return RouterView { router in
         builder.programView(
             router: router,
-            delegate: ProgramViewDelegate(
+            delegate: ProgramDelegate(
                 onSessionSelectionChangeded: { _ in
 
                 }
@@ -479,7 +474,7 @@ struct ProgramView: View {
     return RouterView { router in
         builder.programView(
             router: router,
-            delegate: ProgramViewDelegate(
+            delegate: ProgramDelegate(
                 onSessionSelectionChangeded: { _ in
                     
                 }
@@ -498,7 +493,7 @@ struct ProgramView: View {
     return RouterView { router in
         builder.programView(
             router: router,
-            delegate: ProgramViewDelegate(
+            delegate: ProgramDelegate(
                 onSessionSelectionChangeded: { _ in
 
                 }
@@ -514,7 +509,7 @@ struct ProgramView: View {
     return RouterView { router in
         builder.programView(
             router: router,
-            delegate: ProgramViewDelegate(
+            delegate: ProgramDelegate(
                 onSessionSelectionChangeded: { _ in
                     
                 }

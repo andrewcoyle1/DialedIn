@@ -1,5 +1,5 @@
 //
-//  GenericTemplateListViewModel.swift
+//  GenericTemplateListPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 28/10/2025.
@@ -10,25 +10,27 @@ import SwiftUI
 /// Generic view model for template list views
 @Observable
 @MainActor
-class GenericTemplateListViewModel<Template: TemplateModel> {
+class GenericTemplateListPresenter<Template: TemplateModel> {
     private let fetchTemplatesByIds: ([String], Int) async throws -> [Template]
     private let fetchTopTemplates: (Int) async throws -> [Template]
     private let configuration: TemplateListConfiguration<Template>
+    private let showAlert: (String, String?) -> Void
     
     let templateIds: [String]?
     
     private(set) var templates: [Template] = []
     private(set) var isLoading: Bool = false
-    var showAlert: AnyAppAlert?
-    
+
     init(
         configuration: TemplateListConfiguration<Template>,
         templateIds: [String]?,
+        showAlert: @escaping (String, String?) -> Void,
         fetchTemplatesByIds: @escaping ([String], Int) async throws -> [Template],
         fetchTopTemplates: @escaping (Int) async throws -> [Template] = { _ in [] }
     ) {
         self.configuration = configuration
         self.templateIds = templateIds
+        self.showAlert = showAlert
         self.fetchTemplatesByIds = fetchTemplatesByIds
         self.fetchTopTemplates = fetchTopTemplates
     }
@@ -51,9 +53,9 @@ class GenericTemplateListViewModel<Template: TemplateModel> {
                 templates = top
             }
         } catch {
-            showAlert = AnyAppAlert(
-                title: configuration.errorTitle,
-                subtitle: configuration.errorSubtitle
+            showAlert(
+                configuration.errorTitle,
+                configuration.errorSubtitle
             )
         }
         

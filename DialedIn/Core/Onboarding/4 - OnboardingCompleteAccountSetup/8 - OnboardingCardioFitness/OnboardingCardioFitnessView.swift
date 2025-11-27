@@ -8,15 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingCardioFitnessViewDelegate {
-    var userModelBuilder: UserModelBuilder
-}
-
 struct OnboardingCardioFitnessView: View {
 
-    @State var viewModel: OnboardingCardioFitnessViewModel
+    @State var presenter: OnboardingCardioFitnessPresenter
 
-    var delegate: OnboardingCardioFitnessViewDelegate
+    var delegate: OnboardingCardioFitnessDelegate
 
     var body: some View {
         List {
@@ -26,15 +22,15 @@ struct OnboardingCardioFitnessView: View {
         .toolbar {
             toolbarContent
         }
-        .showModal(showModal: $viewModel.isSaving) {
+        .showModal(showModal: $presenter.isSaving) {
             ProgressView()
                 .tint(.white)
         }
         .onDisappear {
             // Clean up any ongoing tasks and reset loading states
-            viewModel.currentSaveTask?.cancel()
-            viewModel.currentSaveTask = nil
-            viewModel.isSaving = false
+            presenter.currentSaveTask?.cancel()
+            presenter.currentSaveTask = nil
+            presenter.isSaving = false
         }
     }
     
@@ -67,7 +63,7 @@ struct OnboardingCardioFitnessView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -76,11 +72,11 @@ struct OnboardingCardioFitnessView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToExpenditure(userBuilder: delegate.userModelBuilder)
+                presenter.navigateToExpenditure(userBuilder: delegate.userModelBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
-            .disabled(!viewModel.canSubmit)
+            .disabled(!presenter.canSubmit)
             .buttonStyle(.glassProminent)
         }
     }
@@ -95,12 +91,12 @@ struct OnboardingCardioFitnessView: View {
                     .foregroundColor(.secondary)
             }
             Spacer(minLength: 8)
-            Image(systemName: viewModel.selectedCardioFitness == level ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(viewModel.selectedCardioFitness == level ? Color.accent : Color.secondary)
+            Image(systemName: presenter.selectedCardioFitness == level ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(presenter.selectedCardioFitness == level ? Color.accent : Color.secondary)
         }
         .contentShape(Rectangle())
         .anyButton(.press) {
-            viewModel.selectedCardioFitness = level
+            presenter.selectedCardioFitness = level
         }
         .padding(12)
         .background(
@@ -115,7 +111,7 @@ struct OnboardingCardioFitnessView: View {
     RouterView { router in
         builder.onboardingCardioFitnessView(
             router: router,
-            delegate: OnboardingCardioFitnessViewDelegate(userModelBuilder: UserModelBuilder.cardioFitnessMock)
+            delegate: OnboardingCardioFitnessDelegate(userModelBuilder: UserModelBuilder.cardioFitnessMock)
         )
     }
     .previewEnvironment()

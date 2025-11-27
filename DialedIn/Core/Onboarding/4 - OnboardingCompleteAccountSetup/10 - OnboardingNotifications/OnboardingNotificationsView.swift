@@ -10,7 +10,7 @@ import CustomRouting
 
 struct OnboardingNotificationsView: View {
 
-    @State var viewModel: OnboardingNotificationsViewModel
+    @State var presenter: OnboardingNotificationsPresenter
 
     var body: some View {
         List {
@@ -27,7 +27,7 @@ struct OnboardingNotificationsView: View {
             toolbarContent
         }
         .screenAppearAnalytics(name: "OnboardingNotifications")
-        .showModal(showModal: $viewModel.showEnablePushNotificationsModal) {
+        .showModal(showModal: $presenter.showEnablePushNotificationsModal) {
             pushNotificationModal
         }
     }
@@ -37,7 +37,7 @@ struct OnboardingNotificationsView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -46,7 +46,7 @@ struct OnboardingNotificationsView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onEnableNotificationsPressed()
+                presenter.onEnableNotificationsPressed()
             } label: {
                 Text("Enable notifications")
                     .padding()
@@ -56,7 +56,7 @@ struct OnboardingNotificationsView: View {
         ToolbarSpacer(.fixed)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.onSkipForNowPressed()
+                presenter.onSkipForNowPressed()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -104,7 +104,7 @@ struct OnboardingNotificationsView: View {
     private var buttonSection: some View {
         VStack(spacing: 12) {
             Button {
-                viewModel.onEnableNotificationsPressed()
+                presenter.onEnableNotificationsPressed()
             } label: {
                 Text("Enable notifications")
                     .frame(maxWidth: .infinity)
@@ -113,7 +113,7 @@ struct OnboardingNotificationsView: View {
             .buttonStyle(.glassProminent)
 
             Button {
-                viewModel.onSkipForNowPressed()
+                presenter.onSkipForNowPressed()
             } label: {
                 Text("Not now")
                     .frame(maxWidth: .infinity)
@@ -129,11 +129,11 @@ struct OnboardingNotificationsView: View {
             subtitle: "We will send you reminders and updates",
             primaryButtonTitle: "Enable",
             primaryButtonAction: {
-                viewModel.onEnablePushNotificationsPressed()
+                presenter.onEnablePushNotificationsPressed()
             },
             secondaryButtonTitle: "Cancel",
             secondaryButtonAction: {
-                viewModel.onCancelPushNotificationsPressed()
+                presenter.onCancelPushNotificationsPressed()
             }
         )
     }

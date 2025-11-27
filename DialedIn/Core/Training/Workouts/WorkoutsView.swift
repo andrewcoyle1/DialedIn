@@ -8,35 +8,31 @@
 import SwiftUI
 import CustomRouting
 
-struct WorkoutsViewDelegate {
-    var onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)?
-}
-
 struct WorkoutsView: View {
 
-    @State var viewModel: WorkoutsViewModel
+    @State var presenter: WorkoutsPresenter
 
-    let delegate: WorkoutsViewDelegate
+    let delegate: WorkoutsDelegate
 
     var body: some View {
         List {
-            if viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 
-                if !viewModel.favouriteWorkouts.isEmpty {
+                if !presenter.favouriteWorkouts.isEmpty {
                     favouriteWorkoutTemplatesSection
                 }
 
                 myWorkoutsSection
                 
-                if !viewModel.systemWorkouts.isEmpty {
+                if !presenter.systemWorkouts.isEmpty {
                     systemWorkoutTemplatesSection
                 }
 
-                if !viewModel.bookmarkedOnlyWorkouts.isEmpty {
+                if !presenter.bookmarkedOnlyWorkouts.isEmpty {
                     bookmarkedWorkoutTemplatesSection
                 }
 
-                if !viewModel.trendingWorkoutsDeduped.isEmpty {
+                if !presenter.trendingWorkoutsDeduped.isEmpty {
                     workoutTemplateSection
                 }
             } else {
@@ -46,18 +42,18 @@ struct WorkoutsView: View {
         }
         .screenAppearAnalytics(name: "WorkoutsView")
         .navigationTitle("Workouts")
-        .navigationSubtitle("\(viewModel.workouts.count) workouts")
+        .navigationSubtitle("\(presenter.workouts.count) workouts")
         .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
         .onFirstTask {
-            await viewModel.loadAllWorkouts()
+            await presenter.loadAllWorkouts()
         }
         .refreshable {
-            await viewModel.loadAllWorkouts()
+            await presenter.loadAllWorkouts()
         }
-        .onChange(of: viewModel.currentUser) {
+        .onChange(of: presenter.currentUser) {
             Task {
-                await viewModel.syncSavedWorkoutsFromUser()
+                await presenter.syncSavedWorkoutsFromUser()
             }
         }
     }
@@ -65,14 +61,14 @@ struct WorkoutsView: View {
     // MARK: UI Components
     private var favouriteWorkoutTemplatesSection: some View {
         Section {
-            ForEach(viewModel.favouriteWorkouts) { workout in
+            ForEach(presenter.favouriteWorkouts) { workout in
                 CustomListCellView(
                     imageName: workout.imageURL,
                     title: workout.name,
                     subtitle: workout.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onWorkoutPressed(workout: workout)
+                    presenter.onWorkoutPressed(workout: workout)
                 }
                 .removeListRowFormatting()
             }
@@ -80,20 +76,20 @@ struct WorkoutsView: View {
             Text("Favourites")
         }
         .onAppear {
-            viewModel.favouritesSectionViewed()
+            presenter.favouritesSectionViewed()
         }
     }
 
     private var bookmarkedWorkoutTemplatesSection: some View {
         Section {
-            ForEach(viewModel.bookmarkedOnlyWorkouts) { workout in
+            ForEach(presenter.bookmarkedOnlyWorkouts) { workout in
                 CustomListCellView(
                     imageName: workout.imageURL,
                     title: workout.name,
                     subtitle: workout.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onWorkoutPressed(workout: workout)
+                    presenter.onWorkoutPressed(workout: workout)
                 }
                 .removeListRowFormatting()
             }
@@ -101,13 +97,13 @@ struct WorkoutsView: View {
             Text("Bookmarked")
         }
         .onAppear {
-            viewModel.bookmarkedSectionViewed()
+            presenter.bookmarkedSectionViewed()
         }
     }
 
     private var workoutTemplateSection: some View {
         Section {
-            if viewModel.isLoading {
+            if presenter.isLoading {
                 HStack {
                     ProgressView()
                     Text("Loading...")
@@ -115,28 +111,28 @@ struct WorkoutsView: View {
                 .foregroundStyle(Color.secondary)
                 .removeListRowFormatting()
             }
-            ForEach(viewModel.visibleWorkoutTemplates) { workout in
+            ForEach(presenter.visibleWorkoutTemplates) { workout in
                 CustomListCellView(
                     imageName: workout.imageURL,
                     title: workout.name,
                     subtitle: workout.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onWorkoutPressed(workout: workout)
+                    presenter.onWorkoutPressed(workout: workout)
                 }
                 .removeListRowFormatting()
             }
         } header: {
-            Text(viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
+            Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
         }
         .onAppear {
-            viewModel.trendingSectionViewed()
+            presenter.trendingSectionViewed()
         }
     }
 
     private var myWorkoutsSection: some View {
         Section {
-            if viewModel.myWorkoutsVisible.isEmpty {
+            if presenter.myWorkoutsVisible.isEmpty {
                 HStack {
                     Image(systemName: "tray")
                         .foregroundColor(.secondary)
@@ -148,17 +144,17 @@ struct WorkoutsView: View {
                 .padding(.vertical, 12)
                 .removeListRowFormatting()
                 .onAppear {
-                    viewModel.emptyStateShown()
+                    presenter.emptyStateShown()
                 }
             } else {
-                ForEach(viewModel.myWorkoutsVisible) { workout in
+                ForEach(presenter.myWorkoutsVisible) { workout in
                     CustomListCellView(
                         imageName: workout.imageURL,
                         title: workout.name,
                         subtitle: workout.description
                     )
                     .anyButton(.highlight) {
-                        viewModel.onWorkoutPressed(workout: workout)
+                        presenter.onWorkoutPressed(workout: workout)
                     }
                     .removeListRowFormatting()
                 }
@@ -168,7 +164,7 @@ struct WorkoutsView: View {
                 Text("My Templates")
                 Spacer()
                 Button {
-                    viewModel.onAddWorkoutPressed()
+                    presenter.onAddWorkoutPressed()
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20))
@@ -176,20 +172,20 @@ struct WorkoutsView: View {
             }
         }
         .onAppear {
-            viewModel.myTemplatesSectionViewed()
+            presenter.myTemplatesSectionViewed()
         }
     }
     
     private var systemWorkoutTemplatesSection: some View {
         Section {
-            ForEach(viewModel.systemWorkouts) { workout in
+            ForEach(presenter.systemWorkouts) { workout in
                 CustomListCellView(
                     imageName: workout.imageURL,
                     title: workout.name,
                     subtitle: workout.description
                 )
                 .anyButton(.highlight) {
-                    viewModel.onWorkoutPressed(workout: workout)
+                    presenter.onWorkoutPressed(workout: workout)
                 }
                 .removeListRowFormatting()
             }
@@ -197,7 +193,7 @@ struct WorkoutsView: View {
             HStack {
                 Text("Pre-Built Templates")
                 Spacer()
-                Text("\(viewModel.systemWorkouts.count)")
+                Text("\(presenter.systemWorkouts.count)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -205,7 +201,7 @@ struct WorkoutsView: View {
             Text("Professional workout templates designed for common training programs.")
         }
         .onAppear {
-            viewModel.systemTemplatesSectionViewed()
+            presenter.systemTemplatesSectionViewed()
         }
     }
 }
@@ -213,7 +209,7 @@ struct WorkoutsView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.workoutsView(router: router, delegate: WorkoutsViewDelegate())
+        builder.workoutsView(router: router, delegate: WorkoutsDelegate())
     }
     .previewEnvironment()
 }

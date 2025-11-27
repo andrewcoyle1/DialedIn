@@ -8,7 +8,7 @@
 import SwiftUI
 import CustomRouting
 
-struct ExerciseTrackerCardViewDelegate {
+struct ExerciseTrackerCardDelegate {
     var exercise: WorkoutExerciseModel
     var exerciseIndex: Int
     var isCurrentExercise: Bool
@@ -36,15 +36,15 @@ struct ExerciseTrackerCardViewDelegate {
 
 struct ExerciseTrackerCardView: View {
 
-    @State var viewModel: ExerciseTrackerCardViewModel
+    @State var presenter: ExerciseTrackerCardPresenter
     
-    var delegate: ExerciseTrackerCardViewDelegate
+    var delegate: ExerciseTrackerCardDelegate
 
-    @ViewBuilder var setTrackerRowView: (SetTrackerRowViewDelegate) -> AnyView
+    @ViewBuilder var setTrackerRowView: (SetTrackerRowDelegate) -> AnyView
 
-    init(delegate: ExerciseTrackerCardViewDelegate, interactor: ExerciseTrackerCardInteractor, setTrackerRowView: @escaping (SetTrackerRowViewDelegate) -> AnyView) {
+    init(delegate: ExerciseTrackerCardDelegate, interactor: ExerciseTrackerCardInteractor, setTrackerRowView: @escaping (SetTrackerRowDelegate) -> AnyView) {
         self.delegate = delegate
-        _viewModel = State(wrappedValue: ExerciseTrackerCardViewModel(
+        _presenter = State(wrappedValue: ExerciseTrackerCardPresenter(
             interactor: interactor,
             exercise: delegate.exercise,
             exerciseIndex: delegate.exerciseIndex,
@@ -65,14 +65,14 @@ struct ExerciseTrackerCardView: View {
         .onChange(of: delegate.isExpanded.wrappedValue) { _, newValue in
             if newValue {
                 // Refresh exercise data when card expands
-                let latestExercise = delegate.getLatestExercise() ?? viewModel.exercise
+                let latestExercise = delegate.getLatestExercise() ?? presenter.exercise
                 let latestExerciseIndex = delegate.getLatestExerciseIndex()
                 let latestIsCurrentExercise = delegate.getLatestIsCurrentExercise()
                 let latestWeightUnit = delegate.getLatestWeightUnit()
                 let latestDistanceUnit = delegate.getLatestDistanceUnit()
                 let latestPreviousSets = delegate.getLatestPreviousSets()
                 
-                viewModel.refresh(
+                presenter.refresh(
                     with: latestExercise,
                     exerciseIndex: latestExerciseIndex,
                     isCurrentExercise: latestIsCurrentExercise,
@@ -86,18 +86,18 @@ struct ExerciseTrackerCardView: View {
     
     private var exerciseHeader: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text("\(viewModel.exerciseIndex + 1).")
+            Text("\(presenter.exerciseIndex + 1).")
                 .font(.headline)
                 .foregroundColor(.secondary)
             
-            Text(viewModel.exercise.name)
+            Text(presenter.exercise.name)
                 .font(.headline)
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.leading)
             
-            Text("\(viewModel.completedSetsCount)/\(viewModel.exercise.sets.count) sets")
+            Text("\(presenter.completedSetsCount)/\(presenter.exercise.sets.count) sets")
                 .font(.caption)
-                .foregroundColor(viewModel.completedSetsCount == viewModel.exercise.sets.count ? .green : .secondary)
+                .foregroundColor(presenter.completedSetsCount == presenter.exercise.sets.count ? .green : .secondary)
             
             Spacer()
             
@@ -115,16 +115,16 @@ struct ExerciseTrackerCardView: View {
     private var unitPreferenceMenu: some View {
         Menu {
             // Show weight options for exercises that track weight
-            if viewModel.exercise.trackingMode == .weightReps {
+            if presenter.exercise.trackingMode == .weightReps {
                 Menu {
                     ForEach(ExerciseWeightUnit.allCases, id: \.self) { unit in
                         Button {
                             delegate.onWeightUnitChange(unit)
-                            viewModel.weightUnit = unit
+                            presenter.weightUnit = unit
                         } label: {
                             HStack {
                                 Text(unit.displayName)
-                                if unit == viewModel.weightUnit {
+                                if unit == presenter.weightUnit {
                                     Image(systemName: "checkmark")
                                 }
                             }
@@ -136,16 +136,16 @@ struct ExerciseTrackerCardView: View {
             }
             
             // Show distance options for exercises that track distance
-            if viewModel.exercise.trackingMode == .distanceTime {
+            if presenter.exercise.trackingMode == .distanceTime {
                 Menu {
                     ForEach(ExerciseDistanceUnit.allCases, id: \.self) { unit in
                         Button {
                             delegate.onDistanceUnitChange(unit)
-                            viewModel.distanceUnit = unit
+                            presenter.distanceUnit = unit
                         } label: {
                             HStack {
                                 Text(unit.displayName)
-                                if unit == viewModel.distanceUnit {
+                                if unit == presenter.distanceUnit {
                                     Image(systemName: "checkmark")
                                 }
                             }
@@ -168,28 +168,28 @@ struct ExerciseTrackerCardView: View {
         // Rows (each row is its own view to keep swipe actions per-row)
         Group {
             ZStack(alignment: .topLeading) {
-                if viewModel.notesDraft.isEmpty {
+                if presenter.notesDraft.isEmpty {
                         Text("Add notes here...")
                             .foregroundStyle(.secondary)
                             .padding(.top, 8)
                             .padding(.leading, 6)
                 }
-                TextEditor(text: $viewModel.notesDraft)
+                TextEditor(text: $presenter.notesDraft)
                     .scrollContentBackground(.hidden)
                     .textInputAutocapitalization(.sentences)
-                    .onChange(of: viewModel.notesDraft) { _, newValue in
+                    .onChange(of: presenter.notesDraft) { _, newValue in
                         delegate.onNotesChange(newValue)
                     }
             }
 
             ForEach(delegate.exercise.sets) { set in
                 setTrackerRowView(
-                    SetTrackerRowViewDelegate(
+                    SetTrackerRowDelegate(
                         set: set,
-                        trackingMode: viewModel.exercise.trackingMode,
-                        weightUnit: viewModel.weightUnit,
-                        distanceUnit: viewModel.distanceUnit,
-                        previousSet: viewModel.previousSetsByIndex[set.index],
+                        trackingMode: presenter.exercise.trackingMode,
+                        weightUnit: presenter.weightUnit,
+                        distanceUnit: presenter.distanceUnit,
+                        previousSet: presenter.previousSetsByIndex[set.index],
                         restBeforeSec: delegate.restBeforeSecForSet(set.id),
                         onRestBeforeChange: { delegate.onRestBeforeChange(set.id, $0) },
                         onRequestRestPicker: { _, _ in delegate.onRequestRestPicker(set.id, delegate.restBeforeSecForSet(set.id)) },
@@ -281,7 +281,7 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                 // Current exercise styled card
                 builder.exerciseTrackerCardView(
                     router: router,
-                    delegate: ExerciseTrackerCardViewDelegate(
+                    delegate: ExerciseTrackerCardDelegate(
                         exercise: exercise,
                         exerciseIndex: 0,
                         isCurrentExercise: true,
@@ -310,7 +310,7 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                 // Non-current exercise styled card
                 builder.exerciseTrackerCardView(
                     router: router,
-                    delegate: ExerciseTrackerCardViewDelegate(
+                    delegate: ExerciseTrackerCardDelegate(
                         exercise: exercise,
                         exerciseIndex: 1,
                         isCurrentExercise: false,

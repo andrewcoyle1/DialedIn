@@ -10,13 +10,13 @@ import CustomRouting
 
 struct ProfileHeaderView: View {
 
-    @State var viewModel: ProfileHeaderViewModel
+    @State var presenter: ProfileHeaderPresenter
 
     var body: some View {
         Section {
-            if let user = viewModel.currentUser {
+            if let user = presenter.currentUser {
                 Button {
-                    viewModel.navToProfileEdit()
+                    presenter.navToProfileEdit()
                 } label: {
                     HStack(spacing: 16) {
                         // Profile Image
@@ -32,13 +32,13 @@ struct ProfileHeaderView: View {
                                 .font(.title3)
                                 .fontWeight(.semibold)
                             
-                            if let email = viewModel.currentUser?.email {
+                            if let email = presenter.currentUser?.email {
                                 Text(email)
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                             }
                             
-                            if let creationDate = viewModel.currentUser?.creationDate {
+                            if let creationDate = presenter.currentUser?.creationDate {
                                 Text("Member since \(creationDate.formatted(date: .abbreviated, time: .omitted))")
                                     .font(.caption)
                                     .foregroundStyle(.tertiary)
@@ -54,7 +54,7 @@ struct ProfileHeaderView: View {
     }
     
     private var fullName: String {
-        guard let user = viewModel.currentUser else { return "" }
+        guard let user = presenter.currentUser else { return "" }
         let first = user.firstName ?? ""
         let last = user.lastName ?? ""
         return "\(first) \(last)".trimmingCharacters(in: .whitespaces)

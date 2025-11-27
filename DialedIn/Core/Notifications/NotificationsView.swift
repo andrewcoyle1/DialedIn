@@ -9,12 +9,12 @@ import SwiftUI
 import CustomRouting
 
 struct NotificationsView: View {
-    @State var viewModel: NotificationsViewModel
+    @State var presenter: NotificationsPresenter
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         Group {
-            if viewModel.isLoading {
+            if presenter.isLoading {
                 ProgressView()
             } else {
                 content
@@ -27,20 +27,20 @@ struct NotificationsView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    viewModel.onDismissPressed(onDismiss: { dismiss() })
+                    presenter.onDismissPressed(onDismiss: { dismiss() })
                 } label: {
                     Text("Done")
                 }
             }
         }
         .task {
-            await viewModel.loadNotifications()
+            await presenter.loadNotifications()
         }
     }
     
     @ViewBuilder
     private var content: some View {
-        switch viewModel.authorizationStatus {
+        switch presenter.authorizationStatus {
         case .authorized:
             authorizedContent
         case .notDetermined:
@@ -54,7 +54,7 @@ struct NotificationsView: View {
     
     private var authorizedContent: some View {
         Group {
-            if viewModel.notifications.isEmpty {
+            if presenter.notifications.isEmpty {
                 emptyStateContent
             } else {
                 notificationsList
@@ -64,10 +64,10 @@ struct NotificationsView: View {
     
     private var notificationsList: some View {
         List {
-            ForEach(viewModel.notifications, id: \.request.identifier) { notification in
+            ForEach(presenter.notifications, id: \.request.identifier) { notification in
                 notificationRow(notification)
             }
-            .onDelete(perform: viewModel.deleteNotifications)
+            .onDelete(perform: presenter.deleteNotifications)
         }
     }
     
@@ -129,7 +129,7 @@ struct NotificationsView: View {
                     .padding(.horizontal)
                 
                 Button {
-                    viewModel.onRequestNotificationsPressed()
+                    presenter.onRequestNotificationsPressed()
                 } label: {
                     Text("Enable Notifications")
                         .frame(maxWidth: .infinity)
@@ -161,7 +161,7 @@ struct NotificationsView: View {
                     .padding(.horizontal)
                 
                 Button {
-                    viewModel.openSettings()
+                    presenter.openSettings()
                 } label: {
                     Text("Open Settings")
                         .frame(maxWidth: .infinity)

@@ -8,15 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingTrainingExperienceViewDelegate {
-    var trainingProgramBuilder: TrainingProgramBuilder
-}
-
 struct OnboardingTrainingExperienceView: View {
 
-    @State var viewModel: OnboardingTrainingExperienceViewModel
+    @State var presenter: OnboardingTrainingExperiencePresenter
 
-    var delegate: OnboardingTrainingExperienceViewDelegate
+    var delegate: OnboardingTrainingExperienceDelegate
 
     var body: some View {
         List {
@@ -52,11 +48,11 @@ struct OnboardingTrainingExperienceView: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer(minLength: 8)
-                    Image(systemName: viewModel.selectedLevel == level ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(viewModel.selectedLevel == level ? .accent : .secondary)
+                    Image(systemName: presenter.selectedLevel == level ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(presenter.selectedLevel == level ? .accent : .secondary)
                 }
                 .contentShape(Rectangle())
-                .onTapGesture { viewModel.selectedLevel = level }
+                .onTapGesture { presenter.selectedLevel = level }
                 .padding(.vertical)
             }
         }
@@ -67,7 +63,7 @@ struct OnboardingTrainingExperienceView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -76,12 +72,12 @@ struct OnboardingTrainingExperienceView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToDaysPerWeek(builder: delegate.trainingProgramBuilder)
+                presenter.navigateToDaysPerWeek(builder: delegate.trainingProgramBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.selectedLevel == nil)
+            .disabled(presenter.selectedLevel == nil)
         }
     }
 }
@@ -91,7 +87,7 @@ struct OnboardingTrainingExperienceView: View {
     RouterView { router in
         builder.onboardingTrainingExperienceView(
             router: router,
-            delegate: OnboardingTrainingExperienceViewDelegate(
+            delegate: OnboardingTrainingExperienceDelegate(
                 trainingProgramBuilder: TrainingProgramBuilder()
             )
         )

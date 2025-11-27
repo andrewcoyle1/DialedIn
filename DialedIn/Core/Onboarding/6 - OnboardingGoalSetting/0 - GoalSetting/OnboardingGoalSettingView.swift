@@ -10,7 +10,7 @@ import CustomRouting
 
 struct OnboardingGoalSettingView: View {
 
-    @State var viewModel: OnboardingGoalSettingViewModel
+    @State var presenter: OnboardingGoalSettingPresenter
 
     var body: some View {
         List {
@@ -21,11 +21,10 @@ struct OnboardingGoalSettingView: View {
         .toolbar {
             toolbarContent
         }
-        .showModal(showModal: $viewModel.isLoading) {
+        .showModal(showModal: $presenter.isLoading) {
             ProgressView()
                 .tint(.white)
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     private var goalSettingSection: some View {
@@ -43,7 +42,7 @@ struct OnboardingGoalSettingView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -52,7 +51,7 @@ struct OnboardingGoalSettingView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToOverarchingObjective()
+                presenter.navigateToOverarchingObjective()
             } label: {
                 Image(systemName: "chevron.right")
             }

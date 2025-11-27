@@ -9,9 +9,8 @@ import SwiftUI
 import CustomRouting
 
 struct LogWeightView: View {
-    @Environment(\.dismiss) private var dismiss
-    
-    @State var viewModel: LogWeightViewModel
+
+    @State var presenter: LogWeightPresenter
     
     var body: some View {
         List {
@@ -26,9 +25,8 @@ struct LogWeightView: View {
         .toolbar {
             toolbarContent
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
         .task {
-            await viewModel.loadInitialData()
+            await presenter.loadInitialData()
         }
     }
     
@@ -36,7 +34,7 @@ struct LogWeightView: View {
         Section {
             DatePicker(
                 "Date",
-                selection: $viewModel.selectedDate,
+                selection: $presenter.selectedDate,
                 in: ...Date(),
                 displayedComponents: [.date]
             )
@@ -50,7 +48,7 @@ struct LogWeightView: View {
     
     private var unitPickerSection: some View {
         Section {
-            Picker("Units", selection: $viewModel.unit) {
+            Picker("Units", selection: $presenter.unit) {
                 Text("Metric (kg)").tag(UnitOfWeight.kilograms)
                 Text("Imperial (lbs)").tag(UnitOfWeight.pounds)
             }
@@ -61,8 +59,8 @@ struct LogWeightView: View {
     
     private var weightPickerSection: some View {
         Section {
-            if viewModel.unit == .kilograms {
-                Picker("Weight", selection: $viewModel.selectedKilograms) {
+            if presenter.unit == .kilograms {
+                Picker("Weight", selection: $presenter.selectedKilograms) {
                     ForEach((30...200).reversed(), id: \.self) { value in
                         Text("\(value) kg").tag(value)
                     }
@@ -70,12 +68,12 @@ struct LogWeightView: View {
                 .pickerStyle(.wheel)
                 .frame(height: 150)
                 .clipped()
-                .onChange(of: viewModel.selectedKilograms) { _, newValue in
+                .onChange(of: presenter.selectedKilograms) { _, newValue in
                     // Update pounds to match
-                    viewModel.selectedPounds = Int(Double(newValue) * 2.20462)
+                    presenter.selectedPounds = Int(Double(newValue) * 2.20462)
                 }
             } else {
-                Picker("Weight", selection: $viewModel.selectedPounds) {
+                Picker("Weight", selection: $presenter.selectedPounds) {
                     ForEach((66...440).reversed(), id: \.self) { value in
                         Text("\(value) lbs").tag(value)
                     }
@@ -83,9 +81,9 @@ struct LogWeightView: View {
                 .pickerStyle(.wheel)
                 .frame(height: 150)
                 .clipped()
-                .onChange(of: viewModel.selectedPounds) { _, newValue in
+                .onChange(of: presenter.selectedPounds) { _, newValue in
                     // Update kilograms to match
-                    viewModel.selectedKilograms = Int(Double(newValue) * 0.453592)
+                    presenter.selectedKilograms = Int(Double(newValue) * 0.453592)
                 }
             }
         } header: {
@@ -96,7 +94,7 @@ struct LogWeightView: View {
     
     private var notesSection: some View {
         Section {
-            TextField("Notes (optional)", text: $viewModel.notes, axis: .vertical)
+            TextField("Notes (optional)", text: $presenter.notes, axis: .vertical)
                 .lineLimit(3...6)
         } header: {
             Text("Notes")
@@ -105,9 +103,9 @@ struct LogWeightView: View {
     
     @ViewBuilder
     private var recentEntriesSection: some View {
-        if !viewModel.weightHistory.isEmpty {
+        if !presenter.weightHistory.isEmpty {
             Section {
-                ForEach(viewModel.weightHistory.prefix(5)) { entry in
+                ForEach(presenter.weightHistory.prefix(5)) { entry in
                     recentEntryRow(entry)
                 }
             } header: {
@@ -119,7 +117,7 @@ struct LogWeightView: View {
     private func recentEntryRow(_ entry: WeightEntry) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(viewModel.formatWeight(entry.weightKg))
+                Text(presenter.formatWeight(entry.weightKg))
                     .font(.headline)
                 Text(entry.date.formatted(date: .abbreviated, time: .omitted))
                     .font(.caption)
@@ -140,19 +138,17 @@ struct LogWeightView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button("Cancel") {
-                dismiss()
+                presenter.onDismissPressed()
             }
         }
         
         ToolbarItem(placement: .primaryAction) {
             Button("Save") {
                 Task {
-                    await viewModel.saveWeight(onDismiss: {
-                        dismiss()
-                    })
+                    await presenter.saveWeight()
                 }
             }
-            .disabled(viewModel.isLoading)
+            .disabled(presenter.isLoading)
         }
     }
 }

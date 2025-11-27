@@ -28,7 +28,7 @@ extension CoreRouter: CopyWeekPickerRouter { }
 
 @Observable
 @MainActor
-class CopyWeekPickerViewModel {
+class CopyWeekPickerPresenter {
     private let interactor: CopyWeekPickerInteractor
     private let router: CopyWeekPickerRouter
 
@@ -45,9 +45,9 @@ class CopyWeekPickerViewModel {
     }
 }
 
-struct CopyWeekPickerSheet: View {
+struct CopyWeekPickerView: View {
 
-    @State var viewModel: CopyWeekPickerViewModel
+    @State var presenter: CopyWeekPickerPresenter
 
     let delegate: CopyWeekPickerDelegate
 
@@ -78,7 +78,7 @@ struct CopyWeekPickerSheet: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button {
-                    viewModel.onDismissPressed()
+                    presenter.onDismissPressed()
                 } label: {
                     Text("Cancel")
                 }

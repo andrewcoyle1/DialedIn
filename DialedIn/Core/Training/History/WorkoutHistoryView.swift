@@ -8,22 +8,22 @@
 import SwiftUI
 import CustomRouting
 
-struct WorkoutHistoryViewDelegate {
+struct WorkoutHistoryDelegate {
     let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
 }
 
 struct WorkoutHistoryView: View {
     @Environment(\.layoutMode) private var layoutMode
     
-    @State var viewModel: WorkoutHistoryViewModel
+    @State var presenter: WorkoutHistoryPresenter
 
-    let delegate: WorkoutHistoryViewDelegate
+    let delegate: WorkoutHistoryDelegate
 
     var body: some View {
         List {
-            if viewModel.isLoading && viewModel.sessions.isEmpty {
+            if presenter.isLoading && presenter.sessions.isEmpty {
                 loadingState
-            } else if viewModel.sessions.isEmpty {
+            } else if presenter.sessions.isEmpty {
                 emptyState
             } else {
                 listContents
@@ -33,15 +33,14 @@ struct WorkoutHistoryView: View {
         .navigationBarTitleDisplayMode(.large)
         .screenAppearAnalytics(name: "WorkoutHistoryView")
         .scrollIndicators(.hidden)
-        .showCustomAlert(alert: $viewModel.showAlert)
         .onAppear {
-            viewModel.loadInitialSessions()
+            presenter.loadInitialSessions()
         }
         .onFirstTask {
-            await viewModel.syncSessions()
+            await presenter.syncSessions()
         }
         .refreshable {
-            await viewModel.syncSessions()
+            await presenter.syncSessions()
         }
     }
     
@@ -63,7 +62,7 @@ struct WorkoutHistoryView: View {
         } actions: {
             Button {
                 Task {
-                    await viewModel.syncSessions()
+                    await presenter.syncSessions()
                 }
             } label: {
                 Text("Reload")
@@ -73,18 +72,18 @@ struct WorkoutHistoryView: View {
     
     private var listContents: some View {
         Section {
-            ForEach(viewModel.sessions) { session in
+            ForEach(presenter.sessions) { session in
                 WorkoutHistoryRow(session: session)
                     .contentShape(Rectangle())
                     .anyButton(.highlight) {
-                        viewModel.onWorkoutSessionPressed(session: session, layoutMode: layoutMode, onSessionSelectionChanged: delegate.onSessionSelectionChanged)
+                        presenter.onWorkoutSessionPressed(session: session, layoutMode: layoutMode, onSessionSelectionChanged: delegate.onSessionSelectionChanged)
                     }
             }
         } header: {
             HStack {
                 Text("Completed Workouts")
                 Spacer()
-                Text("\(viewModel.sessions.count)")
+                Text("\(presenter.sessions.count)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -139,7 +138,7 @@ private struct WorkoutHistoryRow: View {
 #Preview("Functioning") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
+        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -150,7 +149,7 @@ private struct WorkoutHistoryRow: View {
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
     let builder = CoreBuilder(container: container)
     return RouterView { router in
-        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
+        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -161,7 +160,7 @@ private struct WorkoutHistoryRow: View {
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(sessions: [])))
     let builder = CoreBuilder(container: container)
     return RouterView { router in
-        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
+        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -173,7 +172,7 @@ private struct WorkoutHistoryRow: View {
     let builder = CoreBuilder(container: container)
 
     return RouterView { router in
-        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
+        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -186,7 +185,7 @@ private struct WorkoutHistoryRow: View {
     let builder = CoreBuilder(container: container)
 
     return RouterView { router in
-        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryViewDelegate(onSessionSelectionChanged: nil))
+        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryDelegate(onSessionSelectionChanged: nil))
         .navigationTitle("Workout History")
     }
     .previewEnvironment()

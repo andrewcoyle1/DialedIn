@@ -15,45 +15,45 @@ struct TrainingView: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
-    @State var viewModel: TrainingViewModel
+    @State var presenter: TrainingPresenter
 
-    @ViewBuilder var programView: (ProgramViewDelegate) -> AnyView
-    @ViewBuilder var workoutsView: (WorkoutsViewDelegate) -> AnyView
-    @ViewBuilder var exercisesView: (ExercisesViewDelegate) -> AnyView
-    @ViewBuilder var workoutHistoryView: (WorkoutHistoryViewDelegate) -> AnyView
+    @ViewBuilder var programView: (ProgramDelegate) -> AnyView
+    @ViewBuilder var workoutsView: (WorkoutsDelegate) -> AnyView
+    @ViewBuilder var exercisesView: (ExercisesDelegate) -> AnyView
+    @ViewBuilder var workoutHistoryView: (WorkoutHistoryDelegate) -> AnyView
 
     var body: some View {
         Group {
-            switch viewModel.presentationMode {
+            switch presenter.presentationMode {
             case .program:
                 programView(
-                    ProgramViewDelegate(
+                    ProgramDelegate(
                         onSessionSelectionChangeded: { session in
-                            viewModel.selectedHistorySession = session
+                            presenter.selectedHistorySession = session
                         }
                     )
                 )
             case .workouts:
                 workoutsView(
-                    WorkoutsViewDelegate(
+                    WorkoutsDelegate(
                         onWorkoutSelectionChanged: { workout in
-                            viewModel.selectedWorkoutTemplate = workout
+                            presenter.selectedWorkoutTemplate = workout
                         }
                     )
                 )
             case .exercises:
                 exercisesView(
-                    ExercisesViewDelegate(
+                    ExercisesDelegate(
                         onExerciseSelectionChanged: { exercise in
-                            viewModel.selectedExerciseTemplate = exercise
+                            presenter.selectedExerciseTemplate = exercise
                         }
                     )
                 )
             case .history:
                 workoutHistoryView(
-                    WorkoutHistoryViewDelegate(
+                    WorkoutHistoryDelegate(
                         onSessionSelectionChanged: { session in
-                            viewModel.selectedHistorySession = session
+                            presenter.selectedHistorySession = session
                         }
                     )
                 )
@@ -61,19 +61,18 @@ struct TrainingView: View {
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Training")
-        .navigationSubtitle(viewModel.navigationSubtitle)
+        .navigationSubtitle(presenter.navigationSubtitle)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             toolbarContent
         }        .onAppear {
-            viewModel.presentationMode = .program
+            presenter.presentationMode = .program
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
 
     private var pickerSection: some View {
         // Section {
-        Picker("Section", selection: $viewModel.presentationMode) {
+        Picker("Section", selection: $presenter.presentationMode) {
             Text("Program").tag(TrainingPresentationMode.program)
             Text("Workouts").tag(TrainingPresentationMode.workouts)
             Text("Exercises").tag(TrainingPresentationMode.exercises)
@@ -89,7 +88,7 @@ struct TrainingView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -98,7 +97,7 @@ struct TrainingView: View {
         
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onNotificationsPressed()
+                presenter.onNotificationsPressed()
             } label: {
                 Image(systemName: "bell")
             }
@@ -107,7 +106,7 @@ struct TrainingView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
                 Button {
-                    viewModel.presentationMode = TrainingPresentationMode.program
+                    presenter.presentationMode = TrainingPresentationMode.program
                 } label: {
                     Label {
                         Text("Program")
@@ -117,7 +116,7 @@ struct TrainingView: View {
                 }
                 
                 Button {
-                    viewModel.presentationMode = TrainingPresentationMode.workouts
+                    presenter.presentationMode = TrainingPresentationMode.workouts
                 } label: {
                     Label {
                         Text("Workouts")
@@ -127,7 +126,7 @@ struct TrainingView: View {
                 }
                 
                 Button {
-                    viewModel.presentationMode = TrainingPresentationMode.exercises
+                    presenter.presentationMode = TrainingPresentationMode.exercises
                 } label: {
                     Label {
                         Text("Exercises")
@@ -137,7 +136,7 @@ struct TrainingView: View {
                 }
                 
                 Button {
-                    viewModel.presentationMode = TrainingPresentationMode.history
+                    presenter.presentationMode = TrainingPresentationMode.history
                 } label: {
                     Label {
                         Text("History")
@@ -146,15 +145,15 @@ struct TrainingView: View {
                     }
                 }
             } label: {
-                Image(systemName: viewModel.currentMenuIcon)
+                Image(systemName: presenter.currentMenuIcon)
             }
         }
         
         // Today's workout quick action (only if there are incomplete workouts today and not in Program view)
-        if viewModel.presentationMode != .program, viewModel.getTodaysWorkouts() {
+        if presenter.presentationMode != .program, presenter.getTodaysWorkouts() {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    viewModel.startTodaysWorkout()
+                    presenter.startTodaysWorkout()
                 } label: {
                     Label("Start Workout", systemImage: "play.fill")
                 }

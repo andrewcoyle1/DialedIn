@@ -10,7 +10,7 @@ import CustomRouting
 
 struct OnboardingCompletedView: View {
 
-    @State var viewModel: OnboardingCompletedViewModel
+    @State var presenter: OnboardingCompletedPresenter
 
     var body: some View {
         VStack {
@@ -29,7 +29,7 @@ struct OnboardingCompletedView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    viewModel.onDevSettingsPressed()
+                    presenter.onDevSettingsPressed()
                 } label: {
                     Image(systemName: "info")
                 }
@@ -60,10 +60,10 @@ struct OnboardingCompletedView: View {
     
     private var buttonSection: some View {
         Button {
-            viewModel.onFinishButtonPressed()
+            presenter.onFinishButtonPressed()
         } label: {
             ZStack {
-                if !viewModel.isCompletingProfileSetup {
+                if !presenter.isCompletingProfileSetup {
                     Text("Continue")
                 } else {
                     ProgressView()
@@ -74,7 +74,7 @@ struct OnboardingCompletedView: View {
             .frame(height: 40)
         }
         .buttonStyle(.glassProminent)
-        .disabled(viewModel.isCompletingProfileSetup)
+        .disabled(presenter.isCompletingProfileSetup)
     }
 }
 

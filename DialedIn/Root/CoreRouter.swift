@@ -79,43 +79,43 @@ struct CoreRouter {
         }
     }
 
-    func showOnboardingDateOfBirthView(delegate: OnboardingDateOfBirthViewDelegate) {
+    func showOnboardingDateOfBirthView(delegate: OnboardingDateOfBirthDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingDateOfBirthView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingHeightView(delegate: OnboardingHeightViewDelegate) {
+    func showOnboardingHeightView(delegate: OnboardingHeightDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingHeightView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingWeightView(delegate: OnboardingWeightViewDelegate) {
+    func showOnboardingWeightView(delegate: OnboardingWeightDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingWeightView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingExerciseFrequencyView(delegate: OnboardingExerciseFrequencyViewDelegate) {
+    func showOnboardingExerciseFrequencyView(delegate: OnboardingExerciseFrequencyDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingExerciseFrequencyView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingActivityView(delegate: OnboardingActivityViewDelegate) {
+    func showOnboardingActivityView(delegate: OnboardingActivityDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingActivityView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingCardioFitnessView(delegate: OnboardingCardioFitnessViewDelegate) {
+    func showOnboardingCardioFitnessView(delegate: OnboardingCardioFitnessDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingCardioFitnessView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingExpenditureView(delegate: OnboardingExpenditureViewDelegate) {
+    func showOnboardingExpenditureView(delegate: OnboardingExpenditureDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingExpenditureView(router: router, delegate: delegate)
         }
@@ -151,19 +151,19 @@ struct CoreRouter {
         }
     }
 
-    func showOnboardingTargetWeightView(delegate: OnboardingTargetWeightViewDelegate) {
+    func showOnboardingTargetWeightView(delegate: OnboardingTargetWeightDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTargetWeightView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingWeightRateView(delegate: OnboardingWeightRateViewDelegate) {
+    func showOnboardingWeightRateView(delegate: OnboardingWeightRateDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingWeightRateView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingGoalSummaryView(delegate: OnboardingGoalSummaryViewDelegate) {
+    func showOnboardingGoalSummaryView(delegate: OnboardingGoalSummaryDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingGoalSummaryView(router: router, delegate: delegate)
         }
@@ -181,37 +181,37 @@ struct CoreRouter {
         }
     }
 
-    func showOnboardingTrainingExperienceView(delegate: OnboardingTrainingExperienceViewDelegate) {
+    func showOnboardingTrainingExperienceView(delegate: OnboardingTrainingExperienceDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingExperienceView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingTrainingDaysPerWeekView(delegate: OnboardingTrainingDaysPerWeekViewDelegate) {
+    func showOnboardingTrainingDaysPerWeekView(delegate: OnboardingTrainingDaysPerWeekDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingDaysPerWeekView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingTrainingSplitView(delegate: OnboardingTrainingSplitViewDelegate) {
+    func showOnboardingTrainingSplitView(delegate: OnboardingTrainingSplitDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingSplitView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingTrainingScheduleView(delegate: OnboardingTrainingScheduleViewDelegate) {
+    func showOnboardingTrainingScheduleView(delegate: OnboardingTrainingScheduleDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingScheduleView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingTrainingEquipmentView(delegate: OnboardingTrainingEquipmentViewDelegate) {
+    func showOnboardingTrainingEquipmentView(delegate: OnboardingTrainingEquipmentDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingEquipmentView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingTrainingReviewView(delegate: OnboardingTrainingReviewViewDelegate) {
+    func showOnboardingTrainingReviewView(delegate: OnboardingTrainingReviewDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingReviewView(router: router, delegate: delegate)
         }
@@ -223,31 +223,31 @@ struct CoreRouter {
         }
     }
 
-    func showOnboardingCalorieFloorView(delegate: OnboardingCalorieFloorViewDelegate) {
+    func showOnboardingCalorieFloorView(delegate: OnboardingCalorieFloorDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingCalorieFloorView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingTrainingTypeView(delegate: OnboardingTrainingTypeViewDelegate) {
+    func showOnboardingTrainingTypeView(delegate: OnboardingTrainingTypeDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingTypeView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingCalorieDistributionView(delegate: OnboardingCalorieDistributionViewDelegate) {
+    func showOnboardingCalorieDistributionView(delegate: OnboardingCalorieDistributionDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingCalorieDistributionView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingProteinIntakeView(delegate: OnboardingProteinIntakeViewDelegate) {
+    func showOnboardingProteinIntakeView(delegate: OnboardingProteinIntakeDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingProteinIntakeView(router: router, delegate: delegate)
         }
     }
 
-    func showOnboardingDietPlanView(delegate: OnboardingDietPlanViewDelegate) {
+    func showOnboardingDietPlanView(delegate: OnboardingDietPlanDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingDietPlanView(router: router, delegate: delegate)
         }
@@ -279,31 +279,31 @@ struct CoreRouter {
         }
     }
 
-    func showAddExercisesView(delegate: AddExerciseModalViewDelegate) {
+    func showAddExercisesView(delegate: AddExerciseModalDelegate) {
         router.showScreen(.sheet) { router in
             builder.addExerciseModalView(router: router, delegate: delegate)
         }
     }
 
-    func showCreateWorkoutView(delegate: CreateWorkoutViewDelegate) {
+    func showCreateWorkoutView(delegate: CreateWorkoutDelegate) {
         router.showScreen(.fullScreenCover) { router in
             builder.createWorkoutView(router: router, delegate: delegate)
         }
     }
 
-    func showWorkoutStartView(delegate: WorkoutStartViewDelegate) {
+    func showWorkoutStartView(delegate: WorkoutStartDelegate) {
         router.showScreen(.sheet) { router in
             builder.workoutStartView(router: router, delegate: delegate)
         }
     }
 
-    func showWorkoutTrackerView(delegate: WorkoutTrackerViewDelegate) {
+    func showWorkoutTrackerView(delegate: WorkoutTrackerDelegate) {
         router.showScreen(.fullScreenCover) { router in
             builder.workoutTrackerView(router: router, delegate: delegate)
         }
     }
 
-    func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailViewDelegate) {
+    func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) {
         router.showScreen(.sheet) { router in
             builder.workoutSessionDetailView(router: router, delegate: delegate)
         }
@@ -321,66 +321,66 @@ struct CoreRouter {
         }
     }
 
-    func showAddIngredientView(delegate: AddIngredientModalViewDelegate) {
+    func showAddIngredientView(delegate: AddIngredientModalDelegate) {
         router.showScreen(.sheet) { router in
             builder.addIngredientModalView(router: router, delegate: delegate)
         }
     }
 
-    func showIngredientDetailView(delegate: IngredientDetailViewDelegate) {
+    func showIngredientDetailView(delegate: IngredientDetailDelegate) {
         router.showScreen(.push) { router in
             builder.ingredientDetailView(router: router, delegate: delegate)
         }
     }
 
-    func showRecipeDetailView(delegate: RecipeDetailViewDelegate) {
+    func showRecipeDetailView(delegate: RecipeDetailDelegate) {
         router.showScreen(.push) { router in
             builder.recipeDetailView(router: router, delegate: delegate)
         }
     }
 
-    func showRecipeAmountView(delegate: RecipeAmountViewDelegate) {
+    func showRecipeAmountView(delegate: RecipeAmountDelegate) {
         router.showScreen(.push) { router in
             builder.recipeAmountView(router: router, delegate: delegate)
         }
     }
 
-    func showStartRecipeView(delegate: RecipeStartViewDelegate) {
+    func showStartRecipeView(delegate: RecipeStartDelegate) {
         router.showScreen(.push) { router in
             builder.recipeStartView(router: router, delegate: delegate)
         }
     }
 
-    func showNutritionLibraryPickerView(delegate: NutritionLibraryPickerViewDelegate) {
+    func showNutritionLibraryPickerView(delegate: NutritionLibraryPickerDelegate) {
         router.showScreen(.sheet) { router in
             builder.nutritionLibraryPickerView(router: router, delegate: delegate)
         }
     }
 
-    func showWorkoutPickerView(delegate: WorkoutPickerSheetDelegate) {
+    func showWorkoutPickerView(delegate: WorkoutPickerDelegate) {
         router.showScreen(.sheet) { router in
             builder.workoutPickerSheet(router: router, delegate: delegate)
         }
     }
 
-    func showIngredientAmountView(delegate: IngredientAmountViewDelegate) {
+    func showIngredientAmountView(delegate: IngredientAmountDelegate) {
         router.showScreen(.push) { router in
             builder.ingredientAmountView(router: router, delegate: delegate)
         }
     }
 
-    func showProgramGoalsView(delegate: ProgramGoalsViewDelegate) {
+    func showProgramGoalsView(delegate: ProgramGoalsDelegate) {
         router.showScreen(.push) { router in
             builder.programGoalsView(router: router, delegate: delegate)
         }
     }
-    func showProgramScheduleView(delegate: ProgramScheduleViewDelegate) {
+    func showProgramScheduleView(delegate: ProgramScheduleDelegate) {
         router.showScreen(.push) { router in
             builder.programScheduleView(router: router, delegate: delegate)
         }
     }
 
-    func showAddGoalView(delegate: AddGoalViewDelegate) {
+    func showAddGoalView(delegate: AddGoalDelegate) {
         router.showScreen(.push) { router in
             builder.addGoalView(router: router, delegate: delegate)
         }
@@ -403,9 +403,9 @@ struct CoreRouter {
         }
     }
 
-    func showAddMealView(delegate: AddMealSheetDelegate) {
+    func showAddMealView(delegate: AddMealDelegate) {
         router.showScreen(.push) { router in
-            builder.addMealSheet(router: router, delegate: delegate)
+            builder.addMealView(router: router, delegate: delegate)
         }
     }
 
@@ -439,7 +439,7 @@ struct CoreRouter {
         }
     }
 
-    func showProgramPreviewView(delegate: ProgramPreviewViewDelegate) {
+    func showProgramPreviewView(delegate: ProgramPreviewDelegate) {
         router.showScreen(.push) { router in
             builder.programPreviewView(router: router, delegate: delegate)
         }
@@ -457,31 +457,31 @@ struct CoreRouter {
         }
     }
 
-    func showProgramStartConfigView(delegate: ProgramStartConfigViewDelegate) {
+    func showProgramStartConfigView(delegate: ProgramStartConfigDelegate) {
         router.showScreen(.sheet) { router in
             builder.programStartConfigView(router: router, delegate: delegate)
         }
     }
 
-    func showExerciseTemplateListView(delegate: ExerciseTemplateListViewDelegate) {
+    func showExerciseTemplateListView(delegate: ExerciseTemplateListDelegate) {
         router.showScreen(.push) { router in
             builder.exerciseTemplateListView(router: router, delegate: delegate)
         }
     }
 
-    func showWorkoutTemplateListView(delegate: WorkoutTemplateListViewDelegate) {
+    func showWorkoutTemplateListView(delegate: WorkoutTemplateListDelegate) {
         router.showScreen(.push) { router in
             builder.workoutTemplateListView(router: router, delegate: delegate)
         }
     }
 
-    func showIngredientTemplateListView(delegate: IngredientTemplateListViewDelegate) {
+    func showIngredientTemplateListView(delegate: IngredientTemplateListDelegate) {
         router.showScreen(.push) { router in
             builder.ingredientTemplateListView(router: router, delegate: delegate)
         }
     }
 
-    func showRecipeTemplateListView(delegate: RecipeTemplateListViewDelegate) {
+    func showRecipeTemplateListView(delegate: RecipeTemplateListDelegate) {
         router.showScreen(.push) { router in
             builder.recipeTemplateListView(router: router, delegate: delegate)
         }
@@ -499,7 +499,7 @@ struct CoreRouter {
         }
     }
 
-    func showWorkoutNotesView(delegate: WorkoutNotesViewDelegate) {
+    func showWorkoutNotesView(delegate: WorkoutNotesDelegate) {
         router.showScreen(.sheet) { router in
             builder.workoutNotesView(router: router, delegate: delegate)
         }
@@ -511,7 +511,7 @@ struct CoreRouter {
         }
     }
 
-    func showMealDetailView(delegate: MealDetailViewDelegate) {
+    func showMealDetailView(delegate: MealDetailDelegate) {
         router.showScreen(.sheet) { router in
             builder.mealDetailView(router: router, delegate: delegate)
         }
@@ -539,12 +539,16 @@ struct CoreRouter {
         router.showAlert(.alert, title: "Error", subtitle: error.localizedDescription, buttons: nil)
     }
 
-    func showAlert(alert: CustomRouting.AlertType, title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
+    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
         router.showAlert(.alert, title: title, subtitle: subtitle, buttons: buttons)
     }
 
     func showSimpleAlert(title: String, subtitle: String?) {
         router.showAlert(.alert, title: title, subtitle: subtitle, buttons: nil)
+    }
+
+    func showConfirmationDialog(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
+        router.showAlert(.confirmationDialog, title: title, subtitle: subtitle, buttons: buttons)
     }
 
     // MARK: Modals

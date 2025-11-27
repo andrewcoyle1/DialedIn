@@ -12,14 +12,14 @@ struct AuthOptionsView: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
-    @State var viewModel: AuthOptionsViewModel
+    @State var presenter: AuthOptionsPresenter
 
     var body: some View {
         VStack {
             imageSection
             Group {
-                SignInWithAppleButtonView { viewModel.onSignInApplePressed() }
-                SignInWithGoogleButtonView { viewModel.onSignInGooglePressed() }
+                SignInWithAppleButtonView { presenter.onSignInApplePressed() }
+                SignInWithGoogleButtonView { presenter.onSignInGooglePressed() }
                 signUpButtonSection
                 signInButtonSection
                 tsAndCsSection
@@ -30,15 +30,14 @@ struct AuthOptionsView: View {
             Color(colorScheme.backgroundPrimary)
                 .ignoresSafeArea()
         }
-        .allowsHitTesting(!viewModel.isLoading)
+        .allowsHitTesting(!presenter.isLoading)
         .navigationBarBackButtonHidden(true)
-        .showCustomAlert(alert: $viewModel.showAlert)
-        .showModal(showModal: $viewModel.isLoading) {
+        .showModal(showModal: $presenter.isLoading) {
             ProgressView()
                 .tint(.white)
         }
         .onDisappear {
-            viewModel.cleanUp()
+            presenter.cleanUp()
         }
     }
 
@@ -46,7 +45,7 @@ struct AuthOptionsView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -70,7 +69,7 @@ struct AuthOptionsView: View {
 
     private var signUpButtonSection: some View {
         Button {
-            viewModel.signUpPressed()
+            presenter.signUpPressed()
         } label: {
             HStack {
                 Text("Sign Up With Email")
@@ -85,7 +84,7 @@ struct AuthOptionsView: View {
 
     private var signInButtonSection: some View {
         Button {
-            viewModel.signInPressed()
+            presenter.signInPressed()
         } label: {
             HStack {
                 Text("Sign In With Email")

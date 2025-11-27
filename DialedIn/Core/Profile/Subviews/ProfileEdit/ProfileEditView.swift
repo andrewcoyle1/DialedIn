@@ -10,9 +10,9 @@ import PhotosUI
 import CustomRouting
 
 struct ProfileEditView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State var viewModel: ProfileEditViewModel
-    
+
+    @State var presenter: ProfileEditPresenter
+
     var body: some View {
         List {
             imageSection
@@ -25,39 +25,38 @@ struct ProfileEditView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task {
-                        await viewModel.saveProfile(onDismiss: { dismiss() })
+                        await presenter.saveProfile()
                     }
                 } label: {
-                    if viewModel.isSaving {
+                    if presenter.isSaving {
                         ProgressView()
                     } else {
                         Text("Save")
                             .fontWeight(.semibold)
                     }
                 }
-                .disabled(viewModel.isSaving || !viewModel.canSave)
+                .disabled(presenter.isSaving || !presenter.canSave)
             }
         }
-        .onAppear(perform: viewModel.prefillFromCurrentUser)
-        .onChange(of: viewModel.selectedPhotoItem) {
-            guard let newItem = viewModel.selectedPhotoItem else { return }
+        .onAppear(perform: presenter.prefillFromCurrentUser)
+        .onChange(of: presenter.selectedPhotoItem) {
+            guard let newItem = presenter.selectedPhotoItem else { return }
             
             Task {
                 do {
                     if let data = try await newItem.loadTransferable(type: Data.self) {
                         await MainActor.run {
-                            viewModel.selectedImageData = data
-                            viewModel.trackPhotoSelected()
+                            presenter.selectedImageData = data
+                            presenter.trackPhotoSelected()
                         }
                     }
                 } catch {
                     await MainActor.run {
-                        viewModel.trackPhotoLoadFailed(error: error)
+                        presenter.trackPhotoLoadFailed(error: error)
                     }
                 }
             }
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     private var imageSection: some View {
@@ -65,14 +64,14 @@ struct ProfileEditView: View {
             HStack {
                 Spacer()
                 Button {
-                    viewModel.presentImagePicker()
+                    presenter.presentImagePicker()
                 } label: {
                     ZStack {
                         Rectangle()
                             .fill(Color.secondary.opacity(0.001))
                         
                         Group {
-                            if let data = viewModel.selectedImageData {
+                            if let data = presenter.selectedImageData {
                                 #if canImport(UIKit)
                                 if let uiImage = UIImage(data: data) {
                                     Image(uiImage: uiImage)
@@ -86,7 +85,7 @@ struct ProfileEditView: View {
                                         .scaledToFill()
                                 }
                                 #endif
-                            } else if let user = viewModel.currentUser {
+                            } else if let user = presenter.currentUser {
                                 // Use cached image
                                 if let cachedImage = ProfileImageCache.shared.getCachedImage(userId: user.userId) {
                                     #if canImport(UIKit)
@@ -114,7 +113,7 @@ struct ProfileEditView: View {
                     .cornerRadius(60)
                     .clipped()
                 }
-                .photosPicker(isPresented: $viewModel.isImagePickerPresented, selection: $viewModel.selectedPhotoItem, matching: .images)
+                .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
                 Spacer()
             }
         }
@@ -123,10 +122,10 @@ struct ProfileEditView: View {
     
     private var profileSection: some View {
         Section("Name") {
-            TextField("First name", text: $viewModel.firstName)
+            TextField("First name", text: $presenter.firstName)
                 .textContentType(.givenName)
                 .autocapitalization(.words)
-            TextField("Last name (optional)", text: $viewModel.lastName)
+            TextField("Last name (optional)", text: $presenter.lastName)
                 .textContentType(.familyName)
                 .autocapitalization(.words)
         }
@@ -134,8 +133,8 @@ struct ProfileEditView: View {
     
     private var personalSection: some View {
         Section("Personal Details") {
-            DatePicker("Date of birth", selection: $viewModel.dateOfBirth, displayedComponents: .date)
-            Picker("Gender", selection: $viewModel.selectedGender) {
+            DatePicker("Date of birth", selection: $presenter.dateOfBirth, displayedComponents: .date)
+            Picker("Gender", selection: $presenter.selectedGender) {
                 Text("Not specified").tag(nil as Gender?)
                 Text("Male").tag(Gender.male as Gender?)
                 Text("Female").tag(Gender.female as Gender?)

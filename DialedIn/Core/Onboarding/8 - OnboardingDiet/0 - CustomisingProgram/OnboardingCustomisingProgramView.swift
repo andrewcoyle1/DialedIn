@@ -10,7 +10,7 @@ import CustomRouting
 
 struct OnboardingCustomisingProgramView: View {
 
-    @State var viewModel: OnboardingCustomisingProgramViewModel
+    @State var presenter: OnboardingCustomisingProgramPresenter
 
     var body: some View {
         List {
@@ -21,11 +21,10 @@ struct OnboardingCustomisingProgramView: View {
         .toolbar {
             toolbarContent
         }
-        .showModal(showModal: $viewModel.isLoading) {
+        .showModal(showModal: $presenter.isLoading) {
             ProgressView()
                 .tint(.white)
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
     }
     
     private var trainingSection: some View {
@@ -39,7 +38,7 @@ struct OnboardingCustomisingProgramView: View {
             .padding(.horizontal)
             .foregroundStyle(Color.secondary)
             Button {
-                viewModel.navigateToTrainingExperience()
+                presenter.navigateToTrainingExperience()
             } label: {
                 HStack {
                     Text("Set Up Training Program")
@@ -72,7 +71,7 @@ struct OnboardingCustomisingProgramView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -81,7 +80,7 @@ struct OnboardingCustomisingProgramView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToPreferredDiet()
+                presenter.navigateToPreferredDiet()
             } label: {
                 Image(systemName: "chevron.right")
             }

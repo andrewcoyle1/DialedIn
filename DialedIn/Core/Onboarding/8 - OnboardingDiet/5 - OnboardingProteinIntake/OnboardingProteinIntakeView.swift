@@ -8,19 +8,15 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingProteinIntakeViewDelegate {
-    let dietPlanBuilder: DietPlanBuilder
-}
-
 struct OnboardingProteinIntakeView: View {
 
-    @State var viewModel: OnboardingProteinIntakeViewModel
+    @State var presenter: OnboardingProteinIntakePresenter
 
-    var delegate: OnboardingProteinIntakeViewDelegate
+    var delegate: OnboardingProteinIntakeDelegate
 
     var body: some View {
         List {
-            if let difficulty = viewModel.trainingDifficulty {
+            if let difficulty = presenter.trainingDifficulty {
                 Section {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("You selected \(difficulty.description) training. We recommend higher protein for recovery.")
@@ -38,7 +34,7 @@ struct OnboardingProteinIntakeView: View {
         .toolbar {
             toolbarContent
         }
-        .showModal(showModal: $viewModel.showModal) {
+        .showModal(showModal: $presenter.showModal) {
             ProgressView()
                 .tint(Color.white)
         }
@@ -56,11 +52,11 @@ struct OnboardingProteinIntakeView: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer(minLength: 8)
-                    Image(systemName: viewModel.selectedProteinIntake == intake ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(viewModel.selectedProteinIntake == intake ? .accent : .secondary)
+                    Image(systemName: presenter.selectedProteinIntake == intake ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(presenter.selectedProteinIntake == intake ? .accent : .secondary)
                 }
                 .contentShape(Rectangle())
-                .onTapGesture { viewModel.selectedProteinIntake = intake }
+                .onTapGesture { presenter.selectedProteinIntake = intake }
                 .padding(.vertical)
             }
         }
@@ -71,7 +67,7 @@ struct OnboardingProteinIntakeView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -80,12 +76,12 @@ struct OnboardingProteinIntakeView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigate(dietPlanBuilder: delegate.dietPlanBuilder)
+                presenter.navigate(dietPlanBuilder: delegate.dietPlanBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.selectedProteinIntake == nil)
+            .disabled(presenter.selectedProteinIntake == nil)
         }
     }
 }
@@ -95,7 +91,7 @@ struct OnboardingProteinIntakeView: View {
     RouterView { router in
         builder.onboardingProteinIntakeView(
             router: router,
-            delegate: OnboardingProteinIntakeViewDelegate(
+            delegate: OnboardingProteinIntakeDelegate(
                 dietPlanBuilder: .proteinIntakeMock
             )
         )

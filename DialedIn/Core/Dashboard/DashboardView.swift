@@ -9,9 +9,10 @@ import SwiftUI
 import CustomRouting
 
 struct DashboardView: View {
+    
     @Environment(\.layoutMode) private var layoutMode
 
-    @State var viewModel: DashboardViewModel
+    @State var presenter: DashboardPresenter
 
     @ViewBuilder var nutritionTargetChartView: () -> AnyView
 
@@ -29,7 +30,7 @@ struct DashboardView: View {
             toolbarContent
         }
         .onOpenURL { url in
-            viewModel.handleDeepLink(url: url)
+            presenter.handleDeepLink(url: url)
         }
     }
     
@@ -61,12 +62,12 @@ struct DashboardView: View {
     private var contributionChartSection: some View {
         Section {
             ContributionChartView(
-                data: viewModel.contributionChartData,
+                data: presenter.contributionChartData,
                 rows: 7,
                 columns: 16,
                 targetValue: 1.0,
                 blockColor: .accent,
-                endDate: viewModel.chartEndDate
+                endDate: presenter.chartEndDate
             )
             .frame(height: 220)
         } header: {
@@ -79,7 +80,7 @@ struct DashboardView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -88,7 +89,7 @@ struct DashboardView: View {
 
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onPushNotificationsPressed()
+                presenter.onPushNotificationsPressed()
             } label: {
                 Image(systemName: "bell")
             }

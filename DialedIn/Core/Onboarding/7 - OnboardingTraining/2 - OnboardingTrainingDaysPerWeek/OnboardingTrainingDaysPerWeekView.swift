@@ -8,16 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-// swiftlint:disable:next type_name
-struct OnboardingTrainingDaysPerWeekViewDelegate {
-    var trainingProgramBuilder: TrainingProgramBuilder
-}
-
 struct OnboardingTrainingDaysPerWeekView: View {
 
-    @State var viewModel: OnboardingTrainingDaysPerWeekViewModel
+    @State var presenter: OnboardingTrainingDaysPerWeekPresenter
 
-    var delegate: OnboardingTrainingDaysPerWeekViewDelegate
+    var delegate: OnboardingTrainingDaysPerWeekDelegate
 
     var body: some View {
         List {
@@ -32,11 +27,11 @@ struct OnboardingTrainingDaysPerWeekView: View {
                                 .foregroundStyle(.secondary)
                         }
                         Spacer(minLength: 8)
-                        Image(systemName: viewModel.selectedDays == days ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(viewModel.selectedDays == days ? .accent : .secondary)
+                        Image(systemName: presenter.selectedDays == days ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(presenter.selectedDays == days ? .accent : .secondary)
                     }
                     .contentShape(Rectangle())
-                    .onTapGesture { viewModel.selectedDays = days }
+                    .onTapGesture { presenter.selectedDays = days }
                     .padding(.vertical)
                 }
             }
@@ -70,7 +65,7 @@ struct OnboardingTrainingDaysPerWeekView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -79,12 +74,12 @@ struct OnboardingTrainingDaysPerWeekView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigateToSplit(builder: delegate.trainingProgramBuilder)
+                presenter.navigateToSplit(builder: delegate.trainingProgramBuilder)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(viewModel.selectedDays == nil)
+            .disabled(presenter.selectedDays == nil)
         }
     }
 }
@@ -94,7 +89,7 @@ struct OnboardingTrainingDaysPerWeekView: View {
     RouterView { router in
         builder.onboardingTrainingExperienceView(
             router: router,
-            delegate: OnboardingTrainingExperienceViewDelegate(
+            delegate: OnboardingTrainingExperienceDelegate(
                 trainingProgramBuilder: TrainingProgramBuilder()
             )
         )

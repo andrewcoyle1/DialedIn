@@ -8,23 +8,17 @@
 import SwiftUI
 import CustomRouting
 
-struct MealLogViewDelegate {
-    var isShowingInspector: Binding<Bool>
-    var selectedIngredientTemplate: Binding<IngredientTemplateModel?>
-    var selectedRecipeTemplate: Binding<RecipeTemplateModel?>
-}
-
 struct MealLogView: View {
 
-    @State var viewModel: MealLogViewModel
+    @State var presenter: MealLogPresenter
 
-    var delegate: MealLogViewDelegate
+    var delegate: MealLogDelegate
 
     var body: some View {
         Group {
             datePickerSection
             
-            if viewModel.isLoading {
+            if presenter.isLoading {
                 Section {
                     ProgressView()
                         .frame(maxWidth: .infinity)
@@ -38,11 +32,11 @@ struct MealLogView: View {
             }
         }
         .task {
-            await viewModel.loadMeals()
+            await presenter.loadMeals()
         }
-        .onChange(of: viewModel.selectedDate) { _, _ in
+        .onChange(of: presenter.selectedDate) { _, _ in
             Task {
-                await viewModel.loadMeals()
+                await presenter.loadMeals()
             }
         }
     }
@@ -53,7 +47,7 @@ struct MealLogView: View {
         Section {
             HStack {
                 Button {
-                    viewModel.selectedDate = viewModel.selectedDate.addingDays(-1)
+                    presenter.selectedDate = presenter.selectedDate.addingDays(-1)
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.title2)
@@ -64,7 +58,7 @@ struct MealLogView: View {
                 
                 DatePicker(
                     "",
-                    selection: $viewModel.selectedDate,
+                    selection: $presenter.selectedDate,
                     displayedComponents: .date
                 )
                 .datePickerStyle(.compact)
@@ -73,7 +67,7 @@ struct MealLogView: View {
                 Spacer()
                 
                 Button {
-                    viewModel.selectedDate = viewModel.selectedDate.addingDays(1)
+                    presenter.selectedDate = presenter.selectedDate.addingDays(1)
                 } label: {
                     Image(systemName: "chevron.right")
                         .font(.title2)
@@ -93,15 +87,15 @@ struct MealLogView: View {
                 HStack(spacing: 12) {
                     MacroStatCard(
                         title: "Calories",
-                        current: viewModel.dailyTotals?.calories ?? 0,
-                        target: viewModel.dailyTarget?.calories,
+                        current: presenter.dailyTotals?.calories ?? 0,
+                        target: presenter.dailyTarget?.calories,
                         unit: "kcal"
                     )
                     
                     MacroStatCard(
                         title: "Protein",
-                        current: viewModel.dailyTotals?.proteinGrams ?? 0,
-                        target: viewModel.dailyTarget?.proteinGrams,
+                        current: presenter.dailyTotals?.proteinGrams ?? 0,
+                        target: presenter.dailyTarget?.proteinGrams,
                         unit: "g"
                     )
                 }
@@ -109,15 +103,15 @@ struct MealLogView: View {
                 HStack(spacing: 12) {
                     MacroStatCard(
                         title: "Carbs",
-                        current: viewModel.dailyTotals?.carbGrams ?? 0,
-                        target: viewModel.dailyTarget?.carbGrams,
+                        current: presenter.dailyTotals?.carbGrams ?? 0,
+                        target: presenter.dailyTarget?.carbGrams,
                         unit: "g"
                     )
                     
                     MacroStatCard(
                         title: "Fat",
-                        current: viewModel.dailyTotals?.fatGrams ?? 0,
-                        target: viewModel.dailyTarget?.fatGrams,
+                        current: presenter.dailyTotals?.fatGrams ?? 0,
+                        target: presenter.dailyTarget?.fatGrams,
                         unit: "g"
                     )
                 }
@@ -133,13 +127,13 @@ struct MealLogView: View {
     
     private var mealsSection: some View {
         ForEach(MealType.allCases, id: \.self) { mealType in
-            let mealsForType = viewModel.meals.filter { $0.mealType == mealType }
+            let mealsForType = presenter.meals.filter { $0.mealType == mealType }
             
             Section {
                 if mealsForType.isEmpty {
                     Button {
-                        viewModel.selectedMealType = mealType
-                        viewModel.onAddMealPressed(mealType: mealType)
+                        presenter.selectedMealType = mealType
+                        presenter.onAddMealPressed(mealType: mealType)
                     } label: {
                         HStack {
                             Text("Add \(mealType.rawValue.capitalized)")
@@ -152,14 +146,14 @@ struct MealLogView: View {
                 } else {
                     ForEach(mealsForType) { meal in
                         Button {
-                            viewModel.navToMealDetail(meal: meal)
+                            presenter.navToMealDetail(meal: meal)
                         } label: {
                             MealLogRowView(meal: meal)
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
                                 Task {
-                                    await viewModel.deleteMeal(meal)
+                                    await presenter.deleteMeal(meal)
                                 }
                             } label: {
                                 Label("Delete", systemImage: "trash")
@@ -180,10 +174,10 @@ struct MealLogView: View {
             Menu {
                 ForEach(MealType.allCases, id: \.self) { mealType in
                     Button {
-                        viewModel.selectedMealType = mealType
-                        viewModel.onAddMealPressed(mealType: mealType)
+                        presenter.selectedMealType = mealType
+                        presenter.onAddMealPressed(mealType: mealType)
                     } label: {
-                        Label(mealType.rawValue.capitalized, systemImage: viewModel.mealTypeIcon(mealType))
+                        Label(mealType.rawValue.capitalized, systemImage: presenter.mealTypeIcon(mealType))
                     }
                 }
             } label: {
@@ -200,7 +194,7 @@ struct MealLogView: View {
 }
 
 #Preview {
-    let delegate = MealLogViewDelegate(
+    let delegate = MealLogDelegate(
         isShowingInspector: Binding.constant(false),
         selectedIngredientTemplate: Binding.constant(nil),
         selectedRecipeTemplate: Binding.constant(nil)

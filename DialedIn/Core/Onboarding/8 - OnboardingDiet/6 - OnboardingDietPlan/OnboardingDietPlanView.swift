@@ -8,19 +8,15 @@
 import SwiftUI
 import CustomRouting
 
-struct OnboardingDietPlanViewDelegate {
-    let dietPlanBuilder: DietPlanBuilder
-}
-
 struct OnboardingDietPlanView: View {
 
-    @State var viewModel: OnboardingDietPlanViewModel
+    @State var presenter: OnboardingDietPlanPresenter
 
-    var delegate: OnboardingDietPlanViewDelegate
+    var delegate: OnboardingDietPlanDelegate
 
     var body: some View {
         List {
-            if let plan = viewModel.plan {
+            if let plan = presenter.plan {
                 chartSection
                 overviewSection(plan)
                 weeklyBreakdownSection(plan)
@@ -36,10 +32,9 @@ struct OnboardingDietPlanView: View {
             toolbarContent
         }
         .onAppear {
-            viewModel.createPlan(dietPlanBuilder: delegate.dietPlanBuilder)
+            presenter.createPlan(dietPlanBuilder: delegate.dietPlanBuilder)
         }
-        .showCustomAlert(alert: $viewModel.showAlert)
-        .showModal(showModal: $viewModel.isLoading) {
+        .showModal(showModal: $presenter.isLoading) {
             ProgressView()
                 .tint(Color.white)
         }
@@ -47,7 +42,7 @@ struct OnboardingDietPlanView: View {
     
     private var chartSection: some View {
         Section("Weekly Calorie & Macro Breakdown") {
-            if let plan = viewModel.plan {
+            if let plan = presenter.plan {
                 WeeklyMacroChart(plan: plan)
             }
         }
@@ -56,8 +51,8 @@ struct OnboardingDietPlanView: View {
     private func overviewSection(_ plan: DietPlan) -> some View {
         Section("Overview") {
             VStack(alignment: .leading, spacing: 8) {
-                if let programName = viewModel.trainingProgramName,
-                   let daysPerWeek = viewModel.trainingDaysPerWeek {
+                if let programName = presenter.trainingProgramName,
+                   let daysPerWeek = presenter.trainingDaysPerWeek {
                     Text("Training program: \(programName), \(daysPerWeek) days/week")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -100,7 +95,7 @@ struct OnboardingDietPlanView: View {
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                viewModel.onDevSettingsPressed()
+                presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
@@ -109,7 +104,7 @@ struct OnboardingDietPlanView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                viewModel.navigate()
+                presenter.navigate()
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -133,7 +128,7 @@ struct OnboardingDietPlanView: View {
     RouterView { router in
         builder.onboardingDietPlanView(
             router: router,
-            delegate: OnboardingDietPlanViewDelegate(
+            delegate: OnboardingDietPlanDelegate(
                 dietPlanBuilder: .mock
             )
         )

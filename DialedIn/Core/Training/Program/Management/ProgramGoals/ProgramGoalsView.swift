@@ -8,15 +8,11 @@
 import SwiftUI
 import CustomRouting
 
-struct ProgramGoalsViewDelegate {
-    let plan: TrainingPlan
-}
-
 struct ProgramGoalsView: View {
 
-    @State var viewModel: ProgramGoalsViewModel
+    @State var presenter: ProgramGoalsPresenter
 
-    let delegate: ProgramGoalsViewDelegate
+    let delegate: ProgramGoalsDelegate
 
     @ViewBuilder var goalRow: (GoalRowDelegate) -> AnyView
 
@@ -39,7 +35,7 @@ struct ProgramGoalsView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    viewModel.onAddGoalPressed(plan: delegate.plan)
+                    presenter.onAddGoalPressed(plan: delegate.plan)
                 } label: {
                     Image(systemName: "plus")
                 }
@@ -51,7 +47,7 @@ struct ProgramGoalsView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.programGoalsView(router: router, delegate: ProgramGoalsViewDelegate(plan: .mock))
+        builder.programGoalsView(router: router, delegate: ProgramGoalsDelegate(plan: .mock))
     }
     .previewEnvironment()
 }
