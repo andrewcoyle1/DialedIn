@@ -10,7 +10,6 @@ import PhotosUI
 import CustomRouting
 
 struct CreateIngredientView: View {
-    @Environment(\.dismiss) private var dismiss
 
     @State var presenter: CreateIngredientPresenter
 
@@ -227,9 +226,7 @@ struct CreateIngredientView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                presenter.onCancelPressed(onDismiss: {
-                    dismiss()
-                })
+                presenter.onCancelPressed()
             } label: {
                 Image(systemName: "xmark")
             }
@@ -247,9 +244,7 @@ struct CreateIngredientView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 Task {
-                    await presenter.onSavePressed(onDismiss: {
-                        dismiss()
-                    })
+                    await presenter.onSavePressed()
                 }
             } label: {
                 Image(systemName: "checkmark")

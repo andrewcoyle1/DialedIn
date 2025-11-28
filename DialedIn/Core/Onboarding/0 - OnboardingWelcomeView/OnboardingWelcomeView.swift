@@ -9,8 +9,6 @@ import SwiftUI
 import CustomRouting
 
 struct OnboardingWelcomeView: View {
-
-    @Environment(\.dismiss) private var dismiss
     
     @State var presenter: OnboardingWelcomePresenter
 

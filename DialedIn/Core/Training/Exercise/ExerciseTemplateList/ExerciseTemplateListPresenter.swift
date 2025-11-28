@@ -7,20 +7,6 @@
 
 import SwiftUI
 
-protocol ExerciseTemplateListInteractor {
-    func getExerciseTemplates(ids: [String], limitTo: Int) async throws -> [ExerciseTemplateModel]
-}
-
-extension CoreInteractor: ExerciseTemplateListInteractor { }
-
-@MainActor
-protocol ExerciseTemplateListRouter {
-    func showDevSettingsView()
-    func showSimpleAlert(title: String, subtitle: String?)
-}
-
-extension CoreRouter: ExerciseTemplateListRouter { }
-
 // Typealias for backward compatibility
 typealias ExerciseTemplateListPresenter = GenericTemplateListPresenter<ExerciseTemplateModel>
 

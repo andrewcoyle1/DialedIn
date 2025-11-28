@@ -5,6 +5,8 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
+import SwiftUI
+
 protocol VolumeChartsInteractor {
     func getVolumeTrend(for period: DateInterval, interval: Calendar.Component) async -> VolumeTrend
 }

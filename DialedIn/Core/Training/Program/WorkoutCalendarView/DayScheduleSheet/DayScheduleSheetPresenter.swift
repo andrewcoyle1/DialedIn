@@ -35,6 +35,10 @@ class DayScheduleSheetPresenter {
         }
     }
 
+    func onDismissPressed() {
+        router.dismissScreen()
+    }
+
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }

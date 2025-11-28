@@ -18,6 +18,8 @@ protocol EmailVerificationRouter {
     func showOnboardingCustomisingProgramView()
     func showOnboardingCompletedView()
 
+    func dismissScreen()
+
     func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
 }
 

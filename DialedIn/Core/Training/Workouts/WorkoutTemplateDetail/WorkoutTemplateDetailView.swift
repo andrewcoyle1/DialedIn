@@ -14,7 +14,6 @@ struct WorkoutTemplateDetailDelegate {
 
 struct WorkoutTemplateDetailView: View {
 
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.editMode) private var editMode
 
     @State var presenter: WorkoutTemplateDetailPresenter
@@ -113,9 +112,7 @@ struct WorkoutTemplateDetailView: View {
         if isAuthor && editMode?.wrappedValue == .active {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(role: .destructive) {
-                    presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate, onDismiss: {
-                        dismiss()
-                    })
+                    presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate)
                 } label: {
                     if presenter.isDeleting {
                         ProgressView()

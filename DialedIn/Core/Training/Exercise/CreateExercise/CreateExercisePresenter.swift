@@ -8,26 +8,6 @@
 import SwiftUI
 import PhotosUI
 
-protocol CreateExerciseInteractor {
-    var currentUser: UserModel? { get }
-    func createExerciseTemplate(exercise: ExerciseTemplateModel, image: PlatformImage?) async throws
-    func addCreatedExerciseTemplate(exerciseId: String) async throws
-    func addBookmarkedExerciseTemplate(exerciseId: String) async throws
-    func bookmarkExerciseTemplate(id: String, isBookmarked: Bool) async throws
-    func generateImage(input: String) async throws -> UIImage
-    func trackEvent(event: LoggableEvent)
-}
-
-extension CoreInteractor: CreateExerciseInteractor { }
-
-@MainActor
-protocol CreateExerciseRouter {
-    func showDevSettingsView()
-    func showSimpleAlert(title: String, subtitle: String?)
-}
-
-extension CoreRouter: CreateExerciseRouter { }
-
 @Observable
 @MainActor
 class CreateExercisePresenter {
@@ -88,7 +68,11 @@ class CreateExercisePresenter {
         }
     }
 
-    func onSavePressed(onDismiss: @escaping () -> Void) async {
+    private func dismissScreen() {
+        router.dismissScreen()
+    }
+
+    func onSavePressed() async {
         guard let exerciseName, !isSaving, canSave else { return }
         isSaving = true
         
@@ -131,7 +115,7 @@ class CreateExercisePresenter {
             return
         }
         isSaving = false
-        onDismiss()
+        dismissScreen()
     }
 
     func onGenerateImagePressed() {
@@ -163,8 +147,8 @@ class CreateExercisePresenter {
         }
     }
 
-    func onCancelPressed(onDismiss: @escaping () -> Void) {
-        onDismiss()
+    func onCancelPressed() {
+        dismissScreen()
     }
 
     func onDevSettingsPressed() {

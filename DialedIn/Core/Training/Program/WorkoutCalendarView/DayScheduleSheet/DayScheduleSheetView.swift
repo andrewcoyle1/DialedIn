@@ -16,8 +16,6 @@ struct DayScheduleDelegate {
 
 struct DayScheduleSheetView: View {
 
-    @Environment(\.dismiss) private var dismiss
-
     @State var presenter: DayScheduleSheetPresenter
 
     let delegate: DayScheduleDelegate
@@ -51,7 +49,7 @@ struct DayScheduleSheetView: View {
                                 TodaysWorkoutCardDelegate(
                                     scheduledWorkout: workout, onStart: {
                                         Task {
-                                            dismiss()
+                                            presenter.onDismissPressed()
                                             // Small delay to ensure sheet dismissal completes
                                             try? await Task.sleep(nanoseconds: 100_000_000)
                                             delegate.onStartWorkout(workout)
@@ -69,7 +67,7 @@ struct DayScheduleSheetView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Done") {
-                    dismiss()
+                    presenter.onDismissPressed()
                 }
             }
         }

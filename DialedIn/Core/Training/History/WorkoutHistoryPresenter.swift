@@ -7,24 +7,6 @@
 
 import SwiftUI
 
-protocol WorkoutHistoryInteractor {
-    var auth: UserAuthInfo? { get }
-    func getLocalWorkoutSessionsForAuthor(authorId: String, limitTo: Int) throws -> [WorkoutSessionModel]
-    func syncWorkoutSessionsFromRemote(authorId: String, limitTo: Int) async throws
-    func trackEvent(event: LoggableEvent)
-}
-
-extension CoreInteractor: WorkoutHistoryInteractor { }
-
-@MainActor
-protocol WorkoutHistoryRouter {
-    func showDevSettingsView()
-
-    func showSimpleAlert(title: String, subtitle: String?)
-}
-
-extension CoreRouter: WorkoutHistoryRouter { }
-
 @Observable
 @MainActor
 class WorkoutHistoryPresenter {

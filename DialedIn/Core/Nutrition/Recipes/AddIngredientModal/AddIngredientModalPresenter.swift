@@ -34,8 +34,8 @@ class AddIngredientModalPresenter {
         }
     }
     
-    func onDismissPressed(onDismiss: () -> Void) {
-        onDismiss()
+    func onDismissPressed() {
+        router.dismissScreen()
     }
     
     func loadIngredients() async {

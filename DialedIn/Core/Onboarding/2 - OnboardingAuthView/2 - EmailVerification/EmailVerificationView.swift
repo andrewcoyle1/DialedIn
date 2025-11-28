@@ -10,8 +10,6 @@ import CustomRouting
 
 struct EmailVerificationView: View {
 
-    @Environment(\.dismiss) private var dismiss
-
     @State var presenter: EmailVerificationPresenter
 
     var body: some View {
@@ -83,12 +81,7 @@ struct EmailVerificationView: View {
         ToolbarItem(placement: .bottomBar) {
             Button {
                 presenter.startSendVerificationEmail(
-                    isInitial: false,
-                    onDismiss: {
-                        Task { @MainActor in
-                            dismiss()
-                        }
-                    }
+                    isInitial: false
                 )
             } label: {
                 Image(systemName: "arrow.trianglehead.clockwise")

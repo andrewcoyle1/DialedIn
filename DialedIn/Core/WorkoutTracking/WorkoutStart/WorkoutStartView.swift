@@ -8,17 +8,6 @@
 import SwiftUI
 import CustomRouting
 
-struct WorkoutStartDelegate {
-
-    let template: WorkoutTemplateModel
-    let scheduledWorkout: ScheduledWorkout?
-
-    init(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout? = nil) {
-        self.template = template
-        self.scheduledWorkout = scheduledWorkout
-    }
-}
-
 struct WorkoutStartView: View {
 
     @State var presenter: WorkoutStartPresenter

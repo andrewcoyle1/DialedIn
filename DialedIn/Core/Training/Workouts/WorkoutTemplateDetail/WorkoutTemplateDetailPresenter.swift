@@ -85,14 +85,14 @@ class WorkoutTemplateDetailPresenter {
         }
     }
 
-    func showDeleteConfirmation(workoutTemplate: WorkoutTemplateModel, onDismiss: @escaping @MainActor () -> Void) {
+    func showDeleteConfirmation(workoutTemplate: WorkoutTemplateModel) {
         router.showAlert(title: "Delete Workout", subtitle: "Are you sure you want to delete '\(workoutTemplate.name)'? This action cannot be undone.", buttons: {
             AnyView(
                 HStack {
                     Button("Delete", role: .destructive) {
                         Task {
                             await self.deleteWorkout(template: workoutTemplate, onDismiss: {
-                                onDismiss()
+                                self.router.dismissScreen()
                             })
                         }
                     }

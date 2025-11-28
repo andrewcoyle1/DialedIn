@@ -8,30 +8,10 @@
 import SwiftUI
 import PhotosUI
 
-protocol CreateIngredientInteractor {
-    var currentUser: UserModel? { get }
-    func createIngredientTemplate(ingredient: IngredientTemplateModel, image: PlatformImage?) async throws
-    func addCreatedIngredientTemplate(ingredientId: String) async throws
-    func addBookmarkedIngredientTemplate(ingredientId: String) async throws
-    func bookmarkIngredientTemplate(id: String, isBookmarked: Bool) async throws
-    func trackEvent(event: LoggableEvent)
-    func trackEvent(eventName: String, parameters: [String: Any]?, type: LogType)
-    func generateImage(input: String) async throws -> UIImage
-}
-
-extension CoreInteractor: CreateIngredientInteractor { }
-
-@MainActor
-protocol CreateIngredientRouter {
-    func showDevSettingsView()
-    func showAlert(error: Error)
-}
-
-extension CoreRouter: CreateIngredientRouter { }
-
 @Observable
 @MainActor
 class CreateIngredientPresenter {
+
     private let interactor: CreateIngredientInteractor
     private let router: CreateIngredientRouter
 
@@ -128,7 +108,7 @@ class CreateIngredientPresenter {
         }
     }
 
-    func onSavePressed(onDismiss: () -> Void) async {
+    func onSavePressed() async {
         guard let ingredientName = name, !isSaving, canSave else { return }
         isSaving = true
         
@@ -181,11 +161,11 @@ class CreateIngredientPresenter {
             
         }
         isSaving = false
-        onDismiss()
+        router.dismissScreen()
     }
     
-    func onCancelPressed(onDismiss: () -> Void) {
-        onDismiss()
+    func onCancelPressed() {
+        router.dismissScreen()
     }
 
     func onGenerateImagePressed() {

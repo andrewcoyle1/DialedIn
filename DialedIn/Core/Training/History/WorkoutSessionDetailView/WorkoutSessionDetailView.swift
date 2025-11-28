@@ -8,13 +8,7 @@
 import SwiftUI
 import CustomRouting
 
-struct WorkoutSessionDetailDelegate {
-    let workoutSession: WorkoutSessionModel
-}
-
 struct WorkoutSessionDetailView: View {
-
-    @Environment(\.dismiss) private var dismiss
 
     @State var presenter: WorkoutSessionDetailPresenter
 
@@ -176,19 +170,14 @@ extension WorkoutSessionDetailView {
         ToolbarItem(placement: .topBarTrailing) {
             if presenter.isEditMode {
                 Button("Save") {
-                    Task { await presenter.saveChanges(onDismiss: {
-                        dismiss()
-                    }) }
+                    Task { await presenter.saveChanges() }
                 }
                 .disabled(presenter.isSaving)
                 .fontWeight(.semibold)
             } else {
                 Button(role: .destructive) {
                     presenter.onDeletePressed(
-                        session: delegate.workoutSession,
-                        onDismiss: {
-                            dismiss()
-                        }
+                        session: delegate.workoutSession
                     )
                 } label: {
                     Image(systemName: "trash")

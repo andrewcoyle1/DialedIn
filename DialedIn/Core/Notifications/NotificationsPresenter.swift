@@ -67,7 +67,7 @@ class NotificationsPresenter {
         }
     }
 
-    func onDismissPressed(onDismiss: () -> Void) {
-        onDismiss()
+    func onDismissPressed() {
+        router.dismissScreen()
     }
 }

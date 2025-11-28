@@ -9,6 +9,7 @@
 protocol ProgramStartConfigRouter {
     func showProgramPreviewView(delegate: ProgramPreviewDelegate)
     func showDevSettingsView()
+    func dismissScreen()
 }
 
 extension CoreRouter: ProgramStartConfigRouter { }

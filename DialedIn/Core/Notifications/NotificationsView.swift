@@ -9,9 +9,9 @@ import SwiftUI
 import CustomRouting
 
 struct NotificationsView: View {
+
     @State var presenter: NotificationsPresenter
-    @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         Group {
             if presenter.isLoading {
@@ -27,7 +27,7 @@ struct NotificationsView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    presenter.onDismissPressed(onDismiss: { dismiss() })
+                    presenter.onDismissPressed()
                 } label: {
                     Text("Done")
                 }

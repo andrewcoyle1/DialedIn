@@ -32,7 +32,7 @@ class AddGoalPresenter {
         self.plan = plan
     }
     
-    func addGoal(onDismiss: @escaping () -> Void) async {
+    func addGoal() async {
         isSaving = true
         defer { isSaving = false }
         
@@ -45,10 +45,14 @@ class AddGoalPresenter {
         
         do {
             try await interactor.addGoal(goal)
-            onDismiss()
+            router.dismissScreen()
         } catch {
             print("Error adding goal: \(error)")
         }
+    }
+
+    func onDismissPressed() {
+        router.dismissScreen()
     }
 
     func onDevSettingsPressed() {

@@ -8,13 +8,6 @@
 import SwiftUI
 import CustomRouting
 
-struct IngredientsDelegate {
-    var isShowingInspector: Binding<Bool>
-    var selectedIngredientTemplate: Binding<IngredientTemplateModel?>
-    var selectedRecipeTemplate: Binding<RecipeTemplateModel?>
-    var showCreateIngredient: Binding<Bool>
-}
-
 struct IngredientsView: View {
     @State var presenter: IngredientsPresenter
 

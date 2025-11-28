@@ -8,10 +8,6 @@
 import SwiftUI
 import CustomRouting
 
-struct IngredientDetailDelegate {
-    let ingredientTemplate: IngredientTemplateModel
-}
-
 struct IngredientDetailView: View {
 
     @State var presenter: IngredientDetailPresenter

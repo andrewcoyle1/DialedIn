@@ -8,10 +8,6 @@
 import SwiftUI
 import CustomRouting
 
-struct WorkoutHistoryDelegate {
-    let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
-}
-
 struct WorkoutHistoryView: View {
     @Environment(\.layoutMode) private var layoutMode
     

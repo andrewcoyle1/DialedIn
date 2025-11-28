@@ -9,6 +9,9 @@
 protocol DayScheduleSheetRouter {
     func showDevSettingsView()
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
+
+    func dismissScreen()
+    
     func showAlert(error: Error)
 }
 

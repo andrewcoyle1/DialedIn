@@ -9,7 +9,6 @@ import SwiftUI
 import CustomRouting
 
 struct ProgramStartConfigView: View {
-    @Environment(\.dismiss) private var dismiss
     
     @State var presenter: ProgramStartConfigPresenter
 
@@ -124,7 +123,7 @@ struct ProgramStartConfigView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button("Cancel") {
-                dismiss()
+                presenter.onDismissPressed()
             }
         }
         

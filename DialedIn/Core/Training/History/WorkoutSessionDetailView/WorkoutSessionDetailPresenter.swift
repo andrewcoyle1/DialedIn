@@ -7,30 +7,6 @@
 
 import SwiftUI
 
-protocol WorkoutSessionDetailInteractor {
-    var currentUser: UserModel? { get }
-    func updateLocalWorkoutSession(session: WorkoutSessionModel) throws
-    func updateWorkoutSession(session: WorkoutSessionModel) async throws
-    func getPreference(templateId: String) -> ExerciseUnitPreference
-    func setPreference(weightUnit: ExerciseWeightUnit?, distanceUnit: ExerciseDistanceUnit?, for templateId: String)
-    func deleteLocalWorkoutSession(id: String) throws
-    func deleteWorkoutSession(id: String) async throws
-    func markWorkoutIncompleteIfSessionDeleted(scheduledWorkoutId: String, sessionId: String) async throws
-}
-
-extension CoreInteractor: WorkoutSessionDetailInteractor { }
-
-@MainActor
-protocol WorkoutSessionDetailRouter {
-    func showDevSettingsView()
-    func showAddExercisesView(delegate: AddExerciseModalDelegate)
-
-    func showSimpleAlert(title: String, subtitle: String?)
-    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
-}
-
-extension CoreRouter: WorkoutSessionDetailRouter { }
-
 @Observable
 @MainActor
 class WorkoutSessionDetailPresenter {
@@ -124,8 +100,12 @@ class WorkoutSessionDetailPresenter {
             }
         )
     }
-    
-    func saveChanges(onDismiss: @escaping @MainActor () -> Void) async {
+
+    private func dismissScreen(){
+        router.dismissScreen()
+    }
+
+    func saveChanges() async {
         isSaving = true
         defer { isSaving = false }
         
@@ -133,7 +113,7 @@ class WorkoutSessionDetailPresenter {
             // Update dateModified using the model's method
             guard var sessionToSave = editedSession else {
                 isEditMode = false
-                onDismiss()
+                dismissScreen()
                 return
             }
             sessionToSave.updateExercises(sessionToSave.exercises)
@@ -147,7 +127,7 @@ class WorkoutSessionDetailPresenter {
             isEditMode = false
             
             // Dismiss to refresh parent view
-            onDismiss()
+            dismissScreen()
         } catch {
             router.showSimpleAlert(
                 title: "Save Failed",
@@ -312,11 +292,11 @@ class WorkoutSessionDetailPresenter {
     
     // MARK: - Delete Session
     
-    func onDeletePressed(session: WorkoutSessionModel, onDismiss: () -> Void) {
+    func onDeletePressed(session: WorkoutSessionModel, ) {
         Task {
             await deleteSession(session: session)
         }
-        onDismiss()
+        dismissScreen()
     }
     
     func deleteSession(session: WorkoutSessionModel) async {

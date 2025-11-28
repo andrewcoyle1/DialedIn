@@ -7,24 +7,6 @@
 
 import SwiftUI
 
-protocol WorkoutStartInteractor {
-    var currentUser: UserModel? { get }
-    var currentTrainingPlan: TrainingPlan? { get }
-    var activeSession: WorkoutSessionModel? { get }
-    func addLocalWorkoutSession(session: WorkoutSessionModel) throws
-    func startActiveSession(_ session: WorkoutSessionModel)
-}
-
-extension CoreInteractor: WorkoutStartInteractor { }
-
-@MainActor
-protocol WorkoutStartRouter {
-    func showWorkoutTrackerView(delegate: WorkoutTrackerDelegate)
-    func dismissScreen()
-}
-
-extension CoreRouter: WorkoutStartRouter { }
-
 @Observable
 @MainActor
 class WorkoutStartPresenter {

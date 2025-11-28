@@ -9,9 +9,9 @@ import SwiftUI
 import CustomRouting
 
 struct AddGoalView: View {
+
     @State var presenter: AddGoalPresenter
-    @Environment(\.dismiss) private var dismiss
-        
+
     init(presenter: AddGoalPresenter, delegate: AddGoalDelegate) {
         self.presenter = presenter
         presenter.addTrainingPlan(delegate.plan)
@@ -58,14 +58,14 @@ struct AddGoalView: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
-                    dismiss()
+                    presenter.onDismissPressed()
                 }
             }
             
             ToolbarItem(placement: .confirmationAction) {
                 Button("Add") {
                     Task {
-                        await presenter.addGoal(onDismiss: { dismiss() })
+                        await presenter.addGoal()
                     }
                 }
                 .disabled(presenter.isSaving || presenter.targetValue <= 0)

@@ -10,6 +10,7 @@ import SwiftUI
 @Observable
 @MainActor
 class EmailVerificationPresenter {
+
     private let interactor: EmailVerificationInteractor
     private let router: EmailVerificationRouter
 
@@ -36,10 +37,10 @@ class EmailVerificationPresenter {
     }
 
     // MARK: Send Verification Email
-    func startSendVerificationEmail(isInitial: Bool = false, onDismiss: @escaping @Sendable () -> Void = {}) {
+    func startSendVerificationEmail(isInitial: Bool = false) {
         // If user is not signed in, show recovery alert
         guard interactor.auth != nil else {
-            showNotSignedInAlert(onDismiss: onDismiss)
+            showNotSignedInAlert()
             return
         }
         // Prevent overlapping operations
@@ -86,10 +87,10 @@ class EmailVerificationPresenter {
     }
 
     // MARK: On Done Pressed
-    func onDonePressed(onDismiss: @escaping @Sendable () -> Void = {}) {
+    func onDonePressed() {
         // If user is not signed in, show recovery alert
         guard interactor.auth != nil else {
-            self.showNotSignedInAlert(onDismiss: onDismiss)
+            self.showNotSignedInAlert()
             return
         }
         // Prevent overlapping operations
@@ -108,7 +109,7 @@ class EmailVerificationPresenter {
                     return try await self.interactor.checkVerificationEmail()
                 }
                 interactor.trackEvent(event: Event.checkEmailVerificationSuccess(isVerified: isVerified))
-                handleDidCheckEmailVerification(isVerified: isVerified, onDismiss: onDismiss)
+                handleDidCheckEmailVerification(isVerified: isVerified)
             } catch {
                 if !Task.isCancelled {
                     interactor.trackEvent(event: Event.checkEmailVerificationFail(error: error))
@@ -122,7 +123,7 @@ class EmailVerificationPresenter {
                                     Button("Cancel") { }
                                     if errorInfo.isRetryable {
                                         Button("Try Again") {
-                                            self.onDonePressed(onDismiss: onDismiss)
+                                            self.onDonePressed()
                                         }
                                     }
                                 }
@@ -135,7 +136,7 @@ class EmailVerificationPresenter {
     }
 
     // MARK: HandleDidCheckEmailVerification
-    func handleDidCheckEmailVerification(isVerified: Bool, onDismiss: @escaping @Sendable () -> Void) {
+    func handleDidCheckEmailVerification(isVerified: Bool) {
         if isVerified && !Task.isCancelled {
             handleNavigation()
             currentPollingTask?.cancel()
@@ -150,14 +151,11 @@ class EmailVerificationPresenter {
                         VStack {
                             Button("Resend Email") {
                                 self.startSendVerificationEmail(
-                                    isInitial: false,
-                                    onDismiss: {
-                                        onDismiss()
-                                    }
+                                    isInitial: false
                                 )
                             }
                             Button("Check Again") {
-                                self.onDonePressed(onDismiss: { onDismiss() })
+                                self.onDonePressed()
                             }
                             Button("Cancel") { }
                         }
@@ -232,7 +230,7 @@ class EmailVerificationPresenter {
     }
 
     // MARK: - Alerts
-    func showNotSignedInAlert(onDismiss: @escaping @Sendable () -> Void) {
+    func showNotSignedInAlert() {
         router.showAlert(
             title: "You're not signed in",
             subtitle: "Please sign in again to continue email verification.",
@@ -241,12 +239,16 @@ class EmailVerificationPresenter {
                     HStack {
                         Button("Cancel") { }
                         Button("Go to Sign In") {
-                            onDismiss()
+                            self.onDismissPressed()
                         }
                     }
                 )
             }
         )
+    }
+
+    func onDismissPressed() {
+        router.dismissScreen()
     }
 
     // MARK: - Polling & Toast

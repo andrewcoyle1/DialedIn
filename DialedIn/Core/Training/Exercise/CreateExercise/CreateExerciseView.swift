@@ -11,8 +11,6 @@ import CustomRouting
 
 struct CreateExerciseView: View {
 
-    @Environment(\.dismiss) private var dismiss
-
     @State var presenter: CreateExercisePresenter
 
     var body: some View {
@@ -158,7 +156,7 @@ struct CreateExerciseView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                presenter.onCancelPressed(onDismiss: { dismiss() })
+                presenter.onCancelPressed()
             } label: {
                 Image(systemName: "xmark")
             }
@@ -176,7 +174,7 @@ struct CreateExerciseView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 Task {
-                    await presenter.onSavePressed(onDismiss: { dismiss() })
+                    await presenter.onSavePressed()
                 }
             } label: {
                 Image(systemName: "checkmark")

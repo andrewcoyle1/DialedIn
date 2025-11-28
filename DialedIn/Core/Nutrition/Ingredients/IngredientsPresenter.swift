@@ -7,28 +7,6 @@
 
 import Foundation
 
-protocol IngredientsInteractor {
-    var currentUser: UserModel? { get }
-    func incrementIngredientTemplateInteraction(id: String) async throws
-    func getIngredientTemplatesByName(name: String) async throws -> [IngredientTemplateModel]
-    func getIngredientTemplatesForAuthor(authorId: String) async throws -> [IngredientTemplateModel]
-    func getTopIngredientTemplatesByClicks(limitTo: Int) async throws -> [IngredientTemplateModel]
-    func getIngredientTemplates(ids: [String], limitTo: Int) async throws -> [IngredientTemplateModel]
-    func trackEvent(event: LoggableEvent)
-}
-
-extension CoreInteractor: IngredientsInteractor { }
-
-@MainActor
-protocol IngredientsRouter {
-    func showIngredientDetailView(delegate: IngredientDetailDelegate)
-    func showSimpleAlert(title: String, subtitle: String?)
-}
-
-extension CoreRouter: IngredientsRouter {
-
-}
-
 @Observable
 @MainActor
 class IngredientsPresenter {

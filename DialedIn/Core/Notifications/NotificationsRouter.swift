@@ -7,7 +7,7 @@
 
 @MainActor
 protocol NotificationsRouter {
-
+    func dismissScreen()
 }
 
 extension CoreRouter: NotificationsRouter { }

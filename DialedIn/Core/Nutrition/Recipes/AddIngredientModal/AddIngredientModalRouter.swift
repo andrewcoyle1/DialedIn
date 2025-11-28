@@ -8,6 +8,7 @@
 @MainActor
 protocol AddIngredientModalRouter {
     func showDevSettingsView()
+    func dismissScreen()
 }
 
 extension CoreRouter: AddIngredientModalRouter { }

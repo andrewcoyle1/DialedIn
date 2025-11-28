@@ -9,7 +9,6 @@ import SwiftUI
 import CustomRouting
 
 struct AddIngredientModalView: View {
-    @Environment(\.dismiss) private var dismiss
 
     @State var presenter: AddIngredientModalPresenter
 
@@ -26,6 +25,7 @@ struct AddIngredientModalView: View {
             return fields.contains { $0.localizedCaseInsensitiveContains(query) }
         }
     }
+    
     var body: some View {
         Group {
             if presenter.isLoading {
@@ -62,11 +62,7 @@ struct AddIngredientModalView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    presenter.onDismissPressed(
-                        onDismiss: {
-                            dismiss()
-                        }
-                    )
+                    presenter.onDismissPressed()
                 } label: {
                     Image(systemName: "xmark")
                 }

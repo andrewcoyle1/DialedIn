@@ -72,6 +72,10 @@ class ProgramStartConfigPresenter {
         router.showDevSettingsView()
     }
 
+    func onDismissPressed() {
+        router.dismissScreen()
+    }
+
     enum Event: LoggableEvent {
         case navigate
 

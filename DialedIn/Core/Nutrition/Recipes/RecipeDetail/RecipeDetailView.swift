@@ -10,8 +10,6 @@ import CustomRouting
 
 struct RecipeDetailView: View {
 
-    @Environment(\.dismiss) private var dismiss
-
     @State var presenter: RecipeDetailPresenter
 
     let delegate: RecipeDetailDelegate

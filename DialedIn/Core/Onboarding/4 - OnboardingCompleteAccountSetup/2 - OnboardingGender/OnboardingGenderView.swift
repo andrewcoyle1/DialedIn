@@ -10,8 +10,6 @@ import CustomRouting
 
 struct OnboardingGenderView: View {
 
-    @Environment(\.dismiss) private var dismiss
-
     @State var presenter: OnboardingGenderPresenter
 
     var body: some View {

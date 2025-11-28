@@ -7,27 +7,6 @@
 
 import Foundation
 
-protocol IngredientDetailInteractor {
-    var currentUser: UserModel? { get }
-    func favouriteIngredientTemplate(id: String, isFavourited: Bool) async throws
-    func removeFavouritedIngredientTemplate(ingredientId: String) async throws
-    func bookmarkIngredientTemplate(id: String, isBookmarked: Bool) async throws
-    func addBookmarkedIngredientTemplate(ingredientId: String) async throws
-    func removeBookmarkedIngredientTemplate(ingredientId: String) async throws
-    func addFavouritedIngredientTemplate(ingredientId: String) async throws
-    func trackEvent(event: LoggableEvent)
-}
-
-extension CoreInteractor: IngredientDetailInteractor { }
-
-@MainActor
-protocol IngredientDetailRouter {
-    func showDevSettingsView()
-    func showSimpleAlert(title: String, subtitle: String?)
-}
-
-extension CoreRouter: IngredientDetailRouter { }
-
 @Observable
 @MainActor
 class IngredientDetailPresenter {

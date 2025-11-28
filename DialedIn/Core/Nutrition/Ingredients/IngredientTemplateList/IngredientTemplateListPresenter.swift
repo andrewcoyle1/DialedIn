@@ -7,20 +7,6 @@
 
 import Foundation
 
-protocol IngredientTemplateListInteractor {
-    func getIngredientTemplates(ids: [String], limitTo: Int) async throws -> [IngredientTemplateModel]
-}
-
-extension CoreInteractor: IngredientTemplateListInteractor { }
-
-@MainActor
-protocol IngredientTemplateListRouter {
-    func showDevSettingsView()
-    func showSimpleAlert(title: String, subtitle: String?)
-}
-
-extension CoreRouter: IngredientTemplateListRouter { }
-
 // Typealias for backward compatibility
 typealias IngredientTemplateListPresenter = GenericTemplateListPresenter<IngredientTemplateModel>
 

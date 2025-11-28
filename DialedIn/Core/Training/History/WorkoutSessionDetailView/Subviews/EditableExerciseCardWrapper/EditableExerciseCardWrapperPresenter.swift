@@ -7,12 +7,6 @@
 
 import SwiftUI
 
-protocol EditableExerciseCardWrapperInteractor {
-    
-}
-
-extension CoreInteractor: EditableExerciseCardWrapperInteractor { }
-
 @Observable
 @MainActor
 class EditableExerciseCardWrapperPresenter {

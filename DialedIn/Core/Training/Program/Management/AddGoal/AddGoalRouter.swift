@@ -8,6 +8,7 @@
 @MainActor
 protocol AddGoalRouter {
     func showDevSettingsView()
+    func dismissScreen()
 }
 
 extension CoreRouter: AddGoalRouter { }
