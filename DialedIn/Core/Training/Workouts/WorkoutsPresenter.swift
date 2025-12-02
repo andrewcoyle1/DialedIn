@@ -73,7 +73,7 @@ class WorkoutsPresenter {
         router.showCreateWorkoutView(delegate: CreateWorkoutDelegate(workoutTemplate: nil))
     }
 
-    func onWorkoutPressed(workout: WorkoutTemplateModel, onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)? = nil) {
+    func onWorkoutPressed(workout: WorkoutTemplateModel) {
         // Only increment click count for non-system workouts
         // System workouts (IDs starting with "system-") are read-only
         if !workout.id.hasPrefix("system-") {
@@ -87,9 +87,7 @@ class WorkoutsPresenter {
                 }
             }
         }
-        selectedExerciseTemplate = nil
-        selectedWorkoutTemplate = workout
-        onWorkoutSelectionChanged?(workout)
+        router.showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate(workoutTemplate: workout))
     }
 
     func onWorkoutPressedFromFavourites(workout: WorkoutTemplateModel) {

@@ -8,6 +8,7 @@
 @MainActor
 protocol RecipeTemplateListRouter {
     func showDevSettingsView()
+    func showRecipeDetailView(delegate: RecipeDetailDelegate)
     func showSimpleAlert(title: String, subtitle: String?)
 }
 

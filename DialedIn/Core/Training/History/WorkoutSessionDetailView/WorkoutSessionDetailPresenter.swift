@@ -101,7 +101,7 @@ class WorkoutSessionDetailPresenter {
         )
     }
 
-    private func dismissScreen(){
+    private func dismissScreen() {
         router.dismissScreen()
     }
 

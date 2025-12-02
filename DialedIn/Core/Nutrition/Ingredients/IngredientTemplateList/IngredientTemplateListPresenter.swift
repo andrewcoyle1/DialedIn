@@ -16,8 +16,13 @@ extension GenericTemplateListPresenter where Template == IngredientTemplateModel
         router: IngredientTemplateListRouter,
         templateIds: [String]?
     ) -> IngredientTemplateListPresenter {
+        let configuration: TemplateListConfiguration<IngredientTemplateModel> = .ingredient
+            .with(navigationDestination: { template in
+                router.showIngredientDetailView(delegate: IngredientDetailDelegate(ingredientTemplate: template))
+            })
+
         return GenericTemplateListPresenter<IngredientTemplateModel>(
-            configuration: .ingredient,
+            configuration: configuration,
             templateIds: templateIds,
             showAlert: { title, subtitle in
                 router.showSimpleAlert(title: title, subtitle: subtitle)
@@ -34,8 +39,13 @@ extension GenericTemplateListPresenter where Template == IngredientTemplateModel
         router: IngredientTemplateListRouter,
         delegate: IngredientTemplateListDelegate
     ) -> IngredientTemplateListPresenter {
+        let configuration: TemplateListConfiguration<IngredientTemplateModel> = .ingredient
+            .with(navigationDestination: { template in
+                router.showIngredientDetailView(delegate: IngredientDetailDelegate(ingredientTemplate: template))
+            })
+
         return GenericTemplateListPresenter<IngredientTemplateModel>(
-            configuration: .ingredient,
+            configuration: configuration,
             templateIds: delegate.templateIds,
             showAlert: { title, subtitle in
                 router.showSimpleAlert(title: title, subtitle: subtitle)

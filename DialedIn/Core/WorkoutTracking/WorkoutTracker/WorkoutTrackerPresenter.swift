@@ -769,4 +769,6 @@ class WorkoutTrackerPresenter {
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }
+    
+    // swiftlint:disable:next file_length
 }

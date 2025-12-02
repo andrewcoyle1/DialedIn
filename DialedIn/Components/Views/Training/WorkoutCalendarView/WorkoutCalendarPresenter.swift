@@ -14,7 +14,7 @@ class WorkoutCalendarPresenter {
     private let interactor: WorkoutCalendarInteractor
     private let router: WorkoutCalendarRouter
 
-    var isShowingCalendar: Bool = true
+    var isShowingCalendar: Bool = false
     var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
     private(set) var scheduledWorkouts: [ScheduledWorkout] = []
     var selectedDate: Date?
@@ -81,7 +81,7 @@ class WorkoutCalendarPresenter {
         }
     }
     
-    func startWorkout(_ scheduledWorkout: ScheduledWorkout, onWorkoutStartRequested: ((WorkoutTemplateModel, ScheduledWorkout) -> Void)? = nil) async {
+    func startWorkout(_ scheduledWorkout: ScheduledWorkout) async {
         interactor.trackEvent(event: Event.startWorkoutStart)
         do {
             let template = try await interactor.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
@@ -90,7 +90,8 @@ class WorkoutCalendarPresenter {
             try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
             
             // Notify parent to show WorkoutStartView
-            onWorkoutStartRequested?(template, scheduledWorkout)
+            router.showWorkoutStartView(delegate: WorkoutStartDelegate(template: template, scheduledWorkout: scheduledWorkout))
+            
             interactor.trackEvent(event: Event.startWorkoutSuccess)
         } catch {
             router.showAlert(error: error)
@@ -111,10 +112,6 @@ class WorkoutCalendarPresenter {
             router.showAlert(error: error)
             interactor.trackEvent(event: Event.openCompletedSessionFail(error: error))
         }
-    }
-
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {

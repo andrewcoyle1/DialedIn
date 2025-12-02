@@ -12,14 +12,12 @@ struct WorkoutCalendarView: View {
 
     @State var presenter: WorkoutCalendarPresenter
 
-    let delegate: WorkoutCalendarDelegate
-
-    @ViewBuilder var enhancedScheduleView: (EnhancedScheduleDelegate) -> AnyView
+    @ViewBuilder var scheduleView: (ScheduleDelegate) -> AnyView
 
     var body: some View {
         Section(isExpanded: $presenter.isShowingCalendar) {
-            enhancedScheduleView(
-                EnhancedScheduleDelegate(
+            scheduleView(
+                ScheduleDelegate(
                     getScheduledWorkouts: {
                         presenter.scheduledWorkouts
                     },
@@ -41,7 +39,7 @@ struct WorkoutCalendarView: View {
                     Text(presenter.collapsedSubtitle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .transition(.opacity.combined(with: .move(edge: .trailing)))
                 }
                 Spacer()
                 Image(systemName: "chevron.down")
@@ -87,8 +85,7 @@ struct WorkoutCalendarView: View {
     RouterView { router in
         List {
             builder.workoutCalendarView(
-                router: router,
-                delegate: WorkoutCalendarDelegate(onSessionSelectionChanged: nil, onWorkoutStartRequested: nil)
+                router: router
             )
         }
     }

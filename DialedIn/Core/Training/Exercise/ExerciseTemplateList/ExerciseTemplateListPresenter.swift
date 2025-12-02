@@ -13,11 +13,20 @@ typealias ExerciseTemplateListPresenter = GenericTemplateListPresenter<ExerciseT
 extension GenericTemplateListPresenter where Template == ExerciseTemplateModel {
     static func create(
         interactor: ExerciseTemplateListInteractor,
-        router: ExerciseTemplateListRouter
+        router: ExerciseTemplateListRouter,
+        templateIds: [String]?
     ) -> ExerciseTemplateListPresenter {
-        GenericTemplateListPresenter<ExerciseTemplateModel>(
-            configuration: .exercise,
-            templateIds: nil,
+        let baseConfig: TemplateListConfiguration<ExerciseTemplateModel> = templateIds != nil
+            ? .exercise
+            : .exercise(customTitle: "Exercise Templates")
+            
+        let configuration = baseConfig.with(navigationDestination: { template in
+            router.showExerciseTemplateDetailView(delegate: ExerciseTemplateDetailDelegate(exerciseTemplate: template))
+        })
+            
+        return GenericTemplateListPresenter<ExerciseTemplateModel>(
+            configuration: configuration,
+            templateIds: templateIds,
             showAlert: { title, subtitle in
                 router.showSimpleAlert(title: title, subtitle: subtitle)
             },

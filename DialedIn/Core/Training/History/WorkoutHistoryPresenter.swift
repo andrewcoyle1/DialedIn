@@ -26,9 +26,9 @@ class WorkoutHistoryPresenter {
         self.router = router
     }
     
-    func onWorkoutSessionPressed(session: WorkoutSessionModel, layoutMode: LayoutMode, onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?) {
+    func onWorkoutSessionPressed(session: WorkoutSessionModel, layoutMode: LayoutMode) {
         selectedSession = session
-        onSessionSelectionChanged?(session)
+        router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
     }
     
     func loadInitialSessions() {

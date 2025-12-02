@@ -34,6 +34,17 @@ struct TemplateListConfiguration<Template: TemplateModel> {
         self.errorSubtitle = errorSubtitle
         self.navigationDestination = navigationDestination
     }
+    func with(navigationDestination: @escaping (Template) -> Void) -> TemplateListConfiguration<Template> {
+        TemplateListConfiguration(
+            title: title,
+            emptyStateTitle: emptyStateTitle,
+            emptyStateIcon: emptyStateIcon,
+            emptyStateDescription: emptyStateDescription,
+            errorTitle: errorTitle,
+            errorSubtitle: errorSubtitle,
+            navigationDestination: navigationDestination
+        )
+    }
 }
 
 // MARK: - Predefined Configurations
@@ -46,7 +57,7 @@ extension TemplateListConfiguration where Template == ExerciseTemplateModel {
             emptyStateIcon: "figure.strengthtraining.traditional",
             emptyStateDescription: "You haven't created any exercise templates yet.",
             errorTitle: "Unable to load exercises",
-            navigationDestination: { template in
+            navigationDestination: { _ in
                 
             }
         )
@@ -59,7 +70,7 @@ extension TemplateListConfiguration where Template == ExerciseTemplateModel {
             emptyStateIcon: "figure.strengthtraining.traditional",
             emptyStateDescription: "You haven't created any exercise templates yet.",
             errorTitle: "Unable to load exercises",
-            navigationDestination: { template in
+            navigationDestination: { _ in
 
             }
         )
@@ -75,7 +86,7 @@ extension TemplateListConfiguration where Template == WorkoutTemplateModel {
             emptyStateDescription: "You haven't created any workout templates yet.",
             errorTitle: "Unable to Load Workouts",
             errorSubtitle: "Please try again later.",
-            navigationDestination: { template in
+            navigationDestination: { _ in
 
             }
         )
@@ -89,7 +100,7 @@ extension TemplateListConfiguration where Template == WorkoutTemplateModel {
             emptyStateDescription: customEmptyDescription ?? "No workout templates available.",
             errorTitle: "Unable to Load Workouts",
             errorSubtitle: "Please try again later.",
-            navigationDestination: { template in
+            navigationDestination: { _ in
 
             }
         )
@@ -104,7 +115,7 @@ extension TemplateListConfiguration where Template == IngredientTemplateModel {
             emptyStateIcon: "carrot",
             emptyStateDescription: "You haven't created any ingredient templates yet.",
             errorTitle: "Unable to load ingredients",
-            navigationDestination: { template in
+            navigationDestination: { _ in
 
             }
         )
@@ -119,7 +130,7 @@ extension TemplateListConfiguration where Template == RecipeTemplateModel {
             emptyStateIcon: "fork.knife",
             emptyStateDescription: "You haven't created any recipe templates yet.",
             errorTitle: "Unable to load recipes",
-            navigationDestination: { template in
+            navigationDestination: { _ in
 
             }
         )

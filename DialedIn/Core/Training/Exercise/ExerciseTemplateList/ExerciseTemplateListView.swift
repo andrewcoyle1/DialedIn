@@ -15,7 +15,6 @@ struct ExerciseTemplateListDelegate {
 struct ExerciseTemplateListView: View {
     @State var presenter: ExerciseTemplateListPresenter
     let delegate: ExerciseTemplateListDelegate
-    let config: TemplateListConfiguration<ExerciseTemplateModel>
     let genericTemplateListView: (
         ExerciseTemplateListPresenter,
         TemplateListConfiguration<ExerciseTemplateModel>,
@@ -35,14 +34,13 @@ struct ExerciseTemplateListView: View {
     ) {
         self.presenter = presenter
         self.delegate = delegate
-        self.config = delegate.templateIds != nil ? .exercise : .exercise(customTitle: "Exercise Templates")
         self.genericTemplateListView = genericTemplateListView
     }
     
     var body: some View {
         genericTemplateListView(
             presenter,
-            config,
+            presenter.configuration,
             false,
             delegate.templateIds
         )

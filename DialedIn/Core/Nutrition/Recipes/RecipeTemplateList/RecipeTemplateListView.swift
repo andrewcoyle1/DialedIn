@@ -39,7 +39,7 @@ struct RecipeTemplateListView: View {
     var body: some View {
         genericTemplateListView(
             presenter,
-            .recipe,
+            presenter.configuration,
             true,
             presenter.templateIds
         )

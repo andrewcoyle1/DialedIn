@@ -8,44 +8,99 @@
 import SwiftUI
 import CustomRouting
 
-struct WorkoutTemplateListDelegate {
-    let templateIds: [String]?
-}
-
 struct WorkoutTemplateListView: View {
+    
     @State var presenter: WorkoutTemplateListPresenter
-    let delegate: WorkoutTemplateListDelegate
-    let config: TemplateListConfiguration<WorkoutTemplateModel>
-    let genericTemplateListView: (
-        WorkoutTemplateListPresenter,
-        TemplateListConfiguration<WorkoutTemplateModel>,
-        Bool,
-        [String]?
-    ) -> AnyView
-
-    init(
-        presenter: WorkoutTemplateListPresenter,
-        delegate: WorkoutTemplateListDelegate,
-        genericTemplateListView: @escaping (
-            WorkoutTemplateListPresenter,
-            TemplateListConfiguration<WorkoutTemplateModel>,
-            Bool,
-            [String]?
-        ) -> AnyView
-    ) {
-        self.presenter = presenter
-        self.delegate = delegate
-        self.config = delegate.templateIds != nil ? .workout : .workout(customTitle: "Workout Templates", customEmptyDescription: "No workout templates available.")
-        self.genericTemplateListView = genericTemplateListView
-    }
-
+    
     var body: some View {
-        genericTemplateListView(
-            presenter,
-            config,
-            false,
-            delegate.templateIds
-        )
+        Group {
+            if presenter.isLoading {
+                ProgressView()
+            } else if presenter.hasWorkouts {
+                ContentUnavailableView(
+                    "No Workouts",
+                    systemImage: "dumbbell",
+                    description: Text("No workouts found, try creating a new one.")
+                )
+            } else {
+                List {
+                    myWorkoutsSection
+                    favouriteWorkoutsSection
+                }
+            }
+        }
+    }
+    
+    private var myWorkoutsSection: some View {
+        Section {
+            ForEach(presenter.myWorkouts) { template in
+                CustomListCellView(
+                    imageName: template.imageURL,
+                    title: template.name,
+                    subtitle: template.description
+                )
+                .anyButton(.highlight) {
+                    presenter.onWorkoutPressed(template: template)
+                }
+                .removeListRowFormatting()
+            }
+        } header: {
+            Text("My Workouts")
+        }
+    }
+    
+    private var favouriteWorkoutsSection: some View {
+        Section {
+            ForEach(presenter.favouriteWorkouts) { template in
+                CustomListCellView(
+                    imageName: template.imageURL,
+                    title: template.name,
+                    subtitle: template.description
+                )
+                .anyButton(.highlight) {
+                    presenter.onWorkoutPressed(template: template)
+                }
+                .removeListRowFormatting()
+            }
+        } header: {
+            Text("Favourite Workouts")
+        }
+    }
+    
+    private var bookmarkedWorkoutsSection: some View {
+        Section {
+            ForEach(presenter.bookmarkedWorkouts) { template in
+                CustomListCellView(
+                    imageName: template.imageURL,
+                    title: template.name,
+                    subtitle: template.description
+                )
+                .anyButton(.highlight) {
+                    presenter.onWorkoutPressed(template: template)
+                }
+                .removeListRowFormatting()
+            }
+        } header: {
+            Text("Bookmarked Workouts")
+        }
+    }
+    
+    private var systemWorkoutsSection: some View {
+        Section {
+            ForEach(presenter.myWorkouts) { template in
+                CustomListCellView(
+                    imageName: template.imageURL,
+                    title: template.name,
+                    subtitle: template.description
+                )
+                .anyButton(.highlight) {
+                    presenter.onWorkoutPressed(template: template)
+                }
+                .removeListRowFormatting()
+            }
+        } header: {
+            Text("System Workouts")
+        }
     }
 }
  
@@ -53,8 +108,7 @@ struct WorkoutTemplateListView: View {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
         builder.workoutTemplateListView(
-            router: router,
-            delegate: WorkoutTemplateListDelegate(templateIds: [])
+            router: router
         )
     }
     .previewEnvironment()

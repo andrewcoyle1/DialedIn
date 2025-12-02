@@ -9,7 +9,7 @@
 protocol ProfileMyTemplatesRouter {
     func showDevSettingsView()
     func showExerciseTemplateListView(delegate: ExerciseTemplateListDelegate)
-    func showWorkoutTemplateListView(delegate: WorkoutTemplateListDelegate)
+    func showWorkoutTemplateListView()
     func showIngredientTemplateListView(delegate: IngredientTemplateListDelegate)
     func showRecipeTemplateListView(delegate: RecipeTemplateListDelegate)
 }

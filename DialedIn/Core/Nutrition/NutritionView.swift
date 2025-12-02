@@ -11,15 +11,15 @@ import UIKit
 #endif
 import CustomRouting
 
-struct NutritionView: View {
+struct NutritionView<MealLogView: View, RecipesView: View, IngredientsView: View>: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
     @State var presenter: NutritionPresenter
 
-    @ViewBuilder var mealLogView: (MealLogDelegate) -> AnyView
-    @ViewBuilder var recipesView: (RecipesDelegate) -> AnyView
-    @ViewBuilder var ingredientsView: (IngredientsDelegate) -> AnyView
+    @ViewBuilder var mealLogView: (MealLogDelegate) -> MealLogView
+    @ViewBuilder var recipesView: (RecipesDelegate) -> RecipesView
+    @ViewBuilder var ingredientsView: (IngredientsDelegate) -> IngredientsView
 
     var body: some View {
         List {

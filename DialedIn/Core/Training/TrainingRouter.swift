@@ -14,7 +14,11 @@ protocol TrainingRouter {
     func showProgressDashboardView()
     func showStrengthProgressView()
     func showWorkoutHeatmapView()
-
+    
+    func showWorkoutsView()
+    func showExercisesView()
+    func showWorkoutHistoryView()
+    
     func showAlert(error: Error)
 }
 

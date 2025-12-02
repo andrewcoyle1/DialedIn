@@ -53,7 +53,7 @@ struct IngredientTemplateListView: View {
     var body: some View {
         genericTemplateListView(
             presenter,
-            .ingredient,
+            presenter.configuration,
             true,
             presenter.templateIds
         )

@@ -19,10 +19,13 @@ class CoreBuilder {
         interactor = CoreInteractor(container: container)
     }
 
-    func appView() -> AnyView {
+    func appView() -> some View {
         AppView(
             presenter: AppPresenter(interactor: interactor),
-            adaptiveMainView: { self.adaptiveMainView() },
+            adaptiveMainView: {
+                self.adaptiveMainView()
+                    .any()
+            },
             onboardingWelcomeView: {
                 RouterView { router in
                     self.onboardingWelcomeView(router: router)
@@ -30,346 +33,346 @@ class CoreBuilder {
                 .any()
             }
         )
-        .any()
+        
     }
 
     // MARK: Onboarding
 
-    func onboardingWelcomeView(router: Router) -> AnyView {
+    func onboardingWelcomeView(router: Router) -> some View {
         OnboardingWelcomeView(
             presenter: OnboardingWelcomePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingIntroView(router: Router) -> AnyView {
+    func onboardingIntroView(router: Router) -> some View {
         OnboardingIntroView(
             presenter: OnboardingIntroPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
     // MARK: Onboarding Auth
 
-    func onboardingAuthOptionsView(router: Router) -> AnyView {
+    func onboardingAuthOptionsView(router: Router) -> some View {
         AuthOptionsView(
             presenter: AuthOptionsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingSignInView(router: Router) -> AnyView {
+    func onboardingSignInView(router: Router) -> some View {
         SignInView(
             presenter: SignInPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingSignUpView(router: Router) -> AnyView {
+    func onboardingSignUpView(router: Router) -> some View {
         SignUpView(
             presenter: SignUpPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingEmailVerificationView(router: Router) -> AnyView {
+    func onboardingEmailVerificationView(router: Router) -> some View {
         EmailVerificationView(
             presenter: EmailVerificationPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
     // MARK: Onboarding Subscriptions
 
-    func onboardingSubscriptionView(router: Router) -> AnyView {
+    func onboardingSubscriptionView(router: Router) -> some View {
         OnboardingSubscriptionView(
             presenter: OnboardingSubscriptionPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingSubscriptionPlanView(router: Router) -> AnyView {
+    func onboardingSubscriptionPlanView(router: Router) -> some View {
         OnboardingSubscriptionPlanView(
             presenter: OnboardingSubscriptionPlanPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingCompleteAccountSetupView(router: Router) -> AnyView {
+    func onboardingCompleteAccountSetupView(router: Router) -> some View {
         OnboardingCompleteAccountSetupView(
             presenter: OnboardingCompleteAccountSetupPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingNamePhotoView(router: Router) -> AnyView {
+    func onboardingNamePhotoView(router: Router) -> some View {
         OnboardingNamePhotoView(
             presenter: OnboardingNamePhotoPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingGenderView(router: Router) -> AnyView {
+    func onboardingGenderView(router: Router) -> some View {
         OnboardingGenderView(
             presenter: OnboardingGenderPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingDateOfBirthView(router: Router, delegate: OnboardingDateOfBirthDelegate) -> AnyView {
+    func onboardingDateOfBirthView(router: Router, delegate: OnboardingDateOfBirthDelegate) -> some View {
         OnboardingDateOfBirthView(
             presenter: OnboardingDateOfBirthPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingHeightView(router: Router, delegate: OnboardingHeightDelegate) -> AnyView {
+    func onboardingHeightView(router: Router, delegate: OnboardingHeightDelegate) -> some View {
         OnboardingHeightView(
             presenter: OnboardingHeightPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingWeightView(router: Router, delegate: OnboardingWeightDelegate) -> AnyView {
+    func onboardingWeightView(router: Router, delegate: OnboardingWeightDelegate) -> some View {
         OnboardingWeightView(
             presenter: OnboardingWeightPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingExerciseFrequencyView(router: Router, delegate: OnboardingExerciseFrequencyDelegate) -> AnyView {
+    func onboardingExerciseFrequencyView(router: Router, delegate: OnboardingExerciseFrequencyDelegate) -> some View {
         OnboardingExerciseFrequencyView(
             presenter: OnboardingExerciseFrequencyPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingActivityView(router: Router, delegate: OnboardingActivityDelegate) -> AnyView {
+    func onboardingActivityView(router: Router, delegate: OnboardingActivityDelegate) -> some View {
         OnboardingActivityView(
             presenter: OnboardingActivityPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingCardioFitnessView(router: Router, delegate: OnboardingCardioFitnessDelegate) -> AnyView {
+    func onboardingCardioFitnessView(router: Router, delegate: OnboardingCardioFitnessDelegate) -> some View {
         OnboardingCardioFitnessView(
             presenter: OnboardingCardioFitnessPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingExpenditureView(router: Router, delegate: OnboardingExpenditureDelegate) -> AnyView {
+    func onboardingExpenditureView(router: Router, delegate: OnboardingExpenditureDelegate) -> some View {
         OnboardingExpenditureView(
             presenter: OnboardingExpenditurePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingHealthDataView(router: Router) -> AnyView {
+    func onboardingHealthDataView(router: Router) -> some View {
         OnboardingHealthDataView(
             presenter: OnboardingHealthDataPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingNotificationsView(router: Router) -> AnyView {
+    func onboardingNotificationsView(router: Router) -> some View {
         OnboardingNotificationsView(
             presenter: OnboardingNotificationsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingHealthDisclaimerView(router: Router) -> AnyView {
+    func onboardingHealthDisclaimerView(router: Router) -> some View {
         OnboardingHealthDisclaimerView(
             presenter: OnboardingHealthDisclaimerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
     // MARK: Onboarding Goal Setting
 
-    func onboardingGoalSettingView(router: Router) -> AnyView {
+    func onboardingGoalSettingView(router: Router) -> some View {
         OnboardingGoalSettingView(
             presenter: OnboardingGoalSettingPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingOverarchingObjectiveView(router: Router) -> AnyView {
+    func onboardingOverarchingObjectiveView(router: Router) -> some View {
         OnboardingOverarchingObjectiveView(
             presenter: OnboardingOverarchingObjectivePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingTargetWeightView(router: Router, delegate: OnboardingTargetWeightDelegate) -> AnyView {
+    func onboardingTargetWeightView(router: Router, delegate: OnboardingTargetWeightDelegate) -> some View {
         OnboardingTargetWeightView(
             presenter: OnboardingTargetWeightPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingWeightRateView(router: Router, delegate: OnboardingWeightRateDelegate) -> AnyView {
+    func onboardingWeightRateView(router: Router, delegate: OnboardingWeightRateDelegate) -> some View {
         OnboardingWeightRateView(
             presenter: OnboardingWeightRatePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingGoalSummaryView(router: Router, delegate: OnboardingGoalSummaryDelegate) -> AnyView {
+    func onboardingGoalSummaryView(router: Router, delegate: OnboardingGoalSummaryDelegate) -> some View {
         OnboardingGoalSummaryView(
             presenter: OnboardingGoalSummaryPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
     // MARK: Customise Program
 
-    func onboardingTrainingProgramView(router: Router) -> AnyView {
+    func onboardingTrainingProgramView(router: Router) -> some View {
         OnboardingTrainingProgramView(
             presenter: OnboardingTrainingProgramPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
             )
         )
-        .any()
+        
     }
 
-    func onboardingCustomisingProgramView(router: Router) -> AnyView {
+    func onboardingCustomisingProgramView(router: Router) -> some View {
         OnboardingCustomisingProgramView(
             presenter: OnboardingCustomisingProgramPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingTrainingExperienceView(router: Router, delegate: OnboardingTrainingExperienceDelegate) -> AnyView {
+    func onboardingTrainingExperienceView(router: Router, delegate: OnboardingTrainingExperienceDelegate) -> some View {
         OnboardingTrainingExperienceView(
             presenter: OnboardingTrainingExperiencePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingTrainingDaysPerWeekView(router: Router, delegate: OnboardingTrainingDaysPerWeekDelegate) -> AnyView {
+    func onboardingTrainingDaysPerWeekView(router: Router, delegate: OnboardingTrainingDaysPerWeekDelegate) -> some View {
         OnboardingTrainingDaysPerWeekView(
             presenter: OnboardingTrainingDaysPerWeekPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingTrainingSplitView(router: Router, delegate: OnboardingTrainingSplitDelegate) -> AnyView {
+    func onboardingTrainingSplitView(router: Router, delegate: OnboardingTrainingSplitDelegate) -> some View {
         OnboardingTrainingSplitView(
             presenter: OnboardingTrainingSplitPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingTrainingScheduleView(router: Router, delegate: OnboardingTrainingScheduleDelegate) -> AnyView {
+    func onboardingTrainingScheduleView(router: Router, delegate: OnboardingTrainingScheduleDelegate) -> some View {
         OnboardingTrainingScheduleView(
             presenter: OnboardingTrainingSchedulePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingTrainingEquipmentView(router: Router, delegate: OnboardingTrainingEquipmentDelegate) -> AnyView {
+    func onboardingTrainingEquipmentView(router: Router, delegate: OnboardingTrainingEquipmentDelegate) -> some View {
         OnboardingTrainingEquipmentView(
             presenter: OnboardingTrainingEquipmentPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingTrainingReviewView(router: Router, delegate: OnboardingTrainingReviewDelegate) -> AnyView {
+    func onboardingTrainingReviewView(router: Router, delegate: OnboardingTrainingReviewDelegate) -> some View {
         OnboardingTrainingReviewView(
             presenter: OnboardingTrainingReviewPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingPreferredDietView(router: Router) -> AnyView {
+    func onboardingPreferredDietView(router: Router) -> some View {
         OnboardingPreferredDietView(
             presenter: OnboardingPreferredDietPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func onboardingCalorieFloorView(router: Router, delegate: OnboardingCalorieFloorDelegate) -> AnyView {
+    func onboardingCalorieFloorView(router: Router, delegate: OnboardingCalorieFloorDelegate) -> some View {
         OnboardingCalorieFloorView(
             presenter: OnboardingCalorieFloorPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingTrainingTypeView(router: Router, delegate: OnboardingTrainingTypeDelegate) -> AnyView {
+    func onboardingTrainingTypeView(router: Router, delegate: OnboardingTrainingTypeDelegate) -> some View {
         OnboardingTrainingTypeView(
             presenter: OnboardingTrainingTypePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingCalorieDistributionView(router: Router, delegate: OnboardingCalorieDistributionDelegate) -> AnyView {
+    func onboardingCalorieDistributionView(router: Router, delegate: OnboardingCalorieDistributionDelegate) -> some View {
         OnboardingCalorieDistributionView(
             presenter: OnboardingCalorieDistributionPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingProteinIntakeView(router: Router, delegate: OnboardingProteinIntakeDelegate) -> AnyView {
+    func onboardingProteinIntakeView(router: Router, delegate: OnboardingProteinIntakeDelegate) -> some View {
         OnboardingProteinIntakeView(
             presenter: OnboardingProteinIntakePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingDietPlanView(router: Router, delegate: OnboardingDietPlanDelegate) -> AnyView {
+    func onboardingDietPlanView(router: Router, delegate: OnboardingDietPlanDelegate) -> some View {
         OnboardingDietPlanView(
             presenter: OnboardingDietPlanPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func onboardingCompletedView(router: Router) -> AnyView {
+    func onboardingCompletedView(router: Router) -> some View {
         OnboardingCompletedView(
             presenter: OnboardingCompletedPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
     // MARK: Main App
-    func adaptiveMainView() -> AnyView {
+    func adaptiveMainView() -> some View {
         AdaptiveMainView(
             presenter: AdaptiveMainPresenter(interactor: interactor),
             tabBarView: {
                 self.tabBarView()
-                .any()
+                    .any()
             },
             splitViewContainer: {
                 self.splitViewContainer()
+                    .any()
             }
         )
-        .any()
     }
 
-    func tabBarView() -> AnyView {
+    func tabBarView() -> some View {
         TabBarView(
             presenter: TabBarPresenter(interactor: interactor),
             tabs: [
@@ -416,13 +419,13 @@ class CoreBuilder {
             ],
             tabViewAccessoryView: { delegate in
                 self.tabViewAccessoryView(delegate: delegate)
+                    .any()
             }
         )
-        .any()
     }
 
     // swiftlint:disable:next function_body_length
-    func splitViewContainer() -> AnyView {
+    func splitViewContainer() -> some View {
         SplitViewContainer(
             presenter: SplitViewContainerPresenter(interactor: interactor),
             tabs: [
@@ -469,6 +472,7 @@ class CoreBuilder {
             ],
             tabViewAccessoryView: { accessoryDelegate in
                 self.tabViewAccessoryView(delegate: accessoryDelegate)
+                    .any()
             },
             workoutTrackerView: { trackerDelegate in
                 RouterView { router in
@@ -477,65 +481,46 @@ class CoreBuilder {
                 .any()
             }
         )
-        .any()
     }
 
-    func exerciseTemplateDetailView(router: Router, delegate: ExerciseTemplateDetailDelegate) -> AnyView {
+    func exerciseTemplateDetailView(router: Router, delegate: ExerciseTemplateDetailDelegate) -> some View {
         ExerciseTemplateDetailView(
             presenter: ExerciseTemplateDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func tabViewAccessoryView(delegate: TabViewAccessoryDelegate) -> AnyView {
+    func tabViewAccessoryView(delegate: TabViewAccessoryDelegate) -> some View {
         TabViewAccessoryView(
             presenter: TabViewAccessoryPresenter(interactor: interactor),
             delegate: delegate
         )
-        .any()
     }
 
-    func workoutTrackerView(router: Router, delegate: WorkoutTrackerDelegate) -> AnyView {
+    func workoutTrackerView(router: Router, delegate: WorkoutTrackerDelegate) -> some View {
         WorkoutTrackerView(
             presenter: WorkoutTrackerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
             exerciseTrackerCardView: { delegate in
                 self.exerciseTrackerCardView(router: router, delegate: delegate)
+                    .any()
             }
         )
-        .any()
     }
 
-    func ingredientDetailView(router: Router, delegate: IngredientDetailDelegate) -> AnyView {
+    func ingredientDetailView(router: Router, delegate: IngredientDetailDelegate) -> some View {
         IngredientDetailView(
             presenter: IngredientDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func exerciseTemplateListView(router: Router, delegate: ExerciseTemplateListDelegate) -> AnyView {
+    func exerciseTemplateListView(router: Router, delegate: ExerciseTemplateListDelegate) -> some View {
         ExerciseTemplateListView(
-            presenter: ExerciseTemplateListPresenter.create(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            delegate: delegate,
-            genericTemplateListView: { presenter, configuration, supportsRefresh, templateIdsOverride in
-                self.genericTemplateListView(
-                    presenter: presenter,
-                    configuration: configuration,
-                    supportsRefresh: supportsRefresh,
-                    templateIdsOverride: templateIdsOverride
-                )
-            }
-        )
-        .any()
-    }
-
-    func workoutTemplateListView(router: Router, delegate: WorkoutTemplateListDelegate) -> AnyView {
-        WorkoutTemplateListView(
-            presenter: WorkoutTemplateListPresenter.create(
+            presenter: ExerciseTemplateListPresenter.create(
                 interactor: interactor,
-                router: CoreRouter(router: router, builder: self)
+                router: CoreRouter(router: router, builder: self),
+                templateIds: delegate.templateIds
             ),
             delegate: delegate,
             genericTemplateListView: { presenter, configuration, supportsRefresh, templateIdsOverride in
@@ -545,89 +530,123 @@ class CoreBuilder {
                     supportsRefresh: supportsRefresh,
                     templateIdsOverride: templateIdsOverride
                 )
+                .any()
             }
         )
-        .any()
     }
 
-    func workoutTemplateDetailView(router: Router, delegate: WorkoutTemplateDetailDelegate) -> AnyView {
+    func workoutTemplateListView(router: Router) -> some View {
+        WorkoutTemplateListView(
+            presenter: WorkoutTemplateListPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            )
+        )
+    }
+
+    func workoutTemplateDetailView(router: Router, delegate: WorkoutTemplateDetailDelegate) -> some View {
         WorkoutTemplateDetailView(
             presenter: WorkoutTemplateDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func workoutSessionDetailView(router: Router, delegate: WorkoutSessionDetailDelegate) -> AnyView {
+    func workoutSessionDetailView(router: Router, delegate: WorkoutSessionDetailDelegate) -> some View {
         WorkoutSessionDetailView(
             presenter: WorkoutSessionDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
             editableExerciseCardWrapper: { delegate in
                 self.editableExerciseCardWrapper(delegate: delegate)
+                    .any()
             }
         )
-        .any()
+    }
+    
+    func trainingProgressChartsView(router: Router) -> some View {
+        TrainingProgressChartsView(
+            presenter: TrainingProgressChartsPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            )
+        )
     }
 
-    func programView(router: Router, delegate: ProgramDelegate) -> AnyView {
+    func programView(router: Router) -> some View {
         ProgramView(
-            presenter: ProgramPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            delegate: delegate,
+            presenter: ProgramPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            todaysWorkoutSectionView: {
+                self.todaysWorkoutSectionView(router: router)
+            },
+            workoutCalendarView: {
+                self.workoutCalendarView(router: router)
+            },
+            thisWeeksWorkoutsView: {
+                self.thisWeeksWorkoutsView(router: router)
+            },
+            goalListSectionView: {
+                self.goalListSectionView(router: router)
+            },
+            trainingProgressChartsView: {
+                self.trainingProgressChartsView(router: router)
+            }
+        )
+    }
+
+    func todaysWorkoutSectionView(router: Router) -> some View {
+        TodaysWorkoutSectionView(
+            presenter: TodaysWorkoutSectionPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
             workoutSummaryCardView: { delegate in
                 self.workoutSummaryCardView(router: router, delegate: delegate)
             },
             todaysWorkoutCardView: { delegate in
                 self.todaysWorkoutCardView(router: router, delegate: delegate)
-            },
-            workoutCalendarView: { delegate in
-                self.workoutCalendarView(router: router, delegate: delegate)
-            },
-            scheduledWorkoutRowView: { delegate in
-                self.scheduledWorkoutRowView(delegate: delegate)
             }
         )
-        .any()
     }
-
-    func devSettingsView(router: Router) -> AnyView {
+    
+    func devSettingsView(router: Router) -> some View {
         DevSettingsView(
             presenter: DevSettingsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func workoutStartView(router: Router, delegate: WorkoutStartDelegate) -> AnyView {
+    func workoutStartView(router: Router, delegate: WorkoutStartDelegate) -> some View {
         WorkoutStartView(
             presenter: WorkoutStartPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func dashboardView(router: Router) -> AnyView {
+    func dashboardView(router: Router) -> some View {
         DashboardView(
             presenter: DashboardPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            nutritionTargetChartView: { self.nutritionTargetChartView() }
+            nutritionTargetChartView: {
+                self.nutritionTargetChartView()
+                    .any()
+            }
         )
-        .any()
     }
 
-    func createIngredientView(router: Router) -> AnyView {
+    func createIngredientView(router: Router) -> some View {
         CreateIngredientView(
             presenter: CreateIngredientPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func addIngredientModalView(router: Router, delegate: AddIngredientModalDelegate) -> AnyView {
+    func addIngredientModalView(router: Router, delegate: AddIngredientModalDelegate) -> some View {
         AddIngredientModalView(
             presenter: AddIngredientModalPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func createRecipeView(router: Router) -> AnyView {
+    func createRecipeView(router: Router) -> some View {
         CreateRecipeView(
             presenter: CreateRecipePresenter(
                 interactor: interactor,
@@ -637,42 +656,37 @@ class CoreBuilder {
                 )
             )
         )
-        .any()
     }
 
-    func recipeStartView(router: Router, delegate: RecipeStartDelegate) -> AnyView {
+    func recipeStartView(router: Router, delegate: RecipeStartDelegate) -> some View {
         RecipeStartView(
             presenter: RecipeStartPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-            .any()
     }
 
-    func mealLogView(router: Router, delegate: MealLogDelegate) -> AnyView {
+    func mealLogView(router: Router, delegate: MealLogDelegate) -> some View {
         MealLogView(
             presenter: MealLogPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func recipesView(router: Router, delegate: RecipesDelegate) -> AnyView {
+    func recipesView(router: Router, delegate: RecipesDelegate) -> some View {
         RecipesView(
             presenter: RecipesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func ingredientsView(router: Router, delegate: IngredientsDelegate) -> AnyView {
+    func ingredientsView(router: Router, delegate: IngredientsDelegate) -> some View {
         IngredientsView(
             presenter: IngredientsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func nutritionView(router: Router) -> AnyView {
+    func nutritionView(router: Router) -> some View {
         NutritionView(
             presenter: NutritionPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             mealLogView: { delegate in
@@ -685,18 +699,16 @@ class CoreBuilder {
                 self.ingredientsView(router: router, delegate: delegate)
             }
         )
-        .any()
     }
 
-    func nutritionLibraryPickerView(router: Router, delegate: NutritionLibraryPickerDelegate) -> AnyView {
+    func nutritionLibraryPickerView(router: Router, delegate: NutritionLibraryPickerDelegate) -> some View {
         NutritionLibraryPickerView(
             presenter: NutritionLibraryPickerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func addMealView(router: Router, delegate: AddMealDelegate) -> AnyView {
+    func addMealView(router: Router, delegate: AddMealDelegate) -> some View {
         AddMealView(
             presenter: AddMealPresenter(
                 interactor: interactor,
@@ -707,10 +719,9 @@ class CoreBuilder {
             ),
             delegate: delegate
         )
-        .any()
     }
 
-    func ingredientAmountView(router: Router, delegate: IngredientAmountDelegate) -> AnyView {
+    func ingredientAmountView(router: Router, delegate: IngredientAmountDelegate) -> some View {
         IngredientAmountView(
             presenter: IngredientAmountPresenter(
                 interactor: interactor,
@@ -718,56 +729,50 @@ class CoreBuilder {
             ),
             delegate: delegate
         )
-        .any()
     }
 
-    func nutritionTargetChartView() -> AnyView {
+    func nutritionTargetChartView() -> some View {
         NutritionTargetChartView(
             presenter: NutritionTargetChartPresenter(interactor: interactor)
         )
-        .any()
     }
 
-    func workoutsView(router: Router, delegate: WorkoutsDelegate) -> AnyView {
+    func workoutsView(router: Router) -> some View {
         WorkoutsView(
-            presenter: WorkoutsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            delegate: delegate
+            presenter: WorkoutsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func workoutHistoryView(router: Router, delegate: WorkoutHistoryDelegate) -> AnyView {
+    func workoutHistoryView(router: Router) -> some View {
         WorkoutHistoryView(
             presenter: WorkoutHistoryPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            delegate: delegate
         )
-        .any()
     }
 
-    func createWorkoutView(router: Router, delegate: CreateWorkoutDelegate) -> AnyView {
+    func createWorkoutView(router: Router, delegate: CreateWorkoutDelegate) -> some View {
         CreateWorkoutView(
             presenter: CreateWorkoutPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func createExerciseView(router: Router) -> AnyView {
+    func createExerciseView(router: Router) -> some View {
         CreateExerciseView(
             presenter: CreateExercisePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func addGoalView(router: Router, delegate: AddGoalDelegate) -> AnyView {
+    func addGoalView(router: Router, delegate: AddGoalDelegate) -> some View {
         AddGoalView(
-            presenter: AddGoalPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            presenter: AddGoalPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
             delegate: delegate
         )
-        .any()
     }
 
-    func workoutSummaryCardView(router: Router, delegate: WorkoutSummaryCardDelegate) -> AnyView {
+    func workoutSummaryCardView(router: Router, delegate: WorkoutSummaryCardDelegate) -> some View {
         WorkoutSummaryCardView(
             presenter: WorkoutSummaryCardPresenter(
                 interactor: interactor,
@@ -775,10 +780,9 @@ class CoreBuilder {
             ),
             delegate: delegate
         )
-        .any()
     }
 
-    func todaysWorkoutCardView(router: Router, delegate: TodaysWorkoutCardDelegate) -> AnyView {
+    func todaysWorkoutCardView(router: Router, delegate: TodaysWorkoutCardDelegate) -> some View {
         TodaysWorkoutCardView(
             presenter: TodaysWorkoutCardPresenter(
                 interactor: interactor,
@@ -786,168 +790,153 @@ class CoreBuilder {
             ),
             delegate: delegate
         )
-        .any()
     }
 
-    func scheduledWorkoutRowView(delegate: ScheduledWorkoutRowDelegate) -> AnyView {
+    func scheduledWorkoutRowView(delegate: ScheduledWorkoutRowDelegate) -> some View {
         ScheduledWorkoutRowView(
             presenter: ScheduledWorkoutRowPresenter(interactor: interactor),
             delegate: delegate
         )
-        .any()
     }
 
-    func programRowView(delegate: ProgramRowDelegate) -> AnyView {
+    func programRowView(delegate: ProgramRowDelegate) -> some View {
         ProgramRowView(
             presenter: ProgramRowPresenter(interactor: interactor),
             delegate: delegate
         )
-        .any()
     }
 
-    func workoutCalendarView(router: Router, delegate: WorkoutCalendarDelegate) -> AnyView {
+    func workoutCalendarView(router: Router) -> some View {
         WorkoutCalendarView(
             presenter: WorkoutCalendarPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
             ),
-            delegate: delegate,
-            enhancedScheduleView: { delegate in
-                self.enhancedScheduleView(delegate: delegate)
+            scheduleView: { delegate in
+                self.scheduleView(delegate: delegate)
+                    .any()
             }
         )
-        .any()
     }
 
-    func editableExerciseCardWrapper(delegate: EditableExerciseCardWrapperDelegate) -> AnyView {
+    func editableExerciseCardWrapper(delegate: EditableExerciseCardWrapperDelegate) -> some View {
         EditableExerciseCardWrapper(
             delegate: delegate,
             interactor: interactor
         )
-        .any()
     }
 
-    func exercisesView(router: Router, delegate: ExercisesDelegate) -> AnyView {
+    func exercisesView(router: Router) -> some View {
         ExercisesView(
-            presenter: ExercisesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            delegate: delegate
+            presenter: ExercisesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func programManagementView(router: Router) -> AnyView {
+    func programManagementView(router: Router) -> some View {
         ProgramManagementView(
             presenter: ProgramManagementPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             programRowView: { delegate in
                 self.programRowView(delegate: delegate)
+                    .any()
             }
         )
-        .any()
+    }
+    
+    func goalListSectionView(router: Router) -> some View {
+        GoalListSectionView(
+            presenter: GoalListSectionPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            )
+        )
     }
 
-    func trainingView(router: Router) -> AnyView {
+    func trainingView(router: Router) -> some View {
         TrainingView(
             presenter: TrainingPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            programView: { delegate in
-                self.programView(router: router, delegate: delegate)
-            },
-            workoutsView: { delegate in
-                self.workoutsView(router: router, delegate: delegate)
-            },
-            exercisesView: { delegate in
-                self.exercisesView(router: router, delegate: delegate)
-            },
-            workoutHistoryView: { delegate in
-                self.workoutHistoryView(router: router, delegate: delegate)
+            programView: {
+                self.programView(router: router)
             }
         )
-        .any()
     }
 
-    func progressDashboardView(router: Router) -> AnyView {
+    func progressDashboardView(router: Router) -> some View {
         ProgressDashboardView(
             presenter: ProgressDashboardPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func strengthProgressView(router: Router) -> AnyView {
+    func strengthProgressView(router: Router) -> some View {
         StrengthProgressView(
             presenter: StrengthProgressPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func workoutHeatmapView(router: Router) -> AnyView {
+    func workoutHeatmapView(router: Router) -> some View {
         WorkoutHeatmapView(
             presenter: WorkoutHeatmapPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func notificationsView(router: Router) -> AnyView {
+    func notificationsView(router: Router) -> some View {
         NotificationsView(
-            presenter: NotificationsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+            presenter: NotificationsPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            )
         )
-        .any()
     }
 
-    func programGoalsView(router: Router, delegate: ProgramGoalsDelegate) -> AnyView {
+    func programGoalsView(router: Router, delegate: ProgramGoalsDelegate) -> some View {
         ProgramGoalsView(
             presenter: ProgramGoalsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
             goalRow: { delegate in
                 self.goalRow(delegate: delegate)
+                    .any()
             }
         )
-        .any()
     }
 
-    func programScheduleView(router: Router, delegate: ProgramScheduleDelegate) -> AnyView {
+    func programScheduleView(router: Router, delegate: ProgramScheduleDelegate) -> some View {
         ProgramScheduleView(
             presenter: ProgramSchedulePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func mealDetailView(router: Router, delegate: MealDetailDelegate) -> AnyView {
+    func mealDetailView(router: Router, delegate: MealDetailDelegate) -> some View {
         MealDetailView(
             presenter: MealDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func profileGoalsDetailView(router: Router) -> AnyView {
+    func profileGoalsDetailView(router: Router) -> some View {
         ProfileGoalsDetailView(
             presenter: ProfileGoalsDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func profileEditView(router: Router) -> AnyView {
+    func profileEditView(router: Router) -> some View {
         ProfileEditView(
             presenter: ProfileEditPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func profileNutritionDetailView(router: Router) -> AnyView {
+    func profileNutritionDetailView(router: Router) -> some View {
         ProfileNutritionDetailView(
             presenter: ProfileNutritionDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func profilePhysicalStatsView(router: Router) -> AnyView {
+    func profilePhysicalStatsView(router: Router) -> some View {
         ProfilePhysicalStatsView(
             presenter: ProfilePhysicalStatsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func settingsView(router: Router) -> AnyView {
+    func settingsView(router: Router) -> some View {
         SettingsView(
             presenter: SettingsPresenter(
                 interactor: interactor,
@@ -957,10 +946,9 @@ class CoreBuilder {
                 )
             )
         )
-        .any()
     }
 
-    func ingredientTemplateListView(router: Router, delegate: IngredientTemplateListDelegate) -> AnyView {
+    func ingredientTemplateListView(router: Router, delegate: IngredientTemplateListDelegate) -> some View {
         IngredientTemplateListView(
             interactor: interactor,
             router: CoreRouter(router: router, builder: self),
@@ -972,100 +960,103 @@ class CoreBuilder {
                     supportsRefresh: supportsRefresh,
                     templateIdsOverride: templateIdsOverride
                 )
+                .any()
             }
         )
-        .any()
     }
 
-    func goalRow(delegate: GoalRowDelegate) -> AnyView {
+    func goalRow(delegate: GoalRowDelegate) -> some View {
         GoalRow(
             presenter: GoalRowPresenter(interactor: interactor),
             delegate: delegate
         )
-        .any()
     }
 
-    func programTemplatePickerView(router: Router) -> AnyView {
+    func programTemplatePickerView(router: Router) -> some View {
         ProgramTemplatePickerView(
             presenter: ProgramTemplatePickerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func editProgramView(router: Router, delegate: EditProgramDelegate) -> AnyView {
+    func editProgramView(router: Router, delegate: EditProgramDelegate) -> some View {
         EditProgramView(
             presenter: EditProgramPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+    }
+    
+    func thisWeeksWorkoutsView(router: Router) -> some View {
+        ThisWeeksWorkoutsView(
+            presenter: ThisWeeksWorkoutsPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            workoutSummaryCardView: { delegate in
+                self.workoutSummaryCardView(router: router, delegate: delegate)
+            },
+            scheduledWorkoutRowView: { delegate in
+                self.scheduledWorkoutRowView(delegate: delegate)
+            }
+        )
     }
 
-    func enhancedScheduleView(delegate: EnhancedScheduleDelegate) -> AnyView {
-        EnhancedScheduleView(
-            presenter: EnhancedSchedulePresenter(interactor: interactor),
+    func scheduleView(delegate: ScheduleDelegate) -> some View {
+        ScheduleView(
+            presenter: SchedulePresenter(interactor: interactor),
             delegate: delegate
         )
-        .any()
     }
 
-    func logWeightView(router: Router) -> AnyView {
+    func logWeightView(router: Router) -> some View {
         LogWeightView(
             presenter: LogWeightPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func profileHeaderView(router: Router) -> AnyView {
+    func profileHeaderView(router: Router) -> some View {
         ProfileHeaderView(
             presenter: ProfileHeaderPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func profilePhysicalMetricsView(router: Router) -> AnyView {
+    func profilePhysicalMetricsView(router: Router) -> some View {
         ProfilePhysicalMetricsView(
             presenter: ProfilePhysicalMetricsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func profileGoalSection(router: Router) -> AnyView {
+    func profileGoalSection(router: Router) -> some View {
         ProfileGoalSection(
             presenter: ProfileGoalSectionPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func profileNutritionPlanView(router: Router) -> AnyView {
+    func profileNutritionPlanView(router: Router) -> some View {
         ProfileNutritionPlanView(
             presenter: ProfileNutritionPlanPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func profilePreferencesView(router: Router) -> AnyView {
+    func profilePreferencesView(router: Router) -> some View {
         ProfilePreferencesView(
             presenter: ProfilePreferencesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func profileMyTemplatesView(router: Router) -> AnyView {
+    func profileMyTemplatesView(router: Router) -> some View {
         ProfileMyTemplatesView(
             presenter: ProfileMyTemplatesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
     }
 
-    func recipeDetailView(router: Router, delegate: RecipeDetailDelegate) -> AnyView {
+    func recipeDetailView(router: Router, delegate: RecipeDetailDelegate) -> some View {
         RecipeDetailView(
             presenter: RecipeDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
     }
 
-    func recipeTemplateListView(router: Router, delegate: RecipeTemplateListDelegate) -> AnyView {
+    func recipeTemplateListView(router: Router, delegate: RecipeTemplateListDelegate) -> some View {
         RecipeTemplateListView(
             interactor: interactor,
             router: CoreRouter(router: router, builder: self),
@@ -1077,9 +1068,9 @@ class CoreBuilder {
                     supportsRefresh: supportsRefresh,
                     templateIdsOverride: templateIdsOverride
                 )
+                .any()
             }
         )
-        .any()
     }
 
     // MARK: Generic Template List
@@ -1088,24 +1079,25 @@ class CoreBuilder {
         configuration: TemplateListConfiguration<Template>,
         supportsRefresh: Bool,
         templateIdsOverride: [String]?
-    ) -> AnyView {
+    ) -> some View {
         GenericTemplateListView(
             presenter: presenter,
             configuration: configuration,
             supportsRefresh: supportsRefresh,
             templateIdsOverride: templateIdsOverride
         )
-        .any()
     }
 
-    func customProgramBuilderView(router: Router) -> AnyView {
+    func customProgramBuilderView(router: Router) -> some View {
         CustomProgramBuilderView(
-            presenter: CustomProgramBuilderPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+            presenter: CustomProgramBuilderPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            )
         )
-        .any()
     }
 
-    func programPreviewView(router: Router, delegate: ProgramPreviewDelegate) -> AnyView {
+    func programPreviewView(router: Router, delegate: ProgramPreviewDelegate) -> some View {
         ProgramPreviewView(
             presenter: ProgramPreviewPresenter(
                 interactor: interactor,
@@ -1113,10 +1105,9 @@ class CoreBuilder {
             ),
             delegate: delegate
         )
-        .any()
     }
 
-    func manageSubscriptionView(router: Router, delegate: ManageSubscriptionDelegate) -> AnyView {
+    func manageSubscriptionView(router: Router, delegate: ManageSubscriptionDelegate) -> some View {
         ManageSubscriptionView(
             presenter: ManageSubscriptionPresenter(
                 interactor: interactor,
@@ -1124,10 +1115,9 @@ class CoreBuilder {
             ),
             delegate: delegate
         )
-        .any()
     }
 
-    func recipeAmountView(router: Router, delegate: RecipeAmountDelegate) -> AnyView {
+    func recipeAmountView(router: Router, delegate: RecipeAmountDelegate) -> some View {
         RecipeAmountView(
             presenter: RecipeAmountPresenter(
                 interactor: interactor,
@@ -1138,45 +1128,44 @@ class CoreBuilder {
             ),
             delegate: delegate
         )
-        .any()
     }
 
-    func programStartConfigView(router: Router, delegate: ProgramStartConfigDelegate) -> AnyView {
+    func programStartConfigView(router: Router, delegate: ProgramStartConfigDelegate) -> some View {
         ProgramStartConfigView(
             presenter: ProgramStartConfigPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func volumeChartsView(router: Router) -> AnyView {
+    func volumeChartsView(router: Router) -> some View {
          VolumeChartsView(
             presenter: VolumeChartsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             trendSummarySection: { delegate in
                 self.trendSummarySection(delegate: delegate)
+                    .any()
             }
          )
-         .any()
     }
 
-    func copyWeekPickerView(router: Router, delegate: CopyWeekPickerDelegate) -> AnyView {
+    func copyWeekPickerView(router: Router, delegate: CopyWeekPickerDelegate) -> some View {
         CopyWeekPickerView(
             presenter: CopyWeekPickerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func workoutPickerSheet(router: Router, delegate: WorkoutPickerDelegate) -> AnyView {
+    func workoutPickerSheet(router: Router, delegate: WorkoutPickerDelegate) -> some View {
         WorkoutPickerSheet(
             interactor: interactor,
             router: CoreRouter(router: router, builder: self),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func workoutScheduleRowView(router: Router, delegate: WorkoutScheduleRowDelegate) -> AnyView {
+    func workoutScheduleRowView(router: Router, delegate: WorkoutScheduleRowDelegate) -> some View {
         WorkoutScheduleRowView(
             presenter: WorkoutScheduleRowPresenter(
                 interactor: interactor,
@@ -1187,35 +1176,36 @@ class CoreBuilder {
             ),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func trendSummarySection(delegate: TrendSummarySectionDelegate) -> AnyView {
+    func trendSummarySection(delegate: TrendSummarySectionDelegate) -> some View {
         TrendSummarySection(
             presenter: TrendSummarySectionPresenter(interactor: interactor),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func setTrackerRowView(router: Router, delegate: SetTrackerRowDelegate) -> AnyView {
+    func setTrackerRowView(router: Router, delegate: SetTrackerRowDelegate) -> some View {
         SetTrackerRowView(
             presenter: SetTrackerRowPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
         )
-        .any()
+        
     }
 
-    func setGoalFlowView(router: Router) -> AnyView {
+    func setGoalFlowView(router: Router) -> some View {
         SetGoalFlowView(
             onboardingOverarchingObjectiveView: {
                 self.onboardingOverarchingObjectiveView(router: router)
+                    .any()
             }
         )
-        .any()
+        
     }
 
-    func workoutNotesView(router: Router, delegate: WorkoutNotesDelegate) -> AnyView {
+    func workoutNotesView(router: Router, delegate: WorkoutNotesDelegate) -> some View {
         WorkoutNotesView(
             presenter: WorkoutNotesPresenter(
                 interactor: interactor,
@@ -1223,72 +1213,79 @@ class CoreBuilder {
             ),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func profileView(router: Router) -> AnyView {
+    func profileView(router: Router) -> some View {
         ProfileView(
             presenter: ProfilePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             profileHeaderView: {
                 self.profileHeaderView(router: router)
+                    .any()
             },
             profilePhysicalMetricsView: {
                 self.profilePhysicalMetricsView(router: router)
+                    .any()
             },
             profileGoalSection: {
                 self.profileGoalSection(router: router)
+                    .any()
             },
             profileNutritionPlanView: {
                 self.profileNutritionPlanView(router: router)
+                    .any()
             },
             profilePreferencesView: {
                 self.profilePreferencesView(router: router)
+                    .any()
             },
             profileMyTemplatesView: { 
                 self.profileMyTemplatesView(router: router)
+                    .any()
             }
         )
-        .any()
+        
     }
 
-    func createAccountView(router: Router) -> AnyView {
+    func createAccountView(router: Router) -> some View {
         CreateAccountView(
             presenter: CreateAccountPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
-        .any()
+        
     }
 
-    func addExerciseModalView(router: Router, delegate: AddExerciseModalDelegate) -> AnyView {
+    func addExerciseModalView(router: Router, delegate: AddExerciseModalDelegate) -> some View {
         AddExerciseModalView(
             presenter: AddExerciseModalPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
-        .any()
+        
     }
 
-    func dayScheduleSheetView(router: Router, delegate: DayScheduleDelegate) -> AnyView {
+    func dayScheduleSheetView(router: Router, delegate: DayScheduleDelegate) -> some View {
         DayScheduleSheetView(
             presenter: DayScheduleSheetPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
             workoutSummaryCardView: { delegate in
                 self.workoutSummaryCardView(router: router, delegate: delegate)
+                    .any()
             },
             todaysWorkoutCardView: { delegate in
                 self.todaysWorkoutCardView(router: router, delegate: delegate)
+                    .any()
             }
         )
-        .any()
     }
 
-    func exerciseTrackerCardView(router: Router, delegate: ExerciseTrackerCardDelegate) -> AnyView {
+    func exerciseTrackerCardView(router: Router, delegate: ExerciseTrackerCardDelegate) -> some View {
         ExerciseTrackerCardView(
             delegate: delegate,
             interactor: interactor,
             setTrackerRowView: { delegate in
                 self.setTrackerRowView(router: router, delegate: delegate)
+                    .any()
             }
         )
-        .any()
     }
 
     // swiftlint:disable:next file_length

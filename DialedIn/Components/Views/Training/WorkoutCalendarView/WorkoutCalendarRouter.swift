@@ -7,7 +7,7 @@
 
 @MainActor
 protocol WorkoutCalendarRouter {
-    func showDevSettingsView()
+    func showWorkoutStartView(delegate: WorkoutStartDelegate)
     func showAlert(error: Error)
 }
 

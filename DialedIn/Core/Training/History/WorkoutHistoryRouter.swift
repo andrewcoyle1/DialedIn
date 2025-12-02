@@ -8,6 +8,7 @@
 @MainActor
 protocol WorkoutHistoryRouter {
     func showDevSettingsView()
+    func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
 
     func showSimpleAlert(title: String, subtitle: String?)
 }

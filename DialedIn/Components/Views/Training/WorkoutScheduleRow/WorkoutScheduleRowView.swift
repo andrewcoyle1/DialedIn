@@ -55,14 +55,6 @@ struct WorkoutScheduleRowView: View {
                     let delegate = WorkoutScheduleRowDelegate(workout: workout)
                     builder.workoutScheduleRowView(router: router, delegate: delegate)
                 }
-                ForEach(ScheduledWorkout.mocksWeek2) { workout in
-                    let delegate = WorkoutScheduleRowDelegate(workout: workout)
-                    builder.workoutScheduleRowView(router: router, delegate: delegate)
-                }
-                ForEach(ScheduledWorkout.mocksWeek2) { workout in
-                    let delegate = WorkoutScheduleRowDelegate(workout: workout)
-                    builder.workoutScheduleRowView(router: router, delegate: delegate)
-                }
             } header: {
                 Text("This Week's Workouts")
             }

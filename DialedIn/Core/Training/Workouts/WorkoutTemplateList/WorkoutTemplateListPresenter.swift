@@ -7,26 +7,40 @@
 
 import SwiftUI
 
-// Typealias for backward compatibility
-typealias WorkoutTemplateListPresenter = GenericTemplateListPresenter<WorkoutTemplateModel>
+@Observable
+@MainActor
+class WorkoutTemplateListPresenter {
+    private let interactor: WorkoutTemplateListInteractor
+    private let router: WorkoutTemplateListRouter
+    
+    private(set) var isLoading: Bool = true
+    
+    private(set) var myWorkouts: [WorkoutTemplateModel] = []
+    private(set) var favouriteWorkouts: [WorkoutTemplateModel] = []
+    private(set) var bookmarkedWorkouts: [WorkoutTemplateModel] = []
+    private(set) var systemWorkouts: [WorkoutTemplateModel] = []
 
-extension GenericTemplateListPresenter where Template == WorkoutTemplateModel {
-    static func create(
+    var hasWorkouts: Bool {
+        if myWorkouts.isEmpty && favouriteWorkouts.isEmpty && bookmarkedWorkouts.isEmpty && systemWorkouts.isEmpty {
+            false
+        } else {
+            true
+        }
+    }
+    
+    init(
         interactor: WorkoutTemplateListInteractor,
         router: WorkoutTemplateListRouter
-    ) -> WorkoutTemplateListPresenter {
-        return GenericTemplateListPresenter<WorkoutTemplateModel>(
-            configuration: .workout,
-            templateIds: nil,
-            showAlert: { title, subtitle in
-                router.showSimpleAlert(title: title, subtitle: subtitle)
-            },
-            fetchTemplatesByIds: { ids, limit in
-                try await interactor.getWorkoutTemplates(ids: ids, limitTo: limit)
-            },
-            fetchTopTemplates: { limit in
-                try await interactor.getTopWorkoutTemplatesByClicks(limitTo: limit)
-            }
-        )
+    ) {
+        self.interactor = interactor
+        self.router = router
+    }
+    
+    func onWorkoutPressed(template: WorkoutTemplateModel) {
+        router.showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate(workoutTemplate: template))
+    }
+    
+    func onCreateWorkoutPressed() {
+        router.showCreateWorkoutView(delegate: CreateWorkoutDelegate())
     }
 }

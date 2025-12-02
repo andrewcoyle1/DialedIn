@@ -1,5 +1,5 @@
 //
-//  EnhancedScheduleView.swift
+//  ScheduleView.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 18/10/2025.
@@ -7,17 +7,17 @@
 
 import SwiftUI
 
-struct EnhancedScheduleDelegate {
+struct ScheduleDelegate {
     var getScheduledWorkouts: () -> [ScheduledWorkout]
     var onDateSelected: (Date) -> Void
     var onDateTapped: (Date) -> Void
 }
 
-struct EnhancedScheduleView: View {
+struct ScheduleView: View {
     
-    @State var presenter: EnhancedSchedulePresenter
+    @State var presenter: SchedulePresenter
 
-    var delegate: EnhancedScheduleDelegate
+    var delegate: ScheduleDelegate
 
     var body: some View {
         VStack(spacing: 16) {
@@ -145,8 +145,8 @@ struct EnhancedScheduleView: View {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.enhancedScheduleView(
-        delegate: EnhancedScheduleDelegate(
+    builder.scheduleView(
+        delegate: ScheduleDelegate(
             getScheduledWorkouts: { ScheduledWorkout.mocksWeek1 },
             onDateSelected: { _ in
 

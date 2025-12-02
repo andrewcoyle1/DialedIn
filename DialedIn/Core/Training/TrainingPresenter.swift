@@ -110,6 +110,18 @@ class TrainingPresenter {
         router.showWorkoutStartView(delegate: delegate)
     }
 
+    func onWorkoutLibraryPressed() {
+        router.showWorkoutsView()
+    }
+    
+    func onExerciseLibraryPressed() {
+        router.showExercisesView()
+    }
+    
+    func onWorkoutHistoryPressed() {
+        router.showWorkoutHistoryView()
+    }
+    
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }

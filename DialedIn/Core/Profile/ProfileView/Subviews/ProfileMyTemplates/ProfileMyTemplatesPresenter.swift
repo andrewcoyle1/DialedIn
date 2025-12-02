@@ -32,9 +32,8 @@ class ProfileMyTemplatesPresenter {
     }
 
     func navToWorkoutTemplateList() {
-        guard let templateIds = interactor.currentUser?.createdWorkoutTemplateIds else { return }
         interactor.trackEvent(event: Event.navigate)
-        router.showWorkoutTemplateListView(delegate: WorkoutTemplateListDelegate(templateIds: templateIds))
+        router.showWorkoutTemplateListView()
     }
 
     func navToIngredientTemplateList() {

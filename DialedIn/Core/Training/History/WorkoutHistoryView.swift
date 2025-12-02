@@ -13,8 +13,6 @@ struct WorkoutHistoryView: View {
     
     @State var presenter: WorkoutHistoryPresenter
 
-    let delegate: WorkoutHistoryDelegate
-
     var body: some View {
         List {
             if presenter.isLoading && presenter.sessions.isEmpty {
@@ -72,7 +70,7 @@ struct WorkoutHistoryView: View {
                 WorkoutHistoryRow(session: session)
                     .contentShape(Rectangle())
                     .anyButton(.highlight) {
-                        presenter.onWorkoutSessionPressed(session: session, layoutMode: layoutMode, onSessionSelectionChanged: delegate.onSessionSelectionChanged)
+                        presenter.onWorkoutSessionPressed(session: session, layoutMode: layoutMode)
                     }
             }
         } header: {
@@ -134,7 +132,7 @@ private struct WorkoutHistoryRow: View {
 #Preview("Functioning") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryDelegate(onSessionSelectionChanged: nil))
+        builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -145,7 +143,7 @@ private struct WorkoutHistoryRow: View {
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
     let builder = CoreBuilder(container: container)
     return RouterView { router in
-        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryDelegate(onSessionSelectionChanged: nil))
+        builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -156,7 +154,7 @@ private struct WorkoutHistoryRow: View {
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(sessions: [])))
     let builder = CoreBuilder(container: container)
     return RouterView { router in
-        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryDelegate(onSessionSelectionChanged: nil))
+        builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -168,7 +166,7 @@ private struct WorkoutHistoryRow: View {
     let builder = CoreBuilder(container: container)
 
     return RouterView { router in
-        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryDelegate(onSessionSelectionChanged: nil))
+        builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
     }
     .previewEnvironment()
@@ -181,7 +179,7 @@ private struct WorkoutHistoryRow: View {
     let builder = CoreBuilder(container: container)
 
     return RouterView { router in
-        builder.workoutHistoryView(router: router, delegate: WorkoutHistoryDelegate(onSessionSelectionChanged: nil))
+        builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
     }
     .previewEnvironment()

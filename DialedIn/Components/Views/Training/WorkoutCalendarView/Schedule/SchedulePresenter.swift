@@ -9,16 +9,16 @@ import SwiftUI
 
 @Observable
 @MainActor
-class EnhancedSchedulePresenter {
+class SchedulePresenter {
 
-    let interactor: EnhancedScheduleInteractor
+    let interactor: ScheduleInteractor
     
     let calendar = Calendar.current
 
     var selectedDate: Date = Date()
     var selectedTime: Date = Date()
 
-    init(interactor: EnhancedScheduleInteractor) {
+    init(interactor: ScheduleInteractor) {
         self.interactor = interactor
     }
     

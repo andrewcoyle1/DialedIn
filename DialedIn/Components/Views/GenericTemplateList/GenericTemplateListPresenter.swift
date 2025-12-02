@@ -13,7 +13,7 @@ import SwiftUI
 class GenericTemplateListPresenter<Template: TemplateModel> {
     private let fetchTemplatesByIds: ([String], Int) async throws -> [Template]
     private let fetchTopTemplates: (Int) async throws -> [Template]
-    private let configuration: TemplateListConfiguration<Template>
+    let configuration: TemplateListConfiguration<Template>
     private let showAlert: (String, String?) -> Void
     
     let templateIds: [String]?

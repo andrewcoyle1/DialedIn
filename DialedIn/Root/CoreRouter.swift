@@ -302,9 +302,27 @@ struct CoreRouter {
             builder.workoutTrackerView(router: router, delegate: delegate)
         }
     }
-
+    
+    func showWorkoutsView() {
+        router.showScreen(.push) { router in
+            builder.workoutsView(router: router)
+        }
+    }
+    
+    func showExercisesView() {
+        router.showScreen(.push) { router in
+            builder.exercisesView(router: router)
+        }
+    }
+    
+    func showWorkoutHistoryView() {
+        router.showScreen(.push) { router in
+            builder.workoutHistoryView(router: router)
+        }
+    }
+    
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) {
-        router.showScreen(.sheet) { router in
+        router.showScreen(.push) { router in
             builder.workoutSessionDetailView(router: router, delegate: delegate)
         }
     }
@@ -469,9 +487,21 @@ struct CoreRouter {
         }
     }
 
-    func showWorkoutTemplateListView(delegate: WorkoutTemplateListDelegate) {
+    func showExerciseTemplateDetailView(delegate: ExerciseTemplateDetailDelegate) {
         router.showScreen(.push) { router in
-            builder.workoutTemplateListView(router: router, delegate: delegate)
+            builder.exerciseTemplateDetailView(router: router, delegate: delegate)
+        }
+    }
+
+    func showWorkoutTemplateListView() {
+        router.showScreen(.push) { router in
+            builder.workoutTemplateListView(router: router)
+        }
+    }
+
+    func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate) {
+        router.showScreen(.push) { router in
+            builder.workoutTemplateDetailView(router: router, delegate: delegate)
         }
     }
 

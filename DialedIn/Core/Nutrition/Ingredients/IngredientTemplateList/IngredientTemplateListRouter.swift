@@ -8,6 +8,7 @@
 @MainActor
 protocol IngredientTemplateListRouter {
     func showDevSettingsView()
+    func showIngredientDetailView(delegate: IngredientDetailDelegate)
     func showSimpleAlert(title: String, subtitle: String?)
 }
 

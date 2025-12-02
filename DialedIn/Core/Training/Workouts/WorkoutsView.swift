@@ -12,8 +12,6 @@ struct WorkoutsView: View {
 
     @State var presenter: WorkoutsPresenter
 
-    let delegate: WorkoutsDelegate
-
     var body: some View {
         List {
             if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -209,7 +207,7 @@ struct WorkoutsView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.workoutsView(router: router, delegate: WorkoutsDelegate())
+        builder.workoutsView(router: router)
     }
     .previewEnvironment()
 }

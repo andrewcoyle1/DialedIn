@@ -8,43 +8,6 @@
 import SwiftUI
 import CustomRouting
 
-struct CopyWeekPickerDelegate {
-    let availableWeeks: [Int]
-    let onSelect: (Int) -> Void
-}
-
-protocol CopyWeekPickerInteractor {
-
-}
-
-extension CoreInteractor: CopyWeekPickerInteractor { }
-
-@MainActor
-protocol CopyWeekPickerRouter {
-    func dismissScreen()
-}
-
-extension CoreRouter: CopyWeekPickerRouter { }
-
-@Observable
-@MainActor
-class CopyWeekPickerPresenter {
-    private let interactor: CopyWeekPickerInteractor
-    private let router: CopyWeekPickerRouter
-
-    init(
-        interactor: CopyWeekPickerInteractor,
-        router: CopyWeekPickerRouter
-    ) {
-        self.interactor = interactor
-        self.router = router
-    }
-
-    func onDismissPressed() {
-        router.dismissScreen()
-    }
-}
-
 struct CopyWeekPickerView: View {
 
     @State var presenter: CopyWeekPickerPresenter

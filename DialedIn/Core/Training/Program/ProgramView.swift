@@ -8,21 +8,20 @@
 import SwiftUI
 import CustomRouting
 
-struct ProgramView: View {
+struct ProgramView<TodaysWorkoutSectionView: View, WorkoutCalendarView: View, ThisWeeksWorkoutsView: View, GoalListSectionView: View, TrainingProgressChartsView: View>: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
     @State var presenter: ProgramPresenter
 
-    let delegate: ProgramDelegate
-
-    @ViewBuilder var workoutSummaryCardView: (WorkoutSummaryCardDelegate) -> AnyView
-    @ViewBuilder var todaysWorkoutCardView: (TodaysWorkoutCardDelegate) -> AnyView
-    @ViewBuilder var workoutCalendarView: (WorkoutCalendarDelegate) -> AnyView
-    @ViewBuilder var scheduledWorkoutRowView: (ScheduledWorkoutRowDelegate) -> AnyView
+    @ViewBuilder var todaysWorkoutSectionView: () -> TodaysWorkoutSectionView
+    @ViewBuilder var workoutCalendarView: () -> WorkoutCalendarView
+    @ViewBuilder var thisWeeksWorkoutsView: () -> ThisWeeksWorkoutsView
+    @ViewBuilder var goalListSectionView: () -> GoalListSectionView
+    @ViewBuilder var trainingProgressChartsView: () -> TrainingProgressChartsView
 
     var body: some View {
-        List {
+        Group {
             if presenter.currentTrainingPlan != nil {
                 activeProgramView
             } else {
@@ -44,11 +43,11 @@ struct ProgramView: View {
     private var activeProgramView: some View {
         Group {
             programOverviewSection
-            todaysWorkoutSection
-            calendarSection
-            weekProgressSection
-            goalsSection
-            chartSection
+            todaysWorkoutSectionView()
+            workoutCalendarView()
+            thisWeeksWorkoutsView()
+            goalListSectionView()
+            trainingProgressChartsView()
         }
     }
     
@@ -148,170 +147,9 @@ struct ProgramView: View {
     }
     
     private var todaysWorkoutSection: some View {
-        Group {
-            let todaysWorkouts = presenter.todaysWorkouts
-            if !todaysWorkouts.isEmpty {
-                Section {
-                    ForEach(todaysWorkouts) { workout in
-                        if workout.isCompleted {
-                            workoutSummaryCardView(
-                                WorkoutSummaryCardDelegate(
-                                    scheduledWorkout: workout,
-                                    onTap: {
-                                        presenter.openCompletedSession(
-                                            for: workout
-                                        )
-                                    }
-                                )
-                            )
-                            .id(workout.id)
-                        } else {
-                            todaysWorkoutCardView(
-                                TodaysWorkoutCardDelegate(
-                                    scheduledWorkout: workout,
-                                    onStart: {
-                                        Task {
-                                            await presenter.startWorkout(workout)
-                                        }
-                                    }
-                                )
-                            )
-                        }
-                    }
-                } header: {
-                    Text("Today's Workout")
-                }
-            }
-        }
+        todaysWorkoutSectionView()
     }
-    
-    private var calendarSection: some View {
-        workoutCalendarView(
-            WorkoutCalendarDelegate(
-                onSessionSelectionChanged: { session in
-                    presenter.selectedHistorySession = session
-                    presenter
-                        .handleSessionSelectionChanged(
-                            session
-                        )
-                },
-                onWorkoutStartRequested: presenter.handleWorkoutStartRequest
-            )
-        )
-    }
-    
-    private var weekProgressSection: some View {
-        Section {
-            let calendar = Calendar.current
-            if let weekInterval = calendar.dateInterval(of: .weekOfYear, for: Date()) {
-                ForEach(0..<7, id: \.self) { dayOffset in
-                    dayWorkoutRow(dayOffset: dayOffset, weekStart: weekInterval.start, calendar: calendar)
-                }
-            }
-        } header: {
-            Text("This Week's Workouts")
-        }
-    }
-    
-    @ViewBuilder
-    private func dayWorkoutRow(dayOffset: Int, weekStart: Date, calendar: Calendar) -> some View {
-        let day = calendar.date(byAdding: .day, value: dayOffset, to: weekStart) ?? weekStart
-        let workoutsForDay = presenter.getWorkoutsForDay(day, calendar: calendar)
         
-        if workoutsForDay.isEmpty {
-            RestDayRow(date: day)
-        } else {
-            ForEach(workoutsForDay) { workout in
-                if workout.isCompleted {
-                    workoutSummaryCardView(
-                        WorkoutSummaryCardDelegate(
-                            scheduledWorkout: workout, onTap: {
-                                presenter.openCompletedSession(for: workout)
-                                
-                            }
-                        )
-                    )
-                    .id(workout.id)
-                } else {
-                    scheduledWorkoutRowView(ScheduledWorkoutRowDelegate(scheduledWorkout: workout))
-                    .contentShape(
-                        Rectangle()
-                    )
-                    .onTapGesture {
-                        Task {
-                            await presenter.startWorkout(
-                                workout
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private var goalsSection: some View {
-        Group {
-            if let plan = presenter.currentTrainingPlan {
-                Section {
-                    if !plan.goals.isEmpty {
-                        ForEach(plan.goals) { goal in
-                            GoalProgressRow(goal: goal)
-                        }
-                    } else {
-                        ContentUnavailableView {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.yellow)
-                        } description: {
-                            Text("No training goals set. Tap the plus button to add one.")
-                        } actions: {
-                            Button {
-                                if presenter.currentTrainingPlan != nil {
-                                    presenter.onAddGoalPressed()
-                                }
-                            } label: {
-                                Image(systemName: "plus")
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-
-                    }
-                } header: {
-                    Text("Goals")
-                }
-            }
-        }
-    }
-    
-    private var chartSection: some View {
-        Section {
-            Button {
-                DispatchQueue.main.async {
-                    presenter.activeSheet = .progressDashboard
-                }
-            } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("View Progress Analytics")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.primary)
-                        Text("Track volume, strength, and performance")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Image(systemName: "chart.xyaxis.line")
-                        .foregroundStyle(.blue)
-                }
-                .padding(.vertical, 8)
-            }
-            
-            HistoryChart(series: TimeSeriesData.last30Days)
-        } header: {
-            Text("Activity")
-        }
-    }
-    
     private var noProgramView: some View {
         Section {
             VStack(spacing: 16) {
@@ -351,14 +189,7 @@ struct ProgramView: View {
     container.register(TrainingPlanManager.self, service: emptyTrainingPlanManager)
     let builder = CoreBuilder(container: container)
     return RouterView { router in
-        builder.programView(
-            router: router,
-            delegate: ProgramDelegate(
-                onSessionSelectionChangeded: { _ in
-                    
-                }
-            )
-        )
+        builder.programView(router: router)
     }
     .previewEnvironment()
 }
@@ -377,14 +208,7 @@ struct ProgramView: View {
     let builder = CoreBuilder(container: container)
 
     return RouterView { router in
-        builder.programView(
-            router: router,
-            delegate: ProgramDelegate(
-                onSessionSelectionChangeded: { _ in
-
-                }
-            )
-        )
+        builder.programView(router: router)
     }
     .previewEnvironment()
 }
@@ -396,14 +220,7 @@ struct ProgramView: View {
     let builder = CoreBuilder(container: container)
 
     return RouterView { router in
-        builder.programView(
-            router: router,
-            delegate: ProgramDelegate(
-                onSessionSelectionChangeded: { _ in
-
-                }
-            )
-        )
+        builder.programView(router: router)
     }
     .previewEnvironment()
 }
@@ -415,14 +232,7 @@ struct ProgramView: View {
     let builder = CoreBuilder(container: container)
 
     return RouterView { router in
-        builder.programView(
-            router: router,
-            delegate: ProgramDelegate(
-                onSessionSelectionChangeded: { _ in
-
-                }
-            )
-        )
+        builder.programView(router: router)
     }
     .previewEnvironment()
 }
@@ -434,14 +244,7 @@ struct ProgramView: View {
     let builder = CoreBuilder(container: container)
 
     return RouterView { router in
-        builder.programView(
-            router: router,
-            delegate: ProgramDelegate(
-                onSessionSelectionChangeded: { _ in
-
-                }
-            )
-        )
+        builder.programView(router: router)
     }
     .previewEnvironment()
 }
@@ -453,14 +256,7 @@ struct ProgramView: View {
     let builder = CoreBuilder(container: container)
 
     return RouterView { router in
-        builder.programView(
-            router: router,
-            delegate: ProgramDelegate(
-                onSessionSelectionChangeded: { _ in
-
-                }
-            )
-        )
+        builder.programView(router: router)
     }
     .previewEnvironment()
 }
@@ -472,14 +268,7 @@ struct ProgramView: View {
     let builder = CoreBuilder(container: container)
 
     return RouterView { router in
-        builder.programView(
-            router: router,
-            delegate: ProgramDelegate(
-                onSessionSelectionChangeded: { _ in
-                    
-                }
-            )
-        )
+        builder.programView(router: router)
     }
     .previewEnvironment()
 }
@@ -491,14 +280,7 @@ struct ProgramView: View {
     let builder = CoreBuilder(container: container)
 
     return RouterView { router in
-        builder.programView(
-            router: router,
-            delegate: ProgramDelegate(
-                onSessionSelectionChangeded: { _ in
-
-                }
-            )
-        )
+        builder.programView(router: router)
     }
     .previewEnvironment()
 }
@@ -507,14 +289,7 @@ struct ProgramView: View {
     let builder = CoreBuilder(container: DevPreview.shared.container)
 
     return RouterView { router in
-        builder.programView(
-            router: router,
-            delegate: ProgramDelegate(
-                onSessionSelectionChangeded: { _ in
-                    
-                }
-            )
-        )
+        builder.programView(router: router)
     }
     .previewEnvironment()
 }
