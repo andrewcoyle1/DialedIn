@@ -7,11 +7,7 @@
 
 @MainActor
 protocol WorkoutsRouter {
-    func showDevSettingsView()
-    func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
     func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate)
-    
-    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: WorkoutsRouter { }

@@ -45,8 +45,10 @@ struct StrengthProgressView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
+                    Button {
                         presenter.onDismissPressed()
+                    } label: {
+                        Image(systemName: "xmark")
                     }
                 }
             }

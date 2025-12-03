@@ -420,6 +420,12 @@ class CoreBuilder {
             tabViewAccessoryView: { delegate in
                 self.tabViewAccessoryView(delegate: delegate)
                     .any()
+            },
+            workoutTrackerView: { delegate in
+                RouterView { router in
+                    self.workoutTrackerView(router: router, delegate: delegate)
+                }
+                .any()
             }
         )
     }

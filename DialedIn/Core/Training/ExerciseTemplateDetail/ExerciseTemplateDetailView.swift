@@ -8,10 +8,6 @@
 import SwiftUI
 import CustomRouting
 
-struct ExerciseTemplateDetailDelegate {
-    var exerciseTemplate: ExerciseTemplateModel
-}
-
 struct ExerciseTemplateDetailView: View {
 
     @State var presenter: ExerciseTemplateDetailPresenter
@@ -358,6 +354,13 @@ struct ExerciseTemplateDetailView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                presenter.onDismissPressed()
+            } label: {
+                Image(systemName: "xmark")
+            }
+        }
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {

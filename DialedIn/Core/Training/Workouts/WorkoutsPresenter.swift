@@ -39,10 +39,6 @@ class WorkoutsPresenter {
         router.showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate(workoutTemplate: workout))
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
-
     enum Event: LoggableEvent {
         case incrementWorkoutStart
         case incrementWorkoutSuccess

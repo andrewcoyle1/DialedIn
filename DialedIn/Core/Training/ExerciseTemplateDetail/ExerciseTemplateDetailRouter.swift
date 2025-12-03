@@ -8,6 +8,8 @@
 @MainActor
 protocol ExerciseTemplateDetailRouter {
     func showDevSettingsView()
+    func dismissScreen()
+    
     func showSimpleAlert(title: String, subtitle: String?)
 }
 

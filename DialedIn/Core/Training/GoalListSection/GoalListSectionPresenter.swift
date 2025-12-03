@@ -13,7 +13,7 @@ class GoalListSectionPresenter {
     private let interactor: GoalListSectionInteractor
     private let router: GoalListSectionRouter
     
-    var isExpanded: Bool = false
+    var isExpanded: Bool = true
     
     var currentTrainingPlan: TrainingPlan? {
         interactor.currentTrainingPlan

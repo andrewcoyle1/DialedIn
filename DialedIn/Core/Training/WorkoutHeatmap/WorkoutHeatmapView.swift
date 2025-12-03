@@ -13,38 +13,68 @@ struct WorkoutHeatmapView: View {
     @State var presenter: WorkoutHeatmapPresenter
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Month selector
-                monthNavigator
-
-                if presenter.isLoading {
-                    ProgressView()
-                        .padding(40)
-                } else {
-                    // Weekday headers
-                    weekdayHeaders
-
-                    // Calendar grid
-                    calendarGrid
-
-                    // Legend
-                    heatmapLegend
-
-                    // Stats
-                    if let metrics = presenter.performanceMetrics {
-                        heatmapStatsSection(metrics)
+        List {
+            Section {
+                VStack {
+                    // Month selector
+                    monthNavigator
+                    
+                    if presenter.isLoading {
+                        ProgressView()
+                            .padding(40)
+                    } else {
+                        // Weekday headers
+                        weekdayHeaders
+                        
+                        // Calendar grid
+                        calendarGrid
                     }
                 }
+            } header: {
+                Text("Heatmap")
+            } footer: {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Workout Frequency")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                    
+                    HStack(spacing: 4) {
+                        Text("Less")
+                            .font(.caption2)
+                        
+                        ForEach(0...4, id: \.self) { level in
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(presenter.intensityColor(for: level))
+                                .frame(width: 16, height: 16)
+                        }
+                        
+                        Text("More")
+                            .font(.caption2)
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
-            .padding()
+            
+            if !presenter.isLoading {
+                // Stats
+                if let metrics = presenter.performanceMetrics {
+                    Section {
+                        heatmapStatsSection(metrics)
+                    } header: {
+                        Text("Monthly Summary")
+                    }
+                    
+                }
+            }
         }
         .navigationTitle("Training Frequency")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Done") {
+                Button {
                     presenter.onDismissPressed()
+                } label: {
+                    Image(systemName: "xmark")
                 }
             }
         }
@@ -148,10 +178,7 @@ struct WorkoutHeatmapView: View {
     }
     
     private func heatmapStatsSection(_ metrics: PerformanceMetrics) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Monthly Summary")
-                .font(.headline)
-            
+        Group {
             HStack(spacing: 20) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Total Workouts")
@@ -193,36 +220,6 @@ struct WorkoutHeatmapView: View {
                 }
             }
         }
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
-    
-    private var heatmapLegend: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Workout Frequency")
-                .font(.caption)
-                .fontWeight(.medium)
-            
-            HStack(spacing: 4) {
-                Text("Less")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                
-                ForEach(0...4, id: \.self) { level in
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(presenter.intensityColor(for: level))
-                        .frame(width: 16, height: 16)
-                }
-                
-                Text("More")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 

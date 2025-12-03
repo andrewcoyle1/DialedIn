@@ -27,6 +27,9 @@ struct EditProgramView: View {
         .toolbar {
             toolbarContent
         }
+        .onAppear {
+            presenter.loadData(for: delegate.plan)
+        }
         .overlay {
             if presenter.isSaving {
                 ProgressView()

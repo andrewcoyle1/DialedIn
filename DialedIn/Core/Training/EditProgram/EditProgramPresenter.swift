@@ -31,14 +31,8 @@ class EditProgramPresenter {
         self.interactor = interactor
         self.router = router
     }
-    
-    init(
-        interactor: EditProgramInteractor,
-        router: EditProgramRouter,
-        plan: TrainingPlan
-    ) {
-        self.interactor = interactor
-        self.router = router
+        
+    func loadData(for plan: TrainingPlan) {
         self.name = plan.name
         self.description = plan.description ?? ""
         self.startDate = plan.startDate

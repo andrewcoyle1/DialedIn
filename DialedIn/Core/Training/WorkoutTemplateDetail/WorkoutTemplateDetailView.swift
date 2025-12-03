@@ -10,8 +10,6 @@ import CustomRouting
 
 struct WorkoutTemplateDetailView: View {
 
-    @Environment(\.editMode) private var editMode
-
     @State var presenter: WorkoutTemplateDetailPresenter
     
     let delegate: WorkoutTemplateDetailDelegate
@@ -53,6 +51,14 @@ struct WorkoutTemplateDetailView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                presenter.onDismissPressed()
+            } label: {
+                Image(systemName: "xmark")
+            }
+        }
+        ToolbarSpacer(.fixed, placement: .topBarLeading)
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
@@ -62,13 +68,6 @@ struct WorkoutTemplateDetailView: View {
             }
         }
         #endif
-
-        // Show edit button for authors
-        if isAuthor {
-            ToolbarItem(placement: .topBarLeading) {
-                EditButton()
-            }
-        }
 
         ToolbarItem(placement: .topBarTrailing) {
             Button {
@@ -94,8 +93,8 @@ struct WorkoutTemplateDetailView: View {
         }
 
         // Show edit button when not in edit mode
-        if isAuthor && editMode?.wrappedValue != .active {
-            ToolbarItem(placement: .topBarTrailing) {
+        if isAuthor {
+            ToolbarItem(placement: .topBarLeading) {
                 Button {
                     presenter.onEditWorkoutPressed(template: delegate.workoutTemplate)
                 } label: {
@@ -105,8 +104,8 @@ struct WorkoutTemplateDetailView: View {
         }
 
         // Show delete button only in edit mode
-        if isAuthor && editMode?.wrappedValue == .active {
-            ToolbarItem(placement: .topBarTrailing) {
+        if isAuthor {
+            ToolbarItem(placement: .topBarLeading) {
                 Button(role: .destructive) {
                     presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate)
                 } label: {
@@ -121,15 +120,13 @@ struct WorkoutTemplateDetailView: View {
         }
 
         // Hide start button in edit mode
-        if editMode?.wrappedValue != .active {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    presenter.onStartWorkoutPressed(workoutTemplate: delegate.workoutTemplate)
-                } label: {
-                    Label("Start", systemImage: "play.fill")
-                }
-                .buttonStyle(.glassProminent)
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onStartWorkoutPressed(workoutTemplate: delegate.workoutTemplate)
+            } label: {
+                Label("Start", systemImage: "play.fill")
             }
+            .buttonStyle(.glassProminent)
         }
     }
     

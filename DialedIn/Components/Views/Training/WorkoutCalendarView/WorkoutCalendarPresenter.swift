@@ -14,7 +14,7 @@ class WorkoutCalendarPresenter {
     private let interactor: WorkoutCalendarInteractor
     private let router: WorkoutCalendarRouter
 
-    var isShowingCalendar: Bool = false
+    var isShowingCalendar: Bool = true
     var collapsedSubtitle: String = "No sessions planned yet — tap to plan"
     private(set) var scheduledWorkouts: [ScheduledWorkout] = []
     var selectedDate: Date?

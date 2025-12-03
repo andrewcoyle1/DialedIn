@@ -14,35 +14,34 @@ struct ProgressDashboardView: View {
     @State var presenter: ProgressDashboardPresenter
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Period selector
-                periodPicker
-
-                if presenter.isLoading {
-                    ProgressView()
-                        .padding(40)
-                } else if let snapshot = presenter.progressSnapshot {
-                    // Performance metrics
-                    performanceSection(snapshot.performanceMetrics)
-
-                    // Volume metrics
-                    volumeSection(snapshot.volumeMetrics)
-
-                    // Strength metrics
-                    strengthSection(snapshot.strengthMetrics)
-                } else {
-                    emptyState
-                }
+        List {
+            // Period selector
+            periodPicker
+            
+            if presenter.isLoading {
+                ProgressView()
+                    .padding(40)
+            } else if let snapshot = presenter.progressSnapshot {
+                // Performance metrics
+                performanceSection(snapshot.performanceMetrics)
+                
+                // Volume metrics
+                volumeSection(snapshot.volumeMetrics)
+                
+                // Strength metrics
+                strengthSection(snapshot.strengthMetrics)
+            } else {
+                emptyState
             }
-            .padding()
         }
         .navigationTitle("Progress Analytics")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Done") {
+                Button {
                     presenter.onDismissPressed()
+                } label: {
+                    Image(systemName: "xmark")
                 }
             }
         }
@@ -64,15 +63,12 @@ struct ProgressDashboardView: View {
         }
         .pickerStyle(.segmented)
         .padding(.horizontal)
+        .removeListRowFormatting()
     }
     
     private func performanceSection(_ metrics: PerformanceMetrics) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Performance")
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+        Section {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                 MetricCard(
                     title: "Completion Rate",
                     value: "\(Int(metrics.adherencePercentage))%",
@@ -101,112 +97,108 @@ struct ProgressDashboardView: View {
                     color: .purple
                 )
             }
+            .removeListRowFormatting()
+        } header: {
+            Text("Performance")
         }
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
     private func volumeSection(_ metrics: VolumeMetrics) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Training Volume")
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            // Total volume
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Total Volume")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Text("\(Int(metrics.totalVolume)) kg")
-                        .font(.title)
-                        .fontWeight(.bold)
+        Section {
+            VStack {
+                // Total volume
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Total Volume")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Text("\(Int(metrics.totalVolume)) kg")
+                            .font(.title)
+                            .fontWeight(.bold)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("Avg per Workout")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Text("\(Int(metrics.averageVolumePerWorkout)) kg")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                    }
                 }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("Avg per Workout")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Text("\(Int(metrics.averageVolumePerWorkout)) kg")
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                }
-            }
-            .padding()
-            .background(.blue.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-            // Volume by muscle group
-            if !metrics.volumeByMuscleGroup.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Volume by Muscle Group")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    ForEach(Array(metrics.volumeByMuscleGroup.sorted(by: { $0.value > $1.value })), id: \.key) { muscleGroup, volume in
-                        HStack {
-                            Text(muscleGroup.description)
-                                .font(.caption)
-                            Spacer()
-                            Text("\(Int(volume)) kg")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                            
-                            // Progress bar
-                            let maxVolume = metrics.volumeByMuscleGroup.values.max() ?? 1
-                            ProgressView(value: volume / maxVolume)
-                                .frame(width: 60)
+                .padding()
+                .background(.blue.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                
+                // Volume by muscle group
+                if !metrics.volumeByMuscleGroup.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Volume by Muscle Group")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        ForEach(Array(metrics.volumeByMuscleGroup.sorted(by: { $0.value > $1.value })), id: \.key) { muscleGroup, volume in
+                            HStack {
+                                Text(muscleGroup.description)
+                                    .font(.caption)
+                                Spacer()
+                                Text("\(Int(volume)) kg")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                
+                                // Progress bar
+                                let maxVolume = metrics.volumeByMuscleGroup.values.max() ?? 1
+                                ProgressView(value: volume / maxVolume)
+                                    .frame(width: 60)
+                            }
                         }
                     }
                 }
             }
+            .removeListRowFormatting()
+        } header: {
+            Text("Training Volume")
         }
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
     private func strengthSection(_ metrics: StrengthMetrics) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Strength Progress")
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            if !metrics.personalRecords.isEmpty {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Recent Personal Records")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    ForEach(metrics.personalRecords.prefix(5)) { personalRecord in
-                        PersonalRecordRow(record: personalRecord)
+        Section {
+            Group {
+                if !metrics.personalRecords.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Recent Personal Records")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        ForEach(metrics.personalRecords.prefix(5)) { personalRecord in
+                            PersonalRecordRow(record: personalRecord)
+                        }
                     }
-                }
-            } else {
-                Text("No personal records yet. Keep training to set your first PR!")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .padding()
-            }
-            
-            // Progression rate
-            if metrics.strengthProgressionRate > 0 {
-                HStack {
-                    Image(systemName: "arrow.up.right")
-                        .foregroundStyle(.green)
-                    Text("Strength increasing by \(String(format: "%.1f%%", metrics.strengthProgressionRate)) per period")
-                        .font(.caption)
+                } else {
+                    Text("No personal records yet. Keep training to set your first PR!")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .padding()
                 }
-                .padding()
-                .background(.green.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                
+                // Progression rate
+                if metrics.strengthProgressionRate > 0 {
+                    HStack {
+                        Image(systemName: "arrow.up.right")
+                            .foregroundStyle(.green)
+                        Text("Strength increasing by \(String(format: "%.1f%%", metrics.strengthProgressionRate)) per period")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .background(.green.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
             }
+            .removeListRowFormatting()
+        } header: {
+            Text("Strength Progress")
         }
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
     private var emptyState: some View {

@@ -43,7 +43,7 @@ struct WorkoutListViewBuilder: View {
         .screenAppearAnalytics(name: "WorkoutsView")
         .navigationTitle("Workouts")
         .navigationSubtitle("\(presenter.workouts.count) workouts")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
         .onFirstTask {
             await presenter.loadAllWorkouts()

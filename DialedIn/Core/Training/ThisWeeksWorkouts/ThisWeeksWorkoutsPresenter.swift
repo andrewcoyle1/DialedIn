@@ -13,7 +13,7 @@ class ThisWeeksWorkoutsPresenter {
     private let interactor: ThisWeeksWorkoutsInteractor
     private let router: ThisWeeksWorkoutsRouter
     
-    var isExpanded: Bool = false
+    var isExpanded: Bool = true
     
     init(
         interactor: ThisWeeksWorkoutsInteractor,

@@ -136,6 +136,10 @@ class WorkoutTemplateDetailPresenter {
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }
+    
+    func onDismissPressed() {
+        router.dismissScreen()
+    }
 
     func onEditWorkoutPressed(template: WorkoutTemplateModel) {
         router.showCreateWorkoutView(delegate: CreateWorkoutDelegate(workoutTemplate: template))
