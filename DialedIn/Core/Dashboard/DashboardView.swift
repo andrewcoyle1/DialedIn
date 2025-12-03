@@ -87,7 +87,7 @@ struct DashboardView: View {
         }
         #endif
 
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onPushNotificationsPressed()
             } label: {

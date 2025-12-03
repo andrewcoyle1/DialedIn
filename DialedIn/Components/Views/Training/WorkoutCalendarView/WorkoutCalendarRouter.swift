@@ -8,6 +8,8 @@
 @MainActor
 protocol WorkoutCalendarRouter {
     func showWorkoutStartView(delegate: WorkoutStartDelegate)
+    func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
+    
     func showAlert(error: Error)
 }
 

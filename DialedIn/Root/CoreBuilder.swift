@@ -471,13 +471,7 @@ class CoreBuilder {
                 )
             ],
             tabViewAccessoryView: { accessoryDelegate in
-                self.tabViewAccessoryView(delegate: accessoryDelegate)
-                    .any()
-            },
-            workoutTrackerView: { trackerDelegate in
-                RouterView { router in
-                    self.workoutTrackerView(router: router, delegate: trackerDelegate)
-                }
+                    self.tabViewAccessoryView(delegate: accessoryDelegate)
                 .any()
             }
         )
@@ -492,7 +486,7 @@ class CoreBuilder {
 
     func tabViewAccessoryView(delegate: TabViewAccessoryDelegate) -> some View {
         TabViewAccessoryView(
-            presenter: TabViewAccessoryPresenter(interactor: interactor),
+            presenter: TabViewAccessoryPresenter(interactor: self.interactor),
             delegate: delegate
         )
     }
@@ -739,7 +733,10 @@ class CoreBuilder {
 
     func workoutsView(router: Router) -> some View {
         WorkoutsView(
-            presenter: WorkoutsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+            presenter: WorkoutsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            workoutListViewBuilder: { delegate in
+                self.workoutListViewBuilder(router: router, delegate: delegate)
+            }
         )
     }
 
@@ -935,7 +932,17 @@ class CoreBuilder {
             presenter: ProfilePhysicalStatsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
-
+    
+    func workoutListViewBuilder(router: Router, delegate: WorkoutListDelegateBuilder) -> some View {
+        WorkoutListViewBuilder(
+            presenter: WorkoutListPresenterBuilder(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
+        )
+    }
+    
     func settingsView(router: Router) -> some View {
         SettingsView(
             presenter: SettingsPresenter(
@@ -1157,12 +1164,16 @@ class CoreBuilder {
     }
 
     func workoutPickerSheet(router: Router, delegate: WorkoutPickerDelegate) -> some View {
-        WorkoutPickerSheet(
-            interactor: interactor,
-            router: CoreRouter(router: router, builder: self),
-            delegate: delegate
+        WorkoutPickerView(
+            presenter: WorkoutPickerPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate,
+            workoutListBuilderView: { delegate in
+                self.workoutListViewBuilder(router: router, delegate: delegate)
+            }
         )
-        
     }
 
     func workoutScheduleRowView(router: Router, delegate: WorkoutScheduleRowDelegate) -> some View {

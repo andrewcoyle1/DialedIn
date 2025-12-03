@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-struct AppView: View {
+struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
 
     @State var presenter: AppPresenter
 
-    @ViewBuilder var adaptiveMainView: () -> AnyView
-    @ViewBuilder var onboardingWelcomeView: () -> AnyView
+    @ViewBuilder var adaptiveMainView: () -> AdaptiveMainView
+    @ViewBuilder var onboardingWelcomeView: () -> OnboardingView
 
     var body: some View {
         RootView(

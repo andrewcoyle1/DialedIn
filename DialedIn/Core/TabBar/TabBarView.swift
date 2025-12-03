@@ -8,16 +8,6 @@
 import SwiftUI
 import CustomRouting
 
-struct TabBarScreen: Identifiable {
-    var id: String {
-        title
-    }
-
-    let title: String
-    let systemImage: String
-    @ViewBuilder var screen: () -> AnyView
-}
-
 struct TabBarView: View {
 
     @State var presenter: TabBarPresenter
@@ -51,11 +41,11 @@ struct TabBarView: View {
 #Preview("Has No Active Session") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     builder.tabBarView()
-    .previewEnvironment()
+        .previewEnvironment()
 }
 
 #Preview("Has Active Session") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     builder.tabBarView()
-    .previewEnvironment()
+        .previewEnvironment()
 }

@@ -99,15 +99,13 @@ class WorkoutCalendarPresenter {
         }
     }
     
-    func openCompletedSession(for scheduledWorkout: ScheduledWorkout, onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)? = nil) async {
+    func openCompletedSession(for scheduledWorkout: ScheduledWorkout) async {
         guard let sessionId = scheduledWorkout.completedSessionId else { return }
         interactor.trackEvent(event: Event.openCompletedSessionStart)
         do {
             let session = try await interactor.getWorkoutSession(id: sessionId)
-            await MainActor.run {
-                onSessionSelectionChanged?(session)
-                interactor.trackEvent(event: Event.openCompletedSessionSuccess)
-            }
+            router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
+            interactor.trackEvent(event: Event.openCompletedSessionSuccess)
         } catch {
             router.showAlert(error: error)
             interactor.trackEvent(event: Event.openCompletedSessionFail(error: error))

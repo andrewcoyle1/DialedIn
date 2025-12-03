@@ -7,16 +7,32 @@
 
 import Foundation
 import SwiftData
+
 // Note: Keep SwiftData predicates scoped to entity properties and plain values.
 // Mixing model key paths into predicates can cause Sendable/key path issues in macro-generated code.
 
 @MainActor
 class SwiftProgramTemplatePersistence: LocalProgramTemplatePersistence {
     
-    private let modelContext: ModelContext
+    private let container: ModelContainer
+    private let storeURL: URL
     
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
+    private var modelContext: ModelContext {
+        container.mainContext
+    }
+    
+    init() {
+        // Create Application Support path and a fixed store URL
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let directory = appSupport.appendingPathComponent("DialedIn.ProgramTemplatesStore", isDirectory: true)
+        if !FileManager.default.fileExists(atPath: directory.path) {
+            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        }
+        self.storeURL = directory.appendingPathComponent("ProgramTemplates.store")
+        
+        let configuration = ModelConfiguration(url: storeURL)
+        // swiftlint:disable:next force_try
+        self.container = try! ModelContainer(for: ProgramTemplateEntity.self, configurations: configuration)
         
         // Seed built-in templates if not already present
         if getAll().isEmpty {

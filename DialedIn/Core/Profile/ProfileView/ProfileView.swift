@@ -79,7 +79,7 @@ struct ProfileView: View {
             }
         }
         #endif
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onNotificationsPressed()
             } label: {

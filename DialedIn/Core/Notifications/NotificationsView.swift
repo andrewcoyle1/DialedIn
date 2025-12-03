@@ -25,11 +25,11 @@ struct NotificationsView: View {
         .scrollIndicators(.hidden)
         .screenAppearAnalytics(name: "NotificationsView")
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .topBarLeading) {
                 Button {
                     presenter.onDismissPressed()
                 } label: {
-                    Text("Done")
+                    Image(systemName: "xmark")
                 }
             }
         }

@@ -93,7 +93,7 @@ struct NutritionView<MealLogView: View, RecipesView: View, IngredientsView: View
         }
         #endif
         
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onNotificationsPressed()
             } label: {

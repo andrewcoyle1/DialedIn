@@ -10,6 +10,7 @@ import SwiftUI
 @Observable
 @MainActor
 class TabViewAccessoryPresenter {
+    
     private let interactor: TabViewAccessoryInteractor
     
     init(

@@ -15,22 +15,21 @@ struct WorkoutStartView: View {
     let delegate: WorkoutStartDelegate
 
     var body: some View {
-            List {
-                workoutPreview
-                exercisesSection
-                notesSection
-            }
-            .navigationTitle("Start Workout")
-            .navigationBarTitleDisplayMode(.large)
-            .navigationSubtitle(delegate.template.name)
-            .scrollIndicators(.hidden)
-            .safeAreaInset(edge: .bottom) {
-                startButton
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                toolbarContent
-            }
+        List {
+            workoutPreview
+            exercisesSection
+            notesSection
+        }
+        .navigationTitle(delegate.template.name)
+        .navigationBarTitleDisplayMode(.large)
+        .scrollIndicators(.hidden)
+        .safeAreaInset(edge: .bottom) {
+            startButton
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            toolbarContent
+        }
     }
         
     private var workoutPreview: some View {
@@ -129,8 +128,10 @@ struct WorkoutStartView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
-            Button("Cancel") {
+            Button {
                 presenter.dismissScreen()
+            } label: {
+                Image(systemName: "xmark")
             }
         }
     }

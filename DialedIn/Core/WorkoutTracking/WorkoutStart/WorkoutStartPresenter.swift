@@ -64,43 +64,46 @@ class WorkoutStartPresenter {
         guard let userId = currentUser?.userId else {
             return
         }
-        
-        Task {
-            isStarting = true
-            
-            do {
-                // Create workout session from template
-                let session = WorkoutSessionModel(
-                    authorId: userId,
-                    template: template,
-                    notes: workoutNotes.isEmpty ? nil : workoutNotes,
-                    scheduledWorkoutId: scheduledWorkout?.id,
-                    trainingPlanId: scheduledWorkout != nil ? currentTrainingPlan?.planId : nil
-                )
+        defer {
+            Task {
+                isStarting = true
                 
-                // Save locally first (MainActor-isolated)
-                try interactor.addLocalWorkoutSession(session: session)
-                
-                await MainActor.run {
-                    createdSession = session
-                    isStarting = false
-                }
-                
-                // Small delay before presenting next screen
-                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-                
-                await MainActor.run {
-                    interactor.startActiveSession(session)
-                    router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSession: session))
-                }
-                
-            } catch {
-                await MainActor.run {
-                    isStarting = false
-                    // Handle error - could show an alert
+                do {
+                    // Create workout session from template
+                    let session = WorkoutSessionModel(
+                        authorId: userId,
+                        template: template,
+                        notes: workoutNotes.isEmpty ? nil : workoutNotes,
+                        scheduledWorkoutId: scheduledWorkout?.id,
+                        trainingPlanId: scheduledWorkout != nil ? currentTrainingPlan?.planId : nil
+                    )
+                    
+                    // Save locally first (MainActor-isolated)
+                    try interactor.addLocalWorkoutSession(session: session)
+                    
+                    await MainActor.run {
+                        createdSession = session
+                        isStarting = false
+                    }
+                    
+                    // Small delay before presenting next screen
+                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                    
+                    await MainActor.run {
+                        interactor.startActiveSession(session)
+                        router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSession: session))
+                    }
+                    
+                } catch {
+                    await MainActor.run {
+                        isStarting = false
+                        // Handle error - could show an alert
+                    }
                 }
             }
         }
+        
+        self.dismissScreen()
     }
 
     func dismissScreen() {

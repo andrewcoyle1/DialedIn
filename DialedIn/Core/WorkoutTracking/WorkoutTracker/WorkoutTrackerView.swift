@@ -8,44 +8,52 @@
 import SwiftUI
 import HealthKit
 import CustomRouting
+import Combine
 
 struct WorkoutTrackerView: View {
     @Environment(\.scenePhase) private var scenePhase
     
     // Presenter
     @State var presenter: WorkoutTrackerPresenter
+    @State private var hasLoadedSession = false
+    @State private var now = Date()
     
     let delegate: WorkoutTrackerDelegate
 
     @ViewBuilder var exerciseTrackerCardView: (ExerciseTrackerCardDelegate) -> AnyView
 
     var body: some View {
-        TimelineView(.periodic(from: delegate.workoutSession.dateCreated, by: 1.0)) { _ in
-            List {
-                workoutOverviewCard
-                exerciseSection
-            }
-            .navigationTitle(presenter.workoutSession?.name ?? delegate.workoutSession.name)
-            .navigationSubtitle(presenter.elapsedTimeString)
-            .navigationBarTitleDisplayMode(.large)
-            .scrollIndicators(.hidden)
-            .environment(\.editMode, $presenter.editMode)
-            .toolbar {
-                toolbarContent
-            }
-            .safeAreaInset(edge: .bottom) {
-                timerHeaderView()
-            }
-            .task {
-                presenter.loadWorkoutSession(delegate.workoutSession)
-                await presenter.onAppear()
-            }
-            .onChange(of: scenePhase) { oldPhase, newPhase in
-                presenter.onScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
-            }
-            .showModal(showModal: $presenter.isRestPickerOpen) {
-                setRestModal
-            }
+        List {
+            workoutOverviewCard
+            exerciseSection
+        }
+        .navigationTitle(presenter.workoutSession?.name ?? delegate.workoutSession.name)
+        .navigationSubtitle(presenter.elapsedTimeString)
+        .navigationBarTitleDisplayMode(.large)
+        .scrollIndicators(.hidden)
+        .environment(\.editMode, $presenter.editMode)
+        .toolbar {
+            toolbarContent
+        }
+        .safeAreaInset(edge: .bottom) {
+            timerHeaderView()
+        }
+        .task {
+            // Ensure we only perform the heavy load/onAppear logic once per view lifecycle
+            guard !hasLoadedSession else { return }
+            hasLoadedSession = true
+            presenter.loadWorkoutSession(delegate.workoutSession)
+            await presenter.onAppear()
+        }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            presenter.onScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
+        }
+        .showModal(showModal: $presenter.isRestPickerOpen) {
+            setRestModal
+        }
+        // Drive periodic updates via a simple timer rather than wrapping the whole view in TimelineView
+        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { date in
+            now = date
         }
     }
 

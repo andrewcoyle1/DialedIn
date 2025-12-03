@@ -284,6 +284,12 @@ struct CoreRouter {
             builder.addExerciseModalView(router: router, delegate: delegate)
         }
     }
+    
+    func showProgramTemplatePickerView() {
+        router.showScreen(.push) { router in
+            builder.programTemplatePickerView(router: router)
+        }
+    }
 
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate) {
         router.showScreen(.fullScreenCover) { router in
@@ -322,7 +328,7 @@ struct CoreRouter {
     }
     
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) {
-        router.showScreen(.push) { router in
+        router.showScreen(.sheet) { router in
             builder.workoutSessionDetailView(router: router, delegate: delegate)
         }
     }
@@ -346,13 +352,13 @@ struct CoreRouter {
     }
 
     func showIngredientDetailView(delegate: IngredientDetailDelegate) {
-        router.showScreen(.push) { router in
+        router.showScreen(.sheet) { router in
             builder.ingredientDetailView(router: router, delegate: delegate)
         }
     }
 
     func showRecipeDetailView(delegate: RecipeDetailDelegate) {
-        router.showScreen(.push) { router in
+        router.showScreen(.sheet) { router in
             builder.recipeDetailView(router: router, delegate: delegate)
         }
     }
@@ -408,7 +414,7 @@ struct CoreRouter {
             builder.settingsView(router: router)
         }
     }
-
+    
     func showManageSubscriptionView(delegate: ManageSubscriptionDelegate) {
         router.showScreen(.push) { router in
             builder.manageSubscriptionView(router: router, delegate: delegate)
@@ -428,7 +434,7 @@ struct CoreRouter {
     }
 
     func showProgramManagementView() {
-        router.showScreen(.sheet) { router in
+        router.showScreen(.fullScreenCover) { router in
             builder.programManagementView(router: router)
         }
     }
@@ -488,7 +494,7 @@ struct CoreRouter {
     }
 
     func showExerciseTemplateDetailView(delegate: ExerciseTemplateDetailDelegate) {
-        router.showScreen(.push) { router in
+        router.showScreen(.sheet) { router in
             builder.exerciseTemplateDetailView(router: router, delegate: delegate)
         }
     }
@@ -500,7 +506,7 @@ struct CoreRouter {
     }
 
     func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate) {
-        router.showScreen(.push) { router in
+        router.showScreen(.sheet) { router in
             builder.workoutTemplateDetailView(router: router, delegate: delegate)
         }
     }
@@ -548,8 +554,14 @@ struct CoreRouter {
     }
 
     func showCustomProgramBuilderView() {
-        router.showScreen(.sheet) { router in
+        router.showScreen(.push) { router in
             builder.customProgramBuilderView(router: router)
+        }
+    }
+    
+    func showEditProgramView(delegate: EditProgramDelegate) {
+        router.showScreen(.push) { router in
+            builder.editProgramView(router: router, delegate: delegate)
         }
     }
 

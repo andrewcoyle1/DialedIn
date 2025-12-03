@@ -36,25 +36,37 @@ struct TrainingView<ProgramView: View>: View {
     }
     
     private var workoutLibraryButton: some View {
-        Button {
-            presenter.onWorkoutLibraryPressed()
-        } label: {
+        Section {
+            Button {
+                presenter.onWorkoutLibraryPressed()
+            } label: {
+                Text("Workout Library")
+            }
+        } header: {
             Text("Workout Library")
         }
     }
     
     private var exerciseLibraryButton: some View {
-        Button {
-            presenter.onExerciseLibraryPressed()
-        } label: {
+        Section {
+            Button {
+                presenter.onExerciseLibraryPressed()
+            } label: {
+                Text("Exercise Library")
+            }
+        } header: {
             Text("Exercise Library")
         }
     }
     
     private var workoutHistoryLibraryButton: some View {
-        Button {
-            presenter.onWorkoutHistoryPressed()
-        } label: {
+        Section {
+            Button {
+                presenter.onWorkoutHistoryPressed()
+            } label: {
+                Text("Workout History")
+            }
+        } header: {
             Text("Workout History")
         }
     }

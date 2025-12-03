@@ -11,6 +11,7 @@ protocol TabViewAccessoryInteractor {
     var activeSession: WorkoutSessionModel? { get }
     var restEndTime: Date? { get }
     func reopenActiveSession()
+    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: TabViewAccessoryInteractor { }

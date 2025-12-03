@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 struct SplitViewContainer: View {
 
@@ -13,7 +14,6 @@ struct SplitViewContainer: View {
     var tabs: [TabBarScreen]
 
     @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> AnyView
-    @ViewBuilder var workoutTrackerView: (WorkoutTrackerDelegate) -> AnyView
 
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all), preferredCompactColumn: $presenter.preferredColumn) {
@@ -48,15 +48,6 @@ struct SplitViewContainer: View {
             }
         }
         .navigationSplitViewStyle(.balanced)
-        .sheet(isPresented: Binding(get: {
-            presenter.isTrackerPresented
-        }, set: { newValue in
-            presenter.isTrackerPresented = newValue
-        })) {
-            if let session = presenter.activeSession {
-                workoutTrackerView(WorkoutTrackerDelegate(workoutSession: session))
-            }
-        }
         .task {
             // Load any active session from local storage when the SplitView appears
             if let active = try? presenter.getActiveLocalWorkoutSession() {
