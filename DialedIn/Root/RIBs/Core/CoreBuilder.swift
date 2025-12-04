@@ -11,7 +11,7 @@ import CustomRouting
 @Observable
 @MainActor
 // swiftlint:disable:next type_body_length
-class CoreBuilder {
+class CoreBuilder: Buildable {
 
     let interactor: CoreInteractor
 
@@ -19,6 +19,11 @@ class CoreBuilder {
         interactor = CoreInteractor(container: container)
     }
 
+    func build() -> AnyView {
+        adaptiveMainView()
+            .any()
+    }
+    
     // MARK: Onboarding
 
     func onboardingWelcomeView(router: Router) -> some View {

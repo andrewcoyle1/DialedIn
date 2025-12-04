@@ -33,7 +33,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         config.configure()
         dependencies = Dependencies(config: config)
-        builder = RootBuilder(container: dependencies.container)
+        builder = RootBuilder(
+            interactor: RootInteractor(container: dependencies.container),
+            loggedInRIB: CoreBuilder(container: dependencies.container)
+        )
         return true
     }
 }

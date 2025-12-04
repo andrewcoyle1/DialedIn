@@ -8,23 +8,25 @@
 import SwiftUI
 
 @MainActor
-struct RootBuilder {
+struct RootBuilder: Buildable {
+    let loggedInRIB: any Buildable
     let interactor: RootInteractor
     
-    init(container: DependencyContainer) {
-        interactor = RootInteractor(container: container)
+    init(interactor: RootInteractor, loggedInRIB: any Buildable) {
+        self.interactor = interactor
+        self.loggedInRIB = loggedInRIB
     }
     
-    func build() -> some View {
+    func build() -> AnyView {
         appView()
+            .any()
     }
     
     private func appView() -> some View {
         AppView(
             presenter: AppPresenter(interactor: interactor),
             adaptiveMainView: {
-                Text("Main View")
-//                self.adaptiveMainView()
+                loggedInRIB.build()
             },
             onboardingWelcomeView: {
                 Text("Onboarding View")
