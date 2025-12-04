@@ -10,16 +10,10 @@ import CustomRouting
 
 @MainActor
 struct RootBuilder: Builder {
-    let loggedInRIB: any Builder
-    let loggedOutRIB: any Builder
     let interactor: RootInteractor
-    
-    init(interactor: RootInteractor, loggedInRIB: any Builder, loggedOutRIB: any Builder) {
-        self.interactor = interactor
-        self.loggedInRIB = loggedInRIB
-        self.loggedOutRIB = loggedOutRIB
-    }
-    
+    let loggedInRIB: () -> any Builder
+    let loggedOutRIB: () -> any Builder
+        
     func build() -> AnyView {
         appView()
             .any()
@@ -29,10 +23,10 @@ struct RootBuilder: Builder {
         AppView(
             presenter: AppPresenter(interactor: interactor),
             adaptiveMainView: {
-                loggedInRIB.build()
+                loggedInRIB().build()
             },
             onboardingWelcomeView: {
-                loggedOutRIB.build()
+                loggedOutRIB().build()
             }
         )
     }

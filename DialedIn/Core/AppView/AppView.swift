@@ -11,8 +11,8 @@ struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
 
     @State var presenter: AppPresenter
 
-    @ViewBuilder var adaptiveMainView: () -> AdaptiveMainView
-    @ViewBuilder var onboardingWelcomeView: () -> OnboardingView
+    var adaptiveMainView: () -> AdaptiveMainView
+    var onboardingWelcomeView: () -> OnboardingView
 
     var body: some View {
         RootView(
@@ -60,8 +60,12 @@ struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
 
     let builder = RootBuilder(
         interactor: RootInteractor(container: container),
-        loggedInRIB: CoreBuilder(interactor: CoreInteractor(container: container)),
-        loggedOutRIB: OnbBuilder(interactor: OnbInteractor(container: container))
+        loggedInRIB: {
+            CoreBuilder(interactor: CoreInteractor(container: container))
+        },
+        loggedOutRIB: {
+            OnbBuilder(interactor: OnbInteractor(container: container))
+        }
     )
     return builder.build()
     .previewEnvironment()
@@ -77,8 +81,12 @@ struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
 
     let builder = RootBuilder(
         interactor: RootInteractor(container: container),
-        loggedInRIB: CoreBuilder(interactor: CoreInteractor(container: container)),
-        loggedOutRIB: OnbBuilder(interactor: OnbInteractor(container: container))
+        loggedInRIB: {
+            CoreBuilder(interactor: CoreInteractor(container: container))
+        },
+        loggedOutRIB: {
+            OnbBuilder(interactor: OnbInteractor(container: container))
+        }
     )
     return builder.build()
     .previewEnvironment()

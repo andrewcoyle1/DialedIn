@@ -200,7 +200,6 @@ extension View {
     func previewEnvironment(isSignedIn: Bool = true) -> some View {
         self
             .environment(LogManager(services: [ConsoleService(printParameters: false)]))
-            .environment(CoreBuilder(container: DevPreview.shared.container))
     }
 }
 

@@ -8,10 +8,9 @@
 import SwiftUI
 import CustomRouting
 
-@Observable
 @MainActor
 // swiftlint:disable:next type_body_length
-class CoreBuilder: Builder {
+struct CoreBuilder: Builder {
 
     let interactor: CoreInteractor
 

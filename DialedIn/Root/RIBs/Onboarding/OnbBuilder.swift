@@ -11,11 +11,7 @@ import CustomRouting
 @MainActor
 struct OnbBuilder: Builder {
     let interactor: OnbInteractor
-    
-    init(interactor: OnbInteractor) {
-        self.interactor = interactor
-    }
-    
+        
     func build() -> AnyView {
         onboardingWelcomeView()
             .any()
