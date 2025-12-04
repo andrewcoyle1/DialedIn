@@ -58,10 +58,6 @@ class ProfilePresenter {
         router.showCreateAccountView()
     }
 
-    func onSetGoalPressed() {
-        router.showSetGoalFlowView()
-    }
-
     enum Event: LoggableEvent {
         case navigate
 

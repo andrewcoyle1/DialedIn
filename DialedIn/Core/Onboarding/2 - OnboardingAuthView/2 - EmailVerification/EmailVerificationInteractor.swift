@@ -15,4 +15,4 @@ protocol EmailVerificationInteractor: Sendable {
     func handleAuthError(_ error: Error, operation: String) -> AuthErrorInfo
 }
 
-extension CoreInteractor: EmailVerificationInteractor { }
+extension OnbInteractor: EmailVerificationInteractor { }

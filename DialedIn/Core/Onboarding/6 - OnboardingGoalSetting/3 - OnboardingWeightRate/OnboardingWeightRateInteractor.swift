@@ -10,4 +10,4 @@ protocol OnboardingWeightRateInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingWeightRateInteractor { }
+extension OnbInteractor: OnboardingWeightRateInteractor { }

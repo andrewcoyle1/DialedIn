@@ -9,4 +9,4 @@ protocol OnboardingTrainingExperienceInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingTrainingExperienceInteractor { }
+extension OnbInteractor: OnboardingTrainingExperienceInteractor { }

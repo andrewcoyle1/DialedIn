@@ -12,4 +12,4 @@ protocol OnboardingCustomisingProgramRouter {
     func showOnboardingTrainingExperienceView(delegate: OnboardingTrainingExperienceDelegate)
 }
 
-extension CoreRouter: OnboardingCustomisingProgramRouter { }
+extension OnbRouter: OnboardingCustomisingProgramRouter { }

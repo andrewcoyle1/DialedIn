@@ -9,4 +9,4 @@ protocol OnboardingPreferredDietInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingPreferredDietInteractor { }
+extension OnbInteractor: OnboardingPreferredDietInteractor { }

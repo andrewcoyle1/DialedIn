@@ -11,4 +11,4 @@ protocol OnboardingTrainingScheduleRouter {
     func showOnboardingTrainingEquipmentView(delegate: OnboardingTrainingEquipmentDelegate)
 }
 
-extension CoreRouter: OnboardingTrainingScheduleRouter { }
+extension OnbRouter: OnboardingTrainingScheduleRouter { }

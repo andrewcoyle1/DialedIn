@@ -27,3 +27,5 @@ protocol DevSettingsInteractor {
 }
 
 extension CoreInteractor: DevSettingsInteractor { }
+
+extension OnbInteractor: DevSettingsInteractor { }

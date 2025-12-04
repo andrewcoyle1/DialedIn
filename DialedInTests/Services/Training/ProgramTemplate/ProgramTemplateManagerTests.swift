@@ -85,4 +85,3 @@ struct ProgramTemplateManagerTests {
         #expect(!results.contains(where: { $0.id == builtIn.id }))
     }
 }
-

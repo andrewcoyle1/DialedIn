@@ -10,4 +10,4 @@ protocol OnboardingCalorieFloorInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingCalorieFloorInteractor { }
+extension OnbInteractor: OnboardingCalorieFloorInteractor { }

@@ -13,4 +13,4 @@ protocol OnboardingGoalSummaryRouter {
     func showSimpleAlert(title: String, subtitle: String?)
 }
 
-extension CoreRouter: OnboardingGoalSummaryRouter { }
+extension OnbRouter: OnboardingGoalSummaryRouter { }

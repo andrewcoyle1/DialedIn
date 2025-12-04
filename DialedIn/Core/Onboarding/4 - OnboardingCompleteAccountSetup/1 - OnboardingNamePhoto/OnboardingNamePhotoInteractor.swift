@@ -11,4 +11,4 @@ protocol OnboardingNamePhotoInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingNamePhotoInteractor { }
+extension OnbInteractor: OnboardingNamePhotoInteractor { }

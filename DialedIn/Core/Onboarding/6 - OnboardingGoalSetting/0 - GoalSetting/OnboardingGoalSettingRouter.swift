@@ -11,4 +11,4 @@ protocol OnboardingGoalSettingRouter {
     func showOnboardingOverarchingObjectiveView()
 }
 
-extension CoreRouter: OnboardingGoalSettingRouter { }
+extension OnbRouter: OnboardingGoalSettingRouter { }

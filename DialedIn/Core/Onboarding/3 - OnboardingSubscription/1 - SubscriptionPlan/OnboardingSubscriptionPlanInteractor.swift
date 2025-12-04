@@ -12,4 +12,4 @@ protocol OnboardingSubscriptionPlanInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingSubscriptionPlanInteractor { }
+extension OnbInteractor: OnboardingSubscriptionPlanInteractor { }

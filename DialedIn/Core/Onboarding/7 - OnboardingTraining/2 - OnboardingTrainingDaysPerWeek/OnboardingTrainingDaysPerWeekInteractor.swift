@@ -9,4 +9,4 @@ protocol OnboardingTrainingDaysPerWeekInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingTrainingDaysPerWeekInteractor { }
+extension OnbInteractor: OnboardingTrainingDaysPerWeekInteractor { }

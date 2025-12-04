@@ -20,4 +20,4 @@ protocol OnboardingWelcomeRouter {
     func showOnboardingCompletedView()
 }
 
-extension CoreRouter: OnboardingWelcomeRouter { }
+extension OnbRouter: OnboardingWelcomeRouter { }

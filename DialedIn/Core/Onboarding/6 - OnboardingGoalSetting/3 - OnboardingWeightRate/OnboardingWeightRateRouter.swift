@@ -11,4 +11,4 @@ protocol OnboardingWeightRateRouter {
     func showOnboardingGoalSummaryView(delegate: OnboardingGoalSummaryDelegate)
 }
 
-extension CoreRouter: OnboardingWeightRateRouter { }
+extension OnbRouter: OnboardingWeightRateRouter { }

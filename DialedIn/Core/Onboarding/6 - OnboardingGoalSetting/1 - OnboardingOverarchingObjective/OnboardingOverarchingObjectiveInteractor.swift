@@ -10,4 +10,4 @@ protocol OnboardingOverarchingObjectiveInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingOverarchingObjectiveInteractor { }
+extension OnbInteractor: OnboardingOverarchingObjectiveInteractor { }

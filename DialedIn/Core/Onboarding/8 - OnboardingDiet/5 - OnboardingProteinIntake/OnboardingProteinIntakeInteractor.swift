@@ -12,4 +12,4 @@ protocol OnboardingProteinIntakeInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingProteinIntakeInteractor { }
+extension OnbInteractor: OnboardingProteinIntakeInteractor { }

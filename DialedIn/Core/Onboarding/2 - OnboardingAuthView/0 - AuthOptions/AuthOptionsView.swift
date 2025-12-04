@@ -111,8 +111,8 @@ struct AuthOptionsView: View {
 // Note: AuthConstants and AuthTimeoutError are now defined in AuthErrorHandler.swift
 
 #Preview("Functioning Auth") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
-    
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+
     RouterView { router in
         builder.onboardingAuthOptionsView(router: router)
     }
@@ -120,7 +120,7 @@ struct AuthOptionsView: View {
 }
 
 #Preview("Slow Auth") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
 
     RouterView { router in
         builder.onboardingAuthOptionsView(router: router)
@@ -129,7 +129,7 @@ struct AuthOptionsView: View {
 }
 
 #Preview("Failing Auth") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
 
     RouterView { router in
         builder.onboardingAuthOptionsView(router: router)
@@ -138,7 +138,7 @@ struct AuthOptionsView: View {
 }
 
 #Preview("Slow Login") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
 
     RouterView { router in
         builder.onboardingAuthOptionsView(router: router)
@@ -147,7 +147,7 @@ struct AuthOptionsView: View {
 }
 
 #Preview("Failing Login") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
 
     RouterView { router in
         builder.onboardingAuthOptionsView(router: router)

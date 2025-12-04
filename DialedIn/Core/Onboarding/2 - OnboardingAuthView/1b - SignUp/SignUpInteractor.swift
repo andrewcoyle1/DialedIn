@@ -13,4 +13,5 @@ protocol SignUpInteractor: Sendable {
     func handleUserLoginError(_ error: Error) -> AuthErrorInfo
 }
 
-extension CoreInteractor: SignUpInteractor { }
+extension OnbInteractor: SignUpInteractor {
+}

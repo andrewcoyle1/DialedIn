@@ -10,4 +10,4 @@ protocol OnboardingCustomisingProgramInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingCustomisingProgramInteractor { }
+extension OnbInteractor: OnboardingCustomisingProgramInteractor { }

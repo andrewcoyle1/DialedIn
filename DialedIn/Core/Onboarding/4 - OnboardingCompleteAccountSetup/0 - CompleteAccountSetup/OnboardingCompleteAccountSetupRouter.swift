@@ -11,4 +11,4 @@ protocol OnboardingCompleteAccountSetupRouter {
     func showOnboardingNamePhotoView()
 }
 
-extension CoreRouter: OnboardingCompleteAccountSetupRouter { }
+extension OnbRouter: OnboardingCompleteAccountSetupRouter { }

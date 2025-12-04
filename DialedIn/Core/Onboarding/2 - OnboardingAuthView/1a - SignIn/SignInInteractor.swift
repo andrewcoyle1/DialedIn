@@ -17,4 +17,4 @@ protocol SignInInteractor: Sendable {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: SignInInteractor { }
+extension OnbInteractor: SignInInteractor { }

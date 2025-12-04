@@ -11,4 +11,4 @@ protocol OnboardingPreferredDietRouter {
     func showOnboardingCalorieFloorView(delegate: OnboardingCalorieFloorDelegate)
 }
 
-extension CoreRouter: OnboardingPreferredDietRouter { }
+extension OnbRouter: OnboardingPreferredDietRouter { }

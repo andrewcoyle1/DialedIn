@@ -23,4 +23,4 @@ protocol EmailVerificationRouter {
     func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
 }
 
-extension CoreRouter: EmailVerificationRouter { }
+extension OnbRouter: EmailVerificationRouter { }

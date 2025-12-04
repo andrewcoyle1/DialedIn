@@ -6,8 +6,8 @@
 //
 
 import SwiftUI
-
+import CustomRouting
 @MainActor
-protocol Buildable {
+protocol Builder {
     func build() -> AnyView
 }

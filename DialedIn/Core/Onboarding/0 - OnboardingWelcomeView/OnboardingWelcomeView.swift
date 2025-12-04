@@ -86,9 +86,7 @@ struct OnboardingWelcomeView: View {
 }
 
 #Preview("Functioning") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
-    RouterView { router in
-        builder.onboardingWelcomeView(router: router)
-    }
-    .previewEnvironment()
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+    builder.onboardingWelcomeView()
+        .previewEnvironment()
 }

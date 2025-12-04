@@ -9,4 +9,4 @@ protocol OnboardingTrainingSplitInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingTrainingSplitInteractor { }
+extension OnbInteractor: OnboardingTrainingSplitInteractor { }

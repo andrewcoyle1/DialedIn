@@ -11,3 +11,7 @@ protocol DevSettingsRouter {
 }
 
 extension CoreRouter: DevSettingsRouter { }
+
+extension OnbRouter: DevSettingsRouter { }
+
+extension RootRouter: DevSettingsRouter { }

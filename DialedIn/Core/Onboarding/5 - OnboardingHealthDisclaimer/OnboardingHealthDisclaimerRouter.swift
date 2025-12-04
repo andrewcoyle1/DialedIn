@@ -12,4 +12,4 @@ protocol OnboardingHealthDisclaimerRouter {
     func showSimpleAlert(title: String, subtitle: String?)
 }
 
-extension CoreRouter: OnboardingHealthDisclaimerRouter { }
+extension OnbRouter: OnboardingHealthDisclaimerRouter { }

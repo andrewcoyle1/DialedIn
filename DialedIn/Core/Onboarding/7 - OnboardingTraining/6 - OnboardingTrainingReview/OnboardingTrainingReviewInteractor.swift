@@ -21,4 +21,4 @@ protocol OnboardingTrainingReviewInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingTrainingReviewInteractor { }
+extension OnbInteractor: OnboardingTrainingReviewInteractor { }

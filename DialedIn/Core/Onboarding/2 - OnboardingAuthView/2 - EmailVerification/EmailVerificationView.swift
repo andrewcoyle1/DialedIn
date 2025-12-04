@@ -104,7 +104,7 @@ struct EmailVerificationView: View {
 // MARK: - Previews
 
 #Preview("Default") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in
         builder.onboardingEmailVerificationView(router: router)
     }
@@ -112,7 +112,7 @@ struct EmailVerificationView: View {
 }
 
 #Preview("Initial Send - Success") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in
         builder.onboardingEmailVerificationView(router: router)
     }
@@ -120,7 +120,7 @@ struct EmailVerificationView: View {
 }
 
 #Preview("Initial Send - Slow") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in
         builder.onboardingEmailVerificationView(router: router)
     }
@@ -128,7 +128,7 @@ struct EmailVerificationView: View {
 }
 
 #Preview("Initial Send - Failure") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in
         builder.onboardingEmailVerificationView(router: router)
     }
@@ -136,7 +136,7 @@ struct EmailVerificationView: View {
 }
 
 #Preview("Check - Not Verified") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in
         builder.onboardingEmailVerificationView(router: router)
     }
@@ -144,7 +144,7 @@ struct EmailVerificationView: View {
 }
 
 #Preview("Check - Verified") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in
         builder.onboardingEmailVerificationView(router: router)
     }
@@ -152,7 +152,7 @@ struct EmailVerificationView: View {
 }
 
 #Preview("No Current User - Error") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in
         builder.onboardingEmailVerificationView(router: router)
     }

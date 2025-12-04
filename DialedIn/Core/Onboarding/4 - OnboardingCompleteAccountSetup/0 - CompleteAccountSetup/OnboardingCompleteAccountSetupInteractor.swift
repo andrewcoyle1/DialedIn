@@ -9,4 +9,4 @@ protocol OnboardingCompleteAccountSetupInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingCompleteAccountSetupInteractor { }
+extension OnbInteractor: OnboardingCompleteAccountSetupInteractor { }

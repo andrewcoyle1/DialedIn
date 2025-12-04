@@ -27,10 +27,10 @@ struct SetGoalFlowView: View {
     }
 }
 
-#Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
-    RouterView { router in
-        builder.setGoalFlowView(router: router)
-    }
-    .previewEnvironment()
-}
+// #Preview {
+//     let builder = CoreBuilder(container: DevPreview.shared.container)
+//     RouterView { router in
+//         builder.setGoalFlowView(router: router)
+//     }
+//     .previewEnvironment()
+// }

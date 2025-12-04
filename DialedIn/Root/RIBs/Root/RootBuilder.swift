@@ -6,15 +6,18 @@
 //
 
 import SwiftUI
+import CustomRouting
 
 @MainActor
-struct RootBuilder: Buildable {
-    let loggedInRIB: any Buildable
+struct RootBuilder: Builder {
+    let loggedInRIB: any Builder
+    let loggedOutRIB: any Builder
     let interactor: RootInteractor
     
-    init(interactor: RootInteractor, loggedInRIB: any Buildable) {
+    init(interactor: RootInteractor, loggedInRIB: any Builder, loggedOutRIB: any Builder) {
         self.interactor = interactor
         self.loggedInRIB = loggedInRIB
+        self.loggedOutRIB = loggedOutRIB
     }
     
     func build() -> AnyView {
@@ -29,13 +32,8 @@ struct RootBuilder: Buildable {
                 loggedInRIB.build()
             },
             onboardingWelcomeView: {
-                Text("Onboarding View")
-//                RouterView { router in
-//                    self.onboardingWelcomeView(router: router)
-//                }
+                loggedOutRIB.build()
             }
         )
     }
-
 }
-

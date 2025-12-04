@@ -15,4 +15,5 @@ protocol OnboardingExpenditureInteractor: Sendable {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingExpenditureInteractor { }
+extension OnbInteractor: OnboardingExpenditureInteractor {
+}

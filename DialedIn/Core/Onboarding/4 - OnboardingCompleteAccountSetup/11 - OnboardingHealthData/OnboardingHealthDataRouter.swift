@@ -13,4 +13,4 @@ protocol OnboardingHealthDataRouter {
     func showAlert(error: Error)
 }
 
-extension CoreRouter: OnboardingHealthDataRouter { }
+extension OnbRouter: OnboardingHealthDataRouter { }

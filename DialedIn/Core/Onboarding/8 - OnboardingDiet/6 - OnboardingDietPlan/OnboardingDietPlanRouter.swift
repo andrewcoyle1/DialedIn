@@ -13,4 +13,4 @@ protocol OnboardingDietPlanRouter {
     func showSimpleAlert(title: String, subtitle: String?)
 }
 
-extension CoreRouter: OnboardingDietPlanRouter { }
+extension OnbRouter: OnboardingDietPlanRouter { }

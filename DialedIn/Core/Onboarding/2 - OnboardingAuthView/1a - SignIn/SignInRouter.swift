@@ -22,4 +22,4 @@ protocol SignInRouter {
     func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
 }
 
-extension CoreRouter: SignInRouter { }
+extension OnbRouter: SignInRouter { }

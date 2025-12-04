@@ -9,4 +9,4 @@ protocol OnboardingGenderInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingGenderInteractor { }
+extension OnbInteractor: OnboardingGenderInteractor { }

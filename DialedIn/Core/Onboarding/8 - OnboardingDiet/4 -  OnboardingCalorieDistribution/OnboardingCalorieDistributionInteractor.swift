@@ -10,4 +10,4 @@ protocol OnboardingCalorieDistributionInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingCalorieDistributionInteractor { }
+extension OnbInteractor: OnboardingCalorieDistributionInteractor { }

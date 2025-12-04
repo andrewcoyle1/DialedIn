@@ -12,4 +12,4 @@ protocol OnboardingNotificationsRouter {
     func showOnboardingHealthDisclaimerView()
 }
 
-extension CoreRouter: OnboardingNotificationsRouter { }
+extension OnbRouter: OnboardingNotificationsRouter { }

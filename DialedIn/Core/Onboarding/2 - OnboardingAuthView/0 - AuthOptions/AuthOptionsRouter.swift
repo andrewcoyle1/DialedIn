@@ -24,4 +24,4 @@ protocol AuthOptionsRouter {
     func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
 }
 
-extension CoreRouter: AuthOptionsRouter { }
+extension OnbRouter: AuthOptionsRouter { }

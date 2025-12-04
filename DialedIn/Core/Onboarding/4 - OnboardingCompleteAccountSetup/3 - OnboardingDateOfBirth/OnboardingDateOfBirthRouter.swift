@@ -11,4 +11,4 @@ protocol OnboardingDateOfBirthRouter {
     func showOnboardingHeightView(delegate: OnboardingHeightDelegate)
 }
 
-extension CoreRouter: OnboardingDateOfBirthRouter { }
+extension OnbRouter: OnboardingDateOfBirthRouter { }

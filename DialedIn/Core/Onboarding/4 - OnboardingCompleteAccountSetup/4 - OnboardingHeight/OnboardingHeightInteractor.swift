@@ -9,4 +9,4 @@ protocol OnboardingHeightInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingHeightInteractor { }
+extension OnbInteractor: OnboardingHeightInteractor { }

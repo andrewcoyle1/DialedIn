@@ -12,4 +12,4 @@ protocol OnboardingHealthDataInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingHealthDataInteractor { }
+extension OnbInteractor: OnboardingHealthDataInteractor { }

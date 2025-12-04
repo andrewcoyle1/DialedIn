@@ -35,7 +35,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         dependencies = Dependencies(config: config)
         builder = RootBuilder(
             interactor: RootInteractor(container: dependencies.container),
-            loggedInRIB: CoreBuilder(container: dependencies.container)
+            loggedInRIB: CoreBuilder(interactor: CoreInteractor(container: dependencies.container)),
+            loggedOutRIB: OnbBuilder(interactor: OnbInteractor(container: dependencies.container))
         )
         return true
     }

@@ -83,7 +83,7 @@ struct OnboardingTrainingExperienceView: View {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in
         builder.onboardingTrainingExperienceView(
             router: router,

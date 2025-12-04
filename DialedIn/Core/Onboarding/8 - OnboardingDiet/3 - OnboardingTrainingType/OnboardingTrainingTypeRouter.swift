@@ -11,4 +11,4 @@ protocol OnboardingTrainingTypeRouter {
     func showOnboardingCalorieDistributionView(delegate: OnboardingCalorieDistributionDelegate)
 }
 
-extension CoreRouter: OnboardingTrainingTypeRouter { }
+extension OnbRouter: OnboardingTrainingTypeRouter { }

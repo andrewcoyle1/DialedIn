@@ -13,4 +13,4 @@ protocol OnboardingHealthDisclaimerInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingHealthDisclaimerInteractor { }
+extension OnbInteractor: OnboardingHealthDisclaimerInteractor { }

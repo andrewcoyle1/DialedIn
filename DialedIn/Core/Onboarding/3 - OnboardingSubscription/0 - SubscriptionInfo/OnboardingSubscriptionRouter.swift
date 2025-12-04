@@ -11,4 +11,4 @@ protocol OnboardingSubscriptionRouter {
     func showSubscriptionPlanView()
 }
 
-extension CoreRouter: OnboardingSubscriptionRouter { }
+extension OnbRouter: OnboardingSubscriptionRouter { }

@@ -17,4 +17,4 @@ protocol OnboardingExpenditureRouter {
     func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
 }
 
-extension CoreRouter: OnboardingExpenditureRouter { }
+extension OnbRouter: OnboardingExpenditureRouter { }

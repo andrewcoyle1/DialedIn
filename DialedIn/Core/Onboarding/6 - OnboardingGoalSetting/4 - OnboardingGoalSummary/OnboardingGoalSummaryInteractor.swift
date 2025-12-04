@@ -20,4 +20,4 @@ protocol OnboardingGoalSummaryInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingGoalSummaryInteractor { }
+extension OnbInteractor: OnboardingGoalSummaryInteractor { }

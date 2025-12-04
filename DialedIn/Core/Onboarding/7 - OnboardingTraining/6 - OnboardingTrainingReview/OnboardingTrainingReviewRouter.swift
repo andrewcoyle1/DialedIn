@@ -13,4 +13,4 @@ protocol OnboardingTrainingReviewRouter {
     func showSimpleAlert(title: String, subtitle: String?)
 }
 
-extension CoreRouter: OnboardingTrainingReviewRouter { }
+extension OnbRouter: OnboardingTrainingReviewRouter { }

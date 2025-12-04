@@ -10,4 +10,4 @@ protocol OnboardingIntroRouter {
     func showAuthOptionsView()
 }
 
-extension CoreRouter: OnboardingIntroRouter { }
+extension OnbRouter: OnboardingIntroRouter { }

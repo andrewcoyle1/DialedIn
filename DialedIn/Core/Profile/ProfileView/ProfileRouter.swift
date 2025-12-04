@@ -11,7 +11,6 @@ protocol ProfileRouter {
     func showDevSettingsView()
     func showCreateAccountView()
     func showSettingsView()
-    func showSetGoalFlowView()
 }
 
 extension CoreRouter: ProfileRouter { }

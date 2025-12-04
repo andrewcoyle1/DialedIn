@@ -11,4 +11,4 @@ protocol OnboardingWelcomeInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingWelcomeInteractor { }
+extension OnbInteractor: OnboardingWelcomeInteractor { }

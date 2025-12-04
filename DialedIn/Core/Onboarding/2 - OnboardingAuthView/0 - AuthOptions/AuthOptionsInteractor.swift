@@ -16,4 +16,4 @@ protocol AuthOptionsInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: AuthOptionsInteractor { }
+extension OnbInteractor: AuthOptionsInteractor { }

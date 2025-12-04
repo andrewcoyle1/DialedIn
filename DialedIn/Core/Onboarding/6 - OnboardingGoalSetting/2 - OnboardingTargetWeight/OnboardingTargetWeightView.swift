@@ -105,7 +105,7 @@ struct OnboardingTargetWeightView: View {
 }
 
 #Preview("Gain Weight") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in
         builder.onboardingTargetWeightView(
             router: router,
@@ -116,7 +116,7 @@ struct OnboardingTargetWeightView: View {
 }
 
 #Preview("Lose Weight") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in
         builder.onboardingTargetWeightView(
             router: router,

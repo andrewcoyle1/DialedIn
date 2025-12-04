@@ -9,4 +9,4 @@ protocol OnboardingCardioFitnessInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingCardioFitnessInteractor { }
+extension OnbInteractor: OnboardingCardioFitnessInteractor { }

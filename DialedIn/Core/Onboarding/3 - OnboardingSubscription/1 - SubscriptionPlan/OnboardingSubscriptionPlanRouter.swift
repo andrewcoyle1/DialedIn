@@ -19,4 +19,4 @@ protocol OnboardingSubscriptionPlanRouter {
     func showSimpleAlert(title: String, subtitle: String?)
 }
 
-extension CoreRouter: OnboardingSubscriptionPlanRouter { }
+extension OnbRouter: OnboardingSubscriptionPlanRouter { }

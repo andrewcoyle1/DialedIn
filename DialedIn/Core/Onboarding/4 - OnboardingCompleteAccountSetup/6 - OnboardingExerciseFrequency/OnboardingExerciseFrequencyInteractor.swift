@@ -9,4 +9,4 @@ protocol OnboardingExerciseFrequencyInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingExerciseFrequencyInteractor { }
+extension OnbInteractor: OnboardingExerciseFrequencyInteractor { }

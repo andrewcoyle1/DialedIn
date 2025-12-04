@@ -14,4 +14,4 @@ protocol OnboardingDietPlanInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingDietPlanInteractor { }
+extension OnbInteractor: OnboardingDietPlanInteractor { }

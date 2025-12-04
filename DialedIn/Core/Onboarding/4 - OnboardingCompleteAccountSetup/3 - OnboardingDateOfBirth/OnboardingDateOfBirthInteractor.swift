@@ -9,4 +9,4 @@ protocol OnboardingDateOfBirthInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension CoreInteractor: OnboardingDateOfBirthInteractor { }
+extension OnbInteractor: OnboardingDateOfBirthInteractor { }

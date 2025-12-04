@@ -11,4 +11,4 @@ protocol OnboardingActivityRouter {
     func showOnboardingCardioFitnessView(delegate: OnboardingCardioFitnessDelegate)
 }
 
-extension CoreRouter: OnboardingActivityRouter { }
+extension OnbRouter: OnboardingActivityRouter { }
