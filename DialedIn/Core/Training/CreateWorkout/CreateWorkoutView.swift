@@ -7,7 +7,7 @@
 
 import SwiftUI
 import PhotosUI
-import CustomRouting
+import SwiftfulRouting
 
 struct CreateWorkoutDelegate {
     var workoutTemplate: WorkoutTemplateModel?

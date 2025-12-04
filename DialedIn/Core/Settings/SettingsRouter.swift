@@ -12,7 +12,7 @@ protocol SettingsRouter {
     func showCreateAccountView()
     func showManageSubscriptionView(delegate: ManageSubscriptionDelegate)
     func showAlert(error: Error)
-    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
+    func showAlert(title: String, subtitle: String?, buttons: @escaping @Sendable () -> AnyView)
     func dismissScreen()
 }
 

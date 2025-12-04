@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import CustomRouting
+import SwiftfulRouting
 
 struct AddExerciseModalDelegate {
     let selectedExercises: Binding<[ExerciseTemplateModel]>

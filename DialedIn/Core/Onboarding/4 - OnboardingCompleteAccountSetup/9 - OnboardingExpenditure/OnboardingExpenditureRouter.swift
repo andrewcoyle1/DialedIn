@@ -14,7 +14,7 @@ protocol OnboardingExpenditureRouter {
     func showOnboardingHealthDataView()
     func showOnboardingHealthDisclaimerView()
 
-    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
+    func showAlert(title: String, subtitle: String?, buttons: @escaping @Sendable () -> AnyView)
 }
 
 extension OnbRouter: OnboardingExpenditureRouter { }

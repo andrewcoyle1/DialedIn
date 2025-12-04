@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import CustomRouting
+import SwiftfulRouting
 
 @MainActor
 struct RootBuilder: Builder {

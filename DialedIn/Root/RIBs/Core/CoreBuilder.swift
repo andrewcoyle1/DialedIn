@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import CustomRouting
+import SwiftfulRouting
 
 @MainActor
 // swiftlint:disable:next type_body_length
@@ -148,14 +148,14 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func exerciseTemplateDetailView(router: Router, delegate: ExerciseTemplateDetailDelegate) -> some View {
+    func exerciseTemplateDetailView(router: AnyRouter, delegate: ExerciseTemplateDetailDelegate) -> some View {
         ExerciseTemplateDetailView(
             presenter: ExerciseTemplateDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func tabViewAccessoryView(router: Router, delegate: TabViewAccessoryDelegate) -> some View {
+    func tabViewAccessoryView(router: AnyRouter, delegate: TabViewAccessoryDelegate) -> some View {
         let coreRouter = CoreRouter(router: router, builder: self)
         return TabViewAccessoryView(
             presenter: TabViewAccessoryPresenter(interactor: interactor),
@@ -168,7 +168,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func workoutTrackerView(router: Router, delegate: WorkoutTrackerDelegate) -> some View {
+    func workoutTrackerView(router: AnyRouter, delegate: WorkoutTrackerDelegate) -> some View {
         WorkoutTrackerView(
             presenter: WorkoutTrackerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
@@ -179,14 +179,14 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func ingredientDetailView(router: Router, delegate: IngredientDetailDelegate) -> some View {
+    func ingredientDetailView(router: AnyRouter, delegate: IngredientDetailDelegate) -> some View {
         IngredientDetailView(
             presenter: IngredientDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func exerciseTemplateListView(router: Router, delegate: ExerciseTemplateListDelegate) -> some View {
+    func exerciseTemplateListView(router: AnyRouter, delegate: ExerciseTemplateListDelegate) -> some View {
         ExerciseTemplateListView(
             presenter: ExerciseTemplateListPresenter.create(
                 interactor: interactor,
@@ -206,7 +206,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func workoutTemplateListView(router: Router) -> some View {
+    func workoutTemplateListView(router: AnyRouter) -> some View {
         WorkoutTemplateListView(
             presenter: WorkoutTemplateListPresenter(
                 interactor: interactor,
@@ -215,14 +215,14 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func workoutTemplateDetailView(router: Router, delegate: WorkoutTemplateDetailDelegate) -> some View {
+    func workoutTemplateDetailView(router: AnyRouter, delegate: WorkoutTemplateDetailDelegate) -> some View {
         WorkoutTemplateDetailView(
             presenter: WorkoutTemplateDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func workoutSessionDetailView(router: Router, delegate: WorkoutSessionDetailDelegate) -> some View {
+    func workoutSessionDetailView(router: AnyRouter, delegate: WorkoutSessionDetailDelegate) -> some View {
         WorkoutSessionDetailView(
             presenter: WorkoutSessionDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
@@ -233,7 +233,7 @@ struct CoreBuilder: Builder {
         )
     }
     
-    func trainingProgressChartsView(router: Router) -> some View {
+    func trainingProgressChartsView(router: AnyRouter) -> some View {
         TrainingProgressChartsView(
             presenter: TrainingProgressChartsPresenter(
                 interactor: interactor,
@@ -242,7 +242,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func programView(router: Router) -> some View {
+    func programView(router: AnyRouter) -> some View {
         ProgramView(
             presenter: ProgramPresenter(
                 interactor: interactor,
@@ -266,7 +266,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func todaysWorkoutSectionView(router: Router) -> some View {
+    func todaysWorkoutSectionView(router: AnyRouter) -> some View {
         TodaysWorkoutSectionView(
             presenter: TodaysWorkoutSectionPresenter(
                 interactor: interactor,
@@ -281,21 +281,21 @@ struct CoreBuilder: Builder {
         )
     }
     
-    func devSettingsView(router: Router) -> AnyView {
+    func devSettingsView(router: AnyRouter) -> AnyView {
         DevSettingsView(
             presenter: DevSettingsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         .any()
     }
 
-    func workoutStartView(router: Router, delegate: WorkoutStartDelegate) -> some View {
+    func workoutStartView(router: AnyRouter, delegate: WorkoutStartDelegate) -> some View {
         WorkoutStartView(
             presenter: WorkoutStartPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func dashboardView(router: Router) -> some View {
+    func dashboardView(router: AnyRouter) -> some View {
         DashboardView(
             presenter: DashboardPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             nutritionTargetChartView: {
@@ -305,20 +305,20 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func createIngredientView(router: Router) -> some View {
+    func createIngredientView(router: AnyRouter) -> some View {
         CreateIngredientView(
             presenter: CreateIngredientPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func addIngredientModalView(router: Router, delegate: AddIngredientModalDelegate) -> some View {
+    func addIngredientModalView(router: AnyRouter, delegate: AddIngredientModalDelegate) -> some View {
         AddIngredientModalView(
             presenter: AddIngredientModalPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func createRecipeView(router: Router) -> some View {
+    func createRecipeView(router: AnyRouter) -> some View {
         CreateRecipeView(
             presenter: CreateRecipePresenter(
                 interactor: interactor,
@@ -330,35 +330,35 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func recipeStartView(router: Router, delegate: RecipeStartDelegate) -> some View {
+    func recipeStartView(router: AnyRouter, delegate: RecipeStartDelegate) -> some View {
         RecipeStartView(
             presenter: RecipeStartPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func mealLogView(router: Router, delegate: MealLogDelegate) -> some View {
+    func mealLogView(router: AnyRouter, delegate: MealLogDelegate) -> some View {
         MealLogView(
             presenter: MealLogPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func recipesView(router: Router, delegate: RecipesDelegate) -> some View {
+    func recipesView(router: AnyRouter, delegate: RecipesDelegate) -> some View {
         RecipesView(
             presenter: RecipesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func ingredientsView(router: Router, delegate: IngredientsDelegate) -> some View {
+    func ingredientsView(router: AnyRouter, delegate: IngredientsDelegate) -> some View {
         IngredientsView(
             presenter: IngredientsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func nutritionView(router: Router) -> some View {
+    func nutritionView(router: AnyRouter) -> some View {
         NutritionView(
             presenter: NutritionPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             mealLogView: { delegate in
@@ -373,14 +373,14 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func nutritionLibraryPickerView(router: Router, delegate: NutritionLibraryPickerDelegate) -> some View {
+    func nutritionLibraryPickerView(router: AnyRouter, delegate: NutritionLibraryPickerDelegate) -> some View {
         NutritionLibraryPickerView(
             presenter: NutritionLibraryPickerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func addMealView(router: Router, delegate: AddMealDelegate) -> some View {
+    func addMealView(router: AnyRouter, delegate: AddMealDelegate) -> some View {
         AddMealView(
             presenter: AddMealPresenter(
                 interactor: interactor,
@@ -393,7 +393,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func ingredientAmountView(router: Router, delegate: IngredientAmountDelegate) -> some View {
+    func ingredientAmountView(router: AnyRouter, delegate: IngredientAmountDelegate) -> some View {
         IngredientAmountView(
             presenter: IngredientAmountPresenter(
                 interactor: interactor,
@@ -409,7 +409,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func workoutsView(router: Router) -> some View {
+    func workoutsView(router: AnyRouter) -> some View {
         WorkoutsView(
             presenter: WorkoutsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             workoutListViewBuilder: { delegate in
@@ -418,26 +418,26 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func workoutHistoryView(router: Router) -> some View {
+    func workoutHistoryView(router: AnyRouter) -> some View {
         WorkoutHistoryView(
             presenter: WorkoutHistoryPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
         )
     }
 
-    func createWorkoutView(router: Router, delegate: CreateWorkoutDelegate) -> some View {
+    func createWorkoutView(router: AnyRouter, delegate: CreateWorkoutDelegate) -> some View {
         CreateWorkoutView(
             presenter: CreateWorkoutPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func createExerciseView(router: Router) -> some View {
+    func createExerciseView(router: AnyRouter) -> some View {
         CreateExerciseView(
             presenter: CreateExercisePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func addGoalView(router: Router, delegate: AddGoalDelegate) -> some View {
+    func addGoalView(router: AnyRouter, delegate: AddGoalDelegate) -> some View {
         AddGoalView(
             presenter: AddGoalPresenter(
                 interactor: interactor,
@@ -447,7 +447,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func workoutSummaryCardView(router: Router, delegate: WorkoutSummaryCardDelegate) -> some View {
+    func workoutSummaryCardView(router: AnyRouter, delegate: WorkoutSummaryCardDelegate) -> some View {
         WorkoutSummaryCardView(
             presenter: WorkoutSummaryCardPresenter(
                 interactor: interactor,
@@ -457,7 +457,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func todaysWorkoutCardView(router: Router, delegate: TodaysWorkoutCardDelegate) -> some View {
+    func todaysWorkoutCardView(router: AnyRouter, delegate: TodaysWorkoutCardDelegate) -> some View {
         TodaysWorkoutCardView(
             presenter: TodaysWorkoutCardPresenter(
                 interactor: interactor,
@@ -481,7 +481,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func workoutCalendarView(router: Router) -> some View {
+    func workoutCalendarView(router: AnyRouter) -> some View {
         WorkoutCalendarView(
             presenter: WorkoutCalendarPresenter(
                 interactor: interactor,
@@ -501,13 +501,13 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func exercisesView(router: Router) -> some View {
+    func exercisesView(router: AnyRouter) -> some View {
         ExercisesView(
             presenter: ExercisesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func programManagementView(router: Router) -> some View {
+    func programManagementView(router: AnyRouter) -> some View {
         ProgramManagementView(
             presenter: ProgramManagementPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             programRowView: { delegate in
@@ -517,7 +517,7 @@ struct CoreBuilder: Builder {
         )
     }
     
-    func goalListSectionView(router: Router) -> some View {
+    func goalListSectionView(router: AnyRouter) -> some View {
         GoalListSectionView(
             presenter: GoalListSectionPresenter(
                 interactor: interactor,
@@ -526,7 +526,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func trainingView(router: Router) -> some View {
+    func trainingView(router: AnyRouter) -> some View {
         TrainingView(
             presenter: TrainingPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             programView: {
@@ -535,25 +535,25 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func progressDashboardView(router: Router) -> some View {
+    func progressDashboardView(router: AnyRouter) -> some View {
         ProgressDashboardView(
             presenter: ProgressDashboardPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func strengthProgressView(router: Router) -> some View {
+    func strengthProgressView(router: AnyRouter) -> some View {
         StrengthProgressView(
             presenter: StrengthProgressPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func workoutHeatmapView(router: Router) -> some View {
+    func workoutHeatmapView(router: AnyRouter) -> some View {
         WorkoutHeatmapView(
             presenter: WorkoutHeatmapPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func notificationsView(router: Router) -> some View {
+    func notificationsView(router: AnyRouter) -> some View {
         NotificationsView(
             presenter: NotificationsPresenter(
                 interactor: interactor,
@@ -562,7 +562,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func programGoalsView(router: Router, delegate: ProgramGoalsDelegate) -> some View {
+    func programGoalsView(router: AnyRouter, delegate: ProgramGoalsDelegate) -> some View {
         ProgramGoalsView(
             presenter: ProgramGoalsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
@@ -573,45 +573,45 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func programScheduleView(router: Router, delegate: ProgramScheduleDelegate) -> some View {
+    func programScheduleView(router: AnyRouter, delegate: ProgramScheduleDelegate) -> some View {
         ProgramScheduleView(
             presenter: ProgramSchedulePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func mealDetailView(router: Router, delegate: MealDetailDelegate) -> some View {
+    func mealDetailView(router: AnyRouter, delegate: MealDetailDelegate) -> some View {
         MealDetailView(
             presenter: MealDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func profileGoalsDetailView(router: Router) -> some View {
+    func profileGoalsDetailView(router: AnyRouter) -> some View {
         ProfileGoalsDetailView(
             presenter: ProfileGoalsDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func profileEditView(router: Router) -> some View {
+    func profileEditView(router: AnyRouter) -> some View {
         ProfileEditView(
             presenter: ProfileEditPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func profileNutritionDetailView(router: Router) -> some View {
+    func profileNutritionDetailView(router: AnyRouter) -> some View {
         ProfileNutritionDetailView(
             presenter: ProfileNutritionDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func profilePhysicalStatsView(router: Router) -> some View {
+    func profilePhysicalStatsView(router: AnyRouter) -> some View {
         ProfilePhysicalStatsView(
             presenter: ProfilePhysicalStatsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
     
-    func workoutListViewBuilder(router: Router, delegate: WorkoutListDelegateBuilder) -> some View {
+    func workoutListViewBuilder(router: AnyRouter, delegate: WorkoutListDelegateBuilder) -> some View {
         WorkoutListViewBuilder(
             presenter: WorkoutListPresenterBuilder(
                 interactor: interactor,
@@ -621,7 +621,7 @@ struct CoreBuilder: Builder {
         )
     }
     
-    func settingsView(router: Router) -> some View {
+    func settingsView(router: AnyRouter) -> some View {
         SettingsView(
             presenter: SettingsPresenter(
                 interactor: interactor,
@@ -633,7 +633,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func ingredientTemplateListView(router: Router, delegate: IngredientTemplateListDelegate) -> some View {
+    func ingredientTemplateListView(router: AnyRouter, delegate: IngredientTemplateListDelegate) -> some View {
         IngredientTemplateListView(
             interactor: interactor,
             router: CoreRouter(router: router, builder: self),
@@ -657,20 +657,20 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func programTemplatePickerView(router: Router) -> some View {
+    func programTemplatePickerView(router: AnyRouter) -> some View {
         ProgramTemplatePickerView(
             presenter: ProgramTemplatePickerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func editProgramView(router: Router, delegate: EditProgramDelegate) -> some View {
+    func editProgramView(router: AnyRouter, delegate: EditProgramDelegate) -> some View {
         EditProgramView(
             presenter: EditProgramPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
     
-    func thisWeeksWorkoutsView(router: Router) -> some View {
+    func thisWeeksWorkoutsView(router: AnyRouter) -> some View {
         ThisWeeksWorkoutsView(
             presenter: ThisWeeksWorkoutsPresenter(
                 interactor: interactor,
@@ -692,56 +692,56 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func logWeightView(router: Router) -> some View {
+    func logWeightView(router: AnyRouter) -> some View {
         LogWeightView(
             presenter: LogWeightPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func profileHeaderView(router: Router) -> some View {
+    func profileHeaderView(router: AnyRouter) -> some View {
         ProfileHeaderView(
             presenter: ProfileHeaderPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func profilePhysicalMetricsView(router: Router) -> some View {
+    func profilePhysicalMetricsView(router: AnyRouter) -> some View {
         ProfilePhysicalMetricsView(
             presenter: ProfilePhysicalMetricsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func profileGoalSection(router: Router) -> some View {
+    func profileGoalSection(router: AnyRouter) -> some View {
         ProfileGoalSection(
             presenter: ProfileGoalSectionPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func profileNutritionPlanView(router: Router) -> some View {
+    func profileNutritionPlanView(router: AnyRouter) -> some View {
         ProfileNutritionPlanView(
             presenter: ProfileNutritionPlanPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func profilePreferencesView(router: Router) -> some View {
+    func profilePreferencesView(router: AnyRouter) -> some View {
         ProfilePreferencesView(
             presenter: ProfilePreferencesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func profileMyTemplatesView(router: Router) -> some View {
+    func profileMyTemplatesView(router: AnyRouter) -> some View {
         ProfileMyTemplatesView(
             presenter: ProfileMyTemplatesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 
-    func recipeDetailView(router: Router, delegate: RecipeDetailDelegate) -> some View {
+    func recipeDetailView(router: AnyRouter, delegate: RecipeDetailDelegate) -> some View {
         RecipeDetailView(
             presenter: RecipeDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 
-    func recipeTemplateListView(router: Router, delegate: RecipeTemplateListDelegate) -> some View {
+    func recipeTemplateListView(router: AnyRouter, delegate: RecipeTemplateListDelegate) -> some View {
         RecipeTemplateListView(
             interactor: interactor,
             router: CoreRouter(router: router, builder: self),
@@ -773,7 +773,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func customProgramBuilderView(router: Router) -> some View {
+    func customProgramBuilderView(router: AnyRouter) -> some View {
         CustomProgramBuilderView(
             presenter: CustomProgramBuilderPresenter(
                 interactor: interactor,
@@ -782,7 +782,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func programPreviewView(router: Router, delegate: ProgramPreviewDelegate) -> some View {
+    func programPreviewView(router: AnyRouter, delegate: ProgramPreviewDelegate) -> some View {
         ProgramPreviewView(
             presenter: ProgramPreviewPresenter(
                 interactor: interactor,
@@ -792,7 +792,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func manageSubscriptionView(router: Router, delegate: ManageSubscriptionDelegate) -> some View {
+    func manageSubscriptionView(router: AnyRouter, delegate: ManageSubscriptionDelegate) -> some View {
         ManageSubscriptionView(
             presenter: ManageSubscriptionPresenter(
                 interactor: interactor,
@@ -802,7 +802,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func recipeAmountView(router: Router, delegate: RecipeAmountDelegate) -> some View {
+    func recipeAmountView(router: AnyRouter, delegate: RecipeAmountDelegate) -> some View {
         RecipeAmountView(
             presenter: RecipeAmountPresenter(
                 interactor: interactor,
@@ -815,7 +815,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func programStartConfigView(router: Router, delegate: ProgramStartConfigDelegate) -> some View {
+    func programStartConfigView(router: AnyRouter, delegate: ProgramStartConfigDelegate) -> some View {
         ProgramStartConfigView(
             presenter: ProgramStartConfigPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
@@ -823,7 +823,7 @@ struct CoreBuilder: Builder {
         
     }
 
-    func volumeChartsView(router: Router) -> some View {
+    func volumeChartsView(router: AnyRouter) -> some View {
          VolumeChartsView(
             presenter: VolumeChartsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             trendSummarySection: { delegate in
@@ -833,7 +833,7 @@ struct CoreBuilder: Builder {
          )
     }
 
-    func copyWeekPickerView(router: Router, delegate: CopyWeekPickerDelegate) -> some View {
+    func copyWeekPickerView(router: AnyRouter, delegate: CopyWeekPickerDelegate) -> some View {
         CopyWeekPickerView(
             presenter: CopyWeekPickerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
@@ -841,7 +841,7 @@ struct CoreBuilder: Builder {
         
     }
 
-    func workoutPickerSheet(router: Router, delegate: WorkoutPickerDelegate) -> some View {
+    func workoutPickerSheet(router: AnyRouter, delegate: WorkoutPickerDelegate) -> some View {
         WorkoutPickerView(
             presenter: WorkoutPickerPresenter(
                 interactor: interactor,
@@ -854,7 +854,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func workoutScheduleRowView(router: Router, delegate: WorkoutScheduleRowDelegate) -> some View {
+    func workoutScheduleRowView(router: AnyRouter, delegate: WorkoutScheduleRowDelegate) -> some View {
         WorkoutScheduleRowView(
             presenter: WorkoutScheduleRowPresenter(
                 interactor: interactor,
@@ -876,7 +876,7 @@ struct CoreBuilder: Builder {
         
     }
 
-    func setTrackerRowView(router: Router, delegate: SetTrackerRowDelegate) -> some View {
+    func setTrackerRowView(router: AnyRouter, delegate: SetTrackerRowDelegate) -> some View {
         SetTrackerRowView(
             presenter: SetTrackerRowPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
@@ -884,7 +884,7 @@ struct CoreBuilder: Builder {
         
     }
 
-    func workoutNotesView(router: Router, delegate: WorkoutNotesDelegate) -> some View {
+    func workoutNotesView(router: AnyRouter, delegate: WorkoutNotesDelegate) -> some View {
         WorkoutNotesView(
             presenter: WorkoutNotesPresenter(
                 interactor: interactor,
@@ -895,7 +895,7 @@ struct CoreBuilder: Builder {
         
     }
 
-    func profileView(router: Router) -> some View {
+    func profileView(router: AnyRouter) -> some View {
         ProfileView(
             presenter: ProfilePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             profileHeaderView: {
@@ -926,14 +926,14 @@ struct CoreBuilder: Builder {
         
     }
 
-    func createAccountView(router: Router) -> some View {
+    func createAccountView(router: AnyRouter) -> some View {
         CreateAccountView(
             presenter: CreateAccountPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         
     }
 
-    func addExerciseModalView(router: Router, delegate: AddExerciseModalDelegate) -> some View {
+    func addExerciseModalView(router: AnyRouter, delegate: AddExerciseModalDelegate) -> some View {
         AddExerciseModalView(
             presenter: AddExerciseModalPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
@@ -941,7 +941,7 @@ struct CoreBuilder: Builder {
         
     }
 
-    func dayScheduleSheetView(router: Router, delegate: DayScheduleDelegate) -> some View {
+    func dayScheduleSheetView(router: AnyRouter, delegate: DayScheduleDelegate) -> some View {
         DayScheduleSheetView(
             presenter: DayScheduleSheetPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
@@ -956,7 +956,7 @@ struct CoreBuilder: Builder {
         )
     }
 
-    func exerciseTrackerCardView(router: Router, delegate: ExerciseTrackerCardDelegate) -> some View {
+    func exerciseTrackerCardView(router: AnyRouter, delegate: ExerciseTrackerCardDelegate) -> some View {
         ExerciseTrackerCardView(
             delegate: delegate,
             interactor: interactor,

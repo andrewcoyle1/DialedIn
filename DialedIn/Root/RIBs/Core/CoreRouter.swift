@@ -6,15 +6,15 @@
 //
 
 import SwiftUI
-import CustomRouting
+import SwiftfulRouting
 
 @MainActor
 struct CoreRouter: GlobalRouter {
 
-    let router: Router
+    let router: AnyRouter
     private let builder: CoreBuilder
 
-    init(router: Router, builder: CoreBuilder) {
+    init(router: AnyRouter, builder: CoreBuilder) {
         self.router = router
         self.builder = builder
     }
@@ -329,8 +329,8 @@ struct CoreRouter: GlobalRouter {
 
     func showWarmupSetInfoModal(primaryButtonAction: @escaping () -> Void) {
         router.showModal(
-            backgroundColor: .black,
             transition: .move(edge: .bottom),
+            backgroundColor: .black,
             destination: {
                 CustomModalView(
                     title: "Warmup Sets",

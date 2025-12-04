@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import CustomRouting
+import SwiftfulRouting
 
 @MainActor
 struct OnbBuilder: Builder {
@@ -25,7 +25,7 @@ struct OnbBuilder: Builder {
         }
     }
 
-    func onboardingIntroView(router: Router) -> some View {
+    func onboardingIntroView(router: AnyRouter) -> some View {
         OnboardingIntroView(
             presenter: OnboardingIntroPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
@@ -34,28 +34,28 @@ struct OnbBuilder: Builder {
 
     // MARK: Onboarding Auth
 
-    func onboardingAuthOptionsView(router: Router) -> some View {
+    func onboardingAuthOptionsView(router: AnyRouter) -> some View {
         AuthOptionsView(
             presenter: AuthOptionsPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingSignInView(router: Router) -> some View {
+    func onboardingSignInView(router: AnyRouter) -> some View {
         SignInView(
             presenter: SignInPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingSignUpView(router: Router) -> some View {
+    func onboardingSignUpView(router: AnyRouter) -> some View {
         SignUpView(
             presenter: SignUpPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingEmailVerificationView(router: Router) -> some View {
+    func onboardingEmailVerificationView(router: AnyRouter) -> some View {
         EmailVerificationView(
             presenter: EmailVerificationPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
@@ -64,42 +64,42 @@ struct OnbBuilder: Builder {
 
     // MARK: Onboarding Subscriptions
 
-    func onboardingSubscriptionView(router: Router) -> some View {
+    func onboardingSubscriptionView(router: AnyRouter) -> some View {
         OnboardingSubscriptionView(
             presenter: OnboardingSubscriptionPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingSubscriptionPlanView(router: Router) -> some View {
+    func onboardingSubscriptionPlanView(router: AnyRouter) -> some View {
         OnboardingSubscriptionPlanView(
             presenter: OnboardingSubscriptionPlanPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingCompleteAccountSetupView(router: Router) -> some View {
+    func onboardingCompleteAccountSetupView(router: AnyRouter) -> some View {
         OnboardingCompleteAccountSetupView(
             presenter: OnboardingCompleteAccountSetupPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingNamePhotoView(router: Router) -> some View {
+    func onboardingNamePhotoView(router: AnyRouter) -> some View {
         OnboardingNamePhotoView(
             presenter: OnboardingNamePhotoPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingGenderView(router: Router) -> some View {
+    func onboardingGenderView(router: AnyRouter) -> some View {
         OnboardingGenderView(
             presenter: OnboardingGenderPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingDateOfBirthView(router: Router, delegate: OnboardingDateOfBirthDelegate) -> some View {
+    func onboardingDateOfBirthView(router: AnyRouter, delegate: OnboardingDateOfBirthDelegate) -> some View {
         OnboardingDateOfBirthView(
             presenter: OnboardingDateOfBirthPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -107,7 +107,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingHeightView(router: Router, delegate: OnboardingHeightDelegate) -> some View {
+    func onboardingHeightView(router: AnyRouter, delegate: OnboardingHeightDelegate) -> some View {
         OnboardingHeightView(
             presenter: OnboardingHeightPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -115,7 +115,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingWeightView(router: Router, delegate: OnboardingWeightDelegate) -> some View {
+    func onboardingWeightView(router: AnyRouter, delegate: OnboardingWeightDelegate) -> some View {
         OnboardingWeightView(
             presenter: OnboardingWeightPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -123,7 +123,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingExerciseFrequencyView(router: Router, delegate: OnboardingExerciseFrequencyDelegate) -> some View {
+    func onboardingExerciseFrequencyView(router: AnyRouter, delegate: OnboardingExerciseFrequencyDelegate) -> some View {
         OnboardingExerciseFrequencyView(
             presenter: OnboardingExerciseFrequencyPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -131,7 +131,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingActivityView(router: Router, delegate: OnboardingActivityDelegate) -> some View {
+    func onboardingActivityView(router: AnyRouter, delegate: OnboardingActivityDelegate) -> some View {
         OnboardingActivityView(
             presenter: OnboardingActivityPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -139,7 +139,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingCardioFitnessView(router: Router, delegate: OnboardingCardioFitnessDelegate) -> some View {
+    func onboardingCardioFitnessView(router: AnyRouter, delegate: OnboardingCardioFitnessDelegate) -> some View {
         OnboardingCardioFitnessView(
             presenter: OnboardingCardioFitnessPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -147,7 +147,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingExpenditureView(router: Router, delegate: OnboardingExpenditureDelegate) -> some View {
+    func onboardingExpenditureView(router: AnyRouter, delegate: OnboardingExpenditureDelegate) -> some View {
         OnboardingExpenditureView(
             presenter: OnboardingExpenditurePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -155,21 +155,21 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingHealthDataView(router: Router) -> some View {
+    func onboardingHealthDataView(router: AnyRouter) -> some View {
         OnboardingHealthDataView(
             presenter: OnboardingHealthDataPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingNotificationsView(router: Router) -> some View {
+    func onboardingNotificationsView(router: AnyRouter) -> some View {
         OnboardingNotificationsView(
             presenter: OnboardingNotificationsPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingHealthDisclaimerView(router: Router) -> some View {
+    func onboardingHealthDisclaimerView(router: AnyRouter) -> some View {
         OnboardingHealthDisclaimerView(
             presenter: OnboardingHealthDisclaimerPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
@@ -178,21 +178,21 @@ struct OnbBuilder: Builder {
 
     // MARK: Onboarding Goal Setting
 
-    func onboardingGoalSettingView(router: Router) -> some View {
+    func onboardingGoalSettingView(router: AnyRouter) -> some View {
         OnboardingGoalSettingView(
             presenter: OnboardingGoalSettingPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingOverarchingObjectiveView(router: Router) -> some View {
+    func onboardingOverarchingObjectiveView(router: AnyRouter) -> some View {
         OnboardingOverarchingObjectiveView(
             presenter: OnboardingOverarchingObjectivePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingTargetWeightView(router: Router, delegate: OnboardingTargetWeightDelegate) -> some View {
+    func onboardingTargetWeightView(router: AnyRouter, delegate: OnboardingTargetWeightDelegate) -> some View {
         OnboardingTargetWeightView(
             presenter: OnboardingTargetWeightPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -200,7 +200,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingWeightRateView(router: Router, delegate: OnboardingWeightRateDelegate) -> some View {
+    func onboardingWeightRateView(router: AnyRouter, delegate: OnboardingWeightRateDelegate) -> some View {
         OnboardingWeightRateView(
             presenter: OnboardingWeightRatePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -208,7 +208,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingGoalSummaryView(router: Router, delegate: OnboardingGoalSummaryDelegate) -> some View {
+    func onboardingGoalSummaryView(router: AnyRouter, delegate: OnboardingGoalSummaryDelegate) -> some View {
         OnboardingGoalSummaryView(
             presenter: OnboardingGoalSummaryPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -218,7 +218,7 @@ struct OnbBuilder: Builder {
 
     // MARK: Customise Program
 
-    func onboardingTrainingProgramView(router: Router) -> some View {
+    func onboardingTrainingProgramView(router: AnyRouter) -> some View {
         OnboardingTrainingProgramView(
             presenter: OnboardingTrainingProgramPresenter(
                 interactor: interactor,
@@ -228,14 +228,14 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingCustomisingProgramView(router: Router) -> some View {
+    func onboardingCustomisingProgramView(router: AnyRouter) -> some View {
         OnboardingCustomisingProgramView(
             presenter: OnboardingCustomisingProgramPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingTrainingExperienceView(router: Router, delegate: OnboardingTrainingExperienceDelegate) -> some View {
+    func onboardingTrainingExperienceView(router: AnyRouter, delegate: OnboardingTrainingExperienceDelegate) -> some View {
         OnboardingTrainingExperienceView(
             presenter: OnboardingTrainingExperiencePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -243,7 +243,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingTrainingDaysPerWeekView(router: Router, delegate: OnboardingTrainingDaysPerWeekDelegate) -> some View {
+    func onboardingTrainingDaysPerWeekView(router: AnyRouter, delegate: OnboardingTrainingDaysPerWeekDelegate) -> some View {
         OnboardingTrainingDaysPerWeekView(
             presenter: OnboardingTrainingDaysPerWeekPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -251,7 +251,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingTrainingSplitView(router: Router, delegate: OnboardingTrainingSplitDelegate) -> some View {
+    func onboardingTrainingSplitView(router: AnyRouter, delegate: OnboardingTrainingSplitDelegate) -> some View {
         OnboardingTrainingSplitView(
             presenter: OnboardingTrainingSplitPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -259,7 +259,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingTrainingScheduleView(router: Router, delegate: OnboardingTrainingScheduleDelegate) -> some View {
+    func onboardingTrainingScheduleView(router: AnyRouter, delegate: OnboardingTrainingScheduleDelegate) -> some View {
         OnboardingTrainingScheduleView(
             presenter: OnboardingTrainingSchedulePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -267,7 +267,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingTrainingEquipmentView(router: Router, delegate: OnboardingTrainingEquipmentDelegate) -> some View {
+    func onboardingTrainingEquipmentView(router: AnyRouter, delegate: OnboardingTrainingEquipmentDelegate) -> some View {
         OnboardingTrainingEquipmentView(
             presenter: OnboardingTrainingEquipmentPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -275,7 +275,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingTrainingReviewView(router: Router, delegate: OnboardingTrainingReviewDelegate) -> some View {
+    func onboardingTrainingReviewView(router: AnyRouter, delegate: OnboardingTrainingReviewDelegate) -> some View {
         OnboardingTrainingReviewView(
             presenter: OnboardingTrainingReviewPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -283,14 +283,14 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingPreferredDietView(router: Router) -> some View {
+    func onboardingPreferredDietView(router: AnyRouter) -> some View {
         OnboardingPreferredDietView(
             presenter: OnboardingPreferredDietPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
 
-    func onboardingCalorieFloorView(router: Router, delegate: OnboardingCalorieFloorDelegate) -> some View {
+    func onboardingCalorieFloorView(router: AnyRouter, delegate: OnboardingCalorieFloorDelegate) -> some View {
         OnboardingCalorieFloorView(
             presenter: OnboardingCalorieFloorPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -298,7 +298,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingTrainingTypeView(router: Router, delegate: OnboardingTrainingTypeDelegate) -> some View {
+    func onboardingTrainingTypeView(router: AnyRouter, delegate: OnboardingTrainingTypeDelegate) -> some View {
         OnboardingTrainingTypeView(
             presenter: OnboardingTrainingTypePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -306,7 +306,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingCalorieDistributionView(router: Router, delegate: OnboardingCalorieDistributionDelegate) -> some View {
+    func onboardingCalorieDistributionView(router: AnyRouter, delegate: OnboardingCalorieDistributionDelegate) -> some View {
         OnboardingCalorieDistributionView(
             presenter: OnboardingCalorieDistributionPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -314,7 +314,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingProteinIntakeView(router: Router, delegate: OnboardingProteinIntakeDelegate) -> some View {
+    func onboardingProteinIntakeView(router: AnyRouter, delegate: OnboardingProteinIntakeDelegate) -> some View {
         OnboardingProteinIntakeView(
             presenter: OnboardingProteinIntakePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -322,7 +322,7 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingDietPlanView(router: Router, delegate: OnboardingDietPlanDelegate) -> some View {
+    func onboardingDietPlanView(router: AnyRouter, delegate: OnboardingDietPlanDelegate) -> some View {
         OnboardingDietPlanView(
             presenter: OnboardingDietPlanPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
             delegate: delegate
@@ -330,14 +330,14 @@ struct OnbBuilder: Builder {
         
     }
 
-    func onboardingCompletedView(router: Router) -> some View {
+    func onboardingCompletedView(router: AnyRouter) -> some View {
         OnboardingCompletedView(
             presenter: OnboardingCompletedPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
         
     }
     
-    func devSettingsView(router: Router) -> AnyView {
+    func devSettingsView(router: AnyRouter) -> AnyView {
         DevSettingsView(
             presenter: DevSettingsPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )

@@ -19,7 +19,7 @@ protocol SignInRouter {
     func showOnboardingCustomisingProgramView()
     func showOnboardingCompletedView()
 
-    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
+    func showAlert(title: String, subtitle: String?, buttons: @escaping @Sendable () -> AnyView)
 }
 
 extension OnbRouter: SignInRouter { }

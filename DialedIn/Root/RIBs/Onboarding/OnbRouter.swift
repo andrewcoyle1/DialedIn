@@ -6,11 +6,11 @@
 //
 
 import SwiftUI
-import CustomRouting
+import SwiftfulRouting
 
 @MainActor
 struct OnbRouter: GlobalRouter {
-    let router: Router
+    let router: AnyRouter
     let builder: OnbBuilder
     
     func showOnboardingIntroView() {

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import CustomRouting
+import SwiftfulRouting
 
 struct ProgramPreviewView: View {
     @State var presenter: ProgramPreviewPresenter

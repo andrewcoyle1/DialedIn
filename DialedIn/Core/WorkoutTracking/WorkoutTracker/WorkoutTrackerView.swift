@@ -7,7 +7,7 @@
 
 import SwiftUI
 import HealthKit
-import CustomRouting
+import SwiftfulRouting
 import Combine
 
 struct WorkoutTrackerView: View {

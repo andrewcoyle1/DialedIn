@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import CustomRouting
+import SwiftfulRouting
 
 struct TodaysWorkoutCardView: View {
     @State var presenter: TodaysWorkoutCardPresenter

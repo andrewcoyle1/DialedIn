@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import CustomRouting
+import SwiftfulRouting
 
 struct RecipeTemplateListView: View {
     @State var presenter: RecipeTemplateListPresenter

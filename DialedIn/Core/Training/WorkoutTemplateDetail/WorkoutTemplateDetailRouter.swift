@@ -13,7 +13,7 @@ protocol WorkoutTemplateDetailRouter {
     func showWorkoutStartView(delegate: WorkoutStartDelegate)
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
 
-    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
+    func showAlert(title: String, subtitle: String?, buttons: @escaping @Sendable () -> AnyView)
     func showSimpleAlert(title: String, subtitle: String?)
 
     func dismissScreen()

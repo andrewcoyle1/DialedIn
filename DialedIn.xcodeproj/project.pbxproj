@@ -42,7 +42,7 @@
 		D08F58632E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
 		D0AB1C992EA1907100682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
 		D0AB1C9A2EA1907200682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
-		D0C63E2F2EE207C200880A8C /* CustomRouting in Frameworks */ = {isa = PBXBuildFile; productRef = D0C63E2E2EE207C200880A8C /* CustomRouting */; };
+		D0C0E6A22EE2410D009D5D18 /* SwiftfulRouting in Frameworks */ = {isa = PBXBuildFile; productRef = D0C0E6A12EE2410D009D5D18 /* SwiftfulRouting */; };
 		D0CE846D2EAAC4EB00C3CCBE /* DialedInWatchApp.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = D0CE844D2EAAC4E900C3CCBE /* DialedInWatchApp.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D0CE89E72EB2379000EED3B5 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E62EB2379000EED3B5 /* FirebaseAnalytics */; };
 		D0CE89E92EB237A100EED3B5 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E82EB237A100EED3B5 /* FirebaseAuth */; };
@@ -1771,7 +1771,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D0C63E2F2EE207C200880A8C /* CustomRouting in Frameworks */,
 				D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */,
 				D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */,
 				D05D0BCB2E8FDE0B0027C662 /* GoogleSignInSwift in Frameworks */,
@@ -1783,6 +1782,7 @@
 				D05D0BB22E8EA15E0027C662 /* FirebaseFirestore in Frameworks */,
 				D05D0BAE2E8EA15E0027C662 /* FirebaseAuth in Frameworks */,
 				D05D0BB42E8EA15E0027C662 /* FirebaseFunctions in Frameworks */,
+				D0C0E6A22EE2410D009D5D18 /* SwiftfulRouting in Frameworks */,
 				D05D0BBB2E8EA1C00027C662 /* FirebaseCrashlytics in Frameworks */,
 				D05D0BB62E8EA15E0027C662 /* FirebaseStorage in Frameworks */,
 				D05D0BB02E8EA15E0027C662 /* FirebaseCore in Frameworks */,
@@ -1977,7 +1977,7 @@
 				D05D0BBD2E8EA22E0027C662 /* SwiftfulUtilities */,
 				D05D0BC82E8FDE0B0027C662 /* GoogleSignIn */,
 				D05D0BCA2E8FDE0B0027C662 /* GoogleSignInSwift */,
-				D0C63E2E2EE207C200880A8C /* CustomRouting */,
+				D0C0E6A12EE2410D009D5D18 /* SwiftfulRouting */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -2051,7 +2051,7 @@
 				D05D0BB72E8EA1710027C662 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */,
 				D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
-				D0C63E2D2EE207C200880A8C /* XCRemoteSwiftPackageReference "CustomRouting" */,
+				D0C0E6A02EE2410D009D5D18 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
@@ -3089,12 +3089,12 @@
 				minimumVersion = 9.0.0;
 			};
 		};
-		D0C63E2D2EE207C200880A8C /* XCRemoteSwiftPackageReference "CustomRouting" */ = {
+		D0C0E6A02EE2410D009D5D18 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/andrewcoyle1/CustomRouting.git";
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulRouting.git";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.1.8;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -3205,10 +3205,10 @@
 			package = D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
 		};
-		D0C63E2E2EE207C200880A8C /* CustomRouting */ = {
+		D0C0E6A12EE2410D009D5D18 /* SwiftfulRouting */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D0C63E2D2EE207C200880A8C /* XCRemoteSwiftPackageReference "CustomRouting" */;
-			productName = CustomRouting;
+			package = D0C0E6A02EE2410D009D5D18 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */;
+			productName = SwiftfulRouting;
 		};
 		D0CE89E62EB2379000EED3B5 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;

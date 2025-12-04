@@ -7,7 +7,7 @@
 
 import SwiftUI
 import Charts
-import CustomRouting
+import SwiftfulRouting
 
 struct StrengthProgressView: View {
     @State var presenter: StrengthProgressPresenter

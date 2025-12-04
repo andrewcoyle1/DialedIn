@@ -6,10 +6,10 @@
 //
 
 import SwiftUI
-import CustomRouting
+import SwiftfulRouting
 
 @MainActor
 struct RootRouter: GlobalRouter {
-    let router: Router
+    let router: AnyRouter
     let builder: RootBuilder
 }

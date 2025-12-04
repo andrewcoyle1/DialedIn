@@ -9,7 +9,7 @@ import SwiftUI
 #if os(iOS)
 import UIKit
 #endif
-import CustomRouting
+import SwiftfulRouting
 
 struct TrainingView<ProgramView: View>: View {
 
