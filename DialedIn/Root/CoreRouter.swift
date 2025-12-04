@@ -9,6 +9,7 @@ import SwiftUI
 import CustomRouting
 
 @MainActor
+// swiftlint:disable:next type_body_length
 struct CoreRouter {
 
     private let router: Router

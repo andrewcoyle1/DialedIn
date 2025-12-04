@@ -28,4 +28,8 @@ class TrainingProgressChartsPresenter {
             isExpanded.toggle()
         }
     }
+    
+    func onProgressAnalyticsPressed() {
+        router.showProgressDashboardView()
+    }
 }

@@ -9,22 +9,22 @@ import SwiftUI
 import CustomRouting
 
 struct ProgramView<
-    TodaysWorkoutSectionView: View,
-    WorkoutCalendarView: View,
-    ThisWeeksWorkoutsView: View,
+    TodaysWorkout: View,
+    WorkoutCalendar: View,
+    WeeksWorkouts: View,
     GoalListSectionView: View,
-    TrainingProgressChartsView: View
+    TrainingProgress: View
 >: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
     @State var presenter: ProgramPresenter
 
-    @ViewBuilder var todaysWorkoutSectionView: () -> TodaysWorkoutSectionView
-    @ViewBuilder var workoutCalendarView: () -> WorkoutCalendarView
-    @ViewBuilder var thisWeeksWorkoutsView: () -> ThisWeeksWorkoutsView
+    @ViewBuilder var todaysWorkoutSectionView: () -> TodaysWorkout
+    @ViewBuilder var workoutCalendarView: () -> WorkoutCalendar
+    @ViewBuilder var thisWeeksWorkoutsView: () -> WeeksWorkouts
     @ViewBuilder var goalListSectionView: () -> GoalListSectionView
-    @ViewBuilder var trainingProgressChartsView: () -> TrainingProgressChartsView
+    @ViewBuilder var trainingProgressChartsView: () -> TrainingProgress
 
     var body: some View {
         Group {

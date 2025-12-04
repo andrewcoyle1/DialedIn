@@ -8,12 +8,12 @@
 import SwiftUI
 import CustomRouting
 
-struct ThisWeeksWorkoutsView<WorkoutSummaryCardView: View, ScheduledWorkoutRowView: View>: View {
+struct ThisWeeksWorkoutsView<WorkoutSummary: View, ScheduledWorkout: View>: View {
     
     @State var presenter: ThisWeeksWorkoutsPresenter
     
-    @ViewBuilder var workoutSummaryCardView: (WorkoutSummaryCardDelegate) -> WorkoutSummaryCardView
-    @ViewBuilder var scheduledWorkoutRowView: (ScheduledWorkoutRowDelegate) -> ScheduledWorkoutRowView
+    @ViewBuilder var workoutSummaryCardView: (WorkoutSummaryCardDelegate) -> WorkoutSummary
+    @ViewBuilder var scheduledWorkoutRowView: (ScheduledWorkoutRowDelegate) -> ScheduledWorkout
     
     var body: some View {
         Section(isExpanded: $presenter.isExpanded) {

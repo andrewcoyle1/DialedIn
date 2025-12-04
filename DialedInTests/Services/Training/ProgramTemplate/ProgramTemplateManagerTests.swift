@@ -11,6 +11,7 @@ import Foundation
 struct ProgramTemplateManagerTests {
     
     @Test("getUserTemplates returns only non-built-in templates for given user, sorted by modifiedAt descending")
+    // swiftlint:disable:next function_body_length
     func testGetUserTemplatesFiltersAndSortsCorrectly() {
         let userId = "user-123"
         let otherUserId = "user-456"
@@ -84,3 +85,4 @@ struct ProgramTemplateManagerTests {
         #expect(!results.contains(where: { $0.id == builtIn.id }))
     }
 }
+

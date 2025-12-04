@@ -15,7 +15,7 @@ struct TrainingProgressChartsView: View {
     var body: some View {
         Section(isExpanded: $presenter.isExpanded) {
             Button {
-                // TODO: show Progress AnalyticsView
+                presenter.onProgressAnalyticsPressed()
             } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {

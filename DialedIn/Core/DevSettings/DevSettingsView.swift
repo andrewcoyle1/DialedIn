@@ -26,7 +26,7 @@ struct DevSettingsView: View {
             workoutTemplateSection
             seedingSection
         }
-        .navigationTitle("Dev Settings 🫨")
+        .navigationTitle("Developer Settings")
         .screenAppearAnalytics(name: "DevSettings")
         .scrollIndicators(.hidden)
         .toolbar {

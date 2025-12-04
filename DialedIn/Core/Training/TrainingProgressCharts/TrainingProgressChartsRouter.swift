@@ -7,7 +7,7 @@
 
 @MainActor
 protocol TrainingProgressChartsRouter {
-    
+    func showProgressDashboardView()
 }
 
 extension CoreRouter: TrainingProgressChartsRouter { }

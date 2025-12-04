@@ -371,7 +371,8 @@ class CoreBuilder {
             }
         )
     }
-
+    
+    // swiftlint:disable:next function_body_length
     func tabBarView() -> some View {
         TabBarView(
             presenter: TabBarPresenter(interactor: interactor),
@@ -478,6 +479,12 @@ class CoreBuilder {
             ],
             tabViewAccessoryView: { accessoryDelegate in
                     self.tabViewAccessoryView(delegate: accessoryDelegate)
+                .any()
+            },
+            workoutTrackerView: { delegate in
+                RouterView { router in
+                    self.workoutTrackerView(router: router, delegate: delegate)
+                }
                 .any()
             }
         )
