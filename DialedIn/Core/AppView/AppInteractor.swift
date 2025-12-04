@@ -14,4 +14,4 @@ protocol AppInteractor {
     func logIn(auth: UserAuthInfo, image: PlatformImage?) async throws
 }
 
-extension CoreInteractor: AppInteractor { }
+extension RootInteractor: AppInteractor { }

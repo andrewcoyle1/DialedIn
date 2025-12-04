@@ -1,5 +1,5 @@
 {
-  "originHash" : "f50fe1946abd69503d4d8d9663672ec60642200e792deaae11b3df1134af346d",
+  "originHash" : "83aa3cf6829b23d58e50e1a3b4cc78b6d407b56e35834a116de5e879569874bb",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -31,10 +31,10 @@
     {
       "identity" : "customrouting",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SwiftfulThinking/CustomRouting",
+      "location" : "https://github.com/andrewcoyle1/CustomRouting.git",
       "state" : {
-        "revision" : "bee42d4a581b19db99ce69ad1c8109f33c2488e4",
-        "version" : "1.0.0"
+        "branch" : "main",
+        "revision" : "bbd55cc01d17c077a96212c387885d21cc983eaa"
       }
     },
     {
@@ -193,7 +193,7 @@
     {
       "identity" : "signinappleasync",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SwiftfulThinking/SignInAppleAsync.git",
+      "location" : "https://github.com/SwiftfulThinking/SignInAppleAsync",
       "state" : {
         "revision" : "42242c92cbca2b20d69e808ef13a0bc54326254e",
         "version" : "1.0.2"

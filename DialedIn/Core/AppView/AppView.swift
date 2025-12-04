@@ -58,8 +58,8 @@ struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
     let container = DevPreview.shared.container
     container.register(AppState.self, service: AppState(showTabBar: true))
 
-    let builder = CoreBuilder(container: container)
-    return builder.appView()
+    let builder = RootBuilder(container: container)
+    return builder.build()
     .previewEnvironment()
 }
 
@@ -71,7 +71,7 @@ struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
     container.register(AuthManager.self, service: AuthManager(service: MockAuthService(user: nil)))
     container.register(AppState.self, service: AppState(showTabBar: false))
 
-    let builder = CoreBuilder(container: container)
-    return builder.appView()
+    let builder = RootBuilder(container: container)
+    return builder.build()
     .previewEnvironment()
 }

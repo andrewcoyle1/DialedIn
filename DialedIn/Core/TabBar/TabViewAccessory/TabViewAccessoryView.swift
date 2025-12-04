@@ -13,11 +13,16 @@ struct TabViewAccessoryView: View {
     @State var presenter: TabViewAccessoryPresenter
     
     let delegate: TabViewAccessoryDelegate
+    let onTap: () -> Void
     
     var body: some View {
-        HStack {
-            iconSection
-            workoutDescriptionSection
+        Button {
+            onTap()
+        } label: {
+            HStack {
+                iconSection
+                workoutDescriptionSection
+            }
         }
         .frame(maxWidth: .infinity)
     }
@@ -85,7 +90,6 @@ struct TabViewAccessoryView: View {
 }
 
 #Preview {
-    @Previewable @State var isPresented: Bool = false
     let builder = CoreBuilder(container: DevPreview.shared.container)
     TabView {
         Tab {
@@ -95,15 +99,12 @@ struct TabViewAccessoryView: View {
         }
     }
     .tabViewBottomAccessory {
-        builder.tabViewAccessoryView(
-            delegate: TabViewAccessoryDelegate(active: .mock)
-        )
-        .onTapGesture {
-            isPresented = true
+        RouterView { router in
+            builder.tabViewAccessoryView(
+                router: router,
+                delegate: TabViewAccessoryDelegate(active: .mock)
+            )
         }
-    }
-    .fullScreenCover(isPresented: $isPresented) {
-        
     }
     .previewEnvironment()
 }

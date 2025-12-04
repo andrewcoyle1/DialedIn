@@ -8,14 +8,13 @@
 import SwiftUI
 import CustomRouting
 
-struct TabBarView: View {
+struct TabBarView<TabAccessory: View>: View {
 
     @State var presenter: TabBarPresenter
 
     var tabs: [TabBarScreen]
     
-    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> AnyView
-    @ViewBuilder var workoutTrackerView: (WorkoutTrackerDelegate) -> AnyView
+    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
 
     var body: some View {
         TabView {
@@ -31,16 +30,7 @@ struct TabBarView: View {
         .tabViewBottomAccessory {
             if let active = presenter.active {
                 tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
-                    .onTapGesture {
-                        presenter.isTrackerPresented = true
-                    }
             }
-        }
-        .fullScreenCover(isPresented: $presenter.isTrackerPresented) {
-            workoutTrackerView(WorkoutTrackerDelegate(workoutSession: presenter.active!))
-        }
-        .task {
-            _ = presenter.checkForActiveSession()
         }
     }
 }

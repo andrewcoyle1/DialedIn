@@ -80,10 +80,6 @@ struct CoreInteractor {
 
     // MARK: AppState
 
-    var showTabBar: Bool {
-        appState.showTabBar
-    }
-
     func updateAppState(showTabBarView: Bool) {
         appState.updateViewState(showTabBarView: showTabBarView)
     }
@@ -129,11 +125,7 @@ struct CoreInteractor {
     func reauthenticate(email: String, password: String) async throws {
         try await authManager.reauthenticate(email: email, password: password)
     }
-    
-    func signInAnonymously() async throws -> UserAuthInfo? {
-        try await authManager.signInAnonymously()
-    }
-    
+        
     func signInApple() async throws -> UserAuthInfo {
         try await authManager.signInApple()
     }
@@ -259,11 +251,7 @@ struct CoreInteractor {
         
         userManager.logOut()
     }
-    
-    func markUnanonymous(email: String? = nil) async throws {
-        try await userManager.markUnanonymous()
-    }
-    
+        
     func updateFirstName(firstName: String) async throws {
         try await userManager.updateFirstName(firstName: firstName)
     }

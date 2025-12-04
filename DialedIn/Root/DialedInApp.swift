@@ -14,7 +14,7 @@ struct DialedInApp: App {
     
     var body: some Scene {
         WindowGroup {
-            delegate.builder.appView()
+            delegate.builder.build()
             .environment(delegate.dependencies.logManager)
             .onOpenURL { url in
                 _ = GIDSignIn.sharedInstance.handle(url)

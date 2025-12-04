@@ -8,13 +8,12 @@
 import SwiftUI
 import CustomRouting
 
-struct SplitViewContainer: View {
+struct SplitViewContainer<TabAccessory: View>: View {
 
     @State var presenter: SplitViewContainerPresenter
     var tabs: [TabBarScreen]
 
-    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> AnyView
-    @ViewBuilder var workoutTrackerView: (WorkoutTrackerDelegate) -> AnyView
+    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
     
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all), preferredCompactColumn: $presenter.preferredColumn) {

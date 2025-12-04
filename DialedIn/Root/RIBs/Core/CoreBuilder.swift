@@ -19,23 +19,6 @@ class CoreBuilder {
         interactor = CoreInteractor(container: container)
     }
 
-    func appView() -> some View {
-        AppView(
-            presenter: AppPresenter(interactor: interactor),
-            adaptiveMainView: {
-                self.adaptiveMainView()
-                    .any()
-            },
-            onboardingWelcomeView: {
-                RouterView { router in
-                    self.onboardingWelcomeView(router: router)
-                }
-                .any()
-            }
-        )
-        
-    }
-
     // MARK: Onboarding
 
     func onboardingWelcomeView(router: Router) -> some View {
@@ -372,7 +355,6 @@ class CoreBuilder {
         )
     }
     
-    // swiftlint:disable:next function_body_length
     func tabBarView() -> some View {
         TabBarView(
             presenter: TabBarPresenter(interactor: interactor),
@@ -419,19 +401,13 @@ class CoreBuilder {
                 )
             ],
             tabViewAccessoryView: { delegate in
-                self.tabViewAccessoryView(delegate: delegate)
-                    .any()
-            },
-            workoutTrackerView: { delegate in
                 RouterView { router in
-                    self.workoutTrackerView(router: router, delegate: delegate)
+                    self.tabViewAccessoryView(router: router, delegate: delegate)
                 }
-                .any()
             }
         )
     }
 
-    // swiftlint:disable:next function_body_length
     func splitViewContainer() -> some View {
         SplitViewContainer(
             presenter: SplitViewContainerPresenter(interactor: interactor),
@@ -478,14 +454,9 @@ class CoreBuilder {
                 )
             ],
             tabViewAccessoryView: { accessoryDelegate in
-                    self.tabViewAccessoryView(delegate: accessoryDelegate)
-                .any()
-            },
-            workoutTrackerView: { delegate in
                 RouterView { router in
-                    self.workoutTrackerView(router: router, delegate: delegate)
+                    self.tabViewAccessoryView(router: router, delegate: accessoryDelegate)
                 }
-                .any()
             }
         )
     }
@@ -497,10 +468,16 @@ class CoreBuilder {
         )
     }
 
-    func tabViewAccessoryView(delegate: TabViewAccessoryDelegate) -> some View {
-        TabViewAccessoryView(
-            presenter: TabViewAccessoryPresenter(interactor: self.interactor),
-            delegate: delegate
+    func tabViewAccessoryView(router: Router, delegate: TabViewAccessoryDelegate) -> some View {
+        let coreRouter = CoreRouter(router: router, builder: self)
+        return TabViewAccessoryView(
+            presenter: TabViewAccessoryPresenter(interactor: interactor),
+            delegate: delegate,
+            onTap: {
+                coreRouter.showWorkoutTrackerView(
+                    delegate: WorkoutTrackerDelegate(workoutSession: delegate.active)
+                )
+            }
         )
     }
 

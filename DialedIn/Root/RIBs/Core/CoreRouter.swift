@@ -10,9 +10,9 @@ import CustomRouting
 
 @MainActor
 // swiftlint:disable:next type_body_length
-struct CoreRouter {
+struct CoreRouter: GlobalRouter {
 
-    private let router: Router
+    let router: Router
     private let builder: CoreBuilder
 
     init(router: Router, builder: CoreBuilder) {
@@ -572,33 +572,7 @@ struct CoreRouter {
         }
     }
 
-    func dismissScreen() {
-        router.dismissScreen()
-    }
-
-    // MARK: Alerts
-
-    func showAlert(error: Error) {
-        router.showAlert(.alert, title: "Error", subtitle: error.localizedDescription, buttons: nil)
-    }
-
-    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
-        router.showAlert(.alert, title: title, subtitle: subtitle, buttons: buttons)
-    }
-
-    func showSimpleAlert(title: String, subtitle: String?) {
-        router.showAlert(.alert, title: title, subtitle: subtitle, buttons: nil)
-    }
-
-    func showConfirmationDialog(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
-        router.showAlert(.confirmationDialog, title: title, subtitle: subtitle, buttons: buttons)
-    }
-
     // MARK: Modals
-
-    func dismissModal() {
-        router.dismissModal()
-    }
 
     func showWarmupSetInfoModal(primaryButtonAction: @escaping () -> Void) {
         router.showModal(
