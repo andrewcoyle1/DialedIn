@@ -19,4 +19,8 @@ class LocalABTestService: ABTestService {
         // Every new test need to be added here to ensure that it can be updated
         notificationsTest = updatedTests.notificationsTest
     }
+    
+    func fetchUpdatedConfig() async throws -> ActiveABTests {
+        activeTests
+    }
 }

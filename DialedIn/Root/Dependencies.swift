@@ -182,7 +182,7 @@ struct Dependencies {
             ])
             authManager = AuthManager(service: FirebaseAuthService(), logger: logManager)
             userManager = UserManager(services: ProductionUserServices(), logManager: logManager)
-            abTestManager = ABTestManager(service: LocalABTestService(), logger: logManager)
+            abTestManager = ABTestManager(service: FirebaseABTestService(), logger: logManager)
             purchaseManager = PurchaseManager(services: ProductionPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)

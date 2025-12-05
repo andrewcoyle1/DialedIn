@@ -61,6 +61,7 @@
 		D0E7AA6C2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7AA6B2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel */; };
 		D0E7AA6F2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7AA6E2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics */; };
 		D0E7AA722EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7AA712EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics */; };
+		D0E7D5A32EE3139400BEE79F /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7D5A22EE3139400BEE79F /* FirebaseRemoteConfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1712,6 +1713,7 @@
 				D0E7A89F2EE2D87800BEE79F /* SwiftfulAuthUI in Frameworks */,
 				D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */,
 				D0E7AA692EE2DB6100BEE79F /* SwiftfulLogging in Frameworks */,
+				D0E7D5A32EE3139400BEE79F /* FirebaseRemoteConfig in Frameworks */,
 				D0E7AA722EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics in Frameworks */,
 				D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */,
 				D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */,
@@ -1918,6 +1920,7 @@
 				D0E7AA6B2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel */,
 				D0E7AA6E2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics */,
 				D0E7AA712EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics */,
+				D0E7D5A22EE3139400BEE79F /* FirebaseRemoteConfig */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -3250,6 +3253,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D0E7AA702EE2DBA800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingFirebaseCrashlytics" */;
 			productName = SwiftfulLoggingFirebaseCrashlytics;
+		};
+		D0E7D5A22EE3139400BEE79F /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -8,7 +8,7 @@
 import Foundation
 
 struct ActiveABTests: Codable {
-    private(set) var notificationsTest: Bool
+    var notificationsTest: Bool
     
     init(notificationsTest: Bool? = nil) {
         self.notificationsTest = notificationsTest ?? false

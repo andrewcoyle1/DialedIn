@@ -20,4 +20,8 @@ class MockABTestService: ABTestService {
         activeTests = updatedTests
     }
 
+    func fetchUpdatedConfig() async throws -> ActiveABTests {
+        activeTests
+    }
+
 }
