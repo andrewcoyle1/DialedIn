@@ -14,7 +14,7 @@ protocol EditProgramRouter {
     func showDevSettingsView()
     func dismissScreen()
 
-    func showAlert(title: String, subtitle: String?, buttons: @escaping @Sendable () -> AnyView)
+    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
 }
 
 extension CoreRouter: EditProgramRouter { }

@@ -19,27 +19,9 @@ struct OnbRouter: GlobalRouter {
         }
     }
 
-    func showAuthOptionsView() {
+    func showOnboardingAuthView() {
         router.showScreen(.push) { router in
-            builder.onboardingAuthOptionsView(router: router)
-        }
-    }
-
-    func showSignInView() {
-        router.showScreen(.push) { router in
-            builder.onboardingSignInView(router: router)
-        }
-    }
-
-    func showSignUpView() {
-        router.showScreen(.push) { router in
-            builder.onboardingSignUpView(router: router)
-        }
-    }
-
-    func showEmailVerificationView() {
-        router.showScreen(.push) { router in
-            builder.onboardingEmailVerificationView(router: router)
+            builder.onboardingOnboardingAuthView(router: router)
         }
     }
 

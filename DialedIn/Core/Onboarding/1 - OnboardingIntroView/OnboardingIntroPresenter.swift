@@ -21,9 +21,9 @@ class OnboardingIntroPresenter {
         self.router = router
     }
     
-    func navigateToAuthOptions() {
+    func navigateToOnboardingAuth() {
         interactor.trackEvent(event: Event.navigate)
-        router.showAuthOptionsView()
+        router.showOnboardingAuthView()
     }
 
     func onDevSettingsPressed() {

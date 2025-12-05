@@ -8,6 +8,9 @@
 protocol DevSettingsInteractor {
     var auth: UserAuthInfo? { get }
     var currentUser: UserModel? { get }
+    var activeTests: ActiveABTests { get }
+    var notificationsABTest: Bool { get }
+    func override(updatedTests: ActiveABTests) throws
     var currentTrainingPlan: TrainingPlan? { get }
     var activeSession: WorkoutSessionModel? { get }
     func updateAppState(showTabBarView: Bool)

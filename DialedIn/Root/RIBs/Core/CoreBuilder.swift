@@ -926,13 +926,6 @@ struct CoreBuilder: Builder {
         
     }
 
-    func createAccountView(router: AnyRouter) -> some View {
-        CreateAccountView(
-            presenter: CreateAccountPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
-        )
-        
-    }
-
     func addExerciseModalView(router: AnyRouter, delegate: AddExerciseModalDelegate) -> some View {
         AddExerciseModalView(
             presenter: AddExerciseModalPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),

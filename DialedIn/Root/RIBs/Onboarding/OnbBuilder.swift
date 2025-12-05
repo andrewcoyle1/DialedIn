@@ -34,32 +34,10 @@ struct OnbBuilder: Builder {
 
     // MARK: Onboarding Auth
 
-    func onboardingAuthOptionsView(router: AnyRouter) -> some View {
-        AuthOptionsView(
-            presenter: AuthOptionsPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+    func onboardingOnboardingAuthView(router: AnyRouter) -> some View {
+        OnboardingAuthView(
+            presenter: OnboardingAuthPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
         )
-        
-    }
-
-    func onboardingSignInView(router: AnyRouter) -> some View {
-        SignInView(
-            presenter: SignInPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
-        )
-        
-    }
-
-    func onboardingSignUpView(router: AnyRouter) -> some View {
-        SignUpView(
-            presenter: SignUpPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
-        )
-        
-    }
-
-    func onboardingEmailVerificationView(router: AnyRouter) -> some View {
-        EmailVerificationView(
-            presenter: EmailVerificationPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
-        )
-        
     }
 
     // MARK: Onboarding Subscriptions

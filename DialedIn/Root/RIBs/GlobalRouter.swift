@@ -23,16 +23,30 @@ extension GlobalRouter {
         router.showAlert(.alert, title: "Error", subtitle: error.localizedDescription, buttons: { })
     }
 
-    func showAlert(title: String, subtitle: String?, buttons: @escaping @Sendable () -> AnyView) {
-        router.showAlert(.alert, title: title, subtitle: subtitle, buttons: buttons)
+    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
+        router.showAlert(
+            .alert,
+            title: title,
+            subtitle: subtitle,
+            buttons: {
+                buttons?()
+            }
+        )
     }
 
     func showSimpleAlert(title: String, subtitle: String?) {
         router.showAlert(.alert, title: title, subtitle: subtitle, buttons: { })
     }
 
-    func showConfirmationDialog(title: String, subtitle: String?, buttons: @escaping @Sendable () -> AnyView) {
-        router.showAlert(.confirmationDialog, title: title, subtitle: subtitle, buttons: buttons)
+    func showConfirmationDialog(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?) {
+        router.showAlert(
+            .confirmationDialog,
+            title: title,
+            subtitle: subtitle,
+            buttons: {
+                buttons?()
+            }
+        )
     }
     
     func dismissModal() {

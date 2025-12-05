@@ -87,11 +87,13 @@ struct DashboardView: View {
         }
         #endif
 
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                presenter.onPushNotificationsPressed()
-            } label: {
-                Image(systemName: "bell")
+        if presenter.isInNotificationsABTest {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    presenter.onPushNotificationsPressed()
+                } label: {
+                    Image(systemName: "bell")
+                }
             }
         }
     }
@@ -100,6 +102,16 @@ struct DashboardView: View {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
+        builder.dashboardView(router: router)
+    }
+    .previewEnvironment()
+}
+
+#Preview("w/ Notifications Test") {
+    let container = DevPreview.shared.container
+    container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(notificationsTest: true), logger: LogManager()))
+    let builder = CoreBuilder(container: container)
+    return RouterView { router in
         builder.dashboardView(router: router)
     }
     .previewEnvironment()

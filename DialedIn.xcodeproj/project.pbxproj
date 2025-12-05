@@ -9,9 +9,6 @@
 /* Begin PBXBuildFile section */
 		D02A76D72EB2464700D080ED /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76D62EB2464700D080ED /* Mixpanel */; };
 		D02A76D92EB2464B00D080ED /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76D82EB2464B00D080ED /* OpenAI */; };
-		D02A76DB2EB2465000D080ED /* SignInAppleAsync in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76DA2EB2465000D080ED /* SignInAppleAsync */; };
-		D02A76ED2EB2468100D080ED /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76EC2EB2468100D080ED /* GoogleSignIn */; };
-		D02A76EF2EB2468900D080ED /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76EE2EB2468900D080ED /* GoogleSignInSwift */; };
 		D02A76F12EB2469300D080ED /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76F02EB2469300D080ED /* SwiftfulUtilities */; };
 		D02A79162EB2584E00D080ED /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
 		D02A79172EB2585A00D080ED /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
@@ -22,7 +19,6 @@
 		D04B80172EB23FF200644F75 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
 		D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0B9D2E8EA0F00027C662 /* Mixpanel */; };
 		D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA02E8EA1050027C662 /* OpenAI */; };
-		D05D0BA42E8EA1180027C662 /* SignInAppleAsync in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA32E8EA1180027C662 /* SignInAppleAsync */; };
 		D05D0BAA2E8EA15E0027C662 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA92E8EA15E0027C662 /* FirebaseAnalytics */; };
 		D05D0BAC2E8EA15E0027C662 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BAB2E8EA15E0027C662 /* FirebaseAppCheck */; };
 		D05D0BAE2E8EA15E0027C662 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BAD2E8EA15E0027C662 /* FirebaseAuth */; };
@@ -33,8 +29,6 @@
 		D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BB82E8EA1710027C662 /* SDWebImageSwiftUI */; };
 		D05D0BBB2E8EA1C00027C662 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BBA2E8EA1C00027C662 /* FirebaseCrashlytics */; };
 		D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BBD2E8EA22E0027C662 /* SwiftfulUtilities */; };
-		D05D0BC92E8FDE0B0027C662 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BC82E8FDE0B0027C662 /* GoogleSignIn */; };
-		D05D0BCB2E8FDE0B0027C662 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BCA2E8FDE0B0027C662 /* GoogleSignInSwift */; };
 		D08F584A2E8BF61B001D3980 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F58492E8BF61B001D3980 /* WidgetKit.framework */; };
 		D08F584C2E8BF61B001D3980 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F584B2E8BF61B001D3980 /* SwiftUI.framework */; };
 		D08F58572E8BF61D001D3980 /* WorkoutSessionActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D08F58482E8BF61B001D3980 /* WorkoutSessionActivityExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -48,8 +42,6 @@
 		D0CE89E92EB237A100EED3B5 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E82EB237A100EED3B5 /* FirebaseAuth */; };
 		D0CE89EB2EB237A600EED3B5 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89EA2EB237A600EED3B5 /* FirebaseCore */; };
 		D0CE89ED2EB237B100EED3B5 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89EC2EB237B100EED3B5 /* FirebaseFirestore */; };
-		D0CE89EF2EB237B800EED3B5 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89EE2EB237B800EED3B5 /* GoogleSignIn */; };
-		D0CE89F12EB237BD00EED3B5 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89F02EB237BD00EED3B5 /* GoogleSignInSwift */; };
 		D0CE8B012EB23B8C00EED3B5 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE8B002EB23B8C00EED3B5 /* FirebaseAppCheck */; };
 		D0CE8B032EB23B9000EED3B5 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE8B022EB23B9000EED3B5 /* FirebaseCrashlytics */; };
 		D0CE8B052EB23C0800EED3B5 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE8B042EB23C0800EED3B5 /* FirebaseFunctions */; };
@@ -57,12 +49,18 @@
 		D0CE8B092EB23C1700EED3B5 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE8B082EB23C1700EED3B5 /* Mixpanel */; };
 		D0CE8B0B2EB23C1B00EED3B5 /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE8B0A2EB23C1B00EED3B5 /* OpenAI */; };
 		D0CE8B0D2EB23C2200EED3B5 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE8B0C2EB23C2200EED3B5 /* SDWebImageSwiftUI */; };
-		D0CE8B0F2EB23C2900EED3B5 /* SignInAppleAsync in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE8B0E2EB23C2900EED3B5 /* SignInAppleAsync */; };
 		D0CE8B112EB23C3300EED3B5 /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE8B102EB23C3300EED3B5 /* SwiftfulUtilities */; };
 		D0DB1C932EA1901D00682653 /* MetricsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C922EA1901800682653 /* MetricsModel.swift */; };
 		D0DB1C942EA1901D00682653 /* MetricsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C922EA1901800682653 /* MetricsModel.swift */; };
 		D0DB1C962EA1906000682653 /* ElapsedTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */; };
 		D0DB1C972EA1906000682653 /* ElapsedTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */; };
+		D0E7A89F2EE2D87800BEE79F /* SwiftfulAuthUI in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7A89E2EE2D87800BEE79F /* SwiftfulAuthUI */; };
+		D0E7A8A12EE2D87800BEE79F /* SwiftfulAuthenticating in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7A8A02EE2D87800BEE79F /* SwiftfulAuthenticating */; };
+		D0E7A8A42EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7A8A32EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase */; };
+		D0E7AA692EE2DB6100BEE79F /* SwiftfulLogging in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7AA682EE2DB6100BEE79F /* SwiftfulLogging */; };
+		D0E7AA6C2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7AA6B2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel */; };
+		D0E7AA6F2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7AA6E2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics */; };
+		D0E7AA722EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7AA712EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -154,9 +152,6 @@
 				Components/Views/Training/WorkoutScheduleRow/WorkoutScheduleRowInteractor.swift,
 				Components/Views/Training/WorkoutScheduleRow/WorkoutScheduleRowPresenter.swift,
 				Components/Views/Training/WorkoutScheduleRow/WorkoutScheduleRowRouter.swift,
-				Core/CreateAccount/CreateAccountInteractor.swift,
-				Core/CreateAccount/CreateAccountPresenter.swift,
-				Core/CreateAccount/CreateAccountRouter.swift,
 				Core/Dashboard/DashboardPresenter.swift,
 				Core/DevSettings/DevSettingsInteractor.swift,
 				Core/DevSettings/DevSettingsPresenter.swift,
@@ -231,18 +226,9 @@
 				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroInteractor.swift",
 				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroPresenter.swift",
 				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroRouter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/0 - AuthOptions/AuthOptionsInteractor.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/0 - AuthOptions/AuthOptionsPresenter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/0 - AuthOptions/AuthOptionsRouter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1a - SignIn/SignInInteractor.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1a - SignIn/SignInPresenter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1a - SignIn/SignInRouter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1b - SignUp/SignUpInteractor.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1b - SignUp/SignUpPresenter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1b - SignUp/SignUpRouter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/2 - EmailVerification/EmailVerificationInteractor.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/2 - EmailVerification/EmailVerificationPresenter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/2 - EmailVerification/EmailVerificationRouter.swift",
+				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsInteractor.swift",
+				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsPresenter.swift",
+				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsRouter.swift",
 				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionInteractor.swift",
 				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionPresenter.swift",
 				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionRouter.swift",
@@ -559,10 +545,6 @@
 				Services/AI/Services/AIService.swift,
 				Services/AI/Services/MockAIService.swift,
 				Services/AppState/AppState.swift,
-				Services/Auth/AuthManager.swift,
-				Services/Auth/Models/UserAuthInfo.swift,
-				Services/Auth/Services/AuthService.swift,
-				Services/Auth/Services/MockAuthService.swift,
 				Services/Goal/GoalManager.swift,
 				Services/Goal/Models/WeightGoal.swift,
 				Services/Goal/Models/WeightGoalBuilder.swift,
@@ -583,10 +565,6 @@
 				Services/ImageUpload/ImageUploadManager.swift,
 				Services/ImageUpload/Services/ImageUploadService.swift,
 				Services/ImageUpload/Services/MockImageUploadService.swift,
-				Services/Logs/LogManager.swift,
-				Services/Logs/Models/LoggableEvent.swift,
-				Services/Logs/Services/ConsoleService.swift,
-				Services/Logs/Services/LogService.swift,
 				Services/Nutrition/IngredientTemplate/IngredientTemplateManager.swift,
 				Services/Nutrition/IngredientTemplate/Models/IngredientTemplateEntity.swift,
 				Services/Nutrition/IngredientTemplate/Models/IngredientTemplateModel.swift,
@@ -745,7 +723,6 @@
 				Services/UserWeight/UserWeightManager.swift,
 				Utilities/AppCheckProviderFactory.swift,
 				Utilities/AppCheckTokenCache.swift,
-				Utilities/AuthErrorHandler.swift,
 				"Utilities/Concurrency+EXT.swift",
 				Utilities/Constants.swift,
 				Utilities/Keys.swift,
@@ -759,7 +736,6 @@
 		D058B9612EAEC57F00F0EADB /* Exceptions for "DialedIn" folder in "DialedInWatchApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Services/Auth/Models/UserAuthInfo.swift,
 				Services/TemplateManagement/Protocols/LocalTemplatePersistence.swift,
 				Services/TemplateManagement/Protocols/TemplateModel.swift,
 				Services/Training/ExerciseTemplate/Models/ExerciseTemplateEntity.swift,
@@ -804,8 +780,6 @@
 			membershipExceptions = (
 				Assets.xcassets,
 				Components/Buttons/CustomPresetPickerButton.swift,
-				Components/Buttons/SignInWithAppleButtonView.swift,
-				Components/Buttons/SignInWithGoogleButtonView.swift,
 				Components/Buttons/SignUpWithEmailButton.swift,
 				Components/Images/CachedProfileImageView.swift,
 				Components/Images/ImageLoaderView.swift,
@@ -865,10 +839,6 @@
 				Core/AppView/AppPresenter.swift,
 				Core/AppView/AppView.swift,
 				Core/AppView/AppViewBuilder.swift,
-				Core/CreateAccount/CreateAccountInteractor.swift,
-				Core/CreateAccount/CreateAccountPresenter.swift,
-				Core/CreateAccount/CreateAccountRouter.swift,
-				Core/CreateAccount/CreateAccountView.swift,
 				Core/Dashboard/DashboardPresenter.swift,
 				Core/Dashboard/DashboardView.swift,
 				Core/DevSettings/DevSettingsInteractor.swift,
@@ -972,22 +942,10 @@
 				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroPresenter.swift",
 				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroRouter.swift",
 				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroView.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/0 - AuthOptions/AuthOptionsInteractor.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/0 - AuthOptions/AuthOptionsPresenter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/0 - AuthOptions/AuthOptionsRouter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/0 - AuthOptions/AuthOptionsView.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1a - SignIn/SignInInteractor.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1a - SignIn/SignInPresenter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1a - SignIn/SignInRouter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1a - SignIn/SignInView.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1b - SignUp/SignUpInteractor.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1b - SignUp/SignUpPresenter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1b - SignUp/SignUpRouter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/1b - SignUp/SignUpView.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/2 - EmailVerification/EmailVerificationInteractor.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/2 - EmailVerification/EmailVerificationPresenter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/2 - EmailVerification/EmailVerificationRouter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/2 - EmailVerification/EmailVerificationView.swift",
+				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsInteractor.swift",
+				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsPresenter.swift",
+				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsRouter.swift",
+				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsView.swift",
 				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionInteractor.swift",
 				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionPresenter.swift",
 				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionRouter.swift",
@@ -1433,12 +1391,6 @@
 				Services/AI/Services/GoogleAIService.swift,
 				Services/AI/Services/MockAIService.swift,
 				Services/AppState/AppState.swift,
-				Services/Auth/AuthManager.swift,
-				Services/Auth/Models/UserAuthInfo.swift,
-				"Services/Auth/Models/UserAuthInfo+Firebase.swift",
-				Services/Auth/Services/AuthService.swift,
-				Services/Auth/Services/FirebaseAuthService.swift,
-				Services/Auth/Services/MockAuthService.swift,
 				Services/Goal/GoalManager.swift,
 				Services/Goal/Models/WeightGoal.swift,
 				Services/Goal/Models/WeightGoalBuilder.swift,
@@ -1463,13 +1415,6 @@
 				Services/ImageUpload/Services/FirebaseImageUploadService.swift,
 				Services/ImageUpload/Services/ImageUploadService.swift,
 				Services/ImageUpload/Services/MockImageUploadService.swift,
-				Services/Logs/LogManager.swift,
-				Services/Logs/Models/LoggableEvent.swift,
-				Services/Logs/Services/ConsoleService.swift,
-				Services/Logs/Services/FirebaseAnalyticsService.swift,
-				Services/Logs/Services/FirebaseCrashlyticsService.swift,
-				Services/Logs/Services/LogService.swift,
-				Services/Logs/Services/MixpanelService.swift,
 				Services/Nutrition/IngredientTemplate/IngredientTemplateManager.swift,
 				Services/Nutrition/IngredientTemplate/Models/IngredientTemplateEntity.swift,
 				Services/Nutrition/IngredientTemplate/Models/IngredientTemplateModel.swift,
@@ -1671,7 +1616,6 @@
 				Services/UserWeight/UserWeightManager.swift,
 				Utilities/AppCheckProviderFactory.swift,
 				Utilities/AppCheckTokenCache.swift,
-				Utilities/AuthErrorHandler.swift,
 				"Utilities/Concurrency+EXT.swift",
 				Utilities/Constants.swift,
 				Utilities/Keys.swift,
@@ -1730,9 +1674,6 @@
 				D02A76D92EB2464B00D080ED /* OpenAI in Frameworks */,
 				D02A76F12EB2469300D080ED /* SwiftfulUtilities in Frameworks */,
 				D02A76D72EB2464700D080ED /* Mixpanel in Frameworks */,
-				D02A76EF2EB2468900D080ED /* GoogleSignInSwift in Frameworks */,
-				D02A76ED2EB2468100D080ED /* GoogleSignIn in Frameworks */,
-				D02A76DB2EB2465000D080ED /* SignInAppleAsync in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1740,18 +1681,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D0CE89EF2EB237B800EED3B5 /* GoogleSignIn in Frameworks */,
 				D0CE89E72EB2379000EED3B5 /* FirebaseAnalytics in Frameworks */,
 				D0CE89ED2EB237B100EED3B5 /* FirebaseFirestore in Frameworks */,
 				D0CE8B072EB23C0D00EED3B5 /* FirebaseStorage in Frameworks */,
 				D0CE8B052EB23C0800EED3B5 /* FirebaseFunctions in Frameworks */,
 				D0CE8B112EB23C3300EED3B5 /* SwiftfulUtilities in Frameworks */,
-				D0CE89F12EB237BD00EED3B5 /* GoogleSignInSwift in Frameworks */,
 				D0CE8B012EB23B8C00EED3B5 /* FirebaseAppCheck in Frameworks */,
 				D0CE8B032EB23B9000EED3B5 /* FirebaseCrashlytics in Frameworks */,
 				D0CE8B0D2EB23C2200EED3B5 /* SDWebImageSwiftUI in Frameworks */,
 				D0CE89EB2EB237A600EED3B5 /* FirebaseCore in Frameworks */,
-				D0CE8B0F2EB23C2900EED3B5 /* SignInAppleAsync in Frameworks */,
 				D0CE89E92EB237A100EED3B5 /* FirebaseAuth in Frameworks */,
 				D0CE8B0B2EB23C1B00EED3B5 /* OpenAI in Frameworks */,
 				D0CE8B092EB23C1700EED3B5 /* Mixpanel in Frameworks */,
@@ -1771,22 +1709,26 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0E7A89F2EE2D87800BEE79F /* SwiftfulAuthUI in Frameworks */,
 				D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */,
+				D0E7AA692EE2DB6100BEE79F /* SwiftfulLogging in Frameworks */,
+				D0E7AA722EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics in Frameworks */,
 				D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */,
-				D05D0BCB2E8FDE0B0027C662 /* GoogleSignInSwift in Frameworks */,
 				D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */,
 				D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */,
-				D05D0BC92E8FDE0B0027C662 /* GoogleSignIn in Frameworks */,
 				D05D0BAA2E8EA15E0027C662 /* FirebaseAnalytics in Frameworks */,
 				D05D0BAC2E8EA15E0027C662 /* FirebaseAppCheck in Frameworks */,
 				D05D0BB22E8EA15E0027C662 /* FirebaseFirestore in Frameworks */,
 				D05D0BAE2E8EA15E0027C662 /* FirebaseAuth in Frameworks */,
 				D05D0BB42E8EA15E0027C662 /* FirebaseFunctions in Frameworks */,
+				D0E7A8A12EE2D87800BEE79F /* SwiftfulAuthenticating in Frameworks */,
+				D0E7AA6C2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel in Frameworks */,
+				D0E7A8A42EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase in Frameworks */,
 				D0C0E6A22EE2410D009D5D18 /* SwiftfulRouting in Frameworks */,
 				D05D0BBB2E8EA1C00027C662 /* FirebaseCrashlytics in Frameworks */,
+				D0E7AA6F2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics in Frameworks */,
 				D05D0BB62E8EA15E0027C662 /* FirebaseStorage in Frameworks */,
 				D05D0BB02E8EA15E0027C662 /* FirebaseCore in Frameworks */,
-				D05D0BA42E8EA1180027C662 /* SignInAppleAsync in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1870,9 +1812,6 @@
 			packageProductDependencies = (
 				D02A76D62EB2464700D080ED /* Mixpanel */,
 				D02A76D82EB2464B00D080ED /* OpenAI */,
-				D02A76DA2EB2465000D080ED /* SignInAppleAsync */,
-				D02A76EC2EB2468100D080ED /* GoogleSignIn */,
-				D02A76EE2EB2468900D080ED /* GoogleSignInSwift */,
 				D02A76F02EB2469300D080ED /* SwiftfulUtilities */,
 			);
 			productName = DialedInTests;
@@ -1901,8 +1840,6 @@
 				D0CE89E82EB237A100EED3B5 /* FirebaseAuth */,
 				D0CE89EA2EB237A600EED3B5 /* FirebaseCore */,
 				D0CE89EC2EB237B100EED3B5 /* FirebaseFirestore */,
-				D0CE89EE2EB237B800EED3B5 /* GoogleSignIn */,
-				D0CE89F02EB237BD00EED3B5 /* GoogleSignInSwift */,
 				D0CE8B002EB23B8C00EED3B5 /* FirebaseAppCheck */,
 				D0CE8B022EB23B9000EED3B5 /* FirebaseCrashlytics */,
 				D0CE8B042EB23C0800EED3B5 /* FirebaseFunctions */,
@@ -1910,7 +1847,6 @@
 				D0CE8B082EB23C1700EED3B5 /* Mixpanel */,
 				D0CE8B0A2EB23C1B00EED3B5 /* OpenAI */,
 				D0CE8B0C2EB23C2200EED3B5 /* SDWebImageSwiftUI */,
-				D0CE8B0E2EB23C2900EED3B5 /* SignInAppleAsync */,
 				D0CE8B102EB23C3300EED3B5 /* SwiftfulUtilities */,
 			);
 			productName = DialedInUITests;
@@ -1964,7 +1900,6 @@
 			packageProductDependencies = (
 				D05D0B9D2E8EA0F00027C662 /* Mixpanel */,
 				D05D0BA02E8EA1050027C662 /* OpenAI */,
-				D05D0BA32E8EA1180027C662 /* SignInAppleAsync */,
 				D05D0BA92E8EA15E0027C662 /* FirebaseAnalytics */,
 				D05D0BAB2E8EA15E0027C662 /* FirebaseAppCheck */,
 				D05D0BAD2E8EA15E0027C662 /* FirebaseAuth */,
@@ -1975,9 +1910,14 @@
 				D05D0BB82E8EA1710027C662 /* SDWebImageSwiftUI */,
 				D05D0BBA2E8EA1C00027C662 /* FirebaseCrashlytics */,
 				D05D0BBD2E8EA22E0027C662 /* SwiftfulUtilities */,
-				D05D0BC82E8FDE0B0027C662 /* GoogleSignIn */,
-				D05D0BCA2E8FDE0B0027C662 /* GoogleSignInSwift */,
 				D0C0E6A12EE2410D009D5D18 /* SwiftfulRouting */,
+				D0E7A89E2EE2D87800BEE79F /* SwiftfulAuthUI */,
+				D0E7A8A02EE2D87800BEE79F /* SwiftfulAuthenticating */,
+				D0E7A8A32EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase */,
+				D0E7AA682EE2DB6100BEE79F /* SwiftfulLogging */,
+				D0E7AA6B2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel */,
+				D0E7AA6E2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics */,
+				D0E7AA712EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -2046,12 +1986,16 @@
 			packageReferences = (
 				D05D0B9C2E8EA0F00027C662 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 				D05D0B9F2E8EA1050027C662 /* XCRemoteSwiftPackageReference "OpenAI" */,
-				D05D0BA22E8EA1180027C662 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */,
 				D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				D05D0BB72E8EA1710027C662 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */,
-				D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				D0C0E6A02EE2410D009D5D18 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */,
+				D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */,
+				D0E7A8A22EE2D90700BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticatingFirebase" */,
+				D0E7AA672EE2DB6100BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLogging" */,
+				D0E7AA6A2EE2DB7600BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingMixpanel" */,
+				D0E7AA6D2EE2DB8F00BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingFirebaseAnalytics" */,
+				D0E7AA702EE2DBA800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingFirebaseCrashlytics" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
@@ -3049,14 +2993,6 @@
 				version = 0.3.0;
 			};
 		};
-		D05D0BA22E8EA1180027C662 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SwiftfulThinking/SignInAppleAsync";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.2;
-			};
-		};
 		D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -3081,20 +3017,60 @@
 				minimumVersion = 1.1.6;
 			};
 		};
-		D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/google/GoogleSignIn-iOS.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 9.0.0;
-			};
-		};
 		D0C0E6A02EE2410D009D5D18 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulRouting.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 6.1.8;
+			};
+		};
+		D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulAuthenticating.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.13;
+			};
+		};
+		D0E7A8A22EE2D90700BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticatingFirebase" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulAuthenticatingFirebase.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.12;
+			};
+		};
+		D0E7AA672EE2DB6100BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLogging" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulLogging.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.1;
+			};
+		};
+		D0E7AA6A2EE2DB7600BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingMixpanel" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulLoggingMixpanel.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.2;
+			};
+		};
+		D0E7AA6D2EE2DB8F00BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingFirebaseAnalytics" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulLoggingFirebaseAnalytics.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.5;
+			};
+		};
+		D0E7AA702EE2DBA800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingFirebaseCrashlytics" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulLoggingFirebaseCrashlytics.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -3110,21 +3086,6 @@
 			package = D05D0B9F2E8EA1050027C662 /* XCRemoteSwiftPackageReference "OpenAI" */;
 			productName = OpenAI;
 		};
-		D02A76DA2EB2465000D080ED /* SignInAppleAsync */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D05D0BA22E8EA1180027C662 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */;
-			productName = SignInAppleAsync;
-		};
-		D02A76EC2EB2468100D080ED /* GoogleSignIn */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignIn;
-		};
-		D02A76EE2EB2468900D080ED /* GoogleSignInSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignInSwift;
-		};
 		D02A76F02EB2469300D080ED /* SwiftfulUtilities */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
@@ -3139,11 +3100,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0B9F2E8EA1050027C662 /* XCRemoteSwiftPackageReference "OpenAI" */;
 			productName = OpenAI;
-		};
-		D05D0BA32E8EA1180027C662 /* SignInAppleAsync */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D05D0BA22E8EA1180027C662 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */;
-			productName = SignInAppleAsync;
 		};
 		D05D0BA92E8EA15E0027C662 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -3195,16 +3151,6 @@
 			package = D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
 			productName = SwiftfulUtilities;
 		};
-		D05D0BC82E8FDE0B0027C662 /* GoogleSignIn */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignIn;
-		};
-		D05D0BCA2E8FDE0B0027C662 /* GoogleSignInSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignInSwift;
-		};
 		D0C0E6A12EE2410D009D5D18 /* SwiftfulRouting */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D0C0E6A02EE2410D009D5D18 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */;
@@ -3229,16 +3175,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
-		};
-		D0CE89EE2EB237B800EED3B5 /* GoogleSignIn */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignIn;
-		};
-		D0CE89F02EB237BD00EED3B5 /* GoogleSignInSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D05D0BC72E8FDE0B0027C662 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignInSwift;
 		};
 		D0CE8B002EB23B8C00EED3B5 /* FirebaseAppCheck */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -3275,15 +3211,45 @@
 			package = D05D0BB72E8EA1710027C662 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
 			productName = SDWebImageSwiftUI;
 		};
-		D0CE8B0E2EB23C2900EED3B5 /* SignInAppleAsync */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D05D0BA22E8EA1180027C662 /* XCRemoteSwiftPackageReference "SignInAppleAsync" */;
-			productName = SignInAppleAsync;
-		};
 		D0CE8B102EB23C3300EED3B5 /* SwiftfulUtilities */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
 			productName = SwiftfulUtilities;
+		};
+		D0E7A89E2EE2D87800BEE79F /* SwiftfulAuthUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */;
+			productName = SwiftfulAuthUI;
+		};
+		D0E7A8A02EE2D87800BEE79F /* SwiftfulAuthenticating */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */;
+			productName = SwiftfulAuthenticating;
+		};
+		D0E7A8A32EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E7A8A22EE2D90700BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticatingFirebase" */;
+			productName = SwiftfulAuthenticatingFirebase;
+		};
+		D0E7AA682EE2DB6100BEE79F /* SwiftfulLogging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E7AA672EE2DB6100BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLogging" */;
+			productName = SwiftfulLogging;
+		};
+		D0E7AA6B2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E7AA6A2EE2DB7600BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingMixpanel" */;
+			productName = SwiftfulLoggingMixpanel;
+		};
+		D0E7AA6E2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E7AA6D2EE2DB8F00BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingFirebaseAnalytics" */;
+			productName = SwiftfulLoggingFirebaseAnalytics;
+		};
+		D0E7AA712EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E7AA702EE2DBA800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingFirebaseCrashlytics" */;
+			productName = SwiftfulLoggingFirebaseCrashlytics;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

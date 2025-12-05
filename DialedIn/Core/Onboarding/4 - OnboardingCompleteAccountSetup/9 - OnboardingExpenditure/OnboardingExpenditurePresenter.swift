@@ -263,41 +263,29 @@ class OnboardingExpenditurePresenter {
                 let canHealth = self.canRequestHealthData ?? false
                 let targetStep: OnboardingStep = canNotifs ? .notifications : (canHealth ? .healthData : .healthDisclaimer)
 
-                _ = try await performOperationWithTimeout {
-                    try await self.interactor.saveCompleteAccountSetupProfile(userBuilder: userModelBuilder, onboardingStep: targetStep)
-                }
+                _ = try await interactor.saveCompleteAccountSetupProfile(userBuilder: userModelBuilder, onboardingStep: targetStep)
                 interactor.trackEvent(event: Event.profileSaveSuccess)
                 isLoading = false
                 await navigateForward(targetStep: targetStep)
             } catch {
                 interactor.trackEvent(event: Event.profileSaveFail(error: error))
-                handleSaveError(error, userModelBuilder: userModelBuilder)
-            }
+                router.showAlert(
+                    title: "Unable to Save Profile",
+                    subtitle: "Please check your internet connection and try again.",
+                    buttons: {
+                        AnyView(
+                            HStack {
+                                Button("Cancel") { }
+                                Button("Try Again") {
+                                    self.saveAndNavigate(userModelBuilder: userModelBuilder)
+                                }
+                            }
+                        )
+                    }
+                )            }
         }
     }
     
-    // MARK: - Error Handling Helpers
-    
-    private func handleSaveError(_ error: Error, userModelBuilder: UserModelBuilder) {
-
-        let errorInfo = interactor.handleAuthError(error, operation: "save profile")
-        
-        router.showAlert(
-            title: errorInfo.title,
-            subtitle: errorInfo.message,
-            buttons: {
-                AnyView(
-                    HStack {
-                        Button("Cancel") { }
-                        if errorInfo.isRetryable {
-                            Button("Try Again") { self.saveAndNavigate(userModelBuilder: userModelBuilder) }
-                        }
-                    }
-                )
-            }
-        )
-    }
-
     private func handleMissingUserDraft(userModelBuilder: UserModelBuilder) {
         isSaving = false
         isLoading = false
@@ -314,27 +302,7 @@ class OnboardingExpenditurePresenter {
             }
         )
     }
-
-    // MARK: - Timeout Helper
     
-    @discardableResult
-    private func performOperationWithTimeout<T: Sendable>(_ operation: @escaping @Sendable () async throws -> T) async throws -> T {
-        try await withThrowingTaskGroup(of: T.self) { group in
-            group.addTask {
-                try await operation()
-            }
-            group.addTask {
-                try await Task.sleep(for: .seconds(AuthConstants.authTimeout))
-                throw AuthTimeoutError.operationTimeout
-            }
-            guard let result = try await group.next() else {
-                throw AuthTimeoutError.operationTimeout
-            }
-            group.cancelAll()
-            return result
-        }
-    }
-
     private func defaultDateOfBirth() -> Date {
         Calendar.current.date(byAdding: .year, value: -30, to: Date()) ?? Date()
     }

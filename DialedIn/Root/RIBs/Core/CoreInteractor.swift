@@ -20,6 +20,7 @@ enum CoreInteractorError: Error {
 struct CoreInteractor {
     private let authManager: AuthManager
     private let userManager: UserManager
+    private let abTestManager: ABTestManager
     private let purchaseManager: PurchaseManager
     private let exerciseTemplateManager: ExerciseTemplateManager
     private let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
@@ -50,6 +51,7 @@ struct CoreInteractor {
     init(container: DependencyContainer) {
         self.authManager = container.resolve(AuthManager.self)!
         self.userManager = container.resolve(UserManager.self)!
+        self.abTestManager = container.resolve(ABTestManager.self)!
         self.purchaseManager = container.resolve(PurchaseManager.self)!
         self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
         self.exerciseUnitPreferenceManager = container.resolve(ExerciseUnitPreferenceManager.self)!
@@ -93,49 +95,13 @@ struct CoreInteractor {
     func getAuthId() throws -> String {
         try authManager.getAuthId()
     }
-    
-    func createUser(email: String, password: String) async throws -> UserAuthInfo {
-        try await authManager.createUser(email: email, password: password)
-    }
-    
-    func sendVerificationEmail() async throws {
-        try await authManager.sendVerificationEmail()
-    }
-    
-    func checkVerificationEmail() async throws -> Bool {
-        try await authManager.checkEmailVerification()
-    }
-    
-    func signInUser(email: String, password: String) async throws -> UserAuthInfo {
-        try await authManager.signInUser(email: email, password: password)
-    }
-    
-    func resetPassword(email: String) async throws {
-        try await authManager.resetPassword(email: email)
-    }
-    
-    func updateEmail(email: String) async throws {
-        try await authManager.updateEmail(email: email)
-    }
-    
-    func updatePassword(password: String) async throws {
-        try await authManager.updatePassword(password: password)
-    }
-    
-    func reauthenticate(email: String, password: String) async throws {
-        try await authManager.reauthenticate(email: email, password: password)
-    }
-        
-    func signInApple() async throws -> UserAuthInfo {
-        try await authManager.signInApple()
-    }
-    
+                
     func reauthenticateApple() async throws {
-        try await authManager.reauthenticateWithApple()
+       _ = try await authManager.signInApple()
     }
     
-    func signInGoogle() async throws -> UserAuthInfo {
-        try await authManager.signInGoogle()
+    func signInGoogle() async throws -> (UserAuthInfo, Bool) {
+        try await authManager.signInGoogle(GIDClientID: "")
     }
     
     func signOut() throws {
@@ -465,6 +431,20 @@ struct CoreInteractor {
         try await userManager.removeFavouritedRecipeTemplate(recipeId: recipeId)
     }
     
+    // MARK: ABTestManager
+    
+    var activeTests: ActiveABTests {
+        abTestManager.activeTests
+    }
+    
+    var notificationsABTest: Bool {
+        activeTests.notificationsTest
+    }
+    
+    func override(updatedTests: ActiveABTests) throws {
+        try abTestManager.override(updatedTests: updatedTests)
+    }
+
     // MARK: PurchaseManager
     
     func purchase() async throws {
@@ -1350,21 +1330,9 @@ struct CoreInteractor {
     }
     
     func trackScreenEvent(event: LoggableEvent) {
-        logManager.trackScreenEvent(event: event)
+        logManager.trackScreenView(event: event)
     }
-    
-    func handleAuthError(_ error: Error, operation: String, provider: String?) -> AuthErrorInfo {
-        AuthErrorHandler.handle(error, operation: operation, provider: provider, logManager: logManager)
-    }
-    
-    func handleAuthError(_ error: Error, operation: String) -> AuthErrorInfo {
-        AuthErrorHandler.handle(error, operation: operation, provider: nil, logManager: logManager)
-    }
-    
-    func handleUserLoginError(_ error: Error) -> AuthErrorInfo {
-        AuthErrorHandler.handleUserLoginError(error, logManager: logManager)
-    }
-    
+        
     // ReportManager
     
     func report(contentType: ReportContentType, contentId: String, authorUserId: String?, reason: ReportReason, notes: String?) async throws {

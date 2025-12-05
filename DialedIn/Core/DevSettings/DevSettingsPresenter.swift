@@ -22,7 +22,8 @@ class DevSettingsPresenter {
     private(set) var fetchError: String?
 
     var testSessionId = ""
-
+    var isInNotificationsABTest: Bool = false
+    
     init(
         interactor: DevSettingsInteractor,
         router: DevSettingsRouter
@@ -37,6 +38,34 @@ class DevSettingsPresenter {
     
     func userParams() -> [(key: String, value: Any)] {
         interactor.currentUser?.eventParameters.asAlphabeticalArray ?? []
+    }
+    
+    func loadABTests() {
+        isInNotificationsABTest = interactor.notificationsABTest
+    }
+
+    func handleNotificationTestChange(oldValue: Bool, newValue: Bool) {
+        updateTest(property: &isInNotificationsABTest, newValue: newValue, savedValue: interactor.activeTests.notificationsTest) { tests in
+            tests.update(notificationsTest: newValue)
+        }
+    }
+    
+    private func updateTest<Value: Equatable>(
+        property: inout Value,
+        newValue: Value,
+        savedValue: Value,
+        updateAction: (inout ActiveABTests) -> Void
+    ) {
+        if newValue != savedValue {
+            do {
+                var tests = interactor.activeTests
+                updateAction(&tests)
+                try interactor.override(updatedTests: tests)
+            } catch {
+                property = savedValue
+                router.showAlert(error: error)
+            }
+        }
     }
     
     func deviceParams() -> [(key: String, value: Any)] {

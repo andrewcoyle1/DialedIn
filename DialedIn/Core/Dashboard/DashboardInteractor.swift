@@ -6,6 +6,7 @@
 //
 
 protocol DashboardInteractor {
+    var notificationsABTest: Bool { get }
     func trackEvent(event: LoggableEvent)
 }
 

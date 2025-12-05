@@ -9,7 +9,7 @@
 protocol OnboardingWelcomeRouter {
     func showDevSettingsView()
     func showOnboardingIntroView()
-    func showAuthOptionsView()
+    func showOnboardingAuthView()
     func showSubscriptionView()
     func showOnboardingCompleteAccountSetupView()
     func showOnboardingNotificationsView()

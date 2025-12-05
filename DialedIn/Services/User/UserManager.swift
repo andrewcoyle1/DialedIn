@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftfulUtilities
+import SwiftfulAuthenticating
 
 @Observable
 class UserManager {
@@ -104,10 +105,10 @@ class UserManager {
     // MARK: - Remote operations
     // MARK: - User
     
-    func logIn(auth: UserAuthInfo, image: PlatformImage? = nil) async throws {
-        let creationVersion = auth.isNewUser ? Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String : nil
+    func logIn(auth: UserAuthInfo, image: PlatformImage? = nil, isNewUser: Bool = false) async throws {
+        let creationVersion = isNewUser ? Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String : nil
 
-        if auth.isNewUser {
+        if isNewUser {
             // Create initial profile for brand new users with first onboarding step
             var user = UserModel(auth: auth, creationVersion: creationVersion)
             user = UserModel(

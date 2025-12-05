@@ -1,5 +1,5 @@
 //
-//  EmailVerificationRouter.swift
+//  OnboardingAuthRouter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 27/11/2025.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @MainActor
-protocol EmailVerificationRouter {
+protocol OnboardingAuthRouter {
     func showDevSettingsView()
     func showOnboardingCompleteAccountSetupView()
     func showOnboardingNotificationsView()
@@ -17,10 +17,8 @@ protocol EmailVerificationRouter {
     func showOnboardingGoalSettingView()
     func showOnboardingCustomisingProgramView()
     func showOnboardingCompletedView()
-
-    func dismissScreen()
-
-    func showAlert(title: String, subtitle: String?, buttons: @escaping @Sendable () -> AnyView)
+    
+    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
 }
 
-extension OnbRouter: EmailVerificationRouter { }
+extension OnbRouter: OnboardingAuthRouter { }

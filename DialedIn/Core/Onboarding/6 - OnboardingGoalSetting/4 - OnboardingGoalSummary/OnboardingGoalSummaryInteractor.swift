@@ -16,7 +16,6 @@ protocol OnboardingGoalSummaryInteractor {
     ) async throws -> WeightGoal
     func updateOnboardingStep(step: OnboardingStep) async throws
     func updateCurrentGoalId(goalId: String?) async throws
-    func handleAuthError(_ error: Error, operation: String) -> AuthErrorInfo
     func trackEvent(event: LoggableEvent)
 }
 

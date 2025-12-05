@@ -181,12 +181,6 @@ struct CoreRouter: GlobalRouter {
         }
     }
 
-    func showCreateAccountView() {
-        router.showScreen(.fullScreenCover) { router in
-            builder.createAccountView(router: router)
-        }
-    }
-
     func showAddMealView(delegate: AddMealDelegate) {
         router.showScreen(.push) { router in
             builder.addMealView(router: router, delegate: delegate)

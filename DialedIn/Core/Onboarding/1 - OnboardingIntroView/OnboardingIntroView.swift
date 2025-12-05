@@ -110,7 +110,7 @@ struct OnboardingIntroView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                presenter.navigateToAuthOptions()
+                presenter.navigateToOnboardingAuth()
             } label: {
                 Image(systemName: "chevron.right")
             }

@@ -1,5 +1,5 @@
 //
-//  AuthOptionsPresenter.swift
+//  OnboardingAuthPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 20/10/2025.
@@ -10,9 +10,9 @@ import SwiftfulRouting
 
 @Observable
 @MainActor
-class AuthOptionsPresenter {
-    private let interactor: AuthOptionsInteractor
-    private let router: AuthOptionsRouter
+class OnboardingAuthPresenter {
+    private let interactor: OnboardingAuthInteractor
+    private let router: OnboardingAuthRouter
 
     private(set) var didTriggerLogin: Bool = false
     private(set) var currentAuthTask: Task<Void, Never>?
@@ -24,8 +24,8 @@ class AuthOptionsPresenter {
     }
 
     init(
-        interactor: AuthOptionsInteractor,
-        router: AuthOptionsRouter
+        interactor: OnboardingAuthInteractor,
+        router: OnboardingAuthRouter
     ) {
         self.interactor = interactor
         self.router = router
@@ -52,20 +52,26 @@ class AuthOptionsPresenter {
             interactor.trackEvent(event: Event.appleAuthStart)
             do {
                 // Get UserAuthInfo
-                let result = try await interactor.signInApple()
+                let (userAuthInfo, _) = try await interactor.signInApple()
                 interactor.trackEvent(event: Event.appleAuthSuccess)
 
                 // Proceed immediately to signing in the user on success
-                handleOnAuthSuccess(user: result)
+                handleOnAuthSuccess(user: userAuthInfo)
             } catch {
-                // Only show error if task wasn't cancelled
-                if !Task.isCancelled {
-                    handleAuthError(error, provider: "Apple") {
-                        Task { @MainActor in
-                            self.onSignInApplePressed()
-                        }
+                router.showAlert(
+                    title: "Error Signing in with Apple",
+                    subtitle: "Please check your internet connection and try again",
+                    buttons: {
+                        AnyView(
+                            HStack {
+                                Button("Cancel") { }
+                                Button("Try Again") {
+                                    self.onSignInApplePressed()
+                                }
+                            }
+                        )
                     }
-                }
+                )
             }
         }
     }
@@ -85,20 +91,26 @@ class AuthOptionsPresenter {
             // Begin auth
             interactor.trackEvent(event: Event.googleAuthStart)
             do {
-                let result = try await interactor.signInGoogle()
+                let (userAuthInfo, _) = try await interactor.signInGoogle()
                 interactor.trackEvent(event: Event.googleAuthSuccess)
 
                 // Proceed immediately to signing in the user on success
-                handleOnAuthSuccess(user: result)
+                handleOnAuthSuccess(user: userAuthInfo)
             } catch {
-                // Only show error if task wasn't cancelled
-                if !Task.isCancelled {
-                    handleAuthError(error, provider: "Google") {
-                        Task { @MainActor in
-                            self.onSignInGooglePressed()
-                        }
+                router.showAlert(
+                    title: "Error Signing in with Google",
+                    subtitle: "Please check your internet connection and try again",
+                    buttons: {
+                        AnyView(
+                            HStack {
+                                Button("Cancel") { }
+                                Button("Try Again") {
+                                    self.onSignInGooglePressed()
+                                }
+                            }
+                        )
                     }
-                }
+                )
             }
         }
     }
@@ -132,14 +144,24 @@ class AuthOptionsPresenter {
                     }
                 }
             } catch {
-                // Only show error if task wasn't cancelled
-                if !Task.isCancelled {
-                    handleUserLoginError(error) {
-                        Task { @MainActor in
-                            self.handleOnAuthSuccess(user: user)
-                        }
+                router.showAlert(
+                    title: "Error Logging In",
+                    subtitle: "Please check your internet connection and try again.",
+                    buttons: {
+                        AnyView(
+                            HStack {
+                                Button {
+                                    self.didTriggerLogin = false
+                                } label: {
+                                    Text("Cancel")
+                                }
+                                Button("Try Again") {
+                                    self.handleOnAuthSuccess(user: user)
+                                }
+                            }
+                        )
                     }
-                }
+                )
             }
         }
     }
@@ -182,67 +204,7 @@ class AuthOptionsPresenter {
             router.showOnboardingCompletedView()
         }
     }
-
-    // MARK: Auth Error
-    func handleAuthError(_ error: Error, provider: String, retryAction: @escaping @Sendable () -> Void) {
-        let errorInfo = interactor.handleAuthError(error, operation: "sign in", provider: provider)
-        
-        router.showAlert(
-            title: errorInfo.title,
-            subtitle: errorInfo.message,
-            buttons: {
-                AnyView(
-                    HStack {
-                        Button("Cancel") { }
-                        if errorInfo.isRetryable {
-                            Button("Try Again") {
-                                retryAction()
-                            }
-                        }
-                    }
-                )
-            }
-        )
-    }
-    
-    // MARK: User Error
-    func handleUserLoginError(_ error: Error, retryAction: @escaping @Sendable () -> Void) {
-        let errorInfo = interactor.handleUserLoginError(error)
-        
-        router.showAlert(
-            title: errorInfo.title,
-            subtitle: errorInfo.message,
-            buttons: {
-                AnyView(
-                    HStack {
-                        Button {
-                            self.didTriggerLogin = false
-                        } label: {
-                            Text("Cancel")
-                        }
-                        if errorInfo.isRetryable {
-                            Button("Try Again") {
-                                retryAction()
-                            }
-                        }
-                    }
-                )
-            }
-        )
-    }
-    
-    // MARK: Sign Up Pressed
-    func signUpPressed() {
-        interactor.trackEvent(event: Event.signUpPressed)
-        router.showSignUpView()
-    }
-    
-    // MARK: Sign In Pressed
-    func signInPressed() {
-        interactor.trackEvent(event: Event.signUpPressed)
-        router.showSignInView()
-    }
-    
+            
     // MARK: Cleanup Tasks
     func cleanUp() {
         currentAuthTask?.cancel()

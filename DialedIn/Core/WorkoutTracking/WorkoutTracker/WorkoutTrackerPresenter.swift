@@ -162,11 +162,11 @@ protocol WorkoutTrackerRouter {
     func showDevSettingsView()
     func showAddExercisesView(delegate: AddExerciseModalDelegate)
     func showWorkoutNotesView(delegate: WorkoutNotesDelegate)
-
+    
     func dismissScreen()
-
+    
     func showSimpleAlert(title: String, subtitle: String?)
-    func showAlert(title: String, subtitle: String?, buttons: @escaping @Sendable () -> AnyView)
+    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
 }
 
 extension CoreRouter: WorkoutTrackerRouter { }

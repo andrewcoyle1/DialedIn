@@ -8,7 +8,6 @@
 protocol OnboardingExpenditureInteractor: Sendable {
     func saveCompleteAccountSetupProfile(userBuilder: UserModelBuilder, onboardingStep: OnboardingStep) async throws -> UserModel
     func estimateTDEE(user: UserModel?) -> Double
-    func handleAuthError(_ error: Error, operation: String) -> AuthErrorInfo
     func updateOnboardingStep(step: OnboardingStep) async throws
     func canRequestNotificationAuthorisation() async -> Bool
     func canRequestHealthDataAuthorisation() -> Bool

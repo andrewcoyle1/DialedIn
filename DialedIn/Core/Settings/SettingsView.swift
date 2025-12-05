@@ -43,7 +43,7 @@ struct SettingsView: View {
             if presenter.isAnonymousUser {
                 Text("Save & back-up account")
                     .anyButton(.highlight) {
-                        presenter.onCreateAccountPressed()
+
                     }
             } else {
                 Text("Sign out")

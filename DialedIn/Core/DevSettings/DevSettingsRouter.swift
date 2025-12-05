@@ -6,9 +6,7 @@
 //
 
 @MainActor
-protocol DevSettingsRouter {
-    func dismissScreen()
-}
+protocol DevSettingsRouter: GlobalRouter { }
 
 extension CoreRouter: DevSettingsRouter { }
 

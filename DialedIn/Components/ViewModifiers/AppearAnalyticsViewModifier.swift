@@ -15,10 +15,10 @@ struct AppearAnalyticsViewModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onAppear {
-                logManager.trackScreenEvent(event: Event.appear(name: name))
+                logManager.trackScreenView(event: Event.appear(name: name))
             }
             .onDisappear {
-                logManager.trackEvent(event: Event.disappear(name: name))
+                logManager.trackScreenView(event: Event.disappear(name: name))
             }
     }
     

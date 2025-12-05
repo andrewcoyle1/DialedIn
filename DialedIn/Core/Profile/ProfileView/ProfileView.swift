@@ -51,7 +51,7 @@ struct ProfileView: View {
     var createProfileSection: some View {
         Section {
             Button {
-                presenter.onCreateAccountPressed()
+                // TODO: Update this 
             } label: {
                 CustomListCellView(
                     imageName: nil,

@@ -41,7 +41,7 @@ class OnboardingWelcomePresenter {
         interactor.trackEvent(event: Event.navigate)
         switch step {
         case .auth:
-            router.showAuthOptionsView()
+            router.showOnboardingAuthView()
             
         case .subscription:
             router.showSubscriptionView()

@@ -9,7 +9,6 @@
 protocol ProfileRouter {
     func showNotificationsView()
     func showDevSettingsView()
-    func showCreateAccountView()
     func showSettingsView()
 }
 

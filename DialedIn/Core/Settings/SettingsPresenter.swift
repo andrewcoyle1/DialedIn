@@ -129,13 +129,7 @@ class SettingsPresenter {
             }
         }
     }
-    
-    func onCreateAccountPressed() {
-        interactor.trackEvent(event: Event.createAccountPressed)
-
-        router.showCreateAccountView()
-    }
-    
+        
     /// Logger Events
     enum Event: LoggableEvent {
         case signOutStart
@@ -145,7 +139,6 @@ class SettingsPresenter {
         case deleteAccountStartConfirm
         case deleteAccountSuccess
         case deleteAccountFail(error: Error)
-        case createAccountPressed
         case contactUsPressed
         case ratingsPressed
         case ratingsYesPressed
@@ -161,7 +154,6 @@ class SettingsPresenter {
             case .deleteAccountStartConfirm:    return "Settings_DeleteAccount_StartConfirm"
             case .deleteAccountSuccess:         return "Settings_DeleteAccount_Success"
             case .deleteAccountFail:            return "Settings_DeleteAccount_Fail"
-            case .createAccountPressed:         return "Settings_CreateAccount_Press"
             case .contactUsPressed:             return "Settings_ContactUs_Press"
             case .ratingsPressed:               return "Settings_Ratings_Press"
             case .ratingsYesPressed:            return "Settings_RatingsYes_Press"

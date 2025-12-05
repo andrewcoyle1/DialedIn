@@ -1,5 +1,5 @@
 //
-//  AuthOptionsView.swift
+//  OnboardingAuthView.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 03/10/2025.
@@ -8,11 +8,11 @@
 import SwiftUI
 import SwiftfulRouting
 
-struct AuthOptionsView: View {
+struct OnboardingAuthView: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
-    @State var presenter: AuthOptionsPresenter
+    @State var presenter: OnboardingAuthPresenter
 
     var body: some View {
         VStack {
@@ -20,8 +20,6 @@ struct AuthOptionsView: View {
             Group {
                 SignInWithAppleButtonView { presenter.onSignInApplePressed() }
                 SignInWithGoogleButtonView { presenter.onSignInGooglePressed() }
-                signUpButtonSection
-                signInButtonSection
                 tsAndCsSection
             }
             .padding(.horizontal)
@@ -67,36 +65,6 @@ struct AuthOptionsView: View {
             }
     }
 
-    private var signUpButtonSection: some View {
-        Button {
-            presenter.signUpPressed()
-        } label: {
-            HStack {
-                Text("Sign Up With Email")
-                    .font(.system(size: 21))
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: AuthConstants.buttonHeight/1.5)
-        }
-        .buttonStyle(.borderedProminent)
-        .frame(maxWidth: 408)
-    }
-
-    private var signInButtonSection: some View {
-        Button {
-            presenter.signInPressed()
-        } label: {
-            HStack {
-                Text("Sign In With Email")
-                    .font(.system(size: 21))
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: AuthConstants.buttonHeight/1.5)
-        }
-        .buttonStyle(.bordered)
-        .frame(maxWidth: 408)
-    }
-
     private var tsAndCsSection: some View {
         Text("By continuing, you agree to our [Terms of Service](Constants.termsofServiceURL) and [Privacy Policy](Constants.privacyPolicyURL)")
             .font(.caption)
@@ -114,7 +82,7 @@ struct AuthOptionsView: View {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
 
     RouterView { router in
-        builder.onboardingAuthOptionsView(router: router)
+        builder.onboardingOnboardingAuthView(router: router)
     }
     .previewEnvironment()
 }
@@ -123,7 +91,7 @@ struct AuthOptionsView: View {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
 
     RouterView { router in
-        builder.onboardingAuthOptionsView(router: router)
+        builder.onboardingOnboardingAuthView(router: router)
     }
     .previewEnvironment()
 }
@@ -132,7 +100,7 @@ struct AuthOptionsView: View {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
 
     RouterView { router in
-        builder.onboardingAuthOptionsView(router: router)
+        builder.onboardingOnboardingAuthView(router: router)
     }
     .previewEnvironment()
 }
@@ -141,7 +109,7 @@ struct AuthOptionsView: View {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
 
     RouterView { router in
-        builder.onboardingAuthOptionsView(router: router)
+        builder.onboardingOnboardingAuthView(router: router)
     }
     .previewEnvironment()
 }
@@ -150,7 +118,7 @@ struct AuthOptionsView: View {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
 
     RouterView { router in
-        builder.onboardingAuthOptionsView(router: router)
+        builder.onboardingOnboardingAuthView(router: router)
     }
     .previewEnvironment()
 }

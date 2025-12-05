@@ -10,6 +10,7 @@ import SwiftUI
 struct RootInteractor {
     private let authManager: AuthManager
     private let userManager: UserManager
+    private let abTestManager: ABTestManager
     private let appState: AppState
     private let pushManager: PushManager
     private let logManager: LogManager
@@ -18,6 +19,7 @@ struct RootInteractor {
     init(container: DependencyContainer) {
         self.authManager = container.resolve(AuthManager.self)!
         self.userManager = container.resolve(UserManager.self)!
+        self.abTestManager = container.resolve(ABTestManager.self)!
         self.appState = container.resolve(AppState.self)!
         self.pushManager = container.resolve(PushManager.self)!
         self.logManager = container.resolve(LogManager.self)!

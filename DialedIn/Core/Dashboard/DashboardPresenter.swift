@@ -18,6 +18,9 @@ class DashboardPresenter {
     private(set) var contributionChartData: [Double] = []
     private(set) var chartEndDate: Date = Date()
         
+    var isInNotificationsABTest: Bool {
+        interactor.notificationsABTest
+    }
     init(
         interactor: DashboardInteractor,
         router: DashboardRouter

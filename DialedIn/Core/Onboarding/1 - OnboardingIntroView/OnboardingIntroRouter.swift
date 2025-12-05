@@ -7,7 +7,7 @@
 
 protocol OnboardingIntroRouter {
     func showDevSettingsView()
-    func showAuthOptionsView()
+    func showOnboardingAuthView()
 }
 
 extension OnbRouter: OnboardingIntroRouter { }

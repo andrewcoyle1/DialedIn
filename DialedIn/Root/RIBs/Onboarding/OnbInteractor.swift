@@ -8,9 +8,10 @@
 import Foundation
 
 struct OnbInteractor {
-    
+    private let gIDClientID: String
     private let authManager: AuthManager
     private let userManager: UserManager
+    private let abTestManager: ABTestManager
     private let purchaseManager: PurchaseManager
     private let workoutSessionManager: WorkoutSessionManager
     private let exerciseTemplateManager: ExerciseTemplateManager
@@ -25,8 +26,10 @@ struct OnbInteractor {
     private let appState: AppState
 
     init(container: DependencyContainer) {
+        self.gIDClientID = ""
         self.authManager = container.resolve(AuthManager.self)!
         self.userManager = container.resolve(UserManager.self)!
+        self.abTestManager = container.resolve(ABTestManager.self)!
         self.purchaseManager = container.resolve(PurchaseManager.self)!
         self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
@@ -39,7 +42,6 @@ struct OnbInteractor {
         self.healthKitManager = container.resolve(HealthKitManager.self)!
         self.goalManager = container.resolve(GoalManager.self)!
         self.pushManager = container.resolve(PushManager.self)!
-
     }
     
     var currentUser: UserModel? {
@@ -54,12 +56,12 @@ struct OnbInteractor {
         logManager.trackEvent(event: event)
     }
     
-    func signInApple() async throws -> UserAuthInfo {
+    func signInApple() async throws -> (UserAuthInfo, Bool) {
         try await authManager.signInApple()
     }
     
-    func signInGoogle() async throws -> UserAuthInfo {
-        try await authManager.signInGoogle()
+    func signInGoogle() async throws -> (UserAuthInfo, Bool) {
+        try await authManager.signInGoogle(GIDClientID: gIDClientID)
     }
     
     func logIn(auth: UserAuthInfo, image: PlatformImage? = nil) async throws {
@@ -70,32 +72,19 @@ struct OnbInteractor {
         trainingPlanManager.startSyncListener(userId: userId)
     }
 
-    func handleAuthError(_ error: Error, operation: String, provider: String?) -> AuthErrorInfo {
-        AuthErrorHandler.handle(error, operation: operation, provider: provider, logManager: logManager)
-    }
-
-    func handleUserLoginError(_ error: Error) -> AuthErrorInfo {
-        AuthErrorHandler.handleUserLoginError(error, logManager: logManager)
-    }
-
     func updateAppState(showTabBarView: Bool) {
         appState.updateViewState(showTabBarView: showTabBarView)
     }
-
-    func signInUser(email: String, password: String) async throws -> UserAuthInfo {
-        try await authManager.signInUser(email: email, password: password)
+    
+    var activeTests: ActiveABTests {
+        abTestManager.activeTests
+    }
+    var notificationsABTest: Bool {
+        activeTests.notificationsTest
     }
 
-    func checkVerificationEmail() async throws -> Bool {
-        try await authManager.checkEmailVerification()
-    }
-
-    func handleAuthError(_ error: Error, operation: String) -> AuthErrorInfo {
-        AuthErrorHandler.handle(error, operation: operation, provider: nil, logManager: logManager)
-    }
-
-    func createUser(email: String, password: String) async throws -> UserAuthInfo {
-        try await authManager.createUser(email: email, password: password)
+    func override(updatedTests: ActiveABTests) throws {
+        try abTestManager.override(updatedTests: updatedTests)
     }
 
     func getBuiltInTemplates() -> [ProgramTemplateModel] {
@@ -198,10 +187,6 @@ struct OnbInteractor {
         try authManager.signOut()
     }
     
-    func sendVerificationEmail() async throws {
-        try await authManager.sendVerificationEmail()
-    }
-
     func purchase() async throws {
         try await purchaseManager.purchase()
     }

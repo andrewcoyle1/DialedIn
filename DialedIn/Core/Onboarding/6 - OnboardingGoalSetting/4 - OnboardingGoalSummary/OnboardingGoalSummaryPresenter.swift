@@ -42,13 +42,19 @@ class OnboardingGoalSummaryPresenter {
         Task {
             guard let user = interactor.currentUser,
                   let startingWeight = user.weightKilograms else {
-                handleSaveError(NSError(domain: "GoalError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Current weight not available"]))
+                router.showSimpleAlert(
+                    title: "Unable to save your Goal",
+                    subtitle: "Current weight not available."
+                )
                 return
             }
 
             guard let target = weightGoalBuilder.targetWeightKg,
                   let weekly = weightGoalBuilder.weeklyChangeKg else {
-                handleSaveError(NSError(domain: "GoalError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Goal details incomplete"]))
+                router.showSimpleAlert(
+                    title: "Unable to save your Goal",
+                    subtitle: "Goal details incomplete."
+                )
                 return
             }
 
@@ -72,19 +78,14 @@ class OnboardingGoalSummaryPresenter {
                 await navigateToCustomisingProgram()
             } catch {
                 interactor.trackEvent(event: Event.goalSaveFail(error: error))
-                handleSaveError(error)
+                router.showSimpleAlert(
+                    title: "Unable to save your Goal",
+                    subtitle: "Please check your internet connection and try again."
+                )
             }
         }
     }
-    
-    private func handleSaveError(_ error: Error) {
-        let errorInfo = interactor.handleAuthError(error, operation: "save goal settings")
-        router.showSimpleAlert(
-            title: errorInfo.title,
-            subtitle: errorInfo.message
-        )
-    }
-    
+        
     // MARK: - Computed Properties
     
     var currentWeight: Double? {

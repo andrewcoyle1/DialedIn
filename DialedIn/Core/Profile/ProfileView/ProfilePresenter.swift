@@ -54,10 +54,6 @@ class ProfilePresenter {
         router.showDevSettingsView()
     }
 
-    func onCreateAccountPressed() {
-        router.showCreateAccountView()
-    }
-
     enum Event: LoggableEvent {
         case navigate
 

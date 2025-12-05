@@ -14,6 +14,7 @@ struct DevSettingsView: View {
 
     var body: some View {
         List {
+            abTestSection
             debugActionsSection
             authSection
             userSection
@@ -34,8 +35,11 @@ struct DevSettingsView: View {
                 backButtonView
             }
         }
+        .onFirstAppear {
+            presenter.loadABTests()
+        }
     }
-    
+        
     private var backButtonView: some View {
         Image(systemName: "xmark")
             .anyButton {
@@ -62,6 +66,17 @@ struct DevSettingsView: View {
             }
         } header: {
             Text("User Info")
+        }
+    }
+    
+    private var abTestSection: some View {
+        Section {
+            Toggle("Notifications Test", isOn: $presenter.isInNotificationsABTest)
+                .onChange(of: presenter.isInNotificationsABTest, presenter.handleNotificationTestChange)
+                .font(.caption)
+
+        } header: {
+            Text("AB Tests")
         }
     }
     
@@ -441,6 +456,8 @@ struct DevSettingsView: View {
                 Text("Clear local data & sign out")
             }
             .tint(.red)
+            .font(.caption)
+
         } header: {
             Text("Debug Actions")
         } footer: {

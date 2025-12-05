@@ -7,6 +7,51 @@
 
 import SwiftUI
 
+@_exported import SwiftfulRouting
+typealias RouterView = SwiftfulRouting.RouterView
+typealias Router = SwiftfulRouting.AnyRouter
+typealias AlertStyle = SwiftfulRouting.AlertStyle
+
+@_exported import SwiftfulAuthenticating
+import SwiftfulAuthenticatingFirebase
+typealias UserAuthInfo = SwiftfulAuthenticating.UserAuthInfo
+typealias AuthManager = SwiftfulAuthenticating.AuthManager
+typealias MockAuthService = SwiftfulAuthenticating.MockAuthService
+
+@_exported import SwiftfulLogging
+import SwiftfulLoggingMixpanel
+import SwiftfulLoggingFirebaseAnalytics
+import SwiftfulLoggingFirebaseCrashlytics
+typealias LogManager = SwiftfulLogging.LogManager
+typealias LoggableEvent = SwiftfulLogging.LoggableEvent
+typealias LogType = SwiftfulLogging.LogType
+typealias LogService = SwiftfulLogging.LogService
+typealias AnyLoggableEvent = SwiftfulLogging.AnyLoggableEvent
+typealias MixpanelService = SwiftfulLoggingMixpanel.MixpanelService
+typealias FirebaseAnalyticsService = SwiftfulLoggingFirebaseAnalytics.FirebaseAnalyticsService
+
+extension AuthLogType {
+    
+    var type: LogType {
+        switch self {
+        case .info:
+            return .info
+        case .analytic:
+            return .analytic
+        case .warning:
+            return .warning
+        case .severe:
+            return .severe
+        }
+    }
+}
+
+extension LogManager: @retroactive AuthLogger {
+    public func trackEvent(event: any AuthLogEvent) {
+        trackEvent(eventName: event.eventName, parameters: event.parameters, type: event.type.type)
+    }
+}
+
 @MainActor
 struct Dependencies {
     let container: DependencyContainer
@@ -17,7 +62,11 @@ struct Dependencies {
         
         let authManager: AuthManager
         let userManager: UserManager
+        let abTestManager: ABTestManager
+        let logManager: LogManager
         let purchaseManager: PurchaseManager
+        let appState: AppState
+
         let exerciseTemplateManager: ExerciseTemplateManager
         let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
         let workoutTemplateManager: WorkoutTemplateManager
@@ -41,13 +90,16 @@ struct Dependencies {
         let hkWorkoutManager: HKWorkoutManager
         let liveActivityManager: LiveActivityManager
         #endif
-        let appState: AppState
         let imageUploadManager: ImageUploadManager
         
         switch config {
         case .mock(isSignedIn: let isSignedIn):
+            logManager = LogManager(services: [
+                ConsoleService(printParameters: true)
+            ])
             authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil))
             userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
+            abTestManager = ABTestManager(service: MockABTestService(), logger: logManager)
             purchaseManager = PurchaseManager(services: MockPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
@@ -65,9 +117,6 @@ struct Dependencies {
             nutritionManager = NutritionManager(services: MockNutritionServices())
             mealLogManager = MealLogManager(services: MockMealLogServices(mealsByDay: MealLogModel.mockWeekMealsByDay))
             aiManager = AIManager(service: MockAIService())
-            logManager = LogManager(services: [
-                ConsoleService(printParameters: true)
-            ])
             reportManager = ReportManager(service: MockReportService(), userManager: userManager, logManager: logManager)
             trainingAnalyticsManager = TrainingAnalyticsManager(services: MockTrainingAnalyticsServices())
             userWeightManager = UserWeightManager(services: MockUserWeightServices())
@@ -79,22 +128,25 @@ struct Dependencies {
             #endif
             appState = AppState(showTabBar: isSignedIn)
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
+            pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
+            healthKitManager = HealthKitManager(service: HealthKitService())
 
         case .dev:
-            let logs = LogManager(services: [
-                ConsoleService(),
+            logManager = LogManager(services: [
+                ConsoleService(printParameters: true),
                 FirebaseAnalyticsService(),
                 MixpanelService(token: Keys.mixpanelToken, loggingEnabled: false),
                 FirebaseCrashlyticsService()
             ])
             
-            authManager = AuthManager(service: FirebaseAuthService(), logManager: logs)
-            userManager = UserManager(services: ProductionUserServices(), logManager: logs)
+            authManager = AuthManager(service: FirebaseAuthService(), logger: logManager)
+            userManager = UserManager(services: ProductionUserServices(), logManager: logManager)
+            abTestManager = ABTestManager(service: LocalABTestService(), logger: logManager)
             purchaseManager = PurchaseManager(services: ProductionPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
-            workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices(logManager: logs))
+            workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices(logManager: logManager))
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices(), workoutTemplateResolver: workoutTemplateManager)
             programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: SwiftProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()), workoutTemplateResolver: workoutTemplateManager)
@@ -107,8 +159,7 @@ struct Dependencies {
             nutritionManager = NutritionManager(services: ProductionNutritionServices())
             mealLogManager = MealLogManager(services: ProductionMealLogServices())
             aiManager = AIManager(service: GoogleAIService())
-            logManager = logs
-            reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
+            reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logManager)
             trainingAnalyticsManager = TrainingAnalyticsManager(services: ProductionTrainingAnalyticsServices(workoutSessionManager: workoutSessionManager, exerciseTemplateManager: exerciseTemplateManager))
             userWeightManager = UserWeightManager(services: ProductionUserWeightServices())
             goalManager = GoalManager(services: ProductionGoalServices())
@@ -119,21 +170,24 @@ struct Dependencies {
             #endif
             appState = AppState()
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
+            pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
+            healthKitManager = HealthKitManager(service: HealthKitService())
 
         case .prod:
-            let logs = LogManager(services: [
+            logManager = LogManager(services: [
                 ConsoleService(),
                 FirebaseAnalyticsService(),
                 MixpanelService(token: Keys.mixpanelToken),
                 FirebaseCrashlyticsService()
             ])
-            authManager = AuthManager(service: FirebaseAuthService(), logManager: logs)
-            userManager = UserManager(services: ProductionUserServices(), logManager: logs)
+            authManager = AuthManager(service: FirebaseAuthService(), logger: logManager)
+            userManager = UserManager(services: ProductionUserServices(), logManager: logManager)
+            abTestManager = ABTestManager(service: LocalABTestService(), logger: logManager)
             purchaseManager = PurchaseManager(services: ProductionPurchaseServices())
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
-            workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices(logManager: logs))
+            workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices(logManager: logManager))
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices(), workoutTemplateResolver: workoutTemplateManager)
             programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: SwiftProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()), workoutTemplateResolver: workoutTemplateManager)
@@ -146,8 +200,7 @@ struct Dependencies {
             nutritionManager = NutritionManager(services: ProductionNutritionServices())
             mealLogManager = MealLogManager(services: ProductionMealLogServices())
             aiManager = AIManager(service: GoogleAIService())
-            logManager = logs
-            reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logs)
+            reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logManager)
             trainingAnalyticsManager = TrainingAnalyticsManager(services: ProductionTrainingAnalyticsServices(workoutSessionManager: workoutSessionManager, exerciseTemplateManager: exerciseTemplateManager))
             userWeightManager = UserWeightManager(services: ProductionUserWeightServices())
             goalManager = GoalManager(services: ProductionGoalServices())
@@ -158,15 +211,16 @@ struct Dependencies {
             #endif
             appState = AppState()
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
+            pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
+            healthKitManager = HealthKitManager(service: HealthKitService())
         }
 
-        pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
-        healthKitManager = HealthKitManager(service: HealthKitService())
-        
         let container = DependencyContainer()
         container.register(AuthManager.self, service: authManager)
         container.register(UserManager.self, service: userManager)
+        container.register(ABTestManager.self, service: abTestManager)
         container.register(PurchaseManager.self, service: purchaseManager)
+        container.register(LogManager.self, service: logManager)
         container.register(ExerciseTemplateManager.self, service: exerciseTemplateManager)
         container.register(ExerciseUnitPreferenceManager.self, service: exerciseUnitPreferenceManager)
         container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
@@ -180,7 +234,6 @@ struct Dependencies {
         container.register(MealLogManager.self, service: mealLogManager)
         container.register(PushManager.self, service: pushManager)
         container.register(AIManager.self, service: aiManager)
-        container.register(LogManager.self, service: logManager)
         container.register(ReportManager.self, service: reportManager)
         container.register(HealthKitManager.self, service: healthKitManager)
         container.register(TrainingAnalyticsManager.self, service: trainingAnalyticsManager)
@@ -192,6 +245,8 @@ struct Dependencies {
         #endif
         container.register(AppState.self, service: appState)
         container.register(ImageUploadManager.self, service: imageUploadManager)
+        
+        self.logManager = logManager
         self.container = container
     }
 }
@@ -211,6 +266,7 @@ class DevPreview {
         let container = DependencyContainer()
         container.register(AuthManager.self, service: authManager)
         container.register(UserManager.self, service: userManager)
+        container.register(ABTestManager.self, service: abTestManager)
         container.register(PurchaseManager.self, service: purchaseManager)
         container.register(ExerciseTemplateManager.self, service: exerciseTemplateManager)
         container.register(ExerciseUnitPreferenceManager.self, service: exerciseUnitPreferenceManager)
@@ -242,6 +298,7 @@ class DevPreview {
     
     let authManager: AuthManager
     let userManager: UserManager
+    let abTestManager: ABTestManager
     let purchaseManager: PurchaseManager
     let exerciseTemplateManager: ExerciseTemplateManager
     let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
@@ -277,8 +334,9 @@ class DevPreview {
         let hkWorkoutManager = HKWorkoutManager()
         #endif
         
-        self.authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil), logManager: logManager)
+        self.authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil), logger: logManager)
         self.userManager = userManager
+        self.abTestManager = ABTestManager(service: MockABTestService(), logger: logManager)
         self.purchaseManager = PurchaseManager(services: MockPurchaseServices())
         self.exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
         self.exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
