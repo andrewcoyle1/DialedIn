@@ -187,10 +187,6 @@ struct OnbInteractor {
         try authManager.signOut()
     }
     
-    func purchase() async throws {
-        try await purchaseManager.purchase()
-    }
-
     func saveUser(user: UserModel, image: PlatformImage? = nil) async throws {
         try await userManager.saveUser(user: user, image: image)
     }

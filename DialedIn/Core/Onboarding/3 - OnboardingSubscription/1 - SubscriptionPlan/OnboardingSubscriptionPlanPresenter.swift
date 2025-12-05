@@ -52,7 +52,7 @@ class OnboardingSubscriptionPlanPresenter {
         Task {
             defer { isPurchasing = false }
             do {
-                try await interactor.purchase()
+                // TODO: Add purchasing
                 try await handleNavigation()
             } catch {
                 router.showSimpleAlert(title: "Subscription Failed", subtitle: "We were unable to setup your subscription. Please try again.")

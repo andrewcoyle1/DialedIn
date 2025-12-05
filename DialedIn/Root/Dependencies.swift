@@ -18,6 +18,14 @@ typealias UserAuthInfo = SwiftfulAuthenticating.UserAuthInfo
 typealias AuthManager = SwiftfulAuthenticating.AuthManager
 typealias MockAuthService = SwiftfulAuthenticating.MockAuthService
 
+@_exported import SwiftfulPurchasing
+import SwiftfulPurchasingRevenueCat
+typealias PurchaseManager = SwiftfulPurchasing.PurchaseManager
+typealias PurchaseProfileAttributes = SwiftfulPurchasing.PurchaseProfileAttributes
+typealias PurchasedEntitlement = SwiftfulPurchasing.PurchasedEntitlement
+typealias AnyProduct = SwiftfulPurchasing.AnyProduct
+typealias MockPurchaseService = SwiftfulPurchasing.MockPurchaseService
+
 @_exported import SwiftfulLogging
 import SwiftfulLoggingMixpanel
 import SwiftfulLoggingFirebaseAnalytics
@@ -48,6 +56,27 @@ extension AuthLogType {
 
 extension LogManager: @retroactive AuthLogger {
     public func trackEvent(event: any AuthLogEvent) {
+        trackEvent(eventName: event.eventName, parameters: event.parameters, type: event.type.type)
+    }
+}
+
+extension PurchaseLogType {
+    
+    var type: LogType {
+        switch self {
+        case .info:
+            return .info
+        case .analytic:
+            return .analytic
+        case .warning:
+            return .warning
+        case .severe:
+            return .severe
+        }
+    }
+}
+extension LogManager: @retroactive PurchaseLogger {
+    public func trackEvent(event: any PurchaseLogEvent) {
         trackEvent(eventName: event.eventName, parameters: event.parameters, type: event.type.type)
     }
 }
@@ -100,7 +129,7 @@ struct Dependencies {
             authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil))
             userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
             abTestManager = ABTestManager(service: MockABTestService(), logger: logManager)
-            purchaseManager = PurchaseManager(services: MockPurchaseServices())
+            purchaseManager = PurchaseManager(service: MockPurchaseService())
             exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: exerciseTemplateManager)
@@ -142,7 +171,7 @@ struct Dependencies {
             authManager = AuthManager(service: FirebaseAuthService(), logger: logManager)
             userManager = UserManager(services: ProductionUserServices(), logManager: logManager)
             abTestManager = ABTestManager(service: LocalABTestService(), logger: logManager)
-            purchaseManager = PurchaseManager(services: ProductionPurchaseServices())
+            purchaseManager = PurchaseManager(service: StoreKitPurchaseService(), logger: logManager)
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
@@ -183,7 +212,7 @@ struct Dependencies {
             authManager = AuthManager(service: FirebaseAuthService(), logger: logManager)
             userManager = UserManager(services: ProductionUserServices(), logManager: logManager)
             abTestManager = ABTestManager(service: FirebaseABTestService(), logger: logManager)
-            purchaseManager = PurchaseManager(services: ProductionPurchaseServices())
+            purchaseManager = PurchaseManager(service: StoreKitPurchaseService())
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
@@ -337,7 +366,7 @@ class DevPreview {
         self.authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil), logger: logManager)
         self.userManager = userManager
         self.abTestManager = ABTestManager(service: MockABTestService(), logger: logManager)
-        self.purchaseManager = PurchaseManager(services: MockPurchaseServices())
+        self.purchaseManager = PurchaseManager(service: MockPurchaseService())
         self.exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
         self.exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
         self.workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: ExerciseTemplateManager(services: MockExerciseTemplateServices()))

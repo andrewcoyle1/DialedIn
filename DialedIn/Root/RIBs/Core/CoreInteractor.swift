@@ -444,12 +444,6 @@ struct CoreInteractor {
     func override(updatedTests: ActiveABTests) throws {
         try abTestManager.override(updatedTests: updatedTests)
     }
-
-    // MARK: PurchaseManager
-    
-    func purchase() async throws {
-        try await purchaseManager.purchase()
-    }
     
     // MARK: ExerciseTemplateManager
     

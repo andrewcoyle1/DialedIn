@@ -74,6 +74,9 @@
             ReferencedContainer = "container:DialedIn.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <StoreKitConfigurationFileReference
+         identifier = "../../DialedIn/Services/Purchases/StoreKit/DialedInPurchaseConfiguration.storekit">
+      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

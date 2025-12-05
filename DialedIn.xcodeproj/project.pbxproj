@@ -62,6 +62,9 @@
 		D0E7AA6F2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7AA6E2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics */; };
 		D0E7AA722EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7AA712EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics */; };
 		D0E7D5A32EE3139400BEE79F /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7D5A22EE3139400BEE79F /* FirebaseRemoteConfig */; };
+		D0E7D5A72EE31E7F00BEE79F /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0E7D5A62EE31E7F00BEE79F /* StoreKit.framework */; };
+		D0E7D5AA2EE31EDD00BEE79F /* SwiftfulPurchasing in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7D5A92EE31EDD00BEE79F /* SwiftfulPurchasing */; };
+		D0E7D5AD2EE31EF800BEE79F /* SwiftfulPurchasingRevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7D5AC2EE31EF800BEE79F /* SwiftfulPurchasingRevenueCat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -133,6 +136,7 @@
 		D0CE844D2EAAC4E900C3CCBE /* DialedInWatchApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DialedInWatchApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0DB1C922EA1901800682653 /* MetricsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsModel.swift; sourceTree = "<group>"; };
 		D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeView.swift; sourceTree = "<group>"; };
+		D0E7D5A62EE31E7F00BEE79F /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -604,13 +608,6 @@
 				Services/Nutrition/RecipeTemplate/Services/RecipeTemplateServices.swift,
 				Services/Nutrition/RecipeTemplate/Services/Remote/MockRecipeTemplateService.swift,
 				Services/Nutrition/RecipeTemplate/Services/Remote/RemoteRecipeTemplateService.swift,
-				Services/Purchase/PurchaseManager.swift,
-				Services/Purchase/Services/Local/LocalPurchasePersistence.swift,
-				Services/Purchase/Services/Local/MockPurchasePersistence.swift,
-				Services/Purchase/Services/MockPurchaseServices.swift,
-				Services/Purchase/Services/PurchaseServices.swift,
-				Services/Purchase/Services/Remote/MockPurchaseService.swift,
-				Services/Purchase/Services/Remote/RemotePurchaseService.swift,
 				Services/Push/PushManager.swift,
 				Services/Push/Services/Local/LocalPushService.swift,
 				Services/Push/Services/Local/MockLocalPushService.swift,
@@ -1466,16 +1463,6 @@
 				Services/Nutrition/RecipeTemplate/Services/Remote/FirebaseRecipeTemplateService.swift,
 				Services/Nutrition/RecipeTemplate/Services/Remote/MockRecipeTemplateService.swift,
 				Services/Nutrition/RecipeTemplate/Services/Remote/RemoteRecipeTemplateService.swift,
-				Services/Purchase/PurchaseManager.swift,
-				Services/Purchase/Services/Local/LocalPurchasePersistence.swift,
-				Services/Purchase/Services/Local/MockPurchasePersistence.swift,
-				Services/Purchase/Services/Local/SwiftPurchasePersistence.swift,
-				Services/Purchase/Services/MockPurchaseServices.swift,
-				Services/Purchase/Services/ProductionPurchaseServices.swift,
-				Services/Purchase/Services/PurchaseServices.swift,
-				Services/Purchase/Services/Remote/FirebasePurchaseService.swift,
-				Services/Purchase/Services/Remote/MockPurchaseService.swift,
-				Services/Purchase/Services/Remote/RemotePurchaseService.swift,
 				Services/Push/PushManager.swift,
 				Services/Push/Services/Local/LocalPushService.swift,
 				Services/Push/Services/Local/MockLocalPushService.swift,
@@ -1723,6 +1710,8 @@
 				D05D0BB22E8EA15E0027C662 /* FirebaseFirestore in Frameworks */,
 				D05D0BAE2E8EA15E0027C662 /* FirebaseAuth in Frameworks */,
 				D05D0BB42E8EA15E0027C662 /* FirebaseFunctions in Frameworks */,
+				D0E7D5AA2EE31EDD00BEE79F /* SwiftfulPurchasing in Frameworks */,
+				D0E7D5AD2EE31EF800BEE79F /* SwiftfulPurchasingRevenueCat in Frameworks */,
 				D0E7A8A12EE2D87800BEE79F /* SwiftfulAuthenticating in Frameworks */,
 				D0E7AA6C2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel in Frameworks */,
 				D0E7A8A42EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase in Frameworks */,
@@ -1731,6 +1720,7 @@
 				D0E7AA6F2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics in Frameworks */,
 				D05D0BB62E8EA15E0027C662 /* FirebaseStorage in Frameworks */,
 				D05D0BB02E8EA15E0027C662 /* FirebaseCore in Frameworks */,
+				D0E7D5A72EE31E7F00BEE79F /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1785,6 +1775,7 @@
 		D0A29B792E54B07C00DA64F7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D0E7D5A62EE31E7F00BEE79F /* StoreKit.framework */,
 				D08F58492E8BF61B001D3980 /* WidgetKit.framework */,
 				D08F584B2E8BF61B001D3980 /* SwiftUI.framework */,
 			);
@@ -1921,6 +1912,8 @@
 				D0E7AA6E2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics */,
 				D0E7AA712EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics */,
 				D0E7D5A22EE3139400BEE79F /* FirebaseRemoteConfig */,
+				D0E7D5A92EE31EDD00BEE79F /* SwiftfulPurchasing */,
+				D0E7D5AC2EE31EF800BEE79F /* SwiftfulPurchasingRevenueCat */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -1999,6 +1992,8 @@
 				D0E7AA6A2EE2DB7600BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingMixpanel" */,
 				D0E7AA6D2EE2DB8F00BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingFirebaseAnalytics" */,
 				D0E7AA702EE2DBA800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingFirebaseCrashlytics" */,
+				D0E7D5A82EE31EDD00BEE79F /* XCRemoteSwiftPackageReference "SwiftfulPurchasing" */,
+				D0E7D5AB2EE31EF800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulPurchasingRevenueCat" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
@@ -3076,6 +3071,22 @@
 				minimumVersion = 1.1.1;
 			};
 		};
+		D0E7D5A82EE31EDD00BEE79F /* XCRemoteSwiftPackageReference "SwiftfulPurchasing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulPurchasing.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.1;
+			};
+		};
+		D0E7D5AB2EE31EF800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulPurchasingRevenueCat" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulPurchasingRevenueCat.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.3;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -3258,6 +3269,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseRemoteConfig;
+		};
+		D0E7D5A92EE31EDD00BEE79F /* SwiftfulPurchasing */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E7D5A82EE31EDD00BEE79F /* XCRemoteSwiftPackageReference "SwiftfulPurchasing" */;
+			productName = SwiftfulPurchasing;
+		};
+		D0E7D5AC2EE31EF800BEE79F /* SwiftfulPurchasingRevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E7D5AB2EE31EF800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulPurchasingRevenueCat" */;
+			productName = SwiftfulPurchasingRevenueCat;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

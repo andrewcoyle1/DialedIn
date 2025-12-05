@@ -1,5 +1,5 @@
 {
-  "originHash" : "88eed4c677f39affbf2e5c5b2f28e72adc0066dab817fa8e845b60cd167b22ba",
+  "originHash" : "bf04414eb3a6f5e87ef93dc462c5d3a6ba8cc39fc61c49150c0b8944e43f095b",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -164,6 +164,15 @@
       }
     },
     {
+      "identity" : "purchases-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RevenueCat/purchases-ios.git",
+      "state" : {
+        "revision" : "d157a0cf7b262da6d25ff91d9ee14f2d4d7fb776",
+        "version" : "5.49.3"
+      }
+    },
+    {
       "identity" : "sdwebimage",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SDWebImage/SDWebImage.git",
@@ -260,6 +269,24 @@
       "state" : {
         "revision" : "ee3aac2ee1d69963e14f8db3a48c96e20abbc5fa",
         "version" : "1.1.2"
+      }
+    },
+    {
+      "identity" : "swiftfulpurchasing",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SwiftfulThinking/SwiftfulPurchasing.git",
+      "state" : {
+        "revision" : "e57df9de1c3c36e84548bf52433a5cd16d8c26fc",
+        "version" : "1.1.1"
+      }
+    },
+    {
+      "identity" : "swiftfulpurchasingrevenuecat",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SwiftfulThinking/SwiftfulPurchasingRevenueCat.git",
+      "state" : {
+        "revision" : "e5c9d2154ac3b653073a9e8d6cd51ff5678a723b",
+        "version" : "1.0.3"
       }
     },
     {

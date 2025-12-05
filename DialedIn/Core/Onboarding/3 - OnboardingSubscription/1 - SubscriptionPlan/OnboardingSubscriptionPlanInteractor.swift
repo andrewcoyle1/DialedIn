@@ -8,7 +8,6 @@
 protocol OnboardingSubscriptionPlanInteractor {
     var currentUser: UserModel? { get }
     func updateOnboardingStep(step: OnboardingStep) async throws
-    func purchase() async throws
     func trackEvent(event: LoggableEvent)
 }
 
