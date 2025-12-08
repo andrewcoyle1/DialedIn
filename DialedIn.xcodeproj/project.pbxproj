@@ -37,7 +37,6 @@
 		D0AB1C992EA1907100682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
 		D0AB1C9A2EA1907200682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
 		D0C0E6A22EE2410D009D5D18 /* SwiftfulRouting in Frameworks */ = {isa = PBXBuildFile; productRef = D0C0E6A12EE2410D009D5D18 /* SwiftfulRouting */; };
-		D0CE846D2EAAC4EB00C3CCBE /* DialedInWatchApp.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = D0CE844D2EAAC4E900C3CCBE /* DialedInWatchApp.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D0CE89E72EB2379000EED3B5 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E62EB2379000EED3B5 /* FirebaseAnalytics */; };
 		D0CE89E92EB237A100EED3B5 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E82EB237A100EED3B5 /* FirebaseAuth */; };
 		D0CE89EB2EB237A600EED3B5 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89EA2EB237A600EED3B5 /* FirebaseCore */; };
@@ -65,6 +64,9 @@
 		D0E7D5A72EE31E7F00BEE79F /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0E7D5A62EE31E7F00BEE79F /* StoreKit.framework */; };
 		D0E7D5AA2EE31EDD00BEE79F /* SwiftfulPurchasing in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7D5A92EE31EDD00BEE79F /* SwiftfulPurchasing */; };
 		D0E7D5AD2EE31EF800BEE79F /* SwiftfulPurchasingRevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7D5AC2EE31EF800BEE79F /* SwiftfulPurchasingRevenueCat */; };
+		D0E7D5E92EE34B6B00BEE79F /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7D5E82EE34B6B00BEE79F /* RevenueCat */; };
+		D0E7D5EB2EE34B6B00BEE79F /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7D5EA2EE34B6B00BEE79F /* RevenueCatUI */; };
+		D0E7D5EF2EE372A600BEE79F /* SwiftfulFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7D5EE2EE372A600BEE79F /* SwiftfulFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -89,13 +91,6 @@
 			remoteGlobalIDString = D08F58472E8BF61B001D3980;
 			remoteInfo = WorkoutSessionActivityExtension;
 		};
-		D0CE846B2EAAC4EB00C3CCBE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D0A299352E54AEA700DA64F7 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D0CE844C2EAAC4E900C3CCBE;
-			remoteInfo = "DialedInWatchApp Watch App";
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -116,7 +111,6 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
 			dstSubfolderSpec = 16;
 			files = (
-				D0CE846D2EAAC4EB00C3CCBE /* DialedInWatchApp.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -133,7 +127,6 @@
 		D0A2993D2E54AEA700DA64F7 /* DialedIn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DialedIn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedWorkoutStorage.swift; sourceTree = "<group>"; };
 		D0BC0E4D2EA29936008A1E22 /* WorkoutSessionActivityExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WorkoutSessionActivityExtension.entitlements; sourceTree = "<group>"; };
-		D0CE844D2EAAC4E900C3CCBE /* DialedInWatchApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DialedInWatchApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0DB1C922EA1901800682653 /* MetricsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsModel.swift; sourceTree = "<group>"; };
 		D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeView.swift; sourceTree = "<group>"; };
 		D0E7D5A62EE31E7F00BEE79F /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
@@ -234,12 +227,9 @@
 				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsInteractor.swift",
 				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsPresenter.swift",
 				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsRouter.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionInteractor.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionPresenter.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionRouter.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/1 - SubscriptionPlan/OnboardingSubscriptionPlanInteractor.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/1 - SubscriptionPlan/OnboardingSubscriptionPlanPresenter.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/1 - SubscriptionPlan/OnboardingSubscriptionPlanRouter.swift",
+				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionInteractor.swift",
+				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionPresenter.swift",
+				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionRouter.swift",
 				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupInteractor.swift",
 				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupPresenter.swift",
 				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupRouter.swift",
@@ -731,26 +721,6 @@
 			);
 			target = D012F0192EACD46C0014C602 /* DialedInTests */;
 		};
-		D058B9612EAEC57F00F0EADB /* Exceptions for "DialedIn" folder in "DialedInWatchApp" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Services/TemplateManagement/Protocols/LocalTemplatePersistence.swift,
-				Services/TemplateManagement/Protocols/TemplateModel.swift,
-				Services/Training/ExerciseTemplate/Models/ExerciseTemplateEntity.swift,
-				Services/Training/ExerciseTemplate/Models/ExerciseTemplateModel.swift,
-				Services/Training/ExerciseTemplate/Models/ExerciseUnitPreference.swift,
-				Services/Training/WorkoutExercises/Models/WorkoutExerciseModel.swift,
-				Services/Training/WorkoutExercises/Models/WorkoutExerciseRecord.swift,
-				Services/Training/Workouts/Models/WorkoutModels.swift,
-				Services/Training/WorkoutSession/Models/WorkoutSession/WorkoutSessionEntity.swift,
-				Services/Training/WorkoutSession/Models/WorkoutSession/WorkoutSessionModel.swift,
-				Services/Training/WorkoutSession/Models/WorkoutSet/WorkoutSetEntity.swift,
-				Services/Training/WorkoutSession/Models/WorkoutSet/WorkoutSetModel.swift,
-				Services/Training/WorkoutTemplate/Models/WorkoutTemplateModel.swift,
-				Utilities/Constants.swift,
-			);
-			target = D0CE844C2EAAC4E900C3CCBE /* DialedInWatchApp */;
-		};
 		D08F585C2E8BF61D001D3980 /* Exceptions for "WorkoutSessionActivity" folder in "WorkoutSessionActivityExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -944,14 +914,10 @@
 				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsPresenter.swift",
 				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsRouter.swift",
 				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsView.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionInteractor.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionPresenter.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionRouter.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/0 - SubscriptionInfo/OnboardingSubscriptionView.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/1 - SubscriptionPlan/OnboardingSubscriptionPlanInteractor.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/1 - SubscriptionPlan/OnboardingSubscriptionPlanPresenter.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/1 - SubscriptionPlan/OnboardingSubscriptionPlanRouter.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/1 - SubscriptionPlan/OnboardingSubscriptionPlanView.swift",
+				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionInteractor.swift",
+				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionPresenter.swift",
+				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionRouter.swift",
+				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionView.swift",
 				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupInteractor.swift",
 				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupPresenter.swift",
 				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupRouter.swift",
@@ -1642,14 +1608,8 @@
 				D012F02E2EACD6100014C602 /* Exceptions for "DialedIn" folder in "DialedInTests" target */,
 				D0CE88D32EB2339D00EED3B5 /* Exceptions for "DialedIn" folder in "DialedInUITests" target */,
 				D0BC0E372EA28EB5008A1E22 /* Exceptions for "DialedIn" folder in "WorkoutSessionActivityExtension" target */,
-				D058B9612EAEC57F00F0EADB /* Exceptions for "DialedIn" folder in "DialedInWatchApp" target */,
 			);
 			path = DialedIn;
-			sourceTree = "<group>";
-		};
-		D0CE844E2EAAC4E900C3CCBE /* DialedInWatchApp */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DialedInWatchApp;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -1704,12 +1664,15 @@
 				D0E7AA722EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics in Frameworks */,
 				D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */,
 				D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */,
+				D0E7D5E92EE34B6B00BEE79F /* RevenueCat in Frameworks */,
 				D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */,
 				D05D0BAA2E8EA15E0027C662 /* FirebaseAnalytics in Frameworks */,
 				D05D0BAC2E8EA15E0027C662 /* FirebaseAppCheck in Frameworks */,
+				D0E7D5EF2EE372A600BEE79F /* SwiftfulFirestore in Frameworks */,
 				D05D0BB22E8EA15E0027C662 /* FirebaseFirestore in Frameworks */,
 				D05D0BAE2E8EA15E0027C662 /* FirebaseAuth in Frameworks */,
 				D05D0BB42E8EA15E0027C662 /* FirebaseFunctions in Frameworks */,
+				D0E7D5EB2EE34B6B00BEE79F /* RevenueCatUI in Frameworks */,
 				D0E7D5AA2EE31EDD00BEE79F /* SwiftfulPurchasing in Frameworks */,
 				D0E7D5AD2EE31EF800BEE79F /* SwiftfulPurchasingRevenueCat in Frameworks */,
 				D0E7A8A12EE2D87800BEE79F /* SwiftfulAuthenticating in Frameworks */,
@@ -1721,13 +1684,6 @@
 				D05D0BB62E8EA15E0027C662 /* FirebaseStorage in Frameworks */,
 				D05D0BB02E8EA15E0027C662 /* FirebaseCore in Frameworks */,
 				D0E7D5A72EE31E7F00BEE79F /* StoreKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D0CE844A2EAAC4E900C3CCBE /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1752,7 +1708,6 @@
 				D08F58602E8BF652001D3980 /* Shared */,
 				D0A2993F2E54AEA700DA64F7 /* DialedIn */,
 				D08F584D2E8BF61B001D3980 /* WorkoutSessionActivity */,
-				D0CE844E2EAAC4E900C3CCBE /* DialedInWatchApp */,
 				D012F01B2EACD46C0014C602 /* DialedInTests */,
 				D012F0762EAD20760014C602 /* DialedInUITests */,
 				D0A29B792E54B07C00DA64F7 /* Frameworks */,
@@ -1765,7 +1720,6 @@
 			children = (
 				D0A2993D2E54AEA700DA64F7 /* DialedIn.app */,
 				D08F58482E8BF61B001D3980 /* WorkoutSessionActivityExtension.appex */,
-				D0CE844D2EAAC4E900C3CCBE /* DialedInWatchApp.app */,
 				D012F01A2EACD46C0014C602 /* DialedInTests.xctest */,
 				D012F0752EAD20760014C602 /* DialedInUITests.xctest */,
 			);
@@ -1884,7 +1838,6 @@
 			);
 			dependencies = (
 				D08F58562E8BF61D001D3980 /* PBXTargetDependency */,
-				D0CE846C2EAAC4EB00C3CCBE /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				D0A2993F2E54AEA700DA64F7 /* DialedIn */,
@@ -1914,31 +1867,12 @@
 				D0E7D5A22EE3139400BEE79F /* FirebaseRemoteConfig */,
 				D0E7D5A92EE31EDD00BEE79F /* SwiftfulPurchasing */,
 				D0E7D5AC2EE31EF800BEE79F /* SwiftfulPurchasingRevenueCat */,
+				D0E7D5E82EE34B6B00BEE79F /* RevenueCat */,
+				D0E7D5EA2EE34B6B00BEE79F /* RevenueCatUI */,
+				D0E7D5EE2EE372A600BEE79F /* SwiftfulFirestore */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
-			productType = "com.apple.product-type.application";
-		};
-		D0CE844C2EAAC4E900C3CCBE /* DialedInWatchApp */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D0CE846E2EAAC4EC00C3CCBE /* Build configuration list for PBXNativeTarget "DialedInWatchApp" */;
-			buildPhases = (
-				D0CE84492EAAC4E900C3CCBE /* Sources */,
-				D0CE844A2EAAC4E900C3CCBE /* Frameworks */,
-				D0CE844B2EAAC4E900C3CCBE /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				D0CE844E2EAAC4E900C3CCBE /* DialedInWatchApp */,
-			);
-			name = DialedInWatchApp;
-			packageProductDependencies = (
-			);
-			productName = "DialedInWatchApp Watch App";
-			productReference = D0CE844D2EAAC4E900C3CCBE /* DialedInWatchApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -1964,9 +1898,6 @@
 					};
 					D0A2993C2E54AEA700DA64F7 = {
 						CreatedOnToolsVersion = 26.0;
-					};
-					D0CE844C2EAAC4E900C3CCBE = {
-						CreatedOnToolsVersion = 26.0.1;
 					};
 				};
 			};
@@ -1994,6 +1925,8 @@
 				D0E7AA702EE2DBA800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingFirebaseCrashlytics" */,
 				D0E7D5A82EE31EDD00BEE79F /* XCRemoteSwiftPackageReference "SwiftfulPurchasing" */,
 				D0E7D5AB2EE31EF800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulPurchasingRevenueCat" */,
+				D0E7D5E72EE34B6B00BEE79F /* XCRemoteSwiftPackageReference "purchases-ios" */,
+				D0E7D5ED2EE372A600BEE79F /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
@@ -2004,7 +1937,6 @@
 				D012F0192EACD46C0014C602 /* DialedInTests */,
 				D012F0742EAD20760014C602 /* DialedInUITests */,
 				D08F58472E8BF61B001D3980 /* WorkoutSessionActivityExtension */,
-				D0CE844C2EAAC4E900C3CCBE /* DialedInWatchApp */,
 			);
 		};
 /* End PBXProject section */
@@ -2032,13 +1964,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D0A2993B2E54AEA700DA64F7 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D0CE844B2EAAC4E900C3CCBE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2131,13 +2056,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D0CE84492EAAC4E900C3CCBE /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -2155,11 +2073,6 @@
 			isa = PBXTargetDependency;
 			target = D08F58472E8BF61B001D3980 /* WorkoutSessionActivityExtension */;
 			targetProxy = D08F58552E8BF61D001D3980 /* PBXContainerItemProxy */;
-		};
-		D0CE846C2EAAC4EB00C3CCBE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D0CE844C2EAAC4E900C3CCBE /* DialedInWatchApp */;
-			targetProxy = D0CE846B2EAAC4EB00C3CCBE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2802,113 +2715,6 @@
 			};
 			name = Release;
 		};
-		D0CE846F2EAAC4EC00C3CCBE /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = VRNWC32C76;
-				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = DialedInWatchApp;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.andrewcoyle.DialedIn.dev;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.dev.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Debug;
-		};
-		D0CE84702EAAC4EC00C3CCBE /* Mock */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = VRNWC32C76;
-				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = DialedInWatchApp;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.andrewcoyle.DialedIn.mock;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.mock.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Mock;
-		};
-		D0CE84712EAAC4EC00C3CCBE /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = VRNWC32C76;
-				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = DialedInWatchApp;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.andrewcoyle.DialedIn;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2958,16 +2764,6 @@
 				D0A2995F2E54AEA800DA64F7 /* Debug */,
 				D014316E2E54B47D0053AD15 /* Mock */,
 				D0A299602E54AEA800DA64F7 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		D0CE846E2EAAC4EC00C3CCBE /* Build configuration list for PBXNativeTarget "DialedInWatchApp" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D0CE846F2EAAC4EC00C3CCBE /* Debug */,
-				D0CE84702EAAC4EC00C3CCBE /* Mock */,
-				D0CE84712EAAC4EC00C3CCBE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3085,6 +2881,22 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.0.3;
+			};
+		};
+		D0E7D5E72EE34B6B00BEE79F /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.49.3;
+			};
+		};
+		D0E7D5ED2EE372A600BEE79F /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulFirestore";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.4;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -3279,6 +3091,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D0E7D5AB2EE31EF800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulPurchasingRevenueCat" */;
 			productName = SwiftfulPurchasingRevenueCat;
+		};
+		D0E7D5E82EE34B6B00BEE79F /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E7D5E72EE34B6B00BEE79F /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
+		};
+		D0E7D5EA2EE34B6B00BEE79F /* RevenueCatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E7D5E72EE34B6B00BEE79F /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCatUI;
+		};
+		D0E7D5EE2EE372A600BEE79F /* SwiftfulFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0E7D5ED2EE372A600BEE79F /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */;
+			productName = SwiftfulFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

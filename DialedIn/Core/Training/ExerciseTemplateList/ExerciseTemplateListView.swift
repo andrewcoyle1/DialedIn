@@ -47,6 +47,36 @@ struct ExerciseTemplateListView: View {
     }
 }
 
+extension CoreBuilder {
+    func exerciseTemplateListView(router: AnyRouter, delegate: ExerciseTemplateListDelegate) -> some View {
+        ExerciseTemplateListView(
+            presenter: ExerciseTemplateListPresenter.create(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self),
+                templateIds: delegate.templateIds
+            ),
+            delegate: delegate,
+            genericTemplateListView: { presenter, configuration, supportsRefresh, templateIdsOverride in
+                self.genericTemplateListView(
+                    presenter: presenter,
+                    configuration: configuration,
+                    supportsRefresh: supportsRefresh,
+                    templateIdsOverride: templateIdsOverride
+                )
+                .any()
+            }
+        )
+    }
+}
+
+extension CoreRouter {
+    func showExerciseTemplateListView(delegate: ExerciseTemplateListDelegate) {
+        router.showScreen(.push) { router in
+            builder.exerciseTemplateListView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

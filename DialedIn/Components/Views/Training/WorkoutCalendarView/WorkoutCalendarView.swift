@@ -80,6 +80,21 @@ struct WorkoutCalendarView: View {
     }
 }
 
+extension CoreBuilder {
+    func workoutCalendarView(router: AnyRouter) -> some View {
+        WorkoutCalendarView(
+            presenter: WorkoutCalendarPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            scheduleView: { delegate in
+                self.scheduleView(delegate: delegate)
+                    .any()
+            }
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

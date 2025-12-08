@@ -121,6 +121,26 @@ struct ProgramManagementView: View {
     }
 }
 
+extension CoreBuilder {
+    func programManagementView(router: AnyRouter) -> some View {
+        ProgramManagementView(
+            presenter: ProgramManagementPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            programRowView: { delegate in
+                self.programRowView(delegate: delegate)
+                    .any()
+            }
+        )
+    }
+}
+
+extension CoreRouter {
+    func showProgramManagementView() {
+        router.showScreen(.fullScreenCover) { router in
+            builder.programManagementView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

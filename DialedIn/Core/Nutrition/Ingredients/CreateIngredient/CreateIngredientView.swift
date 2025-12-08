@@ -255,6 +255,22 @@ struct CreateIngredientView: View {
     }
 }
 
+extension CoreBuilder {
+    func createIngredientView(router: AnyRouter) -> some View {
+        CreateIngredientView(
+            presenter: CreateIngredientPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension CoreRouter {
+    func showCreateIngredientView() {
+        router.showScreen(.sheet) { router in
+            builder.createIngredientView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

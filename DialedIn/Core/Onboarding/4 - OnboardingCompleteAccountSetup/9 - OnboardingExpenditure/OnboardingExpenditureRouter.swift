@@ -8,7 +8,7 @@
 import SwiftUI
 
 @MainActor
-protocol OnboardingExpenditureRouter {
+protocol OnboardingExpenditureRouter: GlobalRouter {
     func showDevSettingsView()
     func showOnboardingNotificationsView()
     func showOnboardingHealthDataView()

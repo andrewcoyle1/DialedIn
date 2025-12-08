@@ -14,43 +14,14 @@ struct OnboardingCustomisingProgramView: View {
 
     var body: some View {
         List {
-            trainingSection
             dietSection
         }
         .navigationTitle("Customise Program")
         .toolbar {
             toolbarContent
         }
-        .showModal(showModal: $presenter.isLoading) {
-            ProgressView()
-                .tint(.white)
-        }
     }
-    
-    private var trainingSection: some View {
-        Section {
-            VStack(alignment: .leading) {
-                Text("Let's set up your training program. We'll ask a few questions about your experience, schedule, and equipment to recommend the perfect program for you.")
-                Text("This can always be changed later if you want to try something different.")
-                    .padding(.top)
-            }
-            .removeListRowFormatting()
-            .padding(.horizontal)
-            .foregroundStyle(Color.secondary)
-            Button {
-                presenter.navigateToTrainingExperience()
-            } label: {
-                HStack {
-                    Text("Set Up Training Program")
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                }
-            }
-        } header: {
-            Text("Training Program")
-        }
-    }
-    
+        
     private var dietSection: some View {
         Section {
             VStack(alignment: .leading) {
@@ -85,6 +56,22 @@ struct OnboardingCustomisingProgramView: View {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
+        }
+    }
+}
+
+extension OnbBuilder {
+    func onboardingCustomisingProgramView(router: AnyRouter) -> some View {
+        OnboardingCustomisingProgramView(
+            presenter: OnboardingCustomisingProgramPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingCustomisingProgramView() {
+        router.showScreen(.push) { router in
+            builder.onboardingCustomisingProgramView(router: router)
         }
     }
 }

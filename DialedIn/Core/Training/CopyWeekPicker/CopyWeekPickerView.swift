@@ -50,6 +50,23 @@ struct CopyWeekPickerView: View {
     }
 }
 
+extension CoreBuilder {
+    func copyWeekPickerView(router: AnyRouter, delegate: CopyWeekPickerDelegate) -> some View {
+        CopyWeekPickerView(
+            presenter: CopyWeekPickerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showCopyWeekPickerView(delegate: CopyWeekPickerDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.copyWeekPickerView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = CopyWeekPickerDelegate(

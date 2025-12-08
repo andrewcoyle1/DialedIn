@@ -58,10 +58,6 @@ struct OnboardingTrainingReviewView: View {
         .toolbar {
             toolbarContent
         }
-        .showModal(showModal: $presenter.isLoading) {
-            ProgressView("Creating your program...")
-                .padding()
-        }
         .screenAppearAnalytics(name: "TrainingReview")
         .onFirstAppear {
             presenter.loadRecommendation(builder: delegate.trainingProgramBuilder)
@@ -110,7 +106,24 @@ struct OnboardingTrainingReviewView: View {
                 Text("Create Program")
             }
             .buttonStyle(.glassProminent)
-            .disabled(presenter.recommendedTemplate == nil || presenter.isLoading)
+            .disabled(presenter.recommendedTemplate == nil)
+        }
+    }
+}
+
+extension OnbBuilder {
+    func onboardingTrainingReviewView(router: AnyRouter, delegate: OnboardingTrainingReviewDelegate) -> some View {
+        OnboardingTrainingReviewView(
+            presenter: OnboardingTrainingReviewPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingTrainingReviewView(delegate: OnboardingTrainingReviewDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingTrainingReviewView(router: router, delegate: delegate)
         }
     }
 }

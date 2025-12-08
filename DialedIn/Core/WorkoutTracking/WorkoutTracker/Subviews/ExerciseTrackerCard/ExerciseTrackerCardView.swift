@@ -391,6 +391,19 @@ private struct ExerciseTrackerCardPreviewContainer: View {
     }
 }
 
+extension CoreBuilder {
+    func exerciseTrackerCardView(router: AnyRouter, delegate: ExerciseTrackerCardDelegate) -> some View {
+        ExerciseTrackerCardView(
+            delegate: delegate,
+            interactor: interactor,
+            setTrackerRowView: { delegate in
+                self.setTrackerRowView(router: router, delegate: delegate)
+                    .any()
+            }
+        )
+    }
+}
+
 #Preview {
     ExerciseTrackerCardPreviewContainer()
         .previewEnvironment()

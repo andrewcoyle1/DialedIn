@@ -185,6 +185,23 @@ struct EditProgramView: View {
     }
 }
 
+extension CoreBuilder {
+    func editProgramView(router: AnyRouter, delegate: EditProgramDelegate) -> some View {
+        EditProgramView(
+            presenter: EditProgramPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showEditProgramView(delegate: EditProgramDelegate) {
+        router.showScreen(.push) { router in
+            builder.editProgramView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = EditProgramDelegate(

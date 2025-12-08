@@ -168,6 +168,23 @@ extension ExerciseCategory {
     }
 }
 
+extension CoreBuilder {
+    func workoutStartView(router: AnyRouter, delegate: WorkoutStartDelegate) -> some View {
+        WorkoutStartView(
+            presenter: WorkoutStartPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showWorkoutStartView(delegate: WorkoutStartDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.workoutStartView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = WorkoutStartDelegate(template: .mock)

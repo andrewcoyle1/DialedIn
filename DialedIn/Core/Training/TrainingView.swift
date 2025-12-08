@@ -93,6 +93,17 @@ struct TrainingView<ProgramView: View>: View {
     }
 }
 
+extension CoreBuilder {
+    func trainingView(router: AnyRouter) -> some View {
+        TrainingView(
+            presenter: TrainingPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            programView: {
+                self.programView(router: router)
+            }
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

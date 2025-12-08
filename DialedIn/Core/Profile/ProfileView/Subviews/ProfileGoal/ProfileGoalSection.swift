@@ -99,6 +99,14 @@ struct ProfileGoalSection: View {
     }
 }
 
+extension CoreBuilder {
+    func profileGoalSection(router: AnyRouter) -> some View {
+        ProfileGoalSection(
+            presenter: ProfileGoalSectionPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

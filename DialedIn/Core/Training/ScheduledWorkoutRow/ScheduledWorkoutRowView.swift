@@ -47,6 +47,15 @@ struct ScheduledWorkoutRowView: View {
     }
 }
 
+extension CoreBuilder {
+    func scheduledWorkoutRowView(delegate: ScheduledWorkoutRowDelegate) -> some View {
+        ScheduledWorkoutRowView(
+            presenter: ScheduledWorkoutRowPresenter(interactor: interactor),
+            delegate: delegate
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     List {

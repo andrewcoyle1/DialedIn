@@ -139,6 +139,22 @@ struct OnboardingNotificationsView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingNotificationsView(router: AnyRouter) -> some View {
+        OnboardingNotificationsView(
+            presenter: OnboardingNotificationsPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingNotificationsView() {
+        router.showScreen(.push) { router in
+            builder.onboardingNotificationsView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

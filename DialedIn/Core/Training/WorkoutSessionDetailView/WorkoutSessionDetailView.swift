@@ -37,18 +37,7 @@ struct WorkoutSessionDetailView: View {
             presenter.loadUnitPreferences(for: delegate.workoutSession)
         }
     }
-}
 
-#Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
-    let delegate = WorkoutSessionDetailDelegate(workoutSession: .mock)
-    RouterView { router in
-        builder.workoutSessionDetailView(router: router, delegate: delegate)
-    }
-    .previewEnvironment()
-}
-
-extension WorkoutSessionDetailView {
     private var activeSession: WorkoutSessionModel {
         presenter.currentSession(session: delegate.workoutSession)
     }
@@ -247,4 +236,34 @@ extension WorkoutSessionDetailView {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }
+}
+
+extension CoreBuilder {
+    func workoutSessionDetailView(router: AnyRouter, delegate: WorkoutSessionDetailDelegate) -> some View {
+        WorkoutSessionDetailView(
+            presenter: WorkoutSessionDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate,
+            editableExerciseCardWrapper: { delegate in
+                self.editableExerciseCardWrapper(delegate: delegate)
+                    .any()
+            }
+        )
+    }
+}
+
+extension CoreRouter {
+    func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.workoutSessionDetailView(router: router, delegate: delegate)
+        }
+    }
+}
+
+#Preview {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let delegate = WorkoutSessionDetailDelegate(workoutSession: .mock)
+    RouterView { router in
+        builder.workoutSessionDetailView(router: router, delegate: delegate)
+    }
+    .previewEnvironment()
 }

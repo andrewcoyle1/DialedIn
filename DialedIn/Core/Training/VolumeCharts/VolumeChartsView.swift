@@ -59,6 +59,18 @@ struct VolumeChartsView: View {
     }
 }
 
+extension CoreBuilder {
+    func volumeChartsView(router: AnyRouter) -> some View {
+         VolumeChartsView(
+            presenter: VolumeChartsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            trendSummarySection: { delegate in
+                self.trendSummarySection(delegate: delegate)
+                    .any()
+            }
+         )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

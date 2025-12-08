@@ -29,6 +29,29 @@ struct WorkoutPickerView<WorkoutListView: View>: View {
     }
 }
 
+extension CoreBuilder {
+    func workoutPickerSheet(router: AnyRouter, delegate: WorkoutPickerDelegate) -> some View {
+        WorkoutPickerView(
+            presenter: WorkoutPickerPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate,
+            workoutListBuilderView: { delegate in
+                self.workoutListViewBuilder(router: router, delegate: delegate)
+            }
+        )
+    }
+}
+
+extension CoreRouter {
+    func showWorkoutPickerView(delegate: WorkoutPickerDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.workoutPickerSheet(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = WorkoutPickerDelegate(

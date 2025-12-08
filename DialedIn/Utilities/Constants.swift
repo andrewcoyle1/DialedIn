@@ -13,6 +13,22 @@ struct Constants {
     static let termsofServiceURL = "https://www.apple.com"
     static let privacyPolicyURL = "https://www.apple.com"
     
+    static var mixpanelDistinctId: String? {
+        #if MOCK
+        return nil
+        #else
+        return MixpanelService.distinctId
+        #endif
+    }
+    
+    static var firebaseAnalyticsAppInstanceID: String? {
+        #if MOCK
+        return nil
+        #else
+        return FirebaseAnalyticsService.appInstanceID
+        #endif
+    }
+
     // App Group identifier for sharing data between app and widget extension
     static let appGroupIdentifier = "group.com.dialedin.app"
     

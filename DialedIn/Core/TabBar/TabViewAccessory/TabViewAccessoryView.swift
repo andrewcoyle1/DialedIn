@@ -89,6 +89,21 @@ struct TabViewAccessoryView: View {
     }
 }
 
+extension CoreBuilder {
+    func tabViewAccessoryView(router: AnyRouter, delegate: TabViewAccessoryDelegate) -> some View {
+        let coreRouter = CoreRouter(router: router, builder: self)
+        return TabViewAccessoryView(
+            presenter: TabViewAccessoryPresenter(interactor: interactor),
+            delegate: delegate,
+            onTap: {
+                coreRouter.showWorkoutTrackerView(
+                    delegate: WorkoutTrackerDelegate(workoutSession: delegate.active)
+                )
+            }
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     TabView {

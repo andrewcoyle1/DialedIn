@@ -186,6 +186,22 @@ struct CreateExerciseView: View {
     }
 }
 
+extension CoreBuilder {
+    func createExerciseView(router: AnyRouter) -> some View {
+        CreateExerciseView(
+            presenter: CreateExercisePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension CoreRouter {
+    func showCreateExerciseView() {
+        router.showScreen(.fullScreenCover) { router in
+            builder.createExerciseView(router: router)
+        }
+    }
+}
+
 #Preview("As sheet") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

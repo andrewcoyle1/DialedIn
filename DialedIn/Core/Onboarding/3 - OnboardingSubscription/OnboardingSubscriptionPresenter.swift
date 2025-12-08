@@ -23,7 +23,7 @@ class OnboardingSubscriptionPresenter {
     
     func navigateToSubscriptionPlan() {
         interactor.trackEvent(event: Event.navigate)
-        router.showSubscriptionPlanView()
+        router.showOnbPaywall()
     }
 
     func onDevSettingsPressed() {

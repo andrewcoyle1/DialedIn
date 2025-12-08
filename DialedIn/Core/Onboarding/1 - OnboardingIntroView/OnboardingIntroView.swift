@@ -118,6 +118,23 @@ struct OnboardingIntroView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingIntroView(router: AnyRouter) -> some View {
+        OnboardingIntroView(
+            presenter: OnboardingIntroPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+        )
+        
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingIntroView() {
+        router.showScreen(.push) { router in
+            builder.onboardingIntroView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

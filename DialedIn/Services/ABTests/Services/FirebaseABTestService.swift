@@ -17,7 +17,8 @@ class FirebaseABTestService: ABTestService {
         settings.minimumFetchInterval = 0
         RemoteConfig.remoteConfig().configSettings = settings
         let defaultValues = ActiveABTests(
-            notificationsTest: false
+            notificationsTest: false,
+            paywallTest: .default
         )
         RemoteConfig.remoteConfig().setDefaults(defaultValues.asNSObjectDictionary)
         RemoteConfig.remoteConfig().activate()

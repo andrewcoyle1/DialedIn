@@ -121,6 +121,28 @@ fileprivate extension View {
     }
 }
 
+extension CoreBuilder {
+    func settingsView(router: AnyRouter) -> some View {
+        SettingsView(
+            presenter: SettingsPresenter(
+                interactor: interactor,
+                router: CoreRouter(
+                    router: router,
+                    builder: self
+                )
+            )
+        )
+    }
+}
+
+extension CoreRouter {
+    func showSettingsView() {
+        router.showScreen(.push) { router in
+            builder.settingsView(router: router)
+        }
+    }
+}
+
 #Preview("No auth") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

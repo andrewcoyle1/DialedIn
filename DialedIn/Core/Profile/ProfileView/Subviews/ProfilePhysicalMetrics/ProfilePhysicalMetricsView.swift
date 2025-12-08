@@ -82,6 +82,14 @@ struct ProfilePhysicalMetricsView: View {
     }
 }
 
+extension CoreBuilder {
+    func profilePhysicalMetricsView(router: AnyRouter) -> some View {
+        ProfilePhysicalMetricsView(
+            presenter: ProfilePhysicalMetricsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

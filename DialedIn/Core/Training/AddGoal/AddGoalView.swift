@@ -74,6 +74,26 @@ struct AddGoalView: View {
     }
 }
 
+extension CoreBuilder {
+    func addGoalView(router: AnyRouter, delegate: AddGoalDelegate) -> some View {
+        AddGoalView(
+            presenter: AddGoalPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showAddGoalView(delegate: AddGoalDelegate) {
+        router.showScreen(.push) { router in
+            builder.addGoalView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

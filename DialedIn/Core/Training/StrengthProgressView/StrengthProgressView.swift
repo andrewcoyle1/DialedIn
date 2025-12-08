@@ -202,6 +202,22 @@ struct StrengthProgressView: View {
     }
 }
 
+extension CoreBuilder {
+    func strengthProgressView(router: AnyRouter) -> some View {
+        StrengthProgressView(
+            presenter: StrengthProgressPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension CoreRouter {
+    func showStrengthProgressView() {
+        router.showScreen(.sheet) { router in
+            builder.strengthProgressView(router: router)
+        }
+    }
+}
+
 #Preview("Main State") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

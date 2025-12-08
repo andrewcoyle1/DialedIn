@@ -129,6 +129,22 @@ private struct WorkoutHistoryRow: View {
     }
 }
 
+extension CoreBuilder {
+    func workoutHistoryView(router: AnyRouter) -> some View {
+        WorkoutHistoryView(
+            presenter: WorkoutHistoryPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+        )
+    }
+}
+
+extension CoreRouter {
+    func showWorkoutHistoryView() {
+        router.showScreen(.push) { router in
+            builder.workoutHistoryView(router: router)
+        }
+    }
+}
+
 #Preview("Functioning") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

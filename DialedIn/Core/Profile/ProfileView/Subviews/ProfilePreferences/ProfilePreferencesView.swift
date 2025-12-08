@@ -45,6 +45,14 @@ struct ProfilePreferencesView: View {
     }
 }
 
+extension CoreBuilder {
+    func profilePreferencesView(router: AnyRouter) -> some View {
+        ProfilePreferencesView(
+            presenter: ProfilePreferencesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

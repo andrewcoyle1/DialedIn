@@ -135,6 +135,23 @@ struct ProgramStartConfigView: View {
     }
 }
 
+extension CoreBuilder {
+    func programStartConfigView(router: AnyRouter, delegate: ProgramStartConfigDelegate) -> some View {
+        ProgramStartConfigView(
+            presenter: ProgramStartConfigPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showProgramStartConfigView(delegate: ProgramStartConfigDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.programStartConfigView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

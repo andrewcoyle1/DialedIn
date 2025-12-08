@@ -103,6 +103,23 @@ struct NutritionView<MealLogView: View, RecipesView: View, IngredientsView: View
     }
 }
 
+extension CoreBuilder {
+    func nutritionView(router: AnyRouter) -> some View {
+        NutritionView(
+            presenter: NutritionPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            mealLogView: { delegate in
+                self.mealLogView(router: router, delegate: delegate)
+            },
+            recipesView: { delegate in
+                self.recipesView(router: router, delegate: delegate)
+            },
+            ingredientsView: { delegate in
+                self.ingredientsView(router: router, delegate: delegate)
+            }
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

@@ -94,6 +94,14 @@ struct ProfileNutritionPlanView: View {
     }
 }
 
+extension CoreBuilder {
+    func profileNutritionPlanView(router: AnyRouter) -> some View {
+        ProfileNutritionPlanView(
+            presenter: ProfileNutritionPlanPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

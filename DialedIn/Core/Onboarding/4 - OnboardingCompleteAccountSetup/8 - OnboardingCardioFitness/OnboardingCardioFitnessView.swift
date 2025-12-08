@@ -106,6 +106,24 @@ struct OnboardingCardioFitnessView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingCardioFitnessView(router: AnyRouter, delegate: OnboardingCardioFitnessDelegate) -> some View {
+        OnboardingCardioFitnessView(
+            presenter: OnboardingCardioFitnessPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingCardioFitnessView(delegate: OnboardingCardioFitnessDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingCardioFitnessView(router: router, delegate: delegate)
+        }
+    }
+
+}
+
 #Preview("Default - Ready to submit") {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

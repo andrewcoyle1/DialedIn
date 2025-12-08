@@ -121,6 +121,15 @@ struct ProgramRowView: View {
     }
 }
 
+extension CoreBuilder {
+    func programRowView(delegate: ProgramRowDelegate) -> some View {
+        ProgramRowView(
+            presenter: ProgramRowPresenter(interactor: interactor),
+            delegate: delegate
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     List {

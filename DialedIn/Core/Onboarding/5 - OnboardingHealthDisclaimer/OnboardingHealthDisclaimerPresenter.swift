@@ -16,7 +16,6 @@ class OnboardingHealthDisclaimerPresenter {
     var acceptedTerms: Bool = false
     var acceptedPrivacy: Bool = false
     var showModal: Bool = false
-    var isLoading: Bool = false
 
     var canContinue: Bool { acceptedTerms && acceptedPrivacy }
         
@@ -45,7 +44,8 @@ class OnboardingHealthDisclaimerPresenter {
     
     func onConfirmPressed() {
         showModal = false
-        isLoading = true
+        router.showLoadingModal()
+
         let disclaimerVersion = "2025.10.05"
         let privacyVersion = "2025.10.05"
         let now = Date()
@@ -54,11 +54,13 @@ class OnboardingHealthDisclaimerPresenter {
             do {
                 try await interactor.updateHealthConsents(disclaimerVersion: disclaimerVersion, step: .goalSetting, privacyVersion: privacyVersion, acceptedAt: now)
                 interactor.trackEvent(event: Event.consentHealthConfirmSuccess(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: now))
-                isLoading = false
+                
+                router.dismissModal()
                 handleNavigation()
             } catch {
                 interactor.trackEvent(event: Event.consentHealthConfirmFail(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, error: error))
-                isLoading = false
+                
+                router.dismissModal()
                 router.showSimpleAlert(
                     title: "Unable to save",
                     subtitle: "We were unable to save your consent. Please check your internet connection and try again."

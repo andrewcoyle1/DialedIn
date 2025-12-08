@@ -143,6 +143,22 @@ struct ProfileEditView: View {
     }
 }
 
+extension CoreBuilder {
+    func profileEditView(router: AnyRouter) -> some View {
+        ProfileEditView(
+            presenter: ProfileEditPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension CoreRouter {
+    func showProfileEditView() {
+        router.showScreen(.push) { router in
+            builder.profileEditView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

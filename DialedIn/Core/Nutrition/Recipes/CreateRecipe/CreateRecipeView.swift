@@ -10,9 +10,9 @@ import PhotosUI
 import SwiftfulRouting
 
 struct CreateRecipeView: View {
-
+    
     @State var presenter: CreateRecipePresenter
-
+    
     var body: some View {
         List {
             imageSection
@@ -25,7 +25,7 @@ struct CreateRecipeView: View {
         }
         .onChange(of: presenter.selectedPhotoItem) {
             guard let newItem = presenter.selectedPhotoItem else { return }
-
+            
             Task {
                 do {
                     if let data = try await newItem.loadTransferable(type: Data.self) {
@@ -34,7 +34,7 @@ struct CreateRecipeView: View {
                         }
                     }
                 } catch {
-
+                    
                 }
             }
         }
@@ -59,21 +59,21 @@ struct CreateRecipeView: View {
                             .fill(Color.secondary.opacity(0.001))
                         Group {
                             if let data = presenter.selectedImageData {
-                                #if canImport(UIKit)
+#if canImport(UIKit)
                                 if let uiImage = UIImage(data: data) {
                                     Image(uiImage: uiImage)
                                         .resizable()
                                         .scaledToFill()
                                 }
-                                #elseif canImport(AppKit)
+#elseif canImport(AppKit)
                                 if let nsImage = NSImage(data: data) {
                                     Image(nsImage: nsImage)
                                         .resizable()
                                         .scaledToFill()
                                 }
-                                #endif
+#endif
                             } else {
-                                #if canImport(UIKit)
+#if canImport(UIKit)
                                 if let generatedImage = presenter.generatedImage {
                                     Image(uiImage: generatedImage)
                                         .resizable()
@@ -83,11 +83,11 @@ struct CreateRecipeView: View {
                                         .font(.system(size: 120))
                                         .foregroundStyle(.accent)
                                 }
-                                #else
+#else
                                 Image(systemName: "tray.fill")
                                     .font(.system(size: 120))
                                     .foregroundStyle(.accent)
-                                #endif
+#endif
                             }
                         }
                     }
@@ -170,7 +170,7 @@ struct CreateRecipeView: View {
             }
         }
     }
-
+    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
@@ -180,7 +180,7 @@ struct CreateRecipeView: View {
                 Image(systemName: "xmark")
             }
         }
-        #if DEBUG || MOCK
+#if DEBUG || MOCK
         ToolbarSpacer(.fixed, placement: .topBarLeading)
         ToolbarItem(placement: .topBarLeading) {
             Button {
@@ -189,7 +189,7 @@ struct CreateRecipeView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
+#endif
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 Task {
@@ -206,6 +206,28 @@ struct CreateRecipeView: View {
             }
             .buttonStyle(.glassProminent)
             .disabled(!presenter.canSave || presenter.isSaving)
+        }
+    }
+}
+
+extension CoreBuilder {
+    func createRecipeView(router: AnyRouter) -> some View {
+        CreateRecipeView(
+            presenter: CreateRecipePresenter(
+                interactor: interactor,
+                router: CoreRouter(
+                    router: router,
+                    builder: self
+                )
+            )
+        )
+    }
+}
+
+extension CoreRouter {
+    func showCreateRecipeView() {
+        router.showScreen(.sheet) { router in
+            builder.createRecipeView(router: router)
         }
     }
 }

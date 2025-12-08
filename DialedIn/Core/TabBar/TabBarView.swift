@@ -35,6 +35,61 @@ struct TabBarView<TabAccessory: View>: View {
     }
 }
 
+extension CoreBuilder {
+    func tabBarView() -> some View {
+        TabBarView(
+            presenter: TabBarPresenter(interactor: interactor),
+            tabs: [
+                TabBarScreen(
+                    title: "Dashboard",
+                    systemImage: "house",
+                    screen: {
+                        RouterView { router in
+                            self.dashboardView(router: router)
+                        }
+                        .any()
+                    }
+                ),
+                TabBarScreen(
+                    title: "Nutrition",
+                    systemImage: "carrot",
+                    screen: {
+                        RouterView { router in
+                            self.nutritionView(router: router)
+                        }
+                        .any()
+                    }
+                ),
+                TabBarScreen(
+                    title: "Training",
+                    systemImage: "dumbbell",
+                    screen: {
+                        RouterView { router in
+                            self.trainingView(router: router)
+                        }
+                        .any()
+                    }
+                ),
+                TabBarScreen(
+                    title: "Profile",
+                    systemImage: "person",
+                    screen: {
+                        RouterView { router in
+                            self.profileView(router: router)
+                        }
+                        .any()
+                    }
+                )
+            ],
+            tabViewAccessoryView: { delegate in
+                RouterView { router in
+                    self.tabViewAccessoryView(router: router, delegate: delegate)
+                }
+            }
+        )
+    }
+}
+
 #Preview("Has No Active Session") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     builder.tabBarView()

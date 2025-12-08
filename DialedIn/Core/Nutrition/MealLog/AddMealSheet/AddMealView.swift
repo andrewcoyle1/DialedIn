@@ -95,6 +95,29 @@ struct AddMealView: View {
     }
 }
 
+extension CoreBuilder {
+    func addMealView(router: AnyRouter, delegate: AddMealDelegate) -> some View {
+        AddMealView(
+            presenter: AddMealPresenter(
+                interactor: interactor,
+                router: CoreRouter(
+                    router: router,
+                    builder: self
+                )
+            ),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showAddMealView(delegate: AddMealDelegate) {
+        router.showScreen(.push) { router in
+            builder.addMealView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview("Breakfast") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = AddMealDelegate(

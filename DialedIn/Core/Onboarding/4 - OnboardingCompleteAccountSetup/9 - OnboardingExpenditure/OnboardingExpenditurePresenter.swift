@@ -58,7 +58,6 @@ class OnboardingExpenditurePresenter {
     var displayedKcal: Int = 0
     var animateBreakdown: Bool = false
     var hasAnimated: Bool = false
-    var isLoading: Bool = true
     var isSaving: Bool = false
     var currentSaveTask: Task<Void, Never>?
         
@@ -203,7 +202,7 @@ class OnboardingExpenditurePresenter {
               let dateOfBirth = userModelBuilder.dateOfBirth,
               let activityLevel = userModelBuilder.activityLevel,
               let exerciseFrequency = userModelBuilder.exerciseFrequency else {
-            isLoading = false
+            router.dismissModal()
             return
         }
 
@@ -229,7 +228,8 @@ class OnboardingExpenditurePresenter {
                 self.animateBreakdown = true
             }
         }
-        isLoading = false
+
+        router.dismissModal()
         canContinue = true
     }
 
@@ -265,7 +265,9 @@ class OnboardingExpenditurePresenter {
 
                 _ = try await interactor.saveCompleteAccountSetupProfile(userBuilder: userModelBuilder, onboardingStep: targetStep)
                 interactor.trackEvent(event: Event.profileSaveSuccess)
-                isLoading = false
+                
+                router.dismissModal()
+
                 await navigateForward(targetStep: targetStep)
             } catch {
                 interactor.trackEvent(event: Event.profileSaveFail(error: error))
@@ -288,7 +290,7 @@ class OnboardingExpenditurePresenter {
     
     private func handleMissingUserDraft(userModelBuilder: UserModelBuilder) {
         isSaving = false
-        isLoading = false
+        router.dismissModal()
         router.showAlert(
             title: "Unable to Load Profile",
             subtitle: "We couldn’t load your saved details. Please try again.",

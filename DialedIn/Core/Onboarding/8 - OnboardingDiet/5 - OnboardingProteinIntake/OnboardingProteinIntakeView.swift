@@ -86,6 +86,23 @@ struct OnboardingProteinIntakeView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingProteinIntakeView(router: AnyRouter, delegate: OnboardingProteinIntakeDelegate) -> some View {
+        OnboardingProteinIntakeView(
+            presenter: OnboardingProteinIntakePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingProteinIntakeView(delegate: OnboardingProteinIntakeDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingProteinIntakeView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

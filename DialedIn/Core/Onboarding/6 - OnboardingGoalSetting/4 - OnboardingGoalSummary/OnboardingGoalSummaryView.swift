@@ -230,6 +230,23 @@ private extension OnboardingGoalSummaryView {
     }
 }
 
+extension OnbBuilder {
+    func onboardingGoalSummaryView(router: AnyRouter, delegate: OnboardingGoalSummaryDelegate) -> some View {
+        OnboardingGoalSummaryView(
+            presenter: OnboardingGoalSummaryPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingGoalSummaryView(delegate: OnboardingGoalSummaryDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingGoalSummaryView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview("Normal") {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

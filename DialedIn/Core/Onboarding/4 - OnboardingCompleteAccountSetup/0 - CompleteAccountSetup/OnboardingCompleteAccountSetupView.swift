@@ -14,9 +14,13 @@ struct OnboardingCompleteAccountSetupView: View {
 
     var body: some View {
         List {
-            Text("Intro to complete account setup - explain why the user needs to submit their data")
+            Section {
+                Text("In order to for us to help you on your fitness journey, we need to know a few things about you. These will help us tailor our recommendations to your needs.")
+            } header: {
+                Text("The Basics")
+            }
         }
-        .navigationTitle("Welcome")
+        .navigationTitle("Complete Account")
         .navigationBarBackButtonHidden()
         .toolbar {
             toolbarContent
@@ -42,6 +46,22 @@ struct OnboardingCompleteAccountSetupView: View {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
+        }
+    }
+}
+
+extension OnbBuilder {
+    func onboardingCompleteAccountSetupView(router: AnyRouter) -> some View {
+        OnboardingCompleteAccountSetupView(
+            presenter: OnboardingCompleteAccountSetupPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingCompleteAccountSetupView() {
+        router.showScreen(.push) { router in
+            builder.onboardingCompleteAccountSetupView(router: router)
         }
     }
 }

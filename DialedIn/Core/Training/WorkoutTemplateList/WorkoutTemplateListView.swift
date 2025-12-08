@@ -103,7 +103,26 @@ struct WorkoutTemplateListView: View {
         }
     }
 }
+
+extension CoreBuilder {
+    func workoutTemplateListView(router: AnyRouter) -> some View {
+        WorkoutTemplateListView(
+            presenter: WorkoutTemplateListPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            )
+        )
+    }
+}
  
+extension CoreRouter {
+    func showWorkoutTemplateListView() {
+        router.showScreen(.push) { router in
+            builder.workoutTemplateListView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

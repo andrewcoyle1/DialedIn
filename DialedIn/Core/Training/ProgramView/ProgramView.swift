@@ -187,6 +187,32 @@ struct ProgramView<
     }
 }
 
+extension CoreBuilder {
+    func programView(router: AnyRouter) -> some View {
+        ProgramView(
+            presenter: ProgramPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            todaysWorkoutSectionView: {
+                self.todaysWorkoutSectionView(router: router)
+            },
+            workoutCalendarView: {
+                self.workoutCalendarView(router: router)
+            },
+            thisWeeksWorkoutsView: {
+                self.thisWeeksWorkoutsView(router: router)
+            },
+            goalListSectionView: {
+                self.goalListSectionView(router: router)
+            },
+            trainingProgressChartsView: {
+                self.trainingProgressChartsView(router: router)
+            }
+        )
+    }
+}
+
 #Preview("No Active Program") {
     let container = DevPreview.shared.container
     // Override with empty training plan manager

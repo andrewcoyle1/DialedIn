@@ -8,7 +8,7 @@
 @MainActor
 protocol OnboardingSubscriptionRouter {
     func showDevSettingsView()
-    func showSubscriptionPlanView()
+    func showOnbPaywall()
 }
 
 extension OnbRouter: OnboardingSubscriptionRouter { }

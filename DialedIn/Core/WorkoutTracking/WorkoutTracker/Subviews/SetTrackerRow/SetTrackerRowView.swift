@@ -443,6 +443,37 @@ extension SetTrackerRowView {
         delegate.onUpdate(updated)
     }
 }
+
+extension CoreBuilder {
+    func setTrackerRowView(router: AnyRouter, delegate: SetTrackerRowDelegate) -> some View {
+        SetTrackerRowView(
+            presenter: SetTrackerRowPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate,
+        )
+    }
+}
+
+extension CoreRouter {
+    func showWarmupSetInfoModal(primaryButtonAction: @escaping () -> Void) {
+        router.showModal(
+            transition: .move(edge: .bottom),
+            backgroundColor: .black,
+            destination: {
+                CustomModalView(
+                    title: "Warmup Sets",
+                    subtitle: "Warmup sets are lighter weight sets performed before your working sets to prepare your muscles and joints. They don't count toward your total volume or personal records.",
+                    primaryButtonTitle: "Got it",
+                    primaryButtonAction: {
+                        primaryButtonAction()
+                    },
+                    secondaryButtonTitle: "",
+                    secondaryButtonAction: {}
+                )
+            }
+        )
+    }
+}
+
 #Preview("Weight & Reps - Incomplete") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = SetTrackerRowDelegate(

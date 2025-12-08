@@ -11,4 +11,5 @@ protocol RemoteMealLogService {
     func deleteMeal(id: String, dayKey: String, authorId: String) async throws
     func getMeals(dayKey: String, authorId: String, limitTo: Int) async throws -> [MealLogModel]
     func getMeals(startDayKey: String, endDayKey: String, authorId: String, limitTo: Int) async throws -> [MealLogModel]
+    func deleteAllMealLogsForAuthor(authorId: String) async throws
 }

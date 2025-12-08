@@ -26,7 +26,7 @@ struct OnbInteractor {
     private let appState: AppState
 
     init(container: DependencyContainer) {
-        self.gIDClientID = ""
+        self.gIDClientID = container.resolve(GoogleSignInConfig.self)!.clientID
         self.authManager = container.resolve(AuthManager.self)!
         self.userManager = container.resolve(UserManager.self)!
         self.abTestManager = container.resolve(ABTestManager.self)!
@@ -64,12 +64,12 @@ struct OnbInteractor {
         try await authManager.signInGoogle(GIDClientID: gIDClientID)
     }
     
-    func logIn(auth: UserAuthInfo, image: PlatformImage? = nil) async throws {
-        try await userManager.logIn(auth: auth, image: image)
+    func logIn(auth: UserAuthInfo, image: PlatformImage? = nil, isNewUser: Bool) async throws {
+        // Reuse shared login that persists the user profile for new accounts and logs into purchases
+        try await logIn(user: auth, isNewUser: isNewUser)
         
         // Start the sync listener for training plans
-        let userId = try userManager.currentUserId()
-        trainingPlanManager.startSyncListener(userId: userId)
+        trainingPlanManager.startSyncListener(userId: auth.uid)
     }
 
     func updateAppState(showTabBarView: Bool) {
@@ -78,9 +78,6 @@ struct OnbInteractor {
     
     var activeTests: ActiveABTests {
         abTestManager.activeTests
-    }
-    var notificationsABTest: Bool {
-        activeTests.notificationsTest
     }
 
     func override(updatedTests: ActiveABTests) throws {
@@ -175,18 +172,23 @@ struct OnbInteractor {
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws {
         try workoutSessionManager.deleteAllLocalWorkoutSessionsForAuthor(authorId: authorId)
     }
-
-    func logOut() {
-        // Stop the sync listener for training plans
-        trainingPlanManager.stopSyncListener()
-        
-        userManager.logOut()
+    
+    var paywallTest: PaywallTestOption {
+        activeTests.paywallTest
     }
 
-    func signOut() throws {
-        try authManager.signOut()
+    func getProducts(productIds: [String]) async throws -> [AnyProduct] {
+        try await purchaseManager.getProducts(productIds: productIds)
     }
     
+    func restorePurchase() async throws -> [PurchasedEntitlement] {
+        try await purchaseManager.restorePurchase()
+    }
+    
+    func purchaseProduct(productId: String) async throws -> [PurchasedEntitlement] {
+        try await purchaseManager.purchaseProduct(productId: productId)
+    }
+
     func saveUser(user: UserModel, image: PlatformImage? = nil) async throws {
         try await userManager.saveUser(user: user, image: image)
     }
@@ -284,6 +286,10 @@ struct OnbInteractor {
         programTemplateManager.get(id: id)
     }
 
+    var isPremium: Bool {
+        purchaseManager.entitlements.hasActiveEntitlement
+    }
+
     func computeDietPlan(user: UserModel?, builder: DietPlanBuilder) -> DietPlan {
         nutritionManager.computeDietPlan(user: user, builder: builder)
     }
@@ -292,4 +298,23 @@ struct OnbInteractor {
         try await nutritionManager.saveDietPlan(plan: plan)
     }
 
+    // MARK: Shared
+    
+    func logIn(user: UserAuthInfo, isNewUser: Bool) async throws {
+        try await userManager.logIn(auth: user, isNewUser: isNewUser)
+        try await purchaseManager.logIn(
+            userId: user.uid,
+            userAttributes: PurchaseProfileAttributes(
+                email: user.email,
+                mixpanelDistinctId: Constants.mixpanelDistinctId,
+                firebaseAppInstanceId: Constants.firebaseAnalyticsAppInstanceID
+            )
+        )
+    }
+
+    func signOut() async throws {
+        try authManager.signOut()
+        try await purchaseManager.logOut()
+        userManager.signOut()
+    }
 }

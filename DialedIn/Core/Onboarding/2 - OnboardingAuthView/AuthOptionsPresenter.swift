@@ -17,8 +17,6 @@ class OnboardingAuthPresenter {
     private(set) var didTriggerLogin: Bool = false
     private(set) var currentAuthTask: Task<Void, Never>?
     
-    var isLoading: Bool = false
-
     var currentUser: UserModel? {
         interactor.currentUser
     }
@@ -32,7 +30,7 @@ class OnboardingAuthPresenter {
     }
     
     func endTask() {
-        isLoading = false
+        router.dismissModal()
         currentAuthTask = nil
     }
     
@@ -43,7 +41,8 @@ class OnboardingAuthPresenter {
         
         currentAuthTask = Task {
             // Task Management
-            isLoading = true
+            router.showLoadingModal()
+
             defer {
                 endTask()
             }
@@ -52,11 +51,11 @@ class OnboardingAuthPresenter {
             interactor.trackEvent(event: Event.appleAuthStart)
             do {
                 // Get UserAuthInfo
-                let (userAuthInfo, _) = try await interactor.signInApple()
+                let (userAuthInfo, isNewUser) = try await interactor.signInApple()
                 interactor.trackEvent(event: Event.appleAuthSuccess)
 
                 // Proceed immediately to signing in the user on success
-                handleOnAuthSuccess(user: userAuthInfo)
+                handleOnAuthSuccess(user: userAuthInfo, isNewUser: isNewUser)
             } catch {
                 router.showAlert(
                     title: "Error Signing in with Apple",
@@ -83,7 +82,8 @@ class OnboardingAuthPresenter {
         
         currentAuthTask = Task {
             // Task Management
-            isLoading = true
+            router.showLoadingModal()
+
             defer {
                 endTask()
             }
@@ -91,11 +91,11 @@ class OnboardingAuthPresenter {
             // Begin auth
             interactor.trackEvent(event: Event.googleAuthStart)
             do {
-                let (userAuthInfo, _) = try await interactor.signInGoogle()
+                let (userAuthInfo, isNewUser) = try await interactor.signInGoogle()
                 interactor.trackEvent(event: Event.googleAuthSuccess)
 
                 // Proceed immediately to signing in the user on success
-                handleOnAuthSuccess(user: userAuthInfo)
+                handleOnAuthSuccess(user: userAuthInfo, isNewUser: isNewUser)
             } catch {
                 router.showAlert(
                     title: "Error Signing in with Google",
@@ -116,7 +116,7 @@ class OnboardingAuthPresenter {
     }
     
     // MARK: User Log In
-    func handleOnAuthSuccess(user: UserAuthInfo) {
+    func handleOnAuthSuccess(user: UserAuthInfo, isNewUser: Bool) {
         // Cancel any existing auth task to prevent conflicts
         currentAuthTask?.cancel()
         
@@ -124,7 +124,8 @@ class OnboardingAuthPresenter {
             
             didTriggerLogin = true
             // Task Management
-            isLoading = true
+            router.showLoadingModal()
+
             defer {
                 endTask()
             }
@@ -133,15 +134,21 @@ class OnboardingAuthPresenter {
             interactor.trackEvent(event: Event.userLoginStart)
             do {
                 // Log in user
-                try await interactor.logIn(auth: user, image: nil)
+                try await interactor.logIn(auth: user, image: nil, isNewUser: isNewUser)
                 interactor.trackEvent(event: Event.userLoginSuccess)
-                if let user = currentUser {
-                    if user.onboardingStep != .complete {
-                        // Navigate to appropriate view
-                        handleNavigation()
-                    } else {
-                        interactor.updateAppState(showTabBarView: true)
-                    }
+                
+                guard let user = currentUser else { return }
+                
+                if interactor.isPremium == false {
+                    // Non‑premium: go straight to paywall from auth
+                    interactor.trackEvent(event: Event.paywallShownAfterLogin)
+                    router.showOnbPaywall()
+                } else if user.onboardingStep != .complete {
+                    // Premium but still onboarding: continue onboarding
+                    handleNavigation()
+                } else {
+                    // Premium and onboarding complete: go to main app
+                    interactor.updateAppState(showTabBarView: true)
                 }
             } catch {
                 router.showAlert(
@@ -156,7 +163,7 @@ class OnboardingAuthPresenter {
                                     Text("Cancel")
                                 }
                                 Button("Try Again") {
-                                    self.handleOnAuthSuccess(user: user)
+                                    self.handleOnAuthSuccess(user: user, isNewUser: isNewUser)
                                 }
                             }
                         )
@@ -209,7 +216,8 @@ class OnboardingAuthPresenter {
     func cleanUp() {
         currentAuthTask?.cancel()
         currentAuthTask = nil
-        isLoading = false
+        
+        router.dismissModal()
     }
 
     func onDevSettingsPressed() {
@@ -233,6 +241,7 @@ class OnboardingAuthPresenter {
         case navigate
         case signInPressed
         case signUpPressed
+        case paywallShownAfterLogin
 
         var eventName: String {
             switch self {
@@ -248,6 +257,7 @@ class OnboardingAuthPresenter {
             case .navigate:          return "OnboardingAuth_Navigate"
             case .signInPressed:     return "OnboardingAuth_SignIn_Pressed"
             case .signUpPressed:     return "OnboardingAuth_SignUp_Pressed"
+            case .paywallShownAfterLogin: return "OnboardingAuth_PaywallShownAfterLogin"
             }
         }
 
@@ -264,7 +274,7 @@ class OnboardingAuthPresenter {
             switch self {
             case .appleAuthFail, .googleAuthFail, .userLoginFail:
                 return LogType.severe
-            case .signInPressed, .signUpPressed, .navigate:
+            case .signInPressed, .signUpPressed, .navigate, .paywallShownAfterLogin:
                 return LogType.info
             default:
                 return LogType.analytic

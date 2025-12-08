@@ -201,6 +201,23 @@ struct CreateWorkoutView: View {
     }
 }
 
+extension CoreBuilder {
+    func createWorkoutView(router: AnyRouter, delegate: CreateWorkoutDelegate) -> some View {
+        CreateWorkoutView(
+            presenter: CreateWorkoutPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showCreateWorkoutView(delegate: CreateWorkoutDelegate) {
+        router.showScreen(.fullScreenCover) { router in
+            builder.createWorkoutView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview("With Exercises") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
         RouterView { router in

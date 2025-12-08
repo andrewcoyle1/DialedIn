@@ -16,6 +16,8 @@ class MealLogManager: LocalMealLogPersistence, RemoteMealLogService {
     // UI state for draft/edit flows
     var draftMeal: MealLogModel?
     
+    var mealsLastModified: Date = Date()
+
     init(services: MealLogServices) {
         self.remote = services.remote
         self.local = services.local
@@ -64,4 +66,10 @@ class MealLogManager: LocalMealLogPersistence, RemoteMealLogService {
     func deleteMeal(id: String, dayKey: String, authorId: String) async throws { try await remote.deleteMeal(id: id, dayKey: dayKey, authorId: authorId) }
     func getMeals(dayKey: String, authorId: String, limitTo: Int) async throws -> [MealLogModel] { try await remote.getMeals(dayKey: dayKey, authorId: authorId, limitTo: limitTo) }
     func getMeals(startDayKey: String, endDayKey: String, authorId: String, limitTo: Int) async throws -> [MealLogModel] { try await remote.getMeals(startDayKey: startDayKey, endDayKey: endDayKey, authorId: authorId, limitTo: limitTo) }
+    
+    func deleteAllMealLogsForAuthor(authorId: String) async throws {
+        try await remote.deleteAllMealLogsForAuthor(authorId: authorId)
+        mealsLastModified = Date()
+
+    }
 }

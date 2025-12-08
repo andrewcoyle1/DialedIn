@@ -14,7 +14,6 @@ class OnboardingTrainingReviewPresenter {
     private let router: OnboardingTrainingReviewRouter
 
     var recommendedTemplate: ProgramTemplateModel?
-    var isLoading: Bool = false
 
     init(
         interactor: OnboardingTrainingReviewInteractor,
@@ -58,7 +57,7 @@ class OnboardingTrainingReviewPresenter {
             return
         }
         
-        isLoading = true
+        router.showLoadingModal()
         
         Task {
             interactor.trackEvent(event: Event.createPlanStart)
@@ -87,7 +86,7 @@ class OnboardingTrainingReviewPresenter {
                 interactor.trackEvent(event: Event.createPlanFail(error: error))
             }
             
-            isLoading = false
+            router.dismissModal()
         }
     }
 

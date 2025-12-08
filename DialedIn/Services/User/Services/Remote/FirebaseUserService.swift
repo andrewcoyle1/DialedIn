@@ -5,7 +5,13 @@
 //  Created by Andrew Coyle on 10/15/24.
 //
 
-@preconcurrency import FirebaseFirestore
+@_exported @preconcurrency import FirebaseFirestore
+
+typealias ListenerRegistration = FirebaseFirestore.ListenerRegistration
+
+struct AnyListener: @unchecked Sendable {
+    let listener: ListenerRegistration
+}
 
 struct FirebaseUserService: RemoteUserService {
     

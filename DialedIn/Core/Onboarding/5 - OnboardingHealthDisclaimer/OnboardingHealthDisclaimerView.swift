@@ -24,10 +24,6 @@ struct OnboardingHealthDisclaimerView: View {
         .showModal(showModal: $presenter.showModal, content: {
             confirmationModal
         })
-        .showModal(showModal: $presenter.isLoading) {
-            ProgressView()
-                .tint(.white)
-        }
         .toolbar {
             toolbarContent
         }
@@ -96,6 +92,23 @@ struct OnboardingHealthDisclaimerView: View {
             .disabled(!presenter.canContinue)
         }
     }
+}
+
+extension OnbBuilder {
+    func onboardingHealthDisclaimerView(router: AnyRouter) -> some View {
+        OnboardingHealthDisclaimerView(
+            presenter: OnboardingHealthDisclaimerPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingHealthDisclaimerView() {
+        router.showScreen(.push) { router in
+            builder.onboardingHealthDisclaimerView(router: router)
+        }
+    }
+
 }
 
 #Preview("Health Disclaimer") {

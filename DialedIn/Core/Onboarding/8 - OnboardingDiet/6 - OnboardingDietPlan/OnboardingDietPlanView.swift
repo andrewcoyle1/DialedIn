@@ -34,10 +34,6 @@ struct OnboardingDietPlanView: View {
         .onAppear {
             presenter.createPlan(dietPlanBuilder: delegate.dietPlanBuilder)
         }
-        .showModal(showModal: $presenter.isLoading) {
-            ProgressView()
-                .tint(Color.white)
-        }
     }
     
     private var chartSection: some View {
@@ -120,6 +116,23 @@ struct OnboardingDietPlanView: View {
                 .fontWeight(.semibold)
         }
         .font(.subheadline)
+    }
+}
+
+extension OnbBuilder {
+    func onboardingDietPlanView(router: AnyRouter, delegate: OnboardingDietPlanDelegate) -> some View {
+        OnboardingDietPlanView(
+            presenter: OnboardingDietPlanPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingDietPlanView(delegate: OnboardingDietPlanDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingDietPlanView(router: router, delegate: delegate)
+        }
     }
 }
 

@@ -77,6 +77,22 @@ struct OnboardingGenderView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingGenderView(router: AnyRouter) -> some View {
+        OnboardingGenderView(
+            presenter: OnboardingGenderPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingGenderView() {
+        router.showScreen(.push) { router in
+            builder.onboardingGenderView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

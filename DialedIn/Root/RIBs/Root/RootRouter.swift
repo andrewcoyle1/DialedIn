@@ -10,6 +10,7 @@ import SwiftfulRouting
 
 @MainActor
 struct RootRouter: GlobalRouter {
+    
     let router: AnyRouter
     let builder: RootBuilder
 }

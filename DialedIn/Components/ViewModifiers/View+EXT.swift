@@ -9,14 +9,14 @@ import SwiftUI
 
 extension View {
     
-    func callToActionButton() -> some View {
+    func callToActionButton(isPrimaryAction: Bool = false) -> some View {
         self
             .font(.headline)
-            .foregroundStyle(.white)
+            .foregroundStyle(isPrimaryAction ? .white : .black)
             .frame(maxWidth: .infinity)
-            .frame(height: 55)
-            .background(.accent)
-            .cornerRadius(16)
+            .frame(height: 56)
+            .background(isPrimaryAction ? .accent : Color(uiColor: .systemBackground))
+            .cornerRadius(28)
     }
     
     func badgeButton() -> some View {

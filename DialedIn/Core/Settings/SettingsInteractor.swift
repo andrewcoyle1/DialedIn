@@ -7,8 +7,7 @@
 
 protocol SettingsInteractor {
     var auth: UserAuthInfo? { get }
-    func signOut() throws
-    func logOut()
+    func signOut() async throws
     func deleteCurrentUser() async throws
     func deleteUserProfile()
     func deleteAccount() async throws

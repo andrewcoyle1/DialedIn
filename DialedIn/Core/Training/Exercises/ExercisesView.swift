@@ -252,6 +252,22 @@ struct ExercisesView: View {
     }
 }
 
+extension CoreBuilder {
+    func exercisesView(router: AnyRouter) -> some View {
+        ExercisesView(
+            presenter: ExercisesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension CoreRouter {
+    func showExercisesView() {
+        router.showScreen(.push) { router in
+            builder.exercisesView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

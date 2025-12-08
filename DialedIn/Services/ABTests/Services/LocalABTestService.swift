@@ -6,11 +6,16 @@
 //
 
 class LocalABTestService: ABTestService {
-    @UserDefault(key: ActiveABTests.CodingKeys.notificationsTest.rawValue, startingValue: .random()) private var notificationsTest: Bool
+    @UserDefault(key: ActiveABTests.CodingKeys.notificationsTest.rawValue, startingValue: .random())
+    private var notificationsTest: Bool
     
+    @UserDefaultEnum(key: ActiveABTests.CodingKeys.paywallTest.rawValue, startingValue: PaywallTestOption.allCases.randomElement()!)
+    private var paywallTest: PaywallTestOption
+
     var activeTests: ActiveABTests {
         ActiveABTests(
-            notificationsTest: notificationsTest
+            notificationsTest: notificationsTest,
+            paywallTest: paywallTest
         )
     }
     
@@ -18,6 +23,7 @@ class LocalABTestService: ABTestService {
         
         // Every new test need to be added here to ensure that it can be updated
         notificationsTest = updatedTests.notificationsTest
+        paywallTest = updatedTests.paywallTest
     }
     
     func fetchUpdatedConfig() async throws -> ActiveABTests {

@@ -84,6 +84,24 @@ struct OnboardingTrainingDaysPerWeekView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingTrainingDaysPerWeekView(router: AnyRouter, delegate: OnboardingTrainingDaysPerWeekDelegate) -> some View {
+        OnboardingTrainingDaysPerWeekView(
+            presenter: OnboardingTrainingDaysPerWeekPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingTrainingDaysPerWeekView(delegate: OnboardingTrainingDaysPerWeekDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingTrainingDaysPerWeekView(router: router, delegate: delegate)
+        }
+    }
+
+}
+
 #Preview {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

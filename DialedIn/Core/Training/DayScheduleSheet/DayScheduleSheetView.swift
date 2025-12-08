@@ -74,6 +74,23 @@ struct DayScheduleSheetView: View {
     }
 }
 
+extension CoreBuilder {
+    func dayScheduleSheetView(router: AnyRouter, delegate: DayScheduleDelegate) -> some View {
+        DayScheduleSheetView(
+            presenter: DayScheduleSheetPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate,
+            workoutSummaryCardView: { delegate in
+                self.workoutSummaryCardView(router: router, delegate: delegate)
+                    .any()
+            },
+            todaysWorkoutCardView: { delegate in
+                self.todaysWorkoutCardView(router: router, delegate: delegate)
+                    .any()
+            }
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

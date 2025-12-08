@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Firebase
 
 @_exported import SwiftfulRouting
 typealias RouterView = SwiftfulRouting.RouterView
@@ -27,8 +28,8 @@ typealias AnyProduct = SwiftfulPurchasing.AnyProduct
 typealias MockPurchaseService = SwiftfulPurchasing.MockPurchaseService
 
 @_exported import SwiftfulLogging
-import SwiftfulLoggingMixpanel
-import SwiftfulLoggingFirebaseAnalytics
+@_exported import SwiftfulLoggingMixpanel
+@_exported import SwiftfulLoggingFirebaseAnalytics
 import SwiftfulLoggingFirebaseCrashlytics
 typealias LogManager = SwiftfulLogging.LogManager
 typealias LoggableEvent = SwiftfulLogging.LoggableEvent
@@ -37,6 +38,10 @@ typealias LogService = SwiftfulLogging.LogService
 typealias AnyLoggableEvent = SwiftfulLogging.AnyLoggableEvent
 typealias MixpanelService = SwiftfulLoggingMixpanel.MixpanelService
 typealias FirebaseAnalyticsService = SwiftfulLoggingFirebaseAnalytics.FirebaseAnalyticsService
+
+struct GoogleSignInConfig {
+    let clientID: String
+}
 
 extension AuthLogType {
     
@@ -115,6 +120,7 @@ struct Dependencies {
         let trainingAnalyticsManager: TrainingAnalyticsManager
         let userWeightManager: UserWeightManager
         let goalManager: GoalManager
+        let googleSignInConfig: GoogleSignInConfig
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         let hkWorkoutManager: HKWorkoutManager
         let liveActivityManager: LiveActivityManager
@@ -159,6 +165,7 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
             pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
+            googleSignInConfig = GoogleSignInConfig(clientID: "mock-client-id")
 
         case .dev:
             logManager = LogManager(services: [
@@ -171,7 +178,7 @@ struct Dependencies {
             authManager = AuthManager(service: FirebaseAuthService(), logger: logManager)
             userManager = UserManager(services: ProductionUserServices(), logManager: logManager)
             abTestManager = ABTestManager(service: LocalABTestService(), logger: logManager)
-            purchaseManager = PurchaseManager(service: StoreKitPurchaseService(), logger: logManager)
+            purchaseManager = PurchaseManager(service: RevenueCatPurchaseService(apiKey: Keys.revenueCatAPIKey), logger: logManager)
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
@@ -201,6 +208,10 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
             pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
+            guard let clientId = FirebaseApp.app()?.options.clientID else {
+                fatalError("No Google client ID found in Firebase options")
+            }
+            googleSignInConfig = GoogleSignInConfig(clientID: clientId)
 
         case .prod:
             logManager = LogManager(services: [
@@ -242,6 +253,10 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
             pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
+            guard let clientId = FirebaseApp.app()?.options.clientID else {
+                fatalError("No Google client ID found in Firebase options")
+            }
+            googleSignInConfig = GoogleSignInConfig(clientID: clientId)
         }
 
         let container = DependencyContainer()
@@ -268,6 +283,7 @@ struct Dependencies {
         container.register(TrainingAnalyticsManager.self, service: trainingAnalyticsManager)
         container.register(UserWeightManager.self, service: userWeightManager)
         container.register(GoalManager.self, service: goalManager)
+        container.register(GoogleSignInConfig.self, service: googleSignInConfig)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         container.register(HKWorkoutManager.self, service: hkWorkoutManager)
         container.register(LiveActivityManager.self, service: liveActivityManager)
@@ -316,6 +332,7 @@ class DevPreview {
         container.register(TrainingAnalyticsManager.self, service: trainingAnalyticsManager)
         container.register(UserWeightManager.self, service: userWeightManager)
         container.register(GoalManager.self, service: goalManager)
+        container.register(GoogleSignInConfig.self, service: googleSignInConfig)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         container.register(HKWorkoutManager.self, service: hkWorkoutManager)
         container.register(LiveActivityManager.self, service: liveActivityManager)
@@ -348,6 +365,7 @@ class DevPreview {
     let trainingAnalyticsManager: TrainingAnalyticsManager
     let userWeightManager: UserWeightManager
     let goalManager: GoalManager
+    let googleSignInConfig: GoogleSignInConfig
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     let hkWorkoutManager: HKWorkoutManager
     let liveActivityManager: LiveActivityManager
@@ -386,6 +404,7 @@ class DevPreview {
         self.trainingAnalyticsManager = TrainingAnalyticsManager(services: MockTrainingAnalyticsServices())
         self.userWeightManager = UserWeightManager(services: MockUserWeightServices())
         self.goalManager = GoalManager(services: MockGoalServices())
+        self.googleSignInConfig = GoogleSignInConfig(clientID: "mock-client-id")
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         self.hkWorkoutManager = hkWorkoutManager
         self.liveActivityManager = LiveActivityManager()

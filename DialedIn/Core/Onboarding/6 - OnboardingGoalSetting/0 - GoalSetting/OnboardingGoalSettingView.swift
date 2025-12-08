@@ -21,10 +21,6 @@ struct OnboardingGoalSettingView: View {
         .toolbar {
             toolbarContent
         }
-        .showModal(showModal: $presenter.isLoading) {
-            ProgressView()
-                .tint(.white)
-        }
     }
     
     private var goalSettingSection: some View {
@@ -56,6 +52,22 @@ struct OnboardingGoalSettingView: View {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
+        }
+    }
+}
+
+extension OnbBuilder {
+    func onboardingGoalSettingView(router: AnyRouter) -> some View {
+        OnboardingGoalSettingView(
+            presenter: OnboardingGoalSettingPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingGoalSettingView() {
+        router.showScreen(.push) { router in
+            builder.onboardingGoalSettingView(router: router)
         }
     }
 }

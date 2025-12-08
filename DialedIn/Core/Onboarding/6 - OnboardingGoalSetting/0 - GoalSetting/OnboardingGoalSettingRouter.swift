@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol OnboardingGoalSettingRouter {
+protocol OnboardingGoalSettingRouter: GlobalRouter {
     func showDevSettingsView()
     func showOnboardingOverarchingObjectiveView()
 }

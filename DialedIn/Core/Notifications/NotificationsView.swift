@@ -176,6 +176,25 @@ struct NotificationsView: View {
     }
 }
 
+extension CoreBuilder {
+    func notificationsView(router: AnyRouter) -> some View {
+        NotificationsView(
+            presenter: NotificationsPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            )
+        )
+    }
+}
+
+extension CoreRouter {
+    func showNotificationsView() {
+        router.showScreen(.sheet) { router in
+            builder.notificationsView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

@@ -9,9 +9,9 @@ import SwiftUI
 
 @MainActor
 protocol SettingsRouter {
-    func showManageSubscriptionView(delegate: ManageSubscriptionDelegate)
     func showAlert(error: Error)
     func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
+    func showCorePaywall()
     func dismissScreen()
 }
 

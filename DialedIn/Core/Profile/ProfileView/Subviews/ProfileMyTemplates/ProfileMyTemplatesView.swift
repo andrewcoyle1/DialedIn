@@ -104,6 +104,14 @@ struct ProfileMyTemplatesView: View {
     }
 }
 
+extension CoreBuilder {
+    func profileMyTemplatesView(router: AnyRouter) -> some View {
+        ProfileMyTemplatesView(
+            presenter: ProfileMyTemplatesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

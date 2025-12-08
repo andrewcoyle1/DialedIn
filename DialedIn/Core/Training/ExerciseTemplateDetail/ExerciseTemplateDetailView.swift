@@ -394,6 +394,23 @@ struct ExerciseTemplateDetailView: View {
     }
 }
 
+extension CoreBuilder {
+    func exerciseTemplateDetailView(router: AnyRouter, delegate: ExerciseTemplateDetailDelegate) -> some View {
+        ExerciseTemplateDetailView(
+            presenter: ExerciseTemplateDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showExerciseTemplateDetailView(delegate: ExerciseTemplateDetailDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.exerciseTemplateDetailView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview("About Section") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol OnboardingHealthDisclaimerRouter {
+protocol OnboardingHealthDisclaimerRouter: GlobalRouter {
     func showDevSettingsView()
     func showOnboardingGoalSettingView()
     func showSimpleAlert(title: String, subtitle: String?)

@@ -603,6 +603,22 @@ enum TrackingStatus {
     }
 }
 
+extension CoreBuilder {
+    func profileGoalsDetailView(router: AnyRouter) -> some View {
+        ProfileGoalsDetailView(
+            presenter: ProfileGoalsDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension CoreRouter {
+    func showProfileGoalsView() {
+        router.showScreen(.push) { router in
+            builder.profileGoalsDetailView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

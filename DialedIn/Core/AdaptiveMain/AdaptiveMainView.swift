@@ -31,3 +31,19 @@ struct AdaptiveMainView<TabBarView: View, SplitView: View>: View {
         #endif
     }
 }
+
+extension CoreBuilder {
+    func adaptiveMainView() -> some View {
+        AdaptiveMainView(
+            presenter: AdaptiveMainPresenter(interactor: interactor),
+            tabBarView: {
+                self.tabBarView()
+                    .any()
+            },
+            splitViewContainer: {
+                self.splitViewContainer()
+                    .any()
+            }
+        )
+    }
+}

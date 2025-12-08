@@ -153,6 +153,22 @@ struct LogWeightView: View {
     }
 }
 
+extension CoreBuilder {
+    func logWeightView(router: AnyRouter) -> some View {
+        LogWeightView(
+            presenter: LogWeightPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension CoreRouter {
+    func showLogWeightView() {
+        router.showScreen(.push) { router in
+            builder.logWeightView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

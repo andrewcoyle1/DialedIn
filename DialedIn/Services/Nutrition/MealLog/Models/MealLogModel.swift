@@ -54,6 +54,20 @@ struct MealLogModel: Identifiable, Codable, Hashable {
     var totalCarbGrams: Double
     var totalFatGrams: Double
     
+    enum CodingKeys: String, CodingKey {
+        case mealId = "meal_id"
+        case authorId = "author_id"
+        case dayKey = "day_key"
+        case date
+        case mealType = "meal_type"
+        case items
+        case notes
+        case totalCalories = "total_calories"
+        case totalProteinGrams = "total_protein_grams"
+        case totalCarbGrams = "total_carb_grams"
+        case totalFatGrams = "total_fat_grams"
+    }
+    
     static var mock: MealLogModel {
         let today = Date()
         return MealLogModel(

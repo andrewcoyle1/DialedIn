@@ -8,6 +8,7 @@
 import Foundation
 
 struct MockMealLogService: RemoteMealLogService {
+    
     private var store: [String: [MealLogModel]]
     private let delay: Double
     private let showError: Bool
@@ -42,7 +43,11 @@ struct MockMealLogService: RemoteMealLogService {
     }
 
     private func simulateDelayAndMaybeError() async throws {
-        if delay > 0 { try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000)) }
+        if delay > 0 { try? await Task.sleep(for: .seconds(delay)) }
         if showError { throw NSError(domain: "MockMealLogService", code: -1) }
+    }
+    
+    func deleteAllMealLogsForAuthor(authorId: String) async throws {
+        try await simulateDelayAndMaybeError()
     }
 }

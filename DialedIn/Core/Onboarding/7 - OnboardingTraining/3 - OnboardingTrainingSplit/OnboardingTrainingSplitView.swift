@@ -70,6 +70,24 @@ struct OnboardingTrainingSplitView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingTrainingSplitView(router: AnyRouter, delegate: OnboardingTrainingSplitDelegate) -> some View {
+        OnboardingTrainingSplitView(
+            presenter: OnboardingTrainingSplitPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingTrainingSplitView(delegate: OnboardingTrainingSplitDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingTrainingSplitView(router: router, delegate: delegate)
+        }
+    }
+
+}
+
 #Preview {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

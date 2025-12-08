@@ -54,6 +54,23 @@ struct TodaysWorkoutSectionView<WorkoutSummary: View, TodaysWorkout: View>: View
     }
 }
 
+extension CoreBuilder {
+    func todaysWorkoutSectionView(router: AnyRouter) -> some View {
+        TodaysWorkoutSectionView(
+            presenter: TodaysWorkoutSectionPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            workoutSummaryCardView: { delegate in
+                self.workoutSummaryCardView(router: router, delegate: delegate)
+            },
+            todaysWorkoutCardView: { delegate in
+                self.todaysWorkoutCardView(router: router, delegate: delegate)
+            }
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     

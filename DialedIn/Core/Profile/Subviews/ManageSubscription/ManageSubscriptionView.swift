@@ -38,6 +38,26 @@ struct ManageSubscriptionView: View {
     }
 }
 
+extension CoreBuilder {
+    func manageSubscriptionView(router: AnyRouter, delegate: ManageSubscriptionDelegate) -> some View {
+        ManageSubscriptionView(
+            presenter: ManageSubscriptionPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showManageSubscriptionView(delegate: ManageSubscriptionDelegate) {
+        router.showScreen(.push) { router in
+            builder.manageSubscriptionView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview("Free User") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

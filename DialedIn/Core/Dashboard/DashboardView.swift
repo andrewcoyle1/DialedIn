@@ -77,6 +77,17 @@ struct DashboardView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                presenter.onSubscribePressed()
+            } label: {
+                Image(systemName: "crown")
+            }
+            .buttonStyle(.glassProminent)
+        }
+        
+        ToolbarSpacer(.fixed, placement: .topBarLeading)
+        
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
@@ -86,7 +97,7 @@ struct DashboardView: View {
             }
         }
         #endif
-
+        
         if presenter.isInNotificationsABTest {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -96,6 +107,19 @@ struct DashboardView: View {
                 }
             }
         }
+    }
+}
+
+extension CoreBuilder {
+    
+    func dashboardView(router: AnyRouter) -> some View {
+        DashboardView(
+            presenter: DashboardPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            nutritionTargetChartView: {
+                self.nutritionTargetChartView()
+                    .any()
+            }
+        )
     }
 }
 

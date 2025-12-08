@@ -30,10 +30,6 @@ struct OnboardingNamePhotoView: View {
                 await presenter.handlePhotoSelection()
             }
         }
-        .showModal(showModal: $presenter.isSaving) {
-            ProgressView()
-                .tint(.white)
-        }
     }
     
     private var imageSection: some View {
@@ -50,12 +46,14 @@ struct OnboardingNamePhotoView: View {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
+                                .aspectRatio(1, contentMode: .fit)
                         }
                         #elseif canImport(AppKit)
                         if let nsImage = NSImage(data: data) {
                             Image(nsImage: nsImage)
                                 .resizable()
                                 .scaledToFill()
+                                .aspectRatio(1, contentMode: .fit)
                         }
                         #endif
                     } else if let user = presenter.currentUser,
@@ -65,10 +63,12 @@ struct OnboardingNamePhotoView: View {
                         Image(uiImage: cachedImage)
                             .resizable()
                             .scaledToFill()
+                            .aspectRatio(1, contentMode: .fit)
                         #elseif canImport(AppKit)
                         Image(nsImage: cachedImage)
                             .resizable()
                             .scaledToFill()
+                            .aspectRatio(1, contentMode: .fit)
                         #endif
                     } else {
                         VStack(spacing: 8) {
@@ -84,6 +84,7 @@ struct OnboardingNamePhotoView: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 120)
+            .clipShape(Circle())
         }
         .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
         .removeListRowFormatting()
@@ -125,7 +126,23 @@ struct OnboardingNamePhotoView: View {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(presenter.isSaving || !presenter.canContinue)
+            .disabled(!presenter.canContinue)
+        }
+    }
+}
+
+extension OnbBuilder {
+    func onboardingNamePhotoView(router: AnyRouter) -> some View {
+        OnboardingNamePhotoView(
+            presenter: OnboardingNamePhotoPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingNamePhotoView() {
+        router.showScreen(.push) { router in
+            builder.onboardingNamePhotoView(router: router)
         }
     }
 }

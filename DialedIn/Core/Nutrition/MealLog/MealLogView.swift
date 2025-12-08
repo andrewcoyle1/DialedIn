@@ -193,6 +193,15 @@ struct MealLogView: View {
     }
 }
 
+extension CoreBuilder {
+    func mealLogView(router: AnyRouter, delegate: MealLogDelegate) -> some View {
+        MealLogView(
+            presenter: MealLogPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
 #Preview {
     let delegate = MealLogDelegate(
         isShowingInspector: Binding.constant(false),

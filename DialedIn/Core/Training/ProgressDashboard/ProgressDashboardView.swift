@@ -218,6 +218,22 @@ struct ProgressDashboardView: View {
     }
 }
 
+extension CoreBuilder {
+    func progressDashboardView(router: AnyRouter) -> some View {
+        ProgressDashboardView(
+            presenter: ProgressDashboardPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension CoreRouter {
+    func showProgressDashboardView() {
+        router.showScreen(.sheet) { router in
+            builder.progressDashboardView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

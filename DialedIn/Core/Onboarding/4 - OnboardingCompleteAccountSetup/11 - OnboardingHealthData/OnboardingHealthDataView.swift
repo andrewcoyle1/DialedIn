@@ -111,6 +111,22 @@ struct OnboardingHealthDataView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingHealthDataView(router: AnyRouter) -> some View {
+        OnboardingHealthDataView(
+            presenter: OnboardingHealthDataPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingHealthDataView() {
+        router.showScreen(.push) { router in
+            builder.onboardingHealthDataView(router: router)
+        }
+    }
+}
+
 #Preview("Proceed to Notifications") {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

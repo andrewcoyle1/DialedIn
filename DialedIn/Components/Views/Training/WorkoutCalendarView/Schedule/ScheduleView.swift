@@ -143,6 +143,15 @@ struct ScheduleView: View {
     }
 }
 
+extension CoreBuilder {
+    func scheduleView(delegate: ScheduleDelegate) -> some View {
+        ScheduleView(
+            presenter: SchedulePresenter(interactor: interactor),
+            delegate: delegate
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     builder.scheduleView(

@@ -16,8 +16,6 @@ class OnboardingDietPlanPresenter {
     private(set) var plan: DietPlan?
     var trainingProgramName: String?
     var trainingDaysPerWeek: Int?
-
-    var isLoading: Bool = false
     
     init(
         interactor: OnboardingDietPlanInteractor,
@@ -48,7 +46,8 @@ class OnboardingDietPlanPresenter {
     
     func navigate() {
         guard let plan = plan else { return }
-        isLoading = true
+        router.showLoadingModal()
+
         Task {
             interactor.trackEvent(event: Event.saveDietPlanStart)
             do {
@@ -61,7 +60,7 @@ class OnboardingDietPlanPresenter {
                 router.showSimpleAlert(title: "Unable to update your profile", subtitle: "Please check your internet connection and try again")
                 interactor.trackEvent(event: Event.saveDietPlanFail(error: error))
             }
-            isLoading = false
+            router.dismissModal()
         }
     }
 

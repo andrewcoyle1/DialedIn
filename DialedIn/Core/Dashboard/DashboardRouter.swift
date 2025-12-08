@@ -9,6 +9,7 @@
 protocol DashboardRouter {
     func showNotificationsView()
     func showDevSettingsView()
+    func showCorePaywall()
 }
 
 extension CoreRouter: DashboardRouter { }

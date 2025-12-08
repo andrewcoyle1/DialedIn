@@ -50,6 +50,16 @@ struct TrainingProgressChartsView: View {
     }
 }
 
+extension CoreBuilder {
+    func trainingProgressChartsView(router: AnyRouter) -> some View {
+        TrainingProgressChartsView(
+            presenter: TrainingProgressChartsPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            )
+        )
+    }
+}
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     

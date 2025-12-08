@@ -340,70 +340,23 @@ struct WorkoutTrackerView: View {
     }
 }
 
-protocol WorkoutNotesInteractor {
-
-}
-
-extension CoreInteractor: WorkoutNotesInteractor { }
-
-@MainActor
-protocol WorkoutNotesRouter {
-    func dismissScreen()
-}
-
-extension CoreRouter: WorkoutNotesRouter { }
-
-@Observable
-@MainActor
-class WorkoutNotesPresenter {
-    let interactor: WorkoutNotesInteractor
-    let router: WorkoutNotesRouter
-
-    init(
-        interactor: WorkoutNotesInteractor,
-        router: WorkoutNotesRouter
-    ) {
-        self.interactor = interactor
-        self.router = router
-    }
-
-    func onDismissPressed() {
-        router.dismissScreen()
+extension CoreBuilder {
+    func workoutTrackerView(router: AnyRouter, delegate: WorkoutTrackerDelegate) -> some View {
+        WorkoutTrackerView(
+            presenter: WorkoutTrackerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate,
+            exerciseTrackerCardView: { delegate in
+                self.exerciseTrackerCardView(router: router, delegate: delegate)
+                    .any()
+            }
+        )
     }
 }
 
-struct WorkoutNotesDelegate {
-    var notes: Binding<String>
-    let onSave: () -> Void
-}
-
-struct WorkoutNotesView: View {
-
-    @State var presenter: WorkoutNotesPresenter
-    var delegate: WorkoutNotesDelegate
-
-    var body: some View {
-        VStack {
-            TextEditor(text: delegate.notes)
-                .padding()
-
-            Spacer()
-        }
-        .navigationTitle("Workout Notes")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button("Cancel") {
-                    presenter.onDismissPressed()
-                }
-            }
-
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Save") {
-                    delegate.onSave()
-                    presenter.onDismissPressed()
-                }
-            }
+extension CoreRouter {
+    func showWorkoutTrackerView(delegate: WorkoutTrackerDelegate) {
+        router.showScreen(.fullScreenCover) { router in
+            builder.workoutTrackerView(router: router, delegate: delegate)
         }
     }
 }

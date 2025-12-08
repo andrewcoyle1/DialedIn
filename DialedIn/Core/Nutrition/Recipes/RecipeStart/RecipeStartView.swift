@@ -37,6 +37,23 @@ struct RecipeStartView: View {
     }
 }
 
+extension CoreBuilder {
+    func recipeStartView(router: AnyRouter, delegate: RecipeStartDelegate) -> some View {
+        RecipeStartView(
+            presenter: RecipeStartPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showStartRecipeView(delegate: RecipeStartDelegate) {
+        router.showScreen(.push) { router in
+            builder.recipeStartView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

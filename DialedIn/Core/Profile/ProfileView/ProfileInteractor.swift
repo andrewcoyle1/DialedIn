@@ -11,6 +11,7 @@ protocol ProfileInteractor {
     var currentDietPlan: DietPlan? { get }
     func getActiveGoal(userId: String) async throws -> WeightGoal?
     func trackEvent(event: LoggableEvent)
+    func updateAppState(showTabBarView: Bool)
 }
 
 extension CoreInteractor: ProfileInteractor { }

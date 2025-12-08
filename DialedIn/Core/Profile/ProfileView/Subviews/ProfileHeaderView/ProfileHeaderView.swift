@@ -61,6 +61,14 @@ struct ProfileHeaderView: View {
     }
 }
 
+extension CoreBuilder {
+    func profileHeaderView(router: AnyRouter) -> some View {
+        ProfileHeaderView(
+            presenter: ProfileHeaderPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

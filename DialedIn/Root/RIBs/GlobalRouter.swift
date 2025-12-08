@@ -49,8 +49,18 @@ extension GlobalRouter {
         )
     }
     
+    func showLoadingModal() {
+        router.showModal(
+            transition: .opacity,
+            backgroundColor: .black.opacity(0.3),
+            destination: {
+                ProgressView()
+                    .tint(.white)
+            }
+        )
+    }
+    
     func dismissModal() {
         router.dismissModal()
     }
-
 }

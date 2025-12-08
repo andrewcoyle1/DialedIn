@@ -12,8 +12,6 @@ import SwiftUI
 class OnboardingGoalSettingPresenter {
     private let interactor: OnboardingGoalSettingInteractor
     private let router: OnboardingGoalSettingRouter
-
-    var isLoading: Bool = false
     
     init(
         interactor: OnboardingGoalSettingInteractor,

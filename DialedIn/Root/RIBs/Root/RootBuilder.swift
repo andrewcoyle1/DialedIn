@@ -18,16 +18,4 @@ struct RootBuilder: Builder {
         appView()
             .any()
     }
-    
-    private func appView() -> some View {
-        AppView(
-            presenter: AppPresenter(interactor: interactor),
-            adaptiveMainView: {
-                loggedInRIB().build()
-            },
-            onboardingWelcomeView: {
-                loggedOutRIB().build()
-            }
-        )
-    }
 }

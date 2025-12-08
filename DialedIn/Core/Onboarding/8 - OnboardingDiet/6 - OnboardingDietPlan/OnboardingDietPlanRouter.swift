@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol OnboardingDietPlanRouter {
+protocol OnboardingDietPlanRouter: GlobalRouter {
     func showDevSettingsView()
     func showOnboardingCompletedView()
 

@@ -13,8 +13,6 @@ class OnboardingCustomisingProgramPresenter {
     private let interactor: OnboardingCustomisingProgramInteractor
     private let router: OnboardingCustomisingProgramRouter
 
-    var isLoading: Bool = false
-
     init(
         interactor: OnboardingCustomisingProgramInteractor,
         router: OnboardingCustomisingProgramRouter

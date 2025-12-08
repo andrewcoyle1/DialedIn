@@ -52,6 +52,20 @@ struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
     }
 }
 
+extension RootBuilder {
+    func appView() -> some View {
+        AppView(
+            presenter: AppPresenter(interactor: interactor),
+            adaptiveMainView: {
+                loggedInRIB().build()
+            },
+            onboardingWelcomeView: {
+                loggedOutRIB().build()
+            }
+        )
+    }
+}
+
 // MARK: - Completed Onboarding Previews
 
 #Preview("✅ Completed - Tab Bar") {

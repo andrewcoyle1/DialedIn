@@ -17,7 +17,7 @@ class UserManager {
     private let logManager: LogManager?
     
     private(set) var currentUser: UserModel?
-    private var currentUserListener: (() -> Void)?
+    private var currentUserListener: ListenerRegistration?
     
     init(services: UserServices, logManager: LogManager? = nil) {
         self.remote = services.remote
@@ -235,14 +235,13 @@ class UserManager {
         return updated
     }
     
-    func logOut() {
-        currentUserListener?()
+    func signOut() {
+        currentUserListener?.remove()
         currentUserListener = nil
         currentUser = nil
-        self.clearAllLocalData()
         logManager?.trackEvent(event: Event.signOut)
     }
-    
+
     // MARK: - Anonymity/Email
     
     func markUnanonymous(email: String? = nil) async throws {
@@ -424,30 +423,30 @@ class UserManager {
         logManager?.trackEvent(event: Event.deleteAccountSuccess)
 
         // Reset UserManager state (does not sign out Auth)
-        logOut()
+        signOut()
     }
     
     // MARK: - User Streaming
     
     private func addCurrentUserListener(userId: String) {
-        currentUserListener?()
+        currentUserListener?.remove()
         logManager?.trackEvent(event: Event.remoteListenerStart)
-        
+
         Task {
             do {
                 for try await value in remote.streamUser(userId: userId) {
                     self.currentUser = value
                     logManager?.trackEvent(event: Event.remoteListenerSuccess(user: value))
                     logManager?.addUserProperties(dict: value.eventParameters, isHighPriority: true)
+                    
                     self.saveCurrentUserLocally()
-                    // Keep local onboarding step coherent with user properties if needed
                 }
             } catch {
                 logManager?.trackEvent(event: Event.remoteListenerFail(error: error))
             }
         }
     }
-    
+
     enum UserManagerError: LocalizedError {
         case noUserId
         

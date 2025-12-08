@@ -69,6 +69,15 @@ struct TrendSummarySection: View {
     }
 }
 
+extension CoreBuilder {
+    func trendSummarySection(delegate: TrendSummarySectionDelegate) -> some View {
+        TrendSummarySection(
+            presenter: TrendSummarySectionPresenter(interactor: interactor),
+            delegate: delegate
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     List {

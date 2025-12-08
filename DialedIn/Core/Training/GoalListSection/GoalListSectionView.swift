@@ -55,6 +55,17 @@ struct GoalListSectionView: View {
     }
 }
 
+extension CoreBuilder {
+    func goalListSectionView(router: AnyRouter) -> some View {
+        GoalListSectionView(
+            presenter: GoalListSectionPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            )
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     

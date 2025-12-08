@@ -83,6 +83,24 @@ struct OnboardingExerciseFrequencyView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingExerciseFrequencyView(router: AnyRouter, delegate: OnboardingExerciseFrequencyDelegate) -> some View {
+        OnboardingExerciseFrequencyView(
+            presenter: OnboardingExerciseFrequencyPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingExerciseFrequencyView(delegate: OnboardingExerciseFrequencyDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingExerciseFrequencyView(router: router, delegate: delegate)
+        }
+    }
+
+}
+
 #Preview {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

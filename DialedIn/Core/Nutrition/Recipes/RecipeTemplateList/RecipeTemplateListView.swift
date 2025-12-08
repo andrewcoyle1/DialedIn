@@ -46,6 +46,33 @@ struct RecipeTemplateListView: View {
     }
 }
 
+extension CoreBuilder {
+    func recipeTemplateListView(router: AnyRouter, delegate: RecipeTemplateListDelegate) -> some View {
+        RecipeTemplateListView(
+            interactor: interactor,
+            router: CoreRouter(router: router, builder: self),
+            delegate: delegate,
+            genericTemplateListView: { presenter, configuration, supportsRefresh, templateIdsOverride in
+                self.genericTemplateListView(
+                    presenter: presenter,
+                    configuration: configuration,
+                    supportsRefresh: supportsRefresh,
+                    templateIdsOverride: templateIdsOverride
+                )
+                .any()
+            }
+        )
+    }
+}
+
+extension CoreRouter {
+    func showRecipeTemplateListView(delegate: RecipeTemplateListDelegate) {
+        router.showScreen(.push) { router in
+            builder.recipeTemplateListView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
 

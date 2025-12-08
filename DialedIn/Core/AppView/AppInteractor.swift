@@ -11,7 +11,8 @@ protocol AppInteractor {
     var showTabBar: Bool { get }
     func schedulePushNotificationsForNextWeek()
     func trackEvent(event: LoggableEvent)
-    func logIn(auth: UserAuthInfo, image: PlatformImage?) async throws
+    func logIn(user: UserAuthInfo, isNewUser: Bool) async throws
 }
 
-extension RootInteractor: AppInteractor { }
+extension RootInteractor: AppInteractor {
+}

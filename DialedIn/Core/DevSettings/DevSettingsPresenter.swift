@@ -22,8 +22,10 @@ class DevSettingsPresenter {
     private(set) var fetchError: String?
 
     var testSessionId = ""
-    var isInNotificationsABTest: Bool = false
     
+    var isInNotificationsABTest: Bool = false
+    var paywallTest: PaywallTestOption = .default
+
     init(
         interactor: DevSettingsInteractor,
         router: DevSettingsRouter
@@ -41,7 +43,8 @@ class DevSettingsPresenter {
     }
     
     func loadABTests() {
-        isInNotificationsABTest = interactor.notificationsABTest
+        isInNotificationsABTest = interactor.activeTests.notificationsTest
+        paywallTest = interactor.activeTests.paywallTest
     }
 
     func handleNotificationTestChange(oldValue: Bool, newValue: Bool) {
@@ -50,6 +53,17 @@ class DevSettingsPresenter {
         }
     }
     
+    func handlePaywallOptionChange(oldValue: PaywallTestOption, newValue: PaywallTestOption) {
+        updateTest(
+            property: &paywallTest,
+            newValue: newValue,
+            savedValue: interactor.activeTests.paywallTest,
+            updateAction: { tests in
+                tests.update(paywallTest: newValue)
+            }
+        )
+    }
+
     private func updateTest<Value: Equatable>(
         property: inout Value,
         newValue: Value,
@@ -103,12 +117,7 @@ class DevSettingsPresenter {
     func getRecentWorkoutSessions() -> [WorkoutSessionModel] {
         (try? interactor.getAllLocalWorkoutSessions()) ?? []
     }
-    
-    func dismiss(_ dismiss: ()) {
-        // Perform any cleanup before dismissing if needed
-        dismiss
-    }
-    
+        
     func resetExerciseSeeding() async {
         isReseeding = true
         reseedingMessage = "Resetting exercises..."
@@ -218,55 +227,26 @@ class DevSettingsPresenter {
     }
     
     func onForceFreshAnonUser() {
-        defer { router.dismissScreen()}
+        defer {
+            router.dismissScreen()
+            Task {
+                try? await Task.sleep(for: .seconds(1))
+                interactor.updateAppState(showTabBarView: false)
+            }
+        }
         interactor.trackEvent(event: Event.forceSignOutStart)
         Task {
-            guard let userId = interactor.currentUser?.userId else {
-                // No user, just sign out
-                signOutAuth()
-                return
-            }
-            
-            // 1. Stop all listeners FIRST to prevent permission errors
-            interactor.trackEvent(event: Event.clearTrainingPlansStart)
             do {
-                try
-                interactor.clearAllTrainingPlanLocalData()
-                interactor.trackEvent(event: Event.clearTrainingPlansSuccess)
+                try await interactor.signOut()
+                interactor.trackEvent(event: Event.forceSignOutSuccess)
+
             } catch {
-                interactor.trackEvent(event: Event.clearTrainingPlansFail(error: error))
+                interactor.trackEvent(event: Event.forceSignOutFail(error: error))
+                router.showAlert(error: error)
             }
-            
-            // 2. Clear ALL local data
-            // Clear workout sessions
-            interactor.trackEvent(event: Event.clearWorkoutSessionsStart)
-            do {
-                try interactor.deleteAllLocalWorkoutSessionsForAuthor(authorId: userId)
-                interactor.trackEvent(event: Event.clearWorkoutSessionsSuccess)
-            } catch {
-                interactor.trackEvent(event: Event.clearWorkoutSessionsFail(error: error))
-            }
-            
-            interactor.logOut()
-            
-            // 3. Sign out (account remains intact in Firebase)
-            signOutAuth()
-            
-            // UI will reset to onboarding automatically when auth state changes
-            interactor.updateAppState(showTabBarView: false)
         }
     }
     
-    func signOutAuth() {
-        interactor.trackEvent(event: Event.authSignOutStart)
-        do {
-            try interactor.signOut()
-            interactor.trackEvent(event: Event.authSignOutSuccess)
-        } catch {
-            interactor.trackEvent(event: Event.authSignOutFail(error: error))
-        }
-    }
-
     func onDismissPressed() {
         router.dismissScreen()
     }
@@ -274,37 +254,19 @@ class DevSettingsPresenter {
     enum Event: LoggableEvent {
         case forceSignOutStart
         case forceSignOutSuccess
-        case clearTrainingPlansStart
-        case clearTrainingPlansSuccess
-        case clearTrainingPlansFail(error: Error)
-        case clearWorkoutSessionsStart
-        case clearWorkoutSessionsSuccess
-        case clearWorkoutSessionsFail(error: Error)
         case forceSignOutFail(error: Error)
-        case authSignOutStart
-        case authSignOutSuccess
-        case authSignOutFail(error: Error)
 
         var eventName: String {
             switch self {
             case .forceSignOutStart:            return "DevSettingsView_ForceSignOut_Start"
             case .forceSignOutSuccess:          return "DevSettingsView_ForceSignOut_Success"
-            case .clearTrainingPlansStart:      return "DevSettingsView_ClearTrainingPlans_Start"
-            case .clearTrainingPlansSuccess:    return "DevSettingsView_ClearTrainingPlans_Success"
-            case .clearTrainingPlansFail:       return "DevSettingsView_ClearTrainingPlans_Fail"
-            case .clearWorkoutSessionsStart:    return "DevSettingsView_ClearWorkoutSessions_Start"
-            case .clearWorkoutSessionsSuccess:  return "DevSettingsView_ClearWorkoutSessions_Success"
-            case .clearWorkoutSessionsFail:     return "DevSettingsView_ClearWorkoutSessions_Fail"
             case .forceSignOutFail:             return "DevSettingsView_ForceSignOut_Fail"
-            case .authSignOutStart:             return "DevSettingsView_AuthSignOut_Start"
-            case .authSignOutSuccess:           return "DevSettingsView_AuthSignOut_Success"
-            case .authSignOutFail:              return "DevSettingsView_AuthSignOut_Fail"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
-            case .forceSignOutFail(error: let error), .authSignOutFail(error: let error), .clearTrainingPlansFail(error: let error), .clearWorkoutSessionsFail(error: let error):
+            case .forceSignOutFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -313,7 +275,7 @@ class DevSettingsPresenter {
         
         var type: LogType {
             switch self {
-            case .forceSignOutFail, .authSignOutFail, .clearTrainingPlansFail, .clearWorkoutSessionsFail:
+            case .forceSignOutFail:
                 return .severe
             default:
                 return .analytic

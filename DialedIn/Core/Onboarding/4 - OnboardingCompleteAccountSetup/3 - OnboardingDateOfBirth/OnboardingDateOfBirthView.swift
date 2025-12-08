@@ -51,6 +51,24 @@ struct OnboardingDateOfBirthView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingDateOfBirthView(router: AnyRouter, delegate: OnboardingDateOfBirthDelegate) -> some View {
+        OnboardingDateOfBirthView(
+            presenter: OnboardingDateOfBirthPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingDateOfBirthView(delegate: OnboardingDateOfBirthDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingDateOfBirthView(router: router, delegate: delegate)
+        }
+    }
+
+}
+
 #Preview {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

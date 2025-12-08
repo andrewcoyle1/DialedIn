@@ -71,6 +71,26 @@ struct ProgramPreviewView: View {
     }
 }
 
+extension CoreBuilder {
+    func programPreviewView(router: AnyRouter, delegate: ProgramPreviewDelegate) -> some View {
+        ProgramPreviewView(
+            presenter: ProgramPreviewPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showProgramPreviewView(delegate: ProgramPreviewDelegate) {
+        router.showScreen(.push) { router in
+            builder.programPreviewView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

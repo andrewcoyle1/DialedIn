@@ -19,7 +19,6 @@ class OnboardingNamePhotoPresenter {
     var selectedPhotoItem: PhotosPickerItem?
     var selectedImageData: Data?
     var isImagePickerPresented: Bool = false
-    var isSaving: Bool = false
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -52,11 +51,11 @@ class OnboardingNamePhotoPresenter {
 
         guard canContinue else { return }
 
-        isSaving = true
+        router.showLoadingModal()
         interactor.trackEvent(event: Event.namePhotoSaveStart)
 
         defer {
-            isSaving = false
+            router.dismissModal()
         }
         
         do {

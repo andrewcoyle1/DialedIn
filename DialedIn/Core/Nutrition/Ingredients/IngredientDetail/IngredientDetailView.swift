@@ -218,6 +218,23 @@ struct IngredientDetailView: View {
     }
 }
 
+extension CoreBuilder {
+    func ingredientDetailView(router: AnyRouter, delegate: IngredientDetailDelegate) -> some View {
+        IngredientDetailView(
+            presenter: IngredientDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showIngredientDetailView(delegate: IngredientDetailDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.ingredientDetailView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

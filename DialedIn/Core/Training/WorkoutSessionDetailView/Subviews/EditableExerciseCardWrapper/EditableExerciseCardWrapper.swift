@@ -68,6 +68,14 @@ struct EditableExerciseCardWrapper: View {
     }
 }
 
+extension CoreBuilder {
+    func editableExerciseCardWrapper(delegate: EditableExerciseCardWrapperDelegate) -> some View {
+        EditableExerciseCardWrapper(
+            delegate: delegate,
+            interactor: interactor
+        )
+    }
+}
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     List {

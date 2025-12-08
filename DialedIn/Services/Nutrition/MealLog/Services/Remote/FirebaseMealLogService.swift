@@ -5,8 +5,8 @@
 //  Created by Andrew Coyle on 13/10/2025.
 //
 
-import Foundation
 import FirebaseFirestore
+import SwiftfulFirestore
 
 struct FirebaseMealLogService: RemoteMealLogService {
     
@@ -14,6 +14,10 @@ struct FirebaseMealLogService: RemoteMealLogService {
     
     private func dayCollection(authorId: String, dayKey: String) -> CollectionReference {
         database.collection("users").document(authorId).collection("meal_logs").document(dayKey).collection("meals")
+    }
+    
+    private func collection(authorId: String) -> CollectionReference {
+        database.collection("users").document(authorId).collection("meal_logs")
     }
     
     func createMeal(_ meal: MealLogModel) async throws {
@@ -32,6 +36,16 @@ struct FirebaseMealLogService: RemoteMealLogService {
         try await dayCollection(authorId: authorId, dayKey: dayKey).document(id).delete()
     }
     
+    func deleteDayCollection(id: String) async throws {
+        try await collection(authorId: id).deleteAllDocuments()
+    }
+    
+    func getAllMealLogs(userId: String) async throws -> [MealLogModel] {
+        try await collection(authorId: userId)
+            .whereField(MealLogModel.CodingKeys.authorId.rawValue, isEqualTo: userId)
+            .getAllDocuments()
+    }
+
     func getMeals(dayKey: String, authorId: String, limitTo: Int) async throws -> [MealLogModel] {
         let snapshot = try await dayCollection(authorId: authorId, dayKey: dayKey)
             .order(by: "date", descending: false)
@@ -60,5 +74,23 @@ struct FirebaseMealLogService: RemoteMealLogService {
         guard let date = formatter.date(from: dayKey) else { return nil }
         guard let next = Calendar.current.date(byAdding: .day, value: 1, to: date) else { return nil }
         return formatter.string(from: next)
+    }
+    
+    private func deleteMeal(authorId: String, mealId: String) async throws {
+        try await collection(authorId: authorId).document(mealId).delete()
+    }
+    
+    func deleteAllMealLogsForAuthor(authorId: String) async throws {
+        let meals = try await getAllMealLogs(userId: authorId)
+        
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for meal in meals {
+                group.addTask {
+                    try await deleteMeal(authorId: authorId, mealId: meal.id)
+                }
+            }
+            
+            try await group.waitForAll()
+        }
     }
 }

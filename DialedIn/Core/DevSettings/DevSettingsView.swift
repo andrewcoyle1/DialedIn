@@ -71,10 +71,19 @@ struct DevSettingsView: View {
     
     private var abTestSection: some View {
         Section {
-            Toggle("Notifications Test", isOn: $presenter.isInNotificationsABTest)
-                .onChange(of: presenter.isInNotificationsABTest, presenter.handleNotificationTestChange)
-                .font(.caption)
-
+            Group {
+                Toggle("Notifications Test", isOn: $presenter.isInNotificationsABTest)
+                    .onChange(of: presenter.isInNotificationsABTest, presenter.handleNotificationTestChange)
+                
+                Picker("Paywall Test", selection: $presenter.paywallTest) {
+                    ForEach(PaywallTestOption.allCases, id: \.self) { option in
+                        Text(option.rawValue)
+                            .id(option)
+                    }
+                }
+                .onChange(of: presenter.paywallTest, presenter.handlePaywallOptionChange)
+            }
+            .font(.caption)
         } header: {
             Text("AB Tests")
         }
@@ -491,6 +500,40 @@ struct DevSettingsView: View {
                 .font(.caption2)
                 .foregroundStyle(.primary)
                 .multilineTextAlignment(.trailing)
+        }
+    }
+}
+
+extension CoreBuilder {
+    func devSettingsView(router: AnyRouter) -> AnyView {
+        DevSettingsView(
+            presenter: DevSettingsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+        .any()
+    }
+}
+
+extension OnbBuilder {
+    func devSettingsView(router: AnyRouter) -> AnyView {
+        DevSettingsView(
+            presenter: DevSettingsPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+        )
+        .any()
+    }
+}
+
+extension CoreRouter {
+    func showDevSettingsView() {
+        router.showScreen(.fullScreenCover) { router in
+            builder.devSettingsView(router: router)
+        }
+    }
+}
+
+extension OnbRouter {
+    func showDevSettingsView() {
+        router.showScreen(.fullScreenCover) { router in
+            builder.devSettingsView(router: router)
         }
     }
 }

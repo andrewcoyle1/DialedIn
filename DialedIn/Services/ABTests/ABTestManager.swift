@@ -10,10 +10,10 @@ import Foundation
 @Observable
 class ABTestManager {
     private let service: ABTestService
-    private let logger: LogManager
+    private let logger: LogManager?
     var activeTests: ActiveABTests
     
-    init(service: ABTestService, logger: LogManager) {
+    init(service: ABTestService, logger: LogManager? = nil) {
         self.service = service
         self.activeTests = service.activeTests
         self.logger = logger
@@ -24,13 +24,13 @@ class ABTestManager {
         Task {
             do {
                 activeTests = try await service.fetchUpdatedConfig()
-                logger.trackEvent(event: Event.fetchRemoteConfigSuccess)
+                logger?.trackEvent(event: Event.fetchRemoteConfigSuccess)
             } catch {
-                logger.trackEvent(event: Event.fetchRemoteConfigFail(error: error))
+                logger?.trackEvent(event: Event.fetchRemoteConfigFail(error: error))
             }
         }
         activeTests = service.activeTests
-        logger.addUserProperties(dict: activeTests.eventParameters, isHighPriority: false)
+        logger?.addUserProperties(dict: activeTests.eventParameters, isHighPriority: false)
     }
     
     func override(updatedTests: ActiveABTests) throws {

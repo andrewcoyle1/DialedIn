@@ -19,8 +19,9 @@ class DashboardPresenter {
     private(set) var chartEndDate: Date = Date()
         
     var isInNotificationsABTest: Bool {
-        interactor.notificationsABTest
+        interactor.activeTests.notificationsTest
     }
+    
     init(
         interactor: DashboardInteractor,
         router: DashboardRouter
@@ -51,6 +52,10 @@ class DashboardPresenter {
 
     func onDevSettingsPressed() {
         router.showDevSettingsView()
+    }
+    
+    func onSubscribePressed() {
+        router.showCorePaywall()
     }
 
     enum Event: LoggableEvent {

@@ -173,6 +173,15 @@ struct RecipesView: View {
     }
 }
 
+extension CoreBuilder {
+    func recipesView(router: AnyRouter, delegate: RecipesDelegate) -> some View {
+        RecipesView(
+            presenter: RecipesPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
 #Preview("Recipes View") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = RecipesDelegate(

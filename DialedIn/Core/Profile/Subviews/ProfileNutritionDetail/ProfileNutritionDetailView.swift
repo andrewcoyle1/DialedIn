@@ -153,6 +153,22 @@ private extension Array {
     }
 }
 
+extension CoreBuilder {
+    func profileNutritionDetailView(router: AnyRouter) -> some View {
+        ProfileNutritionDetailView(
+            presenter: ProfileNutritionDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension CoreRouter {
+    func showProfileNutritionDetailView() {
+        router.showScreen(.push) { router in
+            builder.profileNutritionDetailView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

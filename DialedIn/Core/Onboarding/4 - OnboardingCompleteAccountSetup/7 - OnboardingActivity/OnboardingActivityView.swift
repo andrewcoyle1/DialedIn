@@ -91,6 +91,24 @@ struct OnboardingActivityView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingActivityView(router: AnyRouter, delegate: OnboardingActivityDelegate) -> some View {
+        OnboardingActivityView(
+            presenter: OnboardingActivityPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingActivityView(delegate: OnboardingActivityDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingActivityView(router: router, delegate: delegate)
+        }
+    }
+
+}
+
 #Preview {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

@@ -20,10 +20,6 @@ struct OnboardingTrainingProgramView: View {
         .toolbar {
             toolbarContent
         }
-        .showModal(showModal: $presenter.isLoading) {
-            ProgressView()
-                .tint(.white)
-        }
     }
     
     private var trainingSection: some View {
@@ -61,6 +57,25 @@ struct OnboardingTrainingProgramView: View {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
+        }
+    }
+}
+
+extension OnbBuilder {
+    func onboardingTrainingProgramView(router: AnyRouter) -> some View {
+        OnboardingTrainingProgramView(
+            presenter: OnboardingTrainingProgramPresenter(
+                interactor: interactor,
+                router: OnbRouter(router: router, builder: self)
+            )
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingTrainingProgramView() {
+        router.showScreen(.push) { router in
+            builder.onboardingTrainingProgramView(router: router)
         }
     }
 }

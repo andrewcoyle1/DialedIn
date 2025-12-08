@@ -61,7 +61,16 @@ struct NutritionTargetChartView: View {
     }
 }
 
+extension CoreBuilder {
+    func nutritionTargetChartView() -> some View {
+        NutritionTargetChartView(
+            presenter: NutritionTargetChartPresenter(interactor: interactor)
+        )
+    }
+}
+
 #Preview {
-    NutritionTargetChartView(presenter: NutritionTargetChartPresenter(interactor: CoreInteractor(container: DevPreview.shared.container)))
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    builder.nutritionTargetChartView()
         .previewEnvironment()
 }

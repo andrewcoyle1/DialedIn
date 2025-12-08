@@ -87,3 +87,20 @@ extension View {
         }
     }
 }
+
+extension CoreBuilder {
+    // MARK: Generic Template List
+    func genericTemplateListView<Template: TemplateModel>(
+        presenter: GenericTemplateListPresenter<Template>,
+        configuration: TemplateListConfiguration<Template>,
+        supportsRefresh: Bool,
+        templateIdsOverride: [String]?
+    ) -> some View {
+        GenericTemplateListView(
+            presenter: presenter,
+            configuration: configuration,
+            supportsRefresh: supportsRefresh,
+            templateIdsOverride: templateIdsOverride
+        )
+    }
+}

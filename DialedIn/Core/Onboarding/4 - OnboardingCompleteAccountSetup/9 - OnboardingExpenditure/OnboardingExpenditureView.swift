@@ -24,10 +24,6 @@ struct OnboardingExpenditureView: View {
         .navigationTitle("Expenditure")
         .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
-        .showModal(showModal: $presenter.isLoading, content: {
-            ProgressView()
-                .tint(.white)
-        })
         .onFirstTask {
             await presenter.checkCanRequestPermissions()
         }
@@ -242,6 +238,24 @@ struct OnboardingExpenditureView: View {
         )
         return presenter.tdeeInt(context: context)
     }
+}
+
+extension OnbBuilder {
+    func onboardingExpenditureView(router: AnyRouter, delegate: OnboardingExpenditureDelegate) -> some View {
+        OnboardingExpenditureView(
+            presenter: OnboardingExpenditurePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingExpenditureView(delegate: OnboardingExpenditureDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingExpenditureView(router: router, delegate: delegate)
+        }
+    }
+
 }
 
 #Preview("Functioning") {

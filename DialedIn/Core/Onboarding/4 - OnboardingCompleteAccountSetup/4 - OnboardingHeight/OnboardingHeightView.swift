@@ -127,6 +127,23 @@ struct OnboardingHeightView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingHeightView(router: AnyRouter, delegate: OnboardingHeightDelegate) -> some View {
+        OnboardingHeightView(
+            presenter: OnboardingHeightPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingHeightView(delegate: OnboardingHeightDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingHeightView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

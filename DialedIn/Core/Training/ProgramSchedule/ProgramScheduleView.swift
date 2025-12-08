@@ -63,6 +63,23 @@ struct ProgramScheduleView: View {
     }
 }
 
+extension CoreBuilder {
+    func programScheduleView(router: AnyRouter, delegate: ProgramScheduleDelegate) -> some View {
+        ProgramScheduleView(
+            presenter: ProgramSchedulePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showProgramScheduleView(delegate: ProgramScheduleDelegate) {
+        router.showScreen(.push) { router in
+            builder.programScheduleView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

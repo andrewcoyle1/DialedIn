@@ -153,6 +153,23 @@ struct OnboardingWeightRateView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingWeightRateView(router: AnyRouter, delegate: OnboardingWeightRateDelegate) -> some View {
+        OnboardingWeightRateView(
+            presenter: OnboardingWeightRatePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingWeightRateView(delegate: OnboardingWeightRateDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingWeightRateView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview("Gain Weight") {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

@@ -8,7 +8,7 @@
 import SwiftUI
 
 @MainActor
-protocol OnboardingAuthRouter {
+protocol OnboardingAuthRouter: GlobalRouter {
     func showDevSettingsView()
     func showOnboardingCompleteAccountSetupView()
     func showOnboardingNotificationsView()
@@ -19,6 +19,7 @@ protocol OnboardingAuthRouter {
     func showOnboardingCompletedView()
     
     func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
+    func showOnbPaywall()
 }
 
 extension OnbRouter: OnboardingAuthRouter { }

@@ -207,6 +207,18 @@ struct WorkoutListViewBuilder: View {
     }
 }
 
+extension CoreBuilder {
+    func workoutListViewBuilder(router: AnyRouter, delegate: WorkoutListDelegateBuilder) -> some View {
+        WorkoutListViewBuilder(
+            presenter: WorkoutListPresenterBuilder(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
+        )
+    }
+}
+
 #Preview {
     let container = DevPreview.shared.container
     RouterView { router in

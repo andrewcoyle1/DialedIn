@@ -17,3 +17,10 @@ class MyAppCheckProviderFactory: NSObject, AppCheckProviderFactory {
     }
   }
 }
+
+/// Debug-friendly App Check provider for Simulator/dev builds.
+class DebugAppCheckProviderFactory: NSObject, AppCheckProviderFactory {
+  func createProvider(with app: FirebaseApp) -> AppCheckProvider? {
+    AppCheckDebugProvider(app: app)
+  }
+}

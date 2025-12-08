@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol OnboardingNamePhotoRouter {
+protocol OnboardingNamePhotoRouter: GlobalRouter {
     func showDevSettingsView()
     func showOnboardingGenderView()
     func showSimpleAlert(title: String, subtitle: String?)

@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol OnboardingTrainingProgramRouter {
+protocol OnboardingTrainingProgramRouter: GlobalRouter {
     func showDevSettingsView()
     func showOnboardingTrainingExperienceView(delegate: OnboardingTrainingExperienceDelegate)
 }

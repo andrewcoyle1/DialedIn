@@ -31,8 +31,6 @@ struct ProfileView: View {
                 profileNutritionPlanView()
                 profilePreferencesView()
                 profileMyTemplatesView()
-            } else {
-                createProfileSection
             }
         }
         .navigationTitle("Profile")
@@ -45,26 +43,6 @@ struct ProfileView: View {
         .task {
             await presenter.getActiveGoal()
 
-        }
-    }
-
-    var createProfileSection: some View {
-        Section {
-            Button {
-                // TODO: Update this 
-            } label: {
-                CustomListCellView(
-                    imageName: nil,
-                    title: "Create your profile",
-                    subtitle: "Tap to get started",
-                    isSelected: true,
-                    iconName: "person.circle",
-                    iconSize: CGFloat(32)
-                )
-            }
-            .removeListRowFormatting()
-        } header: {
-            Text("Profile")
         }
     }
     
@@ -93,6 +71,38 @@ struct ProfileView: View {
                 Image(systemName: "gear")
             }
         }
+    }
+}
+
+extension CoreBuilder {
+    func profileView(router: AnyRouter) -> some View {
+        ProfileView(
+            presenter: ProfilePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            profileHeaderView: {
+                self.profileHeaderView(router: router)
+                    .any()
+            },
+            profilePhysicalMetricsView: {
+                self.profilePhysicalMetricsView(router: router)
+                    .any()
+            },
+            profileGoalSection: {
+                self.profileGoalSection(router: router)
+                    .any()
+            },
+            profileNutritionPlanView: {
+                self.profileNutritionPlanView(router: router)
+                    .any()
+            },
+            profilePreferencesView: {
+                self.profilePreferencesView(router: router)
+                    .any()
+            },
+            profileMyTemplatesView: {
+                self.profileMyTemplatesView(router: router)
+                    .any()
+            }
+        )
     }
 }
 

@@ -11,6 +11,7 @@ struct RootInteractor {
     private let authManager: AuthManager
     private let userManager: UserManager
     private let abTestManager: ABTestManager
+    private let purchaseManager: PurchaseManager
     private let appState: AppState
     private let pushManager: PushManager
     private let logManager: LogManager
@@ -20,6 +21,7 @@ struct RootInteractor {
         self.authManager = container.resolve(AuthManager.self)!
         self.userManager = container.resolve(UserManager.self)!
         self.abTestManager = container.resolve(ABTestManager.self)!
+        self.purchaseManager = container.resolve(PurchaseManager.self)!
         self.appState = container.resolve(AppState.self)!
         self.pushManager = container.resolve(PushManager.self)!
         self.logManager = container.resolve(LogManager.self)!
@@ -46,12 +48,16 @@ struct RootInteractor {
         logManager.trackEvent(event: event)
     }
     
-    func logIn(auth: UserAuthInfo, image: PlatformImage?) async throws {
-        try await userManager.logIn(auth: auth, image: image)
-        
-        // Start the sync listener for training plans
-        let userId = try userManager.currentUserId()
-        trainingPlanManager.startSyncListener(userId: userId)
+    func logIn(user: UserAuthInfo, isNewUser: Bool) async throws {
+        try await userManager.logIn(auth: user, isNewUser: isNewUser)
+        try await purchaseManager.logIn(
+            userId: user.uid,
+            userAttributes: PurchaseProfileAttributes(
+                email: user.email,
+                mixpanelDistinctId: Constants.mixpanelDistinctId,
+                firebaseAppInstanceId: Constants.firebaseAnalyticsAppInstanceID
+            )
+        )
     }
-    
+
 }

@@ -53,6 +53,10 @@ class ProfilePresenter {
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }
+    
+    func updateAppState(showTabBarView: Bool) {
+        interactor.updateAppState(showTabBarView: showTabBarView)
+    }
 
     enum Event: LoggableEvent {
         case navigate

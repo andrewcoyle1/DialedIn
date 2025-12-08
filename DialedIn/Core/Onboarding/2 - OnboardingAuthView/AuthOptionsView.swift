@@ -28,12 +28,7 @@ struct OnboardingAuthView: View {
             Color(colorScheme.backgroundPrimary)
                 .ignoresSafeArea()
         }
-        .allowsHitTesting(!presenter.isLoading)
         .navigationBarBackButtonHidden(true)
-        .showModal(showModal: $presenter.isLoading) {
-            ProgressView()
-                .tint(.white)
-        }
         .onDisappear {
             presenter.cleanUp()
         }
@@ -75,8 +70,21 @@ struct OnboardingAuthView: View {
     }
 }
 
-// MARK: - Constants and Error Types
-// Note: AuthConstants and AuthTimeoutError are now defined in AuthErrorHandler.swift
+extension OnbBuilder {
+    func onboardingOnboardingAuthView(router: AnyRouter) -> some View {
+        OnboardingAuthView(
+            presenter: OnboardingAuthPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingAuthView() {
+        router.showScreen(.push) { router in
+            builder.onboardingOnboardingAuthView(router: router)
+        }
+    }
+}
 
 #Preview("Functioning Auth") {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))

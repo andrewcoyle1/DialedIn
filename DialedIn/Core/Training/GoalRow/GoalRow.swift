@@ -55,6 +55,15 @@ struct GoalRow: View {
     }
 }
 
+extension CoreBuilder {
+    func goalRow(delegate: GoalRowDelegate) -> some View {
+        GoalRow(
+            presenter: GoalRowPresenter(interactor: interactor),
+            delegate: delegate
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     builder.goalRow(

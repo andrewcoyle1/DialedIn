@@ -82,6 +82,23 @@ struct OnboardingCalorieDistributionView: View {
     }
 }
 
+extension OnbBuilder {
+    func onboardingCalorieDistributionView(router: AnyRouter, delegate: OnboardingCalorieDistributionDelegate) -> some View {
+        OnboardingCalorieDistributionView(
+            presenter: OnboardingCalorieDistributionPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension OnbRouter {
+    func showOnboardingCalorieDistributionView(delegate: OnboardingCalorieDistributionDelegate) {
+        router.showScreen(.push) { router in
+            builder.onboardingCalorieDistributionView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
     RouterView { router in

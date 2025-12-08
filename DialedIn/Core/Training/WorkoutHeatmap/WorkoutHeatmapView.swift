@@ -223,6 +223,22 @@ struct WorkoutHeatmapView: View {
     }
 }
 
+extension CoreBuilder {
+    func workoutHeatmapView(router: AnyRouter) -> some View {
+        WorkoutHeatmapView(
+            presenter: WorkoutHeatmapPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension CoreRouter {
+    func showWorkoutHeatmapView() {
+        router.showScreen(.sheet) { router in
+            builder.workoutHeatmapView(router: router)
+        }
+    }
+}
+
 #Preview("Loaded") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

@@ -57,6 +57,61 @@ struct SplitViewContainer<TabAccessory: View>: View {
     }
 }
 
+extension CoreBuilder {
+    func splitViewContainer() -> some View {
+        SplitViewContainer(
+            presenter: SplitViewContainerPresenter(interactor: interactor),
+            tabs: [
+                TabBarScreen(
+                    title: "Dashboard",
+                    systemImage: "house",
+                    screen: {
+                        RouterView { router in
+                            self.dashboardView(router: router)
+                        }
+                        .any()
+                    }
+                ),
+                TabBarScreen(
+                    title: "Nutrition",
+                    systemImage: "carrot",
+                    screen: {
+                        RouterView { router in
+                            self.nutritionView(router: router)
+                        }
+                        .any()
+                    }
+                ),
+                TabBarScreen(
+                    title: "Training",
+                    systemImage: "dumbbell",
+                    screen: {
+                        RouterView { router in
+                            self.trainingView(router: router)
+                        }
+                        .any()
+                    }
+                ),
+                TabBarScreen(
+                    title: "Profile",
+                    systemImage: "person",
+                    screen: {
+                        RouterView { router in
+                            self.profileView(router: router)
+                        }
+                        .any()
+                    }
+                )
+            ],
+            tabViewAccessoryView: { accessoryDelegate in
+                RouterView { router in
+                    self.tabViewAccessoryView(router: router, delegate: accessoryDelegate)
+                }
+            }
+        )
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     builder.splitViewContainer()

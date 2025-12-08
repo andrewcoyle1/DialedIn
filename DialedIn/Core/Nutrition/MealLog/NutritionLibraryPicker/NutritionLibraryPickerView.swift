@@ -119,6 +119,23 @@ struct NutritionLibraryPickerView: View {
     }
 }
 
+extension CoreBuilder {
+    func nutritionLibraryPickerView(router: AnyRouter, delegate: NutritionLibraryPickerDelegate) -> some View {
+        NutritionLibraryPickerView(
+            presenter: NutritionLibraryPickerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showNutritionLibraryPickerView(delegate: NutritionLibraryPickerDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.nutritionLibraryPickerView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     let delegate = NutritionLibraryPickerDelegate(

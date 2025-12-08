@@ -92,6 +92,22 @@ struct ProgramTemplatePickerView: View {
 
 }
 
+extension CoreBuilder {
+    func programTemplatePickerView(router: AnyRouter) -> some View {
+        ProgramTemplatePickerView(
+            presenter: ProgramTemplatePickerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+        )
+    }
+}
+
+extension CoreRouter {
+    func showProgramTemplatePickerView() {
+        router.showScreen(.push) { router in
+            builder.programTemplatePickerView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

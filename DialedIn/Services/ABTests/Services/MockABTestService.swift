@@ -10,9 +10,13 @@ import Foundation
 class MockABTestService: ABTestService {
     var activeTests: ActiveABTests
     
-    init(notificationsTest: Bool? = nil) {
+    init(
+        notificationsTest: Bool? = nil,
+        paywallTest: PaywallTestOption? = nil
+    ) {
         self.activeTests = ActiveABTests(
-            notificationsTest: notificationsTest ?? nil
+            notificationsTest: notificationsTest ?? nil,
+            paywallTest: paywallTest ?? .default
         )
     }
     

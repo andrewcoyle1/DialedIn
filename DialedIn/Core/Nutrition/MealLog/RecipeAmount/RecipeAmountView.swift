@@ -61,6 +61,29 @@ struct RecipeAmountView: View {
     }
 }
 
+extension CoreBuilder {
+    func recipeAmountView(router: AnyRouter, delegate: RecipeAmountDelegate) -> some View {
+        RecipeAmountView(
+            presenter: RecipeAmountPresenter(
+                interactor: interactor,
+                router: CoreRouter(
+                    router: router,
+                    builder: self
+                )
+            ),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showRecipeAmountView(delegate: RecipeAmountDelegate) {
+        router.showScreen(.push) { router in
+            builder.recipeAmountView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

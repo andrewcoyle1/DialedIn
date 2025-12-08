@@ -65,26 +65,25 @@ class SettingsPresenter {
     
     func onSignOutPressed() {
         interactor.trackEvent(event: Event.signOutStart)
+        
         Task {
             do {
-                try interactor.signOut()
-                interactor.logOut()
+                try await interactor.signOut()
                 interactor.trackEvent(event: Event.signOutSuccess)
-
-                dismissScreen()
-                interactor.updateAppState(showTabBarView: false)
+                await dismissScreen()
             } catch {
-                interactor.trackEvent(event: Event.signOutFail(error: error))
-
                 router.showAlert(error: error)
+                interactor.trackEvent(event: Event.signOutFail(error: error))
             }
         }
     }
-    
-    private func dismissScreen() {
+
+    private func dismissScreen() async {
         router.dismissScreen()
+        try? await Task.sleep(for: .seconds(1))
+        interactor.updateAppState(showTabBarView: false)
     }
-    
+
     func onDeleteAccountPressed() {
         interactor.trackEvent(event: Event.deleteAccountStart)
 
@@ -103,7 +102,7 @@ class SettingsPresenter {
 
     func navToManageSubscriptionView() {
         interactor.trackEvent(event: Event.navigate)
-        router.showManageSubscriptionView(delegate: ManageSubscriptionDelegate())
+        router.showCorePaywall()
     }
 
     private func onDeleteAccountConfirmed() {
@@ -111,25 +110,16 @@ class SettingsPresenter {
 
         Task {
             do {
-                // Require recent authentication before destructive deletion
-                try await interactor.reauthenticateApple()
-                // Ensure app-side data removal completes while auth still valid,
-                // then remove auth account.
-                try await interactor.deleteCurrentUser()
                 try await interactor.deleteAccount()
-                
-                interactor.deleteUserProfile()
                 interactor.trackEvent(event: Event.deleteAccountSuccess)
-
-                dismissScreen()
-                interactor.updateAppState(showTabBarView: false)
+                await dismissScreen()
             } catch {
-                interactor.trackEvent(event: Event.deleteAccountFail(error: error))
                 router.showAlert(error: error)
+                interactor.trackEvent(event: Event.deleteAccountFail(error: error))
             }
         }
     }
-        
+
     /// Logger Events
     enum Event: LoggableEvent {
         case signOutStart

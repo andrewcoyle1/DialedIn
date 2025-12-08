@@ -42,6 +42,7 @@ struct CoreInteractor {
     private let userWeightManager: UserWeightManager
     private let goalManager: GoalManager
     private let imageUploadManager: ImageUploadManager
+    private let gIDClientID: String
 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     private let hkWorkoutManager: HKWorkoutManager
     private let liveActivityManager: LiveActivityManager
@@ -73,6 +74,7 @@ struct CoreInteractor {
         self.userWeightManager = container.resolve(UserWeightManager.self)!
         self.goalManager = container.resolve(GoalManager.self)!
         self.imageUploadManager = container.resolve(ImageUploadManager.self)!
+        self.gIDClientID = container.resolve(GoogleSignInConfig.self)!.clientID
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         self.hkWorkoutManager = container.resolve(HKWorkoutManager.self)!
         self.liveActivityManager = container.resolve(LiveActivityManager.self)!
@@ -80,6 +82,40 @@ struct CoreInteractor {
         self.appState = container.resolve(AppState.self)!
     }
 
+    // MARK: Shared
+    
+    func logIn(user: UserAuthInfo, isNewUser: Bool) async throws {
+        try await userManager.logIn(auth: user, isNewUser: isNewUser)
+        try await purchaseManager.logIn(
+            userId: user.uid,
+            userAttributes: PurchaseProfileAttributes(
+                email: user.email,
+                mixpanelDistinctId: Constants.mixpanelDistinctId,
+                firebaseAppInstanceId: Constants.firebaseAnalyticsAppInstanceID
+            )
+        )
+    }
+    
+    func signOut() async throws {
+        try authManager.signOut()
+        try await purchaseManager.logOut()
+        userManager.signOut()
+    }
+    
+    func deleteAccount() async throws {
+        let uid = try authManager.getAuthId()
+        try await exerciseTemplateManager.removeAuthorIdFromAllExerciseTemplates(id: uid)
+        try await workoutTemplateManager.removeAuthorIdFromAllWorkoutTemplates(id: uid)
+        try await workoutSessionManager.deleteAllWorkoutSessionsForAuthor(authorId: uid)
+        try await recipeTemplateManager.removeAuthorIdFromAllRecipeTemplates(id: uid)
+        try await ingredientTemplateManager.removeAuthorIdFromAllIngredientTemplates(id: uid)
+        try await mealLogManager.deleteAllMealLogsForAuthor(authorId: uid)
+        try await userManager.deleteCurrentUser()
+        try await authManager.deleteAccount()
+        try await purchaseManager.logOut()
+        logManager.deleteUserProfile()
+    }
+    
     // MARK: AppState
 
     func updateAppState(showTabBarView: Bool) {
@@ -101,17 +137,9 @@ struct CoreInteractor {
     }
     
     func signInGoogle() async throws -> (UserAuthInfo, Bool) {
-        try await authManager.signInGoogle(GIDClientID: "")
+        try await authManager.signInGoogle(GIDClientID: gIDClientID)
     }
-    
-    func signOut() throws {
-        try authManager.signOut()
-    }
-    
-    func deleteAccount() async throws {
-        try await authManager.deleteAccount()
-    }
-    
+        
     // MARK: UserManager
     
     var currentUser: UserModel? {
@@ -210,14 +238,7 @@ struct CoreInteractor {
     private func mapProfileCardioFitness(_ level: CardioFitnessLevel) -> ProfileCardioFitnessLevel {
         ProfileCardioFitnessLevel(rawValue: level.rawValue) ?? .intermediate
     }
-    
-    func logOut() {
-        // Stop the sync listener for training plans
-        trainingPlanManager.stopSyncListener()
-        
-        userManager.logOut()
-    }
-        
+            
     func updateFirstName(firstName: String) async throws {
         try await userManager.updateFirstName(firstName: firstName)
     }
@@ -437,14 +458,40 @@ struct CoreInteractor {
         abTestManager.activeTests
     }
     
-    var notificationsABTest: Bool {
-        activeTests.notificationsTest
+    var paywallTest: PaywallTestOption {
+        activeTests.paywallTest
     }
-    
+
     func override(updatedTests: ActiveABTests) throws {
         try abTestManager.override(updatedTests: updatedTests)
     }
     
+    // MARK: PurchaseManager
+        
+    var entitlements: [PurchasedEntitlement] {
+        purchaseManager.entitlements
+    }
+    
+    var isPremium: Bool {
+        entitlements.hasActiveEntitlement
+    }
+    
+    func getProducts(productIds: [String]) async throws -> [AnyProduct] {
+        try await purchaseManager.getProducts(productIds: productIds)
+    }
+    
+    func restorePurchase() async throws -> [PurchasedEntitlement] {
+        try await purchaseManager.restorePurchase()
+    }
+    
+    func purchaseProduct(productId: String) async throws -> [PurchasedEntitlement] {
+        try await purchaseManager.purchaseProduct(productId: productId)
+    }
+    
+    func updateProfileAttributes(attributes: PurchaseProfileAttributes) async throws {
+        try await purchaseManager.updateProfileAttributes(attributes: attributes)
+    }
+
     // MARK: ExerciseTemplateManager
     
     func addLocalExerciseTemplate(exercise: ExerciseTemplateModel) async throws {

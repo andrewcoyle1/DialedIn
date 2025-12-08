@@ -9,7 +9,6 @@ protocol DevSettingsInteractor {
     var auth: UserAuthInfo? { get }
     var currentUser: UserModel? { get }
     var activeTests: ActiveABTests { get }
-    var notificationsABTest: Bool { get }
     func override(updatedTests: ActiveABTests) throws
     var currentTrainingPlan: TrainingPlan? { get }
     var activeSession: WorkoutSessionModel? { get }
@@ -25,8 +24,7 @@ protocol DevSettingsInteractor {
     func getWorkoutSession(id: String) async throws -> WorkoutSessionModel
     func clearAllTrainingPlanLocalData() throws
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws
-    func logOut()
-    func signOut() throws
+    func signOut() async throws
 }
 
 extension CoreInteractor: DevSettingsInteractor { }

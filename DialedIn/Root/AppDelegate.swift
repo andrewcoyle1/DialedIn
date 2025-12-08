@@ -57,8 +57,12 @@ enum BuildConfiguration {
         case .dev:
             let plist = Bundle.main.path(forResource: "GoogleService-Info-Dev", ofType: "plist")!
             let options = FirebaseOptions(contentsOfFile: plist)!
+            #if targetEnvironment(simulator)
+            AppCheck.setAppCheckProviderFactory(DebugAppCheckProviderFactory())
+            #else
             let providerFactory = MyAppCheckProviderFactory()
             AppCheck.setAppCheckProviderFactory(providerFactory)
+            #endif
             FirebaseApp.configure(options: options)
             Analytics.setAnalyticsCollectionEnabled(true)
             

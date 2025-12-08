@@ -200,6 +200,15 @@ struct IngredientsView: View {
     }
 }
 
+extension CoreBuilder {
+    func ingredientsView(router: AnyRouter, delegate: IngredientsDelegate) -> some View {
+        IngredientsView(
+            presenter: IngredientsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
 #Preview("Ingredients View") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     List {

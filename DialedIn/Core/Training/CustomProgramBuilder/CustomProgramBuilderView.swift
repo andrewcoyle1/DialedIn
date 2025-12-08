@@ -197,6 +197,25 @@ struct CustomProgramBuilderView: View {
     }
 }
 
+extension CoreBuilder {
+    func customProgramBuilderView(router: AnyRouter) -> some View {
+        CustomProgramBuilderView(
+            presenter: CustomProgramBuilderPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            )
+        )
+    }
+}
+
+extension CoreRouter {
+    func showCustomProgramBuilderView() {
+        router.showScreen(.push) { router in
+            builder.customProgramBuilderView(router: router)
+        }
+    }
+}
+
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in

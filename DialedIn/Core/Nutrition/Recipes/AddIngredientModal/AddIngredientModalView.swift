@@ -92,6 +92,23 @@ struct AddIngredientModalView: View {
     }
 }
 
+extension CoreBuilder {
+    func addIngredientModalView(router: AnyRouter, delegate: AddIngredientModalDelegate) -> some View {
+        AddIngredientModalView(
+            presenter: AddIngredientModalPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showAddIngredientView(delegate: AddIngredientModalDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.addIngredientModalView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     @Previewable @State var selectedIngredients: [IngredientTemplateModel] = [IngredientTemplateModel.mock]
     let builder = CoreBuilder(container: DevPreview.shared.container)

@@ -100,6 +100,23 @@ struct AddExerciseModalView: View {
     }
 }
 
+extension CoreBuilder {
+    func addExerciseModalView(router: AnyRouter, delegate: AddExerciseModalDelegate) -> some View {
+        AddExerciseModalView(
+            presenter: AddExerciseModalPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            delegate: delegate
+        )
+    }
+}
+
+extension CoreRouter {
+    func showAddExercisesView(delegate: AddExerciseModalDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.addExerciseModalView(router: router, delegate: delegate)
+        }
+    }
+}
+
 #Preview {
     @Previewable @State var selectedExercises: [ExerciseTemplateModel] = [ExerciseTemplateModel.mock]
     let builder = CoreBuilder(container: DevPreview.shared.container)

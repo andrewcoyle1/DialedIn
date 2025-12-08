@@ -124,6 +124,18 @@ struct MetricView: View {
     }
 }
 
+extension CoreBuilder {
+    func workoutSummaryCardView(router: AnyRouter, delegate: WorkoutSummaryCardDelegate) -> some View {
+        WorkoutSummaryCardView(
+            presenter: WorkoutSummaryCardPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
+        )
+    }
+}
+
 #Preview("Completed Workout") {
     let scheduledWorkout = ScheduledWorkout(
         workoutTemplateId: "test",
