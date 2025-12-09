@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 02/12/2025.
 //
 
-struct WorkoutPickerDelegate: GenericTemplateListDelegate {
+struct WorkoutPickerDelegate {
     /// Strongly-typed callbacks used by calling code
     let onSelectWorkout: (WorkoutTemplateModel) -> Void
     let onCancelWorkout: () -> Void
