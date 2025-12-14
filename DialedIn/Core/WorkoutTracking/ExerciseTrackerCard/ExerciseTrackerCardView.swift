@@ -8,32 +8,6 @@
 import SwiftUI
 import SwiftfulRouting
 
-struct ExerciseTrackerCardDelegate {
-    var exercise: WorkoutExerciseModel
-    var exerciseIndex: Int
-    var isCurrentExercise: Bool
-    var weightUnit: ExerciseWeightUnit
-    var distanceUnit: ExerciseDistanceUnit
-    var previousSetsByIndex: [Int: WorkoutSetModel]
-    var onSetUpdate: (WorkoutSetModel) -> Void
-    var onAddSet: () -> Void
-    var onDeleteSet: (String) -> Void
-    var onHeaderLongPress: () -> Void
-    var onNotesChange: (String) -> Void
-    var onWeightUnitChange: (ExerciseWeightUnit) -> Void
-    var onDistanceUnitChange: (ExerciseDistanceUnit) -> Void
-    var restBeforeSecForSet: (String) -> Int?
-    var onRestBeforeChange: (String, Int?) -> Void
-    var onRequestRestPicker: (String, Int?) -> Void
-    var getLatestExercise: () -> WorkoutExerciseModel?
-    var getLatestExerciseIndex: () -> Int
-    var getLatestIsCurrentExercise: () -> Bool
-    var getLatestWeightUnit: () -> ExerciseWeightUnit
-    var getLatestDistanceUnit: () -> ExerciseDistanceUnit
-    var getLatestPreviousSets: () -> [Int: WorkoutSetModel]
-    var isExpanded: Binding<Bool>
-}
-
 struct ExerciseTrackerCardView: View {
 
     @State var presenter: ExerciseTrackerCardPresenter
@@ -42,62 +16,32 @@ struct ExerciseTrackerCardView: View {
 
     @ViewBuilder var setTrackerRowView: (SetTrackerRowDelegate) -> AnyView
 
-    init(delegate: ExerciseTrackerCardDelegate, interactor: ExerciseTrackerCardInteractor, setTrackerRowView: @escaping (SetTrackerRowDelegate) -> AnyView) {
-        self.delegate = delegate
-        _presenter = State(wrappedValue: ExerciseTrackerCardPresenter(
-            interactor: interactor,
-            exercise: delegate.exercise,
-            exerciseIndex: delegate.exerciseIndex,
-            isCurrentExercise: delegate.isCurrentExercise,
-            weightUnit: delegate.weightUnit,
-            distanceUnit: delegate.distanceUnit,
-            previousSetsByIndex: delegate.previousSetsByIndex
-        ))
-        self.setTrackerRowView = setTrackerRowView
-    }
-
     var body: some View {
+        @Bindable var presenter = presenter
         DisclosureGroup(isExpanded: delegate.isExpanded) {
             setsContent
         } label: {
             exerciseHeader
         }
-        .onChange(of: delegate.isExpanded.wrappedValue) { _, newValue in
-            if newValue {
-                // Refresh exercise data when card expands
-                let latestExercise = delegate.getLatestExercise() ?? presenter.exercise
-                let latestExerciseIndex = delegate.getLatestExerciseIndex()
-                let latestIsCurrentExercise = delegate.getLatestIsCurrentExercise()
-                let latestWeightUnit = delegate.getLatestWeightUnit()
-                let latestDistanceUnit = delegate.getLatestDistanceUnit()
-                let latestPreviousSets = delegate.getLatestPreviousSets()
-                
-                presenter.refresh(
-                    with: latestExercise,
-                    exerciseIndex: latestExerciseIndex,
-                    isCurrentExercise: latestIsCurrentExercise,
-                    weightUnit: latestWeightUnit,
-                    distanceUnit: latestDistanceUnit,
-                    previousSetsByIndex: latestPreviousSets
-                )
-            }
+        .onAppear {
+            presenter.loadExerciseNotes(delegate.exercise)
         }
     }
     
     private var exerciseHeader: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text("\(presenter.exerciseIndex + 1).")
+            Text("\(delegate.exerciseIndex + 1).")
                 .font(.headline)
                 .foregroundColor(.secondary)
             
-            Text(presenter.exercise.name)
+            Text(delegate.exercise.name)
                 .font(.headline)
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.leading)
             
-            Text("\(presenter.completedSetsCount)/\(presenter.exercise.sets.count) sets")
+            Text("\(delegate.exercise.completedSetsCount)/\(delegate.exercise.sets.count) sets")
                 .font(.caption)
-                .foregroundColor(presenter.completedSetsCount == presenter.exercise.sets.count ? .green : .secondary)
+                .foregroundColor(delegate.exercise.completedSetsCount == delegate.exercise.sets.count ? .green : .secondary)
             
             Spacer()
             
@@ -105,9 +49,6 @@ struct ExerciseTrackerCardView: View {
             unitPreferenceMenu
         }
         .tappableBackground()
-        .onLongPressGesture(minimumDuration: 0.4) {
-            delegate.onHeaderLongPress()
-        }
         .listRowInsets(.vertical, .zero)
     }
     
@@ -115,16 +56,15 @@ struct ExerciseTrackerCardView: View {
     private var unitPreferenceMenu: some View {
         Menu {
             // Show weight options for exercises that track weight
-            if presenter.exercise.trackingMode == .weightReps {
+            if delegate.exercise.trackingMode == .weightReps {
                 Menu {
                     ForEach(ExerciseWeightUnit.allCases, id: \.self) { unit in
                         Button {
-                            delegate.onWeightUnitChange(unit)
-                            presenter.weightUnit = unit
+                            presenter.updateWeightUnit(unit, for: delegate.exercise.id)
                         } label: {
                             HStack {
                                 Text(unit.displayName)
-                                if unit == presenter.weightUnit {
+                                if unit == presenter.preference?.weightUnit {
                                     Image(systemName: "checkmark")
                                 }
                             }
@@ -136,16 +76,15 @@ struct ExerciseTrackerCardView: View {
             }
             
             // Show distance options for exercises that track distance
-            if presenter.exercise.trackingMode == .distanceTime {
+            if delegate.exercise.trackingMode == .distanceTime {
                 Menu {
                     ForEach(ExerciseDistanceUnit.allCases, id: \.self) { unit in
                         Button {
-                            delegate.onDistanceUnitChange(unit)
-                            presenter.distanceUnit = unit
+                            presenter.updateDistanceUnit(unit, for: delegate.exercise.id)
                         } label: {
                             HStack {
                                 Text(unit.displayName)
-                                if unit == presenter.distanceUnit {
+                                if unit == presenter.preference?.distanceUnit {
                                     Image(systemName: "checkmark")
                                 }
                             }
@@ -178,27 +117,17 @@ struct ExerciseTrackerCardView: View {
                     .scrollContentBackground(.hidden)
                     .textInputAutocapitalization(.sentences)
                     .onChange(of: presenter.notesDraft) { _, newValue in
-                        delegate.onNotesChange(newValue)
+                        delegate.onNotesChanged(newValue, delegate.exercise.id)
                     }
             }
 
             ForEach(delegate.exercise.sets) { set in
                 setTrackerRowView(
-                    SetTrackerRowDelegate(
-                        set: set,
-                        trackingMode: presenter.exercise.trackingMode,
-                        weightUnit: presenter.weightUnit,
-                        distanceUnit: presenter.distanceUnit,
-                        previousSet: presenter.previousSetsByIndex[set.index],
-                        restBeforeSec: delegate.restBeforeSecForSet(set.id),
-                        onRestBeforeChange: { delegate.onRestBeforeChange(set.id, $0) },
-                        onRequestRestPicker: { _, _ in delegate.onRequestRestPicker(set.id, delegate.restBeforeSecForSet(set.id)) },
-                        onUpdate: delegate.onSetUpdate
-                    )
+                    presenter.makeSetDelegate(for: set, exercise: delegate.exercise, parentDelegate: delegate)
                 )
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button(role: .destructive) {
-                        delegate.onDeleteSet(set.id)
+                        delegate.onDeleteSet(set.id, delegate.exercise.id)
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
@@ -209,7 +138,7 @@ struct ExerciseTrackerCardView: View {
 
             // Add set button
             Button {
-                delegate.onAddSet()
+                delegate.onAddSet(delegate.exercise.id)
             } label: {
                 HStack {
                     Image(systemName: "plus.circle.fill")
@@ -274,6 +203,7 @@ private struct ExerciseTrackerCardPreviewContainer: View {
 
     @State private var isExpandedCurrent = true
     @State private var isExpandedOther = false
+    @State private var restBefore: [String: Int] = [:]
 
     var body: some View {
         RouterView { router in
@@ -285,26 +215,23 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                         exercise: exercise,
                         exerciseIndex: 0,
                         isCurrentExercise: true,
-                        weightUnit: .kilograms,
-                        distanceUnit: .meters,
-                        previousSetsByIndex: [:],
-                        onSetUpdate: handleUpdate,
-                        onAddSet: handleAdd,
-                        onDeleteSet: handleDelete,
-                        onHeaderLongPress: {},
-                        onNotesChange: { exercise.notes = $0 },
-                        onWeightUnitChange: { _ in },
-                        onDistanceUnitChange: { _ in },
-                        restBeforeSecForSet: { _ in nil },
-                        onRestBeforeChange: { _, _ in },
-                        onRequestRestPicker: { _, _ in },
-                        getLatestExercise: { exercise },
-                        getLatestExerciseIndex: { 0 },
-                        getLatestIsCurrentExercise: { true },
-                        getLatestWeightUnit: { .kilograms },
-                        getLatestDistanceUnit: { .meters },
-                        getLatestPreviousSets: { [:] },
-                        isExpanded: $isExpandedCurrent
+                        isExpanded: $isExpandedCurrent,
+                        restBeforeSetIdToSec: restBefore,
+                        onNotesChanged: { notes, _ in
+                            exercise.notes = notes
+                        },
+                        onAddSet: { _ in
+                            handleAdd()
+                        },
+                        onDeleteSet: { setId, _ in
+                            handleDelete(setId)
+                        },
+                        onUpdateSet: { updatedSet, _ in
+                            handleUpdate(updatedSet)
+                        },
+                        onRestBeforeChange: { setId, seconds in
+                            handleRestChange(setId: setId, seconds: seconds)
+                        }
                     )
                 )
                 // Non-current exercise styled card
@@ -314,26 +241,23 @@ private struct ExerciseTrackerCardPreviewContainer: View {
                         exercise: exercise,
                         exerciseIndex: 1,
                         isCurrentExercise: false,
-                        weightUnit: .kilograms,
-                        distanceUnit: .meters,
-                        previousSetsByIndex: [:],
-                        onSetUpdate: handleUpdate,
-                        onAddSet: handleAdd,
-                        onDeleteSet: handleDelete,
-                        onHeaderLongPress: {},
-                        onNotesChange: { exercise.notes = $0 },
-                        onWeightUnitChange: { _ in },
-                        onDistanceUnitChange: { _ in },
-                        restBeforeSecForSet: { _ in nil },
-                        onRestBeforeChange: { _, _ in },
-                        onRequestRestPicker: { _, _ in },
-                        getLatestExercise: { exercise },
-                        getLatestExerciseIndex: { 1 },
-                        getLatestIsCurrentExercise: { false },
-                        getLatestWeightUnit: { .kilograms },
-                        getLatestDistanceUnit: { .meters },
-                        getLatestPreviousSets: { [:] },
-                        isExpanded: $isExpandedOther
+                        isExpanded: $isExpandedOther,
+                        restBeforeSetIdToSec: restBefore,
+                        onNotesChanged: { notes, _ in
+                            exercise.notes = notes
+                        },
+                        onAddSet: { _ in
+                            handleAdd()
+                        },
+                        onDeleteSet: { setId, _ in
+                            handleDelete(setId)
+                        },
+                        onUpdateSet: { updatedSet, _ in
+                            handleUpdate(updatedSet)
+                        },
+                        onRestBeforeChange: { setId, seconds in
+                            handleRestChange(setId: setId, seconds: seconds)
+                        }
                     )
                 )
             }
@@ -367,6 +291,7 @@ private struct ExerciseTrackerCardPreviewContainer: View {
 
     private func handleDelete(_ id: String) {
         exercise.sets.removeAll { $0.id == id }
+        restBefore.removeValue(forKey: id)
         reindex()
     }
 
@@ -384,6 +309,14 @@ private struct ExerciseTrackerCardPreviewContainer: View {
         reindex()
     }
 
+    private func handleRestChange(setId: String, seconds: Int?) {
+        if let seconds {
+            restBefore[setId] = seconds
+        } else {
+            restBefore.removeValue(forKey: setId)
+        }
+    }
+
     private func reindex() {
         for index in exercise.sets.indices {
             exercise.sets[index].index = index + 1
@@ -394,8 +327,11 @@ private struct ExerciseTrackerCardPreviewContainer: View {
 extension CoreBuilder {
     func exerciseTrackerCardView(router: AnyRouter, delegate: ExerciseTrackerCardDelegate) -> some View {
         ExerciseTrackerCardView(
+            presenter: ExerciseTrackerCardPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
             delegate: delegate,
-            interactor: interactor,
             setTrackerRowView: { delegate in
                 self.setTrackerRowView(router: router, delegate: delegate)
                     .any()

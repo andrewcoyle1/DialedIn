@@ -12,12 +12,13 @@ class MockTrainingPlanPersistence: LocalTrainingPlanPersistence {
     var showError: Bool
     private var plans: [String: TrainingPlan] = [:]
     
-    init(showError: Bool = false, customPlan: TrainingPlan? = nil) {
+    init(showError: Bool = false, customPlans: [TrainingPlan] = TrainingPlan.mocks) {
         self.showError = showError
         
         // Seed with mock data
-        let mockPlan = customPlan ?? TrainingPlan.mock
-        plans[mockPlan.planId] = mockPlan
+        for plan in customPlans {
+            plans[plan.planId] = plan
+        }
     }
     
     private func tryShowError() throws {

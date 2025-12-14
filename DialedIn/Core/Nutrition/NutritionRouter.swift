@@ -6,11 +6,15 @@
 //
 
 @MainActor
-protocol NutritionRouter {
+protocol NutritionRouter: GlobalRouter {
     func showNotificationsView()
     func showDevSettingsView()
-    func showCreateIngredientView()
-    func showCreateRecipeView()
+    
+    func showAddMealView(delegate: AddMealDelegate)
+    func showMealDetailView(delegate: MealDetailDelegate)
+
+    func showRecipesView()
+    func showIngredientsView()
 }
 
 extension CoreRouter: NutritionRouter { }

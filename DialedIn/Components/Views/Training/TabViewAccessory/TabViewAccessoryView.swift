@@ -13,18 +13,19 @@ struct TabViewAccessoryView: View {
     @State var presenter: TabViewAccessoryPresenter
     
     let delegate: TabViewAccessoryDelegate
-    let onTap: () -> Void
     
     var body: some View {
         Button {
-            onTap()
+            presenter.reopenActiveSession()
         } label: {
             HStack {
                 iconSection
                 workoutDescriptionSection
             }
+            .padding(.horizontal)
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
+        .buttonStyle(.plain)
     }
     
     private var iconSection: some View {
@@ -90,16 +91,10 @@ struct TabViewAccessoryView: View {
 }
 
 extension CoreBuilder {
-    func tabViewAccessoryView(router: AnyRouter, delegate: TabViewAccessoryDelegate) -> some View {
-        let coreRouter = CoreRouter(router: router, builder: self)
+    func tabViewAccessoryView(delegate: TabViewAccessoryDelegate) -> some View {
         return TabViewAccessoryView(
             presenter: TabViewAccessoryPresenter(interactor: interactor),
-            delegate: delegate,
-            onTap: {
-                coreRouter.showWorkoutTrackerView(
-                    delegate: WorkoutTrackerDelegate(workoutSession: delegate.active)
-                )
-            }
+            delegate: delegate
         )
     }
 }
@@ -114,12 +109,9 @@ extension CoreBuilder {
         }
     }
     .tabViewBottomAccessory {
-        RouterView { router in
-            builder.tabViewAccessoryView(
-                router: router,
-                delegate: TabViewAccessoryDelegate(active: .mock)
-            )
-        }
+        builder.tabViewAccessoryView(
+            delegate: TabViewAccessoryDelegate(active: .mock)
+        )
     }
     .previewEnvironment()
 }

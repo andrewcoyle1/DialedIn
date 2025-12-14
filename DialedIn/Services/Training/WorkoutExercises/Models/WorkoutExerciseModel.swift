@@ -42,6 +42,12 @@ struct WorkoutExerciseModel: Identifiable, Codable, Hashable {
         case sets
     }
     
+    var completedSetsCount: Int {
+        return sets.filter { set in
+            return set.completedAt != nil
+        }.count
+    }
+    
     static var mock: WorkoutExerciseModel {
         mocks[0]
     }

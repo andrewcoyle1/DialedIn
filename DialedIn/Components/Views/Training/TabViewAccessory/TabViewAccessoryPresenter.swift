@@ -39,6 +39,7 @@ class TabViewAccessoryPresenter {
     }
     
     func reopenActiveSession() {
+        print("🔄 TabViewAccessoryPresenter.reopenActiveSession() forwarding to interactor")
         interactor.reopenActiveSession()
     }
 

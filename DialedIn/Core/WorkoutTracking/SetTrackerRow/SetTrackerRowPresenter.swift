@@ -122,8 +122,4 @@ class SetTrackerRowPresenter {
             self.router.dismissModal()
         }
     }
-
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
 }

@@ -10,29 +10,37 @@ import SwiftUI
 struct WorkoutNotesView: View {
 
     @State var presenter: WorkoutNotesPresenter
+    
     var delegate: WorkoutNotesDelegate
 
     var body: some View {
         VStack {
             TextEditor(text: delegate.notes)
                 .padding()
-
+                .background(.white)
+                .padding()
+                .cornerRadius(24)
             Spacer()
         }
         .navigationTitle("Workout Notes")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button("Cancel") {
-                    presenter.onDismissPressed()
-                }
+            toolbarContent
+        }
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button("Cancel") {
+                presenter.onDismissPressed()
             }
+        }
 
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Save") {
-                    delegate.onSave()
-                    presenter.onDismissPressed()
-                }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Save") {
+                delegate.onSave()
+                presenter.onDismissPressed()
             }
         }
     }
@@ -60,15 +68,20 @@ extension CoreRouter {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    RouterView { router in
-        builder.workoutNotesView(
-            router: router,
-            delegate: WorkoutNotesDelegate(
-                notes: Binding.constant(""),
-                onSave: {
-                    
-                }
+    List {
+        Text("Hello")
+    }
+    .sheet(isPresented: .constant(true)) {
+        RouterView { router in
+            builder.workoutNotesView(
+                router: router,
+                delegate: WorkoutNotesDelegate(
+                    notes: Binding.constant(""),
+                    onSave: {
+                        
+                    }
+                )
             )
-        )
+        }
     }
 }

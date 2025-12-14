@@ -45,7 +45,7 @@ struct EditableSetDetailRow: View {
             rpeField
         }
         .padding(.vertical, 4)
-        .sheet(isPresented: $showWarmupHelp) {
+        .showModal(showModal: $showWarmupHelp) {
             CustomModalView(
                 title: "Warmup Sets",
                 subtitle: "Warmup sets are lighter weight sets performed before your working sets to prepare your muscles and joints. They don't count toward your total volume or personal records.",

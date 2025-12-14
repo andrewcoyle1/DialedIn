@@ -11,13 +11,11 @@ import SwiftfulRouting
 import Combine
 
 struct WorkoutTrackerView: View {
+
     @Environment(\.scenePhase) private var scenePhase
     
-    // Presenter
     @State var presenter: WorkoutTrackerPresenter
-    @State private var hasLoadedSession = false
-    @State private var now = Date()
-    
+        
     let delegate: WorkoutTrackerDelegate
 
     @ViewBuilder var exerciseTrackerCardView: (ExerciseTrackerCardDelegate) -> AnyView
@@ -26,10 +24,9 @@ struct WorkoutTrackerView: View {
         List {
             workoutOverviewCard
             exerciseSection
+            deleteWorkoutSection
         }
-        .navigationTitle(presenter.workoutSession?.name ?? delegate.workoutSession.name)
-        .navigationSubtitle(presenter.elapsedTimeString)
-        .navigationBarTitleDisplayMode(.large)
+//        .navigationTitle(presenter.workoutSession.name)
         .scrollIndicators(.hidden)
         .environment(\.editMode, $presenter.editMode)
         .toolbar {
@@ -38,22 +35,17 @@ struct WorkoutTrackerView: View {
         .safeAreaInset(edge: .bottom) {
             timerHeaderView()
         }
-        .task {
-            // Ensure we only perform the heavy load/onAppear logic once per view lifecycle
-            guard !hasLoadedSession else { return }
-            hasLoadedSession = true
+        .onAppear {
+            print("👀 WorkoutTrackerView.onAppear for session id=\(delegate.workoutSession.id)")
             presenter.loadWorkoutSession(delegate.workoutSession)
+        }
+        .task(id: delegate.workoutSession.id) {
+            print("🚀 WorkoutTrackerView.task for session id=\(delegate.workoutSession.id)")
             await presenter.onAppear()
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
+            print("🌗 WorkoutTrackerView.scenePhase changed \(oldPhase) -> \(newPhase) for session id=\(delegate.workoutSession.id)")
             presenter.onScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
-        }
-        .showModal(showModal: $presenter.isRestPickerOpen) {
-            setRestModal
-        }
-        // Drive periodic updates via a simple timer rather than wrapping the whole view in TimelineView
-        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { date in
-            now = date
         }
     }
 
@@ -62,47 +54,46 @@ struct WorkoutTrackerView: View {
     
     private var workoutOverviewCard: some View {
         Section {
-            if let workoutSession = presenter.workoutSession {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Current Workout")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Text("\(workoutSession.exercises.count) exercises")
-                                .font(.headline)
-                        }
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Current Workout")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                         
-                        Spacer()
-                        
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Text("Sets Completed")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Text("\(presenter.completedSetsCount)/\(presenter.totalSetsCount)")
-                                .font(.headline)
-                                .foregroundColor(.green)
-                        }
+                        Text(presenter.exercisesCount)
+                            .font(.headline)
                     }
                     
-                    // Quick stats
-                    HStack(spacing: 20) {
-                        StatCard(
-                            value: "\(presenter.currentExerciseIndex + 1)/\(workoutSession.exercises.count)",
-                            label: "Exercise",
-                        )
-                        StatCard(
-                            value: presenter.formattedVolume,
-                            label: "Volume"
-                        )
-                        if !presenter.workoutNotes.isEmpty {
-                            StatCard(
-                                value: "Added",
-                                label: "Notes"
-                            )
-                        }
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("Sets Completed")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text(presenter.completedSetsFraction)
+                            .font(.headline)
+                            .foregroundColor(.green)
+                    }
+                }
+                
+                // Quick stats
+                HStack(spacing: 20) {
+                    StatCard(
+                        value: presenter.exerciseFraction,
+                        label: "Exercise",
+                    )
+                    StatCard(
+                        value: presenter.formattedVolume,
+                        label: "Volume"
+                    )
+                    StatCard(
+                        value: presenter.workoutNotes.isEmpty ? "None" : "View",
+                        label: "Notes"
+                    )
+                    .onTapGesture {
+                        presenter.presentWorkoutNotes()
                     }
                 }
             }
@@ -116,88 +107,59 @@ struct WorkoutTrackerView: View {
     private var exerciseSection: some View {
         // Exercise List
         Section {
-            if let workoutSession = presenter.workoutSession {
-                ForEach(workoutSession.exercises, id: \.id) { exercise in
-                    let index = workoutSession.exercises.firstIndex(where: { $0.id == exercise.id }) ?? 0
-                    let preference = presenter.exerciseUnitPreferences[exercise.templateId]
-                    let weightUnit = preference?.weightUnit ?? .kilograms
-                    let distanceUnit = preference?.distanceUnit ?? .meters
-                    let previousSets = presenter.buildPreviousLookup(for: exercise)
-                    let exerciseId = exercise.id
-                    exerciseTrackerCardView(
-                        ExerciseTrackerCardDelegate(
-                            exercise: exercise,
-                            exerciseIndex: index,
-                            isCurrentExercise: index == presenter.currentExerciseIndex,
-                            weightUnit: weightUnit,
-                            distanceUnit: distanceUnit,
-                            previousSetsByIndex: previousSets,
-                            onSetUpdate: { updatedSet in presenter.updateSet(updatedSet, in: exerciseId) },
-                            onAddSet: { presenter.addSet(to: exerciseId) },
-                            onDeleteSet: { setId in presenter.deleteSet(setId, from: exerciseId) },
-                            onHeaderLongPress: { /* no-op: reordering via drag on header */ },
-                            onNotesChange: { notes in presenter.updateExerciseNotes(notes, for: exerciseId) },
-                            onWeightUnitChange: { unit in presenter.updateWeightUnit(unit, for: exercise.templateId) },
-                            onDistanceUnitChange: { unit in presenter.updateDistanceUnit(unit, for: exercise.templateId) },
-                            restBeforeSecForSet: { setId in presenter.getRestBeforeSet(setId: setId) },
-                            onRestBeforeChange: { setId, value in presenter.updateRestBeforeSet(setId: setId, value: value) },
-                            onRequestRestPicker: { setId, current in
-                                presenter.openRestPicker(for: setId, currentValue: current)
-                                presenter.isRestPickerOpen = true
-                            },
-                            getLatestExercise: {
-                                presenter.workoutSession?.exercises.first(where: { $0.id == exerciseId })
-                            },
-                            getLatestExerciseIndex: {
-                                presenter.workoutSession?.exercises.firstIndex(where: { $0.id == exerciseId }) ?? 0
-                            },
-                            getLatestIsCurrentExercise: {
-                                guard let workoutSession = presenter.workoutSession else { return false }
-                                let currentIndex = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }) ?? 0
-                                return currentIndex == presenter.currentExerciseIndex
-                            },
-                            getLatestWeightUnit: {
-                                guard let workoutSession = presenter.workoutSession,
-                                      let latestExercise = workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
-                                    return .kilograms
-                                }
-                                let preference = presenter.exerciseUnitPreferences[latestExercise.templateId]
-                                return preference?.weightUnit ?? .kilograms
-                            },
-                            getLatestDistanceUnit: {
-                                guard let workoutSession = presenter.workoutSession,
-                                      let latestExercise = workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
-                                    return .meters
-                                }
-                                let preference = presenter.exerciseUnitPreferences[latestExercise.templateId]
-                                return preference?.distanceUnit ?? .meters
-                            },
-                            getLatestPreviousSets: {
-                                guard let workoutSession = presenter.workoutSession,
-                                      let latestExercise = workoutSession.exercises.first(where: { $0.id == exerciseId }) else {
-                                    return [:]
-                                }
-                                return presenter.buildPreviousLookup(for: latestExercise)
-                            },
-                            isExpanded: Binding(
-                                get: { presenter.expandedExerciseIds.contains(exercise.id) },
-                                set: { newValue in
-                                    if newValue {
-                                        // Allow only one expanded at a time: collapse current first
-                                        presenter.expandedExerciseIds.removeAll()
-                                        presenter.expandedExerciseIds.insert(exercise.id)
-                                    } else {
-                                        presenter.expandedExerciseIds.remove(exercise.id)
-                                    }
-                                }
-                            )
-                        )
+            if presenter.workoutSession.exercises.isEmpty {
+                ContentUnavailableView {
+                    Text("No Exercises")
+                } description: {
+                    Text("Please add some exercises to get started.")
+                }
+                .removeListRowFormatting()
+            } else {
+                ForEach(Array(presenter.workoutSession.exercises.enumerated()), id: \.element.id) { index, exercise in
+                    let isExpanded = Binding<Bool>(
+                        get: {
+                            presenter.expandedExerciseIds.contains(exercise.id)
+                        },
+                        set: { newValue in
+                            if newValue {
+                                presenter.expandedExerciseIds = []
+                                presenter.expandedExerciseIds.insert(exercise.id)
+                            } else {
+                                presenter.expandedExerciseIds.remove(exercise.id)
+                            }
+                        }
                     )
+                    
+                    let delegate = ExerciseTrackerCardDelegate(
+                        exercise: exercise,
+                        exerciseIndex: index,
+                        isCurrentExercise: presenter.currentExerciseIndex == index,
+                        isExpanded: isExpanded,
+                        restBeforeSetIdToSec: presenter.restBeforeSetIdToSec,
+                        onNotesChanged: { notes, exerciseId in
+                            presenter.updateExerciseNotes(notes, exerciseId: exerciseId)
+                        },
+                        onAddSet: { exerciseId in
+                            presenter.addSet(exerciseId: exerciseId)
+                        },
+                        onDeleteSet: { setId, exerciseId in
+                            presenter.deleteSet(setId: setId, exerciseId: exerciseId)
+                        },
+                        onUpdateSet: { updatedSet, exerciseId in
+                            presenter.updateSet(updatedSet, in: exerciseId)
+                        },
+                        onRestBeforeChange: { setId, seconds in
+                            presenter.updateRestBefore(setId: setId, seconds: seconds)
+                        }
+                    )
+                    
+                    exerciseTrackerCardView(delegate)
                 }
                 .onMove { source, destination in
                     presenter.moveExercises(from: source, to: destination)
                 }
             }
+            
         } header: {
             Text("Exercises")
         }
@@ -225,7 +187,7 @@ struct WorkoutTrackerView: View {
                                 .foregroundColor(.primary)
                         }
                     } else {
-                        Text((presenter.workoutSession?.dateCreated ?? delegate.workoutSession.dateCreated), style: .timer)
+                        Text((presenter.workoutSession.dateCreated), style: .timer)
                             .font(.title2.bold())
                             .foregroundColor(.primary)
                     }
@@ -239,8 +201,26 @@ struct WorkoutTrackerView: View {
         }
     }
     
+    private var deleteWorkoutSection: some View {
+        Button {
+            presenter.onDiscardWorkoutPressed()
+        } label: {
+            Text("Delete Workout")
+                .foregroundStyle(.red)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(.red.opacity(0.2))
+        }
+        .removeListRowFormatting()
+    }
+    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .title) {
+            TextField(text: $presenter.workoutSessionName) {
+                Text("Untitled Workout")
+            }
+        }
         ToolbarItem(placement: .topBarLeading) {
             Button {
                 presenter.minimizeSession()
@@ -248,23 +228,19 @@ struct WorkoutTrackerView: View {
                 Image(systemName: "xmark")
             }
         }
-        ToolbarSpacer(.fixed, placement: .topBarLeading)
-        ToolbarItem(placement: .topBarLeading) {
-            Button(role: .destructive) {
-                presenter.onDiscardWorkoutPressed()
-            } label: {
-                Image(systemName: "trash")
-            }
-        }
         
-        ToolbarItem(placement: .topBarTrailing) {
+        ToolbarSpacer(.fixed, placement: .topBarLeading)
+        
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
             Button {
-                presenter.presentWorkoutNotes()
+                presenter.onDevSettingsPressed()
             } label: {
-                Image(systemName: "long.text.page.and.pencil")
+                Image(systemName: "info")
             }
         }
-
+        #endif
+        
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.finishWorkout()
@@ -273,20 +249,7 @@ struct WorkoutTrackerView: View {
             }
             .buttonStyle(.glassProminent)
         }
-        
-        ToolbarItem(placement: .bottomBar) {
-            Button {
-                if presenter.isRestActive {
-                    presenter.cancelRestTimer()
-                } else {
-                    presenter.startRestTimer()
-                }
-            } label: {
-                Image(systemName: presenter.isRestActive ? "stop" : "timer")
-                    .foregroundColor(presenter.isRestActive ? .red : .accent)
-            }
-        }
-        
+                
         ToolbarSpacer(.flexible, placement: .bottomBar)
         
         ToolbarItem(placement: .bottomBar) {
@@ -297,46 +260,6 @@ struct WorkoutTrackerView: View {
                 Image(systemName: "plus")
             }
         }
-    }
-    
-    private var setRestModal: some View {
-        CustomModalView(
-            title: "Set Rest",
-            subtitle: nil,
-            primaryButtonTitle: "Save",
-            primaryButtonAction: {
-                presenter.saveRestPickerValue()
-                presenter.isRestPickerOpen = false
-            },
-            secondaryButtonTitle: "Cancel",
-            secondaryButtonAction: { presenter.isRestPickerOpen = false },
-            middleContent: AnyView(
-                HStack(spacing: 16) {
-                    Picker("Minutes", selection: Binding(
-                        get: { presenter.restPickerMinutesSelection },
-                        set: { presenter.restPickerMinutesSelection = $0 }
-                    )) {
-                        ForEach(0..<60, id: \.self) { minute in
-                            Text("\(minute) m").tag(minute)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .frame(maxWidth: .infinity)
-                    
-                    Picker("Seconds", selection: Binding(
-                        get: { presenter.restPickerSecondsSelection },
-                        set: { presenter.restPickerSecondsSelection = $0 }
-                    )) {
-                        ForEach(0..<60, id: \.self) { second in
-                            Text("\(second) s").tag(second)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .frame(maxWidth: .infinity)
-                }
-                    .frame(height: 180)
-            )
-        )
     }
 }
 
@@ -365,6 +288,24 @@ extension CoreRouter {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
         builder.workoutTrackerView(router: router, delegate: WorkoutTrackerDelegate(workoutSession: .mock))
+    }
+    .previewEnvironment()
+}
+
+#Preview("Tracker View - No Session") {
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let session = WorkoutSessionModel(
+        id: UUID().uuidString,
+        authorId: "uid",
+        name: "Untitled Workout",
+        dateCreated: .now,
+        exercises: []
+    )
+    RouterView { router in
+        builder.workoutTrackerView(
+            router: router,
+            delegate: WorkoutTrackerDelegate(workoutSession: session)
+        )
     }
     .previewEnvironment()
 }

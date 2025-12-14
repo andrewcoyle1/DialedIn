@@ -321,6 +321,35 @@ enum ExerciseCategory: String, Codable, CaseIterable, Sendable {
     case duration
     case none
 
+    var displayName: String {
+        switch self {
+        case .barbell:
+            return "Barbell"
+        case .dumbbell:
+            return "Dumbbell"
+        case .kettlebell:
+            return "Kettlebell"
+        case .medicineBall:
+            return "Medicine Ball"
+        case .machine:
+            return "Machine"
+        case .cable:
+            return "Cable"
+        case .weightedBodyweight:
+            return "Weighted"
+        case .assistedBodyweight:
+            return "Assisted"
+        case .repsOnly:
+            return "Bodyweight"
+        case .cardio:
+            return "Cardio"
+        case .duration:
+            return "Duration"
+        case .none:
+            return "Other"
+        }
+    }
+
     var description: String {
         switch self {
         case .barbell:

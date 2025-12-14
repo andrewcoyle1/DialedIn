@@ -12,7 +12,7 @@ import SwiftfulRouting
 struct CoreBuilder: Builder {
 
     let interactor: CoreInteractor
-
+    
     init(interactor: CoreInteractor) {
         self.interactor = interactor
     }
@@ -25,4 +25,5 @@ struct CoreBuilder: Builder {
         adaptiveMainView()
             .any()
     }
+
 }

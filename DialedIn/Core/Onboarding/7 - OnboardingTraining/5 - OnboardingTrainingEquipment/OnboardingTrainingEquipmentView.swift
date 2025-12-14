@@ -17,17 +17,7 @@ struct OnboardingTrainingEquipmentView: View {
     var body: some View {
         List {
             Section {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Select all equipment you have access to. This helps us recommend the best program for you.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .removeListRowFormatting()
-                .padding(.horizontal)
-            }
-            
-            ForEach(EquipmentType.allCases) { equipment in
-                Section {
+                ForEach(EquipmentType.allCases) { equipment in
                     HStack(alignment: .center, spacing: 12) {
                         Image(systemName: equipment.systemImage)
                             .foregroundStyle(.accent)
@@ -35,19 +25,25 @@ struct OnboardingTrainingEquipmentView: View {
                         Text(equipment.description)
                             .font(.headline)
                         Spacer()
-                        Toggle("", isOn: Binding(
-                            get: { presenter.selectedEquipment.contains(equipment) },
-                            set: { isOn in
-                                if isOn {
-                                    presenter.selectedEquipment.insert(equipment)
-                                } else {
-                                    presenter.selectedEquipment.remove(equipment)
+                        Toggle(
+                            "",
+                            isOn: Binding(
+                                get: { presenter.selectedEquipment.contains(equipment) },
+                                set: { isOn in
+                                    if isOn {
+                                        presenter.selectedEquipment.insert(equipment)
+                                    } else {
+                                        presenter.selectedEquipment.remove(equipment)
+                                    }
                                 }
-                            }
-                        ))
+                            )
+                        )
                     }
-                    .padding(.vertical, 4)
                 }
+            } header: {
+                Text("Select all equipment you have access to.")
+            } footer: {
+                Text("This helps us recommend the best program for you.")
             }
         }
         .navigationTitle("Available Equipment")
@@ -68,6 +64,7 @@ struct OnboardingTrainingEquipmentView: View {
             }
         }
         #endif
+        
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {

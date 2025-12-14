@@ -8,12 +8,13 @@
 import SwiftUI
 import SwiftfulRouting
 
-struct SplitViewContainer<TabAccessory: View>: View {
+struct SplitViewContainer<TabAccessory: View, WorkoutTracker: View>: View {
 
     @State var presenter: SplitViewContainerPresenter
     var tabs: [TabBarScreen]
 
     @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
+    @ViewBuilder var workoutTrackerView: (WorkoutTrackerDelegate) -> WorkoutTracker
     
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all), preferredCompactColumn: $presenter.preferredColumn) {
@@ -47,6 +48,17 @@ struct SplitViewContainer<TabAccessory: View>: View {
                 detailPlaceholder
             }
         }
+        .fullScreenCover(
+            isPresented: Binding(
+                get: { presenter.isTrackerPresented },
+                set: { presenter.isTrackerPresented = $0 }
+            )
+        ) {
+            if let active = presenter.activeSession {
+                let delegate = WorkoutTrackerDelegate(workoutSession: active)
+                workoutTrackerView(delegate)
+            }
+        }
         .navigationSplitViewStyle(.balanced)
         .task {
             // Load any active session from local storage when the SplitView appears
@@ -58,54 +70,61 @@ struct SplitViewContainer<TabAccessory: View>: View {
 }
 
 extension CoreBuilder {
+    
+    // swiftlint:disable:next function_body_length
     func splitViewContainer() -> some View {
-        SplitViewContainer(
+        let tabs: [TabBarScreen] = [
+            TabBarScreen(
+                title: "Dashboard",
+                systemImage: "house",
+                screen: {
+                    RouterView { router in
+                        self.dashboardView(router: router)
+                    }
+                    .any()
+                }
+            ),
+            TabBarScreen(
+                title: "Nutrition",
+                systemImage: "carrot",
+                screen: {
+                    RouterView { router in
+                        self.nutritionView(router: router)
+                    }
+                    .any()
+                }
+            ),
+            TabBarScreen(
+                title: "Training",
+                systemImage: "dumbbell",
+                screen: {
+                    RouterView { router in
+                        self.trainingView(router: router)
+                    }
+                    .any()
+                }
+            ),
+            TabBarScreen(
+                title: "Profile",
+                systemImage: "person",
+                screen: {
+                    RouterView { router in
+                        self.profileView(router: router)
+                    }
+                    .any()
+                }
+            )
+        ]
+        
+        return SplitViewContainer(
             presenter: SplitViewContainerPresenter(interactor: interactor),
-            tabs: [
-                TabBarScreen(
-                    title: "Dashboard",
-                    systemImage: "house",
-                    screen: {
-                        RouterView { router in
-                            self.dashboardView(router: router)
-                        }
-                        .any()
-                    }
-                ),
-                TabBarScreen(
-                    title: "Nutrition",
-                    systemImage: "carrot",
-                    screen: {
-                        RouterView { router in
-                            self.nutritionView(router: router)
-                        }
-                        .any()
-                    }
-                ),
-                TabBarScreen(
-                    title: "Training",
-                    systemImage: "dumbbell",
-                    screen: {
-                        RouterView { router in
-                            self.trainingView(router: router)
-                        }
-                        .any()
-                    }
-                ),
-                TabBarScreen(
-                    title: "Profile",
-                    systemImage: "person",
-                    screen: {
-                        RouterView { router in
-                            self.profileView(router: router)
-                        }
-                        .any()
-                    }
-                )
-            ],
+            tabs: tabs,
             tabViewAccessoryView: { accessoryDelegate in
+                self.tabViewAccessoryView( delegate: accessoryDelegate)
+            },
+            workoutTrackerView: { delegate in
                 RouterView { router in
-                    self.tabViewAccessoryView(router: router, delegate: accessoryDelegate)
+                    self.workoutTrackerView(router: router, delegate: delegate)
                 }
             }
         )

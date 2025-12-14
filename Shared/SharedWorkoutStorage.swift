@@ -13,6 +13,7 @@ public struct SharedWorkoutStorage {
     private static let restEndTimeKey = "workout.rest.endTime"
     private static let pendingSetCompletionKey = "workout.pending.setCompletion"
     private static let pendingWorkoutCompletionKey = "workout.pending.workoutCompletion"
+    private static let hkStartedSessionIdKey = "workout.hk.started.sessionId"
     
     private static var sharedDefaults: UserDefaults? {
         return UserDefaults(suiteName: appGroupIdentifier)
@@ -126,5 +127,30 @@ public struct SharedWorkoutStorage {
     /// Clear pending workout completion
     public static func clearPendingWorkoutCompletion() {
         pendingWorkoutCompletion = nil
+    }
+    
+    // MARK: - HealthKit Session Tracking
+    
+    /// The workout session id for which we've already started a HKWorkoutSession.
+    /// This helps avoid attempting to start the same HK session multiple times
+    /// when the tracker view is minimized and reopened.
+    public static var hkStartedSessionId: String? {
+        get {
+            guard let defaults = sharedDefaults else { return nil }
+            return defaults.string(forKey: hkStartedSessionIdKey)
+        }
+        set {
+            guard let defaults = sharedDefaults else { return }
+            if let newValue {
+                defaults.set(newValue, forKey: hkStartedSessionIdKey)
+            } else {
+                defaults.removeObject(forKey: hkStartedSessionIdKey)
+            }
+        }
+    }
+    
+    /// Clear the recorded HK started session id.
+    public static func clearHKStartedSessionId() {
+        hkStartedSessionId = nil
     }
 }

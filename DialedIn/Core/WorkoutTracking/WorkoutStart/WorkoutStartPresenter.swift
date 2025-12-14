@@ -87,7 +87,7 @@ class WorkoutStartPresenter {
                     }
                     
                     // Small delay before presenting next screen
-                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                    try? await Task.sleep(for: .seconds(0.1))
                     
                     await MainActor.run {
                         interactor.startActiveSession(session)

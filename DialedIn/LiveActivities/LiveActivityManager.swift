@@ -171,6 +171,43 @@ class LiveActivityManager: LiveActivityUpdating {
         )
     }
 
+    func updateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) {
+        // Only update if meaningful changes occurred
+        let shouldUpdate = lastContentState == nil ||
+            lastContentState?.currentExerciseIndex != contentState.currentExerciseIndex ||
+            lastContentState?.completedSetsCount != contentState.completedSetsCount ||
+            lastContentState?.isActive != contentState.isActive ||
+            lastContentState?.restEndsAt != contentState.restEndsAt
+        
+        guard shouldUpdate else { return }
+        
+        lastContentState = contentState
+
+        Task {
+            defer {
+                self.activityViewState?.updateControlDisabled = false
+            }
+            self.activityViewState?.updateControlDisabled = true
+            // Guard activity existence and acceptable state to avoid runtime errors
+            if let activity = self.currentActivity,
+               activity.activityState == .active || activity.activityState == .stale {
+                do {
+                    try await self.updateWorkoutActivity(with: contentState)
+                } catch {
+                    print("⚠️ Failed to update Live Activity: \(error)")
+                    // Clean up if the activity is in an invalid state
+                    if activity.activityState == .dismissed || activity.activityState == .ended {
+                        self.cleanupDismissedActivity()
+                    }
+                }
+            } else {
+                // No-op if activity is missing or ended/dismissed
+                self.activityViewState?.updateControlDisabled = false
+            }
+        }
+
+    }
+    
 	/// Update the Workout Live Activity with latest session progress
 	func updateLiveActivity(
 		session: WorkoutSessionModel,

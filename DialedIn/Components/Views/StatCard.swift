@@ -35,17 +35,17 @@ struct StatCard: View {
                 } else {
                     Image(systemName: icon)
                         .font(.title2)
-
+                    
                 }
             }
-            
-            Text(value)
-                .font(.title3)
-                .fontWeight(.bold)
             
             Text(label)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            
+            Text(value)
+                .font(.title3)
+                .fontWeight(.bold)
         }
         .frame(maxWidth: .infinity)
     }

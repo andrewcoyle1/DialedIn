@@ -9,19 +9,12 @@ import SwiftUI
 import SwiftfulRouting
 
 struct SetTrackerRowView: View {
+    
     @State var presenter: SetTrackerRowPresenter
 
     var delegate: SetTrackerRowDelegate
 
-    init(
-        presenter: SetTrackerRowPresenter,
-        delegate: SetTrackerRowDelegate
-    ) {
-        self.presenter = presenter
-        self.delegate = delegate
-    }
-
-    private var cellHeight: CGFloat = 35
+    private let cellHeight: CGFloat = 35
 
     var body: some View {
         VStack {
@@ -34,9 +27,6 @@ struct SetTrackerRowView: View {
                 Spacer()
                 // Inputs vary by tracking mode
                 inputFields
-                Spacer()
-                // RPE
-                rpeField
                 Spacer()
                 // Complete button
                 completeButton
@@ -364,29 +354,7 @@ struct SetTrackerRowView: View {
             .frame(width: 80)
         }
     }
-    
-    // MARK: - RPE Field
-    private var rpeField: some View {
-        VStack(alignment: .leading) {
-            if delegate.set.index == 1 {
-                Text("RPE")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-            
-            TextField("0", value: Binding(
-                get: { delegate.set.rpe },
-                set: { newValue in
-                    updateSet { $0.rpe = newValue }
-                }
-            ), format: .number)
-            .textFieldStyle(.roundedBorder)
-            .keyboardType(.decimalPad)
-            .frame(height: cellHeight)
-        }
-        .frame(width: 45, alignment: .leading)
-    }
-    
+        
     // MARK: - Action Buttons
     private var completeButton: some View {
         Button {
@@ -457,7 +425,7 @@ extension CoreRouter {
     func showWarmupSetInfoModal(primaryButtonAction: @escaping () -> Void) {
         router.showModal(
             transition: .move(edge: .bottom),
-            backgroundColor: .black,
+            backgroundColor: .black.opacity(0.3),
             destination: {
                 CustomModalView(
                     title: "Warmup Sets",

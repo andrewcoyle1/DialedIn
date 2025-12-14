@@ -89,11 +89,12 @@ struct NutritionLibraryPickerView: View {
                             title: ingredient.name,
                             subtitle: ingredient.description
                         )
-                        .removeListRowFormatting()
                     }
                 }
+                .removeListRowFormatting()
             }
         }
+        
     }
     
     private var recipesSection: some View {
@@ -111,9 +112,9 @@ struct NutritionLibraryPickerView: View {
                             title: recipe.name,
                             subtitle: recipe.description
                         )
-                        .removeListRowFormatting()
                     }
                 }
+                .removeListRowFormatting()
             }
         }
     }

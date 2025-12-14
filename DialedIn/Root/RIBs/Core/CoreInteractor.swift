@@ -1648,18 +1648,31 @@ struct CoreInteractor {
     ) {
         liveActivityManager.ensureLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage)
     }
-
-    /// Update the Workout Live Activity with latest session progress
+    
+    // swiftlint:disable:next function_parameter_count
     func updateLiveActivity(
         session: WorkoutSessionModel,
         isActive: Bool,
         currentExerciseIndex: Int,
         restEndsAt: Date?,
-        statusMessage: String? = nil,
-        totalVolumeKg: Double? = nil,
-        elapsedTime: TimeInterval? = nil
+        statusMessage: String?,
+        totalVolumeKg: Double?,
+        elapsedTime: TimeInterval?
     ) {
-        liveActivityManager.updateLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage, totalVolumeKg: totalVolumeKg, elapsedTime: elapsedTime)
+        liveActivityManager.updateLiveActivity(
+            session: session,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: restEndsAt,
+            statusMessage: statusMessage,
+            totalVolumeKg: totalVolumeKg,
+            elapsedTime: elapsedTime
+        )
+    }
+    
+    /// Update the Workout Live Activity with latest session progress
+    func updateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) {
+        liveActivityManager.updateLiveActivity(contentState: contentState)
     }
 
     /// End the Workout Live Activity

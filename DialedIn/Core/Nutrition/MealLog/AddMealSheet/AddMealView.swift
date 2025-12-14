@@ -81,15 +81,20 @@ struct AddMealView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
-            Button("Cancel") {
+            Button {
                 presenter.dismissScreen()
+            } label: {
+                Image(systemName: "xmark")
             }
         }
 
         ToolbarItem(placement: .confirmationAction) {
-            Button("Save") {
+            Button {
                 presenter.saveMeal(selectedDate: delegate.selectedDate, mealType: delegate.mealType, onSave: delegate.onSave)
+            } label: {
+                Image(systemName: "checkmark")
             }
+            .buttonStyle(.glassProminent)
             .disabled(presenter.items.isEmpty)
         }
     }
@@ -112,7 +117,7 @@ extension CoreBuilder {
 
 extension CoreRouter {
     func showAddMealView(delegate: AddMealDelegate) {
-        router.showScreen(.push) { router in
+        router.showScreen(.fullScreenCover) { router in
             builder.addMealView(router: router, delegate: delegate)
         }
     }

@@ -12,8 +12,6 @@ struct MealLogView: View {
 
     @State var presenter: MealLogPresenter
 
-    var delegate: MealLogDelegate
-
     var body: some View {
         Group {
             datePickerSection
@@ -194,24 +192,18 @@ struct MealLogView: View {
 }
 
 extension CoreBuilder {
-    func mealLogView(router: AnyRouter, delegate: MealLogDelegate) -> some View {
+    func mealLogView(router: AnyRouter) -> some View {
         MealLogView(
-            presenter: MealLogPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            delegate: delegate
+            presenter: MealLogPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
 
 #Preview {
-    let delegate = MealLogDelegate(
-        isShowingInspector: Binding.constant(false),
-        selectedIngredientTemplate: Binding.constant(nil),
-        selectedRecipeTemplate: Binding.constant(nil)
-    )
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
         List {
-            builder.mealLogView(router: router, delegate: delegate)
+            builder.mealLogView(router: router)
         }
     }
     .previewEnvironment()

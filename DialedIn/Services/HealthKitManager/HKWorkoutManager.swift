@@ -117,6 +117,7 @@ class HKWorkoutManager: NSObject {
                 let startDate = Date()
                 session?.startActivity(with: startDate)
                 state = .running
+                print("📊 HKWorkoutManager.state set to .running for workout \(workout.id)")
                 try await builder?.beginCollection(at: startDate)
 
                 print("📱 HKWorkoutManager: About to call liveActivityUpdater?.startLiveActivity()")

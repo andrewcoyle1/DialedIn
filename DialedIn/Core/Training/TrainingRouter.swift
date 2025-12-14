@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol TrainingRouter {
+protocol TrainingRouter: GlobalRouter {
     func showNotificationsView()
     func showDevSettingsView()
     func showWorkoutStartView(delegate: WorkoutStartDelegate)
@@ -14,12 +14,12 @@ protocol TrainingRouter {
     func showProgressDashboardView()
     func showStrengthProgressView()
     func showWorkoutHeatmapView()
-    
     func showWorkoutsView()
     func showExercisesView()
     func showWorkoutHistoryView()
-    
-    func showAlert(error: Error)
+    func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
+    func showAddGoalView(delegate: AddGoalDelegate)
+    func showWorkoutTrackerView(delegate: WorkoutTrackerDelegate)
 }
 
 extension CoreRouter: TrainingRouter { }

@@ -48,8 +48,14 @@ class WorkoutSessionManager {
     }
     
     func reopenActiveSession() {
+        print("🔄 WorkoutSessionManager.reopenActiveSession() invoked")
         // Always refresh from local to ensure we have the latest edits
         activeSession = try? local.getActiveLocalWorkoutSession()
+        if let session = activeSession {
+            print("✅ Active session restored for reopen (id=\(session.id), name=\(session.name))")
+        } else {
+            print("⚠️ No active session found to reopen")
+        }
         guard activeSession != nil else { return }
         isTrackerPresented = true
     }
