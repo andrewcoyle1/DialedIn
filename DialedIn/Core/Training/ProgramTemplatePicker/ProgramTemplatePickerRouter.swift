@@ -6,12 +6,12 @@
 //
 
 @MainActor
-protocol ProgramTemplatePickerRouter {
+protocol ProgramTemplatePickerRouter: GlobalRouter {
     func showDevSettingsView()
     func dismissScreen()
     func showProgramStartConfigView(delegate: ProgramStartConfigDelegate)
     func showCustomProgramBuilderView()
-
+    func showCreateProgramView(delegate: CreateProgramDelegate)
     func showAlert(error: Error)
 }
 

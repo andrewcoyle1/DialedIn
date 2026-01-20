@@ -122,4 +122,7 @@ class NutritionPresenter {
         router.showAddMealView(delegate: delegate)
     }
 
+    func getMealCountForDate(date: Date) -> Int {
+        (try? interactor.getMeals(for: date.dayKey).count) ?? 0
+    }
 }

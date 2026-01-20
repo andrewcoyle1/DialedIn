@@ -12,7 +12,7 @@ import UIKit
 import SwiftfulRouting
 
 struct TrainingView<
-    TodaysWorkout: View, WorkoutCalendar: View, WeeksWorkouts: View, GoalListSectionView: View, TrainingProgress: View>: View {
+    TodaysWorkout: View, WorkoutCalendar: View, WeeksWorkouts: View, GoalListSectionView: View, TrainingProgress: View, CalendarHeaderView: View>: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
@@ -23,19 +23,34 @@ struct TrainingView<
     @ViewBuilder var thisWeeksWorkoutsView: () -> WeeksWorkouts
     @ViewBuilder var goalListSectionView: () -> GoalListSectionView
     @ViewBuilder var trainingProgressChartsView: () -> TrainingProgress
+    @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
 
     var body: some View {
-        List {
-            if presenter.currentTrainingPlan != nil {
-                activeProgramView
-            } else {
-                noProgramView
+        VStack {
+            calendarHeader(
+                CalendarHeaderDelegate(
+                    onDatePressed: { date in
+                        presenter.onDatePressed(date: date)
+                    },
+                    getForDate: { date in
+                        presenter.getLoggedWorkoutCountForDate(date, calendar: presenter.calendar)
+                    }
+                )
+            )
+            List {
+                if presenter.currentTrainingPlan != nil {
+                    activeProgramView
+                } else {
+                    noProgramView
+                }
+                librariesSection
             }
-            librariesSection
+            .refreshable {
+                await presenter.refreshData()
+            }
         }
         .navigationTitle("Training")
-        .navigationSubtitle(presenter.navigationSubtitle)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
@@ -43,16 +58,13 @@ struct TrainingView<
         .onFirstTask {
             await presenter.loadData()
         }
-        .refreshable {
-            await presenter.refreshData()
-        }
     }
     
     private var activeProgramView: some View {
         Group {
-            programOverviewSection
             todaysWorkoutSectionView()
             startEmptyWorkoutButton
+            programOverviewSection
             workoutCalendarView()
             thisWeeksWorkoutsView()
             goalListSectionView()
@@ -277,6 +289,9 @@ extension CoreBuilder {
             },
             trainingProgressChartsView: {
                 self.trainingProgressChartsView(router: router)
+            },
+            calendarHeader: { delegate in
+                self.calendarHeaderView(router: router, delegate: delegate)
             }
         )
     }

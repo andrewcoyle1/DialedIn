@@ -14,12 +14,29 @@ class TrainingPresenter {
     private let interactor: TrainingInteractor
     private let router: TrainingRouter
     
+    let calendar = Calendar.current
+
+    var selectedDate: Date = Date()
+    var selectedTime: Date = Date()
+    
+    var today: Date = Date()
+    
+    private(set) var scheduledWorkouts: [ScheduledWorkout] = []
+    private(set) var workoutsForMenu: [ScheduledWorkout] = []
+
     init(
         interactor: TrainingInteractor,
         router: TrainingRouter
     ) {
         self.interactor = interactor
         self.router = router
+        
+        // Normalize dates to start-of-day for reliable equality comparisons
+        let normalizedToday = Date().startOfDay
+        self.today = normalizedToday
+        self.selectedDate = normalizedToday
+        
+        loadScheduledWorkouts()
     }
     
     var currentUser: UserModel? {
@@ -45,23 +62,100 @@ class TrainingPresenter {
     var todaysWorkouts: [ScheduledWorkout] {
         interactor.getTodaysWorkouts()
     }
-        
-    var navigationSubtitle: String {
-        Date.now.formatted(date: .abbreviated, time: .omitted)
+    
+    private func loadScheduledWorkouts() {
+        guard let plan = interactor.currentTrainingPlan else {
+            scheduledWorkouts = []
+            return
+        }
+        scheduledWorkouts = plan.weeks.flatMap { $0.scheduledWorkouts }
     }
     
+    func onDatePressed(date: Date) {
+        self.selectedDate = date.startOfDay
+        
+        let workouts = workoutsForDate(date)
+        
+        if workouts.isEmpty {
+            return
+        } else if workouts.count == 1 {
+            // Single workout - handle directly
+            Task {
+                await handleWorkoutSelection(workouts[0])
+            }
+        } else {
+            // Multiple workouts - show menu
+            workoutsForMenu = workouts
+            self.showWorkoutMenu(workoutsForMenu)
+        }
+    }
+    
+    private func showWorkoutMenu(_ workouts: [ScheduledWorkout]) {
+        router.showConfirmationDialog(
+            title: "Select a Workout",
+            subtitle: nil, buttons: {
+                AnyView(
+                    VStack {
+                        ForEach(workouts) { workout in
+                            Button {
+                                Task {
+                                    await self.handleWorkoutSelection(workout)
+                                }
+                            } label: {
+                                if let name = workout.workoutName {
+                                    Text("\(name) \(workout.isCompleted ? "✓" : "")")
+                                } else {
+                                    Text("Workout \(workout.isCompleted ? "✓" : "")")
+                                }
+                            }
+                        }
+                        Button("Cancel", role: .cancel) { }
+                    }
+                )
+            }
+        )
+    }
+    
+    private func workoutsForDate(_ date: Date) -> [ScheduledWorkout] {
+        let calendar = Calendar.current
+        return scheduledWorkouts.filter { workout in
+            guard let scheduledDate = workout.scheduledDate else { return false }
+            return calendar.isDate(scheduledDate, inSameDayAs: date)
+        }
+    }
+    
+    func handleWorkoutSelection(_ workout: ScheduledWorkout) async {
+        if workout.isCompleted {
+            openCompletedSession(for: workout)
+        } else {
+            await startWorkout(workout)
+        }
+    }
+            
     func getWeeklyProgress(weekNumber: Int) -> WeekProgress {
         interactor.trackEvent(event: Event.getWeeklyProgress)
         return interactor.getWeeklyProgress(for: weekNumber)
     }
     
     func getWorkoutsForDay(_ day: Date, calendar: Calendar) -> [ScheduledWorkout] {
-        (interactor.currentTrainingPlan?.weeks.flatMap { $0.scheduledWorkouts } ?? [])
+        scheduledWorkouts
             .filter { workout in
                 guard let scheduled = workout.scheduledDate else { return false }
                 return calendar.isDate(scheduled, inSameDayAs: day)
             }
             .sorted { ($0.scheduledDate ?? .distantFuture) < ($1.scheduledDate ?? .distantFuture) }
+    }
+
+    func getLoggedWorkoutCountForDate(_ day: Date, calendar: Calendar) -> Int {
+        scheduledWorkouts
+            .filter { workout in
+                guard
+                    let scheduled = workout.scheduledDate,
+                    calendar.isDate(scheduled, inSameDayAs: day)
+                else { return false }
+                return workout.completedSessionId != nil
+            }
+            .count
     }
     
     func adherenceColor(_ rate: Double) -> Color {
@@ -163,6 +257,7 @@ class TrainingPresenter {
     
     func loadData() async {
         interactor.trackEvent(event: Event.loadDataStart)
+        defer { loadScheduledWorkouts() }
         do {
             try await interactor.syncFromRemote()
             interactor.trackEvent(event: Event.loadDataSuccess)
@@ -173,6 +268,7 @@ class TrainingPresenter {
     
     func refreshData() async {
         interactor.trackEvent(event: Event.refreshDataStart)
+        defer { loadScheduledWorkouts() }
         do {
             try await interactor.syncFromRemote()
             interactor.trackEvent(event: Event.refreshDataSuccess)
@@ -310,7 +406,6 @@ class TrainingPresenter {
             }
         }
     }
-
 }
 
 enum TrainingPresentationMode {

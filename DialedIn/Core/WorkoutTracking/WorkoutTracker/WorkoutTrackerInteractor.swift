@@ -1,5 +1,5 @@
 //
-//  for.swift
+//  WorkoutTrackerInteractor.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 09/12/2025.
@@ -17,10 +17,13 @@ protocol WorkoutTrackerInteractor {
 
     /// The current logged-in user, or nil if not available.
     var currentUser: UserModel? { get }
+    
     /// The current rest end time for the active session, if any.
     var restEndTime: Date? { get }
+    
     /// The current active workout session, if any.
     var activeSession: WorkoutSessionModel? { get }
+    
     /// The current HealthKit workout session state, if available.
     var workoutSessionState: HKWorkoutSessionState? { get }
 

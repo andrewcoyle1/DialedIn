@@ -83,3 +83,13 @@ extension String {
         return self.size(withAttributes: fontAttributes)
     }
 }
+
+extension String {
+    static func countCaption(count: Int, unit: String) -> String {
+        if count == 1 {
+            return "\(count) \(unit)"
+        } else {
+            return "\(count) \(unit)s"
+        }
+    }
+}

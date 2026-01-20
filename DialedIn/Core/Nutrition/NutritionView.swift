@@ -11,28 +11,34 @@ import UIKit
 #endif
 import SwiftfulRouting
 
-struct NutritionView: View {
+struct NutritionView<CalendarHeaderView: View>: View {
 
     @State var presenter: NutritionPresenter
+    
+    @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
 
     var body: some View {
-        List {
-            datePickerSection
-            
-            dailySummarySection
-            
-            mealsSection
-            
-            addMealSection
-            
-            recipeLibraryButton
-
-            ingredientLibraryButton
+        VStack {
+            calendarHeader(CalendarHeaderDelegate(onDatePressed: { date in
+                presenter.selectedDate = date.startOfDay
+            }, getForDate: { date in
+                presenter.getMealCountForDate(date: date)
+            }) )
+            List {
+                dailySummarySection
+                
+                mealsSection
+                
+                addMealSection
+                
+                recipeLibraryButton
+                
+                ingredientLibraryButton
+            }
+            .scrollIndicators(.hidden)
         }
-        .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
-        .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             toolbarContent
         }
@@ -47,44 +53,6 @@ struct NutritionView: View {
 
     }
 
-    // MARK: - Date Picker Section
-    
-    private var datePickerSection: some View {
-        Section {
-            HStack {
-                Button {
-                    presenter.selectedDate = presenter.selectedDate.addingDays(-1)
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.title2)
-                        .foregroundStyle(.primary)
-                }
-                
-                Spacer()
-                
-                DatePicker(
-                    "",
-                    selection: $presenter.selectedDate,
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.compact)
-                .labelsHidden()
-                
-                Spacer()
-                
-                Button {
-                    presenter.selectedDate = presenter.selectedDate.addingDays(1)
-                } label: {
-                    Image(systemName: "chevron.right")
-                        .font(.title2)
-                        .foregroundStyle(.primary)
-                }
-            }
-            .padding(.vertical, 8)
-        }
-        .listSectionSpacing(0)
-    }
-    
     // MARK: - Daily Summary Section
     
     private var dailySummarySection: some View {
@@ -247,8 +215,9 @@ struct NutritionView: View {
 extension CoreBuilder {
     func nutritionView(router: AnyRouter) -> some View {
         NutritionView(
-            presenter: NutritionPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
-        )
+            presenter: NutritionPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))) { delegate in
+                self.calendarHeaderView(router: router, delegate: delegate)
+            }
     }
 }
 

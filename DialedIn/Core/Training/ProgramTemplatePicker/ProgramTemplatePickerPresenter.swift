@@ -64,7 +64,8 @@ class ProgramTemplatePickerPresenter {
 
     func navToCustomProgramBuilderView() {
         interactor.trackEvent(event: Event.navigate)
-        router.showCustomProgramBuilderView()
+        router.showCreateProgramView(delegate: CreateProgramDelegate())
+//        router.showCustomProgramBuilderView()
     }
 
     func onProgramStartConfigPressed(template: ProgramTemplateModel) {
