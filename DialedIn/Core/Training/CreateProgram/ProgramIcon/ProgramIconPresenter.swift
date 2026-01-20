@@ -54,6 +54,15 @@ class ProgramIconPresenter {
     }
     
     func onNextPressed(name: String) {
-        router.showProgramDesignView(delegate: ProgramDesignDelegate(id: UUID().uuidString, name: name, colour: selectedColour, icon: selectedIcon))
+        guard let userId = interactor.userId else { return }
+        router.showProgramDesignView(
+            delegate: ProgramDesignDelegate(
+                id: UUID().uuidString,
+                authorId: userId,
+                name: name,
+                colour: selectedColour,
+                icon: selectedIcon
+            )
+        )
     }
 }

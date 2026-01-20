@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProgramDesignDelegate {
     var id: String
+    var authorId: String
     var name: String
     var colour: Color
     var icon: String
@@ -144,7 +145,7 @@ struct ProgramDesignView: View {
     private var exercisesSection: some View {
         Section {
             ForEach(presenter.selectedDayPlan.exercises, id: \.id) { exercise in
-                Text(exercise.name)
+                Text(exercise.exercise.name)
             }
             Text("Add Exercises")
                 .underline()
@@ -173,9 +174,10 @@ extension CoreBuilder {
     func programDesignView(router: Router, delegate: ProgramDesignDelegate) -> some View {
         let program = TrainingProgram(
             id: delegate.id,
+            authorId: delegate.authorId,
             name: delegate.name,
             icon: delegate.icon,
-            colour: delegate.colour
+            colour: delegate.colour.asHex()
         )
         return ProgramDesignView(
             presenter: ProgramDesignPresenter(
@@ -202,7 +204,13 @@ extension CoreRouter {
 #Preview {
     let container = DevPreview.shared.container
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-    let delegate = ProgramDesignDelegate(id: UUID().uuidString, name: "Preview Program", colour: .blue, icon: "pencil")
+    let delegate = ProgramDesignDelegate(
+        id: UUID().uuidString,
+        authorId: "user123",
+        name: "Preview Program",
+        colour: .blue,
+        icon: "pencil"
+    )
     
     return RouterView { router in
         builder.programDesignView(router: router, delegate: delegate)

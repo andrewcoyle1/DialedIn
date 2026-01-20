@@ -7,10 +7,14 @@ class ProgramDesignPresenter {
     private let interactor: ProgramDesignInteractor
     private let router: ProgramDesignRouter
     
+    var userId: String {
+        interactor.userId ?? ""
+    }
+    
     var program: TrainingProgram
     
     static var defaultDayPlans: [DayPlan] = [
-        DayPlan(name: "Rest")
+        
     ]
     
     var dayPlans: [DayPlan]
@@ -26,12 +30,26 @@ class ProgramDesignPresenter {
         self.router = router
         self.program = program
         
+        let uid = interactor.userId
         self.dayPlans = Self.defaultDayPlans
-        self.selectedDayPlan = Self.defaultDayPlans.first ?? DayPlan(name: "Rest")
+        
+        self.selectedDayPlan = DayPlan(
+            id: UUID().uuidString,
+            authorId: uid ?? "",
+            name: "Rest",
+            exercises: []
+        )
     }
     
     func onAddDayPressed() {
-        dayPlans.append(.init(name: "Rest"))
+        dayPlans.append(
+            DayPlan(
+                id: UUID().uuidString,
+                authorId: userId,
+                name: "Rest",
+                exercises: []
+            )
+        )
         program.dayPlans = dayPlans
     }
     
@@ -43,7 +61,7 @@ class ProgramDesignPresenter {
         guard canRemoveDayPlan else { return }
         if let index = dayPlans.firstIndex(where: { $0.id == selectedDayPlan.id }) {
             dayPlans.remove(at: index)
-            selectedDayPlan = dayPlans.first ?? DayPlan(name: "Rest")
+            selectedDayPlan = dayPlans.first!
             program.dayPlans = dayPlans
         }
     }
@@ -79,68 +97,4 @@ class ProgramDesignPresenter {
     func onSavePressed(delegate: ProgramDesignDelegate) {
         
     }
-}
-
-struct TrainingProgram: Identifiable {
-    var id: String
-    var name: String
-    var icon: String
-    var colour: Color
-    var numMicrocycles: Int = 8
-    var deload: DeloadType = .none
-    var periodisation: Bool = false
-    var dayPlans: [DayPlan] = defaultDayPlans
-    
-    enum DeloadType: String, Codable {
-        case none
-        case start
-        case end
-        
-        var title: String {
-            switch self {
-            case .none: return "None"
-            case .start: return "First Cycle"
-            case .end: return "Last Cycle"
-            }
-        }
-        
-        var description: String {
-            switch self {
-            case .none: return "Train continuously without scheduled reductions in intensity or volume."
-            case .start: return "Start each training block with a lower-intensity cycle to ease into new workloads and reduce soreness."
-            case .end: return "Finish each training block with a lighter cycle to promote recovery and readiness for the next phase."
-            }
-        }
-    }
-    
-    init(
-        id: String = UUID().uuidString,
-        name: String,
-        icon: String,
-        colour: Color,
-        numMicrocycles: Int = 8,
-        deload: DeloadType = .none,
-        periodisation: Bool = false,
-        dayPlans: [DayPlan] = defaultDayPlans
-    ) {
-        self.id = id
-        self.name = name
-        self.icon = icon
-        self.colour = colour
-        self.numMicrocycles = numMicrocycles
-        self.deload = deload
-        self.periodisation = periodisation
-        self.dayPlans = dayPlans
-    }
-
-    static var defaultDayPlans: [DayPlan] = [
-        DayPlan(name: "Rest")
-    ]
-
-}
-struct DayPlan: Identifiable {
-    let id: String = UUID().uuidString
-    var name: String
-    
-    var exercises: [ExerciseTemplateModel] = []
 }

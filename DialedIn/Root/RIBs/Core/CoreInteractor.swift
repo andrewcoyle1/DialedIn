@@ -146,6 +146,10 @@ struct CoreInteractor {
         userManager.currentUser
     }
     
+    var userId: String? {
+        userManager.currentUser?.userId
+    }
+    
     var onboardingStep: OnboardingStep {
         userManager.currentUser?.onboardingStep ?? .auth
     }

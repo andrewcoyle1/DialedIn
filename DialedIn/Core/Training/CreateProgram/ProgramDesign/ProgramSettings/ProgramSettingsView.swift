@@ -69,7 +69,7 @@ struct ProgramSettingsView: View {
         HStack {
             Image(systemName: program.icon)
                 .frame(width: 24)
-                .foregroundStyle(program.colour)
+                .foregroundStyle(Color(program.colour))
             VStack(alignment: .leading) {
                 Text("Colour & Icon")
                 Text("\(program.colour.description.capitalized), \(program.icon.capitalized)")
@@ -205,7 +205,7 @@ extension CoreRouter {
     let container = DevPreview.shared.container
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     let program = Binding.constant(
-        TrainingProgram(name: "Preview Program", icon: "pencil", colour: .blue)
+        TrainingProgram(authorId: "user123", name: "Preview Program", icon: "pencil", colour: Color.blue.asHex())
     )
     
     return RouterView { router in
