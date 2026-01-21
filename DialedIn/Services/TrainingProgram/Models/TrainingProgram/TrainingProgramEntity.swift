@@ -19,7 +19,9 @@ class TrainingProgramEntity {
     var numMicrocycles: Int
     var deload: DeloadType
     var periodisation: Bool
-    var dayPlans: [DayPlanEntity]
+    @Relationship(deleteRule: .cascade, inverse: \DayPlanEntity.trainingProgram) var dayPlans: [DayPlanEntity]
+    var dateCreated: Date
+    var dateModified: Date
     
     init(from model: TrainingProgram) {
         self.id = model.id
@@ -30,12 +32,11 @@ class TrainingProgramEntity {
         self.numMicrocycles = model.numMicrocycles
         self.deload = model.deload
         self.periodisation = model.periodisation
-        
-        var storedDayPlans: [DayPlanEntity] = []
-        for dayPlan in model.dayPlans {
-            storedDayPlans.append(DayPlanEntity(from: dayPlan))
-        }
-        self.dayPlans = storedDayPlans
+        self.dateCreated = model.dateCreated
+        self.dateModified = model.dateModified
+        self.dayPlans = model.dayPlans
+            .map { DayPlanEntity(from: $0) }
+
     }
     
     @MainActor
@@ -67,7 +68,9 @@ class TrainingProgramEntity {
             numMicrocycles: numMicrocycles,
             deload: deload,
             periodisation: periodisation,
-            dayPlans: dayPlanModels
+            dayPlans: dayPlanModels,
+            dateCreated: dateCreated,
+            dateModified: dateModified
         )
     }
 }

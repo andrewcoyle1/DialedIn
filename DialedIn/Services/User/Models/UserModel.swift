@@ -38,6 +38,9 @@ struct UserModel: Codable, Equatable, Sendable {
     // Goals
     private(set) var currentGoalId: String?
     
+    // Training Program
+    private(set) var activeTrainingProgramId: String?
+    
     // Profile
     private(set) var profileImageUrl: String?
     
@@ -91,6 +94,7 @@ struct UserModel: Codable, Equatable, Sendable {
         lengthUnitPreference: LengthUnitPreference? = nil,
         weightUnitPreference: WeightUnitPreference? = nil,
         currentGoalId: String? = nil,
+        activeTrainingProgramId: String? = nil,
         profileImageUrl: String? = nil,
         creationDate: Date? = nil,
         creationVersion: String? = nil,
@@ -126,6 +130,7 @@ struct UserModel: Codable, Equatable, Sendable {
         self.lengthUnitPreference = lengthUnitPreference
         self.weightUnitPreference = weightUnitPreference
         self.currentGoalId = currentGoalId
+        self.activeTrainingProgramId = activeTrainingProgramId
         self.profileImageUrl = profileImageUrl
         self.creationDate = creationDate
         self.creationVersion = creationVersion
@@ -198,6 +203,10 @@ struct UserModel: Codable, Equatable, Sendable {
         self.profileImageUrl = imageUrl
     }
     
+    mutating func updateActiveTrainingProgramId(programId: String?) {
+        self.activeTrainingProgramId = programId
+    }
+    
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
         case email
@@ -215,6 +224,7 @@ struct UserModel: Codable, Equatable, Sendable {
         case weightUnitPreference = "weight_unit_preference"
         case currentGoalId = "current_goal_id"
         case profileImageUrl = "profile_image_url"
+        case activeTrainingProgramId = "active_training_program_id"
         case creationDate = "creation_date"
         case creationVersion = "creation_version"
         case lastSignInDate = "last_sign_in_date"
@@ -258,6 +268,7 @@ struct UserModel: Codable, Equatable, Sendable {
             "user_\(CodingKeys.didCompleteOnboarding.rawValue)": didCompleteOnboarding,
             "user_\(CodingKeys.onboardingStep.rawValue)": onboardingStep.rawValue,
             "user_\(CodingKeys.profileImageUrl.rawValue)": profileImageUrl,
+            "user_\(CodingKeys.activeTrainingProgramId)": activeTrainingProgramId,
             "user_\(CodingKeys.createdExerciseTemplateIds.rawValue)": createdExerciseTemplateIds,
             "user_\(CodingKeys.bookmarkedExerciseTemplateIds.rawValue)": bookmarkedExerciseTemplateIds,
             "user_\(CodingKeys.favouritedExerciseTemplateIds.rawValue)": favouritedExerciseTemplateIds,

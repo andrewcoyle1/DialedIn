@@ -43,7 +43,7 @@ struct TrainingView<
                 } else {
                     noProgramView
                 }
-                librariesSection
+                moreSection
             }
             .refreshable {
                 await presenter.refreshData()
@@ -63,7 +63,6 @@ struct TrainingView<
     private var activeProgramView: some View {
         Group {
             todaysWorkoutSectionView()
-            startEmptyWorkoutButton
             programOverviewSection
             workoutCalendarView()
             thisWeeksWorkoutsView()
@@ -200,52 +199,58 @@ struct TrainingView<
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 32)
             }
-            startEmptyWorkoutButton
         }
     }
     
-    private var startEmptyWorkoutButton: some View {
-        Button {
-            presenter.onStartEmptyWorkoutPressed()
-        } label: {
-            Text("Start an empty workout")
-        }
-    }
-
-    private var librariesSection: some View {
+    private var moreSection: some View {
         Group {
             Section {
-                Button {
+                CustomListCellView(
+                    imageName: nil,
+                    title: "Workout Library",
+                    subtitle: nil
+                )
+                .anyButton {
                     presenter.onWorkoutLibraryPressed()
-                } label: {
-                    Text("Workout Library")
                 }
-            } header: {
-                Text("Workout Library")
-            }
+                .removeListRowFormatting()
             
-            Section {
-                Button {
+                CustomListCellView(
+                    imageName: nil,
+                    title: "Exercise Library",
+                    subtitle: nil
+                )
+                .anyButton {
                     presenter.onExerciseLibraryPressed()
-                } label: {
-                    Text("Exercise Library")
                 }
-            } header: {
-                Text("Exercise Library")
-            }
-            
-            Section {
-                Button {
+                .removeListRowFormatting()
+
+                CustomListCellView(
+                    imageName: nil,
+                    title: "Workout History",
+                    subtitle: nil
+                )
+                .anyButton {
                     presenter.onWorkoutHistoryPressed()
-                } label: {
-                    Text("Workout History")
                 }
+                .removeListRowFormatting()
+
+                CustomListCellView(
+                    imageName: nil,
+                    title: "Gym Profiles",
+                    subtitle: nil
+                )
+                .anyButton {
+                    presenter.onGymProfilesPressed()
+                }
+                .removeListRowFormatting()
+
             } header: {
-                Text("Workout History")
+                Text("More")
             }
         }
     }
-        
+            
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         #if DEBUG || MOCK
@@ -258,6 +263,13 @@ struct TrainingView<
         }
         #endif
         
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onAddPressed()
+            } label: {
+                Image(systemName: "plus")
+            }
+        }
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onNotificationsPressed()

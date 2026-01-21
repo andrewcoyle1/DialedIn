@@ -15,7 +15,7 @@ class ExercisePlanEntity {
     var authorId: String
     var exercise: ExerciseTemplateEntity
     
-    var dayPlan: DayPlanEntity?
+    @Relationship var dayPlan: DayPlanEntity?
     
     init(from model: ExercisePlan) {
         self.id = model.id

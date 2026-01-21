@@ -29,6 +29,7 @@ struct CoreInteractor {
     private let exerciseHistoryManager: ExerciseHistoryManager
     private let trainingPlanManager: TrainingPlanManager
     private let programTemplateManager: ProgramTemplateManager
+    private let trainingProgramManager: TrainingProgramManager
     private let ingredientTemplateManager: IngredientTemplateManager
     private let recipeTemplateManager: RecipeTemplateManager
     private let nutritionManager: NutritionManager
@@ -61,6 +62,7 @@ struct CoreInteractor {
         self.exerciseHistoryManager = container.resolve(ExerciseHistoryManager.self)!
         self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
         self.programTemplateManager = container.resolve(ProgramTemplateManager.self)!
+        self.trainingProgramManager = container.resolve(TrainingProgramManager.self)!
         self.ingredientTemplateManager = container.resolve(IngredientTemplateManager.self)!
         self.recipeTemplateManager = container.resolve(RecipeTemplateManager.self)!
         self.nutritionManager = container.resolve(NutritionManager.self)!
@@ -267,6 +269,12 @@ struct CoreInteractor {
     
     func updateProfileImageUrl(url: String?) async throws {
         try await userManager.updateProfileImageUrl(url: url)
+    }
+    
+    // Active Training Program
+    
+    func updateActiveTrainingProgramId(programId: String?) async throws {
+        try await userManager.updateActiveTrainingProgramId(programId: programId)
     }
     
     // Update Metadata
@@ -874,6 +882,57 @@ struct CoreInteractor {
     
     func deleteAllExerciseHistoryForAuthor(authorId: String) async throws {
         try await exerciseHistoryManager.deleteAllExerciseHistoryForAuthor(authorId: authorId)
+    }
+    
+    // MARK: TrainingProgramManager
+    
+    var activeTrainingProgram: TrainingProgram? {
+        trainingProgramManager.activeTrainingProgram
+    }
+    
+    func setActiveTrainingProgram(programId: String) async throws {
+        try await userManager.updateActiveTrainingProgramId(programId: programId)
+    }
+    
+    func getActiveTrainingProgram() async throws -> TrainingProgram? {
+        guard let programId = currentUser?.activeTrainingProgramId else { return nil }
+        return try trainingProgramManager.readLocalTrainingProgram(programId: programId)
+    }
+    
+    // CREATE
+    
+    func createTrainingProgram(program: TrainingProgram) async throws {
+        try await trainingProgramManager.createTrainingProgram(program: program)
+    }
+    
+    // READ
+    
+    func readLocalTrainingProgram(programId: String) throws -> TrainingProgram {
+        try trainingProgramManager.readLocalTrainingProgram(programId: programId)
+    }
+    
+    func readAllLocalTrainingPrograms() throws -> [TrainingProgram] {
+        try trainingProgramManager.readAllLocalTrainingPrograms()
+    }
+    
+    func readRemoteTrainingProgram(programId: String) async throws -> TrainingProgram {
+        try await trainingProgramManager.readRemoteTrainingProgram(programId: programId)
+    }
+    
+    func readAllRemoteTrainingProgramsForAuthor(userId: String) async throws -> [TrainingProgram] {
+        try await trainingProgramManager.readAllRemoteTrainingProgramsForAuthor(userId: userId)
+    }
+    
+    // UPDATE
+    
+    func updateTrainingProgram(program: TrainingProgram) async throws {
+        try await trainingProgramManager.updateTrainingProgram(program: program)
+    }
+    
+    // DELETE
+    
+    func deleteTrainingProgram(program: TrainingProgram) async throws {
+        try await trainingProgramManager.deleteTrainingProgram(program: program)
     }
     
     // MARK: TrainingPlanManager

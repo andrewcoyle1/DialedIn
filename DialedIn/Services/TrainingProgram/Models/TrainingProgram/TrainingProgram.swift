@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct TrainingProgram: Identifiable {
+struct TrainingProgram: Identifiable, Codable {
     var id: String
     var authorId: String
     var name: String
@@ -17,6 +17,8 @@ struct TrainingProgram: Identifiable {
     var deload: DeloadType = .none
     var periodisation: Bool = false
     var dayPlans: [DayPlan] = defaultDayPlans
+    let dateCreated: Date
+    let dateModified: Date
     
     init(
         id: String = UUID().uuidString,
@@ -27,7 +29,9 @@ struct TrainingProgram: Identifiable {
         numMicrocycles: Int = 8,
         deload: DeloadType = .none,
         periodisation: Bool = false,
-        dayPlans: [DayPlan] = defaultDayPlans
+        dayPlans: [DayPlan] = defaultDayPlans,
+        dateCreated: Date = Date(),
+        dateModified: Date = Date()
     ) {
         self.id = id
         self.authorId = authorId
@@ -38,6 +42,22 @@ struct TrainingProgram: Identifiable {
         self.deload = deload
         self.periodisation = periodisation
         self.dayPlans = dayPlans
+        self.dateCreated = dateCreated
+        self.dateModified = dateModified
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case authorId = "author_id"
+        case name
+        case icon
+        case colour
+        case numMicrocycles = "num_microcycles"
+        case deload
+        case periodisation
+        case dayPlans = "day_plans"
+        case dateCreated = "date_created"
+        case dateModified = "date_modified"
     }
 
     static var defaultDayPlans: [DayPlan] = [
@@ -66,7 +86,7 @@ struct TrainingProgram: Identifiable {
 
 }
 
-enum DeloadType: String, Codable {
+enum DeloadType: String, Hashable, Codable {
     case none
     case start
     case end

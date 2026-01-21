@@ -15,21 +15,16 @@ class DayPlanEntity {
     var authorId: String
     var name: String
     
+    @Relationship var trainingProgram: TrainingProgramEntity?
     @Relationship(deleteRule: .cascade, inverse: \ExercisePlanEntity.dayPlan) var exercises: [ExercisePlanEntity]
-    
+
     init(from model: DayPlan) {
         self.id = model.id
         self.authorId = model.authorId
         self.name = model.name
         
-        var exerciseEntities: [ExercisePlanEntity] = []
-        for exercise in model.exercises {
-            exerciseEntities.append(ExercisePlanEntity(from: exercise))
-        }
-        self.exercises = exerciseEntities
-        for exerciseEntity in exercises {
-            exerciseEntity.dayPlan = self
-        }
+        self.exercises = model.exercises
+            .map { ExercisePlanEntity(from: $0) }
     }
     
     @MainActor

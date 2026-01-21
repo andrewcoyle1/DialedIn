@@ -23,4 +23,31 @@ struct MockTrainingProgramService: RemoteTrainingProgramService {
             throw URLError(.unknown)
         }
     }
+    
+    func createTrainingProgram(program: TrainingProgram) async throws {
+        try tryShowError()
+    }
+    
+    func readTrainingProgram(programId: String) async throws -> TrainingProgram {
+        try tryShowError()
+        
+        return TrainingProgram.mocks.first(where: { $0.id == programId}) ?? TrainingProgram.mock
+    }
+    
+    func readAllTrainingProgramsForAuthor(userId: String) async throws -> [TrainingProgram] {
+        try tryShowError()
+
+        return TrainingProgram.mocks
+    }
+    
+    func updateTrainingProgram(program: TrainingProgram) async throws {
+        try tryShowError()
+
+    }
+    
+    func deleteTrainingProgram(programId: String) async throws {
+        try tryShowError()
+
+    }
+
 }

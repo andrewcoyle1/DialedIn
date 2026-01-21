@@ -15,8 +15,14 @@ protocol GlobalRouter {
 
 extension GlobalRouter {
     
+    /// Dismiss this screen and all screens in front of it.
     func dismissScreen() {
         router.dismissScreen()
+    }
+    
+    /// Dismiss the closest .sheet or .fullScreenCover to this screen.
+    func dismissEnvironment() {
+        router.dismissEnvironment()
     }
     
     func showAlert(error: Error) {

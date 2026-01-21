@@ -25,7 +25,7 @@ struct ProgramIconView: View {
                     .foregroundStyle(colour)
                     .overlay {
                         Circle()
-                            .stroke(colour == presenter.selectedColour ? Color.primary : Color.clear, lineWidth: 4)
+                            .stroke(colour == presenter.selectedColour ? presenter.selectedColour : Color.clear, lineWidth: 4)
                     }
                     .anyButton {
                         presenter.onColourPressed(colour: colour)
@@ -45,10 +45,11 @@ struct ProgramIconView: View {
                             .frame(maxWidth: 40)
                         Image(systemName: icon)
                     }
+                    .foregroundStyle(presenter.selectedColour)
                     .padding(.vertical, 4)
                     .overlay {
                         Circle()
-                            .stroke(icon == presenter.selectedIcon ? Color.primary : Color.clear, lineWidth: 4)
+                            .stroke(icon == presenter.selectedIcon ? presenter.selectedColour : Color.clear, lineWidth: 4)
                     }
                     .anyButton {
                         presenter.onIconPressed(icon: icon)

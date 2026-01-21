@@ -13,7 +13,7 @@ struct AnyListener: @unchecked Sendable {
     let listener: ListenerRegistration
 }
 
-struct FirebaseUserService: RemoteUserService {
+struct FirebaseUserService: RemoteUserService {    
     
     var collection: CollectionReference {
         Firestore.firestore().collection("users")
@@ -82,6 +82,12 @@ struct FirebaseUserService: RemoteUserService {
             data[UserModel.CodingKeys.profileImageUrl.rawValue] = FieldValue.delete()
         }
         try await collection.document(userId).updateData(data)
+    }
+    
+    func updateActiveTrainingProgramId(userId: String, programId: String?) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.activeTrainingProgramId.rawValue: programId as Any
+        ])
     }
     
     func updateLastSignInDate(userId: String) async throws {

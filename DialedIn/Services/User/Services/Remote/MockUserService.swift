@@ -65,6 +65,11 @@ struct MockUserService: RemoteUserService {
         try tryShowError()
     }
     
+    func updateActiveTrainingProgramId(userId: String, programId: String?) async throws {
+        try await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
+
     func updateLastSignInDate(userId: String) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()

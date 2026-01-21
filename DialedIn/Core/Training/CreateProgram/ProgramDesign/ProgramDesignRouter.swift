@@ -1,7 +1,7 @@
 import SwiftUI
 
 @MainActor
-protocol ProgramDesignRouter {
+protocol ProgramDesignRouter: GlobalRouter {
     func showRenameDayPlanView(delegate: RenameDayPlanDelegate)
     func showProgramSettingsView(program: Binding<TrainingProgram>)
     func showAddExercisesView(delegate: AddExerciseModalDelegate)

@@ -34,9 +34,8 @@ struct ProfileView: View {
             }
         }
         .navigationTitle("Profile")
-        .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
         .scrollIndicators(.hidden)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             toolbarContent
         }

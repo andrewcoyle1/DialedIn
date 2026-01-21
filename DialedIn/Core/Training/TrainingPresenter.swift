@@ -71,6 +71,18 @@ class TrainingPresenter {
         scheduledWorkouts = plan.weeks.flatMap { $0.scheduledWorkouts }
     }
     
+    func onAddPressed() {
+        let delegate = AddTrainingDelegate(
+            onSelectProgram: { [weak self] in
+                self?.router.showCreateProgramView(delegate: CreateProgramDelegate())
+            },
+            onSelectWorkout: { [weak self] in
+                self?.router.showCreateWorkoutView(delegate: CreateWorkoutDelegate())
+            }
+        )
+        router.showAddTrainingView(delegate: delegate, onDismiss: nil)
+    }
+    
     func onDatePressed(date: Date) {
         self.selectedDate = date.startOfDay
         
@@ -348,6 +360,10 @@ class TrainingPresenter {
     
     func onNotificationsPressed() {
         router.showNotificationsView()
+    }
+    
+    func onGymProfilesPressed() {
+        router.showGymProfilesView()
     }
     
     enum Event: LoggableEvent {

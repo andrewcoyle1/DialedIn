@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ExercisePlan: Identifiable {
+struct ExercisePlan: Identifiable, Codable {
     
     let id: String
     let authorId: String
@@ -15,6 +15,12 @@ struct ExercisePlan: Identifiable {
     let exercise: ExerciseTemplateModel
     
     // TODO: Add sets etc.
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case authorId = "author_id"
+        case exercise
+    }
     
     static var mock: ExercisePlan {
         mocks[0]

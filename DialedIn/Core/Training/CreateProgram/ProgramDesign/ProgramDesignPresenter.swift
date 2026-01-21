@@ -91,10 +91,26 @@ class ProgramDesignPresenter {
     }
     
     func onActivatePressed(delegate: ProgramDesignDelegate) {
-        
+        Task {
+            do {
+                try await interactor.createTrainingProgram(program: program)
+                try await interactor.setActiveTrainingProgram(programId: program.id)
+                router.dismissEnvironment()
+
+            } catch {
+                router.showAlert(error: error)
+            }
+        }
     }
     
     func onSavePressed(delegate: ProgramDesignDelegate) {
-        
+        Task {
+            do {
+                try await interactor.createTrainingProgram(program: program)
+                router.dismissEnvironment()
+            } catch {
+                router.showAlert(error: error)
+            }
+        }
     }
 }

@@ -323,6 +323,13 @@ class UserManager {
         let uid = try currentUserId()
         try await remote.updateProfileImageUrl(userId: uid, url: url)
     }
+    
+    // MARK: Update Active Training Program
+    
+    func updateActiveTrainingProgramId(programId: String?) async throws {
+        let uid = try currentUserId()
+        try await remote.updateActiveTrainingProgramId(userId: uid, programId: programId)
+    }
 
     // MARK: - Update Metadata
     
