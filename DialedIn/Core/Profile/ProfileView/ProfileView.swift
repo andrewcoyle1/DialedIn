@@ -63,13 +63,6 @@ struct ProfileView: View {
                 Image(systemName: "bell")
             }
         }
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                presenter.navToSettingsView()
-            } label: {
-                Image(systemName: "gear")
-            }
-        }
     }
 }
 
