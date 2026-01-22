@@ -14,6 +14,12 @@ struct GymProfilesView: View {
         .toolbar {
             toolbarContent
         }
+        .onAppear {
+            presenter.loadLocalGymProfiles()
+        }
+        .onFirstTask {
+            await presenter.loadRemoteGymProfiles()
+        }
     }
     
     private var gymProfilesSection: some View {
@@ -26,6 +32,21 @@ struct GymProfilesView: View {
                 )
                 .anyButton {
                     presenter.onGymProfilePressed(gymProfile: profile)
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        presenter.deleteGymProfile(profile: profile)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                    Button {
+                        presenter.favouriteGymProfile(profile: profile)
+                    } label: {
+                        Label("Favourite", systemImage: "star")
+                    }
+                    .tint(.accent)
                 }
             }
             .removeListRowFormatting()

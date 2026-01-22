@@ -13,9 +13,29 @@ struct GymProfileView: View {
             if !presenter.filteredLoadableBars.isEmpty {
                 loadableBarsSection
             }
+            if !presenter.filteredFixedWeightBars.isEmpty {
+                fixedWeightBarsSection
+            }
+            if !presenter.filteredBands.isEmpty {
+                bandsSection
+            }
+            
+            if !presenter.filteredBodyWeights.isEmpty {
+                bodyWeightsSection
+            }
+            
             if !presenter.filteredSupportEquipment.isEmpty {
                 benchesAndRacksSection
             }
+
+            if !presenter.filteredAccessoryEquipment.isEmpty {
+                accessoriesSection
+            }
+
+            if !presenter.filteredLoadableAccessoryEquipment.isEmpty {
+                loadableAccessoriesSection
+            }
+
             if !presenter.filteredCableMachines.isEmpty {
                 cableMachinesSection
             }
@@ -27,10 +47,13 @@ struct GymProfileView: View {
             }
         }
         .scrollIndicators(.hidden)
-        .navigationTitle(presenter.gymProfile.name)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .screenAppearAnalytics(name: "GymProfileView")
         .searchable(text: $presenter.searchQuery, prompt: "Filter equipment by name")
+        .toolbar {
+            toolbarContent
+        }
     }
     
     private var equipmentHeader: some View {
@@ -93,6 +116,13 @@ struct GymProfileView: View {
                         Text(loadableBar.baseWeights.map { "\(String(format: "%g", $0.baseWeight)) \($0.unit.abbreviation)" }.joined(separator: ", "))
                             .font(.caption)
                             .lineLimit(2)
+                        Text("Edit Weights")
+                            .underline()
+                            .font(.caption.bold())
+                            .anyButton {
+                                presenter.onEditLoadableBarPressed(loadableBar: $loadableBar)
+                            }
+
                     }
                     Spacer()
                     Toggle("", isOn: $loadableBar.isActive)
@@ -103,7 +133,92 @@ struct GymProfileView: View {
             Text("Loadable Bars")
         }
     }
+
+    private var fixedWeightBarsSection: some View {
+        Section {
+            ForEach(presenter.filteredFixedWeightBars) { $fixedWeightBar in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(fixedWeightBar.name)
+                        Text(fixedWeightBar.baseWeights.map { "\(String(format: "%g", $0.baseWeight)) \($0.unit.abbreviation)" }.joined(separator: ", "))
+                            .font(.caption)
+                            .lineLimit(2)
+                        Text("Edit Weights")
+                            .underline()
+                            .font(.caption.bold())
+                            .anyButton {
+                                presenter.onEditFixedWeightBarPressed(fixedWeightBar: $fixedWeightBar)
+                            }
+
+                    }
+                    Spacer()
+                    Toggle("", isOn: $fixedWeightBar.isActive)
+                        .labelsHidden()
+                }
+            }
+        } header: {
+            Text("Fixed Weight Bars")
+        }
+    }
+
+    private var bandsSection: some View {
+        Section {
+            ForEach(presenter.filteredBands) { $band in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(band.name)
+                        Text(band.range.map { "\(String(format: "%g", $0.availableResistance)) \($0.unit.abbreviation)" }.joined(separator: ", "))
+                            .font(.caption)
+                            .lineLimit(2)
+                        Text("Edit Bands")
+                            .underline()
+                            .font(.caption.bold())
+                            .anyButton {
+                                presenter.onEditBandPressed(band: $band)
+                            }
+
+                    }
+                    Spacer()
+                    Toggle("", isOn: $band.isActive)
+                        .labelsHidden()
+                }
+            }
+        } header: {
+            Text("Bands")
+        }
+    }
     
+    private var bodyWeightsSection: some View {
+        Section {
+            if presenter.filteredBodyWeights.isEmpty {
+                ContentUnavailableView("No Weights", image: "dumbbell", description: Text("There are no weights added to this gym."))
+            } else {
+                ForEach(presenter.filteredBodyWeights) { $bodyWeight in
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(bodyWeight.name)
+                            Text(bodyWeight.range.map { "\(String(format: "%g", $0.availableWeights)) \($0.unit.abbreviation)" }.joined(separator: ", "))
+                                .font(.caption)
+                                .lineLimit(2)
+                            Text("Edit Weights")
+                                .underline()
+                                .font(.caption.bold())
+                                .anyButton {
+                                    presenter.onEditBodyWeightPressed(bodyWeight: $bodyWeight)
+                                }
+                        }
+                        Spacer()
+                        Toggle("", isOn: $bodyWeight.isActive)
+                            .labelsHidden()
+                    }
+                }
+            }
+        } header: {
+            Text("Body Weights")
+        }
+        .listSectionMargins(.top, 0)
+    }
+
     private var benchesAndRacksSection: some View {
         Section {
             ForEach(presenter.filteredSupportEquipment) { $supportEquipment in
@@ -120,7 +235,51 @@ struct GymProfileView: View {
             Text("Benches & Racks")
         }
     }
-    
+
+    private var accessoriesSection: some View {
+        Section {
+            ForEach(presenter.filteredAccessoryEquipment) { $accessoryEquipment in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(accessoryEquipment.name)
+                    }
+                    Spacer()
+                    Toggle("", isOn: $accessoryEquipment.isActive)
+                        .labelsHidden()
+                }
+            }
+        } header: {
+            Text("Accessories")
+        }
+    }
+
+    private var loadableAccessoriesSection: some View {
+        Section {
+            ForEach(presenter.filteredLoadableAccessoryEquipment) { $loadableAccessoryEquipment in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(loadableAccessoryEquipment.name)
+                        Text(loadableAccessoryEquipment.baseWeights.map { "\(String(format: "%g", $0.baseWeight)) \($0.unit.abbreviation)" }.joined(separator: ", "))
+                            .font(.caption)
+                            .lineLimit(2)
+                        Text("Edit Weights")
+                            .underline()
+                            .font(.caption.bold())
+                            .anyButton {
+                                presenter.onEditLoadableAccessoryEquipmentPressed(loadableAccessoryEquipment: $loadableAccessoryEquipment)
+                            }
+
+                    }
+                    Spacer()
+                    Toggle("", isOn: $loadableAccessoryEquipment.isActive)
+                        .labelsHidden()
+                }
+            }
+        } header: {
+            Text("Loadable Accessories")
+        }
+    }
+
     private var cableMachinesSection: some View {
         Section {
             ForEach(presenter.filteredCableMachines) { $cableMachines in
@@ -130,6 +289,13 @@ struct GymProfileView: View {
                         Text(cableMachines.ranges.map { "\(String(format: "%g", $0.minWeight)) - \(String(format: "%g", $0.maxWeight)) \($0.unit.abbreviation), \(String(format: "%g", $0.increment)) \($0.unit.abbreviation) increments" }.joined(separator: "\n"))
                             .font(.caption)
                             .lineLimit(2)
+                        Text("Edit Machine")
+                            .underline()
+                            .font(.caption.bold())
+                            .anyButton {
+                                presenter.onEditCableMachinePressed(cableMachine: $cableMachines)
+                            }
+
                     }
                     Spacer()
                     Toggle("", isOn: $cableMachines.isActive)
@@ -150,6 +316,12 @@ struct GymProfileView: View {
                         Text(plateLoadedMachines.baseWeights.map { "\(String(format: "%g", $0.baseWeight)) \($0.unit.abbreviation)" }.joined(separator: ", "))
                             .font(.caption)
                             .lineLimit(2)
+                        Text("Edit Machine")
+                            .underline()
+                            .font(.caption.bold())
+                            .anyButton {
+                                presenter.onEditPlateLoadedMachinePressed(plateLoadedMachine: $plateLoadedMachines)
+                            }
 
                     }
                     Spacer()
@@ -158,7 +330,7 @@ struct GymProfileView: View {
                 }
             }
         } header: {
-            Text("Cable Machines")
+            Text("Plate Loaded Machines")
         }
     }
     
@@ -171,6 +343,12 @@ struct GymProfileView: View {
                         Text(pinLoadedMachines.ranges.map { "\(String(format: "%g", $0.minWeight)) - \(String(format: "%g", $0.maxWeight)) \($0.unit.abbreviation), \(String(format: "%g", $0.increment)) \($0.unit.abbreviation) increments" }.joined(separator: "\n"))
                             .font(.caption)
                             .lineLimit(2)
+                        Text("Edit Machine")
+                            .underline()
+                            .font(.caption.bold())
+                            .anyButton {
+                                presenter.onEditPinLoadedMachinePressed(pinLoadedMachine: $pinLoadedMachines)
+                            }
 
                     }
                     Spacer()
@@ -179,7 +357,24 @@ struct GymProfileView: View {
                 }
             }
         } header: {
-            Text("Cable Machines")
+            Text("Pin Loaded Machines")
+        }
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .title) {
+            TextField(text: $presenter.gymProfile.name) {
+                Text("Untitled Gym Profile")
+            }
+        }
+        
+        ToolbarItem(placement: .cancellationAction) {
+            Button {
+                presenter.onBackButtonPressed()
+            } label: {
+                Image(systemName: "chevron.left")
+            }
         }
     }
 }

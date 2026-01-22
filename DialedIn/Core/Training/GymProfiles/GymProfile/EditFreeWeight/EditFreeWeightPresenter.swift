@@ -14,6 +14,7 @@ class EditFreeWeightPresenter {
         self.interactor = interactor
         self.router = router
         self.freeWeightBinding = freeWeight
+        
     }
 
     var freeWeight: FreeWeights {

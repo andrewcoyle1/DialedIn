@@ -109,6 +109,7 @@ struct Dependencies {
         let trainingPlanManager: TrainingPlanManager
         let programTemplateManager: ProgramTemplateManager
         let trainingProgramManager: TrainingProgramManager
+        let gymProfileManager: GymProfileManager
         let ingredientTemplateManager: IngredientTemplateManager
         let recipeTemplateManager: RecipeTemplateManager
         let nutritionManager: NutritionManager
@@ -145,7 +146,7 @@ struct Dependencies {
             trainingPlanManager = TrainingPlanManager(services: MockTrainingPlanServices())
             programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: MockProgramTemplateService()))
             trainingProgramManager = TrainingProgramManager(services: MockTrainingProgramServices())
-            
+            gymProfileManager = GymProfileManager(services: MockGymProfileServices())
             // Link managers for auto-completion
             workoutSessionManager.trainingPlanManager = trainingPlanManager
             
@@ -189,6 +190,7 @@ struct Dependencies {
             trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices(), workoutTemplateResolver: workoutTemplateManager)
             programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: SwiftProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()), workoutTemplateResolver: workoutTemplateManager)
             trainingProgramManager = TrainingProgramManager(services: ProductionTrainingProgramServices())
+            gymProfileManager = GymProfileManager(services: ProductionGymProfileServices())
 
             // Link managers for auto-completion
             workoutSessionManager.trainingPlanManager = trainingPlanManager
@@ -235,6 +237,7 @@ struct Dependencies {
             trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices(), workoutTemplateResolver: workoutTemplateManager)
             programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: SwiftProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()), workoutTemplateResolver: workoutTemplateManager)
             trainingProgramManager = TrainingProgramManager(services: ProductionTrainingProgramServices())
+            gymProfileManager = GymProfileManager(services: ProductionGymProfileServices())
 
             // Link managers for auto-completion
             workoutSessionManager.trainingPlanManager = trainingPlanManager
@@ -277,6 +280,7 @@ struct Dependencies {
         container.register(TrainingPlanManager.self, service: trainingPlanManager)
         container.register(ProgramTemplateManager.self, service: programTemplateManager)
         container.register(TrainingProgramManager.self, service: trainingProgramManager)
+        container.register(GymProfileManager.self, service: gymProfileManager)
         container.register(IngredientTemplateManager.self, service: ingredientTemplateManager)
         container.register(RecipeTemplateManager.self, service: recipeTemplateManager)
         container.register(NutritionManager.self, service: nutritionManager)
@@ -326,6 +330,7 @@ class DevPreview {
         container.register(TrainingPlanManager.self, service: trainingPlanManager)
         container.register(ProgramTemplateManager.self, service: programTemplateManager)
         container.register(TrainingProgramManager.self, service: trainingProgramManager)
+        container.register(GymProfileManager.self, service: gymProfileManager)
         container.register(IngredientTemplateManager.self, service: ingredientTemplateManager)
         container.register(RecipeTemplateManager.self, service: recipeTemplateManager)
         container.register(NutritionManager.self, service: nutritionManager)
@@ -360,6 +365,7 @@ class DevPreview {
     let trainingPlanManager: TrainingPlanManager
     let programTemplateManager: ProgramTemplateManager
     let trainingProgramManager: TrainingProgramManager
+    let gymProfileManager: GymProfileManager
     let ingredientTemplateManager: IngredientTemplateManager
     let recipeTemplateManager: RecipeTemplateManager
     let nutritionManager: NutritionManager
@@ -400,6 +406,8 @@ class DevPreview {
         self.trainingPlanManager = TrainingPlanManager(services: MockTrainingPlanServices())
         self.programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: MockProgramTemplateService()))
         self.trainingProgramManager = TrainingProgramManager(services: MockTrainingProgramServices())
+        self.gymProfileManager = GymProfileManager(services: MockGymProfileServices())
+        
         self.ingredientTemplateManager = IngredientTemplateManager(services: MockIngredientTemplateServices())
         self.recipeTemplateManager = RecipeTemplateManager(services: MockRecipeTemplateServices())
         self.nutritionManager = NutritionManager(services: MockNutritionServices())

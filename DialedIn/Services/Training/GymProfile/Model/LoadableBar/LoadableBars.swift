@@ -1,0 +1,328 @@
+//
+//  LoadableBars.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 21/01/2026.
+//
+
+import Foundation
+
+struct LoadableBars: Identifiable, Codable {
+    var id: String
+    var name: String
+    var description: String?
+    var defaultBaseWeightId: String?
+    var baseWeights: [LoadableBarsBaseWeight]
+    
+    var defaultBaseWeight: LoadableBarsBaseWeight? {
+        baseWeights.first(where: { $0.id == self.defaultBaseWeightId })
+    }
+    
+    var isActive: Bool
+    
+    init(
+        id: String,
+        name: String,
+        description: String?,
+        baseWeights: [LoadableBarsBaseWeight],
+        isActive: Bool
+    ) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.defaultBaseWeightId = baseWeights.first?.id
+        self.baseWeights = baseWeights
+        self.isActive = isActive
+
+    }
+    
+    static var defaultLoadableBars: [LoadableBars] = [
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Axle Bar",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 7.5,
+                    unit: .kilograms,
+                    isActive: true
+                ),
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 11.5,
+                    unit: .kilograms,
+                    isActive: true
+                ),
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 15,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Barbell",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 7,
+                    unit: .kilograms,
+                    isActive: true
+                ),
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 15,
+                    unit: .kilograms,
+                    isActive: true
+                ),
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 20,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Cambered Bench Bar",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 20,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Cambered Squat Bar",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 20,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "EZ Bar",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 9,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Safety Squat Bar",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 25,
+                    unit: .kilograms,
+                    isActive: true
+                ),
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 27.5,
+                    unit: .kilograms,
+                    isActive: true
+                ),
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 29.5,
+                    unit: .kilograms,
+                    isActive: true
+                ),
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 32,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Strongman Log",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 22.5,
+                    unit: .kilograms,
+                    isActive: true
+                ),
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 32,
+                    unit: .kilograms,
+                    isActive: true
+                ),
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 61,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Swiss Bar",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 17.5,
+                    unit: .kilograms,
+                    isActive: true
+                ),
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 20,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Trap Bar",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 20,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        )
+    ]
+    
+    static var mock: LoadableBars {
+        mocks[0]
+    }
+    
+    static var mocks: [LoadableBars] = [
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Barbell",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 20,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Cambered Bench Bar",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 20,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Cambered Squat Bar",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 20,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "EZ Bar",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 9,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Swiss Bar",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 20,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        ),
+        LoadableBars(
+            id: UUID().uuidString,
+            name: "Trap Bar",
+            description: nil,
+            baseWeights: [
+                LoadableBarsBaseWeight(
+                    id: UUID().uuidString,
+                    baseWeight: 20,
+                    unit: .kilograms,
+                    isActive: true
+                )
+            ],
+            isActive: true
+        )
+    ]
+}
+
+struct LoadableBarsBaseWeight: Identifiable, Codable {
+    var id: String
+    
+    var baseWeight: Double
+    
+    var unit: ExerciseWeightUnit
+    
+    var isActive: Bool
+}

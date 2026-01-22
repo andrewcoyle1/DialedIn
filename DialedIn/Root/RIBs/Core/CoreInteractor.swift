@@ -30,6 +30,7 @@ struct CoreInteractor {
     private let trainingPlanManager: TrainingPlanManager
     private let programTemplateManager: ProgramTemplateManager
     private let trainingProgramManager: TrainingProgramManager
+    private let gymProfileManager: GymProfileManager
     private let ingredientTemplateManager: IngredientTemplateManager
     private let recipeTemplateManager: RecipeTemplateManager
     private let nutritionManager: NutritionManager
@@ -63,6 +64,7 @@ struct CoreInteractor {
         self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
         self.programTemplateManager = container.resolve(ProgramTemplateManager.self)!
         self.trainingProgramManager = container.resolve(TrainingProgramManager.self)!
+        self.gymProfileManager = container.resolve(GymProfileManager.self)!
         self.ingredientTemplateManager = container.resolve(IngredientTemplateManager.self)!
         self.recipeTemplateManager = container.resolve(RecipeTemplateManager.self)!
         self.nutritionManager = container.resolve(NutritionManager.self)!
@@ -275,6 +277,12 @@ struct CoreInteractor {
     
     func updateActiveTrainingProgramId(programId: String?) async throws {
         try await userManager.updateActiveTrainingProgramId(programId: programId)
+    }
+    
+    // Favourite Gym Profile
+    
+    func updateFavouriteGymProfileId(profileId: String?) async throws {
+        try await userManager.updateFavouriteGymProfileId(profileId: profileId)
     }
     
     // Update Metadata
@@ -935,6 +943,43 @@ struct CoreInteractor {
         try await trainingProgramManager.deleteTrainingProgram(program: program)
     }
     
+    // MARK: GymProfileManager
+    
+    // CREATE
+    func createGymProfile(profile: GymProfileModel) async throws {
+        try await gymProfileManager.createGymProfile(profile: profile)
+    }
+
+    // READ
+    
+    func readLocalGymProfile(profileId: String) throws -> GymProfileModel {
+        try gymProfileManager.readLocalGymProfile(profileId: profileId)
+    }
+    
+    func readAllLocalGymProfiles() throws -> [GymProfileModel] {
+        try gymProfileManager.readAllLocalGymProfiles()
+    }
+    
+    func readRemoteGymProfile(profileId: String) async throws -> GymProfileModel {
+        try await gymProfileManager.readRemoteGymProfile(profileId: profileId)
+    }
+    
+    func readAllRemoteGymProfilesForAuthor(userId: String) async throws -> [GymProfileModel] {
+        try await gymProfileManager.readAllRemoteGymProfilesForAuthor(userId: userId)
+    }
+
+    // UPDATE
+    
+    func updateGymProfile(profile: GymProfileModel) async throws {
+        try await gymProfileManager.updateGymProfile(profile: profile)
+    }
+
+    // DELETE
+        
+    func deleteGymProfile(profile: GymProfileModel) async throws {
+        try await gymProfileManager.deleteGymProfile(profile: profile)
+    }
+
     // MARK: TrainingPlanManager
     
     var currentTrainingPlan: TrainingPlan? {

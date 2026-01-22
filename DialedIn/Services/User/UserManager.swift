@@ -331,6 +331,13 @@ class UserManager {
         try await remote.updateActiveTrainingProgramId(userId: uid, programId: programId)
     }
 
+    // MARK: Update Favourite Gym Profile
+    
+    func updateFavouriteGymProfileId(profileId: String?) async throws {
+        let uid = try currentUserId()
+        try await remote.updateFavouriteGymProfileId(userId: uid, profileId: profileId)
+    }
+    
     // MARK: - Update Metadata
     
     func updateLastSignInDate() async throws {
