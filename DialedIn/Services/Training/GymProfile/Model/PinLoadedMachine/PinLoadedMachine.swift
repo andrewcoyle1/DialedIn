@@ -43,6 +43,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -59,6 +60,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -75,6 +77,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -91,6 +94,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -107,6 +111,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -123,6 +128,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -139,6 +145,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -155,6 +162,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -171,6 +179,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -187,6 +196,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -203,6 +213,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -219,6 +230,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -235,6 +247,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -251,6 +264,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -267,6 +281,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -283,6 +298,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -299,6 +315,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -315,6 +332,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -331,6 +349,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -347,6 +366,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -363,6 +383,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -379,6 +400,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -395,6 +417,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -411,6 +434,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -427,6 +451,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -443,6 +468,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -459,6 +485,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -475,6 +502,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -491,6 +519,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -507,6 +536,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -523,6 +553,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -539,6 +570,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -555,6 +587,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -571,6 +604,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -587,6 +621,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -603,6 +638,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -619,6 +655,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -635,6 +672,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -651,6 +689,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -667,6 +706,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -683,6 +723,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -699,6 +740,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -715,6 +757,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -731,6 +774,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -754,6 +798,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -770,6 +815,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -786,6 +832,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -802,6 +849,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -818,6 +866,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -834,6 +883,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -850,6 +900,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -866,6 +917,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -882,6 +934,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -898,6 +951,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -914,6 +968,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -930,6 +985,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -946,6 +1002,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -962,6 +1019,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -978,6 +1036,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -994,6 +1053,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1010,6 +1070,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1026,6 +1087,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1042,6 +1104,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1058,6 +1121,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1074,6 +1138,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1090,6 +1155,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1106,6 +1172,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1122,6 +1189,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1138,6 +1206,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1154,6 +1223,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1170,6 +1240,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1186,6 +1257,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1202,6 +1274,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1218,6 +1291,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1234,6 +1308,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1250,6 +1325,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1266,6 +1342,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1282,6 +1359,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1298,6 +1376,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1314,6 +1393,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1330,6 +1410,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1346,6 +1427,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1362,6 +1444,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1378,6 +1461,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1394,6 +1478,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1410,6 +1495,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1426,6 +1512,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1442,6 +1529,7 @@ struct PinLoadedMachine: Identifiable, Codable {
             ranges: [
                 PinLoadedMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 300,
                     increment: 5,
@@ -1456,6 +1544,7 @@ struct PinLoadedMachine: Identifiable, Codable {
 
 struct PinLoadedMachineRange: Identifiable, Codable, @MainActor WeightRange {
     var id: String
+    var name: String
     
     var minWeight: Double
     var maxWeight: Double

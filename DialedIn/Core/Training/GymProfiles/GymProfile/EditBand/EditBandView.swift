@@ -5,6 +5,7 @@ struct EditBandView: View {
     @State var presenter: EditBandPresenter
     
     var body: some View {
+        @Bindable var presenter = presenter
         List {
             pickerSection
             weightsList
@@ -12,6 +13,7 @@ struct EditBandView: View {
         .navigationTitle(presenter.band.name)
         .navigationBarTitleDisplayMode(.inline)
         .screenAppearAnalytics(name: "EditBandView")
+        .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }
@@ -39,6 +41,7 @@ struct EditBandView: View {
         Section {
             let unit = presenter.selectedUnit
             let weightIDs = presenter.filteredWeightIDs(for: unit)
+                .sorted { presenter.weightValue(for: $0) < presenter.weightValue(for: $1) }
             if weightIDs.isEmpty {
                 ContentUnavailableView(
                     "No \(presenter.selectedUnit.displayName) weights",
@@ -72,11 +75,19 @@ struct EditBandView: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .cancellationAction) {
+        ToolbarItem(placement: .topBarLeading) {
             Button {
                 presenter.onDismissPressed()
             } label: {
                 Image(systemName: "xmark")
+            }
+        }
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onAddPressed()
+            } label: {
+                Image(systemName: "plus")
             }
         }
     }

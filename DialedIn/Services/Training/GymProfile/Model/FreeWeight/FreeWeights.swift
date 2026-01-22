@@ -11,6 +11,7 @@ struct FreeWeights: Identifiable, Codable {
     var id: String
     var name: String
     var description: String?
+    var needsColour: Bool
     var range: [FreeWeightsAvailable]
     
     var isActive: Bool
@@ -20,63 +21,74 @@ struct FreeWeights: Identifiable, Codable {
             id: UUID().uuidString,
             name: "Bumper Plates",
             description: nil,
+            needsColour: true,
             range: [
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
+                    plateColour: Color.gray.asHex(),
                     availableWeights: 10,
                     unit: .pounds,
                     isActive: true
                 ),
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
+                    plateColour: Color.gray.asHex(),
                     availableWeights: 5,
                     unit: .kilograms,
                     isActive: true
                 ),
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
+                    plateColour: Color.green.asHex(),
                     availableWeights: 10,
                     unit: .kilograms,
                     isActive: true
                 ),
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
+                    plateColour: Color.green.asHex(),
                     availableWeights: 25,
                     unit: .pounds,
                     isActive: true
                 ),
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
+                    plateColour: Color.yellow.asHex(),
                     availableWeights: 15,
                     unit: .kilograms,
                     isActive: true
                 ),
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
+                    plateColour: Color.yellow.asHex(),
                     availableWeights: 35,
                     unit: .pounds,
                     isActive: true
                 ),
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
+                    plateColour: Color.blue.asHex(),
                     availableWeights: 20,
                     unit: .kilograms,
                     isActive: true
                 ),
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
+                    plateColour: Color.blue.asHex(),
                     availableWeights: 45,
                     unit: .pounds,
                     isActive: true
                 ),
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
+                    plateColour: Color.red.asHex(),
                     availableWeights: 25,
                     unit: .kilograms,
                     isActive: true
                 ),
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
+                    plateColour: Color.red.asHex(),
                     availableWeights: 55,
                     unit: .pounds,
                     isActive: true
@@ -88,6 +100,7 @@ struct FreeWeights: Identifiable, Codable {
             id: UUID().uuidString,
             name: "Dumbbells",
             description: nil,
+            needsColour: false,
             range: [
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
@@ -354,6 +367,7 @@ struct FreeWeights: Identifiable, Codable {
             id: UUID().uuidString,
             name: "Kettlebells",
             description: nil,
+            needsColour: false,
             range: [
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
@@ -704,6 +718,7 @@ struct FreeWeights: Identifiable, Codable {
             id: UUID().uuidString,
             name: "Medicine Ball",
             description: nil,
+            needsColour: false,
             range: [
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
@@ -862,6 +877,7 @@ struct FreeWeights: Identifiable, Codable {
             id: UUID().uuidString,
             name: "Weight Plates",
             description: nil,
+            needsColour: true,
             range: [
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
@@ -961,6 +977,7 @@ struct FreeWeights: Identifiable, Codable {
             id: UUID().uuidString,
             name: "Bumper Plates",
             description: nil,
+            needsColour: true,
             range: [
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
@@ -1029,6 +1046,7 @@ struct FreeWeights: Identifiable, Codable {
             id: UUID().uuidString,
             name: "Dumbbells",
             description: nil,
+            needsColour: false,
             range: [
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
@@ -1295,6 +1313,7 @@ struct FreeWeights: Identifiable, Codable {
             id: UUID().uuidString,
             name: "Kettlebells",
             description: nil,
+            needsColour: false,
             range: [
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
@@ -1645,6 +1664,7 @@ struct FreeWeights: Identifiable, Codable {
             id: UUID().uuidString,
             name: "Medicine Ball",
             description: nil,
+            needsColour: false,
             range: [
                 FreeWeightsAvailable(
                     id: UUID().uuidString,
@@ -1804,6 +1824,7 @@ struct FreeWeights: Identifiable, Codable {
             id: UUID().uuidString,
             name: "Weight Plates",
             description: nil,
+            needsColour: true,
             range: [
                 FreeWeightsAvailable(
                     id: UUID().uuidString,

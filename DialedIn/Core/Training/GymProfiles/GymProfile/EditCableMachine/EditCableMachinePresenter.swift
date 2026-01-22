@@ -8,13 +8,13 @@ class EditCableMachinePresenter {
     private let router: EditCableMachineRouter
     
     private let cableMachineBinding: Binding<CableMachine>
-    var selectedUnit: ExerciseWeightUnit
     var cableMachine: CableMachine {
         didSet {
             cableMachineBinding.wrappedValue = cableMachine
         }
     }
-    
+    var selectedUnit: ExerciseWeightUnit
+
     init(interactor: EditCableMachineInteractor, router: EditCableMachineRouter, cableMachineBinding: Binding<CableMachine>) {
         self.interactor = interactor
         self.router = router
@@ -26,6 +26,13 @@ class EditCableMachinePresenter {
     func filteredWeightIDs(for unit: ExerciseWeightUnit) -> [String] {
         cableMachine.ranges
             .filter { $0.unit == unit }
+            .sorted { lhs, rhs in
+                let comparison = lhs.name.localizedCaseInsensitiveCompare(rhs.name)
+                if comparison == .orderedSame {
+                    return lhs.id < rhs.id
+                }
+                return comparison == .orderedAscending
+            }
             .map { $0.id }
     }
 
@@ -35,6 +42,7 @@ class EditCableMachinePresenter {
                 guard let index = self.cableMachine.ranges.firstIndex(where: { $0.id == id }) else {
                     return CableMachineRange(
                         id: id,
+                        name: "Custom Range",
                         minWeight: 0,
                         maxWeight: 120,
                         increment: 2.5,
@@ -73,4 +81,18 @@ class EditCableMachinePresenter {
     func onDismissPressed() {
         router.dismissScreen()
     }
+    
+    func onAddPressed() {
+        let cableMachineBinding = Binding(
+            get: { self.cableMachine },
+            set: { self.cableMachine = $0 }
+        )
+        router.showAddCableMachineRangeView(
+            delegate: AddCableMachineRangeDelegate(
+                cableMachine: cableMachineBinding,
+                unit: selectedUnit
+            )
+        )
+    }
+
 }

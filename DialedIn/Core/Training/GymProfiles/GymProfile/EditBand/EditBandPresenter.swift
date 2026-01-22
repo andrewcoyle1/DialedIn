@@ -8,23 +8,29 @@ class EditBandPresenter {
     private let router: EditBandRouter
     
     private let bandBinding: Binding<Bands>
+    var band: Bands {
+        didSet {
+            bandBinding.wrappedValue = band
+        }
+    }
     var selectedUnit: ExerciseWeightUnit = .kilograms
     
     init(interactor: EditBandInteractor, router: EditBandRouter, bandBinding: Binding<Bands>) {
         self.interactor = interactor
         self.router = router
         self.bandBinding = bandBinding
-    }
+        self.band = bandBinding.wrappedValue
 
-    var band: Bands {
-        get { bandBinding.wrappedValue }
-        set { bandBinding.wrappedValue = newValue }
     }
 
     func filteredWeightIDs(for unit: ExerciseWeightUnit) -> [String] {
         band.range
             .filter { $0.unit == unit }
             .map { $0.id }
+    }
+    
+    func weightValue(for id: String) -> Double {
+        band.range.first(where: { $0.id == id })?.availableResistance ?? 0
     }
 
     func bindingForWeight(id: String, fallbackUnit: ExerciseWeightUnit) -> Binding<BandsAvailable> {
@@ -64,5 +70,13 @@ class EditBandPresenter {
     
     func onDismissPressed() {
         router.dismissScreen()
+    }
+    
+    func onAddPressed() {
+        let bandBinding = Binding(
+            get: { self.band },
+            set: { self.band = $0 }
+        )
+        router.showAddBandView(delegate: AddBandDelegate(band: bandBinding, unit: selectedUnit))
     }
 }

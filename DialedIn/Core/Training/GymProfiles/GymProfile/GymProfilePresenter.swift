@@ -29,7 +29,8 @@ class GymProfilePresenter {
             let matchesFilter = filter == .all || item.isActive
             return matchesQuery && matchesFilter
         }
-        return indices.map { index in
+        let sortedIndices = sortedIndicesByName(items: gymProfile.freeWeights, indices: indices) { $0.name }
+        return sortedIndices.map { index in
             Binding(
                 get: { self.gymProfile.freeWeights[index] },
                 set: { self.gymProfile.freeWeights[index] = $0 }
@@ -45,7 +46,8 @@ class GymProfilePresenter {
             let matchesFilter = filter == .all || item.isActive
             return matchesQuery && matchesFilter
         }
-        return indices.map { index in
+        let sortedIndices = sortedIndicesByName(items: gymProfile.loadableBars, indices: indices) { $0.name }
+        return sortedIndices.map { index in
             Binding(
                 get: { self.gymProfile.loadableBars[index] },
                 set: { self.gymProfile.loadableBars[index] = $0 }
@@ -61,7 +63,8 @@ class GymProfilePresenter {
             let matchesFilter = filter == .all || item.isActive
             return matchesQuery && matchesFilter
         }
-        return indices.map { index in
+        let sortedIndices = sortedIndicesByName(items: gymProfile.fixedWeightBars, indices: indices) { $0.name }
+        return sortedIndices.map { index in
             Binding(
                 get: { self.gymProfile.fixedWeightBars[index] },
                 set: { self.gymProfile.fixedWeightBars[index] = $0 }
@@ -77,7 +80,8 @@ class GymProfilePresenter {
             let matchesFilter = filter == .all || item.isActive
             return matchesQuery && matchesFilter
         }
-        return indices.map { index in
+        let sortedIndices = sortedIndicesByName(items: gymProfile.bands, indices: indices) { $0.name }
+        return sortedIndices.map { index in
             Binding(
                 get: { self.gymProfile.bands[index] },
                 set: { self.gymProfile.bands[index] = $0 }
@@ -93,7 +97,8 @@ class GymProfilePresenter {
             let matchesFilter = filter == .all || item.isActive
             return matchesQuery && matchesFilter
         }
-        return indices.map { index in
+        let sortedIndices = sortedIndicesByName(items: gymProfile.bodyWeights, indices: indices) { $0.name }
+        return sortedIndices.map { index in
             Binding(
                 get: { self.gymProfile.bodyWeights[index] },
                 set: { self.gymProfile.bodyWeights[index] = $0 }
@@ -109,7 +114,8 @@ class GymProfilePresenter {
             let matchesFilter = filter == .all || item.isActive
             return matchesQuery && matchesFilter
         }
-        return indices.map { index in
+        let sortedIndices = sortedIndicesByName(items: gymProfile.supportEquipment, indices: indices) { $0.name }
+        return sortedIndices.map { index in
             Binding(
                 get: { self.gymProfile.supportEquipment[index] },
                 set: { self.gymProfile.supportEquipment[index] = $0 }
@@ -125,7 +131,8 @@ class GymProfilePresenter {
             let matchesFilter = filter == .all || item.isActive
             return matchesQuery && matchesFilter
         }
-        return indices.map { index in
+        let sortedIndices = sortedIndicesByName(items: gymProfile.accessoryEquipment, indices: indices) { $0.name }
+        return sortedIndices.map { index in
             Binding(
                 get: { self.gymProfile.accessoryEquipment[index] },
                 set: { self.gymProfile.accessoryEquipment[index] = $0 }
@@ -141,7 +148,8 @@ class GymProfilePresenter {
             let matchesFilter = filter == .all || item.isActive
             return matchesQuery && matchesFilter
         }
-        return indices.map { index in
+        let sortedIndices = sortedIndicesByName(items: gymProfile.loadableAccessoryEquipment, indices: indices) { $0.name }
+        return sortedIndices.map { index in
             Binding(
                 get: { self.gymProfile.loadableAccessoryEquipment[index] },
                 set: { self.gymProfile.loadableAccessoryEquipment[index] = $0 }
@@ -157,7 +165,8 @@ class GymProfilePresenter {
             let matchesFilter = filter == .all || item.isActive
             return matchesQuery && matchesFilter
         }
-        return indices.map { index in
+        let sortedIndices = sortedIndicesByName(items: gymProfile.cableMachines, indices: indices) { $0.name }
+        return sortedIndices.map { index in
             Binding(
                 get: { self.gymProfile.cableMachines[index] },
                 set: { self.gymProfile.cableMachines[index] = $0 }
@@ -173,7 +182,8 @@ class GymProfilePresenter {
             let matchesFilter = filter == .all || item.isActive
             return matchesQuery && matchesFilter
         }
-        return indices.map { index in
+        let sortedIndices = sortedIndicesByName(items: gymProfile.plateLoadedMachines, indices: indices) { $0.name }
+        return sortedIndices.map { index in
             Binding(
                 get: { self.gymProfile.plateLoadedMachines[index] },
                 set: { self.gymProfile.plateLoadedMachines[index] = $0 }
@@ -189,7 +199,8 @@ class GymProfilePresenter {
             let matchesFilter = filter == .all || item.isActive
             return matchesQuery && matchesFilter
         }
-        return indices.map { index in
+        let sortedIndices = sortedIndicesByName(items: gymProfile.pinLoadedMachines, indices: indices) { $0.name }
+        return sortedIndices.map { index in
             Binding(
                 get: { self.gymProfile.pinLoadedMachines[index] },
                 set: { self.gymProfile.pinLoadedMachines[index] = $0 }
@@ -222,6 +233,22 @@ class GymProfilePresenter {
             } catch {
                 interactor.trackEvent(event: Event.saveGymProfileFail(error: error))
             }
+        }
+    }
+
+    private func sortedIndicesByName<T>(
+        items: [T],
+        indices: [Int],
+        name: (T) -> String
+    ) -> [Int] {
+        indices.sorted { lhs, rhs in
+            let lhsName = name(items[lhs])
+            let rhsName = name(items[rhs])
+            let comparison = lhsName.localizedCaseInsensitiveCompare(rhsName)
+            if comparison == .orderedSame {
+                return lhs < rhs
+            }
+            return comparison == .orderedAscending
         }
     }
         

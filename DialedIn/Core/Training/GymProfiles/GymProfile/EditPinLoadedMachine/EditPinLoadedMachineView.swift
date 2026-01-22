@@ -5,6 +5,7 @@ struct EditPinLoadedMachineView: View {
     @State var presenter: EditPinLoadedMachinePresenter
     
     var body: some View {
+        @Bindable var presenter = presenter
         List {
             pickerSection
             weightsList
@@ -50,7 +51,7 @@ struct EditPinLoadedMachineView: View {
                     let weight = presenter.bindingForWeight(id: weightID, fallbackUnit: unit)
                     HStack {
                         VStack(alignment: .leading) {
-                            Text("Range 1")
+                            Text(weight.wrappedValue.name)
                             Text("\(String(format: "%g", weight.wrappedValue.minWeight)) - \(String(format: "%g", weight.wrappedValue.maxWeight)) \(weight.wrappedValue.unit.abbreviation), \(String(format: "%g", weight.wrappedValue.increment)) \(weight.wrappedValue.unit.abbreviation) increment")
                                 .font(.caption)
 
@@ -76,11 +77,19 @@ struct EditPinLoadedMachineView: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .cancellationAction) {
+        ToolbarItem(placement: .topBarLeading) {
             Button {
                 presenter.onDismissPressed()
             } label: {
                 Image(systemName: "xmark")
+            }
+        }
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onAddPressed()
+            } label: {
+                Image(systemName: "plus")
             }
         }
     }

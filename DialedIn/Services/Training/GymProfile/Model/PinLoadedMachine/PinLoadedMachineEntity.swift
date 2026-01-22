@@ -62,6 +62,7 @@ class PinLoadedMachineEntity {
 @Model
 class PinLoadedMachineRangeEntity {
     var id: String
+    var name: String
     
     var minWeight: Double
     var maxWeight: Double
@@ -75,6 +76,7 @@ class PinLoadedMachineRangeEntity {
     
     init(from model: PinLoadedMachineRange) {
         self.id = model.id
+        self.name = model.name
         self.minWeight = model.minWeight
         self.maxWeight = model.maxWeight
         self.increment = model.increment
@@ -84,6 +86,7 @@ class PinLoadedMachineRangeEntity {
 
     func update(from model: PinLoadedMachineRange) {
         self.id = model.id
+        self.name = model.name
         self.minWeight = model.minWeight
         self.maxWeight = model.maxWeight
         self.increment = model.increment
@@ -95,6 +98,7 @@ class PinLoadedMachineRangeEntity {
     func toModel() -> PinLoadedMachineRange {
         PinLoadedMachineRange(
             id: self.id,
+            name: self.name,
             minWeight: self.minWeight,
             maxWeight: self.maxWeight,
             increment: self.increment,

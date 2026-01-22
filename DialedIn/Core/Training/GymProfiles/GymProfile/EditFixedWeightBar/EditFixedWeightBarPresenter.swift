@@ -8,24 +8,29 @@ class EditFixedWeightBarPresenter {
     private let router: EditFixedWeightBarRouter
     
     private let fixedWeightBarBinding: Binding<FixedWeightBars>
+    var fixedWeightBar: FixedWeightBars {
+        didSet {
+            fixedWeightBarBinding.wrappedValue = fixedWeightBar
+        }
+    }
     var selectedUnit: ExerciseWeightUnit
     
     init(interactor: EditFixedWeightBarInteractor, router: EditFixedWeightBarRouter, fixedWeightBarBinding: Binding<FixedWeightBars>) {
         self.interactor = interactor
         self.router = router
         self.fixedWeightBarBinding = fixedWeightBarBinding
+        self.fixedWeightBar = fixedWeightBarBinding.wrappedValue
         self.selectedUnit = fixedWeightBarBinding.wrappedValue.defaultBaseWeight?.unit ?? .kilograms
-    }
-
-    var fixedWeightBar: FixedWeightBars {
-        get { fixedWeightBarBinding.wrappedValue }
-        set { fixedWeightBarBinding.wrappedValue = newValue }
     }
 
     func filteredWeightIDs(for unit: ExerciseWeightUnit) -> [String] {
         fixedWeightBar.baseWeights
             .filter { $0.unit == unit }
             .map { $0.id }
+    }
+    
+    func weightValue(for id: String) -> Double {
+        fixedWeightBar.baseWeights.first(where: { $0.id == id })?.baseWeight ?? 0
     }
 
     func bindingForWeight(id: String, fallbackUnit: ExerciseWeightUnit) -> Binding<FixedWeightBarsBaseWeight> {
@@ -63,5 +68,14 @@ class EditFixedWeightBarPresenter {
     
     func onDismissPressed() {
         router.dismissScreen()
+    }
+    
+    func onAddPressed() {
+        let fixedWeightBarBinding = Binding(
+            get: { self.fixedWeightBar },
+            set: { self.fixedWeightBar = $0 }
+        )
+
+        router.showAddFixedWeightBarView(delegate: AddFixedWeightBarDelegate(fixedWeightBar: fixedWeightBarBinding, unit: selectedUnit))
     }
 }

@@ -13,7 +13,7 @@ class FreeWeightEntity {
     var id: String
     var name: String
     var weightDescription: String?
-    
+    var needsColour: Bool
     @Relationship var gymProfile: GymProfileEntity?
     
     @Relationship(deleteRule: .cascade, inverse: \FreeWeightAvailableEntity.freeWeight) var range: [FreeWeightAvailableEntity]
@@ -24,6 +24,7 @@ class FreeWeightEntity {
         self.id = model.id
         self.name = model.name
         self.weightDescription = model.description
+        self.needsColour = model.needsColour
         self.range = model.range.map { FreeWeightAvailableEntity(from: $0) }
         self.isActive = model.isActive
     }
@@ -33,6 +34,7 @@ class FreeWeightEntity {
         self.id = model.id
         self.name = model.name
         self.weightDescription = model.description
+        self.needsColour = model.needsColour
         self.range = syncEntities(
             existing: range,
             models: model.range,
@@ -50,6 +52,7 @@ class FreeWeightEntity {
             id: self.id,
             name: self.name,
             description: self.weightDescription,
+            needsColour: self.needsColour,
             range: self.range.map { $0.toModel() },
             isActive: self.isActive
         )

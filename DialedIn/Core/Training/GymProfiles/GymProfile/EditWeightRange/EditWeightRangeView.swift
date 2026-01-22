@@ -104,7 +104,7 @@ extension CoreRouter {
 }
 
 #Preview {
-    @Previewable @State var machineRange: CableMachineRange = CableMachineRange(id: UUID().uuidString, minWeight: 0, maxWeight: 310, increment: 5, unit: .kilograms, isActive: true)
+    @Previewable @State var machineRange: CableMachineRange = CableMachineRange(id: UUID().uuidString, name: "Preview Range", minWeight: 0, maxWeight: 310, increment: 5, unit: .kilograms, isActive: true)
     let container = DevPreview.shared.container
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     

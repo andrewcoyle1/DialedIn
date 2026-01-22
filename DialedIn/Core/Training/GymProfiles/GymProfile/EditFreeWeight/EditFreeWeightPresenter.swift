@@ -8,24 +8,28 @@ class EditFreeWeightPresenter {
     private let router: EditFreeWeightRouter
     
     private let freeWeightBinding: Binding<FreeWeights>
+    var freeWeight: FreeWeights {
+        didSet {
+            freeWeightBinding.wrappedValue = freeWeight
+        }
+    }
     var selectedUnit: ExerciseWeightUnit = .kilograms
     
     init(interactor: EditFreeWeightInteractor, router: EditFreeWeightRouter, freeWeight: Binding<FreeWeights>) {
         self.interactor = interactor
         self.router = router
         self.freeWeightBinding = freeWeight
-        
-    }
-
-    var freeWeight: FreeWeights {
-        get { freeWeightBinding.wrappedValue }
-        set { freeWeightBinding.wrappedValue = newValue }
+        self.freeWeight = freeWeight.wrappedValue
     }
 
     func filteredWeightIDs(for unit: ExerciseWeightUnit) -> [String] {
         freeWeight.range
             .filter { $0.unit == unit }
             .map { $0.id }
+    }
+
+    func weightValue(for id: String) -> Double {
+        freeWeight.range.first(where: { $0.id == id })?.availableWeights ?? 0
     }
 
     func bindingForWeight(id: String, fallbackUnit: ExerciseWeightUnit) -> Binding<FreeWeightsAvailable> {
@@ -46,7 +50,9 @@ class EditFreeWeightPresenter {
                 guard let index = self.freeWeight.range.firstIndex(where: { $0.id == id }) else {
                     return
                 }
-                self.freeWeight.range[index] = updated
+                var nextFreeWeight = self.freeWeight
+                nextFreeWeight.range[index] = updated
+                self.freeWeight = nextFreeWeight
             }
         )
     }
@@ -64,5 +70,13 @@ class EditFreeWeightPresenter {
     
     func onDismissPressed() {
         router.dismissScreen()
+    }
+    
+    func onAddPressed() {
+        let freeWeightBinding = Binding(
+            get: { self.freeWeight },
+            set: { self.freeWeight = $0 }
+        )
+        router.showAddFreeWeightView(delegate: AddFreeWeightDelegate(freeWeight: freeWeightBinding, unit: self.selectedUnit))
     }
 }

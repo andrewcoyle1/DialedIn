@@ -5,6 +5,7 @@ struct EditLoadableBarView: View {
     @State var presenter: EditLoadableBarPresenter
     
     var body: some View {
+        @Bindable var presenter = presenter
         List {
             pickerSection
             weightsList
@@ -39,6 +40,7 @@ struct EditLoadableBarView: View {
         Section {
             let unit = presenter.selectedUnit
             let weightIDs = presenter.filteredWeightIDs(for: unit)
+                .sorted { presenter.weightValue(for: $0) < presenter.weightValue(for: $1) }
             if weightIDs.isEmpty {
                 ContentUnavailableView(
                     "No \(presenter.selectedUnit.displayName) weights",
@@ -64,11 +66,19 @@ struct EditLoadableBarView: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .cancellationAction) {
+        ToolbarItem(placement: .topBarLeading) {
             Button {
                 presenter.onDismissPressed()
             } label: {
                 Image(systemName: "xmark")
+            }
+        }
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onAddPressed()
+            } label: {
+                Image(systemName: "plus")
             }
         }
     }

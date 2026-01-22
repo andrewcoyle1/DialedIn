@@ -8,32 +8,41 @@ class EditPinLoadedMachinePresenter {
     private let router: EditPinLoadedMachineRouter
     
     private let pinLoadedMachineBinding: Binding<PinLoadedMachine>
+    var pinLoadedMachine: PinLoadedMachine {
+        didSet {
+            pinLoadedMachineBinding.wrappedValue = pinLoadedMachine
+        }
+    }
     var selectedUnit: ExerciseWeightUnit
     
     init(interactor: EditPinLoadedMachineInteractor, router: EditPinLoadedMachineRouter, pinLoadedMachineBinding: Binding<PinLoadedMachine>) {
         self.interactor = interactor
         self.router = router
         self.pinLoadedMachineBinding = pinLoadedMachineBinding
+        self.pinLoadedMachine = pinLoadedMachineBinding.wrappedValue
         self.selectedUnit = pinLoadedMachineBinding.wrappedValue.defaultRange?.unit ?? .kilograms
     }
-
-    var pinLoadedMachine: PinLoadedMachine {
-        get { pinLoadedMachineBinding.wrappedValue }
-        set { pinLoadedMachineBinding.wrappedValue = newValue }
-    }
-
+        
     func filteredWeightIDs(for unit: ExerciseWeightUnit) -> [String] {
         pinLoadedMachine.ranges
             .filter { $0.unit == unit }
+            .sorted { lhs, rhs in
+                let comparison = lhs.name.localizedCaseInsensitiveCompare(rhs.name)
+                if comparison == .orderedSame {
+                    return lhs.id < rhs.id
+                }
+                return comparison == .orderedAscending
+            }
             .map { $0.id }
     }
-
+    
     func bindingForWeight(id: String, fallbackUnit: ExerciseWeightUnit) -> Binding<PinLoadedMachineRange> {
         Binding(
             get: {
                 guard let index = self.pinLoadedMachine.ranges.firstIndex(where: { $0.id == id }) else {
                     return PinLoadedMachineRange(
                         id: id,
+                        name: "Custom Range",
                         minWeight: 0,
                         maxWeight: 150,
                         increment: 2.5,
@@ -51,13 +60,13 @@ class EditPinLoadedMachinePresenter {
             }
         )
     }
-
+    
     func deleteWeights(at offsets: IndexSet, weightIDs: [String]) {
         let idsToDelete = offsets.compactMap { offset in
             weightIDs.indices.contains(offset) ? weightIDs[offset] : nil
         }
         guard !idsToDelete.isEmpty else { return }
-
+        
         var updated = pinLoadedMachine
         updated.ranges.removeAll { idsToDelete.contains($0.id) }
         pinLoadedMachine = updated
@@ -69,5 +78,18 @@ class EditPinLoadedMachinePresenter {
     
     func onDismissPressed() {
         router.dismissScreen()
+    }
+    
+    func onAddPressed() {
+        let pinLoadedMachineBinding = Binding(
+            get: { self.pinLoadedMachine },
+            set: { self.pinLoadedMachine = $0 }
+        )
+        router.showAddPinLoadedMachineRangeView(
+            delegate: AddPinLoadedMachineRangeDelegate(
+                pinLoadedMachine: pinLoadedMachineBinding,
+                unit: selectedUnit
+            )
+        )
     }
 }

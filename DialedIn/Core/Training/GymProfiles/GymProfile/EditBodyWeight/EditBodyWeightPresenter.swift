@@ -8,23 +8,28 @@ class EditBodyWeightPresenter {
     private let router: EditBodyWeightRouter
     
     private let bodyWeightBinding: Binding<BodyWeights>
+    var bodyWeight: BodyWeights {
+        didSet {
+            bodyWeightBinding.wrappedValue = bodyWeight
+        }
+    }
     var selectedUnit: ExerciseWeightUnit = .kilograms
     
     init(interactor: EditBodyWeightInteractor, router: EditBodyWeightRouter, bodyWeight: Binding<BodyWeights>) {
         self.interactor = interactor
         self.router = router
         self.bodyWeightBinding = bodyWeight
-    }
-
-    var bodyWeight: BodyWeights {
-        get { bodyWeightBinding.wrappedValue }
-        set { bodyWeightBinding.wrappedValue = newValue }
+        self.bodyWeight = bodyWeight.wrappedValue
     }
 
     func filteredWeightIDs(for unit: ExerciseWeightUnit) -> [String] {
         bodyWeight.range
             .filter { $0.unit == unit }
             .map { $0.id }
+    }
+    
+    func weightValue(for id: String) -> Double {
+        bodyWeight.range.first(where: { $0.id == id })?.availableWeights ?? 0
     }
 
     func bindingForWeight(id: String, fallbackUnit: ExerciseWeightUnit) -> Binding<BodyWeightsAvailable> {
@@ -64,4 +69,13 @@ class EditBodyWeightPresenter {
     func onDismissPressed() {
         router.dismissScreen()
     }
+    
+    func onAddPressed() {
+        let bodyWeightBinding = Binding(
+            get: { self.bodyWeight },
+            set: { self.bodyWeight = $0 }
+        )
+        router.showAddBodyWeightView(delegate: AddBodyWeightDelegate(bodyWeight: bodyWeightBinding, unit: self.selectedUnit))
+    }
+
 }

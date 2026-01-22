@@ -63,7 +63,7 @@ class CableMachineEntity {
 @Model
 class CableMachineRangeEntity {
     var id: String
-    
+    var name: String
     var minWeight: Double
     var maxWeight: Double
     var increment: Double
@@ -76,6 +76,7 @@ class CableMachineRangeEntity {
     
     init(from model: CableMachineRange) {
         self.id = model.id
+        self.name = model.name
         self.minWeight = model.minWeight
         self.maxWeight = model.maxWeight
         self.increment = model.increment
@@ -85,6 +86,7 @@ class CableMachineRangeEntity {
 
     func update(from model: CableMachineRange) {
         self.id = model.id
+        self.name = model.name
         self.minWeight = model.minWeight
         self.maxWeight = model.maxWeight
         self.increment = model.increment
@@ -96,6 +98,7 @@ class CableMachineRangeEntity {
     func toModel() -> CableMachineRange {
         CableMachineRange(
             id: self.id,
+            name: self.name,
             minWeight: self.minWeight,
             maxWeight: self.maxWeight,
             increment: self.increment,

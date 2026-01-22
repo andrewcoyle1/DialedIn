@@ -8,24 +8,29 @@ class EditLoadableBarPresenter {
     private let router: EditLoadableBarRouter
     
     private let loadableBarBinding: Binding<LoadableBars>
+    var loadableBar: LoadableBars {
+        didSet {
+            loadableBarBinding.wrappedValue = loadableBar
+        }
+    }
     var selectedUnit: ExerciseWeightUnit
     
     init(interactor: EditLoadableBarInteractor, router: EditLoadableBarRouter, loadableBarBinding: Binding<LoadableBars>) {
         self.interactor = interactor
         self.router = router
         self.loadableBarBinding = loadableBarBinding
+        self.loadableBar = loadableBarBinding.wrappedValue
         self.selectedUnit = loadableBarBinding.wrappedValue.defaultBaseWeight?.unit ?? .kilograms
-    }
-
-    var loadableBar: LoadableBars {
-        get { loadableBarBinding.wrappedValue }
-        set { loadableBarBinding.wrappedValue = newValue }
     }
 
     func filteredWeightIDs(for unit: ExerciseWeightUnit) -> [String] {
         loadableBar.baseWeights
             .filter { $0.unit == unit }
             .map { $0.id }
+    }
+
+    func weightValue(for id: String) -> Double {
+        loadableBar.baseWeights.first(where: { $0.id == id })?.baseWeight ?? 0
     }
 
     func bindingForWeight(id: String, fallbackUnit: ExerciseWeightUnit) -> Binding<LoadableBarsBaseWeight> {
@@ -45,7 +50,9 @@ class EditLoadableBarPresenter {
                 guard let index = self.loadableBar.baseWeights.firstIndex(where: { $0.id == id }) else {
                     return
                 }
-                self.loadableBar.baseWeights[index] = updated
+                var nextLoadableBar = self.loadableBar
+                nextLoadableBar.baseWeights[index] = updated
+                self.loadableBar = nextLoadableBar
             }
         )
     }
@@ -63,5 +70,13 @@ class EditLoadableBarPresenter {
     
     func onDismissPressed() {
         router.dismissScreen()
+    }
+    
+    func onAddPressed() {
+        let loadableBarBinding = Binding(
+            get: { self.loadableBar },
+            set: { self.loadableBar = $0 }
+        )
+        router.showAddLoadableBarView(delegate: AddLoadableBarDelegate(loadableBar: loadableBarBinding, unit: selectedUnit))
     }
 }

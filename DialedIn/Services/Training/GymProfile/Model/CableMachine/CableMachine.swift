@@ -43,6 +43,7 @@ struct CableMachine: Identifiable, Codable {
             ranges: [
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 250,
                     increment: 5,
@@ -51,6 +52,7 @@ struct CableMachine: Identifiable, Codable {
                 ),
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 500,
                     increment: 5,
@@ -67,6 +69,7 @@ struct CableMachine: Identifiable, Codable {
             ranges: [
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 250,
                     increment: 5,
@@ -75,6 +78,7 @@ struct CableMachine: Identifiable, Codable {
                 ),
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 500,
                     increment: 5,
@@ -91,6 +95,7 @@ struct CableMachine: Identifiable, Codable {
             ranges: [
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 250,
                     increment: 5,
@@ -99,6 +104,7 @@ struct CableMachine: Identifiable, Codable {
                 ),
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 500,
                     increment: 5,
@@ -115,6 +121,7 @@ struct CableMachine: Identifiable, Codable {
             ranges: [
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 250,
                     increment: 5,
@@ -123,6 +130,7 @@ struct CableMachine: Identifiable, Codable {
                 ),
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 500,
                     increment: 5,
@@ -146,6 +154,7 @@ struct CableMachine: Identifiable, Codable {
             ranges: [
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 250,
                     increment: 5,
@@ -154,6 +163,7 @@ struct CableMachine: Identifiable, Codable {
                 ),
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 500,
                     increment: 5,
@@ -170,6 +180,7 @@ struct CableMachine: Identifiable, Codable {
             ranges: [
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 250,
                     increment: 5,
@@ -178,6 +189,7 @@ struct CableMachine: Identifiable, Codable {
                 ),
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 500,
                     increment: 5,
@@ -194,6 +206,7 @@ struct CableMachine: Identifiable, Codable {
             ranges: [
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 250,
                     increment: 5,
@@ -202,6 +215,7 @@ struct CableMachine: Identifiable, Codable {
                 ),
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 500,
                     increment: 5,
@@ -218,6 +232,7 @@ struct CableMachine: Identifiable, Codable {
             ranges: [
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 250,
                     increment: 5,
@@ -226,6 +241,7 @@ struct CableMachine: Identifiable, Codable {
                 ),
                 CableMachineRange(
                     id: UUID().uuidString,
+                    name: "Range 1",
                     minWeight: 0,
                     maxWeight: 500,
                     increment: 5,
@@ -242,6 +258,7 @@ struct CableMachine: Identifiable, Codable {
 struct CableMachineRange: Identifiable, Codable, @MainActor WeightRange {
     var id: String
     
+    var name: String
     var minWeight: Double
     var maxWeight: Double
     var increment: Double

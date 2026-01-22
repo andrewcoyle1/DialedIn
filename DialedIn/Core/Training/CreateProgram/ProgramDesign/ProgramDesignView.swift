@@ -14,22 +14,21 @@ struct ProgramDesignView: View {
     let delegate: ProgramDesignDelegate
     
     var body: some View {
-        VStack(spacing: 0) {
-            daySelectionSection
+        List {
+            dayOptionBar
             
-            List {
-                dayOptionBar
-
-                overviewCard()
-                
-                exercisesSection
-            }
+            overviewCard()
+            
+            exercisesSection
         }
         .navigationTitle("Create Program")
         .navigationBarTitleDisplayMode(.inline)
         .screenAppearAnalytics(name: "ProgramDesignView")
         .toolbar {
             toolbarContent
+        }
+        .safeAreaInset(edge: .top) {
+            daySelectionSection
         }
         .safeAreaInset(edge: .bottom) {
             VStack {
@@ -48,7 +47,7 @@ struct ProgramDesignView: View {
                     presenter.onActivatePressed(delegate: delegate)
                 }
                 .padding()
-
+                
                 Text("Save Program")
                     .anyButton {
                         presenter.onSavePressed(delegate: delegate)
@@ -141,7 +140,7 @@ struct ProgramDesignView: View {
             }
         }
     }
-
+    
     private var exercisesSection: some View {
         Section {
             ForEach(presenter.selectedDayPlan.exercises, id: \.id) { exercise in
