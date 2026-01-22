@@ -12,6 +12,7 @@ import SwiftData
 class LoadableBarEntity {
     var id: String
     var name: String
+    var imageName: String?
     var loadableBarDescription: String?
     @Relationship(deleteRule: .cascade, inverse: \LoadableBarBaseWeightEntity.loadableBar) var baseWeights: [LoadableBarBaseWeightEntity]
     var defaultBaseWeightId: String?
@@ -23,6 +24,7 @@ class LoadableBarEntity {
     init(from model: LoadableBars) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.loadableBarDescription = model.description
         self.defaultBaseWeightId = model.defaultBaseWeightId
         self.baseWeights = model.baseWeights.map { LoadableBarBaseWeightEntity(from: $0) }
@@ -33,6 +35,7 @@ class LoadableBarEntity {
     func update(from model: LoadableBars) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.loadableBarDescription = model.description
         self.defaultBaseWeightId = model.defaultBaseWeightId
         self.baseWeights = syncEntities(
@@ -51,6 +54,7 @@ class LoadableBarEntity {
         LoadableBars(
             id: self.id,
             name: self.name,
+            imageName: self.imageName,
             description: self.loadableBarDescription,
             baseWeights: self.baseWeights.map { $0.toModel() },
             isActive: self.isActive

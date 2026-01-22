@@ -10,14 +10,30 @@ import Foundation
 struct SupportEquipment: Identifiable, Codable {
     var id: String
     var name: String
+    var imageName: String?
     var description: String?
     
     var isActive: Bool
+    
+    init(
+        id: String,
+        name: String,
+        imageName: String? = nil,
+        description: String? = nil,
+        isActive: Bool
+    ) {
+        self.id = id
+        self.name = name
+        self.imageName = imageName
+        self.description = description
+        self.isActive = isActive
+    }
     
     static var defaultSupportEquipment: [SupportEquipment] = [
         SupportEquipment(
             id: UUID().uuidString,
             name: "Adjustable Bench",
+            imageName: "adjustable_bench_icon",
             description: nil,
             isActive: true
         ),

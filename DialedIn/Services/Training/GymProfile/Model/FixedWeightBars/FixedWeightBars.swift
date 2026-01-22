@@ -10,6 +10,7 @@ import Foundation
 struct FixedWeightBars: Identifiable, Codable {
     var id: String
     var name: String
+    var imageName: String?
     var description: String?
     var defaultBaseWeightId: String?
     var baseWeights: [FixedWeightBarsBaseWeight]
@@ -23,12 +24,14 @@ struct FixedWeightBars: Identifiable, Codable {
     init(
         id: String,
         name: String,
+        imageName: String? = nil,
         description: String?,
         baseWeights: [FixedWeightBarsBaseWeight],
         isActive: Bool
     ) {
         self.id = id
         self.name = name
+        self.imageName = imageName
         self.description = description
         self.defaultBaseWeightId = baseWeights.first?.id
         self.baseWeights = baseWeights

@@ -7,7 +7,6 @@ struct EditFixedWeightBarView: View {
     var body: some View {
         @Bindable var presenter = presenter
         List {
-            pickerSection
             weightsList
         }
         .navigationTitle(presenter.fixedWeightBar.name)
@@ -17,25 +16,7 @@ struct EditFixedWeightBarView: View {
             toolbarContent
         }
     }
-    
-    private var pickerSection: some View {
-        Section {
-            HStack {
-                Text("Weights")
-                Spacer()
-                Picker("", selection: $presenter.selectedUnit) {
-                    ForEach(ExerciseWeightUnit.allCases, id: \.self) { unit in
-                        Text(unit.abbreviation)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .frame(maxWidth: 160)
-            }
-            .removeListRowFormatting()
-        }
-        .listSectionMargins(.vertical, 0)
-    }
-    
+        
     private var weightsList: some View {
         Section {
             let unit = presenter.selectedUnit
@@ -60,6 +41,18 @@ struct EditFixedWeightBarView: View {
                 .onDelete { offsets in
                     presenter.deleteWeights(at: offsets, weightIDs: weightIDs)
                 }
+            }
+        } header: {
+            HStack {
+                Text("Weights")
+                Spacer()
+                Picker("", selection: $presenter.selectedUnit) {
+                    ForEach(ExerciseWeightUnit.allCases, id: \.self) { unit in
+                        Text(unit.abbreviation)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 160)
             }
         }
     }

@@ -10,6 +10,7 @@ import Foundation
 struct PlateLoadedMachine: Identifiable, Codable {
     var id: String
     var name: String
+    var imageName: String?
     var description: String?
     var baseWeight: Double
     var unit: ExerciseWeightUnit
@@ -19,6 +20,7 @@ struct PlateLoadedMachine: Identifiable, Codable {
     init(
         id: String,
         name: String,
+        imageName: String? = nil,
         description: String? = nil,
         baseWeight: Double,
         unit: ExerciseWeightUnit,
@@ -26,6 +28,7 @@ struct PlateLoadedMachine: Identifiable, Codable {
     ) {
         self.id = id
         self.name = name
+        self.imageName = imageName
         self.description = description
         self.baseWeight = baseWeight
         self.unit = unit

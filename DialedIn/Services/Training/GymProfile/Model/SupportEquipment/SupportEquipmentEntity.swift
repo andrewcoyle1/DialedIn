@@ -12,6 +12,7 @@ import SwiftData
 class SupportEquipmentEntity {
     var id: String
     var name: String
+    var imageName: String?
     var supportEquipmentDescription: String?
     
     @Relationship var gymProfile: GymProfileEntity?
@@ -21,6 +22,7 @@ class SupportEquipmentEntity {
     init(from model: SupportEquipment) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.supportEquipmentDescription = model.description
         self.isActive = model.isActive
     }
@@ -28,6 +30,7 @@ class SupportEquipmentEntity {
     func update(from model: SupportEquipment) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.supportEquipmentDescription = model.description
         self.isActive = model.isActive
     }
@@ -37,6 +40,7 @@ class SupportEquipmentEntity {
         SupportEquipment(
             id: id,
             name: name,
+            imageName: imageName,
             description: supportEquipmentDescription,
             isActive: isActive
         )

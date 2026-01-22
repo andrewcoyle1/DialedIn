@@ -6,7 +6,6 @@ struct EditCableMachineView: View {
     
     var body: some View {
         List {
-            pickerSection
             weightsList
         }
         .navigationTitle(presenter.cableMachine.name)
@@ -15,24 +14,6 @@ struct EditCableMachineView: View {
         .toolbar {
             toolbarContent
         }
-    }
-    
-    private var pickerSection: some View {
-        Section {
-            HStack {
-                Text("Weights")
-                Spacer()
-                Picker("", selection: $presenter.selectedUnit) {
-                    ForEach(ExerciseWeightUnit.allCases, id: \.self) { unit in
-                        Text(unit.abbreviation)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .frame(maxWidth: 160)
-            }
-            .removeListRowFormatting()
-        }
-        .listSectionMargins(.vertical, 0)
     }
     
     private var weightsList: some View {
@@ -69,6 +50,18 @@ struct EditCableMachineView: View {
                 .onDelete { offsets in
                     presenter.deleteWeights(at: offsets, weightIDs: weightIDs)
                 }
+            }
+        } header: {
+            HStack {
+                Text("Weights")
+                Spacer()
+                Picker("", selection: $presenter.selectedUnit) {
+                    ForEach(ExerciseWeightUnit.allCases, id: \.self) { unit in
+                        Text(unit.abbreviation)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 160)
             }
         }
     }

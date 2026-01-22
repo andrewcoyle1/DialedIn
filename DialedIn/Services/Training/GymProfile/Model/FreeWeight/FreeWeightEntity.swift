@@ -12,6 +12,7 @@ import SwiftData
 class FreeWeightEntity {
     var id: String
     var name: String
+    var imageName: String?
     var weightDescription: String?
     var needsColour: Bool
     @Relationship var gymProfile: GymProfileEntity?
@@ -23,6 +24,7 @@ class FreeWeightEntity {
     init(from model: FreeWeights) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.weightDescription = model.description
         self.needsColour = model.needsColour
         self.range = model.range.map { FreeWeightAvailableEntity(from: $0) }
@@ -33,6 +35,7 @@ class FreeWeightEntity {
     func update(from model: FreeWeights) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.weightDescription = model.description
         self.needsColour = model.needsColour
         self.range = syncEntities(
@@ -51,6 +54,7 @@ class FreeWeightEntity {
         FreeWeights(
             id: self.id,
             name: self.name,
+            imageName: self.imageName,
             description: self.weightDescription,
             needsColour: self.needsColour,
             range: self.range.map { $0.toModel() },

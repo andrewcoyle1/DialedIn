@@ -10,6 +10,7 @@ import Foundation
 struct PinLoadedMachine: Identifiable, Codable {
     var id: String
     var name: String
+    var imageName: String?
     var description: String?
     var defaultRangeId: String?
     var ranges: [PinLoadedMachineRange]
@@ -23,12 +24,14 @@ struct PinLoadedMachine: Identifiable, Codable {
     init(
         id: String,
         name: String,
+        imageName: String? = nil,
         description: String? = nil,
         ranges: [PinLoadedMachineRange],
         isActive: Bool
     ) {
         self.id = id
         self.name = name
+        self.imageName = imageName
         self.description = description
         self.defaultRangeId = ranges.first?.id
         self.ranges = ranges

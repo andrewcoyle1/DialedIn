@@ -16,7 +16,7 @@ struct ImageLoaderView: View {
     
     var body: some View {
         Rectangle()
-            .opacity(0.5)
+            .opacity(0.001)
             .overlay(
                 Group {
                     if urlString.starts(with: "http://") || urlString.starts(with: "https://") {

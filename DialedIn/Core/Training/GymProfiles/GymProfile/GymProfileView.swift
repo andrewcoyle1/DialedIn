@@ -83,6 +83,11 @@ struct GymProfileView: View {
             } else {
                 ForEach(presenter.filteredFreeWeights) { $freeWeight in
                     HStack {
+                        if let imageName = freeWeight.imageName {
+                            ImageLoaderView(urlString: imageName)
+                                .frame(width: 40, height: 40)
+                        }
+
                         VStack(alignment: .leading) {
                             Text(freeWeight.name)
                             Text(activeSortedWeightSubtitle(
@@ -118,6 +123,10 @@ struct GymProfileView: View {
         Section {
             ForEach(presenter.filteredLoadableBars) { $loadableBar in
                 HStack {
+                    if let imageName = loadableBar.imageName {
+                        ImageLoaderView(urlString: imageName)
+                            .frame(width: 40, height: 40)
+                    }
                     VStack(alignment: .leading) {
                         Text(loadableBar.name)
                         Text(activeSortedWeightSubtitle(
@@ -152,6 +161,11 @@ struct GymProfileView: View {
         Section {
             ForEach(presenter.filteredFixedWeightBars) { $fixedWeightBar in
                 HStack {
+                    if let imageName = fixedWeightBar.imageName {
+                        ImageLoaderView(urlString: imageName)
+                            .frame(width: 40, height: 40)
+                    }
+
                     VStack(alignment: .leading) {
                         Text(fixedWeightBar.name)
                         Text(activeSortedWeightSubtitle(
@@ -186,6 +200,11 @@ struct GymProfileView: View {
         Section {
             ForEach(presenter.filteredBands) { $band in
                 HStack {
+                    if let imageName = band.imageName {
+                        ImageLoaderView(urlString: imageName)
+                            .frame(width: 40, height: 40)
+                    }
+
                     VStack(alignment: .leading) {
                         Text(band.name)
                         Text(activeSortedWeightSubtitle(
@@ -223,6 +242,11 @@ struct GymProfileView: View {
             } else {
                 ForEach(presenter.filteredBodyWeights) { $bodyWeight in
                     HStack {
+                        if let imageName = bodyWeight.imageName {
+                            ImageLoaderView(urlString: imageName)
+                                .frame(width: 40, height: 40)
+                        }
+
                         VStack(alignment: .leading) {
                             Text(bodyWeight.name)
                             Text(activeSortedWeightSubtitle(
@@ -258,6 +282,11 @@ struct GymProfileView: View {
         Section {
             ForEach(presenter.filteredSupportEquipment) { $supportEquipment in
                 HStack {
+                    if let imageName = supportEquipment.imageName {
+                        ImageLoaderView(urlString: imageName)
+                            .frame(width: 40, height: 40)
+                    }
+
                     VStack(alignment: .leading) {
                         Text(supportEquipment.name)
                     }
@@ -275,6 +304,11 @@ struct GymProfileView: View {
         Section {
             ForEach(presenter.filteredAccessoryEquipment) { $accessoryEquipment in
                 HStack {
+                    if let imageName = accessoryEquipment.imageName {
+                        ImageLoaderView(urlString: imageName)
+                            .frame(width: 40, height: 40)
+                    }
+
                     VStack(alignment: .leading) {
                         Text(accessoryEquipment.name)
                     }
@@ -292,6 +326,11 @@ struct GymProfileView: View {
         Section {
             ForEach(presenter.filteredLoadableAccessoryEquipment) { $loadableAccessoryEquipment in
                 HStack {
+                    if let imageName = loadableAccessoryEquipment.imageName {
+                        ImageLoaderView(urlString: imageName)
+                            .frame(width: 40, height: 40)
+                    }
+
                     VStack(alignment: .leading) {
                         Text(loadableAccessoryEquipment.name)
                         Text("\(String(format: "%g", loadableAccessoryEquipment.baseWeight)) \(loadableAccessoryEquipment.unit.abbreviation)")
@@ -319,6 +358,11 @@ struct GymProfileView: View {
         Section {
             ForEach(presenter.filteredCableMachines) { $cableMachines in
                 HStack {
+                    if let imageName = cableMachines.imageName {
+                        ImageLoaderView(urlString: imageName)
+                            .frame(width: 40, height: 40)
+                    }
+
                     VStack(alignment: .leading) {
                         Text(cableMachines.name)
                         Text(activeSortedWeightSubtitle(
@@ -355,6 +399,10 @@ struct GymProfileView: View {
         Section {
             ForEach(presenter.filteredPlateLoadedMachines) { $plateLoadedMachines in
                 HStack {
+                    if let imageName = plateLoadedMachines.imageName {
+                        ImageLoaderView(urlString: imageName)
+                            .frame(width: 40, height: 40)
+                    }
                     VStack(alignment: .leading) {
                         Text(plateLoadedMachines.name)
                         Text("\(String(format: "%g", plateLoadedMachines.baseWeight)) \(plateLoadedMachines.unit.abbreviation)")
@@ -382,6 +430,10 @@ struct GymProfileView: View {
         Section {
             ForEach(presenter.filteredPinLoadedMachines) { $pinLoadedMachines in
                 HStack {
+                    if let imageName = pinLoadedMachines.imageName {
+                        ImageLoaderView(urlString: imageName)
+                            .frame(width: 40, height: 40)
+                    }
                     VStack(alignment: .leading) {
                         Text(pinLoadedMachines.name)
                         Text(activeSortedWeightSubtitle(

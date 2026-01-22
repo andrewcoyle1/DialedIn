@@ -13,6 +13,7 @@ class PlateLoadedMachineEntity {
     
     var id: String
     var name: String
+    var imageName: String?
     var plateLoadedMachineDescription: String?
     var baseWeight: Double
     var unit: ExerciseWeightUnit
@@ -23,6 +24,7 @@ class PlateLoadedMachineEntity {
     init(from model: PlateLoadedMachine) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.plateLoadedMachineDescription = model.description
         self.baseWeight = model.baseWeight
         self.unit = model.unit
@@ -33,6 +35,7 @@ class PlateLoadedMachineEntity {
     func update(from model: PlateLoadedMachine) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.plateLoadedMachineDescription = model.description
         self.baseWeight = model.baseWeight
         self.unit = model.unit
@@ -44,6 +47,7 @@ class PlateLoadedMachineEntity {
         PlateLoadedMachine(
             id: self.id,
             name: self.name,
+            imageName: self.imageName,
             description: self.plateLoadedMachineDescription,
             baseWeight: self.baseWeight,
             unit: self.unit,

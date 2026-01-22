@@ -13,6 +13,7 @@ class PinLoadedMachineEntity {
     
     var id: String
     var name: String
+    var imageName: String?
     var pinLoadedMachineDescription: String?
     @Relationship(deleteRule: .cascade, inverse: \PinLoadedMachineRangeEntity.pinLoadedMachine) var ranges: [PinLoadedMachineRangeEntity]
     var defaultRangeId: String?
@@ -24,6 +25,7 @@ class PinLoadedMachineEntity {
     init(from model: PinLoadedMachine) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.pinLoadedMachineDescription = model.description
         self.defaultRangeId = model.defaultRangeId
         self.ranges = model.ranges.map { PinLoadedMachineRangeEntity(from: $0) }
@@ -34,6 +36,7 @@ class PinLoadedMachineEntity {
     func update(from model: PinLoadedMachine) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.pinLoadedMachineDescription = model.description
         self.defaultRangeId = model.defaultRangeId
         self.ranges = syncEntities(
@@ -52,6 +55,7 @@ class PinLoadedMachineEntity {
         PinLoadedMachine(
             id: self.id,
             name: self.name,
+            imageName: self.imageName,
             description: self.pinLoadedMachineDescription,
             ranges: self.ranges.map { $0.toModel() },
             isActive: self.isActive

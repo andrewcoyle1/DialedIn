@@ -12,6 +12,7 @@ import SwiftData
 class BandsEntity {
     var id: String
     var name: String
+    var imageName: String?
     var weightDescription: String?
     
     @Relationship var gymProfile: GymProfileEntity?
@@ -23,6 +24,7 @@ class BandsEntity {
     init(from model: Bands) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.weightDescription = model.description
         self.range = model.range.map { BandsAvailableEntity(from: $0) }
         self.isActive = model.isActive
@@ -32,6 +34,7 @@ class BandsEntity {
     func update(from model: Bands) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.weightDescription = model.description
         self.range = syncEntities(
             existing: range,
@@ -49,6 +52,7 @@ class BandsEntity {
         Bands(
             id: self.id,
             name: self.name,
+            imageName: self.imageName,
             description: self.weightDescription,
             range: self.range.map { $0.toModel() },
             isActive: self.isActive

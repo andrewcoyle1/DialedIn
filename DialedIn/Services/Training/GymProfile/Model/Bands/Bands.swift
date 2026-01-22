@@ -10,10 +10,27 @@ import SwiftUI
 struct Bands: Identifiable, Codable {
     var id: String
     var name: String
+    var imageName: String?
     var description: String?
     var range: [BandsAvailable]
     
     var isActive: Bool
+    
+    init(
+        id: String,
+        name: String,
+        imageName: String? = nil,
+        description: String? = nil,
+        range: [BandsAvailable],
+        isActive: Bool
+    ) {
+        self.id = id
+        self.name = name
+        self.imageName = imageName
+        self.description = description
+        self.range = range
+        self.isActive = isActive
+    }
     
     static var defaultBands: [Bands] = [
         Bands(

@@ -13,6 +13,7 @@ class CableMachineEntity {
     
     var id: String
     var name: String
+    var imageName: String?
     var cableMachineDescription: String?
     
     @Relationship(deleteRule: .cascade, inverse: \CableMachineRangeEntity.cableMachine) var ranges: [CableMachineRangeEntity]
@@ -25,6 +26,7 @@ class CableMachineEntity {
     init(from model: CableMachine) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.cableMachineDescription = model.description
         self.defaultRangeId = model.defaultRangeId
         self.ranges = model.ranges.map { CableMachineRangeEntity(from: $0) }
@@ -35,6 +37,7 @@ class CableMachineEntity {
     func update(from model: CableMachine) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.cableMachineDescription = model.description
         self.defaultRangeId = model.defaultRangeId
         self.ranges = syncEntities(
@@ -53,6 +56,7 @@ class CableMachineEntity {
         CableMachine(
             id: self.id,
             name: self.name,
+            imageName: self.imageName,
             description: self.cableMachineDescription,
             ranges: self.ranges.map { $0.toModel() },
             isActive: self.isActive

@@ -13,6 +13,7 @@ class LoadableAccessoryEquipmentEntity {
     
     var id: String
     var name: String
+    var imageName: String?
     var loadableAccessoryEquipmentDescription: String?
     var baseWeight: Double
     var unit: ExerciseWeightUnit
@@ -24,6 +25,7 @@ class LoadableAccessoryEquipmentEntity {
     init(from model: LoadableAccessoryEquipment) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.loadableAccessoryEquipmentDescription = model.description
         self.baseWeight = model.baseWeight
         self.unit = model.unit
@@ -34,6 +36,7 @@ class LoadableAccessoryEquipmentEntity {
     func update(from model: LoadableAccessoryEquipment) {
         self.id = model.id
         self.name = model.name
+        self.imageName = model.imageName
         self.loadableAccessoryEquipmentDescription = model.description
         self.baseWeight = model.baseWeight
         self.unit = model.unit
@@ -45,6 +48,7 @@ class LoadableAccessoryEquipmentEntity {
         LoadableAccessoryEquipment(
             id: self.id,
             name: self.name,
+            imageName: self.imageName,
             description: self.loadableAccessoryEquipmentDescription,
             baseWeight: self.baseWeight,
             unit: self.unit,

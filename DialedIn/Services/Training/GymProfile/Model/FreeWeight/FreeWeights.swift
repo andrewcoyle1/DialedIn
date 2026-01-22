@@ -10,16 +10,36 @@ import SwiftUI
 struct FreeWeights: Identifiable, Codable {
     var id: String
     var name: String
+    var imageName: String?
     var description: String?
     var needsColour: Bool
     var range: [FreeWeightsAvailable]
     
     var isActive: Bool
     
+    init(
+        id: String,
+        name: String,
+        imageName: String? = nil,
+        description: String? = nil,
+        needsColour: Bool,
+        range: [FreeWeightsAvailable],
+        isActive: Bool
+    ) {
+        self.id = id
+        self.name = name
+        self.imageName = imageName
+        self.description = description
+        self.needsColour = needsColour
+        self.range = range
+        self.isActive = isActive
+    }
+    
     static var defaultFreeWeights: [FreeWeights] = [
         FreeWeights(
             id: UUID().uuidString,
             name: "Bumper Plates",
+            imageName: "bumper_plates_icon",
             description: nil,
             needsColour: true,
             range: [
@@ -99,6 +119,7 @@ struct FreeWeights: Identifiable, Codable {
         FreeWeights(
             id: UUID().uuidString,
             name: "Dumbbells",
+            imageName: "dumbbells_icon",
             description: nil,
             needsColour: false,
             range: [
@@ -366,6 +387,7 @@ struct FreeWeights: Identifiable, Codable {
         FreeWeights(
             id: UUID().uuidString,
             name: "Kettlebells",
+            imageName: "kettlebells_icon",
             description: nil,
             needsColour: false,
             range: [
@@ -717,6 +739,7 @@ struct FreeWeights: Identifiable, Codable {
         FreeWeights(
             id: UUID().uuidString,
             name: "Medicine Ball",
+            imageName: "medicine_ball_icon",
             description: nil,
             needsColour: false,
             range: [
@@ -876,6 +899,7 @@ struct FreeWeights: Identifiable, Codable {
         FreeWeights(
             id: UUID().uuidString,
             name: "Weight Plates",
+            imageName: "weight_plates_icon",
             description: nil,
             needsColour: true,
             range: [
@@ -976,6 +1000,7 @@ struct FreeWeights: Identifiable, Codable {
         FreeWeights(
             id: UUID().uuidString,
             name: "Bumper Plates",
+            imageName: "bumper_plates_icon",
             description: nil,
             needsColour: true,
             range: [
@@ -1045,6 +1070,7 @@ struct FreeWeights: Identifiable, Codable {
         FreeWeights(
             id: UUID().uuidString,
             name: "Dumbbells",
+            imageName: "dumbbells_icon",
             description: nil,
             needsColour: false,
             range: [
@@ -1312,6 +1338,7 @@ struct FreeWeights: Identifiable, Codable {
         FreeWeights(
             id: UUID().uuidString,
             name: "Kettlebells",
+            imageName: "kettlebells_icon",
             description: nil,
             needsColour: false,
             range: [
@@ -1663,6 +1690,7 @@ struct FreeWeights: Identifiable, Codable {
         FreeWeights(
             id: UUID().uuidString,
             name: "Medicine Ball",
+            imageName: "medicine_ball_icon",
             description: nil,
             needsColour: false,
             range: [
@@ -1823,6 +1851,7 @@ struct FreeWeights: Identifiable, Codable {
         FreeWeights(
             id: UUID().uuidString,
             name: "Weight Plates",
+            imageName: "weight_plates_icon",
             description: nil,
             needsColour: true,
             range: [
