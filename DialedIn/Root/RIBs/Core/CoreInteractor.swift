@@ -952,6 +952,16 @@ struct CoreInteractor {
 
     // READ
     
+    func readFavouriteGymProfile() async throws -> GymProfileModel {
+        guard let user = currentUser,
+              let favourite = user.favouriteGymProfileId else { throw CoreError.noCurrentUser }
+        do {
+            return try gymProfileManager.readLocalGymProfile(profileId: favourite)
+        } catch {
+            return try await gymProfileManager.readRemoteGymProfile(profileId: favourite)
+        }
+    }
+    
     func readLocalGymProfile(profileId: String) throws -> GymProfileModel {
         try gymProfileManager.readLocalGymProfile(profileId: profileId)
     }
@@ -970,8 +980,9 @@ struct CoreInteractor {
 
     // UPDATE
     
-    func updateGymProfile(profile: GymProfileModel) async throws {
-        try await gymProfileManager.updateGymProfile(profile: profile)
+    @discardableResult
+    func updateGymProfile(profile: GymProfileModel, image: PlatformImage? = nil) async throws -> GymProfileModel {
+        try await gymProfileManager.updateGymProfile(profile: profile, image: image)
     }
 
     // DELETE
@@ -1824,3 +1835,5 @@ struct CoreInteractor {
     #endif
     // swiftlint:disable:next file_length
 }
+
+enum CoreError: LocalizedError { case noCurrentUser }

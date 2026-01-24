@@ -34,7 +34,7 @@ struct Bands: Identifiable, Codable {
     
     static var defaultBands: [Bands] = [
         Bands(
-            id: UUID().uuidString,
+            id: "long_elastic_bands",
             name: "Long Elastic Bands",
             description: nil,
             range: [
@@ -170,7 +170,7 @@ struct Bands: Identifiable, Codable {
             isActive: true
         ),
         Bands(
-            id: UUID().uuidString,
+            id: "short_elastic_bands",
             name: "Short Elastic Bands",
             description: nil,
             range: [
@@ -281,7 +281,7 @@ struct Bands: Identifiable, Codable {
     
     static var mocks: [Bands] = [
         Bands(
-            id: UUID().uuidString,
+            id: "long_elastic_bands",
             name: "Long Elastic Bands",
             description: nil,
             range: [
@@ -417,7 +417,7 @@ struct Bands: Identifiable, Codable {
             isActive: true
         ),
         Bands(
-            id: UUID().uuidString,
+            id: "short_elastic_bands",
             name: "Short Elastic Bands",
             description: nil,
             range: [

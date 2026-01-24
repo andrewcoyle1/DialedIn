@@ -26,7 +26,7 @@ struct GymProfilesView: View {
         Section {
             ForEach(presenter.gymProfiles) { profile in
                 CustomListCellView(
-                    imageName: nil,
+                    imageName: profile.imageUrl,
                     title: profile.name,
                     subtitle: equipmentSubtitle(for: profile)
                 )
@@ -58,6 +58,15 @@ struct GymProfilesView: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                presenter.onDismissPressed()
+            } label: {
+                Image(systemName: "xmark")
+            }
+        }
+
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onAddGymProfilePressed()
@@ -90,7 +99,7 @@ extension CoreBuilder {
 extension CoreRouter {
     
     func showGymProfilesView() {
-        router.showScreen(.push) { router in
+        router.showScreen(.fullScreenCover) { router in
             builder.gymProfilesView(router: router)
         }
     }

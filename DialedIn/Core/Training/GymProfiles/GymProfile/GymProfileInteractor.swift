@@ -2,7 +2,8 @@ import SwiftUI
 
 @MainActor
 protocol GymProfileInteractor {
-    func updateGymProfile(profile: GymProfileModel) async throws
+    @discardableResult
+    func updateGymProfile(profile: GymProfileModel, image: PlatformImage?) async throws -> GymProfileModel
     func trackEvent(event: LoggableEvent)
 }
 

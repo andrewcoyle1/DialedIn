@@ -20,6 +20,8 @@ protocol TrainingInteractor {
     func addLocalWorkoutSession(session: WorkoutSessionModel) throws
     func startActiveSession(_ session: WorkoutSessionModel)
     func syncFromRemote() async throws
+    func readLocalGymProfile(profileId: String) throws -> GymProfileModel
+    func readRemoteGymProfile(profileId: String) async throws -> GymProfileModel
 }
 
 extension CoreInteractor: TrainingInteractor { }

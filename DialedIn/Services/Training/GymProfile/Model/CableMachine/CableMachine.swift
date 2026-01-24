@@ -40,7 +40,7 @@ struct CableMachine: Identifiable, Codable {
 
     static var defaultCableMachines: [CableMachine] = [
         CableMachine(
-            id: UUID().uuidString,
+            id: "cable_lat_pulldown_machine",
             name: "Cable Lat Pulldown Machine",
             description: nil,
             ranges: [
@@ -66,7 +66,7 @@ struct CableMachine: Identifiable, Codable {
             isActive: true
         ),
         CableMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_dual_cable_machine",
             name: "Pin-Loaded Dual Cable Machine",
             description: nil,
             ranges: [
@@ -92,7 +92,7 @@ struct CableMachine: Identifiable, Codable {
             isActive: true
         ),
         CableMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_single_cable_machine",
             name: "Pin-Loaded Single Cable Machine",
             description: nil,
             ranges: [
@@ -118,7 +118,7 @@ struct CableMachine: Identifiable, Codable {
             isActive: true
         ),
         CableMachine(
-            id: UUID().uuidString,
+            id: "seated_cable_row_machine",
             name: "Seated Cable Row Machine",
             description: nil,
             ranges: [
@@ -151,7 +151,7 @@ struct CableMachine: Identifiable, Codable {
     
     static var mocks: [CableMachine] = [
         CableMachine(
-            id: UUID().uuidString,
+            id: "cable_lat_pulldown_machine",
             name: "Cable Lat Pulldown Machine",
             description: nil,
             ranges: [
@@ -177,7 +177,7 @@ struct CableMachine: Identifiable, Codable {
             isActive: true
         ),
         CableMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_dual_cable_machine",
             name: "Pin-Loaded Dual Cable Machine",
             description: nil,
             ranges: [
@@ -203,7 +203,7 @@ struct CableMachine: Identifiable, Codable {
             isActive: true
         ),
         CableMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_single_cable_machine",
             name: "Pin-Loaded Single Cable Machine",
             description: nil,
             ranges: [
@@ -229,7 +229,7 @@ struct CableMachine: Identifiable, Codable {
             isActive: true
         ),
         CableMachine(
-            id: UUID().uuidString,
+            id: "seated_cable_row_machine",
             name: "Seated Cable Row Machine",
             description: nil,
             ranges: [

@@ -32,151 +32,151 @@ struct AccessoryEquipment: Identifiable, Codable {
     
     static var defaultAccessoryEquipment: [AccessoryEquipment] = [
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "ab_wheel",
             name: "Ab Wheel",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "aerobic_steps",
             name: "Aerobic Steps",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "anchor_point_for_elastic_band",
             name: "Anchor Point For Elastic Band",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "anchor_point_for_suspension_trainer",
             name: "Anchor Point For Suspension Trainer",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "bench_press_board_block",
             name: "Bench Press Board/Block",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "calf_raise_block",
             name: "Calf Raise Block",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "cuff_cable_attachment",
             name: "Cuff Cable Attachment",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "deadlift_blocks",
             name: "Deadlift Blocks",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "gymnastics_rings",
             name: "Gymnastics Rings",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "landmine_attachment_wall_corner",
             name: "Landmine Attachment/Wall Corner",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "neutral_grip_landmine_row_attachment",
             name: "Neutral Grip Landmine Row Attachment",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "nordic_hamstring_curl_strap",
             name: "Nordic Hamstring Curl Strap",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "overhand_grip_landmine_attachment",
             name: "Overhand Grip Landmine Attachment",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "plyometric_boxes",
             name: "Plyometric Boxes",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "pull_up_bar",
             name: "Pull-Up Bar",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "push_up_handles",
             name: "Push-Up Handles",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "slant_board",
             name: "Slant Board",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "slingshot",
             name: "Slingshot",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "split_squat_roller_stand",
             name: "Split Squat Roller Stand",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "squat_box",
             name: "Squat Box",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "stability_ball",
             name: "Stability Ball",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "staircase",
             name: "Staircase",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "suspension_trainer",
             name: "Suspension Trainer",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "v_bar_row_grip_attachment",
             name: "V-Bar Row Grip Attachment",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "yoga_blocks",
             name: "Yoga Blocks",
             description: nil,
             isActive: true
@@ -189,145 +189,151 @@ struct AccessoryEquipment: Identifiable, Codable {
     
     static var mocks: [AccessoryEquipment] = [
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "ab_wheel",
             name: "Ab Wheel",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "aerobic_steps",
             name: "Aerobic Steps",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "anchor_point_for_elastic_band",
             name: "Anchor Point For Elastic Band",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "anchor_point_for_suspension_trainer",
             name: "Anchor Point For Suspension Trainer",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "bench_press_board_block",
             name: "Bench Press Board/Block",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "calf_raise_block",
             name: "Calf Raise Block",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "cuff_cable_attachment",
             name: "Cuff Cable Attachment",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "deadlift_blocks",
             name: "Deadlift Blocks",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "gymnastics_rings",
             name: "Gymnastics Rings",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "landmine_attachment_wall_corner_attachment",
             name: "Landmine Attachment/Wall Corner",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "neutral_grip_landmine_row_attachment",
             name: "Neutral Grip Landmine Row Attachment",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "nordic_hamstring_curl_strap",
             name: "Nordic Hamstring Curl Strap",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "overhand_grip_landmine_row_attachment",
+            name: "Overhand Grip Landmine Row Attachment",
+            description: nil,
+            isActive: true
+        ),
+        AccessoryEquipment(
+            id: "plyometric_boxes",
             name: "Plyometric Boxes",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "pull_up_bar",
             name: "Pull-Up Bar",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "push_up_handles",
             name: "Push-Up Handles",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "slant_board",
             name: "Slant Board",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "slingshot",
             name: "Slingshot",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "split_squat_roller_stand",
             name: "Split Squat Roller Stand",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "squat_box",
             name: "Squat Box",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "stability_ball",
             name: "Stability Ball",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "staircase",
             name: "Staircase",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "suspension_trainer",
             name: "Suspension Trainer",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "v_bar_row_grip_attachment",
             name: "V-Bar Row Grip Attachment",
             description: nil,
             isActive: true
         ),
         AccessoryEquipment(
-            id: UUID().uuidString,
+            id: "yoga_blocks",
             name: "Yoga Blocks",
             description: nil,
             isActive: true

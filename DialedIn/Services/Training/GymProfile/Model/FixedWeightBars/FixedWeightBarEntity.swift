@@ -24,7 +24,7 @@ class FixedWeightBarEntity {
     init(from model: FixedWeightBars) {
         self.id = model.id
         self.name = model.name
-        self.imageName = model.name
+        self.imageName = model.imageName
         self.fixedWeightBarDescription = model.description
         self.defaultBaseWeightId = model.defaultBaseWeightId
         self.baseWeights = model.baseWeights.map { FixedWeightBarBaseWeightEntity(from: $0) }
@@ -35,7 +35,7 @@ class FixedWeightBarEntity {
     func update(from model: FixedWeightBars) {
         self.id = model.id
         self.name = model.name
-        self.imageName = model.name
+        self.imageName = model.imageName
         self.fixedWeightBarDescription = model.description
         self.defaultBaseWeightId = model.defaultBaseWeightId
         self.baseWeights = syncEntities(

@@ -6,99 +6,38 @@
 //
 
 import SwiftUI
-import PhotosUI
 import SwiftfulRouting
 
 struct CreateExerciseView: View {
 
+    @Environment(\.colorScheme) private var colorScheme
+    
     @State var presenter: CreateExercisePresenter
 
     var body: some View {
         List {
-            imageSection
             nameSection
-            muscleGroupSection
-            categorySection
+            trackableMetricSection
+            typeSection
+            lateralitySection
         }
-        .navigationBarTitle("New Custom Exercise")
-        .navigationSubtitle("Define details and muscle groups")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitle("Create Custom Exercise")
+        .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
         .screenAppearAnalytics(name: "CreateExerciseView")
         .toolbar {
             toolbarContent
         }
-        .onChange(of: presenter.selectedPhotoItem) {
-            guard let newItem = presenter.selectedPhotoItem else { return }
-            Task {
-                await presenter.onImageSelectorChanged(newItem)
-            }
-        }
-    }
-
-    private var imageSection: some View {
-        Section {
-            HStack {
-                Spacer()
-                Button {
-                    presenter.onImageSelectorPressed()
-                } label: {
-                    ZStack {
-                        Rectangle()
-                            .fill(Color.secondary.opacity(0.001))
-                        Group {
-                            if let data = presenter.selectedImageData {
-                                #if canImport(UIKit)
-                                if let uiImage = UIImage(data: data) {
-                                    Image(uiImage: uiImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                }
-                                #elseif canImport(AppKit)
-                                if let nsImage = NSImage(data: data) {
-                                    Image(nsImage: nsImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                }
-                                #endif
-                            } else {
-                                #if canImport(UIKit)
-                                if let generatedImage = presenter.generatedImage {
-                                    Image(uiImage: generatedImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                } else {
-                                    Image(systemName: "dumbbell.fill")
-                                        .font(.system(size: 120))
-                                        .foregroundStyle(.accent)
-                                }
-                                #elseif canImport(AppKit)
-                                Image(systemName: "dumbbell.fill")
-                                    .font(.system(size: 120))
-                                    .foregroundStyle(.accent)
-                                #endif
-                            }
-                        }
-                    }
-                    .frame(width: 120, height: 120)
+        .safeAreaInset(edge: .bottom) {
+            Text("Next")
+                .callToActionButton(isPrimaryAction: true)
+                .padding(.horizontal)
+                .anyButton(.press) {
+                    presenter.onNextPressed()
                 }
-                .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
-                Spacer()
-            }
-        } header: {
-            HStack {
-                Text("Exercise Image")
-                Spacer()
-                Button {
-                    presenter.onGenerateImagePressed()
-                } label: {
-                    Image(systemName: "wand.and.sparkles")
-                        .font(.system(size: 20))
-                }
-                .disabled(presenter.isGenerating || (presenter.exerciseName?.isEmpty ?? true))
-            }
+                .opacity(presenter.canSave ? 1 : 0.3)
+                .disabled(!presenter.canSave)
         }
-        .removeListRowFormatting()
     }
 
     private var nameSection: some View {
@@ -109,49 +48,89 @@ struct CreateExerciseView: View {
                     presenter.exerciseName = newValue.isEmpty ? nil : newValue
                 }
             ))
-            TextField("Add description", text: Binding(
-                get: { presenter.exerciseDescription ?? "" },
-                set: { newValue in
-                    presenter.exerciseDescription = newValue.isEmpty ? nil : newValue
-                }
-            ))
-        } header: {
-            Text("Name")
+            .textInputAutocapitalization(.words)
+       } header: {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Exercise Name")
+                Spacer()
+                Text("Required")
+                    .font(.caption)
+            }
         }
     }
     
-    private var muscleGroupSection: some View {
+    private var trackableMetricSection: some View {
         Section {
-            ForEach(MuscleGroup.allCases.filter { $0 != .none }, id: \.self) { group in
-                MultipleSelectionRow(
-                    title: group.description,
-                    isSelected: presenter.muscleGroups.contains(group)
-                ) {
-                    if presenter.muscleGroups.contains(group) {
-                        presenter.muscleGroups.removeAll(where: { $0 == group })
-                    } else {
-                        presenter.muscleGroups.append(group)
+            HStack(spacing: 0) {
+                CustomPickerView(
+                    text: presenter.trackableMetricA?.name ?? "None",
+                    isHighlighted: presenter.trackableMetricA == nil,
+                    action: {
+                        presenter.trackableMetricPressed(
+                            navigationTitle: "Trackable Metric 1",
+                            metric: $presenter.trackableMetricA
+                        )
                     }
-                }
+                )
+                Divider()
+                CustomPickerView(
+                    text: presenter.trackableMetricB?.name ?? "None",
+                    isHighlighted: presenter.trackableMetricB == nil,
+                    action: {
+                        presenter.trackableMetricPressed(
+                            navigationTitle: "Trackable Metric 2",
+                            metric: $presenter.trackableMetricB
+                        )
+                    }
+                )
             }
+            .removeListRowFormatting()
         } header: {
-            Text("Muscle Groups")
+            HStack(alignment: .firstTextBaseline) {
+                Text("Trackable Metric")
+                Spacer()
+                Text("Required")
+                    .font(.caption)
+            }
         }
     }
     
-    private var categorySection: some View {
+    private var typeSection: some View {
         Section {
-            Picker("Select Category", selection: $presenter.category) {
-                ForEach(ExerciseCategory.allCases, id: \.self) { cat in
-                    Text(cat.description).tag(cat)
+            CustomPickerView(
+                text: presenter.exerciseType?.name ?? "None",
+                isHighlighted: presenter.exerciseType == nil,
+                action: {
+                    presenter.exerciseTypePressed(
+                        navigationTitle: "Exercise Type",
+                        type: $presenter.exerciseType
+                    )
                 }
-            }
-            .pickerStyle(.menu)
+            )
+            .removeListRowFormatting()
         } header: {
-            Text("Category")
+            Text("Type")
         }
     }
 
+    private var lateralitySection: some View {
+        Section {
+            CustomPickerView(
+                text: presenter.laterality?.name ?? "None",
+                isHighlighted: presenter.laterality == nil,
+                action: {
+                    presenter.lateralityPressed(
+                        navigationTitle: "Laterality",
+                        item: $presenter.laterality
+                    )
+                }
+            )
+            .removeListRowFormatting()
+        } header: {
+            Text("Laterality")
+        }
+    }
+    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
@@ -161,6 +140,7 @@ struct CreateExerciseView: View {
                 Image(systemName: "xmark")
             }
         }
+        
         #if DEBUG || MOCK
         ToolbarSpacer(.fixed, placement: .topBarLeading)
         ToolbarItem(placement: .topBarLeading) {
@@ -171,18 +151,7 @@ struct CreateExerciseView: View {
             }
         }
         #endif
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                Task {
-                    await presenter.onSavePressed()
-                }
-            } label: {
-                Image(systemName: "checkmark")
-            }
-            .buttonStyle(.glassProminent)
-            .disabled(!presenter.canSave || presenter.isSaving)
-        }
-
+        
     }
 }
 
@@ -226,4 +195,31 @@ extension CoreRouter {
         builder.createExerciseView(router: router)
     }
     .previewEnvironment()
+}
+
+struct CustomPickerView: View {
+    
+    @Environment(\.colorScheme) var colorScheme
+    
+    var text: String
+    var isHighlighted: Bool
+    var action: () -> Void
+    
+    var body: some View {
+        HStack {
+            Text(text)
+                .lineLimit(1)
+            Spacer()
+            Image(systemName: "chevron.down")
+        }
+        .foregroundStyle(isHighlighted ? .secondary : .primary)
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background {
+            Color(colorScheme.backgroundPrimary)
+        }
+        .anyButton {
+            action()
+        }
+    }
 }

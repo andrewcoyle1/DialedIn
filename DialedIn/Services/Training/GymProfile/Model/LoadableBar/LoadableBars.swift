@@ -41,7 +41,7 @@ struct LoadableBars: Identifiable, Codable {
     
     static var defaultLoadableBars: [LoadableBars] = [
         LoadableBars(
-            id: UUID().uuidString,
+            id: "axle_bar",
             name: "Axle Bar",
             imageName: "axle_bar_icon",
             description: nil,
@@ -68,7 +68,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "barbell",
             name: "Barbell",
             imageName: "barbell_icon",
             description: nil,
@@ -95,7 +95,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "cambered_bench_bar",
             name: "Cambered Bench Bar",
             description: nil,
             baseWeights: [
@@ -109,7 +109,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "cambered_squat_bar",
             name: "Cambered Squat Bar",
             description: nil,
             baseWeights: [
@@ -123,7 +123,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "ez_bar",
             name: "EZ Bar",
             description: nil,
             baseWeights: [
@@ -137,7 +137,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "safety_squat_bar",
             name: "Safety Squat Bar",
             description: nil,
             baseWeights: [
@@ -169,7 +169,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "strongman_log",
             name: "Strongman Log",
             description: nil,
             baseWeights: [
@@ -195,7 +195,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "swiss_bar",
             name: "Swiss Bar",
             imageName: "swiss_bar_icon",
             description: nil,
@@ -216,7 +216,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "trap_bar",
             name: "Trap Bar",
             imageName: "trap_bar_icon",
             description: nil,
@@ -238,7 +238,7 @@ struct LoadableBars: Identifiable, Codable {
     
     static var mocks: [LoadableBars] = [
         LoadableBars(
-            id: UUID().uuidString,
+            id: "axle_bar",
             name: "Axle Bar",
             imageName: "axle_bar_icon",
             description: nil,
@@ -265,7 +265,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "barbell",
             name: "Barbell",
             imageName: "barbell_icon",
             description: nil,
@@ -292,7 +292,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "cambered_bench_bar",
             name: "Cambered Bench Bar",
             description: nil,
             baseWeights: [
@@ -306,7 +306,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "cambered_squat_bar",
             name: "Cambered Squat Bar",
             description: nil,
             baseWeights: [
@@ -320,7 +320,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "ez_bar",
             name: "EZ Bar",
             description: nil,
             baseWeights: [
@@ -334,7 +334,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "safety_squat_bar",
             name: "Safety Squat Bar",
             description: nil,
             baseWeights: [
@@ -366,7 +366,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "strongman_log",
             name: "Strongman Log",
             description: nil,
             baseWeights: [
@@ -392,7 +392,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "swiss_bar",
             name: "Swiss Bar",
             imageName: "swiss_bar_icon",
             description: nil,
@@ -413,7 +413,7 @@ struct LoadableBars: Identifiable, Codable {
             isActive: true
         ),
         LoadableBars(
-            id: UUID().uuidString,
+            id: "trap_bar",
             name: "Trap Bar",
             imageName: "trap_bar_icon",
             description: nil,

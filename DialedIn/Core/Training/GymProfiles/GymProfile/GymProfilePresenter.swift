@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 @Observable
 @MainActor
@@ -10,6 +11,10 @@ class GymProfilePresenter {
     var filter: ListFilter = .all
     var gymProfile: GymProfileModel
     var searchQuery: String = ""
+
+    var selectedPhotoItem: PhotosPickerItem?
+    var selectedImageData: Data?
+    var isImagePickerPresented: Bool = false
 
     private var trimmedSearchQuery: String {
         searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -227,7 +232,7 @@ class GymProfilePresenter {
                     return
                 }
                 gymProfile.dateModified = .now
-                try await interactor.updateGymProfile(profile: gymProfile)
+                gymProfile = try await interactor.updateGymProfile(profile: gymProfile, image: nil)
                 interactor.trackEvent(event: Event.saveGymProfileSuccess)
                 router.dismissScreen()
             } catch {
@@ -287,23 +292,53 @@ class GymProfilePresenter {
     func onEditPinLoadedMachinePressed(pinLoadedMachine: Binding<PinLoadedMachine>) {
         router.showEditPinLoadedMachineView(pinLoadedMachine: pinLoadedMachine)
     }
+    
+    func onAddImagePressed() {
+        isImagePickerPresented = true
+    }
+    
+    func onImageSelectorChanged(_ newItem: PhotosPickerItem) async {
+        do {
+            if let data = try await newItem.loadTransferable(type: Data.self) {
+                selectedImageData = data
+                let uiImage = selectedImageData.flatMap{ UIImage(data: $0) }
+                gymProfile.dateModified = .now
+                gymProfile = try await interactor.updateGymProfile(profile: gymProfile, image: uiImage)
+                interactor.trackEvent(event: Event.imageSelectorSuccess)
+            } else {
+                interactor.trackEvent(event: Event.imageSelectorCancel)
+            }
+        } catch {
+            await MainActor.run {
+                interactor.trackEvent(event: Event.imageSelectorFail(error: error))
+            }
+        }
+    }
 
     enum Event: LoggableEvent {
         case saveGymProfileStart
         case saveGymProfileSuccess
         case saveGymProfileFail(error: Error)
-        
+        case imageSelectorStart
+        case imageSelectorSuccess
+        case imageSelectorCancel
+        case imageSelectorFail(error: Error)
+
         var eventName: String {
             switch self {
             case .saveGymProfileStart:      return "GymProfileView_Save_Start"
             case .saveGymProfileSuccess:    return "GymProfileView_Save_Success"
             case .saveGymProfileFail:       return "GymProfileView_Save_Fail"
+            case .imageSelectorStart:       return "GymProfileView_ImageSelected_Start"
+            case .imageSelectorSuccess:     return "GymProfileView_ImageSelected_Success"
+            case .imageSelectorFail:        return "GymProfileView_ImageSelected_Fail"
+            case .imageSelectorCancel:       return "GymProfileView_ImageSelected_Cancel"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
-            case .saveGymProfileFail(error: let error):
+            case .saveGymProfileFail(error: let error), .imageSelectorFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -312,7 +347,7 @@ class GymProfilePresenter {
         
         var type: LogType {
             switch self {
-            case .saveGymProfileFail:
+            case .saveGymProfileFail, .imageSelectorFail:
                 return .severe
             default:
                 return .analytic

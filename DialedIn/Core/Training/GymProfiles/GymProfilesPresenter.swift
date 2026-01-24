@@ -49,6 +49,10 @@ class GymProfilesPresenter {
         guard let userId = interactor.userId else { return }
         router.showGymProfileView(gymProfile: GymProfileModel(authorId: userId))
     }
+
+    func onDismissPressed() {
+        router.dismissScreen()
+    }
     
     func onGymProfilePressed(gymProfile: GymProfileModel) {
         router.showGymProfileView(gymProfile: gymProfile)

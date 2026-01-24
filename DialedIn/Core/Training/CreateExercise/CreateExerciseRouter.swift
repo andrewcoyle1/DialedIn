@@ -6,10 +6,10 @@
 //
 
 @MainActor
-protocol CreateExerciseRouter {
+protocol CreateExerciseRouter: GlobalRouter {
+    func showEnumPickerView<Item: PickableItem>(delegate: EnumPickerDelegate<Item>, detentsInput: PresentationDetentTransformable?)
+    func showMuscleGroupPickerView(delegate: MuscleGroupPickerDelegate)
     func showDevSettingsView()
-    func showSimpleAlert(title: String, subtitle: String?)
-    func dismissScreen()
 }
 
 extension CoreRouter: CreateExerciseRouter { }

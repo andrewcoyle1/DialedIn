@@ -23,6 +23,13 @@ class CreateExercisePresenter {
     var muscleGroups: [MuscleGroup] = []
     var category: ExerciseCategory = .none
 
+    var trackableMetricA: TrackableExerciseMetric?
+    var trackableMetricB: TrackableExerciseMetric?
+
+    var exerciseType: ExerciseType?
+    
+    var laterality: Laterality?
+    
     #if DEBUG || MOCK
     var showDebugView: Bool = false
     #endif
@@ -32,7 +39,10 @@ class CreateExercisePresenter {
     var isSaving: Bool = false
 
     var canSave: Bool {
-        !(exerciseName?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        let trimmedName = exerciseName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let hasName = !(trimmedName?.isEmpty ?? true)
+        let hasMetric = trackableMetricA != nil || trackableMetricB != nil
+        return hasName && hasMetric
     }
     
     init(
@@ -43,112 +53,52 @@ class CreateExercisePresenter {
         self.router = router
     }
     
-    func onImageSelectorPressed() {
-        // Show the image picker sheet for selecting an image
-        interactor.trackEvent(event: Event.imageSelectorStart)
-        isImagePickerPresented = true
+    func trackableMetricPressed(navigationTitle: String, metric: Binding<TrackableExerciseMetric?>) {
+        pickItem(navigationTitle: navigationTitle, item: metric, canDelete: true, detents: nil)
     }
+    
+    func exerciseTypePressed(navigationTitle: String, type: Binding<ExerciseType?>) {
+        pickItem(navigationTitle: navigationTitle, item: type, canDelete: false, detents: .fraction(0.45))
+    }
+    
+    func lateralityPressed(navigationTitle: String, item: Binding<Laterality?>) {
+        pickItem(navigationTitle: navigationTitle, item: item, canDelete: false, detents: .fraction(0.5))
+    }
+    
+    private func pickItem<Item: PickableItem>(navigationTitle: String, item: Binding<Item?>, canDelete: Bool, detents: PresentationDetentTransformable?) {
+        router.showEnumPickerView(
+            delegate: EnumPickerDelegate<Item>(
+                navigationTitle: navigationTitle,
+                chosenItem: item,
+                canDelete: canDelete
+            ),
+            detentsInput: detents
+        )
+    }
+    
+    func onNextPressed() {
+        let trimmedName = exerciseName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let name = trimmedName, !name.isEmpty else { return }
 
-    func onImageSelectorChanged(_ newItem: PhotosPickerItem) async {
-        do {
-            if let data = try await newItem.loadTransferable(type: Data.self) {
-                await MainActor.run {
-                    selectedImageData = data
-                    interactor.trackEvent(event: Event.imageSelectorSuccess)
-                }
-            } else {
-                await MainActor.run {
-                    interactor.trackEvent(event: Event.imageSelectorCancel)
-                }
-            }
-        } catch {
-            await MainActor.run {
-                interactor.trackEvent(event: Event.imageSelectorFail(error: error))
-            }
+        if trackableMetricA == nil, let onlyMetric = trackableMetricB {
+            trackableMetricA = onlyMetric
+            trackableMetricB = nil
         }
-    }
 
-    private func dismissScreen() {
-        router.dismissScreen()
-    }
-
-    func onSavePressed() async {
-        guard let exerciseName, !isSaving, canSave else { return }
-        isSaving = true
-        
-        do {
-            interactor.trackEvent(event: Event.createExerciseStart)
-            guard let userId = interactor.currentUser?.userId else {
-                return
-            }
-            
-            let newExercise = ExerciseTemplateModel(
-                exerciseId: UUID().uuidString,
-                authorId: userId,
-                name: exerciseName,
-                description: exerciseDescription,
-                instructions: instructions,
-                type: category,
-                muscleGroups: muscleGroups,
-                dateCreated: Date(),
-                dateModified: Date(),
-                clickCount: 0
+        guard let trackableMetricA else { return }
+        router.showMuscleGroupPickerView(
+            delegate: MuscleGroupPickerDelegate(
+                name: name,
+                trackableMetricA: trackableMetricA,
+                trackableMetricB: trackableMetricB,
+                exerciseType: exerciseType,
+                laterality: laterality
             )
-            
-            #if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
-            try await interactor.createExerciseTemplate(exercise: newExercise, image: uiImage)
-            #elseif canImport(AppKit)
-            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            try await interactor.createExerciseTemplate(exercise: newExercise, image: nsImage)
-            #endif
-            // Track created template on the user document
-            try await interactor.addCreatedExerciseTemplate(exerciseId: newExercise.id)
-            // Auto-bookmark authored templates
-            try await interactor.addBookmarkedExerciseTemplate(exerciseId: newExercise.id)
-            try await interactor.bookmarkExerciseTemplate(id: newExercise.id, isBookmarked: true)
-            interactor.trackEvent(event: Event.createExerciseSuccess)
-        } catch {
-            interactor.trackEvent(event: Event.createExerciseFail(error: error))
-            router.showSimpleAlert(title: "Unable to save exercise", subtitle: "Please check your internet connection and try again.")
-            isSaving = false
-            return
-        }
-        isSaving = false
-        dismissScreen()
-    }
-
-    func onGenerateImagePressed() {
-        isGenerating = true
-        Task {
-            do {
-                interactor.trackEvent(event: Event.exerciseGenerateImageStart)
-                let imageDescriptionBuilder = ImageDescriptionBuilder(
-                    subject: .exercise,
-                    mode: .marketingConcise,
-                    name: exerciseName ?? "",
-                    description: exerciseDescription,
-                    contextNotes: "",
-                    desiredStyle: "",
-                    backgroundPreference: "",
-                    lightingPreference: "",
-                    framingNotes: ""
-                )
-
-                let prompt = imageDescriptionBuilder.build()
-
-                generatedImage = try await interactor.generateImage(input: prompt)
-                interactor.trackEvent(event: Event.exerciseGenerateImageSuccess)
-            } catch {
-                interactor.trackEvent(event: Event.exerciseGenerateImageFail(error: error))
-                router.showSimpleAlert(title: "Unable to generate image", subtitle: "Please try again later.")
-            }
-            isGenerating = false
-        }
+        )
     }
 
     func onCancelPressed() {
-        dismissScreen()
+        router.dismissScreen()
     }
 
     func onDevSettingsPressed() {

@@ -36,7 +36,7 @@ struct LoadableAccessoryEquipment: Identifiable, Codable {
     
     static var defaultLoadableAccessoryEquipment: [LoadableAccessoryEquipment] = [
         LoadableAccessoryEquipment(
-            id: UUID().uuidString,
+            id: "fat_grip_attachments",
             name: "Fat Grip Attachments",
             description: nil,
             baseWeight: 0,
@@ -44,7 +44,7 @@ struct LoadableAccessoryEquipment: Identifiable, Codable {
             isActive: false
         ),
         LoadableAccessoryEquipment(
-            id: UUID().uuidString,
+            id: "head_harness",
             name: "Head Harness",
             description: nil,
             baseWeight: 0,
@@ -52,7 +52,7 @@ struct LoadableAccessoryEquipment: Identifiable, Codable {
             isActive: true
         ),
         LoadableAccessoryEquipment(
-            id: UUID().uuidString,
+            id: "loadable_dip_pull-up_belt",
             name: "Loadable Dip/Pull-Up Belt",
             description: nil,
             baseWeight: 0,
@@ -60,7 +60,7 @@ struct LoadableAccessoryEquipment: Identifiable, Codable {
             isActive: false
         ),
         LoadableAccessoryEquipment(
-            id: UUID().uuidString,
+            id: "wrist_roller",
             name: "Wrist Roller",
             description: nil,
             baseWeight: 0,
@@ -75,7 +75,7 @@ struct LoadableAccessoryEquipment: Identifiable, Codable {
     
     static var mocks: [LoadableAccessoryEquipment] = [
         LoadableAccessoryEquipment(
-            id: UUID().uuidString,
+            id: "fat_grip_attachments",
             name: "Fat Grip Attachments",
             description: nil,
             baseWeight: 0,
@@ -83,7 +83,7 @@ struct LoadableAccessoryEquipment: Identifiable, Codable {
             isActive: false
         ),
         LoadableAccessoryEquipment(
-            id: UUID().uuidString,
+            id: "head_harness",
             name: "Head Harness",
             description: nil,
             baseWeight: 0,
@@ -91,7 +91,7 @@ struct LoadableAccessoryEquipment: Identifiable, Codable {
             isActive: true
         ),
         LoadableAccessoryEquipment(
-            id: UUID().uuidString,
+            id: "loadable_dip_pull-up_belt",
             name: "Loadable Dip/Pull-Up Belt",
             description: nil,
             baseWeight: 0,
@@ -99,7 +99,7 @@ struct LoadableAccessoryEquipment: Identifiable, Codable {
             isActive: false
         ),
         LoadableAccessoryEquipment(
-            id: UUID().uuidString,
+            id: "wrist_roller",
             name: "Wrist Roller",
             description: nil,
             baseWeight: 0,

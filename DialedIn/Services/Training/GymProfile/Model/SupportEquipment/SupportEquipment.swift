@@ -31,116 +31,116 @@ struct SupportEquipment: Identifiable, Codable {
     
     static var defaultSupportEquipment: [SupportEquipment] = [
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "adjustable_bench",
             name: "Adjustable Bench",
             imageName: "adjustable_bench_icon",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "captains_chair",
             name: "Captain's Chair",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "decline_bench",
             name: "Decline Bench",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "decline_bench_press_station",
             name: "Decline Bench Press Station",
             description: nil,
             isActive: false
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "flat_bench",
             name: "Flat Bench",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "flat_bench_press_station",
             name: "Flat Bench Press Station",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "glute_ham_developer",
             name: "Glute Ham Developer",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "hip_thrust_bench",
             name: "Hip Thrust Bench",
             description: nil,
             isActive: false
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "incline_bench_press_station",
             name: "Incline Bench Press Station",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "multi-grip_pull-up_bar",
             name: "Multi-Grip Pull-Up Bar",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "nordic_hamstring_curl_bench",
             name: "Nordic Hamstring Curl Bench",
             description: nil,
             isActive: false
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "parallel_bars",
             name: "Parallel Bars",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "power_rack",
             name: "Power Rack",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "preacher_curl_bench",
             name: "Preacher Curl Bench",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "roman_chair",
             name: "Roman Chair",
             description: nil,
             isActive: false
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "seal_row_bench",
             name: "Seal Row Bench",
             description: nil,
             isActive: false
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "seated_bench",
             name: "Seated Bench",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "seated_overhead_press_station",
             name: "Seated Overhead Press Station",
             description: nil,
             isActive: false
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "squat_stand",
             name: "Squat Stand",
             description: nil,
             isActive: false
@@ -153,115 +153,115 @@ struct SupportEquipment: Identifiable, Codable {
     
     static var mocks: [SupportEquipment] = [
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "adjustable_bench",
             name: "Adjustable Bench",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "captains_chair",
             name: "Captain's Chair",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "decline_bench",
             name: "Decline Bench",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "decline_bench_press_station",
             name: "Decline Bench Press Station",
             description: nil,
             isActive: false
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "flat_bench",
             name: "Flat Bench",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "flat_bench_press_station",
             name: "Flat Bench Press Station",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "glute_ham_developer",
             name: "Glute Ham Developer",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "hip_thrust_bench",
             name: "Hip Thrust Bench",
             description: nil,
             isActive: false
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "incline_bench_press_station",
             name: "Incline Bench Press Station",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "multi-grip_pull-up_bar",
             name: "Multi-Grip Pull-Up Bar",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "nordic_hamstring_curl_bench",
             name: "Nordic Hamstring Curl Bench",
             description: nil,
             isActive: false
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "parallel_bars",
             name: "Parallel Bars",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "power_rack",
             name: "Power Rack",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "preacher_curl_bench",
             name: "Preacher Curl Bench",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "roman_chair",
             name: "Roman Chair",
             description: nil,
             isActive: false
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "seal_row_bench",
             name: "Seal Row Bench",
             description: nil,
             isActive: false
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "seated_bench",
             name: "Seated Bench",
             description: nil,
             isActive: true
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "seated_overhead_press_station",
             name: "Seated Overhead Press Station",
             description: nil,
             isActive: false
         ),
         SupportEquipment(
-            id: UUID().uuidString,
+            id: "squat_stand",
             name: "Squat Stand",
             description: nil,
             isActive: false

@@ -12,6 +12,7 @@ struct GymProfileModel: Identifiable, Codable {
     var id: String
     var authorId: String
     var name: String
+    private(set) var imageUrl: String?
     var icon: String
     var dateCreated: Date
     var dateModified: Date
@@ -33,6 +34,7 @@ struct GymProfileModel: Identifiable, Codable {
         id: String = UUID().uuidString,
         authorId: String,
         name: String = "",
+        imageUrl: String? = nil,
         icon: String = "dumbell",
         dateCreated: Date = Date.now,
         dateModified: Date = Date.now,
@@ -52,6 +54,7 @@ struct GymProfileModel: Identifiable, Codable {
         self.id = id
         self.authorId = authorId
         self.name = name
+        self.imageUrl = imageUrl
         self.icon = icon
         self.dateCreated = dateCreated
         self.dateModified = dateModified
@@ -69,8 +72,14 @@ struct GymProfileModel: Identifiable, Codable {
         self.pinLoadedMachines = pinLoadedMachines
     }
     
+    mutating func updateImageUrl(imageUrl: String) {
+        self.imageUrl = imageUrl
+        self.dateModified = Date.now
+    }
+
     enum CodingKeys: String, CodingKey {
         case id, name, icon
+        case imageUrl = "image_url"
         case authorId = "author_id"
         case dateCreated = "date_created"
         case dateModified = "date_modified"

@@ -14,6 +14,7 @@ class GymProfileEntity {
     @Attribute(.unique) var id: String
     var authorId: String
     var name: String
+    var imageUrl: String?
     var icon: String
     var dateCreated: Date
     var dateModified: Date
@@ -34,6 +35,7 @@ class GymProfileEntity {
         self.id = model.id
         self.authorId = model.authorId
         self.name = model.name
+        self.imageUrl = model.imageUrl
         self.icon = model.icon
         self.dateCreated = model.dateCreated
         self.dateModified = model.dateModified
@@ -55,6 +57,7 @@ class GymProfileEntity {
         self.id = model.id
         self.authorId = model.authorId
         self.name = model.name
+        self.imageUrl = model.imageUrl
         self.icon = model.icon
         self.dateCreated = model.dateCreated
         self.dateModified = model.dateModified
@@ -147,6 +150,7 @@ class GymProfileEntity {
             id: self.id,
             authorId: self.authorId,
             name: self.name,
+            imageUrl: self.imageUrl,
             icon: self.icon,
             dateCreated: self.dateCreated,
             dateModified: self.dateModified,

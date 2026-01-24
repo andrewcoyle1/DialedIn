@@ -55,6 +55,11 @@ struct TrainingView<
         .toolbar {
             toolbarContent
         }
+        .onAppear {
+            Task {
+                await presenter.refreshFavouriteGymProfileImage()
+            }
+        }
         .onFirstTask {
             await presenter.loadData()
         }
@@ -236,8 +241,8 @@ struct TrainingView<
                 .removeListRowFormatting()
 
                 CustomListCellView(
-                    imageName: nil,
-                    title: "Gym Profiles",
+                    imageName: presenter.favouriteGymProfileImageUrl,
+                    title: "Gym Profile Library",
                     subtitle: nil
                 )
                 .anyButton {

@@ -10,13 +10,7 @@ import SwiftUI
 extension View {
     
     func callToActionButton(isPrimaryAction: Bool = false) -> some View {
-        self
-            .font(.headline)
-            .foregroundStyle(isPrimaryAction ? .white : .black)
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(isPrimaryAction ? .accent : Color(uiColor: .systemBackground))
-            .cornerRadius(28)
+        modifier(CtaButtonViewModifier(isPrimaryAction: isPrimaryAction))
     }
     
     func badgeButton() -> some View {
@@ -61,5 +55,21 @@ extension View {
 
     func any() -> AnyView {
         AnyView(self)
+    }
+}
+
+struct CtaButtonViewModifier: ViewModifier {
+
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var isPrimaryAction: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .font(.headline)
+            .foregroundStyle(isPrimaryAction ? .white : .primary)
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(isPrimaryAction ? .accent : .secondary, in: .capsule)
     }
 }

@@ -34,7 +34,7 @@ struct BodyWeights: Identifiable, Codable {
     
     static var defaultBodyWeights: [BodyWeights] = [
         BodyWeights(
-            id: UUID().uuidString,
+            id: "ankle_weights",
             name: "Ankle Weights",
             description: nil,
             range: [
@@ -300,7 +300,7 @@ struct BodyWeights: Identifiable, Codable {
             isActive: true
         ),
         BodyWeights(
-            id: UUID().uuidString,
+            id: "weighted_vest",
             name: "Weighted Vest",
             description: nil,
             range: [
@@ -405,7 +405,7 @@ struct BodyWeights: Identifiable, Codable {
     
     static var mocks: [BodyWeights] = [
         BodyWeights(
-            id: UUID().uuidString,
+            id: "ankle_weights",
             name: "Ankle Weights",
             description: nil,
             range: [
@@ -671,7 +671,7 @@ struct BodyWeights: Identifiable, Codable {
             isActive: true
         ),
         BodyWeights(
-            id: UUID().uuidString,
+            id: "weighted_vest",
             name: "Weighted Vest",
             description: nil,
             range: [

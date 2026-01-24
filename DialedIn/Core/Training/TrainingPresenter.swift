@@ -42,6 +42,8 @@ class TrainingPresenter {
     var currentUser: UserModel? {
         interactor.currentUser
     }
+
+    private(set) var favouriteGymProfileImageUrl: String?
     
     var currentTrainingPlan: TrainingPlan? {
         interactor.currentTrainingPlan
@@ -272,6 +274,7 @@ class TrainingPresenter {
         defer { loadScheduledWorkouts() }
         do {
             try await interactor.syncFromRemote()
+            await refreshFavouriteGymProfileImage()
             interactor.trackEvent(event: Event.loadDataSuccess)
         } catch {
             interactor.trackEvent(event: Event.loadDataFail(error: error))
@@ -283,10 +286,33 @@ class TrainingPresenter {
         defer { loadScheduledWorkouts() }
         do {
             try await interactor.syncFromRemote()
+            await refreshFavouriteGymProfileImage()
             interactor.trackEvent(event: Event.refreshDataSuccess)
         } catch {
             interactor.trackEvent(event: Event.refreshDataFail(error: error))
             router.showAlert(error: error)
+        }
+    }
+
+    func refreshFavouriteGymProfileImage() async {
+        guard let favouriteId = currentUser?.favouriteGymProfileId else {
+            favouriteGymProfileImageUrl = nil
+            return
+        }
+
+        do {
+            let localProfile = try interactor.readLocalGymProfile(profileId: favouriteId)
+            favouriteGymProfileImageUrl = localProfile.imageUrl
+            return
+        } catch {
+            // Fall back to remote fetch if not cached locally.
+        }
+
+        do {
+            let remoteProfile = try await interactor.readRemoteGymProfile(profileId: favouriteId)
+            favouriteGymProfileImageUrl = remoteProfile.imageUrl
+        } catch {
+            favouriteGymProfileImageUrl = nil
         }
     }
 

@@ -32,7 +32,9 @@ struct FirebaseGymProfileService: RemoteGymProfileService {
     
     // MARK: UPDATE
     func updateGymProfile(profile: GymProfileModel) async throws {
-        try collection.document(profile.id).setData(from: profile)
+        
+        try collection.document(profile.id).setData(from: profile, merge: true)
+
     }
     
     // MARK: DELETE

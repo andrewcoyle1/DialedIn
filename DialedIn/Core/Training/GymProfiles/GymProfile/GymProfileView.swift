@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct GymProfileView: View {
     
@@ -6,6 +7,8 @@ struct GymProfileView: View {
     
     var body: some View {
         List {
+            imageHeader
+
             equipmentHeader
             if !presenter.filteredFreeWeights.isEmpty {
                 freeWeightsSection
@@ -47,6 +50,7 @@ struct GymProfileView: View {
             }
         }
         .scrollIndicators(.hidden)
+        .ignoresSafeArea()
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .screenAppearAnalytics(name: "GymProfileView")
@@ -54,6 +58,25 @@ struct GymProfileView: View {
         .toolbar {
             toolbarContent
         }
+        .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
+        .onChange(of: presenter.selectedPhotoItem) {
+            guard let newItem = presenter.selectedPhotoItem else { return }
+
+            Task {
+                await presenter.onImageSelectorChanged(newItem)
+            }
+        }
+
+    }
+    
+    private var imageHeader: some View {
+        Section {
+            ImageLoaderView(urlString: presenter.gymProfile.imageUrl ?? Constants.randomImage, resizingMode: .fill)
+                .frame(height: 300)
+                .removeListRowFormatting()
+        }
+        .listSectionMargins(.top, 0)
+        .listSectionMargins(.horizontal, 0)
     }
     
     private var equipmentHeader: some View {
@@ -86,6 +109,11 @@ struct GymProfileView: View {
                         if let imageName = freeWeight.imageName {
                             ImageLoaderView(urlString: imageName)
                                 .frame(width: 40, height: 40)
+                        } else {
+                            Rectangle()
+                                .foregroundStyle(.secondary.opacity(0.2))
+                                .frame(width: 40, height: 40)
+                                .cornerRadius(8)
                         }
 
                         VStack(alignment: .leading) {
@@ -126,6 +154,11 @@ struct GymProfileView: View {
                     if let imageName = loadableBar.imageName {
                         ImageLoaderView(urlString: imageName)
                             .frame(width: 40, height: 40)
+                    } else {
+                        Rectangle()
+                            .foregroundStyle(.secondary.opacity(0.2))
+                            .frame(width: 40, height: 40)
+                            .cornerRadius(8)
                     }
                     VStack(alignment: .leading) {
                         Text(loadableBar.name)
@@ -164,6 +197,11 @@ struct GymProfileView: View {
                     if let imageName = fixedWeightBar.imageName {
                         ImageLoaderView(urlString: imageName)
                             .frame(width: 40, height: 40)
+                    } else {
+                        Rectangle()
+                            .foregroundStyle(.secondary.opacity(0.2))
+                            .frame(width: 40, height: 40)
+                            .cornerRadius(8)
                     }
 
                     VStack(alignment: .leading) {
@@ -203,6 +241,11 @@ struct GymProfileView: View {
                     if let imageName = band.imageName {
                         ImageLoaderView(urlString: imageName)
                             .frame(width: 40, height: 40)
+                    } else {
+                        Rectangle()
+                            .foregroundStyle(.secondary.opacity(0.2))
+                            .frame(width: 40, height: 40)
+                            .cornerRadius(8)
                     }
 
                     VStack(alignment: .leading) {
@@ -245,6 +288,11 @@ struct GymProfileView: View {
                         if let imageName = bodyWeight.imageName {
                             ImageLoaderView(urlString: imageName)
                                 .frame(width: 40, height: 40)
+                        } else {
+                            Rectangle()
+                                .foregroundStyle(.secondary.opacity(0.2))
+                                .frame(width: 40, height: 40)
+                                .cornerRadius(8)
                         }
 
                         VStack(alignment: .leading) {
@@ -285,6 +333,11 @@ struct GymProfileView: View {
                     if let imageName = supportEquipment.imageName {
                         ImageLoaderView(urlString: imageName)
                             .frame(width: 40, height: 40)
+                    } else {
+                        Rectangle()
+                            .foregroundStyle(.secondary.opacity(0.2))
+                            .frame(width: 40, height: 40)
+                            .cornerRadius(8)
                     }
 
                     VStack(alignment: .leading) {
@@ -307,6 +360,11 @@ struct GymProfileView: View {
                     if let imageName = accessoryEquipment.imageName {
                         ImageLoaderView(urlString: imageName)
                             .frame(width: 40, height: 40)
+                    } else {
+                        Rectangle()
+                            .foregroundStyle(.secondary.opacity(0.2))
+                            .frame(width: 40, height: 40)
+                            .cornerRadius(8)
                     }
 
                     VStack(alignment: .leading) {
@@ -329,6 +387,11 @@ struct GymProfileView: View {
                     if let imageName = loadableAccessoryEquipment.imageName {
                         ImageLoaderView(urlString: imageName)
                             .frame(width: 40, height: 40)
+                    } else {
+                        Rectangle()
+                            .foregroundStyle(.secondary.opacity(0.2))
+                            .frame(width: 40, height: 40)
+                            .cornerRadius(8)
                     }
 
                     VStack(alignment: .leading) {
@@ -361,6 +424,11 @@ struct GymProfileView: View {
                     if let imageName = cableMachines.imageName {
                         ImageLoaderView(urlString: imageName)
                             .frame(width: 40, height: 40)
+                    } else {
+                        Rectangle()
+                            .foregroundStyle(.secondary.opacity(0.2))
+                            .frame(width: 40, height: 40)
+                            .cornerRadius(8)
                     }
 
                     VStack(alignment: .leading) {
@@ -402,6 +470,11 @@ struct GymProfileView: View {
                     if let imageName = plateLoadedMachines.imageName {
                         ImageLoaderView(urlString: imageName)
                             .frame(width: 40, height: 40)
+                    } else {
+                        Rectangle()
+                            .foregroundStyle(.secondary.opacity(0.2))
+                            .frame(width: 40, height: 40)
+                            .cornerRadius(8)
                     }
                     VStack(alignment: .leading) {
                         Text(plateLoadedMachines.name)
@@ -433,6 +506,11 @@ struct GymProfileView: View {
                     if let imageName = pinLoadedMachines.imageName {
                         ImageLoaderView(urlString: imageName)
                             .frame(width: 40, height: 40)
+                    } else {
+                        Rectangle()
+                            .foregroundStyle(.secondary.opacity(0.2))
+                            .frame(width: 40, height: 40)
+                            .cornerRadius(8)
                     }
                     VStack(alignment: .leading) {
                         Text(pinLoadedMachines.name)
@@ -479,6 +557,14 @@ struct GymProfileView: View {
                 presenter.onBackButtonPressed()
             } label: {
                 Image(systemName: "chevron.left")
+            }
+        }
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onAddImagePressed()
+            } label: {
+                Image(systemName: presenter.gymProfile.imageUrl == nil ? "photo.badge.plus" : "photo.badge.checkmark")
             }
         }
     }

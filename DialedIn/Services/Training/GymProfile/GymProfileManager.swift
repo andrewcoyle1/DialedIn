@@ -83,13 +83,35 @@ class GymProfileManager {
 
     // MARK: UPDATE
     
-    func updateGymProfile(profile: GymProfileModel) async throws {
-        do {
-            try local.updateGymProfile(profile: profile)
-        } catch let error as URLError where error.code == .fileDoesNotExist {
-            try local.createGymProfile(profile: profile)
+    @discardableResult
+    func updateGymProfile(profile: GymProfileModel, image: PlatformImage? = nil) async throws -> GymProfileModel {
+        
+        if let image {
+            var profileToSave = profile
+            // Upload the image
+            let path = "gym_profiles/\(profile.id)/image.jpg"
+            let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
+            
+            // Persist the download URL on the ingredient that will be saved
+            profileToSave.updateImageUrl(imageUrl: url.absoluteString)
+            do {
+                try local.updateGymProfile(profile: profileToSave)
+            } catch let error as URLError where error.code == .fileDoesNotExist {
+                try local.createGymProfile(profile: profileToSave)
+            }
+
+            try await remote.updateGymProfile(profile: profileToSave)
+            return profileToSave
+        } else {
+            
+            do {
+                try local.updateGymProfile(profile: profile)
+            } catch let error as URLError where error.code == .fileDoesNotExist {
+                try local.createGymProfile(profile: profile)
+            }
+            try await remote.updateGymProfile(profile: profile)
+            return profile
         }
-        try await remote.updateGymProfile(profile: profile)
     }
 
     // MARK: DELETE

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct FreeWeights: Identifiable, Codable {
+struct FreeWeights: Identifiable, Codable, Hashable {
     var id: String
     var name: String
     var imageName: String?
@@ -34,10 +34,18 @@ struct FreeWeights: Identifiable, Codable {
         self.range = range
         self.isActive = isActive
     }
+
+    nonisolated static func == (lhs: FreeWeights, rhs: FreeWeights) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    nonisolated func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
     
     static var defaultFreeWeights: [FreeWeights] = [
         FreeWeights(
-            id: UUID().uuidString,
+            id: "bumper_plates",
             name: "Bumper Plates",
             imageName: "bumper_plates_icon",
             description: nil,
@@ -117,7 +125,7 @@ struct FreeWeights: Identifiable, Codable {
             isActive: true
         ),
         FreeWeights(
-            id: UUID().uuidString,
+            id: "dumbbells",
             name: "Dumbbells",
             imageName: "dumbbells_icon",
             description: nil,
@@ -385,7 +393,7 @@ struct FreeWeights: Identifiable, Codable {
             isActive: true
         ),
         FreeWeights(
-            id: UUID().uuidString,
+            id: "kettlebells",
             name: "Kettlebells",
             imageName: "kettlebells_icon",
             description: nil,
@@ -737,7 +745,7 @@ struct FreeWeights: Identifiable, Codable {
             isActive: true
         ),
         FreeWeights(
-            id: UUID().uuidString,
+            id: "medicine_ball",
             name: "Medicine Ball",
             imageName: "medicine_ball_icon",
             description: nil,
@@ -897,7 +905,7 @@ struct FreeWeights: Identifiable, Codable {
             isActive: true
         ),
         FreeWeights(
-            id: UUID().uuidString,
+            id: "weight_plates",
             name: "Weight Plates",
             imageName: "weight_plates_icon",
             description: nil,
@@ -998,7 +1006,7 @@ struct FreeWeights: Identifiable, Codable {
     
     static var mocks: [FreeWeights] = [
         FreeWeights(
-            id: UUID().uuidString,
+            id: "bumper_plates",
             name: "Bumper Plates",
             imageName: "bumper_plates_icon",
             description: nil,
@@ -1068,7 +1076,7 @@ struct FreeWeights: Identifiable, Codable {
             isActive: true
         ),
         FreeWeights(
-            id: UUID().uuidString,
+            id: "dumbbells",
             name: "Dumbbells",
             imageName: "dumbbells_icon",
             description: nil,
@@ -1336,7 +1344,7 @@ struct FreeWeights: Identifiable, Codable {
             isActive: true
         ),
         FreeWeights(
-            id: UUID().uuidString,
+            id: "kettlebells",
             name: "Kettlebells",
             imageName: "kettlebells_icon",
             description: nil,
@@ -1688,7 +1696,7 @@ struct FreeWeights: Identifiable, Codable {
             isActive: true
         ),
         FreeWeights(
-            id: UUID().uuidString,
+            id: "medicine_ball",
             name: "Medicine Ball",
             imageName: "medicine_ball_icon",
             description: nil,
@@ -1849,7 +1857,7 @@ struct FreeWeights: Identifiable, Codable {
         ),
 
         FreeWeights(
-            id: UUID().uuidString,
+            id: "weight_plates",
             name: "Weight Plates",
             imageName: "weight_plates_icon",
             description: nil,

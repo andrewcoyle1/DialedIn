@@ -41,7 +41,7 @@ struct FixedWeightBars: Identifiable, Codable {
     
     static var defaultFixedWeightBars: [FixedWeightBars] = [
         FixedWeightBars(
-            id: UUID().uuidString,
+            id: "fixed_weight_ez_bar",
             name: "Fixed Weight Ez Bar",
             description: nil,
             baseWeights: [
@@ -103,7 +103,7 @@ struct FixedWeightBars: Identifiable, Codable {
             isActive: true
         ),
         FixedWeightBars(
-            id: UUID().uuidString,
+            id: "fixed_weight_straight_bar",
             name: "Fixed Weight Straight Bar",
             description: nil,
             baseWeights: [
@@ -172,7 +172,7 @@ struct FixedWeightBars: Identifiable, Codable {
     
     static var mocks: [FixedWeightBars] = [
         FixedWeightBars(
-            id: UUID().uuidString,
+            id: "fixed_weight_ez_bar",
             name: "Fixed Weight Ez Bar",
             description: nil,
             baseWeights: [
@@ -234,7 +234,7 @@ struct FixedWeightBars: Identifiable, Codable {
             isActive: true
         ),
         FixedWeightBars(
-            id: UUID().uuidString,
+            id: "fixed_weight_straight_bar",
             name: "Fixed Weight Straight Bar",
             description: nil,
             baseWeights: [
