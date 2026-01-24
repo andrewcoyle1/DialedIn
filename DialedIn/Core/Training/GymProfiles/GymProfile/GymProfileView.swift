@@ -50,7 +50,7 @@ struct GymProfileView: View {
             }
         }
         .scrollIndicators(.hidden)
-        .ignoresSafeArea()
+        .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .screenAppearAnalytics(name: "GymProfileView")
