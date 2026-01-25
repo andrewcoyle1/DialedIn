@@ -5,7 +5,6 @@ A production-grade iOS fitness tracking application built with SwiftUI and VIPER
 ## Features
 
 - **Real-time Workout Tracking**: Track exercises, sets, and reps with rest timers
-- **Apple Watch Integration**: Companion watchOS app for workout tracking
 - **iOS Live Activities**: Dynamic Island and Lock Screen workout sessions
 - **Nutrition Logging**: Track meals and macros (calories, protein, carbs, fat)
 - **HealthKit Integration**: Synchronize workout data with Apple Health
@@ -18,13 +17,13 @@ A production-grade iOS fitness tracking application built with SwiftUI and VIPER
 
 - **VIPER Pattern**: Clean architecture with dependency injection
 - **SwiftUI**: Modern declarative UI framework
-- **Combine**: Reactive programming for data flow
+- **Observation**: Reactive programming for data flow
 - **Modular Design**: Testable, maintainable codebase
 
 ## Technologies
 
-- Swift, SwiftUI, Combine
-- HealthKit, WatchKit, ActivityKit
+- Swift, SwiftUI, Observation
+- HealthKit, ActivityKit
 - Firebase (Firestore, Auth, Analytics, Crashlytics)
 - Google Sign-In
 - RevenueCat (In-App Purchases)
@@ -35,10 +34,9 @@ A production-grade iOS fitness tracking application built with SwiftUI and VIPER
 
 ### Prerequisites
 
-- Xcode 15.0 or later
-- iOS 17.0+ deployment target
-- Swift 5.9+
-- CocoaPods (for dependencies)
+- Xcode 26.0 or later
+- iOS 26.0+ deployment target
+- Swift 6+
 
 ### Configuration
 
@@ -104,7 +102,9 @@ xcodebuild test -workspace DialedIn.xcworkspace -scheme DialedIn -destination 'p
 
 ## License
 
-[Add your license here]
+Copyright (c) 2025 Andrew Coyle. All rights reserved.
+
+This project is proprietary and confidential. Unauthorized copying, modification, distribution, or use of this project, via any medium, is strictly prohibited.
 
 ## Author
 
