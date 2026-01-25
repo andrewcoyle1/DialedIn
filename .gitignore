@@ -31,3 +31,12 @@ fastlane/test_output/
 
 # macOS
 .DS_Store
+
+# Sensitive configuration files
+DialedIn/GoogleServicePLists/GoogleService-Info-Dev.plist
+DialedIn/GoogleServicePLists/GoogleService-Info-Prod.plist
+!DialedIn/GoogleServicePLists/GoogleService-Info-Example.plist
+
+# API Keys - exclude actual Keys.swift but allow example
+DialedIn/Utilities/Keys.swift
+!DialedIn/Utilities/Keys.swift.example

@@ -1,0 +1,13 @@
+//
+//  Keys.swift.example
+//  DialedIn
+//
+//  Copy this file to Keys.swift and fill in your API keys
+//
+
+struct Keys {
+    static let openAI = ""  // Add your OpenAI API key here
+    static let mixpanelToken = ""  // Add your Mixpanel token here
+    static let revenueCatAPIKey = ""  // Add your RevenueCat API key here
+}
+

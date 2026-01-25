@@ -3,21 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>94958324260-t0henv0q8ij3cj1h80fr5ufh7ge3lehq.apps.googleusercontent.com</string>
+	<string>YOUR_CLIENT_ID_HERE.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.94958324260-t0henv0q8ij3cj1h80fr5ufh7ge3lehq</string>
+	<string>com.googleusercontent.apps.YOUR_CLIENT_ID_HERE</string>
 	<key>API_KEY</key>
-	<string>AIzaSyDS6KX7LElGkRRLbHM64Verv69kofPSmM4</string>
+	<string>YOUR_FIREBASE_API_KEY_HERE</string>
 	<key>GCM_SENDER_ID</key>
-	<string>94958324260</string>
+	<string>YOUR_SENDER_ID_HERE</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.andrewcoyle.DialedIn.dev</string>
+	<string>com.yourcompany.DialedIn</string>
 	<key>PROJECT_ID</key>
-	<string>dialed-c3cb5</string>
+	<string>your-project-id</string>
 	<key>STORAGE_BUCKET</key>
-	<string>dialed-c3cb5.firebasestorage.app</string>
+	<string>your-project-id.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +29,7 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:94958324260:ios:4e478d6a2542c00488e6b1</string>
+	<string>1:YOUR_SENDER_ID:ios:YOUR_APP_ID</string>
 </dict>
 </plist>
+

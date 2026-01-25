@@ -6,7 +6,7 @@
 //
 
 struct Keys {
-    static let openAI = "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"
-    static let mixpanelToken = "03d2c07b8482ea9624e23f5cb86577f5"
-    static let revenueCatAPIKey = "test_eZPjoyiWCnZEEwvMONQASDpOpxY"
+    static let openAI = ""  // Configure with your OpenAI API key
+    static let mixpanelToken = ""  // Configure with your Mixpanel token
+    static let revenueCatAPIKey = ""  // Configure with your RevenueCat API key
 }
