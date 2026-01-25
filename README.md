@@ -102,7 +102,7 @@ xcodebuild test -workspace DialedIn.xcworkspace -scheme DialedIn -destination 'p
 
 ## License
 
-Copyright (c) 2025 Andrew Coyle. All rights reserved.
+Copyright (c) 2026 Andrew Coyle. All rights reserved.
 
 This project is proprietary and confidential. Unauthorized copying, modification, distribution, or use of this project, via any medium, is strictly prohibited.
 
