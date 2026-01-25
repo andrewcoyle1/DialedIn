@@ -11,7 +11,7 @@
 			<string>Google Sign In - Dev</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.YOUR_DEV_CLIENT_ID</string>
+				<string>YOUR_GOOGLE_CLIENT_ID_DEV</string>
 			</array>
 		</dict>
 		<dict>
@@ -21,7 +21,7 @@
 			<string>Google Sign In - Prod</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.YOUR_PROD_CLIENT_ID</string>
+				<string>YOUR_GOOGLE_CLIENT_ID_PROD</string>
 			</array>
 		</dict>
 		<dict>
@@ -31,7 +31,7 @@
 			<string>basic_deep_link</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>dialedIn</string>
+				<string>YOUR_DEEP_LINK_SCHEME</string>
 			</array>
 		</dict>
 	</array>

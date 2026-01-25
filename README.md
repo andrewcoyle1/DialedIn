@@ -66,9 +66,13 @@ A production-grade iOS fitness tracking application built with SwiftUI and VIPER
    - Fill in your Firebase project credentials from the Firebase Console
    - **Note**: These files are gitignored for security. You must create them locally for the app to build.
 
-5. **Configure Google Sign-In**
-   - Update `DialedIn/Info.plist` with your Google Sign-In client IDs
-   - Replace `YOUR_DEV_CLIENT_ID` and `YOUR_PROD_CLIENT_ID` placeholders
+5. **Configure Google Sign-In & URL schemes**
+   - Copy `DialedIn/Info.plist.example` to `DialedIn/Info.plist`
+   - Replace the placeholders with your values:
+     - `YOUR_GOOGLE_CLIENT_ID_DEV` → Google Sign-In dev client ID (from Firebase Console)
+     - `YOUR_GOOGLE_CLIENT_ID_PROD` → Google Sign-In prod client ID
+     - `YOUR_DEEP_LINK_SCHEME` → Your app’s URL scheme (e.g. `dialedIn`)
+   - **Note**: `Info.plist` is gitignored for security. You must create it locally for the app to build.
 
 6. **Open the workspace**
    ```bash
