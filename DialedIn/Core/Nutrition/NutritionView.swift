@@ -18,25 +18,18 @@ struct NutritionView<CalendarHeaderView: View>: View {
     @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
 
     var body: some View {
-        VStack {
-            calendarHeader(CalendarHeaderDelegate(onDatePressed: { date in
-                presenter.selectedDate = date.startOfDay
-            }, getForDate: { date in
-                presenter.getMealCountForDate(date: date)
-            }) )
-            List {
-                dailySummarySection
-                
-                mealsSection
-                
-                addMealSection
-                
-                recipeLibraryButton
-                
-                ingredientLibraryButton
-            }
-            .scrollIndicators(.hidden)
+        List {
+            dailySummarySection
+
+            mealsSection
+
+            addMealSection
+
+            recipeLibraryButton
+
+            ingredientLibraryButton
         }
+        .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -50,7 +43,13 @@ struct NutritionView<CalendarHeaderView: View>: View {
                 await presenter.loadMeals()
             }
         }
-
+        .safeAreaInset(edge: .top) {
+            calendarHeader(CalendarHeaderDelegate(onDatePressed: { date in
+                presenter.selectedDate = date.startOfDay
+            }, getForDate: { date in
+                presenter.getMealCountForDate(date: date)
+            }) )
+        }
     }
 
     // MARK: - Daily Summary Section

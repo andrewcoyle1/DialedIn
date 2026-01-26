@@ -6,7 +6,9 @@ struct CalendarHeaderDelegate {
 }
 
 struct CalendarHeaderView: View {
-    
+
+    @Environment(\.colorScheme) private var colorScheme
+
     @State var presenter: CalendarHeaderPresenter
     let delegate: CalendarHeaderDelegate
 
@@ -23,14 +25,17 @@ struct CalendarHeaderView: View {
                         weekBlock(geometry, week)
                     }
                 }
-                .frame(height: 60)
+                .frame(height: 70)
             }
             .scrollIndicators(.hidden)
             .scrollPosition(id: $presenter.weekScrollPosition, anchor: .leading)
             .scrollTargetLayout()
             .scrollTargetBehavior(.viewAligned)
         }
-        .frame(height: 60)
+        .frame(height: 70)
+        .padding(.horizontal)
+        .glassEffect()
+        .padding(.horizontal)
     }
     
     @ViewBuilder
@@ -69,7 +74,7 @@ struct CalendarHeaderView: View {
     @ViewBuilder
     private func cellOutline(activityCount: Int) -> some View {
         Capsule()
-            .fill(.secondary.opacity(0.001))
+            .fill(colorScheme.backgroundPrimary)
             .overlay {
                 if activityCount > 0 {
                     Capsule()
@@ -132,9 +137,21 @@ extension CoreRouter {
     )
     
     return RouterView { router in
-        VStack {
+        List {
+            Text("Hello")
+        }
+        .scrollEdgeEffectStyle(.soft, for: .top)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+
+                } label: {
+                    Image(systemName: "xmark")
+                }
+            }
+        }
+        .safeAreaInset(edge: .top) {
             builder.calendarHeaderView(router: router, delegate: delegate)
-            Spacer()
         }
     }
     .previewEnvironment()

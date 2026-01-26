@@ -12,42 +12,30 @@ import UIKit
 import SwiftfulRouting
 
 struct TrainingView<
-    TodaysWorkout: View, WorkoutCalendar: View, WeeksWorkouts: View, GoalListSectionView: View, TrainingProgress: View, CalendarHeaderView: View>: View {
+    TodaysWorkout: View,
+    WeeksWorkouts: View,
+    CalendarHeaderView: View
+>: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
     @State var presenter: TrainingPresenter
 
     @ViewBuilder var todaysWorkoutSectionView: () -> TodaysWorkout
-    @ViewBuilder var workoutCalendarView: () -> WorkoutCalendar
     @ViewBuilder var thisWeeksWorkoutsView: () -> WeeksWorkouts
-    @ViewBuilder var goalListSectionView: () -> GoalListSectionView
-    @ViewBuilder var trainingProgressChartsView: () -> TrainingProgress
     @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
 
     var body: some View {
-        VStack {
-            calendarHeader(
-                CalendarHeaderDelegate(
-                    onDatePressed: { date in
-                        presenter.onDatePressed(date: date)
-                    },
-                    getForDate: { date in
-                        presenter.getLoggedWorkoutCountForDate(date, calendar: presenter.calendar)
-                    }
-                )
-            )
-            List {
-                if presenter.currentTrainingPlan != nil {
-                    activeProgramView
-                } else {
-                    noProgramView
-                }
-                moreSection
+        List {
+            if presenter.currentTrainingPlan != nil {
+                activeProgramView
+            } else {
+                noProgramView
             }
-            .refreshable {
-                await presenter.refreshData()
-            }
+            moreSection
+        }
+        .refreshable {
+            await presenter.refreshData()
         }
         .navigationTitle("Training")
         .navigationBarTitleDisplayMode(.inline)
@@ -63,16 +51,25 @@ struct TrainingView<
         .onFirstTask {
             await presenter.loadData()
         }
+        .safeAreaInset(edge: .top) {
+            calendarHeader(
+                CalendarHeaderDelegate(
+                    onDatePressed: { date in
+                        presenter.onDatePressed(date: date)
+                    },
+                    getForDate: { date in
+                        presenter.getLoggedWorkoutCountForDate(date, calendar: presenter.calendar)
+                    }
+                )
+            )
+        }
     }
     
     private var activeProgramView: some View {
         Group {
-            todaysWorkoutSectionView()
             programOverviewSection
-            workoutCalendarView()
+            todaysWorkoutSectionView()
             thisWeeksWorkoutsView()
-            goalListSectionView()
-            trainingProgressChartsView()
         }
     }
 
@@ -258,6 +255,7 @@ struct TrainingView<
             
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+
         ToolbarItem(placement: .topBarLeading) {
             Button {
                 presenter.onCalendarPressed()
@@ -293,17 +291,8 @@ extension CoreBuilder {
             todaysWorkoutSectionView: {
                 self.todaysWorkoutSectionView(router: router)
             },
-            workoutCalendarView: {
-                self.workoutCalendarView(router: router)
-            },
             thisWeeksWorkoutsView: {
                 self.thisWeeksWorkoutsView(router: router)
-            },
-            goalListSectionView: {
-                self.goalListSectionView(router: router)
-            },
-            trainingProgressChartsView: {
-                self.trainingProgressChartsView(router: router)
             },
             calendarHeader: { delegate in
                 self.calendarHeaderView(router: router, delegate: delegate)

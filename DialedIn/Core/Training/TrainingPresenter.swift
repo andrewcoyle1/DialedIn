@@ -92,6 +92,8 @@ class TrainingPresenter {
         router.showCalendarView(delegate: CalendarDelegate(onDateSelected: { date, time in
             self.selectedDate = date
             self.selectedTime = time
+
+            self.onDatePressed(date: date)
         }))
     }
 
