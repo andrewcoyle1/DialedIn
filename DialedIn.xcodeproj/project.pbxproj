@@ -31,6 +31,7 @@
 		D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BB82E8EA1710027C662 /* SDWebImageSwiftUI */; };
 		D05D0BBB2E8EA1C00027C662 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BBA2E8EA1C00027C662 /* FirebaseCrashlytics */; };
 		D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BBD2E8EA22E0027C662 /* SwiftfulUtilities */; };
+		D06E0A8D2F282F8400746BD6 /* SwiftfulRouting in Frameworks */ = {isa = PBXBuildFile; productRef = D06E0A8C2F282F8400746BD6 /* SwiftfulRouting */; };
 		D08F584A2E8BF61B001D3980 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F58492E8BF61B001D3980 /* WidgetKit.framework */; };
 		D08F584C2E8BF61B001D3980 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F584B2E8BF61B001D3980 /* SwiftUI.framework */; };
 		D08F58572E8BF61D001D3980 /* WorkoutSessionActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D08F58482E8BF61B001D3980 /* WorkoutSessionActivityExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -38,7 +39,6 @@
 		D08F58632E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
 		D0AB1C992EA1907100682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
 		D0AB1C9A2EA1907200682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
-		D0C0E6A22EE2410D009D5D18 /* SwiftfulRouting in Frameworks */ = {isa = PBXBuildFile; productRef = D0C0E6A12EE2410D009D5D18 /* SwiftfulRouting */; };
 		D0CE89E72EB2379000EED3B5 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E62EB2379000EED3B5 /* FirebaseAnalytics */; };
 		D0CE89E92EB237A100EED3B5 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E82EB237A100EED3B5 /* FirebaseAuth */; };
 		D0CE89EB2EB237A600EED3B5 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89EA2EB237A600EED3B5 /* FirebaseCore */; };
@@ -1876,6 +1876,7 @@
 				D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */,
 				D0E7AA692EE2DB6100BEE79F /* SwiftfulLogging in Frameworks */,
 				D0E7D5A32EE3139400BEE79F /* FirebaseRemoteConfig in Frameworks */,
+				D06E0A8D2F282F8400746BD6 /* SwiftfulRouting in Frameworks */,
 				D0E7AA722EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics in Frameworks */,
 				D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */,
 				D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */,
@@ -1893,7 +1894,6 @@
 				D0E7A8A12EE2D87800BEE79F /* SwiftfulAuthenticating in Frameworks */,
 				D0E7AA6C2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel in Frameworks */,
 				D0E7A8A42EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase in Frameworks */,
-				D0C0E6A22EE2410D009D5D18 /* SwiftfulRouting in Frameworks */,
 				D05D0BBB2E8EA1C00027C662 /* FirebaseCrashlytics in Frameworks */,
 				D0E7AA6F2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics in Frameworks */,
 				D05D0BB62E8EA15E0027C662 /* FirebaseStorage in Frameworks */,
@@ -2073,7 +2073,6 @@
 				D05D0BB82E8EA1710027C662 /* SDWebImageSwiftUI */,
 				D05D0BBA2E8EA1C00027C662 /* FirebaseCrashlytics */,
 				D05D0BBD2E8EA22E0027C662 /* SwiftfulUtilities */,
-				D0C0E6A12EE2410D009D5D18 /* SwiftfulRouting */,
 				D0E7A89E2EE2D87800BEE79F /* SwiftfulAuthUI */,
 				D0E7A8A02EE2D87800BEE79F /* SwiftfulAuthenticating */,
 				D0E7A8A32EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase */,
@@ -2087,6 +2086,7 @@
 				D0E7D5E82EE34B6B00BEE79F /* RevenueCat */,
 				D0E7D5EA2EE34B6B00BEE79F /* RevenueCatUI */,
 				D0E7D5EE2EE372A600BEE79F /* SwiftfulFirestore */,
+				D06E0A8C2F282F8400746BD6 /* SwiftfulRouting */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -2133,7 +2133,6 @@
 				D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				D05D0BB72E8EA1710027C662 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */,
-				D0C0E6A02EE2410D009D5D18 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */,
 				D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */,
 				D0E7A8A22EE2D90700BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticatingFirebase" */,
 				D0E7AA672EE2DB6100BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLogging" */,
@@ -2144,6 +2143,7 @@
 				D0E7D5AB2EE31EF800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulPurchasingRevenueCat" */,
 				D0E7D5E72EE34B6B00BEE79F /* XCRemoteSwiftPackageReference "purchases-ios" */,
 				D0E7D5ED2EE372A600BEE79F /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */,
+				D06E0A8B2F282F8400746BD6 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
@@ -3037,12 +3037,12 @@
 				minimumVersion = 1.1.6;
 			};
 		};
-		D0C0E6A02EE2410D009D5D18 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */ = {
+		D06E0A8B2F282F8400746BD6 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulRouting.git";
+			repositoryURL = "https://github.com/andrewcoyle1/SwiftfulRouting.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 6.1.8;
+				kind = exactVersion;
+				version = "0.1.0-alpha";
 			};
 		};
 		D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */ = {
@@ -3213,9 +3213,9 @@
 			package = D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
 			productName = SwiftfulUtilities;
 		};
-		D0C0E6A12EE2410D009D5D18 /* SwiftfulRouting */ = {
+		D06E0A8C2F282F8400746BD6 /* SwiftfulRouting */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D0C0E6A02EE2410D009D5D18 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */;
+			package = D06E0A8B2F282F8400746BD6 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */;
 			productName = SwiftfulRouting;
 		};
 		D0CE89E62EB2379000EED3B5 /* FirebaseAnalytics */ = {

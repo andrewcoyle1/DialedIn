@@ -136,6 +136,16 @@ extension CoreRouter {
         }
     }
 
+    func showCalendarViewZoom(delegate: CalendarDelegate, transitionId: String?, namespace: Namespace.ID) {
+        router.showScreenWithZoomTransition(
+            .sheetConfig(config: ResizableSheetConfig(detents: [.fraction(0.45)])),
+            transitionID: transitionId,
+            namespace: namespace) { router in
+                builder.calendarView(router: router, delegate: delegate)
+            }
+
+    }
+
 }
 
 #Preview {

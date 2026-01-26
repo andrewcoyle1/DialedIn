@@ -19,7 +19,7 @@ extension GlobalRouter {
     func dismissScreen() {
         router.dismissScreen()
     }
-    
+
     /// Dismiss the closest .sheet or .fullScreenCover to this screen.
     func dismissEnvironment() {
         router.dismissEnvironment()

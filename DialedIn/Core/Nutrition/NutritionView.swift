@@ -17,6 +17,8 @@ struct NutritionView<CalendarHeaderView: View>: View {
     
     @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
 
+    @Namespace private var namespace
+    
     var body: some View {
         List {
             dailySummarySection
@@ -167,15 +169,15 @@ struct NutritionView<CalendarHeaderView: View>: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
+
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                presenter.onDevSettingsPressed()
+                presenter.onCalendarPressed("nutrition-calendar-button", in: namespace)
             } label: {
-                Image(systemName: "info")
+                Image(systemName: "calendar")
             }
+            .matchedTransitionSource(id: "nutrition-calendar-button", in: namespace)
         }
-        #endif
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {

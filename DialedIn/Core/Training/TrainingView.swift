@@ -25,6 +25,8 @@ struct TrainingView<
     @ViewBuilder var thisWeeksWorkoutsView: () -> WeeksWorkouts
     @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
 
+    @Namespace private var namespace
+
     var body: some View {
         List {
             if presenter.currentTrainingPlan != nil {
@@ -258,10 +260,11 @@ struct TrainingView<
 
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                presenter.onCalendarPressed()
+                presenter.onCalendarPressed("training-calendar-button", in: namespace)
             } label: {
                 Image(systemName: "calendar")
             }
+            .matchedTransitionSource(id: "training-calendar-button", in: namespace)
         }
 
         ToolbarItem(placement: .topBarTrailing) {

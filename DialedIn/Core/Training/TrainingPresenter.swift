@@ -88,13 +88,23 @@ class TrainingPresenter {
         router.showAddTrainingView(delegate: delegate, onDismiss: nil)
     }
 
-    func onCalendarPressed() {
-        router.showCalendarView(delegate: CalendarDelegate(onDateSelected: { date, time in
-            self.selectedDate = date
-            self.selectedTime = time
-
-            self.onDatePressed(date: date)
-        }))
+    func onCalendarPressed(_ transitionId: String, in namespace: Namespace.ID) {
+        router.showCalendarViewZoom(
+            delegate: CalendarDelegate(
+                onDateSelected: {
+                    date,
+                    time in
+                    self.selectedDate = date
+                    self.selectedTime = time
+                    
+                    self.onDatePressed(
+                        date: date
+                    )
+                }
+            ),
+            transitionId: transitionId,
+            namespace: namespace
+        )
     }
 
     func onDatePressed(date: Date) {

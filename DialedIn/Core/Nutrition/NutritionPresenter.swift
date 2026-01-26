@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 26/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 @Observable
 @MainActor
@@ -35,7 +35,20 @@ class NutritionPresenter {
         self.interactor = interactor
         self.router = router
     }
-    
+
+    func onCalendarPressed(_ transitionId: String, in namespace: Namespace.ID) {
+        router.showCalendarViewZoom(
+            delegate: CalendarDelegate(
+                onDateSelected: { date, _ in
+                    self.selectedDate = date
+
+                }
+            ),
+            transitionId: transitionId,
+            namespace: namespace
+        )
+    }
+
     func onNotificationsPressed() {
         router.showNotificationsView()
     }

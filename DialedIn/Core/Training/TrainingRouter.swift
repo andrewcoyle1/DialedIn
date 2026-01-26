@@ -5,6 +5,8 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
+import SwiftUI
+
 @MainActor
 protocol TrainingRouter: GlobalRouter {
     func showNotificationsView()
@@ -25,7 +27,7 @@ protocol TrainingRouter: GlobalRouter {
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
     func showCreateExerciseView()
     func showGymProfilesView()
-    func showCalendarView(delegate: CalendarDelegate)
+    func showCalendarViewZoom(delegate: CalendarDelegate, transitionId: String?, namespace: Namespace.ID)
 }
 
 extension CoreRouter: TrainingRouter {
