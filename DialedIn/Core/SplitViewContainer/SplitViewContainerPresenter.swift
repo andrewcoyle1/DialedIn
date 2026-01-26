@@ -11,14 +11,19 @@ import SwiftUI
 @MainActor
 class SplitViewContainerPresenter {
     private let interactor: SplitViewContainerInteractor
-    
+    private let router: SplitViewRouter
+
     var preferredColumn: NavigationSplitViewColumn = .sidebar
 
     var activeSession: WorkoutSessionModel? {
         interactor.activeSession
     }
     
-    init(interactor: SplitViewContainerInteractor) {
+    init(
+        interactor: SplitViewContainerInteractor,
+        router: SplitViewRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
 }

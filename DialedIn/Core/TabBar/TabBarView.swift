@@ -14,24 +14,22 @@ struct TabBarView<TabAccessory: View>: View {
 
     var tabs: [TabBarScreen]
     
-    @ViewBuilder var tabViewAccessoryView: (AnyRouter, TabViewAccessoryDelegate) -> TabAccessory
+    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
 
     var body: some View {
-        RouterView(addNavigationStack: false) { router in
-            TabView {
-                ForEach(tabs) { tab in
-                    tab.screen()
-                        .tabItem {
-                            Label(tab.title, systemImage: tab.systemImage)
-                        }
-                }
+        TabView {
+            ForEach(tabs) { tab in
+                tab.screen()
+                    .tabItem {
+                        Label(tab.title, systemImage: tab.systemImage)
+                    }
             }
-            .tabViewStyle(.tabBarOnly)
-            .tabBarMinimizeBehavior(.onScrollDown)
-            .tabViewBottomAccessory {
-                if let active = presenter.activeSession {
-                    tabViewAccessoryView(router, TabViewAccessoryDelegate(active: active))
-                }
+        }
+        .tabViewStyle(.tabBarOnly)
+        .tabBarMinimizeBehavior(.onScrollDown)
+        .tabViewBottomAccessory(isEnabled: presenter.activeSession != nil) {
+            if let active = presenter.activeSession {
+                tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
             }
         }
     }
@@ -39,8 +37,8 @@ struct TabBarView<TabAccessory: View>: View {
 
 extension CoreBuilder {
     
-    func tabBarView() -> some View {
-        
+    func tabBarView(router: AnyRouter) -> some View {
+
         let tabs: [TabBarScreen] = [
             TabBarScreen(
                 title: "Dashboard",
@@ -85,9 +83,9 @@ extension CoreBuilder {
         ]
         
         return TabBarView(
-            presenter: TabBarPresenter(interactor: interactor),
+            presenter: TabBarPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             tabs: tabs,
-            tabViewAccessoryView: { router, delegate in
+            tabViewAccessoryView: { delegate in
                 self.tabViewAccessoryView(router: router, delegate: delegate)
             }
         )
@@ -96,12 +94,16 @@ extension CoreBuilder {
 
 #Preview("Has No Active Session") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.tabBarView()
-        .previewEnvironment()
+    RouterView { router in
+        builder.tabBarView(router: router)
+    }
+    .previewEnvironment()
 }
 
 #Preview("Has Active Session") {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.tabBarView()
-        .previewEnvironment()
+    RouterView { router in
+        builder.tabBarView(router: router)
+    }
+    .previewEnvironment()
 }

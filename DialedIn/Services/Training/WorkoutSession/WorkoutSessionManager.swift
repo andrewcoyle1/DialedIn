@@ -74,11 +74,13 @@ class WorkoutSessionManager {
     }
 
     func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel? {
-        try local.getActiveLocalWorkoutSession()
+        self.activeSession = try local.getActiveLocalWorkoutSession()
+        return activeSession
     }
 
     func setActiveLocalWorkoutSession(_ session: WorkoutSessionModel?) throws {
         try local.setActiveLocalWorkoutSession(session)
+        self.activeSession = session
     }
 
     // MARK: - Local Operations

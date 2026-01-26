@@ -62,7 +62,7 @@ class TodaysWorkoutSectionPresenter {
             template: template,
             scheduledWorkout: scheduledWorkout,
             onStartWorkout: { session in
-                self.router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSession: session))
+                self.router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
             }
         )
 

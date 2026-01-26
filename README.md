@@ -101,7 +101,7 @@ DialedIn/
 
 Run unit tests:
 ```bash
-xcodebuild test -workspace DialedIn.xcworkspace -scheme DialedIn -destination 'platform=iOS Simulator,name=iPhone 15'
+xcodebuild test -workspace DialedIn.xcworkspace -scheme DialedIn -destination 'platform=iOS Simulator,name=iPhone 16'
 ```
 
 ## License

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftfulRouting
 
 struct AdaptiveMainView<TabBarView: View, SplitView: View>: View {
 
@@ -17,31 +18,36 @@ struct AdaptiveMainView<TabBarView: View, SplitView: View>: View {
     @ViewBuilder var splitViewContainer: () -> SplitView
 
     var body: some View {
-        #if targetEnvironment(macCatalyst)
-        splitViewContainer()
-            .layoutMode(.splitView)
-        #else
-        if horizontalSizeClass == .compact {
-            tabBarView()
-                .layoutMode(.tabBar)
-        } else {
+        Group {
+            #if targetEnvironment(macCatalyst)
             splitViewContainer()
                 .layoutMode(.splitView)
+            #else
+            if horizontalSizeClass == .compact {
+                tabBarView()
+                    .layoutMode(.tabBar)
+            } else {
+                splitViewContainer()
+                    .layoutMode(.splitView)
+            }
+            #endif
         }
-        #endif
+        .onAppear {
+            presenter.getActiveLocalWorkoutSession()
+        }
     }
 }
 
 extension CoreBuilder {
-    func adaptiveMainView() -> some View {
+    func adaptiveMainView(router: AnyRouter) -> some View {
         AdaptiveMainView(
-            presenter: AdaptiveMainPresenter(interactor: interactor),
+            presenter: AdaptiveMainPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             tabBarView: {
-                self.tabBarView()
+                self.tabBarView(router: router)
                     .any()
             },
-            splitViewContainer: {
-                self.splitViewContainer()
+            splitViewContainer: { 
+                self.splitViewContainer(router: router)
                     .any()
             }
         )

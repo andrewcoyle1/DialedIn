@@ -13,7 +13,9 @@ struct OnbBuilder: Builder {
     let interactor: OnbInteractor
         
     func build() -> AnyView {
-        onboardingWelcomeView()
-            .any()
+        RouterView(id: "onboarding", addModuleSupport: true) { router in
+            onboardingWelcomeView(router: router)
+        }
+        .any()
     }
 }

@@ -41,6 +41,8 @@ protocol WorkoutTrackerInteractor {
     /// Retrieve a local workout session by its unique identifier.
     func getLocalWorkoutSession(id: String) throws -> WorkoutSessionModel
 
+    /// Retrieve a remote workout session by its unique identifier.
+    func getWorkoutSession(id: String) async throws -> WorkoutSessionModel
     /// Retrieve the currently active local workout session, if any.
     func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
 

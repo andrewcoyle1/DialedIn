@@ -394,8 +394,10 @@
 				Core/Settings/SettingsRouter.swift,
 				Core/SplitViewContainer/SplitViewContainerInteractor.swift,
 				Core/SplitViewContainer/SplitViewContainerPresenter.swift,
+				Core/SplitViewContainer/SplitViewRouter.swift,
 				Core/TabBar/TabBarInteractor.swift,
 				Core/TabBar/TabBarPresenter.swift,
+				Core/TabBar/TabBarRouter.swift,
 				Core/TabBar/TabBarScreen.swift,
 				Core/Training/AddExerciseModal/AddExerciseInteractor.swift,
 				Core/Training/AddExerciseModal/AddExerciseModalPresenter.swift,
@@ -606,7 +608,6 @@
 				Core/WorkoutTracking/WorkoutStart/WorkoutStartInteractor.swift,
 				Core/WorkoutTracking/WorkoutStart/WorkoutStartPresenter.swift,
 				Core/WorkoutTracking/WorkoutStart/WorkoutStartRouter.swift,
-				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerDelegate.swift,
 				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerInteractor.swift,
 				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerPresenter.swift,
 				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerRouter.swift,
@@ -917,6 +918,7 @@
 				Components/Views/WeeklyMacroChart.swift,
 				Core/AdaptiveMain/AdaptiveMainInteractor.swift,
 				Core/AdaptiveMain/AdaptiveMainPresenter.swift,
+				Core/AdaptiveMain/AdaptiveMainRouter.swift,
 				Core/AdaptiveMain/AdaptiveMainView.swift,
 				Core/AppView/AppInteractor.swift,
 				Core/AppView/AppPresenter.swift,
@@ -1242,8 +1244,10 @@
 				Core/SplitViewContainer/SplitViewContainer.swift,
 				Core/SplitViewContainer/SplitViewContainerInteractor.swift,
 				Core/SplitViewContainer/SplitViewContainerPresenter.swift,
+				Core/SplitViewContainer/SplitViewRouter.swift,
 				Core/TabBar/TabBarInteractor.swift,
 				Core/TabBar/TabBarPresenter.swift,
+				Core/TabBar/TabBarRouter.swift,
 				Core/TabBar/TabBarScreen.swift,
 				Core/TabBar/TabBarView.swift,
 				Core/Training/AddExerciseModal/AddExerciseInteractor.swift,
@@ -1515,7 +1519,6 @@
 				Core/WorkoutTracking/WorkoutStart/WorkoutStartPresenter.swift,
 				Core/WorkoutTracking/WorkoutStart/WorkoutStartRouter.swift,
 				Core/WorkoutTracking/WorkoutStart/WorkoutStartView.swift,
-				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerDelegate.swift,
 				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerInteractor.swift,
 				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerPresenter.swift,
 				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerRouter.swift,
@@ -2554,7 +2557,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -2845,7 +2848,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -2903,7 +2906,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;

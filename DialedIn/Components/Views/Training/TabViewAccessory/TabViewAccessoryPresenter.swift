@@ -42,7 +42,7 @@ class TabViewAccessoryPresenter {
     }
     
     func reopenActiveSession(activeSession: WorkoutSessionModel) {
-        router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSession: activeSession))
+        router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: activeSession.id))
     }
 
     func completedSetsCount(_ session: WorkoutSessionModel) -> Int {

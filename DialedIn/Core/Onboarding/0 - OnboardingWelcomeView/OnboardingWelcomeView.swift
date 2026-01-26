@@ -86,17 +86,17 @@ struct OnboardingWelcomeView: View {
 }
 
 extension OnbBuilder {
-    func onboardingWelcomeView() -> some View {
-        RouterView { router in
-            OnboardingWelcomeView(
-                presenter: OnboardingWelcomePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
-            )
-        }
+    func onboardingWelcomeView(router: AnyRouter) -> some View {
+        OnboardingWelcomeView(
+            presenter: OnboardingWelcomePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+        )
     }
 }
 
 #Preview("Functioning") {
     let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
-    builder.onboardingWelcomeView()
+    RouterView { router in
+        builder.onboardingWelcomeView(router: router)
+    }
         .previewEnvironment()
 }

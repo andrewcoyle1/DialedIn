@@ -246,7 +246,7 @@ class TrainingPresenter {
                 
                 await MainActor.run {
                     interactor.startActiveSession(session)
-                    router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSession: session))
+                    router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
                 }
             }
         }

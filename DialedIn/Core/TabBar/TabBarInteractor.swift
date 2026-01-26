@@ -7,8 +7,6 @@
 
 protocol TabBarInteractor {
     var activeSession: WorkoutSessionModel? { get }
-    func setActiveSession(_ session: WorkoutSessionModel?)
-    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
 }
 
 extension CoreInteractor: TabBarInteractor { }

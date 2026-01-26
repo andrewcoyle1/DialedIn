@@ -6,7 +6,7 @@
 //
 
 protocol AdaptiveMainInteractor {
-    
+    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
 }
 
 extension CoreInteractor: AdaptiveMainInteractor { }

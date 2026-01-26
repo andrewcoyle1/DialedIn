@@ -13,7 +13,7 @@ struct SplitViewContainer<TabAccessory: View>: View {
     @State var presenter: SplitViewContainerPresenter
     var tabs: [TabBarScreen]
 
-    @ViewBuilder var tabViewAccessoryView: (AnyRouter, TabViewAccessoryDelegate) -> TabAccessory
+    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
 
     var body: some View {
         RouterView { router in
@@ -32,7 +32,7 @@ struct SplitViewContainer<TabAccessory: View>: View {
                 }
                 .safeAreaInset(edge: .bottom) {
                     if let active = presenter.activeSession {
-                        tabViewAccessoryView(router, TabViewAccessoryDelegate(active: active))
+                        tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
                             .padding()
                             .buttonStyle(.bordered)
                     }
@@ -55,15 +55,13 @@ struct SplitViewContainer<TabAccessory: View>: View {
 
 extension CoreBuilder {
     
-    func splitViewContainer() -> some View {
+    func splitViewContainer(router: AnyRouter) -> some View {
         let tabs: [TabBarScreen] = [
             TabBarScreen(
                 title: "Dashboard",
                 systemImage: "house",
                 screen: {
-                    RouterView { router in
-                        self.dashboardView(router: router)
-                    }
+                    self.dashboardView(router: router)
                     .any()
                 }
             ),
@@ -71,9 +69,7 @@ extension CoreBuilder {
                 title: "Nutrition",
                 systemImage: "carrot",
                 screen: {
-                    RouterView { router in
-                        self.nutritionView(router: router)
-                    }
+                    self.nutritionView(router: router)
                     .any()
                 }
             ),
@@ -81,9 +77,7 @@ extension CoreBuilder {
                 title: "Training",
                 systemImage: "dumbbell",
                 screen: {
-                    RouterView { router in
-                        self.trainingView(router: router)
-                    }
+                    self.trainingView(router: router)
                     .any()
                 }
             ),
@@ -91,18 +85,16 @@ extension CoreBuilder {
                 title: "Profile",
                 systemImage: "person",
                 screen: {
-                    RouterView { router in
-                        self.profileView(router: router)
-                    }
+                    self.profileView(router: router)
                     .any()
                 }
             )
         ]
         
         return SplitViewContainer(
-            presenter: SplitViewContainerPresenter(interactor: interactor),
+            presenter: SplitViewContainerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             tabs: tabs,
-            tabViewAccessoryView: { router, accessoryDelegate in
+            tabViewAccessoryView: { accessoryDelegate in
                 self.tabViewAccessoryView(router: router, delegate: accessoryDelegate)
             }
         )
@@ -111,7 +103,9 @@ extension CoreBuilder {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.splitViewContainer()
+    RouterView { router in
+        builder.splitViewContainer(router: router)
+    }
     .previewEnvironment()
 }
 

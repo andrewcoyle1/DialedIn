@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftfulRouting
 
 struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
 

@@ -12,14 +12,17 @@ import SwiftUI
 class TabBarPresenter {
     
     private let interactor: TabBarInteractor
+    private let router: TabBarRouter
 
     var activeSession: WorkoutSessionModel? {
         interactor.activeSession
     }
 
     init(
-        interactor: TabBarInteractor
+        interactor: TabBarInteractor,
+        router: TabBarRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
 }

@@ -22,8 +22,10 @@ struct CoreBuilder: Builder {
     }
     
     func build() -> AnyView {
-        adaptiveMainView()
-            .any()
+        RouterView(id: "tabbar", addNavigationStack: false, addModuleSupport: true) { router in
+            adaptiveMainView(router: router)
+        }
+        .any()
     }
 
 }

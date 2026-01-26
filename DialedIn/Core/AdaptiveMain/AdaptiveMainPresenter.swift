@@ -11,8 +11,18 @@ import Foundation
 @MainActor
 class AdaptiveMainPresenter {
     private let interactor: AdaptiveMainInteractor
-        
-    init(interactor: AdaptiveMainInteractor) {
+    private let router: AdaptiveMainRouter
+
+    init(
+        interactor: AdaptiveMainInteractor,
+        router: AdaptiveMainRouter
+    ) {
         self.interactor = interactor
+        self.router = router
     }
+
+    func getActiveLocalWorkoutSession() {
+        _ = try? interactor.getActiveLocalWorkoutSession()
+    }
+
 }

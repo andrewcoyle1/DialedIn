@@ -10,7 +10,7 @@ import Foundation
 struct WorkoutSessionModel: Identifiable, Codable, Hashable {
     let id: String
     let authorId: String
-    let name: String
+    var name: String
     let workoutTemplateId: String?
     let scheduledWorkoutId: String?
     let trainingPlanId: String?
