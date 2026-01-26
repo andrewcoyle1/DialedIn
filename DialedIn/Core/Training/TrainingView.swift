@@ -258,16 +258,14 @@ struct TrainingView<
             
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                presenter.onDevSettingsPressed()
+                presenter.onCalendarPressed()
             } label: {
-                Image(systemName: "info")
+                Image(systemName: "calendar")
             }
         }
-        #endif
-        
+
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onAddPressed()

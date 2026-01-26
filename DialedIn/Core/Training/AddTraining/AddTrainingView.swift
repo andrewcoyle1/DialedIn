@@ -3,6 +3,7 @@ import SwiftUI
 struct AddTrainingDelegate {
     var onSelectProgram: (() -> Void)?
     var onSelectWorkout: (() -> Void)?
+    var onSelectExercise: (() -> Void)?
 }
 
 struct AddTrainingView: View {
@@ -32,6 +33,16 @@ struct AddTrainingView: View {
                 .tappableBackground()
                 .anyButton {
                     presenter.onNewEmptyWorkoutPressed()
+                }
+                HStack {
+                    Image(systemName: "dumbbell")
+                    Text("New Exercise")
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                }
+                .tappableBackground()
+                .anyButton {
+                    presenter.onNewExercisePressed()
                 }
             }
             .listSectionMargins(.top, 0)

@@ -80,11 +80,21 @@ class TrainingPresenter {
             },
             onSelectWorkout: { [weak self] in
                 self?.router.showCreateWorkoutView(delegate: CreateWorkoutDelegate())
+            },
+            onSelectExercise: { [weak self] in
+                self?.router.showCreateExerciseView()
             }
         )
         router.showAddTrainingView(delegate: delegate, onDismiss: nil)
     }
-    
+
+    func onCalendarPressed() {
+        router.showCalendarView(delegate: CalendarDelegate(onDateSelected: { date, time in
+            self.selectedDate = date
+            self.selectedTime = time
+        }))
+    }
+
     func onDatePressed(date: Date) {
         self.selectedDate = date.startOfDay
         

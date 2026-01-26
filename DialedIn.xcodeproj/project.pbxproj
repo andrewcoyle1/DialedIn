@@ -866,6 +866,9 @@
 				"Components/ViewModifiers/View+EXT.swift",
 				Components/ViewModifiers/WorkoutTrackerTabAccessoryViewModifier.swift,
 				Components/Views/AsyncCallToActionButton.swift,
+				Components/Views/Calendar/CalendarInteractor.swift,
+				Components/Views/Calendar/CalendarPresenter.swift,
+				Components/Views/Calendar/CalendarRouter.swift,
 				Components/Views/Calendar/CalendarView.swift,
 				Components/Views/CarouselView.swift,
 				Components/Views/CategoryCellView.swift,
@@ -2097,7 +2100,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					D012F0192EACD46C0014C602 = {
 						CreatedOnToolsVersion = 26.0;
@@ -2494,6 +2497,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -2517,6 +2521,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG MOCK $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -2530,6 +2535,7 @@
 				CODE_SIGN_ENTITLEMENTS = DialedIn/DialedIn.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
@@ -2730,6 +2736,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -2753,6 +2760,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -2792,6 +2800,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -2809,6 +2818,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = NO;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -2821,6 +2831,7 @@
 				CODE_SIGN_ENTITLEMENTS = "DialedIn/DialedIn-Debug.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
@@ -2879,6 +2890,7 @@
 				CODE_SIGN_ENTITLEMENTS = DialedIn/DialedIn.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;

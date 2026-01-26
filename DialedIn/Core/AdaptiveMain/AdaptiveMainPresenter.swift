@@ -22,7 +22,11 @@ class AdaptiveMainPresenter {
     }
 
     func getActiveLocalWorkoutSession() {
-        _ = try? interactor.getActiveLocalWorkoutSession()
+        do {
+            _ = try interactor.getActiveLocalWorkoutSession()
+        } catch {
+            router.showSimpleAlert(title: "Error Loading Active Workout Sessions", subtitle: nil)
+        }
     }
 
 }

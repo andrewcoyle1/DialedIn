@@ -7,8 +7,6 @@
 
 protocol SplitViewContainerInteractor {
     var activeSession: WorkoutSessionModel? { get }
-    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
-    func setActiveSession(_ session: WorkoutSessionModel?)
 }
 
 extension CoreInteractor: SplitViewContainerInteractor { }

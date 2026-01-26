@@ -23,7 +23,9 @@ protocol TrainingRouter: GlobalRouter {
     func showAddTrainingView(delegate: AddTrainingDelegate, onDismiss: (() -> Void)?)
     func showCreateProgramView(delegate: CreateProgramDelegate)
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
+    func showCreateExerciseView()
     func showGymProfilesView()
+    func showCalendarView(delegate: CalendarDelegate)
 }
 
 extension CoreRouter: TrainingRouter {
