@@ -8,8 +8,6 @@
 protocol TabBarInteractor {
     var activeSession: WorkoutSessionModel? { get }
     func setActiveSession(_ session: WorkoutSessionModel?)
-    var isTrackerPresented: Bool { get }
-    func setIsTrackerPresented(_ presented: Bool)
     func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
 }
 

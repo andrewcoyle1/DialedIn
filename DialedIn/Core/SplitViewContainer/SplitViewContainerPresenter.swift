@@ -15,20 +15,10 @@ class SplitViewContainerPresenter {
     var preferredColumn: NavigationSplitViewColumn = .sidebar
 
     var activeSession: WorkoutSessionModel? {
-        get { interactor.activeSession }
-        set { interactor.setActiveSession(newValue) }
-    }
-    
-    var isTrackerPresented: Bool {
-        get { interactor.isTrackerPresented }
-        set { interactor.setIsTrackerPresented(newValue) }
+        interactor.activeSession
     }
     
     init(interactor: SplitViewContainerInteractor) {
         self.interactor = interactor
-    }
-    
-    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel? {
-        try interactor.getActiveLocalWorkoutSession()
     }
 }

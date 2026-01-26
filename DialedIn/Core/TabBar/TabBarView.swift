@@ -8,58 +8,37 @@
 import SwiftUI
 import SwiftfulRouting
 
-struct TabBarView<TabAccessory: View, WorkoutTracker: View>: View {
+struct TabBarView<TabAccessory: View>: View {
 
     @State var presenter: TabBarPresenter
 
     var tabs: [TabBarScreen]
     
-    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
-    @ViewBuilder var workoutTrackerView: (WorkoutTrackerDelegate) -> WorkoutTracker
+    @ViewBuilder var tabViewAccessoryView: (AnyRouter, TabViewAccessoryDelegate) -> TabAccessory
 
     var body: some View {
-        TabView {
-            ForEach(tabs) { tab in
-                tab.screen()
-                    .tabItem {
-                        Label(tab.title, systemImage: tab.systemImage)
-                    }
+        RouterView(addNavigationStack: false) { router in
+            TabView {
+                ForEach(tabs) { tab in
+                    tab.screen()
+                        .tabItem {
+                            Label(tab.title, systemImage: tab.systemImage)
+                        }
+                }
             }
-        }
-        .tabViewStyle(.tabBarOnly)
-        .tabBarMinimizeBehavior(.onScrollDown)
-        .workoutTabAccessory(
-            active: presenter.activeSession,
-            tabViewAccessoryView: tabViewAccessoryView
-        )
-//        .tabViewBottomAccessory {
-//            if let active = presenter.activeSession {
-//                tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
-//            }
-//        }
-        .fullScreenCover(
-            isPresented: Binding(
-                get: { presenter.isTrackerPresented },
-                set: { presenter.isTrackerPresented = $0 }
-            )
-        ) {
-            if let active = presenter.activeSession {
-                let delegate = WorkoutTrackerDelegate(workoutSession: active)
-                workoutTrackerView(delegate)
-                    .onAppear {
-                        print("🪟 TabBarView fullScreenCover presented for session id=\(active.id)")
-                    }
+            .tabViewStyle(.tabBarOnly)
+            .tabBarMinimizeBehavior(.onScrollDown)
+            .tabViewBottomAccessory {
+                if let active = presenter.activeSession {
+                    tabViewAccessoryView(router, TabViewAccessoryDelegate(active: active))
+                }
             }
-        }
-        .task {
-            presenter.checkForActiveSession()
         }
     }
 }
 
 extension CoreBuilder {
     
-    // swiftlint:disable:next function_body_length
     func tabBarView() -> some View {
         
         let tabs: [TabBarScreen] = [
@@ -108,13 +87,8 @@ extension CoreBuilder {
         return TabBarView(
             presenter: TabBarPresenter(interactor: interactor),
             tabs: tabs,
-            tabViewAccessoryView: { delegate in
-                self.tabViewAccessoryView(delegate: delegate)
-            },
-            workoutTrackerView: { delegate in
-                RouterView { router in
-                    self.workoutTrackerView(router: router, delegate: delegate)
-                }
+            tabViewAccessoryView: { router, delegate in
+                self.tabViewAccessoryView(router: router, delegate: delegate)
             }
         )
     }

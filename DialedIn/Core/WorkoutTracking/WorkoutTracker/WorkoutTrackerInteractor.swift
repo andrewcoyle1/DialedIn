@@ -68,9 +68,6 @@ protocol WorkoutTrackerInteractor {
     /// Set a local session as the current active one, passing nil to clear.
     func setActiveLocalWorkoutSession(_ session: WorkoutSessionModel?) throws
 
-    /// Minimize the active workout session, e.g., background the activity in the UI.
-    func minimizeActiveSession()
-
     // MARK: - Live Activity & Status Updates
 
     /// Ensure the associated live activity for a workout is continued or started.

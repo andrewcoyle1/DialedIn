@@ -683,11 +683,7 @@ struct CoreInteractor {
     var activeSession: WorkoutSessionModel? {
         workoutSessionManager.activeSession
     }
-    
-    var isTrackerPresented: Bool {
-        workoutSessionManager.isTrackerPresented
-    }
-    
+
     var restEndTime: Date? {
         workoutSessionManager.restEndTime
     }
@@ -699,21 +695,9 @@ struct CoreInteractor {
     func setActiveSession(_ session: WorkoutSessionModel?) {
         workoutSessionManager.activeSession = session
     }
-    
-    func setIsTrackerPresented(_ presented: Bool) {
-        workoutSessionManager.isTrackerPresented = presented
-    }
-    
+
     func startActiveSession(_ session: WorkoutSessionModel) {
         workoutSessionManager.startActiveSession(session)
-    }
-    
-    func minimizeActiveSession() {
-        workoutSessionManager.minimizeActiveSession()
-    }
-    
-    func reopenActiveSession() {
-        workoutSessionManager.reopenActiveSession()
     }
     
     func endActiveSession(markScheduledComplete: Bool = true) async {
@@ -1833,7 +1817,7 @@ struct CoreInteractor {
     }
 
     #endif
-    // swiftlint:disable:next file_length
 }
 
+// swiftlint:disable:next file_length
 enum CoreError: LocalizedError { case noCurrentUser }

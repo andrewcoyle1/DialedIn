@@ -58,7 +58,15 @@ class TodaysWorkoutSectionPresenter {
     }
     
     private func handleWorkoutStartRequest(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout?) {
-        router.showWorkoutStartView(delegate: WorkoutStartDelegate(template: template, scheduledWorkout: scheduledWorkout))
+        let delegate = WorkoutStartDelegate(
+            template: template,
+            scheduledWorkout: scheduledWorkout,
+            onStartWorkout: { session in
+                self.router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSession: session))
+            }
+        )
+
+        router.showWorkoutStartView(delegate: delegate)
     }
     
     enum Event: LoggableEvent {

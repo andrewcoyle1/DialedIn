@@ -14,31 +14,12 @@ class TabBarPresenter {
     private let interactor: TabBarInteractor
 
     var activeSession: WorkoutSessionModel? {
-        get {
-            interactor.activeSession
-        }
-        set {
-            interactor.setActiveSession(newValue)
-        }
-    }
-    
-    var isTrackerPresented: Bool {
-        get { interactor.isTrackerPresented }
-        set { interactor.setIsTrackerPresented(newValue) }
+        interactor.activeSession
     }
 
     init(
         interactor: TabBarInteractor
     ) {
         self.interactor = interactor
-    }
-        
-    func checkForActiveSession() {
-        activeSession = try? interactor.getActiveLocalWorkoutSession() 
-    }
-    
-    func onWorkoutAccessoryPressed() {
-        guard activeSession != nil else { return }
-        isTrackerPresented = true
     }
 }

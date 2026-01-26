@@ -143,7 +143,11 @@ struct WorkoutStartView: View {
 extension CoreBuilder {
     func workoutStartView(router: AnyRouter, delegate: WorkoutStartDelegate) -> some View {
         WorkoutStartView(
-            presenter: WorkoutStartPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            presenter: WorkoutStartPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self),
+                delegate: delegate
+            ),
             delegate: delegate
         )
     }

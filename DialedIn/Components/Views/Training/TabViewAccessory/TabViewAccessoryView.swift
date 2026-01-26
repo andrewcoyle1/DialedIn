@@ -16,7 +16,7 @@ struct TabViewAccessoryView: View {
     
     var body: some View {
         Button {
-            presenter.reopenActiveSession()
+            presenter.reopenActiveSession(activeSession: delegate.active)
         } label: {
             HStack {
                 iconSection
@@ -91,9 +91,12 @@ struct TabViewAccessoryView: View {
 }
 
 extension CoreBuilder {
-    func tabViewAccessoryView(delegate: TabViewAccessoryDelegate) -> some View {
+    func tabViewAccessoryView(router: AnyRouter, delegate: TabViewAccessoryDelegate) -> some View {
         return TabViewAccessoryView(
-            presenter: TabViewAccessoryPresenter(interactor: interactor),
+            presenter: TabViewAccessoryPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
             delegate: delegate
         )
     }
@@ -101,17 +104,20 @@ extension CoreBuilder {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    TabView {
-        Tab {
-            Text("Tab")
-        } label: {
-            Text("Tab")
+    RouterView(addNavigationStack: false) { router in
+        TabView {
+            Tab {
+                Text("Tab")
+            } label: {
+                Text("Tab")
+            }
         }
-    }
-    .tabViewBottomAccessory {
-        builder.tabViewAccessoryView(
-            delegate: TabViewAccessoryDelegate(active: .mock)
-        )
+        .tabViewBottomAccessory {
+            builder.tabViewAccessoryView(
+                router: router, 
+                delegate: TabViewAccessoryDelegate(active: .mock)
+            )
+        }
     }
     .previewEnvironment()
 }

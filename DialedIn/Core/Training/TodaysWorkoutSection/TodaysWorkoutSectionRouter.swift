@@ -9,7 +9,7 @@
 protocol TodaysWorkoutSectionRouter {
     func showWorkoutStartView(delegate: WorkoutStartDelegate)
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
-    
+    func showWorkoutTrackerView(delegate: WorkoutTrackerDelegate)
     func showAlert(error: Error)
 }
 

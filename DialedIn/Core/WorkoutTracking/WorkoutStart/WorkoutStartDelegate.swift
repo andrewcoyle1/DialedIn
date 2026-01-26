@@ -8,10 +8,7 @@
 struct WorkoutStartDelegate {
 
     let template: WorkoutTemplateModel
-    let scheduledWorkout: ScheduledWorkout?
+    var scheduledWorkout: ScheduledWorkout? = nil
+    var onStartWorkout: ((WorkoutSessionModel) -> Void)?
 
-    init(template: WorkoutTemplateModel, scheduledWorkout: ScheduledWorkout? = nil) {
-        self.template = template
-        self.scheduledWorkout = scheduledWorkout
-    }
 }

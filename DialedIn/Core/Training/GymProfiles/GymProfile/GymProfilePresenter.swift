@@ -301,7 +301,7 @@ class GymProfilePresenter {
         do {
             if let data = try await newItem.loadTransferable(type: Data.self) {
                 selectedImageData = data
-                let uiImage = selectedImageData.flatMap{ UIImage(data: $0) }
+                let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
                 gymProfile.dateModified = .now
                 gymProfile = try await interactor.updateGymProfile(profile: gymProfile, image: uiImage)
                 interactor.trackEvent(event: Event.imageSelectorSuccess)

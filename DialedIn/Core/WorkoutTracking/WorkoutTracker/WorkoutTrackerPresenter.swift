@@ -368,7 +368,6 @@ class WorkoutTrackerPresenter {
             
     func minimizeSession() {
         stopWidgetSyncTimer()
-        interactor.minimizeActiveSession()
         router.dismissScreen()
     }
     
