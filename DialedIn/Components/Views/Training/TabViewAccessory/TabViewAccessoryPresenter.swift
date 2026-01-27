@@ -12,11 +12,14 @@ import SwiftUI
 class TabViewAccessoryPresenter {
     
     private let interactor: TabViewAccessoryInteractor
-    
+    private let router: TabViewAccessoryRouter
+
     init(
-        interactor: TabViewAccessoryInteractor
+        interactor: TabViewAccessoryInteractor,
+        router: TabViewAccessoryRouter
     ) {
         self.interactor = interactor
+        self.router = router
     }
     
     var progress: Double {
@@ -38,9 +41,8 @@ class TabViewAccessoryPresenter {
         interactor.restEndTime
     }
     
-    func reopenActiveSession() {
-        print("🔄 TabViewAccessoryPresenter.reopenActiveSession() forwarding to interactor")
-        interactor.reopenActiveSession()
+    func reopenActiveSession(activeSession: WorkoutSessionModel) {
+        router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: activeSession.id))
     }
 
     func completedSetsCount(_ session: WorkoutSessionModel) -> Int {

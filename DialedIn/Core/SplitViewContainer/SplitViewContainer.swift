@@ -8,79 +8,60 @@
 import SwiftUI
 import SwiftfulRouting
 
-struct SplitViewContainer<TabAccessory: View, WorkoutTracker: View>: View {
+struct SplitViewContainer<TabAccessory: View>: View {
 
     @State var presenter: SplitViewContainerPresenter
     var tabs: [TabBarScreen]
 
     @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
-    @ViewBuilder var workoutTrackerView: (WorkoutTrackerDelegate) -> WorkoutTracker
-    
+
     var body: some View {
-        NavigationSplitView(columnVisibility: .constant(.all), preferredCompactColumn: $presenter.preferredColumn) {
-            // Sidebar
-            List {
-                Section {
-                    ForEach(tabs) { tab in
-                        Button {
-                            print("Tab selected")
-                        } label: {
-                            Label(tab.title, systemImage: tab.systemImage)
+        RouterView { _ in
+            NavigationSplitView(columnVisibility: .constant(.all), preferredCompactColumn: $presenter.preferredColumn) {
+                // Sidebar
+                List {
+                    Section {
+                        ForEach(tabs) { tab in
+                            Button {
+                                print("Tab selected")
+                            } label: {
+                                Label(tab.title, systemImage: tab.systemImage)
+                            }
                         }
                     }
                 }
-            }
-            .safeAreaInset(edge: .bottom) {
-                if let active = presenter.activeSession, !presenter.isTrackerPresented {
-                    tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
-                        .padding()
-                        .buttonStyle(.bordered)
+                .safeAreaInset(edge: .bottom) {
+                    if let active = presenter.activeSession {
+                        tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
+                            .padding()
+                            .buttonStyle(.bordered)
+                    }
                 }
-            }
-            .frame(minWidth: 150)
-        } content: {
-            tabs.first!.screen()
-            .background(
-                Color(uiColor: .systemGroupedBackground)
-            )
-        } detail: {
-            NavigationStack {
-                detailPlaceholder
-            }
-        }
-        .fullScreenCover(
-            isPresented: Binding(
-                get: { presenter.isTrackerPresented },
-                set: { presenter.isTrackerPresented = $0 }
-            )
-        ) {
-            if let active = presenter.activeSession {
-                let delegate = WorkoutTrackerDelegate(workoutSession: active)
-                workoutTrackerView(delegate)
+                .frame(minWidth: 150)
+            } content: {
+                tabs.first!.screen()
+                    .background(
+                        Color(uiColor: .systemGroupedBackground)
+                    )
+            } detail: {
+                NavigationStack {
+                    detailPlaceholder
+                }
             }
         }
         .navigationSplitViewStyle(.balanced)
-        .task {
-            // Load any active session from local storage when the SplitView appears
-            if let active = try? presenter.getActiveLocalWorkoutSession() {
-                presenter.activeSession = active
-            }
-        }
     }
 }
 
 extension CoreBuilder {
     
-    // swiftlint:disable:next function_body_length
-    func splitViewContainer() -> some View {
+    func splitViewContainer(router: AnyRouter) -> some View {
         let tabs: [TabBarScreen] = [
             TabBarScreen(
                 title: "Dashboard",
                 systemImage: "house",
                 screen: {
-                    RouterView { router in
-                        self.dashboardView(router: router)
-                    }
+                    self.dashboardView(router: router)
                     .any()
                 }
             ),
@@ -88,9 +69,7 @@ extension CoreBuilder {
                 title: "Nutrition",
                 systemImage: "carrot",
                 screen: {
-                    RouterView { router in
-                        self.nutritionView(router: router)
-                    }
+                    self.nutritionView(router: router)
                     .any()
                 }
             ),
@@ -98,9 +77,7 @@ extension CoreBuilder {
                 title: "Training",
                 systemImage: "dumbbell",
                 screen: {
-                    RouterView { router in
-                        self.trainingView(router: router)
-                    }
+                    self.trainingView(router: router)
                     .any()
                 }
             ),
@@ -108,24 +85,17 @@ extension CoreBuilder {
                 title: "Profile",
                 systemImage: "person",
                 screen: {
-                    RouterView { router in
-                        self.profileView(router: router)
-                    }
+                    self.profileView(router: router)
                     .any()
                 }
             )
         ]
         
         return SplitViewContainer(
-            presenter: SplitViewContainerPresenter(interactor: interactor),
+            presenter: SplitViewContainerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             tabs: tabs,
             tabViewAccessoryView: { accessoryDelegate in
-                self.tabViewAccessoryView( delegate: accessoryDelegate)
-            },
-            workoutTrackerView: { delegate in
-                RouterView { router in
-                    self.workoutTrackerView(router: router, delegate: delegate)
-                }
+                self.tabViewAccessoryView(router: router, delegate: accessoryDelegate)
             }
         )
     }
@@ -133,7 +103,9 @@ extension CoreBuilder {
 
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
-    builder.splitViewContainer()
+    RouterView { router in
+        builder.splitViewContainer(router: router)
+    }
     .previewEnvironment()
 }
 

@@ -7,133 +7,157 @@
 
 import SwiftUI
 
-struct CalendarView: View {
-    
-    @State private var currentMonth: Date = Date.now
-    @State private var selectedDate: Date = Date.now
-    @State private var selectedHour: Date = Date.now
-    @State private var days: [Date] = []
-    
-    let daysOfWeek = Date.capitalizedFirstLettersOfWeekdays
-    let columns = Array(repeating: GridItem(.flexible()), count: 7)
-    
+struct CalendarDelegate {
     var onDateSelected: (Date, Date) -> Void
-    
+}
+
+struct CalendarView: View {
+
+    @State var presenter: CalendarPresenter
+
     var body: some View {
         VStack {
-            // Month navigation
-            HStack {
-                Text(currentMonth.formatted(.dateTime.year().month()))
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.primary)
-                Spacer()
-                Button {
-                    currentMonth = Calendar.current.date(byAdding: .month, value: -1, to: currentMonth)!
-                    updateDays()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.title2)
-                        .foregroundStyle(.tint)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                Button {
-                    currentMonth = Calendar.current.date(byAdding: .month, value: 1, to: currentMonth)!
-                    updateDays()
-                } label: {
-                    Image(systemName: "chevron.right")
-                        .font(.title2)
-                        .foregroundStyle(.tint)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.bottom, 4)
-            
+
             // Days of the week row
-            HStack {
-                ForEach(daysOfWeek.indices, id: \.self) { index in
-                    Text(daysOfWeek[index])
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
-                }
-            }
-            
+            daysOfWeekHeader
+
             // Grid of days
-            LazyVGrid(columns: columns, spacing: 10) {
-                ForEach(days, id: \.self) { day in
-                    Button {
-                        if day >= Date.now.startOfDay && day.monthInt == currentMonth.monthInt {
-                            selectedDate = day
-                            onDateSelected(day, selectedHour)
-                        }
-                    } label: {
-                        Text(day.formatted(.dateTime.day()))
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(foregroundStyle(for: day))
-                            .frame(maxWidth: .infinity, minHeight: 40)
-                            .contentShape(Rectangle())
-                            .background(
-                                Circle()
-                                    .fill(
-                                        day.formattedDate == selectedDate.formattedDate
-                                        ? Color.accentColor
-                                        : Color.clear
-                                    )
-                            )
-                    }
-                    .disabled(day < Date.now.startOfDay || day.monthInt != currentMonth.monthInt)
-                }
+            dayGrid
+
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .padding(.horizontal)
+        .toolbar {
+            toolbarContent
+        }
+    }
+
+    private var daysOfWeekHeader: some View {
+        HStack {
+            ForEach(presenter.daysOfWeek.indices, id: \.self) { index in
+                Text(presenter.daysOfWeek[index])
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.plain)
-            
-//            // Time picker
-//            DatePicker(
-//                "",
-//                selection: $selectedHour,
-//                displayedComponents: [.hourAndMinute]
-//            )
-//            .onChange(of: selectedHour) {
-//                onDateSelected(selectedDate, selectedHour)
-//            }
-//            .datePickerStyle(.compact)
-//            .datePickerStyle(GraphicalDatePickerStyle())
-//            .colorMultiply(.white)
-//            .environment(\.colorScheme, .dark)
-        }
-        // .padding()
-        .onAppear {
-            updateDays()
-            onDateSelected(selectedDate, selectedHour)
         }
     }
-    
-    private func updateDays() {
-        days = currentMonth.calendarDisplayDays
+
+    private var dayGrid: some View {
+        LazyVGrid(columns: presenter.columns, spacing: 10) {
+            ForEach(presenter.days, id: \.self) { day in
+                Button {
+                    if day >= Date.now.startOfDay && day.monthInt == presenter.currentMonth.monthInt {
+                        presenter.onDateSelected(day: day)
+                    }
+                } label: {
+                    Text(day.formatted(.dateTime.day()))
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(presenter.foregroundStyle(for: day))
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .contentShape(Rectangle())
+                        .background(
+                            Circle()
+                                .fill(
+                                    day.formattedDate == presenter.selectedDate.formattedDate
+                                    ? Color.accentColor
+                                    : Color.clear
+                                )
+                        )
+                }
+                .disabled(day < Date.now.startOfDay || day.monthInt != presenter.currentMonth.monthInt)
+            }
+        }
+        .buttonStyle(.plain)
     }
-    
-    private func foregroundStyle(for day: Date) -> Color {
-        let isDifferentMonth = day.monthInt != currentMonth.monthInt
-        let isSelectedDate = day.formattedDate == selectedDate.formattedDate
-        let isPastDate = day < Date.now.startOfDay
-        
-        if isDifferentMonth {
-            return .secondary
-        } else if isPastDate {
-            return .secondary
-        } else if isSelectedDate {
-            return .white
-        } else {
-            return .primary
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+
+        ToolbarItem(placement: .title) {
+            Text(presenter.currentMonth.formatted(.dateTime.year().month()))
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(.primary)
+        }
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                presenter.onDismissPressed()
+            } label: {
+                Image(systemName: "xmark")
+            }
+        }
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onBackMonthPressed()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.title2)
+                    .foregroundStyle(.tint)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onForwardMonthPressed()
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(.title2)
+                    .foregroundStyle(.tint)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
         }
     }
+
+}
+
+extension CoreBuilder {
+
+    func calendarView(router: Router, delegate: CalendarDelegate) -> some View {
+        CalendarView(
+            presenter: CalendarPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self),
+                delegate: delegate
+            )
+        )
+    }
+
+}
+
+extension CoreRouter {
+
+    func showCalendarView(delegate: CalendarDelegate) {
+        router.showScreen(.sheetConfig(config: ResizableSheetConfig(detents: [.fraction(0.45)]))) { router in
+            builder.calendarView(router: router, delegate: delegate)
+        }
+    }
+
+    func showCalendarViewZoom(delegate: CalendarDelegate, transitionId: String?, namespace: Namespace.ID) {
+        router.showScreenWithZoomTransition(
+            .sheetConfig(config: ResizableSheetConfig(detents: [.fraction(0.45)])),
+            transitionID: transitionId,
+            namespace: namespace) { router in
+                builder.calendarView(router: router, delegate: delegate)
+            }
+
+    }
+
 }
 
 #Preview {
-    CalendarView { date, _ in
+    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let delegate = CalendarDelegate { date, _ in
         print("Date selected: \(date)")
     }
+    Color.clear
+        .sheet(isPresented: .constant(true)) {
+            RouterView { router in
+                builder.calendarView(router: router, delegate: delegate)
+            }
+            .presentationDetents([.fraction(0.45)])
+        }
+        .previewEnvironment()
 }

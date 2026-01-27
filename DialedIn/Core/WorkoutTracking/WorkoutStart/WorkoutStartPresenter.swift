@@ -12,13 +12,16 @@ import SwiftUI
 class WorkoutStartPresenter {
     private let interactor: WorkoutStartInteractor
     private let router: WorkoutStartRouter
+    private let delegate: WorkoutStartDelegate
 
     init(
         interactor: WorkoutStartInteractor,
-        router: WorkoutStartRouter
+        router: WorkoutStartRouter,
+        delegate: WorkoutStartDelegate
     ) {
         self.interactor = interactor
         self.router = router
+        self.delegate = delegate
     }
 
     var workoutNotes = ""
@@ -91,7 +94,7 @@ class WorkoutStartPresenter {
                     
                     await MainActor.run {
                         interactor.startActiveSession(session)
-                        router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSession: session))
+                        delegate.onStartWorkout?(session)
                     }
                     
                 } catch {

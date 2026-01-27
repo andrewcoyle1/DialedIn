@@ -12,33 +12,17 @@ import SwiftUI
 class TabBarPresenter {
     
     private let interactor: TabBarInteractor
+    private let router: TabBarRouter
 
     var activeSession: WorkoutSessionModel? {
-        get {
-            interactor.activeSession
-        }
-        set {
-            interactor.setActiveSession(newValue)
-        }
-    }
-    
-    var isTrackerPresented: Bool {
-        get { interactor.isTrackerPresented }
-        set { interactor.setIsTrackerPresented(newValue) }
+        interactor.activeSession
     }
 
     init(
-        interactor: TabBarInteractor
+        interactor: TabBarInteractor,
+        router: TabBarRouter
     ) {
         self.interactor = interactor
-    }
-        
-    func checkForActiveSession() {
-        activeSession = try? interactor.getActiveLocalWorkoutSession() 
-    }
-    
-    func onWorkoutAccessoryPressed() {
-        guard activeSession != nil else { return }
-        isTrackerPresented = true
+        self.router = router
     }
 }

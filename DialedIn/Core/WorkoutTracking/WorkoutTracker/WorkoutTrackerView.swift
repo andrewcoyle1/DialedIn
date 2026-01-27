@@ -10,12 +10,15 @@ import HealthKit
 import SwiftfulRouting
 import Combine
 
+struct WorkoutTrackerDelegate {
+    let workoutSessionId: String
+}
+
 struct WorkoutTrackerView: View {
 
     @Environment(\.scenePhase) private var scenePhase
     
     @State var presenter: WorkoutTrackerPresenter
-        
     let delegate: WorkoutTrackerDelegate
 
     @ViewBuilder var exerciseTrackerCardView: (ExerciseTrackerCardDelegate) -> AnyView
@@ -23,10 +26,10 @@ struct WorkoutTrackerView: View {
     var body: some View {
         List {
             workoutOverviewCard
+                .listSectionMargins(.top, 0)
             exerciseSection
-            deleteWorkoutSection
         }
-//        .navigationTitle(presenter.workoutSession.name)
+        .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
         .environment(\.editMode, $presenter.editMode)
         .toolbar {
@@ -35,16 +38,12 @@ struct WorkoutTrackerView: View {
         .safeAreaInset(edge: .bottom) {
             timerHeaderView()
         }
-        .onAppear {
-            print("👀 WorkoutTrackerView.onAppear for session id=\(delegate.workoutSession.id)")
-            presenter.loadWorkoutSession(delegate.workoutSession)
-        }
-        .task(id: delegate.workoutSession.id) {
-            print("🚀 WorkoutTrackerView.task for session id=\(delegate.workoutSession.id)")
+        .task(id: delegate.workoutSessionId) {
+            await presenter.loadWorkoutSession(delegate.workoutSessionId)
             await presenter.onAppear()
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
-            print("🌗 WorkoutTrackerView.scenePhase changed \(oldPhase) -> \(newPhase) for session id=\(delegate.workoutSession.id)")
+            print("🌗 WorkoutTrackerView.scenePhase changed \(oldPhase) -> \(newPhase) for session id=\(delegate.workoutSessionId)")
             presenter.onScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
         }
     }
@@ -217,47 +216,48 @@ struct WorkoutTrackerView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .title) {
-            TextField(text: $presenter.workoutSessionName) {
-                Text("Untitled Workout")
+            TextField(text: $presenter.workoutSession.name) {
+                Text(presenter.workoutSession.name)
             }
         }
         ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.minimizeSession()
+            Menu {
+                Button {
+
+                } label: {
+                    Label("Resume Workout", systemImage: "play")
+                }
+                Button {
+                    presenter.minimizeSession()
+                } label: {
+                    Label("Minimise Tracker", systemImage: "xmark")
+                }
+
+                Button {
+                    presenter.finishWorkout()
+                } label: {
+                    Label("Finish Workout", systemImage: "checkmark")
+                }
+
+                Button {
+
+                } label: {
+                    Label("Workout Settings", systemImage: "gear")
+                }
+
+                Button {
+
+                } label: {
+                    Label("Gym Settings", systemImage: "gear")
+                }
+
+                Button(role: .destructive) {
+                    presenter.onDiscardWorkoutPressed()
+                } label: {
+                    Label("Delete Workout", systemImage: "trash")
+                }
             } label: {
-                Image(systemName: "xmark")
-            }
-        }
-        
-        ToolbarSpacer(.fixed, placement: .topBarLeading)
-        
-        #if DEBUG || MOCK
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.onDevSettingsPressed()
-            } label: {
-                Image(systemName: "info")
-            }
-        }
-        #endif
-        
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                presenter.finishWorkout()
-            } label: {
-                Image(systemName: "checkmark")
-            }
-            .buttonStyle(.glassProminent)
-        }
-                
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        
-        ToolbarItem(placement: .bottomBar) {
-            Button {
-                presenter.pendingSelectedTemplates = []
-                presenter.presentAddExercise()
-            } label: {
-                Image(systemName: "plus")
+                Image(systemName: "line.3.horizontal")
             }
         }
     }
@@ -284,28 +284,10 @@ extension CoreRouter {
     }
 }
 
-#Preview("Tracker View") {
+#Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container)
     RouterView { router in
-        builder.workoutTrackerView(router: router, delegate: WorkoutTrackerDelegate(workoutSession: .mock))
-    }
-    .previewEnvironment()
-}
-
-#Preview("Tracker View - No Session") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
-    let session = WorkoutSessionModel(
-        id: UUID().uuidString,
-        authorId: "uid",
-        name: "Untitled Workout",
-        dateCreated: .now,
-        exercises: []
-    )
-    RouterView { router in
-        builder.workoutTrackerView(
-            router: router,
-            delegate: WorkoutTrackerDelegate(workoutSession: session)
-        )
+        builder.workoutTrackerView(router: router, delegate: WorkoutTrackerDelegate(workoutSessionId: WorkoutSessionModel.mock.id))
     }
     .previewEnvironment()
 }

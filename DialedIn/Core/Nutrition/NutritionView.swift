@@ -17,26 +17,21 @@ struct NutritionView<CalendarHeaderView: View>: View {
     
     @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
 
+    @Namespace private var namespace
+    
     var body: some View {
-        VStack {
-            calendarHeader(CalendarHeaderDelegate(onDatePressed: { date in
-                presenter.selectedDate = date.startOfDay
-            }, getForDate: { date in
-                presenter.getMealCountForDate(date: date)
-            }) )
-            List {
-                dailySummarySection
-                
-                mealsSection
-                
-                addMealSection
-                
-                recipeLibraryButton
-                
-                ingredientLibraryButton
-            }
-            .scrollIndicators(.hidden)
+        List {
+            dailySummarySection
+
+            mealsSection
+
+            addMealSection
+
+            recipeLibraryButton
+
+            ingredientLibraryButton
         }
+        .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -50,7 +45,13 @@ struct NutritionView<CalendarHeaderView: View>: View {
                 await presenter.loadMeals()
             }
         }
-
+        .safeAreaInset(edge: .top) {
+            calendarHeader(CalendarHeaderDelegate(onDatePressed: { date in
+                presenter.selectedDate = date.startOfDay
+            }, getForDate: { date in
+                presenter.getMealCountForDate(date: date)
+            }) )
+        }
     }
 
     // MARK: - Daily Summary Section
@@ -168,15 +169,15 @@ struct NutritionView<CalendarHeaderView: View>: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
+
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                presenter.onDevSettingsPressed()
+                presenter.onCalendarPressed("nutrition-calendar-button", in: namespace)
             } label: {
-                Image(systemName: "info")
+                Image(systemName: "calendar")
             }
+            .matchedTransitionSource(id: "nutrition-calendar-button", in: namespace)
         }
-        #endif
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {

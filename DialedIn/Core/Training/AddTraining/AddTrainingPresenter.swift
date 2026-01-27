@@ -23,7 +23,12 @@ class AddTrainingPresenter {
         router.dismissScreen()
         delegate.onSelectWorkout?()
     }
-    
+
+    func onNewExercisePressed() {
+        router.dismissScreen()
+        delegate.onSelectExercise?()
+    }
+
     func dismissScreen() {
         router.dismissScreen()
     }

@@ -11,24 +11,19 @@ import SwiftUI
 @MainActor
 class SplitViewContainerPresenter {
     private let interactor: SplitViewContainerInteractor
-    
+    private let router: SplitViewRouter
+
     var preferredColumn: NavigationSplitViewColumn = .sidebar
 
     var activeSession: WorkoutSessionModel? {
-        get { interactor.activeSession }
-        set { interactor.setActiveSession(newValue) }
+        interactor.activeSession
     }
     
-    var isTrackerPresented: Bool {
-        get { interactor.isTrackerPresented }
-        set { interactor.setIsTrackerPresented(newValue) }
-    }
-    
-    init(interactor: SplitViewContainerInteractor) {
+    init(
+        interactor: SplitViewContainerInteractor,
+        router: SplitViewRouter
+    ) {
         self.interactor = interactor
-    }
-    
-    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel? {
-        try interactor.getActiveLocalWorkoutSession()
+        self.router = router
     }
 }

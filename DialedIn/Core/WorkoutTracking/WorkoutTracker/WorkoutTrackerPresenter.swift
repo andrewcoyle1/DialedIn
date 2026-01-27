@@ -18,7 +18,6 @@ class WorkoutTrackerPresenter {
 
     // MARK: - State Properties
     var workoutSession: WorkoutSessionModel
-    var workoutSessionName: String = ""
     var restDurationSeconds: Int = 90
     var restBeforeSetIdToSec: [String: Int] = [:]
     var restPickerTargetSetId: String?
@@ -81,8 +80,16 @@ class WorkoutTrackerPresenter {
         }
     }
     
-    func loadWorkoutSession(_ workoutSession: WorkoutSessionModel) {
-        self.workoutSession = workoutSession
+    func loadWorkoutSession(_ workoutSessionId: String) async {
+        do {
+            self.workoutSession = try interactor.getLocalWorkoutSession(id: workoutSessionId)
+        } catch {
+            do {
+                self.workoutSession = try await interactor.getWorkoutSession(id: workoutSessionId)
+            } catch {
+                router.showSimpleAlert(title: "Failed to load workout session", subtitle: "Please try again")
+            }
+        }
         self.workoutNotes = workoutSession.notes ?? ""
         self.startTime = workoutSession.dateCreated
         // Refresh from local storage to ensure latest persisted changes are loaded
@@ -260,40 +267,39 @@ class WorkoutTrackerPresenter {
     // MARK: - Workout Actions
     
     func discardWorkout() {
-        defer {
-            stopWidgetSyncTimer()
-            Task {
-                do {
-                    try? await Task.sleep(for: .seconds(1))
-                    #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-                    // End HK session first
-                    interactor.endWorkout()
-                    #endif
-                    
-                    // Cancel any pending rest timer notifications
-                    await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
-                    
-                    #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-                    // End live activity with immediate dismissal for discarded workouts
-                    interactor.endLiveActivity(session: workoutSession, isCompleted: false, statusMessage: "Workout Discarded")
-                    #endif
-                    
-                    try interactor.deleteLocalWorkoutSession(id: workoutSession.id)
-                    // Don't mark scheduled workout as complete when discarding
-                    SharedWorkoutStorage.clearHKStartedSessionId()
-                    await interactor.endActiveSession(markScheduledComplete: false)
-                } catch {
-                    await MainActor.run {
-                        self.router.showSimpleAlert(
-                            title: "Failed to discard workout",
-                            subtitle: error.localizedDescription
-                        )
-                    }
+        stopWidgetSyncTimer()
+        Task {
+            do {
+                try? await Task.sleep(for: .seconds(1))
+#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+                // End HK session first
+                interactor.endWorkout()
+#endif
+
+                // Cancel any pending rest timer notifications
+                await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
+
+#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+                // End live activity with immediate dismissal for discarded workouts
+                interactor.endLiveActivity(session: workoutSession, isCompleted: false, statusMessage: "Workout Discarded")
+#endif
+
+                try interactor.deleteLocalWorkoutSession(id: workoutSession.id)
+                // Don't mark scheduled workout as complete when discarding
+                SharedWorkoutStorage.clearHKStartedSessionId()
+                await interactor.endActiveSession(markScheduledComplete: false)
+                router.dismissScreen()
+
+            } catch {
+                await MainActor.run {
+                    self.router.showSimpleAlert(
+                        title: "Failed to discard workout",
+                        subtitle: error.localizedDescription
+                    )
                 }
             }
         }
-        
-        router.dismissScreen()
+
     }
 
     func onDiscardWorkoutPressed() {
@@ -368,7 +374,6 @@ class WorkoutTrackerPresenter {
             
     func minimizeSession() {
         stopWidgetSyncTimer()
-        interactor.minimizeActiveSession()
         router.dismissScreen()
     }
     

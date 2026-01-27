@@ -13,12 +13,15 @@ struct GymProfileView: View {
             if !presenter.filteredFreeWeights.isEmpty {
                 freeWeightsSection
             }
+
             if !presenter.filteredLoadableBars.isEmpty {
                 loadableBarsSection
             }
+
             if !presenter.filteredFixedWeightBars.isEmpty {
                 fixedWeightBarsSection
             }
+
             if !presenter.filteredBands.isEmpty {
                 bandsSection
             }
@@ -42,9 +45,11 @@ struct GymProfileView: View {
             if !presenter.filteredCableMachines.isEmpty {
                 cableMachinesSection
             }
+
             if !presenter.filteredPlateLoadedMachines.isEmpty {
                 plateLoadedMachineSection
             }
+
             if !presenter.filteredPinLoadedMachines.isEmpty {
                 pinLoadedMachineSection
             }

@@ -31,6 +31,7 @@
 		D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BB82E8EA1710027C662 /* SDWebImageSwiftUI */; };
 		D05D0BBB2E8EA1C00027C662 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BBA2E8EA1C00027C662 /* FirebaseCrashlytics */; };
 		D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BBD2E8EA22E0027C662 /* SwiftfulUtilities */; };
+		D06E0A8D2F282F8400746BD6 /* SwiftfulRouting in Frameworks */ = {isa = PBXBuildFile; productRef = D06E0A8C2F282F8400746BD6 /* SwiftfulRouting */; };
 		D08F584A2E8BF61B001D3980 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F58492E8BF61B001D3980 /* WidgetKit.framework */; };
 		D08F584C2E8BF61B001D3980 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F584B2E8BF61B001D3980 /* SwiftUI.framework */; };
 		D08F58572E8BF61D001D3980 /* WorkoutSessionActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D08F58482E8BF61B001D3980 /* WorkoutSessionActivityExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -38,7 +39,6 @@
 		D08F58632E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
 		D0AB1C992EA1907100682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
 		D0AB1C9A2EA1907200682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
-		D0C0E6A22EE2410D009D5D18 /* SwiftfulRouting in Frameworks */ = {isa = PBXBuildFile; productRef = D0C0E6A12EE2410D009D5D18 /* SwiftfulRouting */; };
 		D0CE89E72EB2379000EED3B5 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E62EB2379000EED3B5 /* FirebaseAnalytics */; };
 		D0CE89E92EB237A100EED3B5 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E82EB237A100EED3B5 /* FirebaseAuth */; };
 		D0CE89EB2EB237A600EED3B5 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89EA2EB237A600EED3B5 /* FirebaseCore */; };
@@ -147,6 +147,7 @@
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryDelegate.swift,
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryInteractor.swift,
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryPresenter.swift,
+				Components/Views/Training/TabViewAccessory/TabViewAccessoryRouter.swift,
 				Components/Views/Training/WorkoutCalendarView/Schedule/ScheduleInteractor.swift,
 				Components/Views/Training/WorkoutCalendarView/Schedule/SchedulePresenter.swift,
 				Components/Views/Training/WorkoutCalendarView/WorkoutCalendarDelegate.swift,
@@ -393,8 +394,10 @@
 				Core/Settings/SettingsRouter.swift,
 				Core/SplitViewContainer/SplitViewContainerInteractor.swift,
 				Core/SplitViewContainer/SplitViewContainerPresenter.swift,
+				Core/SplitViewContainer/SplitViewRouter.swift,
 				Core/TabBar/TabBarInteractor.swift,
 				Core/TabBar/TabBarPresenter.swift,
+				Core/TabBar/TabBarRouter.swift,
 				Core/TabBar/TabBarScreen.swift,
 				Core/Training/AddExerciseModal/AddExerciseInteractor.swift,
 				Core/Training/AddExerciseModal/AddExerciseModalPresenter.swift,
@@ -605,7 +608,6 @@
 				Core/WorkoutTracking/WorkoutStart/WorkoutStartInteractor.swift,
 				Core/WorkoutTracking/WorkoutStart/WorkoutStartPresenter.swift,
 				Core/WorkoutTracking/WorkoutStart/WorkoutStartRouter.swift,
-				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerDelegate.swift,
 				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerInteractor.swift,
 				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerPresenter.swift,
 				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerRouter.swift,
@@ -864,6 +866,9 @@
 				"Components/ViewModifiers/View+EXT.swift",
 				Components/ViewModifiers/WorkoutTrackerTabAccessoryViewModifier.swift,
 				Components/Views/AsyncCallToActionButton.swift,
+				Components/Views/Calendar/CalendarInteractor.swift,
+				Components/Views/Calendar/CalendarPresenter.swift,
+				Components/Views/Calendar/CalendarRouter.swift,
 				Components/Views/Calendar/CalendarView.swift,
 				Components/Views/CarouselView.swift,
 				Components/Views/CategoryCellView.swift,
@@ -898,6 +903,7 @@
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryDelegate.swift,
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryInteractor.swift,
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryPresenter.swift,
+				Components/Views/Training/TabViewAccessory/TabViewAccessoryRouter.swift,
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryView.swift,
 				Components/Views/Training/WorkoutCalendarView/Schedule/ScheduleInteractor.swift,
 				Components/Views/Training/WorkoutCalendarView/Schedule/SchedulePresenter.swift,
@@ -915,6 +921,7 @@
 				Components/Views/WeeklyMacroChart.swift,
 				Core/AdaptiveMain/AdaptiveMainInteractor.swift,
 				Core/AdaptiveMain/AdaptiveMainPresenter.swift,
+				Core/AdaptiveMain/AdaptiveMainRouter.swift,
 				Core/AdaptiveMain/AdaptiveMainView.swift,
 				Core/AppView/AppInteractor.swift,
 				Core/AppView/AppPresenter.swift,
@@ -1232,6 +1239,9 @@
 				Core/Profile/Subviews/ProfilePhysicalStats/ProfilePhysicalStatsRouter.swift,
 				Core/Profile/Subviews/ProfilePhysicalStats/ProfilePhysicalStatsView.swift,
 				Core/Profile/Subviews/SetGoalFlowView.swift,
+				Core/Search/SearchInteractor.swift,
+				Core/Search/SearchPresenter.swift,
+				Core/Search/SearchRouter.swift,
 				Core/Search/SearchView.swift,
 				Core/Settings/SettingsInteractor.swift,
 				Core/Settings/SettingsPresenter.swift,
@@ -1240,8 +1250,10 @@
 				Core/SplitViewContainer/SplitViewContainer.swift,
 				Core/SplitViewContainer/SplitViewContainerInteractor.swift,
 				Core/SplitViewContainer/SplitViewContainerPresenter.swift,
+				Core/SplitViewContainer/SplitViewRouter.swift,
 				Core/TabBar/TabBarInteractor.swift,
 				Core/TabBar/TabBarPresenter.swift,
+				Core/TabBar/TabBarRouter.swift,
 				Core/TabBar/TabBarScreen.swift,
 				Core/TabBar/TabBarView.swift,
 				Core/Training/AddExerciseModal/AddExerciseInteractor.swift,
@@ -1513,7 +1525,6 @@
 				Core/WorkoutTracking/WorkoutStart/WorkoutStartPresenter.swift,
 				Core/WorkoutTracking/WorkoutStart/WorkoutStartRouter.swift,
 				Core/WorkoutTracking/WorkoutStart/WorkoutStartView.swift,
-				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerDelegate.swift,
 				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerInteractor.swift,
 				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerPresenter.swift,
 				Core/WorkoutTracking/WorkoutTracker/WorkoutTrackerRouter.swift,
@@ -1868,6 +1879,7 @@
 				D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */,
 				D0E7AA692EE2DB6100BEE79F /* SwiftfulLogging in Frameworks */,
 				D0E7D5A32EE3139400BEE79F /* FirebaseRemoteConfig in Frameworks */,
+				D06E0A8D2F282F8400746BD6 /* SwiftfulRouting in Frameworks */,
 				D0E7AA722EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics in Frameworks */,
 				D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */,
 				D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */,
@@ -1885,7 +1897,6 @@
 				D0E7A8A12EE2D87800BEE79F /* SwiftfulAuthenticating in Frameworks */,
 				D0E7AA6C2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel in Frameworks */,
 				D0E7A8A42EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase in Frameworks */,
-				D0C0E6A22EE2410D009D5D18 /* SwiftfulRouting in Frameworks */,
 				D05D0BBB2E8EA1C00027C662 /* FirebaseCrashlytics in Frameworks */,
 				D0E7AA6F2EE2DB8F00BEE79F /* SwiftfulLoggingFirebaseAnalytics in Frameworks */,
 				D05D0BB62E8EA15E0027C662 /* FirebaseStorage in Frameworks */,
@@ -2065,7 +2076,6 @@
 				D05D0BB82E8EA1710027C662 /* SDWebImageSwiftUI */,
 				D05D0BBA2E8EA1C00027C662 /* FirebaseCrashlytics */,
 				D05D0BBD2E8EA22E0027C662 /* SwiftfulUtilities */,
-				D0C0E6A12EE2410D009D5D18 /* SwiftfulRouting */,
 				D0E7A89E2EE2D87800BEE79F /* SwiftfulAuthUI */,
 				D0E7A8A02EE2D87800BEE79F /* SwiftfulAuthenticating */,
 				D0E7A8A32EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase */,
@@ -2079,6 +2089,7 @@
 				D0E7D5E82EE34B6B00BEE79F /* RevenueCat */,
 				D0E7D5EA2EE34B6B00BEE79F /* RevenueCatUI */,
 				D0E7D5EE2EE372A600BEE79F /* SwiftfulFirestore */,
+				D06E0A8C2F282F8400746BD6 /* SwiftfulRouting */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -2092,7 +2103,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					D012F0192EACD46C0014C602 = {
 						CreatedOnToolsVersion = 26.0;
@@ -2125,7 +2136,6 @@
 				D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				D05D0BB72E8EA1710027C662 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */,
-				D0C0E6A02EE2410D009D5D18 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */,
 				D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */,
 				D0E7A8A22EE2D90700BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticatingFirebase" */,
 				D0E7AA672EE2DB6100BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLogging" */,
@@ -2136,6 +2146,7 @@
 				D0E7D5AB2EE31EF800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulPurchasingRevenueCat" */,
 				D0E7D5E72EE34B6B00BEE79F /* XCRemoteSwiftPackageReference "purchases-ios" */,
 				D0E7D5ED2EE372A600BEE79F /* XCRemoteSwiftPackageReference "SwiftfulFirestore" */,
+				D06E0A8B2F282F8400746BD6 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
@@ -2489,6 +2500,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -2512,6 +2524,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG MOCK $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -2525,6 +2538,7 @@
 				CODE_SIGN_ENTITLEMENTS = DialedIn/DialedIn.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
@@ -2552,7 +2566,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -2596,7 +2610,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.dev.WorkoutSessionActivity;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.Dialed.dev.WorkoutSessionActivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -2634,7 +2648,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.mock.WorkoutSessionActivity;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.Dialed.mock.WorkoutSessionActivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -2673,7 +2687,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.WorkoutSessionActivity;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.Dialed.WorkoutSessionActivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -2725,6 +2739,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -2748,6 +2763,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -2787,6 +2803,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -2804,6 +2821,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = NO;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -2816,6 +2834,7 @@
 				CODE_SIGN_ENTITLEMENTS = "DialedIn/DialedIn-Debug.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
@@ -2843,7 +2862,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -2874,6 +2893,7 @@
 				CODE_SIGN_ENTITLEMENTS = DialedIn/DialedIn.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
@@ -2901,7 +2921,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -3020,12 +3040,12 @@
 				minimumVersion = 1.1.6;
 			};
 		};
-		D0C0E6A02EE2410D009D5D18 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */ = {
+		D06E0A8B2F282F8400746BD6 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulRouting.git";
+			repositoryURL = "https://github.com/andrewcoyle1/SwiftfulRouting.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 6.1.8;
+				kind = exactVersion;
+				version = "0.1.0-alpha";
 			};
 		};
 		D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */ = {
@@ -3196,9 +3216,9 @@
 			package = D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
 			productName = SwiftfulUtilities;
 		};
-		D0C0E6A12EE2410D009D5D18 /* SwiftfulRouting */ = {
+		D06E0A8C2F282F8400746BD6 /* SwiftfulRouting */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D0C0E6A02EE2410D009D5D18 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */;
+			package = D06E0A8B2F282F8400746BD6 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */;
 			productName = SwiftfulRouting;
 		};
 		D0CE89E62EB2379000EED3B5 /* FirebaseAnalytics */ = {

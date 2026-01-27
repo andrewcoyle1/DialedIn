@@ -16,10 +16,7 @@ class WorkoutSessionManager {
     // MARK: - UI Presentation State
     // Currently active (in-progress) workout session the user can resume
     var activeSession: WorkoutSessionModel?
-    
-    // Controls presentation of the full screen tracker UI
-    var isTrackerPresented: Bool = false
-    
+
     // Rest timer state for active session
     var restEndTime: Date?
     
@@ -39,27 +36,8 @@ class WorkoutSessionManager {
         activeSession = session
         // Persist active session locally
         try? local.setActiveLocalWorkoutSession(session)
-        // Do not auto-present here to avoid double presentation when started from a view that already presents the tracker
-        isTrackerPresented = false
     }
-    
-    func minimizeActiveSession() {
-        isTrackerPresented = false
-    }
-    
-    func reopenActiveSession() {
-        print("🔄 WorkoutSessionManager.reopenActiveSession() invoked")
-        // Always refresh from local to ensure we have the latest edits
-        activeSession = try? local.getActiveLocalWorkoutSession()
-        if let session = activeSession {
-            print("✅ Active session restored for reopen (id=\(session.id), name=\(session.name))")
-        } else {
-            print("⚠️ No active session found to reopen")
-        }
-        guard activeSession != nil else { return }
-        isTrackerPresented = true
-    }
-    
+
     func endActiveSession(markScheduledComplete: Bool = true) async {
         // Mark scheduled workout as complete if linked to training plan AND not discarding
         if markScheduledComplete,
@@ -90,18 +68,19 @@ class WorkoutSessionManager {
         }
         
         activeSession = nil
-        isTrackerPresented = false
         restEndTime = nil
         // Clear persisted active session
         try? local.setActiveLocalWorkoutSession(nil)
     }
 
     func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel? {
-        try local.getActiveLocalWorkoutSession()
+        self.activeSession = try local.getActiveLocalWorkoutSession()
+        return activeSession
     }
 
     func setActiveLocalWorkoutSession(_ session: WorkoutSessionModel?) throws {
         try local.setActiveLocalWorkoutSession(session)
+        self.activeSession = session
     }
 
     // MARK: - Local Operations

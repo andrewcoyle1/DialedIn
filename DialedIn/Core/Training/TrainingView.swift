@@ -12,21 +12,49 @@ import UIKit
 import SwiftfulRouting
 
 struct TrainingView<
-    TodaysWorkout: View, WorkoutCalendar: View, WeeksWorkouts: View, GoalListSectionView: View, TrainingProgress: View, CalendarHeaderView: View>: View {
+    TodaysWorkout: View,
+    WeeksWorkouts: View,
+    CalendarHeaderView: View
+>: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
     @State var presenter: TrainingPresenter
 
     @ViewBuilder var todaysWorkoutSectionView: () -> TodaysWorkout
-    @ViewBuilder var workoutCalendarView: () -> WorkoutCalendar
     @ViewBuilder var thisWeeksWorkoutsView: () -> WeeksWorkouts
-    @ViewBuilder var goalListSectionView: () -> GoalListSectionView
-    @ViewBuilder var trainingProgressChartsView: () -> TrainingProgress
     @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
 
+    @Namespace private var namespace
+
     var body: some View {
-        VStack {
+        List {
+            if presenter.currentTrainingPlan != nil {
+                activeProgramView
+            } else {
+                noProgramView
+            }
+            moreSection
+        }
+        .refreshable {
+            await presenter.refreshData()
+        }
+        .navigationTitle("Training")
+        .navigationBarTitleDisplayMode(.inline)
+        .scrollIndicators(.hidden)
+        .toolbar {
+            toolbarContent
+        }
+        .onAppear {
+            presenter.getWeeklyProgress()
+            Task {
+                await presenter.refreshFavouriteGymProfileImage()
+            }
+        }
+        .onFirstTask {
+            await presenter.loadData()
+        }
+        .safeAreaInset(edge: .top) {
             calendarHeader(
                 CalendarHeaderDelegate(
                     onDatePressed: { date in
@@ -37,42 +65,14 @@ struct TrainingView<
                     }
                 )
             )
-            List {
-                if presenter.currentTrainingPlan != nil {
-                    activeProgramView
-                } else {
-                    noProgramView
-                }
-                moreSection
-            }
-            .refreshable {
-                await presenter.refreshData()
-            }
-        }
-        .navigationTitle("Training")
-        .navigationBarTitleDisplayMode(.inline)
-        .scrollIndicators(.hidden)
-        .toolbar {
-            toolbarContent
-        }
-        .onAppear {
-            Task {
-                await presenter.refreshFavouriteGymProfileImage()
-            }
-        }
-        .onFirstTask {
-            await presenter.loadData()
         }
     }
     
     private var activeProgramView: some View {
         Group {
-            todaysWorkoutSectionView()
             programOverviewSection
-            workoutCalendarView()
+            todaysWorkoutSectionView()
             thisWeeksWorkoutsView()
-            goalListSectionView()
-            trainingProgressChartsView()
         }
     }
 
@@ -130,8 +130,7 @@ struct TrainingView<
                             color: presenter.adherenceColor(presenter.adherenceRate)
                         )
                         
-                        if let currentWeek = presenter.currentWeek {
-                            let progress = presenter.getWeeklyProgress(weekNumber: currentWeek.weekNumber)
+                        if let progress = presenter.weekProgress {
                             StatCard(
                                 value: "\(progress.completedWorkouts)/\(progress.totalWorkouts)",
                                 label: "This Week",
@@ -258,16 +257,16 @@ struct TrainingView<
             
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
+
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                presenter.onDevSettingsPressed()
+                presenter.onCalendarPressed("training-calendar-button", in: namespace)
             } label: {
-                Image(systemName: "info")
+                Image(systemName: "calendar")
             }
+            .matchedTransitionSource(id: "training-calendar-button", in: namespace)
         }
-        #endif
-        
+
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onAddPressed()
@@ -295,17 +294,8 @@ extension CoreBuilder {
             todaysWorkoutSectionView: {
                 self.todaysWorkoutSectionView(router: router)
             },
-            workoutCalendarView: {
-                self.workoutCalendarView(router: router)
-            },
             thisWeeksWorkoutsView: {
                 self.thisWeeksWorkoutsView(router: router)
-            },
-            goalListSectionView: {
-                self.goalListSectionView(router: router)
-            },
-            trainingProgressChartsView: {
-                self.trainingProgressChartsView(router: router)
             },
             calendarHeader: { delegate in
                 self.calendarHeaderView(router: router, delegate: delegate)
