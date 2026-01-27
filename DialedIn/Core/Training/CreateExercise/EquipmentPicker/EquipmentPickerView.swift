@@ -1,14 +1,14 @@
 import SwiftUI
 
-struct EquipmentPickerDelegate<Item: ResistanceEquipment> {
-    let items: [Item]
+struct EquipmentPickerDelegate {
+    let items: [AnyEquipment]
     let headerTitle: String
-    var chosenItem: Binding<[Item]>
+    var chosenItem: Binding<[EquipmentRef]>
     
     init(
-        items: [Item],
+        items: [AnyEquipment],
         headerTitle: String = "Equipment",
-        chosenItem: Binding<[Item]>
+        chosenItem: Binding<[EquipmentRef]>
     ) {
         self.items = items
         self.headerTitle = headerTitle
@@ -16,18 +16,13 @@ struct EquipmentPickerDelegate<Item: ResistanceEquipment> {
     }
 }
 
-protocol ResistanceEquipment: Hashable {
-    var name: String { get }
-    var imageName: String? { get }
-}
-
-struct EquipmentPickerView<Item: ResistanceEquipment>: View {
+struct EquipmentPickerView: View {
     
     @State var presenter: EquipmentPickerPresenter
-    let delegate: EquipmentPickerDelegate<Item>
-    @Binding private var chosenItems: [Item]
+    let delegate: EquipmentPickerDelegate
+    @Binding private var chosenItems: [EquipmentRef]
     
-    init(presenter: EquipmentPickerPresenter, delegate: EquipmentPickerDelegate<Item>) {
+    init(presenter: EquipmentPickerPresenter, delegate: EquipmentPickerDelegate) {
         self.presenter = presenter
         self.delegate = delegate
         self._chosenItems = delegate.chosenItem
@@ -68,7 +63,7 @@ struct EquipmentPickerView<Item: ResistanceEquipment>: View {
     }
     
     @ViewBuilder
-    private func rowItem(item: Item) -> some View {
+    private func rowItem(item: AnyEquipment) -> some View {
         HStack {
             if let imageName = item.imageName {
                 ImageLoaderView(urlString: imageName)
@@ -85,7 +80,7 @@ struct EquipmentPickerView<Item: ResistanceEquipment>: View {
             }
             Spacer()
             Circle()
-                .stroke(lineWidth: chosenItems.contains(item) ? 12 : 3)
+                .stroke(lineWidth: chosenItems.contains(item.ref) ? 12 : 3)
                 .frame(height: 20)
                 .labelsHidden()
         }
@@ -98,8 +93,8 @@ struct EquipmentPickerView<Item: ResistanceEquipment>: View {
 
 extension CoreBuilder {
     
-    func equipmentPickerView<Item: ResistanceEquipment>(router: Router, delegate: EquipmentPickerDelegate<Item>) -> some View {
-        EquipmentPickerView<Item>(
+    func equipmentPickerView(router: Router, delegate: EquipmentPickerDelegate) -> some View {
+        EquipmentPickerView(
             presenter: EquipmentPickerPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
@@ -112,7 +107,7 @@ extension CoreBuilder {
 
 extension CoreRouter {
     
-    func showEquipmentPickerView<Item: ResistanceEquipment>(delegate: EquipmentPickerDelegate<Item>) {
+    func showEquipmentPickerView(delegate: EquipmentPickerDelegate) {
         router.showScreen(.sheet) { router in
             builder.equipmentPickerView(router: router, delegate: delegate)
         }
@@ -120,15 +115,13 @@ extension CoreRouter {
     
 }
 
-extension FreeWeights: @MainActor ResistanceEquipment { }
-
 #Preview {
     let container = DevPreview.shared.container
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-    let delegate = EquipmentPickerDelegate<FreeWeights>(
-        items: GymProfileModel.mock.freeWeights,
+    let delegate = EquipmentPickerDelegate(
+        items: GymProfileModel.mock.freeWeights.map(AnyEquipment.init),
         headerTitle: "Free Weights",
-        chosenItem: .constant([FreeWeights.mock])
+        chosenItem: .constant([FreeWeights.mock.equipmentRef])
     )
     
     return RouterView { router in

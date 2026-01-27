@@ -128,17 +128,31 @@ struct GymProfileModel: Identifiable, Codable {
 }
 
 extension GymProfileModel {
+    var allEquipment: [AnyEquipment] {
+        [
+            freeWeights.map(AnyEquipment.init),
+            loadableBars.map(AnyEquipment.init),
+            fixedWeightBars.map(AnyEquipment.init),
+            bands.map(AnyEquipment.init),
+            bodyWeights.map(AnyEquipment.init),
+            supportEquipment.map(AnyEquipment.init),
+            accessoryEquipment.map(AnyEquipment.init),
+            loadableAccessoryEquipment.map(AnyEquipment.init),
+            cableMachines.map(AnyEquipment.init),
+            plateLoadedMachines.map(AnyEquipment.init),
+            pinLoadedMachines.map(AnyEquipment.init)
+        ].flatMap { $0 }
+    }
+    
+    var equipmentIndex: [EquipmentRef: AnyEquipment] {
+        Dictionary(uniqueKeysWithValues: allEquipment.map { ($0.ref, $0) })
+    }
+    
+    func equipment(for ref: EquipmentRef) -> AnyEquipment? {
+        equipmentIndex[ref]
+    }
+    
     var activeEquipmentCount: Int {
-        freeWeights.filter(\.isActive).count
-        + loadableBars.filter(\.isActive).count
-        + fixedWeightBars.filter(\.isActive).count
-        + bands.filter(\.isActive).count
-        + bodyWeights.filter(\.isActive).count
-        + supportEquipment.filter(\.isActive).count
-        + accessoryEquipment.filter(\.isActive).count
-        + loadableAccessoryEquipment.filter(\.isActive).count
-        + cableMachines.filter(\.isActive).count
-        + plateLoadedMachines.filter(\.isActive).count
-        + pinLoadedMachines.filter(\.isActive).count
+        allEquipment.filter(\.isActive).count
     }
 }

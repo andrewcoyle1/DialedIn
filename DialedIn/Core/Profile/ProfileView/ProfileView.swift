@@ -26,6 +26,7 @@ struct ProfileView: View {
             if let user = presenter.currentUser,
                let firstName = user.firstName, !firstName.isEmpty {
                 profileHeaderView()
+                    .listSectionMargins(.top, 0)
                 profilePhysicalMetricsView()
                 profileGoalSection()
                 profileNutritionPlanView()

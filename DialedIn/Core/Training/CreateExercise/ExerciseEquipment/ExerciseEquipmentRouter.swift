@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 protocol ExerciseEquipmentRouter: GlobalRouter {
-    func showEquipmentPickerView<Item: ResistanceEquipment>(delegate: EquipmentPickerDelegate<Item>)
+    func showEquipmentPickerView(delegate: EquipmentPickerDelegate)
 }
 
 extension CoreRouter: ExerciseEquipmentRouter { }

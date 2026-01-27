@@ -27,190 +27,47 @@ class GymProfilePresenter {
     }
 
     var filteredFreeWeights: [Binding<FreeWeights>] {
-        let query = trimmedSearchQuery
-        let indices = gymProfile.freeWeights.indices.filter {
-            let item = gymProfile.freeWeights[$0]
-            let matchesQuery = query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-            let matchesFilter = filter == .all || item.isActive
-            return matchesQuery && matchesFilter
-        }
-        let sortedIndices = sortedIndicesByName(items: gymProfile.freeWeights, indices: indices) { $0.name }
-        return sortedIndices.map { index in
-            Binding(
-                get: { self.gymProfile.freeWeights[index] },
-                set: { self.gymProfile.freeWeights[index] = $0 }
-            )
-        }
+        filteredBindings(for: \.freeWeights)
     }
 
     var filteredLoadableBars: [Binding<LoadableBars>] {
-        let query = trimmedSearchQuery
-        let indices = gymProfile.loadableBars.indices.filter {
-            let item = gymProfile.loadableBars[$0]
-            let matchesQuery = query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-            let matchesFilter = filter == .all || item.isActive
-            return matchesQuery && matchesFilter
-        }
-        let sortedIndices = sortedIndicesByName(items: gymProfile.loadableBars, indices: indices) { $0.name }
-        return sortedIndices.map { index in
-            Binding(
-                get: { self.gymProfile.loadableBars[index] },
-                set: { self.gymProfile.loadableBars[index] = $0 }
-            )
-        }
+        filteredBindings(for: \.loadableBars)
     }
 
     var filteredFixedWeightBars: [Binding<FixedWeightBars>] {
-        let query = trimmedSearchQuery
-        let indices = gymProfile.fixedWeightBars.indices.filter {
-            let item = gymProfile.fixedWeightBars[$0]
-            let matchesQuery = query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-            let matchesFilter = filter == .all || item.isActive
-            return matchesQuery && matchesFilter
-        }
-        let sortedIndices = sortedIndicesByName(items: gymProfile.fixedWeightBars, indices: indices) { $0.name }
-        return sortedIndices.map { index in
-            Binding(
-                get: { self.gymProfile.fixedWeightBars[index] },
-                set: { self.gymProfile.fixedWeightBars[index] = $0 }
-            )
-        }
+        filteredBindings(for: \.fixedWeightBars)
     }
 
     var filteredBands: [Binding<Bands>] {
-        let query = trimmedSearchQuery
-        let indices = gymProfile.bands.indices.filter {
-            let item = gymProfile.bands[$0]
-            let matchesQuery = query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-            let matchesFilter = filter == .all || item.isActive
-            return matchesQuery && matchesFilter
-        }
-        let sortedIndices = sortedIndicesByName(items: gymProfile.bands, indices: indices) { $0.name }
-        return sortedIndices.map { index in
-            Binding(
-                get: { self.gymProfile.bands[index] },
-                set: { self.gymProfile.bands[index] = $0 }
-            )
-        }
+        filteredBindings(for: \.bands)
     }
     
     var filteredBodyWeights: [Binding<BodyWeights>] {
-        let query = trimmedSearchQuery
-        let indices = gymProfile.bodyWeights.indices.filter {
-            let item = gymProfile.bodyWeights[$0]
-            let matchesQuery = query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-            let matchesFilter = filter == .all || item.isActive
-            return matchesQuery && matchesFilter
-        }
-        let sortedIndices = sortedIndicesByName(items: gymProfile.bodyWeights, indices: indices) { $0.name }
-        return sortedIndices.map { index in
-            Binding(
-                get: { self.gymProfile.bodyWeights[index] },
-                set: { self.gymProfile.bodyWeights[index] = $0 }
-            )
-        }
+        filteredBindings(for: \.bodyWeights)
     }
 
     var filteredSupportEquipment: [Binding<SupportEquipment>] {
-        let query = trimmedSearchQuery
-        let indices = gymProfile.supportEquipment.indices.filter {
-            let item = gymProfile.supportEquipment[$0]
-            let matchesQuery = query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-            let matchesFilter = filter == .all || item.isActive
-            return matchesQuery && matchesFilter
-        }
-        let sortedIndices = sortedIndicesByName(items: gymProfile.supportEquipment, indices: indices) { $0.name }
-        return sortedIndices.map { index in
-            Binding(
-                get: { self.gymProfile.supportEquipment[index] },
-                set: { self.gymProfile.supportEquipment[index] = $0 }
-            )
-        }
+        filteredBindings(for: \.supportEquipment)
     }
 
     var filteredAccessoryEquipment: [Binding<AccessoryEquipment>] {
-        let query = trimmedSearchQuery
-        let indices = gymProfile.accessoryEquipment.indices.filter {
-            let item = gymProfile.accessoryEquipment[$0]
-            let matchesQuery = query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-            let matchesFilter = filter == .all || item.isActive
-            return matchesQuery && matchesFilter
-        }
-        let sortedIndices = sortedIndicesByName(items: gymProfile.accessoryEquipment, indices: indices) { $0.name }
-        return sortedIndices.map { index in
-            Binding(
-                get: { self.gymProfile.accessoryEquipment[index] },
-                set: { self.gymProfile.accessoryEquipment[index] = $0 }
-            )
-        }
+        filteredBindings(for: \.accessoryEquipment)
     }
     
     var filteredLoadableAccessoryEquipment: [Binding<LoadableAccessoryEquipment>] {
-        let query = trimmedSearchQuery
-        let indices = gymProfile.loadableAccessoryEquipment.indices.filter {
-            let item = gymProfile.loadableAccessoryEquipment[$0]
-            let matchesQuery = query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-            let matchesFilter = filter == .all || item.isActive
-            return matchesQuery && matchesFilter
-        }
-        let sortedIndices = sortedIndicesByName(items: gymProfile.loadableAccessoryEquipment, indices: indices) { $0.name }
-        return sortedIndices.map { index in
-            Binding(
-                get: { self.gymProfile.loadableAccessoryEquipment[index] },
-                set: { self.gymProfile.loadableAccessoryEquipment[index] = $0 }
-            )
-        }
+        filteredBindings(for: \.loadableAccessoryEquipment)
     }
 
     var filteredCableMachines: [Binding<CableMachine>] {
-        let query = trimmedSearchQuery
-        let indices = gymProfile.cableMachines.indices.filter {
-            let item = gymProfile.cableMachines[$0]
-            let matchesQuery = query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-            let matchesFilter = filter == .all || item.isActive
-            return matchesQuery && matchesFilter
-        }
-        let sortedIndices = sortedIndicesByName(items: gymProfile.cableMachines, indices: indices) { $0.name }
-        return sortedIndices.map { index in
-            Binding(
-                get: { self.gymProfile.cableMachines[index] },
-                set: { self.gymProfile.cableMachines[index] = $0 }
-            )
-        }
+        filteredBindings(for: \.cableMachines)
     }
 
     var filteredPlateLoadedMachines: [Binding<PlateLoadedMachine>] {
-        let query = trimmedSearchQuery
-        let indices = gymProfile.plateLoadedMachines.indices.filter {
-            let item = gymProfile.plateLoadedMachines[$0]
-            let matchesQuery = query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-            let matchesFilter = filter == .all || item.isActive
-            return matchesQuery && matchesFilter
-        }
-        let sortedIndices = sortedIndicesByName(items: gymProfile.plateLoadedMachines, indices: indices) { $0.name }
-        return sortedIndices.map { index in
-            Binding(
-                get: { self.gymProfile.plateLoadedMachines[index] },
-                set: { self.gymProfile.plateLoadedMachines[index] = $0 }
-            )
-        }
+        filteredBindings(for: \.plateLoadedMachines)
     }
 
     var filteredPinLoadedMachines: [Binding<PinLoadedMachine>] {
-        let query = trimmedSearchQuery
-        let indices = gymProfile.pinLoadedMachines.indices.filter {
-            let item = gymProfile.pinLoadedMachines[$0]
-            let matchesQuery = query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
-            let matchesFilter = filter == .all || item.isActive
-            return matchesQuery && matchesFilter
-        }
-        let sortedIndices = sortedIndicesByName(items: gymProfile.pinLoadedMachines, indices: indices) { $0.name }
-        return sortedIndices.map { index in
-            Binding(
-                get: { self.gymProfile.pinLoadedMachines[index] },
-                set: { self.gymProfile.pinLoadedMachines[index] = $0 }
-            )
-        }
+        filteredBindings(for: \.pinLoadedMachines)
     }
     
     func onBackButtonPressed() {
@@ -241,19 +98,38 @@ class GymProfilePresenter {
         }
     }
 
-    private func sortedIndicesByName<T>(
+    private func sortedIndicesByName<T: GymEquipmentItem>(
         items: [T],
-        indices: [Int],
-        name: (T) -> String
+        indices: [Int]
     ) -> [Int] {
         indices.sorted { lhs, rhs in
-            let lhsName = name(items[lhs])
-            let rhsName = name(items[rhs])
+            let lhsName = items[lhs].name
+            let rhsName = items[rhs].name
             let comparison = lhsName.localizedCaseInsensitiveCompare(rhsName)
             if comparison == .orderedSame {
                 return lhs < rhs
             }
             return comparison == .orderedAscending
+        }
+    }
+
+    private func filteredBindings<T: GymEquipmentItem>(
+        for keyPath: WritableKeyPath<GymProfileModel, [T]>
+    ) -> [Binding<T>] {
+        let query = trimmedSearchQuery
+        let items = gymProfile[keyPath: keyPath]
+        let indices = items.indices.filter {
+            let item = items[$0]
+            let matchesQuery = query.isEmpty || item.name.localizedCaseInsensitiveContains(query)
+            let matchesFilter = filter == .all || item.isActive
+            return matchesQuery && matchesFilter
+        }
+        let sortedIndices = sortedIndicesByName(items: items, indices: indices)
+        return sortedIndices.map { index in
+            Binding(
+                get: { self.gymProfile[keyPath: keyPath][index] },
+                set: { self.gymProfile[keyPath: keyPath][index] = $0 }
+            )
         }
     }
         

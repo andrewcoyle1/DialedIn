@@ -14,18 +14,20 @@ class ExerciseEquipmentPresenter {
     
     var bodyweightExercise: Bool = false
     
-    var supportEquipment: [String] = []
+    var supportEquipment: [EquipmentRef] = []
     
-    var chosenResistanceEquipment: [FreeWeights] = []
+    var chosenResistanceEquipment: [EquipmentRef] = []
+    
+    private var equipmentIndex: [EquipmentRef: AnyEquipment] = [:]
     
     var canContinue: Bool {
         self.bodyweightExercise || !self.chosenResistanceEquipment.isEmpty
     }
 
     var resistanceSubtitle: String? {
-        let array: [String] = chosenResistanceEquipment.isEmpty ? ["Equipment that adds load to the exercise"] : chosenResistanceEquipment.map({
-            $0.name
-        })
+        let array: [String] = chosenResistanceEquipment.isEmpty
+        ? ["Equipment that adds load to the exercise"]
+        : chosenResistanceEquipment.map { name(for: $0) }
         
         if !array.isEmpty {
             return "\(array.joined(separator: ", "))"
@@ -46,14 +48,16 @@ class ExerciseEquipmentPresenter {
         Task {
             do {
                 let gymProfile = try await interactor.readFavouriteGymProfile()
+                equipmentIndex = gymProfile.equipmentIndex
                 
-                let chosenBinding = Binding<[FreeWeights]>(
+                let chosenBinding = Binding<[EquipmentRef]>(
                     get: { self.chosenResistanceEquipment },
                     set: { self.chosenResistanceEquipment = $0 }
                 )
                 
-                let delegate = EquipmentPickerDelegate<FreeWeights>(
-                    items: gymProfile.freeWeights,
+                let equipmentItems = gymProfile.allEquipment.filter { $0.ref.kind == .freeWeight }
+                let delegate = EquipmentPickerDelegate(
+                    items: equipmentItems,
                     headerTitle: "Free Weights",
                     chosenItem: chosenBinding
                 )
@@ -67,5 +71,9 @@ class ExerciseEquipmentPresenter {
     
     func onAddSupportPressed() {
         
+    }
+    
+    private func name(for equipmentRef: EquipmentRef) -> String {
+        equipmentIndex[equipmentRef]?.name ?? equipmentRef.equipmentId
     }
 }

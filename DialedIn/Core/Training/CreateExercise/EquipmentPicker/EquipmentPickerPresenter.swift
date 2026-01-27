@@ -12,11 +12,11 @@ class EquipmentPickerPresenter {
         self.router = router
     }
     
-    func onSelect<Item: ResistanceEquipment>(item: Item, binding: Binding<[Item]>) {
-        if let index = binding.wrappedValue.firstIndex(of: item) {
+    func onSelect(item: AnyEquipment, binding: Binding<[EquipmentRef]>) {
+        if let index = binding.wrappedValue.firstIndex(of: item.ref) {
             binding.wrappedValue.remove(at: index)
         } else {
-            binding.wrappedValue.append(item)
+            binding.wrappedValue.append(item.ref)
         }
     }
     
