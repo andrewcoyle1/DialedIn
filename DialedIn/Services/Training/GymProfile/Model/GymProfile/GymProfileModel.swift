@@ -133,7 +133,7 @@ extension GymProfileModel {
         + loadableBars.filter(\.isActive).count
         + fixedWeightBars.filter(\.isActive).count
         + bands.filter(\.isActive).count
-        + freeWeights.filter(\.isActive).count
+        + bodyWeights.filter(\.isActive).count
         + supportEquipment.filter(\.isActive).count
         + accessoryEquipment.filter(\.isActive).count
         + loadableAccessoryEquipment.filter(\.isActive).count
