@@ -23,6 +23,7 @@ class TrainingPresenter {
     
     private(set) var scheduledWorkouts: [ScheduledWorkout] = []
     private(set) var workoutsForMenu: [ScheduledWorkout] = []
+    private(set) var weekProgress: WeekProgress?
 
     init(
         interactor: TrainingInteractor,
@@ -37,6 +38,7 @@ class TrainingPresenter {
         self.selectedDate = normalizedToday
         
         loadScheduledWorkouts()
+
     }
     
     var currentUser: UserModel? {
@@ -91,9 +93,7 @@ class TrainingPresenter {
     func onCalendarPressed(_ transitionId: String, in namespace: Namespace.ID) {
         router.showCalendarViewZoom(
             delegate: CalendarDelegate(
-                onDateSelected: {
-                    date,
-                    time in
+                onDateSelected: { date, time in
                     self.selectedDate = date
                     self.selectedTime = time
                     
@@ -168,9 +168,10 @@ class TrainingPresenter {
         }
     }
             
-    func getWeeklyProgress(weekNumber: Int) -> WeekProgress {
+    func getWeeklyProgress() {
+        guard let weekNumber = currentWeek?.weekNumber else { return }
         interactor.trackEvent(event: Event.getWeeklyProgress)
-        return interactor.getWeeklyProgress(for: weekNumber)
+        self.weekProgress =  interactor.getWeeklyProgress(for: weekNumber)
     }
     
     func getWorkoutsForDay(_ day: Date, calendar: Calendar) -> [ScheduledWorkout] {
@@ -236,8 +237,9 @@ class TrainingPresenter {
         do {
             let template = try await interactor.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
             
-            // Small delay to ensure any pending presentations complete
-            try? await Task.sleep(for: .seconds(0.1))
+            // Delay to ensure calendar zoom transition dismiss animation completes
+            // before presenting the workout start sheet
+            try? await Task.sleep(for: .seconds(0.4))
             
             // Notify parent to show WorkoutStartView
             handleWorkoutStartRequest(template: template, scheduledWorkout: scheduledWorkout)

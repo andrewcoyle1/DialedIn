@@ -16,7 +16,7 @@ struct SplitViewContainer<TabAccessory: View>: View {
     @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
 
     var body: some View {
-        RouterView { router in
+        RouterView { _ in
             NavigationSplitView(columnVisibility: .constant(.all), preferredCompactColumn: $presenter.preferredColumn) {
                 // Sidebar
                 List {

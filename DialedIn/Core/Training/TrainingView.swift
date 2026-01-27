@@ -46,6 +46,7 @@ struct TrainingView<
             toolbarContent
         }
         .onAppear {
+            presenter.getWeeklyProgress()
             Task {
                 await presenter.refreshFavouriteGymProfileImage()
             }
@@ -129,8 +130,7 @@ struct TrainingView<
                             color: presenter.adherenceColor(presenter.adherenceRate)
                         )
                         
-                        if let currentWeek = presenter.currentWeek {
-                            let progress = presenter.getWeeklyProgress(weekNumber: currentWeek.weekNumber)
+                        if let progress = presenter.weekProgress {
                             StatCard(
                                 value: "\(progress.completedWorkouts)/\(progress.totalWorkouts)",
                                 label: "This Week",

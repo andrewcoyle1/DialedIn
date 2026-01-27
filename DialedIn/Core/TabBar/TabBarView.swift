@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftfulRouting
 
-struct TabBarView<TabAccessory: View>: View {
+struct TabBarView<TabAccessory: View, Search: View>: View {
 
     @State var presenter: TabBarPresenter
 
@@ -16,14 +16,21 @@ struct TabBarView<TabAccessory: View>: View {
     
     @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
 
+    @ViewBuilder var searchView: () -> Search
     var body: some View {
         TabView {
             ForEach(tabs) { tab in
-                tab.screen()
-                    .tabItem {
-                        Label(tab.title, systemImage: tab.systemImage)
-                    }
+                Tab {
+                    tab.screen()
+                } label: {
+                    Label(tab.title, systemImage: tab.systemImage)
+                }
             }
+
+            Tab(role: .search) {
+                searchView()
+            }
+
         }
         .tabViewStyle(.tabBarOnly)
         .tabBarMinimizeBehavior(.onScrollDown)
@@ -81,12 +88,17 @@ extension CoreBuilder {
                 }
             )
         ]
-        
+
         return TabBarView(
             presenter: TabBarPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             tabs: tabs,
             tabViewAccessoryView: { delegate in
                 self.tabViewAccessoryView(router: router, delegate: delegate)
+            },
+            searchView: {
+                RouterView { router in
+                    self.searchView(router: router)
+                }
             }
         )
     }

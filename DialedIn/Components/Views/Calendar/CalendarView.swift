@@ -14,7 +14,6 @@ struct CalendarDelegate {
 struct CalendarView: View {
 
     @State var presenter: CalendarPresenter
-    let delegate: CalendarDelegate
 
     var body: some View {
         VStack {
@@ -49,7 +48,7 @@ struct CalendarView: View {
             ForEach(presenter.days, id: \.self) { day in
                 Button {
                     if day >= Date.now.startOfDay && day.monthInt == presenter.currentMonth.monthInt {
-                        presenter.onDateSelected(day: day, do: delegate.onDateSelected)
+                        presenter.onDateSelected(day: day)
                     }
                 } label: {
                     Text(day.formatted(.dateTime.day()))
@@ -120,9 +119,9 @@ extension CoreBuilder {
         CalendarView(
             presenter: CalendarPresenter(
                 interactor: interactor,
-                router: CoreRouter(router: router, builder: self)
-            ),
-            delegate: delegate
+                router: CoreRouter(router: router, builder: self),
+                delegate: delegate
+            )
         )
     }
 

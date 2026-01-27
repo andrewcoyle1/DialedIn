@@ -13,6 +13,7 @@ class CalendarPresenter {
 
     private let interactor: CalendarInteractor
     private let router: CalendarRouter
+    private let delegate: CalendarDelegate
 
     private(set) var currentMonth: Date = Date.now
     private(set) var selectedDate: Date = Date.now
@@ -22,9 +23,15 @@ class CalendarPresenter {
     let daysOfWeek = Date.capitalizedFirstLettersOfWeekdays
     let columns = Array(repeating: GridItem(.flexible()), count: 7)
 
-    init(interactor: CalendarInteractor, router: CalendarRouter) {
+    init(
+        interactor: CalendarInteractor,
+        router: CalendarRouter,
+        delegate: CalendarDelegate
+    ) {
         self.interactor = interactor
         self.router = router
+        self.delegate = delegate
+
         updateDays()
     }
 
@@ -38,10 +45,12 @@ class CalendarPresenter {
         updateDays()
     }
 
-    func onDateSelected(day: Date, do onDateSelected: (Date, Date) -> Void) {
+    func onDateSelected(day: Date) {
         selectedDate = day
-        onDateSelected(day, selectedHour)
+
         router.dismissScreen()
+
+        delegate.onDateSelected(day, selectedHour)
     }
 
     func onDismissPressed() {
