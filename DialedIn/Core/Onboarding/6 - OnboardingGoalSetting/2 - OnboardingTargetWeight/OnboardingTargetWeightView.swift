@@ -122,7 +122,7 @@ extension OnbRouter {
 }
 
 #Preview("Gain Weight") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingTargetWeightView(
             router: router,
@@ -133,7 +133,7 @@ extension OnbRouter {
 }
 
 #Preview("Lose Weight") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingTargetWeightView(
             router: router,

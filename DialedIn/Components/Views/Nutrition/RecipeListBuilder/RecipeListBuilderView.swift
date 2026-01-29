@@ -191,7 +191,7 @@ extension CoreRouter {
 }
 
 #Preview {
-    let container = DevPreview.shared.container
+    let container = DevPreview.shared.container()
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     let delegate = RecipeListBuilderDelegate()
     

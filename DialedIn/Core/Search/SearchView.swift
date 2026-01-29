@@ -11,12 +11,38 @@ struct SearchView: View {
 
     @State var presenter: SearchPresenter
 
+    @Namespace private var namespace
+
     var body: some View {
         List {
             Text("Search View")
         }
         .navigationTitle("Search")
         .searchable(text: $presenter.searchString)
+        .toolbarTitleDisplayMode(.inlineLarge)
+        .toolbar {
+            toolbarContent
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onProfilePressed("search-profile-button", in: namespace)
+            } label: {
+                if let urlString = presenter.userImageUrl {
+                    ImageLoaderView(urlString: urlString)
+                        .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
+                        .clipShape(Circle())
+                } else {
+                    Image(systemName: "person")
+                }
+            }
+            .matchedTransitionSource(id: "search-profile-button", in: namespace)
+        }
+        .sharedBackgroundVisibility(.hidden)
+
     }
 }
 
@@ -32,7 +58,7 @@ extension CoreBuilder {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
 
     RouterView { router in
         builder.searchView(router: router)

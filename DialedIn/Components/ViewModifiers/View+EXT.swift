@@ -73,3 +73,21 @@ struct CtaButtonViewModifier: ViewModifier {
             .background(isPrimaryAction ? .accent : .secondary, in: .capsule)
     }
 }
+
+extension View {
+    func interactionReader(
+        longPressSensitivity: Int,
+        tapAction: @escaping () -> Void,
+        longPressAction: @escaping () -> Void,
+        scaleEffect: Bool = true
+    ) -> some View {
+        modifier(
+            InteractionReaderViewModifier(
+                longPressSensitivity: longPressSensitivity,
+                tapAction: tapAction,
+                longPressAction: longPressAction,
+                scaleEffect: scaleEffect
+            )
+        )
+    }
+}

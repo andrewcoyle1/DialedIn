@@ -76,17 +76,17 @@ extension CoreBuilder {
                     }
                     .any()
                 }
-            ),
-            TabBarScreen(
-                title: "Profile",
-                systemImage: "person",
-                screen: {
-                    RouterView { router in
-                        self.profileView(router: router)
-                    }
-                    .any()
-                }
             )
+//            TabBarScreen(
+//                title: "Profile",
+//                systemImage: "person",
+//                screen: {
+//                    RouterView { router in
+//                        self.profileView(router: router)
+//                    }
+//                    .any()
+//                }
+//            )
         ]
 
         return TabBarView(
@@ -105,7 +105,7 @@ extension CoreBuilder {
 }
 
 #Preview("Has No Active Session") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.tabBarView(router: router)
     }
@@ -113,7 +113,7 @@ extension CoreBuilder {
 }
 
 #Preview("Has Active Session") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.tabBarView(router: router)
     }

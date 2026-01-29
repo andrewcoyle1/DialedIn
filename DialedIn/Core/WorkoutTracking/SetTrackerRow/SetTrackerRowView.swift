@@ -443,7 +443,7 @@ extension CoreRouter {
 }
 
 #Preview("Weight & Reps - Incomplete") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "1",
@@ -470,7 +470,7 @@ extension CoreRouter {
 }
 
 #Preview("Weight & Reps - Complete") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "2",
@@ -495,7 +495,7 @@ extension CoreRouter {
     }
 }
 #Preview("Duration - Incomplete") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "3",
@@ -521,7 +521,7 @@ extension CoreRouter {
 }
 
 #Preview("Duration - Complete") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "4",
@@ -547,7 +547,7 @@ extension CoreRouter {
 }
 
 #Preview("Distance - Incomplete") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "5",
@@ -573,7 +573,7 @@ extension CoreRouter {
 }
 
 #Preview("Distance - Complete") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "6",
@@ -599,7 +599,7 @@ extension CoreRouter {
 }
 
 #Preview("Warmup Set") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "7",
@@ -625,7 +625,7 @@ extension CoreRouter {
 }
 
 #Preview("All Fields Populated") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "8",
@@ -651,7 +651,7 @@ extension CoreRouter {
 }
 
 #Preview("Edge: No Data") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     let delegate = SetTrackerRowDelegate(
         set: WorkoutSetModel(
             id: "9",

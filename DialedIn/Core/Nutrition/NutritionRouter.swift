@@ -9,7 +9,6 @@ import SwiftUI
 
 @MainActor
 protocol NutritionRouter: GlobalRouter {
-    func showNotificationsView()
     func showDevSettingsView()
     
     func showAddMealView(delegate: AddMealDelegate)
@@ -18,7 +17,7 @@ protocol NutritionRouter: GlobalRouter {
     func showRecipesView()
     func showIngredientsView()
 
-    func showCalendarViewZoom(delegate: CalendarDelegate, transitionId: String?, namespace: Namespace.ID)
+    func showProfileView()
 
 }
 

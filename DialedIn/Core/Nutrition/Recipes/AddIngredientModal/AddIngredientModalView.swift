@@ -111,7 +111,7 @@ extension CoreRouter {
 
 #Preview {
     @Previewable @State var selectedIngredients: [IngredientTemplateModel] = [IngredientTemplateModel.mock]
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.addIngredientModalView(router: router, delegate: AddIngredientModalDelegate(selectedIngredients: $selectedIngredients))
     }

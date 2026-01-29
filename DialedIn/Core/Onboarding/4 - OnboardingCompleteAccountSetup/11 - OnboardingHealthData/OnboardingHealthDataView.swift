@@ -128,7 +128,7 @@ extension OnbRouter {
 }
 
 #Preview("Proceed to Notifications") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingHealthDataView(router: router)
     }

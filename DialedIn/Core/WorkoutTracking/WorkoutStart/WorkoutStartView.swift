@@ -162,7 +162,7 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     let delegate = WorkoutStartDelegate(template: .mock)
     RouterView { router in
         builder.workoutStartView(router: router, delegate: delegate)

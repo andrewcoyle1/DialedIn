@@ -6,6 +6,7 @@
 //
 
 protocol DashboardInteractor {
+    var userImageUrl: String? { get }
     var activeTests: ActiveABTests { get }
     func trackEvent(event: LoggableEvent)
 }

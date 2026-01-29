@@ -15,15 +15,12 @@ struct ProfileHeaderView: View {
     var body: some View {
         Section {
             if let user = presenter.currentUser {
-                Button {
-                    presenter.navToProfileEdit()
-                } label: {
                     HStack(spacing: 16) {
                         // Profile Image
                         CachedProfileImageView(
                             userId: user.userId,
                             imageUrl: user.profileImageUrl,
-                            size: 80
+                            size: 60
                         )
                         
                         // User Info
@@ -38,19 +35,17 @@ struct ProfileHeaderView: View {
                                     .foregroundStyle(.secondary)
                             }
                             
-                            if let creationDate = presenter.currentUser?.creationDate {
-                                Text("Member since \(creationDate.formatted(date: .abbreviated, time: .omitted))")
-                                    .font(.caption)
-                                    .foregroundStyle(.tertiary)
-                            }
                         }
                         Spacer()
+
+                        Image(systemName: "chevron.right")
                     }
-                    .padding(.vertical, 8)
-                }
+                    .tappableBackground()
+                    .anyButton(.highlight) {
+                        presenter.navToProfileEdit()
+                    }
             }
         }
-        .removeListRowFormatting()
     }
     
     private var fullName: String {
@@ -70,7 +65,7 @@ extension CoreBuilder {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         List {
             builder.profileHeaderView(router: router)
