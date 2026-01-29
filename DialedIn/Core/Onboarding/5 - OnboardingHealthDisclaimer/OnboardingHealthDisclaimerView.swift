@@ -112,7 +112,7 @@ extension OnbRouter {
 }
 
 #Preview("Health Disclaimer") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingHealthDisclaimerView(router: router)
     }

@@ -70,7 +70,7 @@ extension RootBuilder {
 // MARK: - Completed Onboarding Previews
 
 #Preview("✅ Completed - Tab Bar") {
-    let container = DevPreview.shared.container
+    let container = DevPreview.shared.container()
     container.register(AppState.self, service: AppState(showTabBar: true))
 
     let builder = RootBuilder(
@@ -89,7 +89,7 @@ extension RootBuilder {
 // MARK: - Onboarding Step Previews
 
 #Preview("1️⃣ Not Authenticated") {
-    let container = DevPreview.shared.container
+    let container = DevPreview.shared.container()
     container.register(UserManager.self, service: UserManager(services: MockUserServices(user: nil)))
     container.register(AuthManager.self, service: AuthManager(service: MockAuthService(user: nil)))
     container.register(AppState.self, service: AppState(showTabBar: false))

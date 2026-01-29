@@ -10,13 +10,9 @@ struct CalendarHeaderView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     @State var presenter: CalendarHeaderPresenter
-    let delegate: CalendarHeaderDelegate
 
-    init(presenter: CalendarHeaderPresenter, delegate: CalendarHeaderDelegate) {
-        self._presenter = State(initialValue: presenter)
-        self.delegate = delegate
-    }
-    
+    @Namespace private var namespace
+
     var body: some View {
         GeometryReader { geometry in
             ScrollView(.horizontal, showsIndicators: false) {
@@ -36,41 +32,55 @@ struct CalendarHeaderView: View {
         .padding(.horizontal)
         .glassEffect()
         .padding(.horizontal)
+        .matchedTransitionSource(id: "calendar-header", in: namespace)
     }
     
     @ViewBuilder
     private func weekBlock(_ geometry: GeometryProxy, _ week: [Date]) -> some View {
         HStack(spacing: 0) {
             ForEach(week, id: \.self) { (day: Date) in
-                let activityCount = delegate.getForDate(day)
-                VStack {
-                    Text(day.formatted(.dateTime.weekday(.narrow)))
-                        .foregroundStyle(.secondary)
-                    Text(day.formatted(.dateTime.day()))
-                }
-                .monospaced()
-                .foregroundStyle(presenter.calendar.isDate(day, inSameDayAs: Date.now) ? .blue : .primary)
-                .fontWeight(presenter.calendar.isDate(day, inSameDayAs: Date.now) ? .semibold : .regular)
-                .padding(.vertical, 8)
-                .frame(width: 40)
-                .background {
-                    cellOutline(activityCount: activityCount)
-                }
-                .overlay(alignment: .topTrailing) {
-                    if activityCount > 1 {
-                        cellBadge(activityCount: activityCount)
-                    }
-                }
-                .anyButton(.press) {
-                    delegate.onDatePressed(day)
-                }
-                .frame(width: geometry.size.width / 7)
+                dayCell(geometry, day)
             }
         }
         .frame(width: geometry.size.width)
         .id(week.first ?? Date.distantPast)
     }
-    
+
+    @ViewBuilder
+    private func dayCell(_ geometry: GeometryProxy, _ day: Date) -> some View {
+        let activityCount = presenter.getForDate(day)
+
+        VStack {
+            Text(day.formatted(.dateTime.weekday(.narrow)))
+                .foregroundStyle(.secondary)
+            Text(day.formatted(.dateTime.day()))
+        }
+        .monospaced()
+        .foregroundStyle(presenter.calendar.isDate(day, inSameDayAs: Date.now) ? .blue : .primary)
+        .fontWeight(presenter.calendar.isDate(day, inSameDayAs: Date.now) ? .semibold : .regular)
+        .padding(.vertical, 8)
+        .frame(width: 40)
+        .background {
+            cellOutline(activityCount: activityCount)
+        }
+        .overlay(alignment: .topTrailing) {
+            if activityCount > 1 {
+                cellBadge(activityCount: activityCount)
+            }
+        }
+        .frame(width: geometry.size.width / 7)
+        .interactionReader(
+            longPressSensitivity: 500,
+            tapAction: {
+                presenter.onDatePressed(day)
+            },
+            longPressAction: {
+                presenter.showLargeCalendar("calendar-header", in: namespace)
+            },
+            scaleEffect: false
+        )
+    }
+
     @ViewBuilder
     private func cellOutline(activityCount: Int) -> some View {
         Capsule()
@@ -106,9 +116,9 @@ extension CoreBuilder {
         CalendarHeaderView(
             presenter: CalendarHeaderPresenter(
                 interactor: interactor,
-                router: CoreRouter(router: router, builder: self)
-            ),
-            delegate: delegate
+                router: CoreRouter(router: router, builder: self),
+                delegate: delegate
+            )
         )
     }
     
@@ -125,7 +135,7 @@ extension CoreRouter {
 }
 
 #Preview {
-    let container = DevPreview.shared.container
+    let container = DevPreview.shared.container()
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     let delegate = CalendarHeaderDelegate(
         onDatePressed: { date in

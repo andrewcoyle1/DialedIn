@@ -144,7 +144,7 @@ extension CoreRouter {
 }
 
 #Preview("No auth") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.settingsView(router: router)
     }
@@ -152,14 +152,14 @@ extension CoreRouter {
 }
 
 #Preview("Anonymous") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.settingsView(router: router)
     }
     .previewEnvironment()
 }
 #Preview("Not anonymous") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.settingsView(router: router)
     }
@@ -167,7 +167,7 @@ extension CoreRouter {
 }
 
 #Preview("Premium") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.settingsView(router: router)
     }

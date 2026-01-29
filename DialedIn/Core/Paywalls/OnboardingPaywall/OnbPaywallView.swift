@@ -97,7 +97,7 @@ extension OnbRouter {
 }
 
 #Preview("Custom") {
-    let container = DevPreview.shared.container
+    let container = DevPreview.shared.container()
     container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(paywallTest: .custom)))
     let builder = OnbBuilder(interactor: OnbInteractor(container: container))
 
@@ -107,7 +107,7 @@ extension OnbRouter {
     .previewEnvironment()
 }
 #Preview("StoreKit") {
-    let container = DevPreview.shared.container
+    let container = DevPreview.shared.container()
     container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(paywallTest: .storeKit)))
     let builder = OnbBuilder(interactor: OnbInteractor(container: container))
 
@@ -117,7 +117,7 @@ extension OnbRouter {
     .previewEnvironment()
 }
 #Preview("RevenueCat") {
-    let container = DevPreview.shared.container
+    let container = DevPreview.shared.container()
     container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(paywallTest: .revenueCat)))
     let builder = OnbBuilder(interactor: OnbInteractor(container: container))
 

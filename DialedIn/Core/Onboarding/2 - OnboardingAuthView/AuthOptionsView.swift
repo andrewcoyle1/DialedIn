@@ -87,7 +87,7 @@ extension OnbRouter {
 }
 
 #Preview("Functioning Auth") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
 
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
@@ -96,7 +96,7 @@ extension OnbRouter {
 }
 
 #Preview("Slow Auth") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
 
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
@@ -105,7 +105,7 @@ extension OnbRouter {
 }
 
 #Preview("Failing Auth") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
 
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
@@ -114,7 +114,7 @@ extension OnbRouter {
 }
 
 #Preview("Slow Login") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
 
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
@@ -123,7 +123,7 @@ extension OnbRouter {
 }
 
 #Preview("Failing Login") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
 
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)

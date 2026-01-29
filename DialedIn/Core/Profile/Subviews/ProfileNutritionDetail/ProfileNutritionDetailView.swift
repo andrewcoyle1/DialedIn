@@ -170,7 +170,7 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.profileNutritionDetailView(router: router)
     }

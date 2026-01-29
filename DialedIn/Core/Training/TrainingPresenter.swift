@@ -45,6 +45,10 @@ class TrainingPresenter {
         interactor.currentUser
     }
 
+    var userImageUrl: String? {
+        interactor.userImageUrl
+    }
+
     private(set) var favouriteGymProfileImageUrl: String?
     
     var currentTrainingPlan: TrainingPlan? {
@@ -90,21 +94,8 @@ class TrainingPresenter {
         router.showAddTrainingView(delegate: delegate, onDismiss: nil)
     }
 
-    func onCalendarPressed(_ transitionId: String, in namespace: Namespace.ID) {
-        router.showCalendarViewZoom(
-            delegate: CalendarDelegate(
-                onDateSelected: { date, time in
-                    self.selectedDate = date
-                    self.selectedTime = time
-                    
-                    self.onDatePressed(
-                        date: date
-                    )
-                }
-            ),
-            transitionId: transitionId,
-            namespace: namespace
-        )
+    func onProfilePressed() {
+        router.showProfileView()
     }
 
     func onDatePressed(date: Date) {
@@ -406,10 +397,6 @@ class TrainingPresenter {
     
     func onDevSettingsPressed() {
         router.showDevSettingsView()
-    }
-    
-    func onNotificationsPressed() {
-        router.showNotificationsView()
     }
     
     func onGymProfilesPressed() {

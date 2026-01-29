@@ -43,7 +43,7 @@ extension CoreRouter {
 }
 
 #Preview("Ingredients View") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     List {
         RouterView { router in
             builder.ingredientsView(

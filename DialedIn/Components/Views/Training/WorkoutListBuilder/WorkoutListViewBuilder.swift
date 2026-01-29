@@ -219,7 +219,7 @@ extension CoreBuilder {
 }
 
 #Preview {
-    let container = DevPreview.shared.container
+    let container = DevPreview.shared.container()
     RouterView { router in
         WorkoutListViewBuilder(
             presenter: WorkoutListPresenterBuilder(

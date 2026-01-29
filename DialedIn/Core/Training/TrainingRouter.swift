@@ -9,7 +9,6 @@ import SwiftUI
 
 @MainActor
 protocol TrainingRouter: GlobalRouter {
-    func showNotificationsView()
     func showDevSettingsView()
     func showWorkoutStartView(delegate: WorkoutStartDelegate)
     func showProgramManagementView()
@@ -27,7 +26,8 @@ protocol TrainingRouter: GlobalRouter {
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
     func showCreateExerciseView()
     func showGymProfilesView()
-    func showCalendarViewZoom(delegate: CalendarDelegate, transitionId: String?, namespace: Namespace.ID)
+    func showProfileView()
+
 }
 
 extension CoreRouter: TrainingRouter {

@@ -59,7 +59,7 @@ extension CoreRouter {
 }
 
 #Preview("Free User") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.manageSubscriptionView(router: router, delegate: ManageSubscriptionDelegate())
     }
@@ -67,7 +67,7 @@ extension CoreRouter {
 }
 
 #Preview("Paid User") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.manageSubscriptionView(router: router, delegate: ManageSubscriptionDelegate())
     }

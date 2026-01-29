@@ -29,7 +29,8 @@ struct WorkoutTrackerView: View {
                 .listSectionMargins(.top, 0)
             exerciseSection
         }
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle(presenter.workoutSession.name)
+        .toolbarTitleDisplayMode(.inlineLarge)
         .scrollIndicators(.hidden)
         .environment(\.editMode, $presenter.editMode)
         .toolbar {
@@ -215,12 +216,12 @@ struct WorkoutTrackerView: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .title) {
-            TextField(text: $presenter.workoutSession.name) {
-                Text(presenter.workoutSession.name)
-            }
-        }
-        ToolbarItem(placement: .topBarLeading) {
+//        ToolbarItem(placement: .largeTitle) {
+//            TextField(text: $presenter.workoutSession.name) {
+//                Text(presenter.workoutSession.name)
+//            }
+//        }
+        ToolbarItem(placement: .topBarTrailing) {
             Menu {
                 Button {
 
@@ -285,7 +286,7 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.workoutTrackerView(router: router, delegate: WorkoutTrackerDelegate(workoutSessionId: WorkoutSessionModel.mock.id))
     }

@@ -6,10 +6,10 @@
 //
 
 @MainActor
-protocol ProfileRouter {
-    func showNotificationsView()
-    func showDevSettingsView()
+protocol ProfileRouter: GlobalRouter {
+    func showProfileEditView()
     func showSettingsView()
+    func showNotificationsView()
 }
 
 extension CoreRouter: ProfileRouter { }

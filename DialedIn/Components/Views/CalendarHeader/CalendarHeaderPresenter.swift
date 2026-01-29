@@ -6,7 +6,8 @@ class CalendarHeaderPresenter {
     
     private let interactor: CalendarHeaderInteractor
     private let router: CalendarHeaderRouter
-    
+    private let delegate: CalendarHeaderDelegate
+
     let calendar = Calendar.current
 
     var selectedDate: Date = Date()
@@ -15,16 +16,18 @@ class CalendarHeaderPresenter {
     var today: Date = Date()
     var weekScrollPosition: Date?
     var hasScrolledToToday = false
+    private var pendingSelectedDateFromLargeCalendar: Date?
 
     // Date range for infinite scrolling
     private var startDate: Date
     private var endDate: Date
     private let daysPerLoad: Int = 100
-    
-    init(interactor: CalendarHeaderInteractor, router: CalendarHeaderRouter) {
+
+    init(interactor: CalendarHeaderInteractor, router: CalendarHeaderRouter, delegate: CalendarHeaderDelegate) {
         self.interactor = interactor
         self.router = router
-        
+        self.delegate = delegate
+
         // Initialize with a large range centered on today
         let today = calendar.startOfDay(for: Date())
         self.startDate = calendar.date(byAdding: .day, value: -daysPerLoad, to: today) ?? today
@@ -82,7 +85,34 @@ class CalendarHeaderPresenter {
 
         return result
     }
-    
+
+    func onDatePressed(_ date: Date) {
+        delegate.onDatePressed(date)
+    }
+
+    func showLargeCalendar(_ transitionId: String, in namespace: Namespace.ID) {
+        interactor.trackEvent(event: Event.openLargeCalendar)
+        router.showCalendarViewZoom(
+            delegate: CalendarDelegate(
+                onDateSelected: { date, _ in
+                    self.selectedDate = date
+                    self.pendingSelectedDateFromLargeCalendar = date
+                }
+            ),
+            onDismiss: { [weak self] in
+                guard let self, let selectedDate = self.pendingSelectedDateFromLargeCalendar else { return }
+                self.pendingSelectedDateFromLargeCalendar = nil
+                self.onDatePressed(selectedDate)
+            },
+            transitionId: transitionId,
+            namespace: namespace
+        )
+    }
+
+    func getForDate(_ date: Date) -> Int {
+        delegate.getForDate(date)
+    }
+
     func loadMoreDatesIfNeeded(visibleStartIndex: Int, visibleEndIndex: Int) {
         let totalDays = days.count
         let threshold = 20 // Load more when within 20 days of edge
@@ -98,6 +128,34 @@ class CalendarHeaderPresenter {
         if visibleEndIndex > totalDays - threshold {
             if let newEndDate = calendar.date(byAdding: .day, value: daysPerLoad, to: endDate) {
                 endDate = calendar.startOfDay(for: newEndDate)
+            }
+        }
+    }
+
+    enum Event: LoggableEvent {
+        case openLargeCalendar
+        case datePickedFromCalendar
+        case dateSelectionFunctionTriggered
+
+        var eventName: String {
+            switch self {
+            case .openLargeCalendar:                return "CalendarHeader_OpenLargeCalendar"
+            case .datePickedFromCalendar:           return "CalendarHeader_DatePickedFromLargeCalendar"
+            case .dateSelectionFunctionTriggered:   return "CalendarHeader_DateSelectionFunction_Triggered"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            default:
+                return .info
             }
         }
     }

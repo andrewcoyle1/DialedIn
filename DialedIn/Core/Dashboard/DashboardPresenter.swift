@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 26/10/2025.
 //
 
-import Foundation
+import SwiftUI
 
 @Observable
 @MainActor
@@ -21,7 +21,11 @@ class DashboardPresenter {
     var isInNotificationsABTest: Bool {
         interactor.activeTests.notificationsTest
     }
-    
+
+    var userImageUrl: String? {
+        interactor.userImageUrl
+    }
+
     init(
         interactor: DashboardInteractor,
         router: DashboardRouter
@@ -56,6 +60,10 @@ class DashboardPresenter {
     
     func onSubscribePressed() {
         router.showCorePaywall()
+    }
+
+    func onProfilePressed() {
+        router.showProfileView()
     }
 
     enum Event: LoggableEvent {

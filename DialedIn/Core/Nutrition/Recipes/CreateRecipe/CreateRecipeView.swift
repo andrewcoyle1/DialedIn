@@ -233,7 +233,7 @@ extension CoreRouter {
 }
 
 #Preview("With Ingredients") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
 
     RouterView { router in
         builder.createRecipeView(router: router)
@@ -242,7 +242,7 @@ extension CoreRouter {
 }
 
 #Preview("Without Ingredients") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
 
     RouterView { router in
         builder.createRecipeView(router: router)

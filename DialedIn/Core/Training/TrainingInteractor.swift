@@ -7,6 +7,7 @@
 
 protocol TrainingInteractor {
     var currentUser: UserModel? { get }
+    var userImageUrl: String? { get }
     var currentTrainingPlan: TrainingPlan? { get }
     func getAdherenceRate() -> Double
     func getCurrentWeek() -> TrainingWeek?

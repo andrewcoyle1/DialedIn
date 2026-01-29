@@ -1,5 +1,5 @@
 {
-  "originHash" : "d5c6d46b0019ee30de319a44b2421dd3f79349110f3c0b754c429b3bf3ccd2e4",
+  "originHash" : "79da001327ade1d8902fb13f1880ef699fa0162452b674fa05444f09c215c4e2",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -254,6 +254,15 @@
       }
     },
     {
+      "identity" : "swiftfulhaptics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SwiftfulThinking/SwiftfulHaptics.git",
+      "state" : {
+        "revision" : "181943a602277e94217267274a227f5f5042fce3",
+        "version" : "2.0.3"
+      }
+    },
+    {
       "identity" : "swiftfullogging",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SwiftfulThinking/SwiftfulLogging.git",
@@ -321,8 +330,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/andrewcoyle1/SwiftfulRouting.git",
       "state" : {
-        "revision" : "3046a0d4cfc5814ce1427cdcef5d5c90c217ee64",
-        "version" : "0.1.0-alpha"
+        "revision" : "e579388320096f2def85287639d0b5490bf123a2",
+        "version" : "0.2.1"
+      }
+    },
+    {
+      "identity" : "swiftfulsoundeffects",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SwiftfulThinking/SwiftfulSoundEffects.git",
+      "state" : {
+        "revision" : "00f8d6c9954c0adf099a32578af6b54a3ea10dd8",
+        "version" : "1.0.0"
       }
     },
     {

@@ -153,7 +153,7 @@ extension CoreBuilder {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     builder.scheduleView(
         delegate: ScheduleDelegate(
             getScheduledWorkouts: { ScheduledWorkout.mocksWeek1 },

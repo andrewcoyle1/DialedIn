@@ -103,7 +103,7 @@ extension CoreBuilder {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView(addNavigationStack: false) { router in
         TabView {
             Tab {

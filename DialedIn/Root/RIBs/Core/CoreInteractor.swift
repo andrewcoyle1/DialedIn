@@ -17,7 +17,7 @@ enum CoreInteractorError: Error {
 
 @MainActor
 // swiftlint:disable:next type_body_length
-struct CoreInteractor {
+struct CoreInteractor: GlobalInteractor {
     private let authManager: AuthManager
     private let userManager: UserManager
     private let abTestManager: ABTestManager
@@ -50,6 +50,9 @@ struct CoreInteractor {
     private let liveActivityManager: LiveActivityManager
 #endif
     private let appState: AppState
+
+    private let hapticManager: HapticManager
+    private let soundEffectManager: SoundEffectManager
 
     init(container: DependencyContainer) {
         self.authManager = container.resolve(AuthManager.self)!
@@ -84,6 +87,10 @@ struct CoreInteractor {
         self.liveActivityManager = container.resolve(LiveActivityManager.self)!
         #endif
         self.appState = container.resolve(AppState.self)!
+
+        self.hapticManager = container.resolve(HapticManager.self)!
+        self.soundEffectManager = container.resolve(SoundEffectManager.self)!
+
     }
 
     // MARK: Shared
@@ -165,7 +172,11 @@ struct CoreInteractor {
     func refreshProfileImage() async throws {
         try await userManager.refreshProfileImage()
     }
-    
+
+    var userImageUrl: String? {
+        currentUser?.profileImageUrl
+    }
+
     func clearAllLocalData() {
         userManager.clearAllLocalData()
     }
@@ -1817,6 +1828,47 @@ struct CoreInteractor {
     }
 
     #endif
+
+    // MARK: Haptics
+
+    func prepareHaptic(option: HapticOption) {
+        Task {
+            await hapticManager.prepare(option: option)
+        }
+    }
+
+    func playHaptic(option: HapticOption) {
+        Task {
+            await hapticManager.play(option: option)
+        }
+    }
+
+    func tearDownHaptic(option: HapticOption) {
+        Task {
+            await hapticManager.tearDown(option: option)
+        }
+    }
+
+    // MARK: Sound Effects
+
+    func prepareSoundEffect(sound: SoundEffectFile, simultaneousPlayers: Int = 1) {
+        Task {
+            await soundEffectManager.prepare(url: sound.url, simultaneousPlayers: simultaneousPlayers, volume: 1)
+        }
+    }
+
+    func tearDownSoundEffect(sound: SoundEffectFile) {
+        Task {
+            await soundEffectManager.tearDown(url: sound.url)
+        }
+    }
+
+    func playSoundEffect(sound: SoundEffectFile) {
+        Task {
+            await soundEffectManager.play(url: sound.url)
+        }
+    }
+
 }
 
 // swiftlint:disable:next file_length

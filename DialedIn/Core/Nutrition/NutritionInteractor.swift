@@ -7,6 +7,7 @@
 
 protocol NutritionInteractor {
     var currentUser: UserModel? { get }
+    var userImageUrl: String? { get }
     func getMeals(for dayKey: String) throws -> [MealLogModel]
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget?

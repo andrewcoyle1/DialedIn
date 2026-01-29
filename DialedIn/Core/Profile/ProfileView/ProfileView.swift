@@ -25,8 +25,10 @@ struct ProfileView: View {
         List {
             if let user = presenter.currentUser,
                let firstName = user.firstName, !firstName.isEmpty {
-                profileHeaderView()
+                profileHeaderSection
                     .listSectionMargins(.top, 0)
+//                profileHeaderView()
+//                    .listSectionMargins(.top, 0)
                 profilePhysicalMetricsView()
                 profileGoalSection()
                 profileNutritionPlanView()
@@ -45,23 +47,59 @@ struct ProfileView: View {
 
         }
     }
-    
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.onDevSettingsPressed()
-            } label: {
-                Image(systemName: "info")
+
+    private var profileHeaderSection: some View {
+        Section {
+            if let user = presenter.currentUser {
+                HStack(spacing: 16) {
+                    // Profile Image
+                    CachedProfileImageView(
+                        userId: user.userId,
+                        imageUrl: user.profileImageUrl,
+                        size: 60
+                    )
+
+                    // User Info
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(presenter.fullName)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+
+                        if let email = user.email {
+                            Text(email)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+
+                    }
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                }
+                .tappableBackground()
+                .anyButton(.highlight) {
+                    presenter.onProfileEditPressed()
+                }
             }
         }
-        #endif
-        ToolbarItem(placement: .topBarTrailing) {
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+
+        ToolbarItem(placement: .topBarLeading) {
             Button {
                 presenter.onNotificationsPressed()
             } label: {
                 Image(systemName: "bell")
+            }
+            .badge(3)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onDismissPressed()
+            } label: {
+                Image(systemName: "xmark")
             }
         }
     }
@@ -99,9 +137,27 @@ extension CoreBuilder {
     }
 }
 
+extension CoreRouter {
+
+    func showProfileView() {
+        router.showScreen(.sheet) { router in
+            builder.profileView(router: router)
+        }
+    }
+
+    func showProfileViewZoom(transitionId: String?, namespace: Namespace.ID) {
+        router.showScreenWithZoomTransition(
+            .sheet,
+            transitionID: transitionId,
+            namespace: namespace) { router in
+                builder.profileView(router: router)
+            }
+    }
+}
+
 // MARK: - Previews
 #Preview("User Has Profile") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.profileView(router: router)
     }
@@ -109,7 +165,7 @@ extension CoreBuilder {
 }
 
 #Preview("User No Profile") {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.profileView(router: router)
     }

@@ -40,11 +40,12 @@ struct TrainingView<
             await presenter.refreshData()
         }
         .navigationTitle("Training")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inlineLarge)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }
+        .toolbarRole(.browser)
         .onAppear {
             presenter.getWeeklyProgress()
             Task {
@@ -258,15 +259,6 @@ struct TrainingView<
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
 
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.onCalendarPressed("training-calendar-button", in: namespace)
-            } label: {
-                Image(systemName: "calendar")
-            }
-            .matchedTransitionSource(id: "training-calendar-button", in: namespace)
-        }
-
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onAddPressed()
@@ -274,13 +266,22 @@ struct TrainingView<
                 Image(systemName: "plus")
             }
         }
+
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                presenter.onNotificationsPressed()
+                presenter.onProfilePressed()
             } label: {
-                Image(systemName: "bell")
+                if let urlString = presenter.userImageUrl {
+                    ImageLoaderView(urlString: urlString)
+                        .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
+                        .clipShape(Circle())
+                } else {
+                    Image(systemName: "person")
+                }
             }
         }
+        .sharedBackgroundVisibility(.hidden)
+
     }
 }
 
@@ -305,7 +306,7 @@ extension CoreBuilder {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.trainingView(router: router)
     }
@@ -313,7 +314,7 @@ extension CoreBuilder {
 }
 
 #Preview("No Training Plan") {
-    let container = DevPreview.shared.container
+    let container = DevPreview.shared.container()
     container.register(TrainingPlanManager.self, service: TrainingPlanManager(services: MockTrainingPlanServices(delay: 0, showError: false, plans: [])))
     let builder = CoreBuilder(container: container)
     return RouterView { router in

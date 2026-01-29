@@ -33,10 +33,11 @@ struct NutritionView<CalendarHeaderView: View>: View {
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inlineLarge)
         .toolbar {
             toolbarContent
         }
+        .toolbarRole(.browser)
         .task {
             await presenter.loadMeals()
         }
@@ -46,11 +47,18 @@ struct NutritionView<CalendarHeaderView: View>: View {
             }
         }
         .safeAreaInset(edge: .top) {
-            calendarHeader(CalendarHeaderDelegate(onDatePressed: { date in
-                presenter.selectedDate = date.startOfDay
-            }, getForDate: { date in
-                presenter.getMealCountForDate(date: date)
-            }) )
+            calendarHeader(
+                CalendarHeaderDelegate(
+                    onDatePressed: { date in
+                        presenter.selectedDate = date.startOfDay
+                    },
+                    getForDate: { date in
+                        presenter.getMealCountForDate(
+                            date: date
+                        )
+                    }
+                )
+            )
         }
     }
 
@@ -94,7 +102,7 @@ struct NutritionView<CalendarHeaderView: View>: View {
             .removeListRowFormatting()
             .padding(.vertical, 8)
         } header: {
-            Text("Daily Summary")
+            Text("Daily Summary - \(presenter.selectedDate.formattedDate)")
         }
     }
     
@@ -169,23 +177,22 @@ struct NutritionView<CalendarHeaderView: View>: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.onCalendarPressed("nutrition-calendar-button", in: namespace)
-            } label: {
-                Image(systemName: "calendar")
-            }
-            .matchedTransitionSource(id: "nutrition-calendar-button", in: namespace)
-        }
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                presenter.onNotificationsPressed()
+                presenter.onProfilePressed()
             } label: {
-                Image(systemName: "bell")
+                if let urlString = presenter.userImageUrl {
+                    ImageLoaderView(urlString: urlString)
+                        .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
+                        .clipShape(Circle())
+                } else {
+                    Image(systemName: "person")
+                }
             }
         }
+        .sharedBackgroundVisibility(.hidden)
+
     }
     
     private var recipeLibraryButton: some View {
@@ -223,7 +230,7 @@ extension CoreBuilder {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.nutritionView(router: router)
     }

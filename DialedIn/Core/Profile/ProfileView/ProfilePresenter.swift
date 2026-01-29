@@ -18,7 +18,14 @@ class ProfilePresenter {
     var currentUser: UserModel? {
         interactor.currentUser
     }
-    
+
+    var fullName: String {
+        guard let user = currentUser else { return "" }
+        let first = user.firstName ?? ""
+        let last = user.lastName ?? ""
+        return "\(first) \(last)".trimmingCharacters(in: .whitespaces)
+    }
+
     var currentGoal: WeightGoal? {
         interactor.currentGoal
     }
@@ -41,17 +48,21 @@ class ProfilePresenter {
         }
     }
 
-    func navToSettingsView() {
-        interactor.trackEvent(event: Event.navigate)
-        router.showSettingsView()
+    func onProfileEditPressed() {
+        router.showProfileEditView()
     }
 
     func onNotificationsPressed() {
         router.showNotificationsView()
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
+    func navToSettingsView() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showSettingsView()
+    }
+
+    func onDismissPressed() {
+        router.dismissScreen()
     }
     
     func updateAppState(showTabBarView: Bool) {

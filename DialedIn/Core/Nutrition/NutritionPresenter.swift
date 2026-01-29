@@ -23,7 +23,11 @@ class NutritionPresenter {
     var currentUser: UserModel? {
         interactor.currentUser
     }
-    
+
+    var userImageUrl: String? {
+        interactor.userImageUrl
+    }
+
     var dayKey: String {
         selectedDate.dayKey
     }
@@ -36,21 +40,8 @@ class NutritionPresenter {
         self.router = router
     }
 
-    func onCalendarPressed(_ transitionId: String, in namespace: Namespace.ID) {
-        router.showCalendarViewZoom(
-            delegate: CalendarDelegate(
-                onDateSelected: { date, _ in
-                    self.selectedDate = date
-
-                }
-            ),
-            transitionId: transitionId,
-            namespace: namespace
-        )
-    }
-
-    func onNotificationsPressed() {
-        router.showNotificationsView()
+    func onProfilePressed() {
+        router.showProfileView()
     }
 
     func onDevSettingsPressed() {

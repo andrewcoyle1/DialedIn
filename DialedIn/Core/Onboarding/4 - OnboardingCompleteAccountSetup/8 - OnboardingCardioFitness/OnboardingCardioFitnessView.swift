@@ -125,7 +125,7 @@ extension OnbRouter {
 }
 
 #Preview("Default - Ready to submit") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingCardioFitnessView(
             router: router,

@@ -163,7 +163,7 @@ struct ExerciseTrackerCardView: View {
 }
 
 private struct ExerciseTrackerCardPreviewContainer: View {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     @State private var exercise: WorkoutExerciseModel = {
         var exercise = WorkoutExerciseModel.mock
         exercise.notes = exercise.notes ?? ""

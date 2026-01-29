@@ -9,12 +9,14 @@ import SwiftUI
 import SwiftfulRouting
 
 struct DashboardView: View {
-    
+
     @Environment(\.layoutMode) private var layoutMode
 
     @State var presenter: DashboardPresenter
 
     @ViewBuilder var nutritionTargetChartView: () -> AnyView
+
+    @Namespace private var namespace
 
     var body: some View {
         List {
@@ -23,12 +25,12 @@ struct DashboardView: View {
             contributionChartSection
         }
         .navigationTitle("Dashboard")
-        .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
-        .navigationBarTitleDisplayMode(.large)
+        .toolbarTitleDisplayMode(.inlineLarge)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }
+        .toolbarRole(.browser)
         .onOpenURL { url in
             presenter.handleDeepLink(url: url)
         }
@@ -77,36 +79,22 @@ struct DashboardView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
+
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
-                presenter.onSubscribePressed()
+                presenter.onProfilePressed()
             } label: {
-                Image(systemName: "crown")
-            }
-            .buttonStyle(.glassProminent)
-        }
-        
-        ToolbarSpacer(.fixed, placement: .topBarLeading)
-        
-        #if DEBUG || MOCK
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.onDevSettingsPressed()
-            } label: {
-                Image(systemName: "info")
-            }
-        }
-        #endif
-        
-        if presenter.isInNotificationsABTest {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    presenter.onPushNotificationsPressed()
-                } label: {
-                    Image(systemName: "bell")
+                if let urlString = presenter.userImageUrl {
+                    ImageLoaderView(urlString: urlString)
+                        .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
+                        .clipShape(Circle())
+                } else {
+                    Image(systemName: "person")
+                        .glassEffect()
                 }
             }
         }
+        .sharedBackgroundVisibility(.hidden)
     }
 }
 
@@ -124,7 +112,7 @@ extension CoreBuilder {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container)
+    let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
         builder.dashboardView(router: router)
     }
@@ -132,7 +120,7 @@ extension CoreBuilder {
 }
 
 #Preview("w/ Notifications Test") {
-    let container = DevPreview.shared.container
+    let container = DevPreview.shared.container()
     container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(notificationsTest: true), logger: LogManager()))
     let builder = CoreBuilder(container: container)
     return RouterView { router in

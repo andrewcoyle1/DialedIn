@@ -259,7 +259,7 @@ extension OnbRouter {
 }
 
 #Preview("Functioning") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container))
+    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingExpenditureView(
             router: router, 
