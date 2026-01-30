@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor
 protocol ExerciseListBuilderInteractor {
     var currentUser: UserModel? { get }
+    var exerciseModels: [ExerciseModel] { get }
     func incrementExerciseTemplateInteraction(id: String) async throws
     func getExerciseTemplatesByName(name: String) async throws -> [ExerciseTemplateModel]
     func getExerciseTemplates(ids: [String], limitTo: Int) async throws -> [ExerciseTemplateModel]

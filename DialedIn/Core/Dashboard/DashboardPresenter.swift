@@ -13,6 +13,7 @@ class DashboardPresenter {
     private let interactor: DashboardInteractor
     private let router: DashboardRouter
 
+    private(set) var selectedDate: Date = Date.now
     var showNotifications: Bool = false
     var isShowingInspector: Bool = false
     private(set) var contributionChartData: [Double] = []

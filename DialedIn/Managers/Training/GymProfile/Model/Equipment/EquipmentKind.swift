@@ -22,3 +22,32 @@ enum EquipmentKind: String, CaseIterable, Identifiable, Codable, Hashable, Senda
     
     var id: String { rawValue }
 }
+
+extension EquipmentKind {
+    var sectionTitle: String {
+        switch self {
+        case .freeWeight:
+            return "Free Weights"
+        case .loadableBar:
+            return "Loadable Bars"
+        case .fixedWeightBar:
+            return "Fixed Weight Bars"
+        case .bands:
+            return "Bands"
+        case .bodyWeight:
+            return "Body Weights"
+        case .supportEquipment:
+            return "Support Equipment"
+        case .accessoryEquipment:
+            return "Accessory Equipment"
+        case .loadableAccessoryEquipment:
+            return "Loadable Accessory Equipment"
+        case .cableMachine:
+            return "Cable Machines"
+        case .plateLoadedMachine:
+            return "Plate Loaded Machines"
+        case .pinLoadedMachine:
+            return "Pin Loaded Machines"
+        }
+    }
+}

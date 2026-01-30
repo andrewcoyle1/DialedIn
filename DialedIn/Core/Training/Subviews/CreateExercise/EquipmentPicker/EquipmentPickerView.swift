@@ -21,6 +21,7 @@ struct EquipmentPickerView: View {
     @State var presenter: EquipmentPickerPresenter
     let delegate: EquipmentPickerDelegate
     @Binding private var chosenItems: [EquipmentRef]
+    @State private var searchQuery: String = ""
     
     init(presenter: EquipmentPickerPresenter, delegate: EquipmentPickerDelegate) {
         self.presenter = presenter
@@ -30,24 +31,27 @@ struct EquipmentPickerView: View {
     
     var body: some View {
         List {
-            freeWeightsSection
+            equipmentSections
         }
-        .navigationTitle("Resistance")
+        .navigationTitle(delegate.headerTitle)
         .navigationSubtitle("Choose One")
         .navigationBarTitleDisplayMode(.inline)
         .screenAppearAnalytics(name: "EquipmentPickerView")
+        .searchable(text: $searchQuery, prompt: "Filter equipment by name")
         .toolbar {
             toolbarContent
         }
     }
     
-    private var freeWeightsSection: some View {
-        Section {
-            ForEach(delegate.items, id: \.self) { item in
-                rowItem(item: item)
+    private var equipmentSections: some View {
+        ForEach(sectionedEquipment, id: \.kind) { section in
+            Section {
+                ForEach(section.items, id: \.self) { item in
+                    rowItem(item: item)
+                }
+            } header: {
+                Text(section.kind.sectionTitle)
             }
-        } header: {
-            Text(delegate.headerTitle)
         }
     }
     
@@ -87,6 +91,46 @@ struct EquipmentPickerView: View {
         .tappableBackground()
         .anyButton(.press) {
             presenter.onSelect(item: item, binding: $chosenItems)
+        }
+    }
+}
+
+private extension EquipmentPickerView {
+    struct EquipmentSection: Identifiable {
+        let kind: EquipmentKind
+        let items: [AnyEquipment]
+
+        var id: EquipmentKind { kind }
+    }
+
+    var filteredItems: [AnyEquipment] {
+        let trimmedQuery = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedQuery.isEmpty else { return delegate.items }
+        return delegate.items.filter {
+            $0.name.localizedCaseInsensitiveContains(trimmedQuery)
+        }
+    }
+
+    var sectionedEquipment: [EquipmentSection] {
+        let groupedItems = Dictionary(grouping: filteredItems, by: { $0.ref.kind })
+        let sections = groupedItems.map { kind, items in
+            EquipmentSection(
+                kind: kind,
+                items: items.sorted { lhs, rhs in
+                    let comparison = lhs.name.localizedCaseInsensitiveCompare(rhs.name)
+                    if comparison == .orderedSame {
+                        return lhs.ref.id < rhs.ref.id
+                    }
+                    return comparison == .orderedAscending
+                }
+            )
+        }
+        return sections.sorted { lhs, rhs in
+            let comparison = lhs.kind.sectionTitle.localizedCaseInsensitiveCompare(rhs.kind.sectionTitle)
+            if comparison == .orderedSame {
+                return lhs.kind.rawValue < rhs.kind.rawValue
+            }
+            return comparison == .orderedAscending
         }
     }
 }

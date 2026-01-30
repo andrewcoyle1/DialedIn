@@ -1,5 +1,9 @@
 import SwiftUI
 
+struct ExerciseListBuilderDelegate {
+    var onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?
+}
+
 struct ExerciseListBuilderView: View {
     
     @State var presenter: ExerciseListBuilderPresenter
@@ -7,27 +11,9 @@ struct ExerciseListBuilderView: View {
     let delegate: ExerciseListBuilderDelegate
     
     var body: some View {
-        listContents
-        .screenAppearAnalytics(name: "ExerciseListBuilderView")
-        .navigationTitle("Exercises")
-        .navigationSubtitle("\(presenter.exercises.count) exercises")
-        .navigationBarTitleDisplayMode(.large)
-        .scrollIndicators(.hidden)
-        .onFirstTask {
-            await presenter.loadExercises()
-        }
-        .onChange(of: presenter.currentUser) {
-            Task {
-                await presenter.syncSavedExercisesFromUser()
-            }
-        }
-        .toolbar {
-            toolbarContent
-        }
-    }
-    
-    private var listContents: some View {
         List {
+
+            exerciseModelsSection
             if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 
                 if !presenter.favouriteExercises.isEmpty {
@@ -35,7 +21,7 @@ struct ExerciseListBuilderView: View {
                 }
 
                 myExercisesSection
-                
+
                 if !presenter.officialExercisesVisible.isEmpty {
                     officialExercisesSection
                 }
@@ -55,8 +41,41 @@ struct ExerciseListBuilderView: View {
         .refreshable {
             await presenter.loadExercises()
         }
+        .navigationTitle("Exercises")
+        .navigationSubtitle("\(presenter.exercises.count) exercises")
+        .navigationBarTitleDisplayMode(.large)
+        .scrollIndicators(.hidden)
+        .screenAppearAnalytics(name: "ExerciseListBuilderView")
+        .onFirstTask {
+            await presenter.loadExercises()
+        }
+        .onChange(of: presenter.currentUser) {
+            Task {
+                await presenter.syncSavedExercisesFromUser()
+            }
+        }
+        .toolbar {
+            toolbarContent
+        }
     }
-    
+
+    private var exerciseModelsSection: some View {
+        Section {
+            ForEach(presenter.exerciseModels) { exercise in
+                CustomListCellView(
+                    imageName: Constants.randomImage,
+                    title: exercise.name,
+                    subtitle: nil
+                )
+                .anyButton(.highlight) {
+                }
+                .removeListRowFormatting()
+            }
+        } header: {
+            Text("Exercise Models")
+        }
+    }
+
     private var favouriteExerciseTemplatesSection: some View {
         Section {
             ForEach(presenter.favouriteExercises) { exercise in

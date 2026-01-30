@@ -22,7 +22,11 @@ class ExerciseListBuilderPresenter {
     var currentUser: UserModel? {
         interactor.currentUser
     }
-    
+
+    var exerciseModels: [ExerciseModel] {
+        interactor.exerciseModels
+    }
+
     var myExerciseIds: Set<String> {
         Set(myExercises.map { $0.id })
     }

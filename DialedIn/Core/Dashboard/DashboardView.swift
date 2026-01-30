@@ -25,6 +25,7 @@ struct DashboardView: View {
             contributionChartSection
         }
         .navigationTitle("Dashboard")
+        .navigationSubtitle(presenter.selectedDate.formattedDate)
         .toolbarTitleDisplayMode(.inlineLarge)
         .scrollIndicators(.hidden)
         .toolbar {
@@ -93,6 +94,7 @@ struct DashboardView: View {
                         .glassEffect()
                 }
             }
+            .badge(3)
         }
         .sharedBackgroundVisibility(.hidden)
     }

@@ -12,7 +12,9 @@ class ExerciseTemplateManager: BaseTemplateManager<ExerciseTemplateModel> {
     
     private let local: LocalExerciseTemplatePersistence
     private let remote: RemoteExerciseTemplateService
-    
+
+    private(set) var exerciseModels: [ExerciseModel] = ExerciseModel.mocks
+
     init(services: ExerciseTemplateServices) {
         self.local = services.local
         self.remote = services.remote

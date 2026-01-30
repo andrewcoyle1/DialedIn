@@ -524,7 +524,11 @@ struct CoreInteractor: GlobalInteractor {
     }
 
     // MARK: ExerciseTemplateManager
-    
+
+    var exerciseModels: [ExerciseModel] {
+        exerciseTemplateManager.exerciseModels
+    }
+
     func addLocalExerciseTemplate(exercise: ExerciseTemplateModel) async throws {
         try await exerciseTemplateManager.addLocalExerciseTemplate(exercise: exercise)
     }

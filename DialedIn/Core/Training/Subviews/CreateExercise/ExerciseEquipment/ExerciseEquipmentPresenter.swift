@@ -13,11 +13,10 @@ class ExerciseEquipmentPresenter {
     }
     
     var bodyweightExercise: Bool = false
-    
-    var supportEquipment: [EquipmentRef] = []
-    
+     
     var chosenResistanceEquipment: [EquipmentRef] = []
-    
+    var chosenSupportEquipment: [EquipmentRef] = []
+
     private var equipmentIndex: [EquipmentRef: AnyEquipment] = [:]
     
     var canContinue: Bool {
@@ -39,9 +38,35 @@ class ExerciseEquipmentPresenter {
     var resistanceSubsubtitle: String? {
         chosenResistanceEquipment.isEmpty ? "Required" : nil
     }
-    
-    func onNextPressed() {
-        
+
+    var supportSubtitle: String? {
+        let array: [String] = chosenSupportEquipment.isEmpty ? ["Equipment that assists, stabilize, or makes the movement possible, without adding resistance."] : chosenSupportEquipment.map { name(for: $0)}
+
+        if !array.isEmpty {
+            return "\(array.joined(separator: ", "))"
+        } else {
+            return nil
+        }
+    }
+
+    var supportSubsubtitle: String? {
+        chosenSupportEquipment.isEmpty ? "Optional" : nil
+    }
+
+    func onNextPressed(delegate: ExerciseEquipmentDelegate) {
+        router.showFinalExerciseDetailsView(
+            delegate: FinalExerciseDetailsDelegate(
+                name: delegate.name,
+                trackableMetricA: delegate.trackableMetricA,
+                trackableMetricB: delegate.trackableMetricB,
+                exerciseType: delegate.exerciseType,
+                laterality: delegate.laterality,
+                targetMuscles: delegate.muscleGroups,
+                isBodyweight: self.bodyweightExercise,
+                resistanceEquipment: self.chosenResistanceEquipment,
+                supportEquipment: self.chosenSupportEquipment
+            )
+        )
     }
     
     func onAddResistancePressed() {
@@ -55,10 +80,12 @@ class ExerciseEquipmentPresenter {
                     set: { self.chosenResistanceEquipment = $0 }
                 )
                 
-                let equipmentItems = gymProfile.allEquipment.filter { $0.ref.kind == .freeWeight }
+                let equipmentItems = gymProfile.allEquipment.filter {
+                    $0.ref.kind != .supportEquipment && $0.ref.kind != .accessoryEquipment
+                }
                 let delegate = EquipmentPickerDelegate(
                     items: equipmentItems,
-                    headerTitle: "Free Weights",
+                    headerTitle: "Resistance Equipment",
                     chosenItem: chosenBinding
                 )
                 
@@ -70,7 +97,30 @@ class ExerciseEquipmentPresenter {
     }
     
     func onAddSupportPressed() {
-        
+        Task {
+            do {
+                let gymProfile = try await interactor.readFavouriteGymProfile()
+                equipmentIndex = gymProfile.equipmentIndex
+
+                let chosenBinding = Binding<[EquipmentRef]>(
+                    get: { self.chosenSupportEquipment },
+                    set: { self.chosenSupportEquipment = $0 }
+                )
+
+                let equipmentItems = gymProfile.allEquipment.filter {
+                    $0.ref.kind != .supportEquipment || $0.ref.kind != .accessoryEquipment
+                }
+                let delegate = EquipmentPickerDelegate(
+                    items: equipmentItems,
+                    headerTitle: "Support Equipment",
+                    chosenItem: chosenBinding
+                )
+
+                router.showEquipmentPickerView(delegate: delegate)
+            } catch {
+                router.showSimpleAlert(title: "No Equipment Data", subtitle: "Unable to load gym profile. Please set a favourite gym profile and try again.")
+            }
+        }
     }
     
     private func name(for equipmentRef: EquipmentRef) -> String {

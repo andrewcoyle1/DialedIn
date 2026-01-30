@@ -33,7 +33,7 @@ struct ExerciseEquipmentView: View {
                 }
                 .opacity(presenter.bodyweightExercise ? 0.4 : 1)
 
-                ActionRow(title: "Support", subtitle: "Equipment that assists, stabilize, or makes the movement possible, without adding resistance.", subsubtitle: "Optional") {
+                ActionRow(title: "Support", subtitle: presenter.supportSubtitle, subsubtitle: presenter.supportSubsubtitle) {
                     Text("Add")
                         .padding(.vertical, 8)
                         .padding(.horizontal)
@@ -54,7 +54,7 @@ struct ExerciseEquipmentView: View {
                 .callToActionButton(isPrimaryAction: true)
                 .padding(.horizontal)
                 .anyButton(.press) {
-                    presenter.onNextPressed()
+                    presenter.onNextPressed(delegate: delegate)
                 }
                 .opacity(presenter.canContinue ? 1 : 0.3)
                 .disabled(!presenter.canContinue)
