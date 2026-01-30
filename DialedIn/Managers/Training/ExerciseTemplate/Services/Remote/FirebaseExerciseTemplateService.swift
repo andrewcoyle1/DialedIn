@@ -13,7 +13,7 @@ struct FirebaseExerciseTemplateService: RemoteExerciseTemplateService {
         Firestore.firestore().collection("exercise_templates")
     }
     
-    func createExerciseTemplate(exercise: ExerciseTemplateModel, image: PlatformImage?) async throws {
+    func createExerciseTemplate(exercise: ExerciseModel, image: PlatformImage?) async throws {
         // Work on a mutable copy so any image URL updates are persisted
         var exerciseToSave = exercise
         
@@ -27,21 +27,24 @@ struct FirebaseExerciseTemplateService: RemoteExerciseTemplateService {
         
         // Upload the (possibly updated) exercise
         try collection.document(exerciseToSave.id).setData(from: exerciseToSave, merge: true)
+        try await collection.document(exerciseToSave.id).setData([
+            "name_lower": exerciseToSave.name.lowercased()
+        ], merge: true)
     }
     
-    func getExerciseTemplate(id: String) async throws -> ExerciseTemplateModel {
+    func getExerciseTemplate(id: String) async throws -> ExerciseModel {
         let document = try await collection.document(id).getDocument()
-        return try document.data(as: ExerciseTemplateModel.self)
+        return try document.data(as: ExerciseModel.self)
     }
     
-    func getExerciseTemplates(ids: [String], limitTo: Int = 20) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplates(ids: [String], limitTo: Int = 20) async throws -> [ExerciseModel] {
         // Fetch documents individually to handle missing/null documents gracefully
-        var exercises: [ExerciseTemplateModel] = []
+        var exercises: [ExerciseModel] = []
         
         for id in ids {
             do {
                 let document = try await collection.document(id).getDocument()
-                let exercise = try document.data(as: ExerciseTemplateModel.self)
+                let exercise = try document.data(as: ExerciseModel.self)
                 exercises.append(exercise)
             } catch {
                 // Skip documents that don't exist or fail to decode
@@ -55,7 +58,7 @@ struct FirebaseExerciseTemplateService: RemoteExerciseTemplateService {
             .prefix(limitTo))
     }
     
-    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseModel] {
         let lower = name.lowercased()
         // Case-insensitive prefix search using range on a lowercased field
         let snapshot = try await collection
@@ -65,38 +68,38 @@ struct FirebaseExerciseTemplateService: RemoteExerciseTemplateService {
             .limit(to: 25)
             .getDocuments()
         
-        return try snapshot.documents.compactMap { try $0.data(as: ExerciseTemplateModel.self) }
+        return try snapshot.documents.compactMap { try $0.data(as: ExerciseModel.self) }
     }
     
-    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseModel] {
         let snapshot = try await collection
-            .whereField(ExerciseTemplateModel.CodingKeys.authorId.rawValue, isEqualTo: authorId)
-            .order(by: ExerciseTemplateModel.CodingKeys.dateCreated.rawValue, descending: true)
+            .whereField(ExerciseModel.CodingKeys.authorId.rawValue, isEqualTo: authorId)
+            .order(by: ExerciseModel.CodingKeys.dateCreated.rawValue, descending: true)
             .getDocuments()
         
-        return try snapshot.documents.compactMap { try $0.data(as: ExerciseTemplateModel.self) }
+        return try snapshot.documents.compactMap { try $0.data(as: ExerciseModel.self) }
     }
     
-    func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseTemplateModel] {
+    func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseModel] {
         let snapshot = try await collection
-            .order(by: ExerciseTemplateModel.CodingKeys.clickCount.rawValue, descending: true)
+            .order(by: ExerciseModel.CodingKeys.clickCount.rawValue, descending: true)
             .limit(to: limitTo)
             .getDocuments()
         
-        return try snapshot.documents.compactMap { try $0.data(as: ExerciseTemplateModel.self) }
+        return try snapshot.documents.compactMap { try $0.data(as: ExerciseModel.self) }
     }
     
     func incrementExerciseTemplateInteraction(id: String) async throws {
         try await collection
             .document(id)
             .updateData([
-            ExerciseTemplateModel.CodingKeys.clickCount.rawValue: FieldValue.increment(Int64(1))
+            ExerciseModel.CodingKeys.clickCount.rawValue: FieldValue.increment(Int64(1))
         ])
     }
     
     func removeAuthorIdFromExerciseTemplate(id: String) async throws {
         try await collection.document(id).updateData([
-            ExerciseTemplateModel.CodingKeys.authorId.rawValue: NSNull()
+            ExerciseModel.CodingKeys.authorId.rawValue: NSNull()
         ])
     }
     
@@ -116,13 +119,13 @@ struct FirebaseExerciseTemplateService: RemoteExerciseTemplateService {
     
     func bookmarkExerciseTemplate(id: String, isBookmarked: Bool) async throws {
         try await collection.document(id).updateData([
-            ExerciseTemplateModel.CodingKeys.bookmarkCount.rawValue: FieldValue.increment(Int64(isBookmarked ? 1 : -1))
+            ExerciseModel.CodingKeys.bookmarkCount.rawValue: FieldValue.increment(Int64(isBookmarked ? 1 : -1))
         ])
     }
 
     func favouriteExerciseTemplate(id: String, isFavourited: Bool) async throws {
         try await collection.document(id).updateData([
-            ExerciseTemplateModel.CodingKeys.favouriteCount.rawValue: FieldValue.increment(Int64(isFavourited ? 1 : -1))
+            ExerciseModel.CodingKeys.favouriteCount.rawValue: FieldValue.increment(Int64(isFavourited ? 1 : -1))
         ])
     }
 }

@@ -24,7 +24,7 @@ class WorkoutListPresenterBuilder {
     private(set) var workouts: [WorkoutTemplateModel] = []
     
     var showCreateWorkout: Bool = false
-    var selectedExerciseTemplate: ExerciseTemplateModel?
+    var selectedExerciseTemplate: ExerciseModel?
     var selectedWorkoutTemplate: WorkoutTemplateModel?
     
     var currentUser: UserModel? {

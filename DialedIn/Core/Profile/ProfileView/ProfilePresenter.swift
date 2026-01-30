@@ -56,6 +56,10 @@ class ProfilePresenter {
         router.showNotificationsView()
     }
 
+    func onExerciseLibraryPressed() {
+        router.showExercisesView()
+    }
+
     func navToSettingsView() {
         interactor.trackEvent(event: Event.navigate)
         router.showSettingsView()

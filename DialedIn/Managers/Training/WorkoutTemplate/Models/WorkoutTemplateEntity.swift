@@ -32,7 +32,7 @@ class WorkoutTemplateEntity {
         self.isSystemWorkout = model.isSystemWorkout
         self.dateCreated = model.dateCreated
         self.dateModified = model.dateModified
-        self.exercises = model.exercises.map(\.exerciseId)
+        self.exercises = model.exercises.map(\.id)
         self.clickCount = model.clickCount
         self.bookmarkCount = model.bookmarkCount
         self.favouriteCount = model.favouriteCount
@@ -40,8 +40,8 @@ class WorkoutTemplateEntity {
     
     @MainActor
     func toModel(exerciseManager: ExerciseTemplateManager? = nil) -> WorkoutTemplateModel {
-        // Fetch actual exercise templates if manager is provided
-        var exerciseTemplates: [ExerciseTemplateModel] = []
+        // Fetch actual exercises if manager is provided
+        var exerciseTemplates: [ExerciseModel] = []
         if let exerciseManager = exerciseManager {
             for exerciseId in exercises {
                 if let exercise = try? exerciseManager.getLocalExerciseTemplate(id: exerciseId) {

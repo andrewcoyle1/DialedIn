@@ -12,7 +12,7 @@ struct VolumeMetrics: Codable, Equatable {
     let totalSets: Int
     let totalReps: Int
     let averageVolumePerWorkout: Double
-    let volumeByMuscleGroup: [MuscleGroup: Double]
+    let volumeByMuscleGroup: [Muscles: Double]
     let volumeByExercise: [String: Double] // exerciseId: volume
     let period: DateInterval
     
@@ -21,7 +21,7 @@ struct VolumeMetrics: Codable, Equatable {
         totalSets: Int,
         totalReps: Int,
         averageVolumePerWorkout: Double,
-        volumeByMuscleGroup: [MuscleGroup: Double],
+        volumeByMuscleGroup: [Muscles: Double],
         volumeByExercise: [String: Double],
         period: DateInterval
     ) {

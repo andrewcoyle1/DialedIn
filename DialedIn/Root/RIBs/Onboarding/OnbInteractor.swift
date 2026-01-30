@@ -132,7 +132,7 @@ struct OnbInteractor {
         workoutSessionManager.activeSession
     }
 
-    func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel] {
+    func getAllLocalExerciseTemplates() throws -> [ExerciseModel] {
         try exerciseTemplateManager.getAllLocalExerciseTemplates()
     }
 

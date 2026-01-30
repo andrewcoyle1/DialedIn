@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftfulRouting
 
 struct AddExerciseModalDelegate {
-    let selectedExercises: Binding<[ExerciseTemplateModel]>
+    let selectedExercises: Binding<[ExerciseModel]>
 }
 
 struct AddExerciseModalView: View {
@@ -118,7 +118,7 @@ extension CoreRouter {
 }
 
 #Preview {
-    @Previewable @State var selectedExercises: [ExerciseTemplateModel] = [ExerciseTemplateModel.mock]
+    @Previewable @State var selectedExercises: [ExerciseModel] = [ExerciseModel.mock]
     let builder = CoreBuilder(container: DevPreview.shared.container())
     let delegate = AddExerciseModalDelegate(selectedExercises: $selectedExercises)
     RouterView { router in

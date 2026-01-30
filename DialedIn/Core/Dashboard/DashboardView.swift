@@ -82,19 +82,29 @@ struct DashboardView: View {
     private var toolbarContent: some ToolbarContent {
 
         ToolbarItem(placement: .topBarTrailing) {
+            let avatarSize: CGFloat = 44
+
             Button {
                 presenter.onProfilePressed()
             } label: {
-                if let urlString = presenter.userImageUrl {
-                    ImageLoaderView(urlString: urlString)
-                        .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
-                        .clipShape(Circle())
-                } else {
-                    Image(systemName: "person")
-                        .glassEffect()
+                ZStack(alignment: .topTrailing) {
+                    Group {
+                        if let urlString = presenter.userImageUrl {
+                            ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
+                        } else {
+                            Circle()
+                                .fill(.secondary.opacity(0.25))
+                                .overlay {
+                                    Image(systemName: "person.fill")
+                                        .foregroundStyle(.secondary)
+                                }
+                        }
+                    }
+                    .frame(width: avatarSize, height: avatarSize)
+                    .contentShape(Circle())
                 }
             }
-            .badge(3)
+            .buttonStyle(.plain)
         }
         .sharedBackgroundVisibility(.hidden)
     }

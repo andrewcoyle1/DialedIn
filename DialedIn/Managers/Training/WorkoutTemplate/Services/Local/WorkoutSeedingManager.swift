@@ -170,7 +170,7 @@ private struct PrebuiltWorkoutDTO: Codable {
     
     func toModel(exerciseManager: ExerciseTemplateManager) async throws -> WorkoutTemplateModel {
         // Fetch actual exercise templates from LOCAL storage (where they were seeded)
-        var exercises: [ExerciseTemplateModel] = []
+        var exercises: [ExerciseModel] = []
         for exerciseId in exerciseIds {
             do {
                 // Use local fetch instead of remote

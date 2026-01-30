@@ -6,10 +6,10 @@
 //
 
 protocol AddExerciseInteractor {
-    func getSystemExerciseTemplates() throws -> [ExerciseTemplateModel]
-    func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseTemplateModel]
-    func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel]
-    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseTemplateModel]
+    func getSystemExerciseTemplates() throws -> [ExerciseModel]
+    func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseModel]
+    func getAllLocalExerciseTemplates() throws -> [ExerciseModel]
+    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseModel]
 }
 
 extension CoreInteractor: AddExerciseInteractor { }

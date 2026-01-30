@@ -49,8 +49,8 @@ struct TemplateListConfiguration<Template: TemplateModel> {
 
 // MARK: - Predefined Configurations
 
-extension TemplateListConfiguration where Template == ExerciseTemplateModel {
-    static var exercise: TemplateListConfiguration<ExerciseTemplateModel> {
+extension TemplateListConfiguration where Template == ExerciseModel {
+    static var exercise: TemplateListConfiguration<ExerciseModel> {
         TemplateListConfiguration(
             title: "My Exercises",
             emptyStateTitle: "No Exercises",
@@ -63,7 +63,7 @@ extension TemplateListConfiguration where Template == ExerciseTemplateModel {
         )
     }
     
-    static func exercise(customTitle: String?) -> TemplateListConfiguration<ExerciseTemplateModel> {
+    static func exercise(customTitle: String?) -> TemplateListConfiguration<ExerciseModel> {
         TemplateListConfiguration(
             title: customTitle ?? "Exercise Templates",
             emptyStateTitle: "No Exercises",

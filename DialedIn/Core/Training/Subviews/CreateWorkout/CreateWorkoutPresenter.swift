@@ -23,7 +23,7 @@ class CreateWorkoutPresenter {
     var selectedPhotoItem: PhotosPickerItem?
     var selectedImageData: Data?
     var isImagePickerPresented: Bool = false
-    var exercises: [ExerciseTemplateModel] = []
+    var exercises: [ExerciseModel] = []
 
     var isSaving: Bool = false
     var saveError: String?

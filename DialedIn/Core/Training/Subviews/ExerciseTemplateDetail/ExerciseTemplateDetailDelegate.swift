@@ -6,5 +6,5 @@
 //
 
 struct ExerciseTemplateDetailDelegate {
-    var exerciseTemplate: ExerciseTemplateModel
+    var exerciseTemplate: ExerciseModel
 }

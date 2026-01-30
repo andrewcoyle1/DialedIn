@@ -9,7 +9,7 @@ import SwiftUI
 
 protocol CreateExerciseInteractor {
     var currentUser: UserModel? { get }
-    func createExerciseTemplate(exercise: ExerciseTemplateModel, image: PlatformImage?) async throws
+    func createExerciseTemplate(exercise: ExerciseModel, image: PlatformImage?) async throws
     func addCreatedExerciseTemplate(exerciseId: String) async throws
     func addBookmarkedExerciseTemplate(exerciseId: String) async throws
     func bookmarkExerciseTemplate(id: String, isBookmarked: Bool) async throws

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ExerciseListBuilderDelegate {
-    var onExerciseSelectionChanged: ((ExerciseTemplateModel) -> Void)?
+    var onExerciseSelectionChanged: ((ExerciseModel) -> Void)?
 }
 
 struct ExerciseListBuilderView: View {
@@ -13,37 +13,32 @@ struct ExerciseListBuilderView: View {
     var body: some View {
         List {
 
-            exerciseModelsSection
-            if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if !presenter.favouriteExercisesVisible.isEmpty {
+                favouriteExerciseTemplatesSection
+            }
 
-                if !presenter.favouriteExercises.isEmpty {
-                    favouriteExerciseTemplatesSection
-                }
-
+            if !presenter.myExercisesVisible.isEmpty {
                 myExercisesSection
+            }
 
-                if !presenter.officialExercisesVisible.isEmpty {
-                    officialExercisesSection
-                }
+            if !presenter.officialExercisesVisible.isEmpty {
+                officialExercisesSection
+            }
 
-                if !presenter.bookmarkedOnlyExercises.isEmpty {
-                    bookmarkedExerciseTemplatesSection
-                }
+            if !presenter.bookmarkedOnlyExercises.isEmpty {
+                bookmarkedExerciseTemplatesSection
+            }
 
-                if !presenter.trendingExercisesDeduped.isEmpty {
-                    exerciseTemplateSection
-                }
-            } else {
-                // Show search results when there is a query
+            if !presenter.trendingExercisesDeduped.isEmpty || presenter.isLoading {
                 exerciseTemplateSection
             }
         }
+        .searchable(text: $presenter.searchText, prompt: Text("Search exercises"))
         .refreshable {
             await presenter.loadExercises()
         }
         .navigationTitle("Exercises")
         .navigationSubtitle("\(presenter.exercises.count) exercises")
-        .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
         .screenAppearAnalytics(name: "ExerciseListBuilderView")
         .onFirstTask {
@@ -59,26 +54,9 @@ struct ExerciseListBuilderView: View {
         }
     }
 
-    private var exerciseModelsSection: some View {
-        Section {
-            ForEach(presenter.exerciseModels) { exercise in
-                CustomListCellView(
-                    imageName: Constants.randomImage,
-                    title: exercise.name,
-                    subtitle: nil
-                )
-                .anyButton(.highlight) {
-                }
-                .removeListRowFormatting()
-            }
-        } header: {
-            Text("Exercise Models")
-        }
-    }
-
     private var favouriteExerciseTemplatesSection: some View {
         Section {
-            ForEach(presenter.favouriteExercises) { exercise in
+            ForEach(presenter.favouriteExercisesVisible) { exercise in
                 CustomListCellView(
                     imageName: exercise.imageURL,
                     title: exercise.name,
@@ -176,7 +154,7 @@ struct ExerciseListBuilderView: View {
 
     private var myExercisesSection: some View {
         Section {
-            if presenter.myExercisesVisible.isEmpty {
+            if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && presenter.myExercisesVisible.isEmpty {
                 HStack {
                     Image(systemName: "tray")
                         .foregroundColor(.secondary)
@@ -190,7 +168,7 @@ struct ExerciseListBuilderView: View {
                 .onAppear {
                     presenter.emptyStateShown()
                 }
-            } else {
+            } else if !presenter.myExercisesVisible.isEmpty {
                 ForEach(presenter.myExercisesVisible) { exercise in
                     CustomListCellView(
                         imageName: exercise.imageURL,

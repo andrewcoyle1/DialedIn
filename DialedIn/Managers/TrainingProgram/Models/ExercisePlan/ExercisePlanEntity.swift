@@ -13,14 +13,14 @@ class ExercisePlanEntity {
     
     @Attribute(.unique) var id: String
     var authorId: String
-    var exercise: ExerciseTemplateEntity
+    var exercise: ExerciseEntity
     
     @Relationship var dayPlan: DayPlanEntity?
     
     init(from model: ExercisePlan) {
         self.id = model.id
         self.authorId = model.authorId
-        self.exercise = ExerciseTemplateEntity(from: model.exercise)
+        self.exercise = ExerciseEntity(from: model.exercise)
         self.dayPlan = nil
     }
     

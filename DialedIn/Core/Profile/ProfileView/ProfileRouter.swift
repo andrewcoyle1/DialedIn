@@ -10,6 +10,8 @@ protocol ProfileRouter: GlobalRouter {
     func showProfileEditView()
     func showSettingsView()
     func showNotificationsView()
+    func showExercisesView()
+
 }
 
 extension CoreRouter: ProfileRouter { }

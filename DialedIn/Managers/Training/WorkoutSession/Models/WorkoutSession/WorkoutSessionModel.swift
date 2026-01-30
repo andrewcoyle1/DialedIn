@@ -72,13 +72,13 @@ struct WorkoutSessionModel: Identifiable, Codable, Hashable {
         self.endedAt = nil
         self.notes = notes
         self.exercises = template.exercises.enumerated().map { (idx, exerciseTemplate) in
-            let mode = WorkoutSessionModel.trackingMode(for: exerciseTemplate.type)
+            let mode = WorkoutSessionModel.trackingMode(for: exerciseTemplate)
             let sets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: authorId)
             let imageName = Constants.exerciseImageName(for: exerciseTemplate.name)
             return WorkoutExerciseModel(
                 id: UUID().uuidString,
                 authorId: authorId,
-                templateId: exerciseTemplate.exerciseId,
+                templateId: exerciseTemplate.id,
                 name: exerciseTemplate.name,
                 trackingMode: mode,
                 index: idx + 1,
@@ -89,19 +89,27 @@ struct WorkoutSessionModel: Identifiable, Codable, Hashable {
         }
     }
 
-    static func trackingMode(for category: ExerciseCategory) -> TrackingMode {
-        switch category {
-        case .repsOnly:
-            return .repsOnly
-        case .cardio:
-            return .distanceTime
-        case .duration:
-            return .timeOnly
-        case .none:
-            return .repsOnly
-        case .barbell, .dumbbell, .kettlebell, .medicineBall, .machine, .cable, .weightedBodyweight, .assistedBodyweight:
+    static func trackingMode(for exercise: ExerciseModel) -> TrackingMode {
+        let metrics = Set(exercise.trackableMetrics)
+        let weightMetrics: Set<TrackableExerciseMetric> = [
+            .weight,
+            .weightPerSide,
+            .weightPerSidePersistent,
+            .weightPerSideAssistance
+        ]
+        let timeMetrics: Set<TrackableExerciseMetric> = [.duration, .durationPerSide]
+        let distanceMetrics: Set<TrackableExerciseMetric> = [.distanceShort, .distanceShortPerSide, .distanceLong]
+
+        if !metrics.isDisjoint(with: weightMetrics) {
             return .weightReps
         }
+        if !metrics.isDisjoint(with: distanceMetrics) {
+            return .distanceTime
+        }
+        if !metrics.isDisjoint(with: timeMetrics) {
+            return .timeOnly
+        }
+        return .repsOnly
     }
 
     // Mutating methods for workout tracker

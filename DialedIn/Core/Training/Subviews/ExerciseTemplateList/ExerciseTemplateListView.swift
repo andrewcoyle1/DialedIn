@@ -17,7 +17,7 @@ struct ExerciseTemplateListView: View {
     let delegate: ExerciseTemplateListDelegate
     let genericTemplateListView: (
         ExerciseTemplateListPresenter,
-        TemplateListConfiguration<ExerciseTemplateModel>,
+        TemplateListConfiguration<ExerciseModel>,
         Bool,
         [String]?
     ) -> AnyView
@@ -27,7 +27,7 @@ struct ExerciseTemplateListView: View {
         delegate: ExerciseTemplateListDelegate,
         genericTemplateListView: @escaping (
             ExerciseTemplateListPresenter,
-            TemplateListConfiguration<ExerciseTemplateModel>,
+            TemplateListConfiguration<ExerciseModel>,
             Bool,
             [String]?
         ) -> AnyView

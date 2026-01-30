@@ -222,16 +222,6 @@ struct TrainingView<
             
                 CustomListCellView(
                     imageName: nil,
-                    title: "Exercise Library",
-                    subtitle: nil
-                )
-                .anyButton {
-                    presenter.onExerciseLibraryPressed()
-                }
-                .removeListRowFormatting()
-
-                CustomListCellView(
-                    imageName: nil,
                     title: "Workout History",
                     subtitle: nil
                 )
@@ -268,17 +258,29 @@ struct TrainingView<
         }
 
         ToolbarItem(placement: .topBarTrailing) {
+            let avatarSize: CGFloat = 44
+
             Button {
                 presenter.onProfilePressed()
             } label: {
-                if let urlString = presenter.userImageUrl {
-                    ImageLoaderView(urlString: urlString)
-                        .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
-                        .clipShape(Circle())
-                } else {
-                    Image(systemName: "person")
+                ZStack(alignment: .topTrailing) {
+                    Group {
+                        if let urlString = presenter.userImageUrl {
+                            ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
+                        } else {
+                            Circle()
+                                .fill(.secondary.opacity(0.25))
+                                .overlay {
+                                    Image(systemName: "person.fill")
+                                        .foregroundStyle(.secondary)
+                                }
+                        }
+                    }
+                    .frame(width: avatarSize, height: avatarSize)
+                    .contentShape(Circle())
                 }
             }
+            .buttonStyle(.plain)
         }
         .sharedBackgroundVisibility(.hidden)
 

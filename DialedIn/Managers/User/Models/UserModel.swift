@@ -339,6 +339,7 @@ struct UserModel: Codable, Equatable, Sendable {
                 exerciseFrequency: .daily,
                 dailyActivityLevel: .active,
                 cardioFitnessLevel: .intermediate,
+                profileImageUrl: Constants.randomImage,
                 creationDate: now,
                 creationVersion: "1.0.0",
                 lastSignInDate: now,

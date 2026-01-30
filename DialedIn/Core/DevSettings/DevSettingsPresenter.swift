@@ -86,7 +86,7 @@ class DevSettingsPresenter {
         SwiftfulUtilities.Utilities.eventParameters.asAlphabeticalArray
     }
     
-    func getLocalExercises() -> [ExerciseTemplateModel] {
+    func getLocalExercises() -> [ExerciseModel] {
         (try? interactor.getAllLocalExerciseTemplates()) ?? []
     }
     

@@ -17,6 +17,16 @@ struct ExercisesView<ExerciseList: View>: View {
     var body: some View {
         let delegate = ExerciseListBuilderDelegate(onExerciseSelectionChanged: presenter.onExercisePressed)
         exerciseListViewBuilder(delegate)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        presenter.onDismissPressed()
+                    } label: {
+                        Image(systemName: "xmark")
+                    }
+                }
+            }
     }
 }
 
@@ -36,7 +46,7 @@ extension CoreBuilder {
 
 extension CoreRouter {
     func showExercisesView() {
-        router.showScreen(.push) { router in
+        router.showScreen(.fullScreenCover) { router in
             builder.exercisesView(router: router)
         }
     }

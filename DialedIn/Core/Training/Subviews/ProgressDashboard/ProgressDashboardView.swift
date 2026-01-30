@@ -139,7 +139,7 @@ struct ProgressDashboardView: View {
                         
                         ForEach(Array(metrics.volumeByMuscleGroup.sorted(by: { $0.value > $1.value })), id: \.key) { muscleGroup, volume in
                             HStack {
-                                Text(muscleGroup.description)
+                                Text(muscleGroup.name)
                                     .font(.caption)
                                 Spacer()
                                 Text("\(Int(volume)) kg")

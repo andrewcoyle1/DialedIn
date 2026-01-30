@@ -42,7 +42,7 @@ class ExerciseTemplateDetailPresenter {
         return "Performed \(count) times"
     }
 
-    func loadInitialState(exerciseTemplate: ExerciseTemplateModel) async {
+    func loadInitialState(exerciseTemplate: ExerciseModel) async {
         let user = interactor.currentUser
         // Always treat authored templates as bookmarked
         let isAuthor = user?.userId == exerciseTemplate.authorId
@@ -53,7 +53,7 @@ class ExerciseTemplateDetailPresenter {
         await loadHistory(exerciseTemplate: exerciseTemplate)
     }
 
-    func loadHistory(exerciseTemplate: ExerciseTemplateModel) async {
+    func loadHistory(exerciseTemplate: ExerciseModel) async {
         guard let userId = interactor.currentUser?.userId else { return }
         isLoadingHistory = true
         do {
@@ -109,7 +109,7 @@ class ExerciseTemplateDetailPresenter {
         return tuples
     }
     
-    func onBookmarkPressed(exerciseTemplate: ExerciseTemplateModel) async {
+    func onBookmarkPressed(exerciseTemplate: ExerciseModel) async {
         let newState = !isBookmarked
         do {
             // If unbookmarking and currently favourited, unfavourite first to enforce rule
@@ -131,7 +131,7 @@ class ExerciseTemplateDetailPresenter {
         }
     }
     
-    func onFavoritePressed(exerciseTemplate: ExerciseTemplateModel) async {
+    func onFavoritePressed(exerciseTemplate: ExerciseModel) async {
         let newState = !isFavourited
         do {
             // If favouriting and not bookmarked, bookmark first to enforce rule

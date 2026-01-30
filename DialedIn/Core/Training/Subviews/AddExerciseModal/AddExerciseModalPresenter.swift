@@ -13,21 +13,21 @@ class AddExerciseModalPresenter {
     private let interactor: AddExerciseInteractor
     private let router: AddExerciseModalRouter
 
-    private(set) var exercises: [ExerciseTemplateModel] = []
+    private(set) var exercises: [ExerciseModel] = []
     var searchText: String = ""
     private(set) var isLoading: Bool = false
     private(set) var errorMessage: String?
 
-    var filteredExercises: [ExerciseTemplateModel] {
+    var filteredExercises: [ExerciseModel] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return exercises }
         return exercises.filter { exercise in
             var fields: [String] = [
                 exercise.name,
-                exercise.type.description
+                exercise.type?.name ?? ""
             ]
             if let description = exercise.description { fields.append(description) }
-            fields.append(contentsOf: exercise.muscleGroups.map { $0.description })
+            fields.append(contentsOf: exercise.muscleGroups.keys.map { $0.name })
             return fields.contains { $0.localizedCaseInsensitiveContains(query) }
         }
     }
@@ -40,7 +40,7 @@ class AddExerciseModalPresenter {
         self.router = router
     }
     
-    func onExercisePressed(exercise: ExerciseTemplateModel, selectedExercises: Binding<[ExerciseTemplateModel]>) {
+    func onExercisePressed(exercise: ExerciseModel, selectedExercises: Binding<[ExerciseModel]>) {
         if let index = selectedExercises.wrappedValue.firstIndex(where: { $0.id == exercise.id }) {
             selectedExercises.wrappedValue.remove(at: index)
         } else {

@@ -104,13 +104,13 @@ struct DevSettingsView: View {
         Group {
             let array = presenter.getLocalExercises()
             Section {
-                ForEach(array, id: \.exerciseId) { item in
+                ForEach(array, id: \.id) { item in
                     CustomListCellView(imageName: item.imageURL, title: item.name, subtitle: item.description)
                         .removeListRowFormatting()
                 }
             } header: {
                 HStack {
-                    Text("Exercise Templates")
+                    Text("Exercises")
                     Spacer()
                     Text("\(array.count)")
                         .foregroundStyle(.secondary)

@@ -138,13 +138,13 @@ struct WorkoutTemplateDetailView: View {
         .removeListRowFormatting()
     }
     
-    private func exerciseSection(exercise: ExerciseTemplateModel) -> some View {
+    private func exerciseSection(exercise: ExerciseModel) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(exercise.name)
                     .fontWeight(.semibold)
                 Spacer()
-                Text(exercise.type.description)
+                Text(exercise.type?.name ?? "Uncategorized")
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }

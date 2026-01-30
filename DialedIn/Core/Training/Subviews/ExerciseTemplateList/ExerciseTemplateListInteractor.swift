@@ -6,7 +6,7 @@
 //
 
 protocol ExerciseTemplateListInteractor {
-    func getExerciseTemplates(ids: [String], limitTo: Int) async throws -> [ExerciseTemplateModel]
+    func getExerciseTemplates(ids: [String], limitTo: Int) async throws -> [ExerciseModel]
 }
 
 extension CoreInteractor: ExerciseTemplateListInteractor { }

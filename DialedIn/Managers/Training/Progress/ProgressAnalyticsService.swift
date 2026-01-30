@@ -58,7 +58,7 @@ class ProgressAnalyticsService {
         var totalVolume: Double = 0
         var totalSets: Int = 0
         var totalReps: Int = 0
-        var volumeByMuscleGroup: [MuscleGroup: Double] = [:]
+        var volumeByMuscleGroup: [Muscles: Double] = [:]
         var volumeByExercise: [String: Double] = [:]
         
         for session in sessions {
@@ -80,7 +80,7 @@ class ProgressAnalyticsService {
                     
                     // By muscle group
                     for muscleGroup in template.muscleGroups {
-                        volumeByMuscleGroup[muscleGroup, default: 0] += volume
+                        volumeByMuscleGroup[muscleGroup.key, default: 0] += volume
                     }
                 }
             }

@@ -22,7 +22,7 @@ class WorkoutSessionDetailPresenter {
     var isLoading: Bool {
         isSaving || isDeleting
     }
-    var selectedExerciseTemplates: [ExerciseTemplateModel] = []
+    var selectedExerciseTemplates: [ExerciseModel] = []
     
     func currentSession(session: WorkoutSessionModel) -> WorkoutSessionModel {
         isEditMode ? editedSession ?? session : session
@@ -229,7 +229,7 @@ class WorkoutSessionDetailPresenter {
         
         for (offset, template) in selectedExerciseTemplates.enumerated() {
             let index = startIndex + offset + 1
-            let mode = WorkoutSessionModel.trackingMode(for: template.type)
+            let mode = WorkoutSessionModel.trackingMode(for: template)
             let defaultSets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: userId)
             let imageName = Constants.exerciseImageName(for: template.name)
             

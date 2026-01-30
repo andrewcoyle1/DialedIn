@@ -62,21 +62,7 @@ struct WorkoutStartView: View {
         Section {
             // Exercise list preview
             ForEach(Array(delegate.template.exercises.prefix(5).enumerated()), id: \.element.id) { index, exercise in
-                HStack {
-                    Text("\(index + 1).")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .frame(width: 20, alignment: .leading)
-                    
-                    Text(exercise.name)
-                        .font(.footnote)
-                    
-                    Spacer()
-                    
-                    Text(exercise.type.displayName)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                exerciseListItem(index, exercise)
             }
             
             if delegate.template.exercises.count > 5 {
@@ -85,12 +71,33 @@ struct WorkoutStartView: View {
                     .foregroundColor(.secondary)
                     .padding(.leading, 20)
             }
+
         } header: {
             Text("Exercises")
             
         }
     }
-    
+
+    private func exerciseListItem(_ index: Int, _ exercise: ExerciseModel) -> some View {
+        HStack {
+            Text("\(index + 1).")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(width: 20, alignment: .leading)
+
+            Text(exercise.name)
+                .font(.footnote)
+
+            Spacer()
+
+            if let typeName = exercise.type?.name {
+                Text(typeName)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+
     private var notesSection: some View {
         Section {
             TextEditor(text: $presenter.workoutNotes)

@@ -8,15 +8,15 @@
 import SwiftUI
 
 // Typealias for backward compatibility
-typealias ExerciseTemplateListPresenter = GenericTemplateListPresenter<ExerciseTemplateModel>
+typealias ExerciseTemplateListPresenter = GenericTemplateListPresenter<ExerciseModel>
 
-extension GenericTemplateListPresenter where Template == ExerciseTemplateModel {
+extension GenericTemplateListPresenter where Template == ExerciseModel {
     static func create(
         interactor: ExerciseTemplateListInteractor,
         router: ExerciseTemplateListRouter,
         templateIds: [String]?
     ) -> ExerciseTemplateListPresenter {
-        let baseConfig: TemplateListConfiguration<ExerciseTemplateModel> = templateIds != nil
+        let baseConfig: TemplateListConfiguration<ExerciseModel> = templateIds != nil
             ? .exercise
             : .exercise(customTitle: "Exercise Templates")
             
@@ -24,7 +24,7 @@ extension GenericTemplateListPresenter where Template == ExerciseTemplateModel {
             router.showExerciseTemplateDetailView(delegate: ExerciseTemplateDetailDelegate(exerciseTemplate: template))
         })
             
-        return GenericTemplateListPresenter<ExerciseTemplateModel>(
+        return GenericTemplateListPresenter<ExerciseModel>(
             configuration: configuration,
             templateIds: templateIds,
             showAlert: { title, subtitle in

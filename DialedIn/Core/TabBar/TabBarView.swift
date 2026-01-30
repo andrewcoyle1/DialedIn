@@ -57,16 +57,16 @@ extension CoreBuilder {
                     .any()
                 }
             ),
-            TabBarScreen(
-                title: "Nutrition",
-                systemImage: "carrot",
-                screen: {
-                    RouterView { router in
-                        self.nutritionView(router: router)
-                    }
-                    .any()
-                }
-            ),
+//            TabBarScreen(
+//                title: "Nutrition",
+//                systemImage: "carrot",
+//                screen: {
+//                    RouterView { router in
+//                        self.nutritionView(router: router)
+//                    }
+//                    .any()
+//                }
+//            ),
             TabBarScreen(
                 title: "Training",
                 systemImage: "dumbbell",

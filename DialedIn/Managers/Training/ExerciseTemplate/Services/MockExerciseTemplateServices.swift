@@ -7,10 +7,10 @@
 
 struct MockExerciseTemplateServices: ExerciseTemplateServices {
     let remote: RemoteExerciseTemplateService
-    let local: LocalExerciseTemplatePersistence
+    let local: LocalExercisePersistence
     
-    init(exercises: [ExerciseTemplateModel] = ExerciseTemplateModel.mocks, delay: Double = 0, showError: Bool = false) {
+    init(exercises: [ExerciseModel] = ExerciseModel.mocks, delay: Double = 0, showError: Bool = false) {
         self.remote = MockExerciseTemplateService(exercises: exercises, delay: delay, showError: showError)
-        self.local = MockExerciseTemplatePersistence(exercises: exercises, showError: showError)
+        self.local = MockExercisePersistence(exercises: exercises, showError: showError)
     }
 }

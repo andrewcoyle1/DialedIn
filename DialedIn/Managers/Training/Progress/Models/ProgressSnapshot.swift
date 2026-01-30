@@ -61,8 +61,8 @@ struct ProgressSnapshot: Codable, Equatable {
                 averageVolumePerWorkout: 2812.5,
                 volumeByMuscleGroup: [
                     .chest: 12000,
-                    .back: 15000,
-                    .legs: 18000
+                    .lats: 15000,
+                    .quads: 18000
                 ],
                 volumeByExercise: [:],
                 period: period

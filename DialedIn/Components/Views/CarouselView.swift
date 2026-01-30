@@ -142,7 +142,7 @@ struct CarouselView<Content: View, T: Hashable>: View {
 }
 
 #Preview {
-    CarouselView(items: ExerciseTemplateModel.mocks) { item in
+    CarouselView(items: ExerciseModel.mocks) { item in
         HeroCellView(
             title: item.name,
             subtitle: item.description,

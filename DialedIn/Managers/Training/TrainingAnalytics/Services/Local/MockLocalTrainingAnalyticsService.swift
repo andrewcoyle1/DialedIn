@@ -82,12 +82,12 @@ struct MockLocalTrainingAnalyticsService: LocalTrainingAnalyticsService {
         stats: WorkoutStats,
         period: DateInterval
     ) -> VolumeMetrics {
-        let volumeByMuscleGroup: [MuscleGroup: Double] = [
+        let volumeByMuscleGroup: [Muscles: Double] = [
             .chest: stats.totalVolume * 0.25,
-            .back: stats.totalVolume * 0.25,
-            .legs: stats.totalVolume * 0.3,
-            .shoulders: stats.totalVolume * 0.12,
-            .arms: stats.totalVolume * 0.08
+            .lats: stats.totalVolume * 0.25,
+            .quads: stats.totalVolume * 0.3,
+            .frontDelts: stats.totalVolume * 0.12,
+            .triceps: stats.totalVolume * 0.08
         ]
 
         let volumeByExercise: [String: Double] = [

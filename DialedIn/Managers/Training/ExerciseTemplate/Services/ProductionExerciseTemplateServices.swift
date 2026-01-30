@@ -7,13 +7,13 @@
 
 struct ProductionExerciseTemplateServices: ExerciseTemplateServices {
     let remote: RemoteExerciseTemplateService
-    let local: LocalExerciseTemplatePersistence
+    let local: LocalExercisePersistence
     private var seedingManager: ExerciseSeedingManager?
     
     @MainActor
     init() {
         self.remote = FirebaseExerciseTemplateService()
-        let swiftPersistence = SwiftExerciseTemplatePersistence()
+        let swiftPersistence = SwiftExercisePersistence()
         self.local = swiftPersistence
         
         // Initialize seeding manager and trigger seeding

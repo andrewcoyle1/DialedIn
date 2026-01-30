@@ -12,7 +12,7 @@ struct ExercisePlan: Identifiable, Codable {
     let id: String
     let authorId: String
     
-    let exercise: ExerciseTemplateModel
+    let exercise: ExerciseModel
     
     // TODO: Add sets etc.
     
@@ -28,7 +28,7 @@ struct ExercisePlan: Identifiable, Codable {
     
     static var mocks: [ExercisePlan] {
         var mocks: [ExercisePlan] = []
-        for mock in ExerciseTemplateModel.mocks {
+        for mock in ExerciseModel.mocks {
             mocks.append(
                 ExercisePlan(
                     id: UUID().uuidString,

@@ -48,25 +48,23 @@ struct ExerciseTemplateDetailView: View {
             if let url = delegate.exerciseTemplate.imageURL {
                 imageSection(url: url)
             }
-            
-            if let description = delegate.exerciseTemplate.description {
-                descriptionSection(description: description)
-            }
-            
-            if !delegate.exerciseTemplate.instructions.isEmpty {
-                instructionsSection
-            }
-            
+
+            definitionSection
+
             if !delegate.exerciseTemplate.muscleGroups.isEmpty {
-                muscleGroupsSection
+                targetMusclesSection
             }
+
+            movementQualitySection
+
+            resistanceEquipmentSection
+            supportEquipmentSection
+
+            detailsSection
             
-            categorySection
-            
-            dateCreatedSection
-            if let authorId = delegate.exerciseTemplate.authorId {
-                authorSection(id: authorId)
-            }
+            #if DEBUG
+            metadataSection
+            #endif
         }
     }
     
@@ -274,6 +272,272 @@ struct ExerciseTemplateDetailView: View {
         .removeListRowFormatting()
     }
     
+    private var definitionSection: some View {
+        Section {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Exercise Name")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(delegate.exerciseTemplate.name)
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("Trackable Metrics")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(trackableMetricString)
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("Type")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(delegate.exerciseTemplate.type?.name ?? "None")
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("Laterality")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(delegate.exerciseTemplate.laterality?.name ?? "None")
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("Bodyweight")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(delegate.exerciseTemplate.isBodyweight ? "Yes" : "No")
+            }
+        } header: {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Definition")
+                Spacer()
+                Text("Template")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var targetMusclesSection: some View {
+        let muscles = Array(delegate.exerciseTemplate.muscleGroups).sorted { $0.key.name < $1.key.name }
+        return Section {
+            ScrollView(.horizontal) {
+                HStack {
+                    ForEach(muscles, id: \.key) { muscle, isSecondary in
+                        Text("\(muscle.name): \(isSecondary ? "Secondary" : "Primary")")
+                    }
+                }
+            }
+            .scrollIndicators(.hidden)
+        } header: {
+            HStack {
+                Text("Target Muscles")
+                Spacer()
+                Text("Template")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var movementQualitySection: some View {
+        Section {
+            rangeOfMotionRow
+            stabilityRow
+        } header: {
+            Text("Movement Quality")
+        }
+    }
+
+    private var rangeOfMotionRow: some View {
+        HStack {
+            Text("Range of Motion")
+            Spacer()
+            HStack {
+                ForEach(1...5, id: \.self) { value in
+                    Capsule()
+                        .fill(value <= delegate.exerciseTemplate.rangeOfMotion ? Color.accentColor : Color.secondary.opacity(0.2))
+                }
+            }
+            .frame(maxWidth: 200)
+        }
+    }
+
+    private var stabilityRow: some View {
+        HStack {
+            Text("Stability")
+            Spacer()
+            HStack {
+                ForEach(1...5, id: \.self) { value in
+                    Capsule()
+                        .fill(value <= delegate.exerciseTemplate.stability ? Color.accentColor : Color.secondary.opacity(0.2))
+                }
+            }
+            .frame(maxWidth: 200)
+        }
+    }
+
+    private var resistanceEquipmentSection: some View {
+        Section {
+            if delegate.exerciseTemplate.resistanceEquipment.isEmpty {
+                Text("None")
+                    .foregroundStyle(.secondary)
+            } else {
+                ScrollView(.horizontal) {
+                    HStack {
+                        ForEach(delegate.exerciseTemplate.resistanceEquipment, id: \.self) { equipment in
+                            VStack {
+                                ImageLoaderView()
+                                    .frame(height: 200)
+                                Text("\(equipment.kind.rawValue): \(equipment.equipmentId)")
+                            }
+                        }
+                    }
+                }
+            }
+        } header: {
+            HStack {
+                Text("Resistance Equipment")
+                Spacer()
+                Text("Template")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var supportEquipmentSection: some View {
+        Section {
+            if delegate.exerciseTemplate.supportEquipment.isEmpty {
+                Text("None")
+                    .foregroundStyle(.secondary)
+            } else {
+                ScrollView(.horizontal) {
+                    HStack {
+                        ForEach(delegate.exerciseTemplate.supportEquipment, id: \.self) { equipment in
+                            VStack {
+                                ImageLoaderView()
+                                    .frame(height: 200)
+                                Text("\(equipment.kind.rawValue): \(equipment.equipmentId)")
+                            }
+                        }
+                    }
+                }
+            }
+        } header: {
+            HStack {
+                Text("Support Equipment")
+                Spacer()
+                Text("Template")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var detailsSection: some View {
+        Section {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Body Weight Contribution")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text("\(delegate.exerciseTemplate.bodyWeightContribution)%")
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("Alternative Names")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(alternateNamesConcatenated)
+                    .foregroundStyle(alternateNamesConcatenated.isEmpty ? .secondary : .primary)
+                    .lineLimit(2)
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("Description")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(delegate.exerciseTemplate.description ?? "None")
+                    .foregroundStyle(delegate.exerciseTemplate.description == nil ? .secondary : .primary)
+                    .lineLimit(3)
+            }
+        } header: {
+            Text("Details")
+        }
+    }
+
+    private var metadataSection: some View {
+        Section {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Exercise ID")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(delegate.exerciseTemplate.id)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.trailing)
+            }
+            if !delegate.exerciseTemplate.authorId.isEmpty {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Author ID")
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Text(delegate.exerciseTemplate.authorId)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.trailing)
+                }
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("System Exercise")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(delegate.exerciseTemplate.isSystemExercise ? "Yes" : "No")
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("Date Created")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(delegate.exerciseTemplate.dateCreated.formatted(date: .abbreviated, time: .omitted))
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("Date Modified")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(delegate.exerciseTemplate.dateModified.formatted(date: .abbreviated, time: .omitted))
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("Click Count")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text("\(delegate.exerciseTemplate.clickCount ?? 0)")
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("Bookmark Count")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text("\(delegate.exerciseTemplate.bookmarkCount ?? 0)")
+            }
+            HStack(alignment: .firstTextBaseline) {
+                Text("Favourite Count")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text("\(delegate.exerciseTemplate.favouriteCount ?? 0)")
+            }
+            if let imageURL = delegate.exerciseTemplate.imageURL, !imageURL.isEmpty {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Image URL")
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Text(imageURL)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.trailing)
+                }
+            }
+        } header: {
+            Text("Metadata")
+        }
+    }
+
     private func imageSection(url: String) -> some View {
         Section {
             if url.starts(with: "http://") || url.starts(with: "https://") {
@@ -301,55 +565,13 @@ struct ExerciseTemplateDetailView: View {
         }
     }
     
-    private var instructionsSection: some View {
-        Section(header: Text("Instructions")) {
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(Array(delegate.exerciseTemplate.instructions.enumerated()), id: \.offset) { index, instruction in
-                    HStack(alignment: .top) {
-                        Text("\(index + 1).")
-                            .fontWeight(.semibold)
-                        Text(instruction)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-            }
-            .padding(.vertical, 4)
-        }
+    private var trackableMetricString: String {
+        let names = delegate.exerciseTemplate.trackableMetrics.map { $0.name }
+        return names.isEmpty ? "None" : names.joined(separator: " x ")
     }
-    
-    private var muscleGroupsSection: some View {
-        Section(header: Text("Muscle Groups")) {
-            let columns = [GridItem(.adaptive(minimum: 90), spacing: 8, alignment: .leading)]
-            LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
-                ForEach(delegate.exerciseTemplate.muscleGroups, id: \.self) { group in
-                    Text(group.description)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Color.accentColor.opacity(0.15))
-                        .cornerRadius(8)
-                }
-            }
-        }
-    }
-    
-    private var categorySection: some View {
-        Section(header: Text("Category")) {
-            Text(delegate.exerciseTemplate.type.description)
-        }
-    }
-    
-    private var dateCreatedSection: some View {
-        Section(header: Text("Date Created")) {
-            Text(delegate.exerciseTemplate.dateCreated.formatted(date: .abbreviated, time: .omitted))
-        }
-    }
-    
-    private func authorSection(id: String) -> some View {
-        Section(header: Text("Author ID")) {
-            Text(id)
-                .font(.footnote)
-                .foregroundColor(.secondary)
-        }
+
+    private var alternateNamesConcatenated: String {
+        delegate.exerciseTemplate.alternateNames.joined(separator: ", ")
     }
 
     @ToolbarContentBuilder
@@ -417,7 +639,7 @@ extension CoreRouter {
         builder.exerciseTemplateDetailView(
             router: router,
             delegate: ExerciseTemplateDetailDelegate(
-                exerciseTemplate: ExerciseTemplateModel.mocks[0]
+                exerciseTemplate: ExerciseModel.mocks[0]
             )
         )
     }

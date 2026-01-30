@@ -8,14 +8,30 @@
 import SwiftUI
 import SDWebImageSwiftUI
 
+/// Type-erased `Shape` so we can store shapes as properties without using `any Shape`.
+struct AnyShape: Shape {
+    private let _path: @Sendable (CGRect) -> Path
+
+    init<S: Shape>(_ shape: S) {
+        self._path = { rect in
+            shape.path(in: rect)
+        }
+    }
+
+    func path(in rect: CGRect) -> Path {
+        _path(rect)
+    }
+}
+
 struct ImageLoaderView: View {
     
     var urlString: String = Constants.randomImage
     var resizingMode: ContentMode = .fill
     var forceTransitionAnimation: Bool = false
+    var clipShape: AnyShape = AnyShape(Rectangle())
     
     var body: some View {
-        Rectangle()
+        clipShape
             .opacity(0.001)
             .overlay(
                 Group {
@@ -35,7 +51,7 @@ struct ImageLoaderView: View {
                     }
                 }
             )
-            .clipped()
+            .clipShape(clipShape)
             .ifSatisfiedCondition(forceTransitionAnimation) { content in
                 content
                     .drawingGroup()
@@ -44,9 +60,18 @@ struct ImageLoaderView: View {
 }
 
 #Preview {
-    ImageLoaderView()
-        .frame(width: 100, height: 200)
-        .anyButton(.highlight) {
-            
-        }
+    VStack {
+        ImageLoaderView(clipShape: AnyShape(Rectangle()))
+            .frame(width: 100, height: 200)
+            .anyButton(.highlight) {
+
+            }
+
+        ImageLoaderView(clipShape: AnyShape(Circle()))
+            .frame(width: 100)
+            .anyButton(.highlight) {
+
+            }
+        Spacer()
+    }
 }

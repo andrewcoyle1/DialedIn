@@ -525,51 +525,47 @@ struct CoreInteractor: GlobalInteractor {
 
     // MARK: ExerciseTemplateManager
 
-    var exerciseModels: [ExerciseModel] {
-        exerciseTemplateManager.exerciseModels
-    }
-
-    func addLocalExerciseTemplate(exercise: ExerciseTemplateModel) async throws {
+    func addLocalExerciseTemplate(exercise: ExerciseModel) async throws {
         try await exerciseTemplateManager.addLocalExerciseTemplate(exercise: exercise)
     }
     
-    func getLocalExerciseTemplate(id: String) throws -> ExerciseTemplateModel {
+    func getLocalExerciseTemplate(id: String) throws -> ExerciseModel {
         try exerciseTemplateManager.getLocalExerciseTemplate(id: id)
     }
     
-    func getLocalExerciseTemplates(ids: [String]) throws -> [ExerciseTemplateModel] {
+    func getLocalExerciseTemplates(ids: [String]) throws -> [ExerciseModel] {
         try exerciseTemplateManager.getLocalExerciseTemplates(ids: ids)
     }
     
-    func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel] {
+    func getAllLocalExerciseTemplates() throws -> [ExerciseModel] {
         try exerciseTemplateManager.getAllLocalExerciseTemplates()
     }
     
-    func getSystemExerciseTemplates() throws -> [ExerciseTemplateModel] {
+    func getSystemExerciseTemplates() throws -> [ExerciseModel] {
         try exerciseTemplateManager.getSystemExerciseTemplates()
     }
     
-    func createExerciseTemplate(exercise: ExerciseTemplateModel, image: PlatformImage?) async throws {
+    func createExerciseTemplate(exercise: ExerciseModel, image: PlatformImage?) async throws {
         try await exerciseTemplateManager.createExerciseTemplate(exercise: exercise, image: image)
     }
     
-    func getExerciseTemplate(id: String) async throws -> ExerciseTemplateModel {
+    func getExerciseTemplate(id: String) async throws -> ExerciseModel {
         try await exerciseTemplateManager.getExerciseTemplate(id: id)
     }
     
-    func getExerciseTemplates(ids: [String], limitTo: Int = 20) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplates(ids: [String], limitTo: Int = 20) async throws -> [ExerciseModel] {
         try await exerciseTemplateManager.getExerciseTemplates(ids: ids, limitTo: limitTo)
     }
     
-    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseModel] {
         try await exerciseTemplateManager.getExerciseTemplatesByName(name: name)
     }
     
-    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseModel] {
         try await exerciseTemplateManager.getExerciseTemplatesForAuthor(authorId: authorId)
     }
     
-    func getTopExerciseTemplatesByClicks(limitTo: Int = 10) async throws -> [ExerciseTemplateModel] {
+    func getTopExerciseTemplatesByClicks(limitTo: Int = 10) async throws -> [ExerciseModel] {
         try await exerciseTemplateManager.getTopExerciseTemplatesByClicks(limitTo: limitTo)
     }
     

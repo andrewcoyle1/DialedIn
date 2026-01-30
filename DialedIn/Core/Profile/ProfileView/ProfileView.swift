@@ -34,6 +34,17 @@ struct ProfileView: View {
                 profileNutritionPlanView()
                 profilePreferencesView()
                 profileMyTemplatesView()
+                
+                CustomListCellView(
+                    imageName: nil,
+                    title: "Exercise Library",
+                    subtitle: nil
+                )
+                .anyButton {
+                    presenter.onExerciseLibraryPressed()
+                }
+                .removeListRowFormatting()
+
             }
         }
         .navigationTitle("Profile")

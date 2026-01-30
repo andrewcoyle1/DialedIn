@@ -16,7 +16,6 @@ protocol TrainingRouter: GlobalRouter {
     func showStrengthProgressView()
     func showWorkoutHeatmapView()
     func showWorkoutsView()
-    func showExercisesView()
     func showWorkoutHistoryView()
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
     func showAddGoalView(delegate: AddGoalDelegate)

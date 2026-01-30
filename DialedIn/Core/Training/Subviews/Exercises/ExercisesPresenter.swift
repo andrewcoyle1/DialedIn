@@ -16,14 +16,14 @@ class ExercisesPresenter {
     private(set) var isLoading: Bool = false
     private(set) var searchText: String = ""
     private(set) var searchExerciseTask: Task<Void, Never>?
-    private(set) var myExercises: [ExerciseTemplateModel] = []
-    private(set) var favouriteExercises: [ExerciseTemplateModel] = []
-    private(set) var bookmarkedExercises: [ExerciseTemplateModel] = []
-    private(set) var officialExercises: [ExerciseTemplateModel] = []
-    private(set) var exercises: [ExerciseTemplateModel] = []
+    private(set) var myExercises: [ExerciseModel] = []
+    private(set) var favouriteExercises: [ExerciseModel] = []
+    private(set) var bookmarkedExercises: [ExerciseModel] = []
+    private(set) var officialExercises: [ExerciseModel] = []
+    private(set) var exercises: [ExerciseModel] = []
 
     var selectedWorkoutTemplate: WorkoutTemplateModel?
-    var selectedExerciseTemplate: ExerciseTemplateModel?
+    var selectedExerciseTemplate: ExerciseModel?
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -37,11 +37,11 @@ class ExercisesPresenter {
         Set(favouriteExercises.map { $0.id })
     }
 
-    var myExercisesVisible: [ExerciseTemplateModel] {
+    var myExercisesVisible: [ExerciseModel] {
         myExercises.filter { !favouriteExerciseIds.contains($0.id) }
     }
 
-    var bookmarkedOnlyExercises: [ExerciseTemplateModel] {
+    var bookmarkedOnlyExercises: [ExerciseModel] {
         bookmarkedExercises.filter { !favouriteExerciseIds.contains($0.id) && !myExerciseIds.contains($0.id) }
     }
     
@@ -53,15 +53,15 @@ class ExercisesPresenter {
         favouriteExerciseIds.union(Set(bookmarkedOnlyExercises.map { $0.id }))
     }
     
-    var officialExercisesVisible: [ExerciseTemplateModel] {
+    var officialExercisesVisible: [ExerciseModel] {
         officialExercises.filter { !favouriteExerciseIds.contains($0.id) && !myExerciseIds.contains($0.id) && !savedExerciseIds.contains($0.id) }
     }
 
-    var trendingExercisesDeduped: [ExerciseTemplateModel] {
+    var trendingExercisesDeduped: [ExerciseModel] {
         exercises.filter { !myExerciseIds.contains($0.id) && !savedExerciseIds.contains($0.id) && !officialExerciseIds.contains($0.id) }
     }
 
-    var visibleExerciseTemplates: [ExerciseTemplateModel] {
+    var visibleExerciseTemplates: [ExerciseModel] {
         let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? trendingExercisesDeduped : exercises
     }
@@ -73,13 +73,17 @@ class ExercisesPresenter {
         self.interactor = interactor
         self.router = router
     }
-    
+
+    func onDismissPressed() {
+        router.dismissScreen()
+    }
+
     func onAddExercisePressed() {
         interactor.trackEvent(event: ExercisesViewEvents.onAddExercisePressed)
         router.showCreateExerciseView()
     }
 
-    func onExercisePressed(exercise: ExerciseTemplateModel) {
+    func onExercisePressed(exercise: ExerciseModel) {
         // Only increment click count for non-system exercises
         // System exercises (IDs starting with "system-") are read-only
         if !exercise.id.hasPrefix("system-") {
@@ -97,22 +101,22 @@ class ExercisesPresenter {
         router.showExerciseTemplateDetailView(delegate: ExerciseTemplateDetailDelegate(exerciseTemplate: exercise))
     }
 
-    func onExercisePressedFromFavourites(exercise: ExerciseTemplateModel) {
+    func onExercisePressedFromFavourites(exercise: ExerciseModel) {
         interactor.trackEvent(event: ExercisesViewEvents.onExercisePressedFromFavourites)
         onExercisePressed(exercise: exercise)
     }
 
-    func onExercisePressedFromBookmarked(exercise: ExerciseTemplateModel) {
+    func onExercisePressedFromBookmarked(exercise: ExerciseModel) {
         interactor.trackEvent(event: ExercisesViewEvents.onExercisePressedFromBookmarked)
         onExercisePressed(exercise: exercise)
     }
 
-    func onExercisePressedFromTrending(exercise: ExerciseTemplateModel) {
+    func onExercisePressedFromTrending(exercise: ExerciseModel) {
         interactor.trackEvent(event: ExercisesViewEvents.onExercisePressedFromTrending)
         onExercisePressed(exercise: exercise)
     }
 
-    func onExercisePressedFromMyTemplates(exercise: ExerciseTemplateModel) {
+    func onExercisePressedFromMyTemplates(exercise: ExerciseModel) {
         interactor.trackEvent(event: ExercisesViewEvents.onExercisePressedFromMyTemplates)
         onExercisePressed(exercise: exercise)
     }
@@ -162,7 +166,7 @@ class ExercisesPresenter {
         }
     }
 
-    func handleSearchResults(_ results: [ExerciseTemplateModel], for query: String) {
+    func handleSearchResults(_ results: [ExerciseModel], for query: String) {
         exercises = results
         isLoading = false
 
@@ -254,8 +258,8 @@ class ExercisesPresenter {
             return
         }
         do {
-            var favs: [ExerciseTemplateModel] = []
-            var bookmarks: [ExerciseTemplateModel] = []
+            var favs: [ExerciseModel] = []
+            var bookmarks: [ExerciseModel] = []
             if !favouritedIds.isEmpty {
                 favs = try await interactor.getExerciseTemplates(ids: favouritedIds, limitTo: favouritedIds.count)
             }
