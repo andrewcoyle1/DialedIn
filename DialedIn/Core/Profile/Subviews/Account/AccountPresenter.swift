@@ -1,18 +1,12 @@
-//
-//  ProfileEditPresenter.swift
-//  DialedIn
-//
-//  Created by Andrew Coyle on 25/10/2025.
-//
-
 import SwiftUI
 import PhotosUI
 
 @Observable
 @MainActor
-class ProfileEditPresenter {
-    private let interactor: ProfileEditInteractor
-    private let router: ProfileEditRouter
+class AccountPresenter {
+    
+    private let interactor: AccountInteractor
+    private let router: AccountRouter
 
     private(set) var isSaving: Bool = false
 
@@ -27,31 +21,36 @@ class ProfileEditPresenter {
     var currentUser: UserModel? {
         interactor.currentUser
     }
-    
+
     var canSave: Bool {
         !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
-    
-    init(
-        interactor: ProfileEditInteractor,
-        router: ProfileEditRouter
-    ) {
+
+    init(interactor: AccountInteractor, router: AccountRouter) {
         self.interactor = interactor
         self.router = router
     }
     
+    func onViewAppear(delegate: AccountDelegate) {
+        interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
+    }
+    
+    func onViewDisappear(delegate: AccountDelegate) {
+        interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
+    }
+
     func presentImagePicker() {
         isImagePickerPresented = true
     }
-    
+
     func trackPhotoSelected() {
         interactor.trackEvent(eventName: "profile_photo_selected", parameters: [:], type: .analytic)
     }
-    
+
     func trackPhotoLoadFailed(error: Error) {
         interactor.trackEvent(eventName: "profile_photo_load_failed", parameters: ["error": String(describing: error)], type: .analytic)
     }
-    
+
     func prefillFromCurrentUser() {
         guard let user = currentUser else { return }
         firstName = user.firstName ?? ""
@@ -61,21 +60,21 @@ class ProfileEditPresenter {
         }
         selectedGender = user.gender
     }
-    
+
     func saveProfile() async {
         guard canSave else { return }
         isSaving = true
-        
+
         do {
             guard let userId = currentUser?.userId else {
                 interactor.trackEvent(eventName: "profile_edit_save_failed", parameters: ["error": "Missing current user ID"], type: .analytic)
                 isSaving = false
                 return
             }
-            
+
             let trimmedFirst = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
             let trimmedLast = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
-            
+
             let user = UserModel(
                 userId: userId,
                 email: currentUser?.email,
@@ -85,7 +84,7 @@ class ProfileEditPresenter {
                 dateOfBirth: dateOfBirth,
                 gender: selectedGender
             )
-            
+
             #if canImport(UIKit)
             let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
             try await interactor.saveUser(user: user, image: uiImage)
@@ -93,7 +92,7 @@ class ProfileEditPresenter {
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
             try await interactor.saveUser(user: user, image: nsImage)
             #endif
-            
+
             interactor.trackEvent(eventName: "profile_edit_save_success", parameters: [:], type: .analytic)
             router.dismissScreen()
         } catch {
@@ -106,7 +105,36 @@ class ProfileEditPresenter {
         isSaving = false
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
+}
+
+extension AccountPresenter {
+    
+    enum Event: LoggableEvent {
+        case onAppear(delegate: AccountDelegate)
+        case onDisappear(delegate: AccountDelegate)
+
+        var eventName: String {
+            switch self {
+            case .onAppear:                 return "AccountView_Appear"
+            case .onDisappear:              return "AccountView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
+                return delegate.eventParameters
+//            default:
+//                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
+
 }

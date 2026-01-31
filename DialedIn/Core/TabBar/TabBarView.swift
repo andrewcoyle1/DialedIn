@@ -35,8 +35,29 @@ struct TabBarView<TabAccessory: View, Search: View>: View {
         .tabViewStyle(.tabBarOnly)
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory(isEnabled: presenter.activeSession != nil) {
-            if let active = presenter.activeSession {
-                tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
+            GeometryReader { geometry in
+                ScrollView(.horizontal) {
+                    HStack(alignment: .center) {
+                        if let active = presenter.activeSession {
+                            tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
+                                .frame(width: geometry.size.width)
+                        }
+                        Text("Hello")
+                            .frame(width: geometry.size.width)
+                        Text("Hello")
+                            .frame(width: geometry.size.width)
+                        Text("Hello")
+                            .frame(width: geometry.size.width)
+                        Text("Hello")
+                            .frame(width: geometry.size.width)
+                        Text("Hello")
+                            .frame(width: geometry.size.width)
+                    }
+                }
+                .scrollIndicators(.hidden)
+                .scrollTargetLayout()
+                .scrollTargetBehavior(.viewAligned)
+                .frame(maxHeight: .infinity)
             }
         }
     }
@@ -57,16 +78,16 @@ extension CoreBuilder {
                     .any()
                 }
             ),
-//            TabBarScreen(
-//                title: "Nutrition",
-//                systemImage: "carrot",
-//                screen: {
-//                    RouterView { router in
-//                        self.nutritionView(router: router)
-//                    }
-//                    .any()
-//                }
-//            ),
+            TabBarScreen(
+                title: "Nutrition",
+                systemImage: "carrot",
+                screen: {
+                    RouterView { router in
+                        self.nutritionView(router: router)
+                    }
+                    .any()
+                }
+            ),
             TabBarScreen(
                 title: "Training",
                 systemImage: "dumbbell",
@@ -77,16 +98,6 @@ extension CoreBuilder {
                     .any()
                 }
             )
-//            TabBarScreen(
-//                title: "Profile",
-//                systemImage: "person",
-//                screen: {
-//                    RouterView { router in
-//                        self.profileView(router: router)
-//                    }
-//                    .any()
-//                }
-//            )
         ]
 
         return TabBarView(

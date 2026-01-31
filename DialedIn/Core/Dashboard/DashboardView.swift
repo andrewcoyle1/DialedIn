@@ -87,24 +87,16 @@ struct DashboardView: View {
             Button {
                 presenter.onProfilePressed()
             } label: {
-                ZStack(alignment: .topTrailing) {
-                    Group {
-                        if let urlString = presenter.userImageUrl {
-                            ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
-                        } else {
-                            Circle()
-                                .fill(.secondary.opacity(0.25))
-                                .overlay {
-                                    Image(systemName: "person.fill")
-                                        .foregroundStyle(.secondary)
-                                }
-                        }
+                ZStack {
+                    Image(systemName: "person.circle")
+                        .font(.system(size: 24))
+                    if let urlString = presenter.userImageUrl {
+                        ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
+                            .frame(width: avatarSize, height: avatarSize)
+                            .contentShape(Circle())
                     }
-                    .frame(width: avatarSize, height: avatarSize)
-                    .contentShape(Circle())
                 }
             }
-            .buttonStyle(.plain)
         }
         .sharedBackgroundVisibility(.hidden)
     }

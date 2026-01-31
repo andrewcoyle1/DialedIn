@@ -16,6 +16,7 @@ struct SettingsView: View {
         List {
             accountSection
             purchaseSection
+            dataManagementSection
             applicationSection
         }
         .navigationTitle("Settings")
@@ -74,7 +75,41 @@ struct SettingsView: View {
             Text("Purchases")
         }
     }
-    
+
+    private var dataManagementSection: some View {
+        Section {
+            Group {
+                CustomListCellView(
+                    imageName: nil,
+                    title: "Data Export",
+                    subtitle: nil
+                )
+                .anyButton(.highlight) {
+
+                }
+                CustomListCellView(
+                    imageName: nil,
+                    title: "Data Visibility",
+                    subtitle: nil
+                )
+                .anyButton(.highlight) {
+
+                }
+                CustomListCellView(
+                    imageName: nil,
+                    title: "Account & Data Deletion",
+                    subtitle: nil
+                )
+                .anyButton(.highlight) {
+
+                }
+            }
+            .removeListRowFormatting()
+        } header: {
+            Text("Data Management")
+        }
+    }
+
     private var applicationSection: some View {
         Section {
             Button {
