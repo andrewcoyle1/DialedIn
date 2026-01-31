@@ -41,7 +41,11 @@ class ProfilePresenter {
         self.interactor = interactor
         self.router = router
     }
-    
+
+    func onGymProfilesPressed() {
+        router.showGymProfilesView()
+    }
+
     func getActiveGoal() async {
         if let userId = self.currentUser?.userId {
             activeGoal = try? await interactor.getActiveGoal(userId: userId)

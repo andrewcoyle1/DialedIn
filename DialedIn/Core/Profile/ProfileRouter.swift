@@ -18,6 +18,7 @@ protocol ProfileRouter: GlobalRouter {
     func showWorkoutTemplateListView()
     func showIngredientTemplateListView(delegate: IngredientTemplateListDelegate)
     func showRecipeTemplateListView(delegate: RecipeTemplateListDelegate)
+    func showGymProfilesView()
 }
 
 extension CoreRouter: ProfileRouter { }

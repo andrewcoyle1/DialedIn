@@ -33,16 +33,6 @@ struct ProfileView: View {
                 profilePreferencesSection
                 profileMyTemplatesSection
 
-                CustomListCellView(
-                    imageName: nil,
-                    title: "Exercise Library",
-                    subtitle: nil
-                )
-                .anyButton {
-                    presenter.onExerciseLibraryPressed()
-                }
-                .removeListRowFormatting()
-
                 otherSection
             }
         }
@@ -182,41 +172,26 @@ struct ProfileView: View {
         Section {
             Group {
                 CustomListCellView(
-                    sfSymbolName: "person",
-                    title: "Subscription"
+                    sfSymbolName: "dumbbell",
+                    title: "Gym Profiles"
                 )
                 .anyButton(.highlight) {
-
+                    presenter.onGymProfilesPressed()
                 }
                 CustomListCellView(
-                    sfSymbolName: "person",
-                    title: "Integrations"
+                    sfSymbolName: "dumbbell",
+                    title: "Exercises"
                 )
                 .anyButton(.highlight) {
-
+                    presenter.onExerciseLibraryPressed()
                 }
                 CustomListCellView(
-                    sfSymbolName: "person",
-                    title: "Units"
+                    sfSymbolName: "dumbbell",
+                    title: "Workout"
                 )
                 .anyButton(.highlight) {
 
                 }
-                CustomListCellView(
-                    sfSymbolName: "person",
-                    title: "Dashboard"
-                )
-                .anyButton(.highlight) {
-
-                }
-                CustomListCellView(
-                    sfSymbolName: "person",
-                    title: "Siri"
-                )
-                .anyButton(.highlight) {
-
-                }
-
             }
             .removeListRowFormatting()
         } header: {

@@ -16,6 +16,8 @@ struct AccountView: View {
         List {
             imageSection
             profileSection
+            dataManagementSection
+            securitySection
         }
         .ignoresSafeArea(edges: .top)
         .navigationTitle("Account")
@@ -87,12 +89,12 @@ struct AccountView: View {
             rowItem(title: "Name", subtitle: "\(presenter.firstName) \(presenter.lastName)", action: { print("edit name pressed")})
             DatePicker("Date of birth", selection: $presenter.dateOfBirth, displayedComponents: .date)
             Picker(selection: $presenter.selectedGender) {
-                Text("Gender")
-                    .fontWeight(.semibold)
-            } label: {
                 Text("Not specified").tag(nil as Gender?)
                 Text("Male").tag(Gender.male as Gender?)
                 Text("Female").tag(Gender.female as Gender?)
+            } label: {
+                Text("Gender")
+                    .fontWeight(.semibold)
             }
             rowItem(title: "Height", subtitle: "\(presenter.currentUser?.heightCentimeters)", action: {
                 print("Edit height pressed")

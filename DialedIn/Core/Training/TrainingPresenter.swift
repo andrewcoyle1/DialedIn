@@ -394,11 +394,7 @@ class TrainingPresenter {
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }
-    
-    func onGymProfilesPressed() {
-        router.showGymProfilesView()
-    }
-    
+        
     enum Event: LoggableEvent {
         case setActiveSheet(sheet: ActiveSheet)
         case startWorkoutRequestedStart

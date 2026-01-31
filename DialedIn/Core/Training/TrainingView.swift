@@ -229,17 +229,6 @@ struct TrainingView<
                     presenter.onWorkoutHistoryPressed()
                 }
                 .removeListRowFormatting()
-
-                CustomListCellView(
-                    imageName: presenter.favouriteGymProfileImageUrl,
-                    title: "Gym Profile Library",
-                    subtitle: nil
-                )
-                .anyButton {
-                    presenter.onGymProfilesPressed()
-                }
-                .removeListRowFormatting()
-
             } header: {
                 Text("More")
             }
