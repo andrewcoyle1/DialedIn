@@ -27,11 +27,11 @@ struct ProfileView: View {
 
                 communityAndSupportSection
 
-                profilePhysicalMetricsSection
-                profileGoalsSection
-                profileNutritionPlanSection
-                profilePreferencesSection
-                profileMyTemplatesSection
+//                profilePhysicalMetricsSection
+//                profileGoalsSection
+//                profileNutritionPlanSection
+//                profilePreferencesSection
+//                profileMyTemplatesSection
 
                 otherSection
             }
@@ -187,10 +187,10 @@ struct ProfileView: View {
                 }
                 CustomListCellView(
                     sfSymbolName: "dumbbell",
-                    title: "Workout"
+                    title: "Workout Settings"
                 )
                 .anyButton(.highlight) {
-
+                    presenter.onWorkoutSettingsPressed()
                 }
             }
             .removeListRowFormatting()
@@ -203,21 +203,21 @@ struct ProfileView: View {
         Section {
             Group {
                 CustomListCellView(
-                    sfSymbolName: "person",
+                    sfSymbolName: "book.closed",
                     title: "Knowledge Base"
                 )
                 .anyButton(.highlight) {
 
                 }
                 CustomListCellView(
-                    sfSymbolName: "person",
+                    sfSymbolName: "map",
                     title: "Roadmap"
                 )
                 .anyButton(.highlight) {
 
                 }
                 CustomListCellView(
-                    sfSymbolName: "person",
+                    sfSymbolName: "questionmark.circle",
                     title: "Support"
                 )
                 .anyButton(.highlight) {
@@ -595,37 +595,33 @@ struct ProfileView: View {
         Section {
             Group {
                 CustomListCellView(
-                    imageName: nil,
-                    title: "Legal",
-                    subtitle: nil
+                    sfSymbolName: "book",
+                    title: "Legal"
                 )
-                    .anyButton(.highlight) {
-                        presenter.onLegalPressed()
-                    }
+                .anyButton(.highlight) {
+                    presenter.onLegalPressed()
+                }
                 CustomListCellView(
-                    imageName: nil,
-                    title: "App Icon",
-                    subtitle: nil
+                    sfSymbolName: "app.grid",
+                    title: "App Icon"
                 )
-                    .anyButton(.highlight) {
-                        presenter.onAppIconPressed()
-                    }
+                .anyButton(.highlight) {
+                    presenter.onAppIconPressed()
+                }
                 CustomListCellView(
-                    imageName: nil,
-                    title: "Tutorials",
-                    subtitle: nil
+                    sfSymbolName: "book",
+                    title: "Tutorials"
                 )
-                    .anyButton(.highlight) {
-                        presenter.onTutorialPressed()
-                    }
+                .anyButton(.highlight) {
+                    presenter.onTutorialPressed()
+                }
                 CustomListCellView(
-                    imageName: nil,
-                    title: "About",
-                    subtitle: nil
+                    sfSymbolName: "questionmark.circle",
+                    title: "About"
                 )
-                    .anyButton(.highlight) {
-                        presenter.onAboutPressed()
-                    }
+                .anyButton(.highlight) {
+                    presenter.onAboutPressed()
+                }
             }
             .removeListRowFormatting()
         } header: {

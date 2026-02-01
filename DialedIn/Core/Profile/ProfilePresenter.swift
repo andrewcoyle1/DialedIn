@@ -46,6 +46,10 @@ class ProfilePresenter {
         router.showGymProfilesView()
     }
 
+    func onWorkoutSettingsPressed() {
+        router.showWorkoutSettingsView(delegate: WorkoutSettingsDelegate())
+    }
+
     func getActiveGoal() async {
         if let userId = self.currentUser?.userId {
             activeGoal = try? await interactor.getActiveGoal(userId: userId)
@@ -118,11 +122,11 @@ class ProfilePresenter {
     }
 
     func onTutorialPressed() {
-
+        router.showTutorialsView(delegate: TutorialsDelegate())
     }
 
     func onAboutPressed() {
-        
+        router.showAboutView(delegate: AboutDelegate())
     }
 
     func onDismissPressed() {

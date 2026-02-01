@@ -99,7 +99,7 @@ extension CoreBuilder {
 extension CoreRouter {
     
     func showGymProfilesView() {
-        router.showScreen(.fullScreenCover) { router in
+        router.showScreen(.push) { router in
             builder.gymProfilesView(router: router)
         }
     }

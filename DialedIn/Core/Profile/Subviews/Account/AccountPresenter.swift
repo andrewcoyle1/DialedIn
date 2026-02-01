@@ -105,16 +105,82 @@ class AccountPresenter {
         isSaving = false
     }
 
+    func onSignOutPressed() {
+        interactor.trackEvent(event: Event.signOutStart)
+
+        Task {
+            do {
+                try await interactor.signOut()
+                interactor.trackEvent(event: Event.signOutSuccess)
+                await dismissScreen()
+            } catch {
+                router.showAlert(error: error)
+                interactor.trackEvent(event: Event.signOutFail(error: error))
+            }
+        }
+    }
+
+    private func dismissScreen() async {
+        router.dismissScreen()
+        try? await Task.sleep(for: .seconds(1))
+        interactor.updateAppState(showTabBarView: false)
+    }
+
+    func onDeleteAccountPressed() {
+        interactor.trackEvent(event: Event.deleteAccountStart)
+
+        router.showAlert(
+            title: "Delete Account?",
+            subtitle: "This action is permanent and cannot be undone. Your data will be deleted from our server forever.",
+            buttons: {
+                AnyView(
+                    Button("Delete", role: .destructive, action: {
+                        self.onDeleteAccountConfirmed()
+                    })
+                )
+            }
+        )
+    }
+
+    private func onDeleteAccountConfirmed() {
+        interactor.trackEvent(event: Event.deleteAccountStartConfirm)
+
+        Task {
+            do {
+                try await interactor.deleteAccount()
+                interactor.trackEvent(event: Event.deleteAccountSuccess)
+                await dismissScreen()
+            } catch {
+                router.showAlert(error: error)
+                interactor.trackEvent(event: Event.deleteAccountFail(error: error))
+            }
+        }
+    }
+
 }
 
 extension AccountPresenter {
     
     enum Event: LoggableEvent {
+        case signOutStart
+        case signOutSuccess
+        case signOutFail(error: Error)
+        case deleteAccountStart
+        case deleteAccountStartConfirm
+        case deleteAccountSuccess
+        case deleteAccountFail(error: Error)
         case onAppear(delegate: AccountDelegate)
         case onDisappear(delegate: AccountDelegate)
 
         var eventName: String {
             switch self {
+            case .signOutStart:                 return "Settings_SignOut_Start"
+            case .signOutSuccess:               return "Settings_SignOut_Success"
+            case .signOutFail:                  return "Settings_SignOut_Fail"
+            case .deleteAccountStart:           return "Settings_DeleteAccount_Start"
+            case .deleteAccountStartConfirm:    return "Settings_DeleteAccount_StartConfirm"
+            case .deleteAccountSuccess:         return "Settings_DeleteAccount_Success"
+            case .deleteAccountFail:            return "Settings_DeleteAccount_Fail"
             case .onAppear:                 return "AccountView_Appear"
             case .onDisappear:              return "AccountView_Disappear"
             }
@@ -122,15 +188,19 @@ extension AccountPresenter {
         
         var parameters: [String: Any]? {
             switch self {
+            case .signOutFail(error: let error), .deleteAccountFail(error: let error):
+                return error.eventParameters
             case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
                 return delegate.eventParameters
-//            default:
-//                return nil
+            default:
+                return nil
             }
         }
         
         var type: LogType {
             switch self {
+            case .signOutFail, .deleteAccountFail:
+                return .severe
             default:
                 return .analytic
             }

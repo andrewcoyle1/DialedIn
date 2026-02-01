@@ -46,7 +46,7 @@ extension CoreBuilder {
 
 extension CoreRouter {
     func showExercisesView() {
-        router.showScreen(.fullScreenCover) { router in
+        router.showScreen(.push) { router in
             builder.exercisesView(router: router)
         }
     }

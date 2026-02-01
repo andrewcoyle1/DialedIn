@@ -96,17 +96,23 @@ struct AccountView: View {
                 Text("Gender")
                     .fontWeight(.semibold)
             }
-            rowItem(title: "Height", subtitle: "\(presenter.currentUser?.heightCentimeters)", action: {
-                print("Edit height pressed")
-            })
+            if let height = presenter.currentUser?.heightCentimeters {
+                rowItem(title: "Height", subtitle: "\(height)", action: {
+                    print("Edit height pressed")
+                })
+            }
 
-            rowItem(title: "Cardio Experience", subtitle: "\(presenter.currentUser?.heightCentimeters)", action: {
-                print("Edit cardio experience pressed")
-            })
+            if let cardioExperience = presenter.currentUser?.cardioFitnessLevel {
+                rowItem(title: "Cardio Experience", subtitle: "\(cardioExperience)", action: {
+                    print("Edit cardio experience pressed")
+                })
+            }
 
-            rowItem(title: "Lifting Experience", subtitle: "\(presenter.currentUser?.heightCentimeters)", action: {
-                print("Edit lifting experience pressed")
-            })
+            if let liftingExperience = presenter.currentUser?.exerciseFrequency {
+                rowItem(title: "Lifting Experience", subtitle: "\(liftingExperience)", action: {
+                    print("Edit lifting experience pressed")
+                })
+            }
         }
     }
 
@@ -118,9 +124,15 @@ struct AccountView: View {
             rowItem(title: "Password", subtitle: "********", action: {
                 print("Edit Password Pressed")
             })
-            rowItem(title: "Log Out", action: {
-                print("Log out pressed")
-            })
+            Text("Log Out")
+                .anyButton {
+                    presenter.onSignOutPressed()
+                }
+            Button(role: .destructive) {
+                presenter.onDeleteAccountPressed()
+            } label: {
+                Text("Delete Account")
+            }
         } header: {
             Text("Security")
         }
@@ -130,25 +142,15 @@ struct AccountView: View {
         Section {
             Group {
                 CustomListCellView(
-                    imageName: nil,
-                    title: "Data Export",
-                    subtitle: nil
+                    sfSymbolName: "square.and.arrow.up",
+                    title: "Data Export"
                 )
                 .anyButton(.highlight) {
 
                 }
                 CustomListCellView(
-                    imageName: nil,
-                    title: "Data Visibility",
-                    subtitle: nil
-                )
-                .anyButton(.highlight) {
-
-                }
-                CustomListCellView(
-                    imageName: nil,
-                    title: "Account & Data Deletion",
-                    subtitle: nil
+                    sfSymbolName: "eye",
+                    title: "Data Visibility"
                 )
                 .anyButton(.highlight) {
 
