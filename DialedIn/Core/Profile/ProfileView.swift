@@ -10,8 +10,6 @@ import SwiftfulRouting
 
 struct ProfileView: View {
 
-    @Environment(\.layoutMode) private var layoutMode
-
     @State var presenter: ProfilePresenter
 
     var body: some View {

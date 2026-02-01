@@ -12,9 +12,16 @@ struct AboutView: View {
     let delegate: AboutDelegate
     
     var body: some View {
-        List {
-            Text("DialedIn is a XXX. You are currently on version \(presenter.appVersion) (\(presenter.appBuild)")
-            Group {
+        VStack {
+            Text("DialedIn is a XXX. You are currently on version \(presenter.appVersion) (\(presenter.appBuild))")
+                .lineLimit(4)
+                .padding(.horizontal)
+            Spacer()
+        }
+        .navigationTitle("About DialedIn")
+        .toolbarTitleDisplayMode(.inlineLarge)
+        .safeAreaInset(edge: .bottom) {
+            VStack {
                 Text("View Licences")
                     .callToActionButton(isPrimaryAction: false)
                     .anyButton {
@@ -26,10 +33,8 @@ struct AboutView: View {
                         presenter.onDismissPressed()
                     }
             }
-            .removeListRowFormatting()
+            .padding(.horizontal)
         }
-        .navigationTitle("About DialedIn")
-        .toolbarTitleDisplayMode(.inlineLarge)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -76,7 +81,7 @@ extension CoreBuilder {
 extension CoreRouter {
     
     func showAboutView(delegate: AboutDelegate) {
-        router.showScreen(.sheetConfig(config: ResizableSheetConfig(detents: [.fraction(0.4)]))) { router in
+        router.showScreen(.sheetConfig(config: ResizableSheetConfig(detents: [.fraction(0.35)]))) { router in
             builder.aboutView(router: router, delegate: delegate)
         }
     }

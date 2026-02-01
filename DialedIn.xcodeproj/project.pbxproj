@@ -818,6 +818,13 @@
 			);
 			target = D012F0192EACD46C0014C602 /* DialedInTests */;
 		};
+		D04537422F2FDFD80081B3E1 /* Exceptions for "DialedIn" folder in "DialedIn" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D0A2993C2E54AEA700DA64F7 /* DialedIn */;
+		};
 		D08F585C2E8BF61D001D3980 /* Exceptions for "WorkoutSessionActivity" folder in "WorkoutSessionActivityExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -1781,13 +1788,6 @@
 			);
 			target = D012F0742EAD20760014C602 /* DialedInUITests */;
 		};
-		D0F0A1B22F40000100ABCDEF /* Exceptions for "DialedIn" folder in "DialedIn" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = D0A2993C2E54AEA700DA64F7 /* DialedIn */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -1812,7 +1812,7 @@
 		D0A2993F2E54AEA700DA64F7 /* DialedIn */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				D0F0A1B22F40000100ABCDEF /* Exceptions for "DialedIn" folder in "DialedIn" target */,
+				D04537422F2FDFD80081B3E1 /* Exceptions for "DialedIn" folder in "DialedIn" target */,
 				D012F02E2EACD6100014C602 /* Exceptions for "DialedIn" folder in "DialedInTests" target */,
 				D0CE88D32EB2339D00EED3B5 /* Exceptions for "DialedIn" folder in "DialedInUITests" target */,
 				D0BC0E372EA28EB5008A1E22 /* Exceptions for "DialedIn" folder in "WorkoutSessionActivityExtension" target */,
