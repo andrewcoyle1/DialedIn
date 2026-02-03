@@ -9,6 +9,9 @@ protocol TrainingInteractor {
     var currentUser: UserModel? { get }
     var userImageUrl: String? { get }
     var currentTrainingPlan: TrainingPlan? { get }
+    var activeSession: WorkoutSessionModel? { get }
+    func getAllLocalWorkoutSessions() throws -> [WorkoutSessionModel]
+    func getActiveTrainingProgram() async throws -> TrainingProgram?
     func getAdherenceRate() -> Double
     func getCurrentWeek() -> TrainingWeek?
     func getUpcomingWorkouts(limit: Int) -> [ScheduledWorkout]

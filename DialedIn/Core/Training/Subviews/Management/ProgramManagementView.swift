@@ -16,15 +16,14 @@ struct ProgramManagementView: View {
 
     var body: some View {
         List {
-            if !presenter.trainingPlans.isEmpty {
-                activeProgramSection
-                otherProgramsSection
+            if !presenter.savedPrograms.isEmpty {
+                savedProgramsSection
             } else {
                 emptyState
             }
         }
         .navigationTitle("My Programs")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             toolbarContent
         }
@@ -36,62 +35,57 @@ struct ProgramManagementView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
+        .task {
+            await presenter.loadSavedPrograms()
+        }
     }
     
-    private var activeProgramSection: some View {
-        Group {
-            if let activePlan = presenter.activePlan {
-                Section {
-                    let delegate = ProgramRowDelegate(
-                        plan: activePlan,
-                        isActive: true,
-                        onEdit: { presenter.onEditPlanPressed(plan: activePlan) },
-                        onDelete: {
-                            presenter.planToDelete = activePlan
-                            presenter.showDeleteAlert(activePlan: activePlan)
+    private var savedProgramsSection: some View {
+        Section {
+            ForEach(presenter.savedPrograms) { program in
+                savedProgramRow(program)
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            presenter.showDeleteAlert(program: program)
                         }
-                    )
-                    programRowView(delegate)
-                } header: {
-                    Text("Active Program")
-                } footer: {
-                    Text("This is your currently active training program.")
-                }
-            }
-        }
-    }
-    
-    private var otherProgramsSection: some View {
-        Group {
-            let inactivePlans = presenter.trainingPlans.filter { !$0.isActive }
-            
-            if !inactivePlans.isEmpty {
-                Section {
-                    ForEach(inactivePlans) { plan in
-                        programRowView(
-                            ProgramRowDelegate(
-                                plan: plan,
-                                isActive: false,
-                                onActivate: {
-                                    Task {
-                                        await presenter.setActivePlan(plan)
-                                    }
-                                },
-                                onEdit: { presenter.editingPlan = plan },
-                                onDelete: {
-                                    presenter.planToDelete = plan
-                                    presenter.showDeleteAlert(activePlan: plan)
-                                }
-                            )
-                        )
                     }
-                } header: {
-                    Text("Other Programs")
-                }
             }
+        } header: {
+            Text("Saved Programs")
+        } footer: {
+            Text("These are saved program designs. Start a program from a template to generate a scheduled plan.")
         }
     }
     
+    private func savedProgramRow(_ program: TrainingProgram) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(Color(hex: program.colour).opacity(0.2))
+                
+                Image(systemName: program.icon)
+                    .foregroundStyle(Color(hex: program.colour))
+            }
+            .frame(width: 40, height: 40)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(program.name)
+                    .font(.headline)
+                
+                Text("\(program.dayPlans.count) days • \(program.numMicrocycles) cycles")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Spacer()
+        }
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .anyButton {
+            presenter.onSavedProgramPressed(program)
+        }
+    }
+        
     private var emptyState: some View {
         ContentUnavailableView {
             Label("No Programs", systemImage: "calendar.badge.clock")
@@ -135,7 +129,7 @@ extension CoreBuilder {
 
 extension CoreRouter {
     func showProgramManagementView() {
-        router.showScreen(.fullScreenCover) { router in
+        router.showScreen(.sheet) { router in
             builder.programManagementView(router: router)
         }
     }

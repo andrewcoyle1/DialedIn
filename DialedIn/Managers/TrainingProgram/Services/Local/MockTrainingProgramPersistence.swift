@@ -36,7 +36,7 @@ class MockTrainingProgramPersistence: LocalTrainingProgramPersistence {
     // MARK: CREATE
     func createTrainingProgram(program: TrainingProgram) throws {
         try tryShowError()
-
+        programs[program.id] = program
     }
 
     // MARK: READ
@@ -53,23 +53,29 @@ class MockTrainingProgramPersistence: LocalTrainingProgramPersistence {
     func readTrainingProgram(programId: String) throws -> TrainingProgram {
         try tryShowError()
 
-        return TrainingProgram.mock
+        return programs[programId] ?? TrainingProgram.mock
     }
     
     func readAllLocalTrainingPrograms() throws -> [TrainingProgram] {
         try tryShowError()
 
-        return TrainingProgram.mocks
+        if programs.isEmpty {
+            return TrainingProgram.mocks
+        }
+        return Array(programs.values)
     }
 
     // MARK: UPDATE
     func updateTrainingProgram(program: TrainingProgram) throws {
         try tryShowError()
-
+        guard programs[program.id] != nil else {
+            throw URLError(.fileDoesNotExist)
+        }
+        programs[program.id] = program
     }
 
     // MARK: DELETE
     func deleteTrainingProgram(program: TrainingProgram) throws {
-        
+        programs[program.id] = nil
     }
 }

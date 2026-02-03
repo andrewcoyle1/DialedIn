@@ -6,11 +6,12 @@
 //
 
 import SwiftUI
+import SwiftfulRouting
 
 @MainActor
 protocol TrainingRouter: GlobalRouter {
     func showDevSettingsView()
-    func showWorkoutStartView(delegate: WorkoutStartDelegate)
+    func showWorkoutStartModal(delegate: WorkoutStartDelegate)
     func showProgramManagementView()
     func showProgressDashboardView()
     func showStrengthProgressView()

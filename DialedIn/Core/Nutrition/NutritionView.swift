@@ -21,11 +21,7 @@ struct NutritionView<CalendarHeaderView: View>: View {
     
     var body: some View {
         List {
-            dailySummarySection
-
             mealsSection
-
-            addMealSection
 
             recipeLibraryButton
 
@@ -47,62 +43,68 @@ struct NutritionView<CalendarHeaderView: View>: View {
             }
         }
         .safeAreaInset(edge: .top) {
-            calendarHeader(
-                CalendarHeaderDelegate(
-                    onDatePressed: { date in
-                        presenter.selectedDate = date.startOfDay
-                    },
-                    getForDate: { date in
-                        presenter.getMealCountForDate(
-                            date: date
-                        )
-                    }
+            VStack {
+                calendarHeader(
+                    CalendarHeaderDelegate(
+                        onDatePressed: { date in
+                            presenter.selectedDate = date.startOfDay
+                        },
+                        getForDate: { date in
+                            presenter.getMealCountForDate(
+                                date: date
+                            )
+                        }
+                    )
                 )
-            )
-        }
-    }
+                HStack {
+                    VStack(alignment: .leading) {
+                        HStack(spacing: 0) {
+                            Image(systemName: "flame")
+                                .font(.system(size: 16))
+                            Text("\(Int(presenter.dailyTotals?.calories ?? 0))/\(Int(presenter.dailyTarget?.calories ?? 0))")
+                                .lineLimit(1)
+                                .font(.caption)
+                        }
+                        .frame(height: 16)
+                        ProgressView(value: presenter.caloriePercentage)
+                            .tint(.blue)
+                    }
 
-    // MARK: - Daily Summary Section
-    
-    private var dailySummarySection: some View {
-        Section {
-            VStack(spacing: 16) {
-                HStack(spacing: 12) {
-                    MacroStatCard(
-                        title: "Calories",
-                        current: presenter.dailyTotals?.calories ?? 0,
-                        target: presenter.dailyTarget?.calories,
-                        unit: "kcal"
-                    )
+                    VStack(alignment: .leading) {
+                        Text("P \(Int(presenter.dailyTotals?.proteinGrams ?? 0))/\(Int(presenter.dailyTarget?.proteinGrams ?? 0))")
+                            .lineLimit(1)
+                            .font(.caption)
+                            .frame(height: 16)
+
+                        ProgressView(value: presenter.carbsPercentage)
+                            .tint(.red)
+                    }
+
+                    VStack(alignment: .leading) {
+                        Text("F \(Int(presenter.dailyTotals?.fatGrams ?? 0))/\(Int(presenter.dailyTarget?.fatGrams ?? 0))")
+                            .lineLimit(1)
+                            .font(.caption)
+                            .frame(height: 16)
+
+                        ProgressView(value: presenter.fatPercentage)
+                            .tint(.yellow)
+                    }
                     
-                    MacroStatCard(
-                        title: "Protein",
-                        current: presenter.dailyTotals?.proteinGrams ?? 0,
-                        target: presenter.dailyTarget?.proteinGrams,
-                        unit: "g"
-                    )
+                    VStack(alignment: .leading) {
+                        Text("C \(Int(presenter.dailyTotals?.carbGrams ?? 0))/\(Int(presenter.dailyTarget?.carbGrams ?? 0))")
+                            .lineLimit(1)
+                            .font(.caption)
+                            .frame(height: 16)
+
+                        ProgressView(value: presenter.carbsPercentage)
+                            .tint(.green)
+                    }
                 }
-                
-                HStack(spacing: 12) {
-                    MacroStatCard(
-                        title: "Carbs",
-                        current: presenter.dailyTotals?.carbGrams ?? 0,
-                        target: presenter.dailyTarget?.carbGrams,
-                        unit: "g"
-                    )
-                    
-                    MacroStatCard(
-                        title: "Fat",
-                        current: presenter.dailyTotals?.fatGrams ?? 0,
-                        target: presenter.dailyTarget?.fatGrams,
-                        unit: "g"
-                    )
-                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .glassEffect()
+                .padding(.horizontal)
             }
-            .removeListRowFormatting()
-            .padding(.vertical, 8)
-        } header: {
-            Text("Daily Summary - \(presenter.selectedDate.formattedDate)")
         }
     }
     
@@ -150,10 +152,10 @@ struct NutritionView<CalendarHeaderView: View>: View {
         }
     }
     
-    // MARK: - Add Meal Section
-    
-    private var addMealSection: some View {
-        Section {
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        
+        ToolbarItem(placement: .topBarTrailing) {
             Menu {
                 ForEach(MealType.allCases, id: \.self) { mealType in
                     Button {
@@ -164,19 +166,17 @@ struct NutritionView<CalendarHeaderView: View>: View {
                     }
                 }
             } label: {
-                HStack {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(.accent)
-                    Text("Log Meal")
-                        .font(.headline)
-                    Spacer()
-                }
+                Image(systemName: "plus")
             }
         }
-    }
-    
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                
+            } label: {
+                Image(systemName: "line.3.horizontal")
+            }
+        }
         
         ToolbarItem(placement: .topBarTrailing) {
             let avatarSize: CGFloat = 44

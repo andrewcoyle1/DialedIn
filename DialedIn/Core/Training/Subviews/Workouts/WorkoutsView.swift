@@ -17,6 +17,13 @@ struct WorkoutsView<WorkoutList: View>: View {
     var body: some View {
         let delegate = WorkoutListDelegateBuilder(onWorkoutSelectionChanged: presenter.onWorkoutPressed)
         workoutListViewBuilder(delegate)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(role: .close) {
+                        presenter.onDismissPressed()
+                    }
+                }
+            }
     }
 }
 
@@ -33,7 +40,7 @@ extension CoreBuilder {
 
 extension CoreRouter {
     func showWorkoutsView() {
-        router.showScreen(.push) { router in
+        router.showScreen(.sheet) { router in
             builder.workoutsView(router: router)
         }
     }

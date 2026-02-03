@@ -55,41 +55,33 @@ class ProfilePresenter {
             activeGoal = try? await interactor.getActiveGoal(userId: userId)
         }
     }
+    
+    func onUnitsPressed() {
+        router.showUnitsView(delegate: UnitsDelegate())
+    }
 
+    func onIntegrationsPressed() {
+        router.showIntegrationsView(delegate: IntegrationsDelegate())
+    }
+    
+    func onSiriPressed() {
+        router.showSiriView(delegate: SiriDelegate())
+    }
+    
     func onProfileEditPressed() {
         router.showAccountView(delegate: AccountDelegate())
-//        router.showProfileEditView()
     }
 
     func onNotificationsPressed() {
         router.showNotificationsView()
     }
+    
+    func onSubscriptionPressed() {
+        router.showCorePaywall()
+    }
 
     func onExerciseLibraryPressed() {
         router.showExercisesView()
-    }
-
-    func navToExerciseTemplateList() {
-        guard let templateIds = currentUser?.createdExerciseTemplateIds else { return }
-        interactor.trackEvent(event: Event.navigate)
-        router.showExerciseTemplateListView(delegate: ExerciseTemplateListDelegate(templateIds: templateIds))
-    }
-
-    func navToWorkoutTemplateList() {
-        interactor.trackEvent(event: Event.navigate)
-        router.showWorkoutTemplateListView()
-    }
-
-    func navToIngredientTemplateList() {
-        guard let templateIds = currentUser?.createdIngredientTemplateIds else { return }
-        interactor.trackEvent(event: Event.navigate)
-        router.showIngredientTemplateListView(delegate: IngredientTemplateListDelegate(templateIds: templateIds))
-    }
-
-    func navToRecipeTemplateList() {
-        guard let templateIds = currentUser?.createdRecipeTemplateIds else { return }
-        interactor.trackEvent(event: Event.navigate)
-        router.showRecipeTemplateListView(delegate: RecipeTemplateListDelegate(templateIds: templateIds))
     }
 
     func formatUnitPreferences(length: LengthUnitPreference?, weight: WeightUnitPreference?) -> String {
@@ -112,13 +104,32 @@ class ProfilePresenter {
         interactor.trackEvent(event: Event.navigate)
         router.showProfileNutritionDetailView()
     }
-
-    func onLegalPressed() {
-
+    
+    func onShortcutsPressed() {
+        router.showShortcutsView(delegate: ShortcutsDelegate())
+    }
+    
+    func onCustomiseDashboardPressed() {
+        router.showCustomiseDashboardView(delegate: CustomiseDashboardDelegate())
     }
 
-    func onAppIconPressed() {
+    func onLegalPressed() {
+        router.showLegalView(delegate: LegalDelegate())
+    }
+    
+    func onFoodLogSettingsPressed() {
+        router.showFoodLogSettingsView(delegate: FoodLogSettingsDelegate())
+    }
 
+    func onExpenditureSettingsPressed() {
+        router.showExpenditureSettingsView(delegate: ExpenditureSettingsDelegate())
+    }
+    
+    func onStrategySettingsPressed() {
+        router.showStrategySettingsView(delegate: StrategySettingsDelegate())
+    }
+    func onAppIconPressed() {
+        router.showAppIconView(delegate: AppIconDelegate())
     }
 
     func onTutorialPressed() {

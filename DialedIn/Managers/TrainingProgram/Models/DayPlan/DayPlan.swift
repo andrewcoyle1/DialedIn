@@ -11,13 +11,21 @@ struct DayPlan: Identifiable, Codable {
     let id: String
     let authorId: String
     var name: String
+    let dateCreated: Date
     
-    var exercises: [ExercisePlan] = []
+    var exercises: [WorkoutTemplateExercise] = []
     
-    init(id: String, authorId: String, name: String, exercises: [ExercisePlan]) {
+    init(
+        id: String,
+        authorId: String,
+        name: String,
+        dateCreated: Date = Date(),
+        exercises: [WorkoutTemplateExercise]
+    ) {
         self.id = id
         self.authorId = authorId
         self.name = name
+        self.dateCreated = dateCreated
         self.exercises = exercises
     }
     
@@ -25,6 +33,7 @@ struct DayPlan: Identifiable, Codable {
         case id
         case authorId = "author_id"
         case name
+        case dateCreated = "date_created"
         case exercises
     }
     
@@ -34,35 +43,40 @@ struct DayPlan: Identifiable, Codable {
     
     static var mocks: [DayPlan] {
         let samples = ExerciseModel.mocks
-        let makePlans: ([ExerciseModel]) -> [ExercisePlan] = { exercises in
+        let makePlans: ([ExerciseModel]) -> [WorkoutTemplateExercise] = { exercises in
             exercises.map { exercise in
-                ExercisePlan(id: UUID().uuidString, authorId: "user123", exercise: exercise)
+                WorkoutTemplateExercise(exercise: exercise, setRestTimers: false)
             }
         }
+        let baseDate = Date()
 
         return [
             DayPlan(
                 id: UUID().uuidString,
                 authorId: "user123",
                 name: "Push Day A",
+                dateCreated: baseDate,
                 exercises: makePlans(Array(samples.prefix(3)))
             ),
             DayPlan(
                 id: UUID().uuidString,
                 authorId: "user123",
                 name: "Pull Day A",
+                dateCreated: baseDate.addingTimeInterval(1),
                 exercises: makePlans(Array(samples.dropFirst(3).prefix(3)))
             ),
             DayPlan(
                 id: UUID().uuidString,
                 authorId: "user123",
                 name: "Leg Day A",
+                dateCreated: baseDate.addingTimeInterval(2),
                 exercises: makePlans(Array(samples.dropFirst(6).prefix(3)))
             ),
             DayPlan(
                 id: UUID().uuidString,
                 authorId: "user123",
                 name: "Rest",
+                dateCreated: baseDate.addingTimeInterval(3),
                 exercises: []
             )
         ]

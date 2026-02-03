@@ -19,10 +19,18 @@ class ExerciseSavePresenter {
     func onCreatePressed(delegate: ExerciseSaveDelegate) {
         guard let userId = currentUser?.userId else { return }
         let model = ExerciseModel(from: delegate, authorId: userId)
+        Task {
+            do {
+                try await interactor.createExerciseTemplate(exercise: model, image: nil)
+                router.dismissEnvironment()
+            } catch {
+                // TODO: Handle Failure
+            }
+        }
     }
 
     func onCreateAndAddPressed(delegate: ExerciseSaveDelegate) {
-
+        
     }
 
     func onViewAppear(delegate: ExerciseSaveDelegate) {

@@ -7,6 +7,174 @@
 
 import Foundation
 
+struct WorkoutTemplateExercise: Hashable, Identifiable, Codable, Equatable {
+    var id: String
+    var exercise: ExerciseModel
+    var setTargets: [SetTarget]
+    var setRestTimers: Bool
+    
+    init(id: String = UUID().uuidString, exercise: ExerciseModel, setTargets: [SetTarget] = [SetTarget(setNumber: 1, setType: SetTarget.SetType.standard)], setRestTimers: Bool) {
+        self.id = id
+        self.exercise = exercise
+        self.setTargets = setTargets
+        self.setRestTimers = setRestTimers
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case exercise
+        case setTargets = "set_targets"
+        case setRestTimers = "set_rest_timers"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
+        setTargets = try container.decodeIfPresent([SetTarget].self, forKey: .setTargets) ?? [
+            SetTarget(setNumber: 1, setType: SetTarget.SetType.standard)
+        ]
+        setRestTimers = try container.decodeIfPresent(Bool.self, forKey: .setRestTimers) ?? false
+
+        if let decodedExercise = try? container.decode(ExerciseModel.self, forKey: .exercise) {
+            exercise = decodedExercise
+        } else if let singleExercise = try? decoder.singleValueContainer().decode(ExerciseModel.self) {
+            exercise = singleExercise
+        } else {
+            throw DecodingError.keyNotFound(
+                CodingKeys.exercise,
+                DecodingError.Context(
+                    codingPath: decoder.codingPath,
+                    debugDescription: "Missing exercise in WorkoutTemplateExercise"
+                )
+            )
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(exercise, forKey: .exercise)
+        try container.encode(setTargets, forKey: .setTargets)
+        try container.encode(setRestTimers, forKey: .setRestTimers)
+    }
+    
+    static var mock: WorkoutTemplateExercise {
+        mocks[0]
+    }
+    
+    static var mocks: [WorkoutTemplateExercise] {
+        var mocks: [WorkoutTemplateExercise] = []
+        
+        for exercise in ExerciseModel.mocks {
+            mocks.append(WorkoutTemplateExercise(exercise: exercise, setRestTimers: false))
+        }
+        
+        return mocks
+    }
+}
+
+struct SetTarget: Hashable, Identifiable, Codable, Equatable {
+    var id: String = UUID().uuidString
+    var setNumber: Int
+    var minReps: Int?
+    var maxReps: Int?
+    var rirTarget: Int?
+    var setType: SetType
+    
+    init(
+        id: String = UUID().uuidString,
+        setNumber: Int,
+        minReps: Int? = nil,
+        maxReps: Int? = nil,
+        rirTarget: Int? = nil,
+        setType: SetType = .standard
+    ) {
+        self.id = id
+        self.setNumber = setNumber
+        self.minReps = minReps
+        self.maxReps = maxReps
+        self.rirTarget = rirTarget
+        self.setType = setType
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case setNumber = "set_number"
+        case minReps = "min_reps"
+        case maxReps = "max_reps"
+        case rirTarget = "rir_target"
+        case setType = "set_type"
+    }
+    
+    enum SetType: String, Codable {
+        case standard
+        case drop
+        case myo
+        case failure
+
+        init(from decoder: Decoder) throws {
+            if let rawValue = try? decoder.singleValueContainer().decode(String.self),
+               let value = SetType(rawValue: rawValue) {
+                self = value
+                return
+            }
+
+            if let container = try? decoder.container(keyedBy: LegacyCodingKeys.self) {
+                if let rawValue = try? container.decode(String.self, forKey: .rawValue),
+                   let value = SetType(rawValue: rawValue) {
+                    self = value
+                    return
+                }
+                if let name = try? container.decode(String.self, forKey: .name),
+                   let value = SetType.fromName(name) {
+                    self = value
+                    return
+                }
+            }
+
+            self = .standard
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+            try container.encode(rawValue)
+        }
+
+        private enum LegacyCodingKeys: String, CodingKey {
+            case rawValue
+            case name
+        }
+
+        private static func fromName(_ name: String) -> SetType? {
+            switch name {
+            case "Standard Set": return .standard
+            case "Drop Set": return .drop
+            case "Myo Set": return .myo
+            case "Failure Set": return .failure
+            default: return nil
+            }
+        }
+        
+        var name: String {
+            switch self {
+            case .standard: return "Standard Set"
+            case .drop: return "Drop Set"
+            case .myo: return "Myo Set"
+            case .failure: return "Failure Set"
+            }
+        }
+        
+        var subtitle: String {
+            switch self {
+            case .standard: return "A normal set of a fixed weight and target repitions."
+            case .drop: return "A set where you continue repping to push muscle fatigue with progressively lower weight after reaching failure at a heavier load."
+            case .myo: return "A set where you continue repping to push muscle fatigue with progressively low reps while keeping the weight constant."
+            case .failure: return "A set where you perform reps until you can no longer maintain proper form (for compound exercises) or complete another rep (for isolation exercises)."
+            }
+        }
+    }
+}
+
 struct ExerciseModel: @MainActor TemplateModel {
     var id: String
     var authorId: String

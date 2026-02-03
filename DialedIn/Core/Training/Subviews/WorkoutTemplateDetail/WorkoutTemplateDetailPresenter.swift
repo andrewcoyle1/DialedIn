@@ -130,7 +130,98 @@ class WorkoutTemplateDetailPresenter {
     }
 
     func onStartWorkoutPressed(workoutTemplate: WorkoutTemplateModel) {
-        router.showWorkoutStartView(delegate: WorkoutStartDelegate(template: workoutTemplate, scheduledWorkout: nil))
+        let shouldProceed = checkForActiveWorkout(
+            onResumeWorkout: { [weak self] in
+                Task { @MainActor in
+                    self?.resumeActiveWorkout()
+                }
+            },
+            onStartNewWorkout: { [weak self] in
+                Task { @MainActor in
+                    self?.performStartWorkout(workoutTemplate: workoutTemplate)
+                }
+            }
+        )
+        
+        if shouldProceed {
+            performStartWorkout(workoutTemplate: workoutTemplate)
+        }
+    }
+    
+    // MARK: - Active Workout Safeguard
+    
+    private func checkForActiveWorkout(onResumeWorkout: @escaping @Sendable () -> Void, onStartNewWorkout: @escaping @Sendable () -> Void) -> Bool {
+        guard let activeSession = activeSession else {
+            return true
+        }
+        
+        router.showAlert(
+            title: "Workout In Progress",
+            subtitle: "You already have '\(activeSession.name)' in progress. What would you like to do?",
+            buttons: {
+                AnyView(
+                    VStack {
+                        Button("Resume Current Workout") {
+                            onResumeWorkout()
+                        }
+                        Button("Discard & Start New", role: .destructive) {
+                            onStartNewWorkout()
+                        }
+                        Button("Cancel", role: .cancel) { }
+                    }
+                )
+            }
+        )
+        
+        return false
+    }
+    
+    private func resumeActiveWorkout() {
+        guard let activeSession = activeSession else { return }
+        router.dismissEnvironment()
+        router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: activeSession.id))
+    }
+    
+    private func performStartWorkout(workoutTemplate: WorkoutTemplateModel) {
+        guard let userId = currentUser?.userId else { return }
+        router.showWorkoutStartModal(
+            delegate: WorkoutStartDelegate(
+                template: workoutTemplate,
+                scheduledWorkout: nil,
+                programId: nil,
+                dayPlanId: nil,
+                onStartWorkoutPressed: {
+                    
+                    do {
+                        
+                        // Create workout session from template
+                        let session = WorkoutSessionModel(
+                            authorId: userId,
+                            template: workoutTemplate,
+                            notes: nil,
+                            scheduledWorkoutId: nil,
+                            trainingPlanId: nil,
+                            programId: nil,
+                            dayPlanId: nil
+                        )
+                        
+                        // Save locally first (MainActor-isolated)
+                        try self.interactor.addLocalWorkoutSession(session: session)
+                        
+                        self.interactor.startActiveSession(session)
+                                self.router.dismissModal()
+                        self.router.dismissEnvironment()
+                        self.router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
+                    } catch {
+                        self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
+                    }
+                },
+                onCancelPressed: {
+                    self.router.dismissModal()
+                }
+
+            )
+        )
     }
 
     func onDevSettingsPressed() {

@@ -153,7 +153,7 @@ struct AccountView: View {
                     title: "Data Visibility"
                 )
                 .anyButton(.highlight) {
-
+                    presenter.onDataVisibilityPressed()
                 }
             }
             .removeListRowFormatting()

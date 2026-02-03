@@ -15,6 +15,7 @@ struct CreateExerciseView: View {
     @State var presenter: CreateExercisePresenter
 
     var body: some View {
+        
         List {
             nameSection
             trackableMetricSection

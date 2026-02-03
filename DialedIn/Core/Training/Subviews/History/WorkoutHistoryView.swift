@@ -24,7 +24,7 @@ struct WorkoutHistoryView: View {
             }
         }
         .navigationTitle("Workout Sessions")
-        .navigationBarTitleDisplayMode(.large)
+        .toolbarTitleDisplayMode(.inlineLarge)
         .screenAppearAnalytics(name: "WorkoutHistoryView")
         .scrollIndicators(.hidden)
         .onAppear {
@@ -33,8 +33,14 @@ struct WorkoutHistoryView: View {
         .onFirstTask {
             await presenter.syncSessions()
         }
-        .refreshable {
-            await presenter.syncSessions()
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    presenter.onDismissPressed()
+                } label: {
+                    Image(systemName: "xmark")
+                }
+            }
         }
     }
     
@@ -139,7 +145,7 @@ extension CoreBuilder {
 
 extension CoreRouter {
     func showWorkoutHistoryView() {
-        router.showScreen(.push) { router in
+        router.showScreen(.sheet) { router in
             builder.workoutHistoryView(router: router)
         }
     }

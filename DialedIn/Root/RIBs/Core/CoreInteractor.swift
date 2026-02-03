@@ -899,13 +899,39 @@ struct CoreInteractor: GlobalInteractor {
     
     func getActiveTrainingProgram() async throws -> TrainingProgram? {
         guard let programId = currentUser?.activeTrainingProgramId else { return nil }
-        return try trainingProgramManager.readLocalTrainingProgram(programId: programId)
+        do {
+            return try trainingProgramManager.readLocalTrainingProgram(programId: programId)
+        } catch {
+            let urlError = error as? URLError
+            if urlError?.code != .fileDoesNotExist {
+                throw error
+            }
+        }
+
+        let remoteProgram = try await trainingProgramManager.readRemoteTrainingProgram(programId: programId)
+        try? await trainingProgramManager.updateTrainingProgram(program: remoteProgram)
+        return remoteProgram
     }
     
     // CREATE
     
     func createTrainingProgram(program: TrainingProgram) async throws {
         try await trainingProgramManager.createTrainingProgram(program: program)
+    }
+
+    // UPSERT
+
+    func upsertTrainingProgram(program: TrainingProgram) async throws {
+        do {
+            try await trainingProgramManager.updateTrainingProgram(program: program)
+        } catch {
+            let urlError = error as? URLError
+            if urlError?.code == .fileDoesNotExist {
+                try await trainingProgramManager.createTrainingProgram(program: program)
+            } else {
+                throw error
+            }
+        }
     }
     
     // READ

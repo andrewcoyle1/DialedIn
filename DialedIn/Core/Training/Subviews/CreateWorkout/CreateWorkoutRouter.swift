@@ -6,11 +6,8 @@
 //
 
 @MainActor
-protocol CreateWorkoutRouter {
-    func showDevSettingsView()
-    func showAddExercisesView(delegate: AddExerciseModalDelegate)
-    func dismissScreen()
-    func showAlert(error: Error)
+protocol CreateWorkoutRouter: GlobalRouter {
+    func showNameWorkoutView(delegate: NameWorkoutDelegate)
 }
 
 extension CoreRouter: CreateWorkoutRouter { }

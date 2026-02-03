@@ -8,86 +8,132 @@ struct ProgramDesignDelegate {
     var icon: String
 }
 
-struct ProgramDesignView: View {
+struct ProgramDesignView<DefineWorkout: View>: View {
     
     @State var presenter: ProgramDesignPresenter
     let delegate: ProgramDesignDelegate
     
+    @ViewBuilder var workoutDefinitionView: (DefineWorkoutDelegate) -> DefineWorkout
+    
     var body: some View {
-        List {
-            dayOptionBar
-            
-            overviewCard()
-            
-            exercisesSection
-        }
-        .navigationTitle("Create Program")
-        .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "ProgramDesignView")
-        .toolbar {
-            toolbarContent
-        }
-        .safeAreaInset(edge: .top) {
-            daySelectionSection
-        }
-        .safeAreaInset(edge: .bottom) {
-            VStack {
-                HStack {
-                    Spacer()
-                    Text("Activate Program")
-                        .foregroundStyle(.white)
-                    Spacer()
-                }
-                .padding(.vertical)
-                .background {
-                    Capsule()
-                        .frame(maxWidth: .infinity)
-                }
-                .anyButton {
-                    presenter.onActivatePressed(delegate: delegate)
-                }
-                .padding()
-                
-                Text("Save Program")
-                    .anyButton {
-                        presenter.onSavePressed(delegate: delegate)
-                    }
+        workoutDefinitionSection(dayPlan: presenter.selectedDayPlan)
+            .navigationTitle("Create Program")
+            .navigationBarTitleDisplayMode(.inline)
+            .screenAppearAnalytics(name: "ProgramDesignView")
+            .toolbar {
+                toolbarContent
             }
-            .frame(maxWidth: .infinity)
-        }
+            .safeAreaInset(edge: .top) {
+                topSafeAreaSection
+            }
+            .safeAreaInset(edge: .bottom) {
+                bottomSafeAreaSection
+            }
+    }
+    
+    private func workoutDefinitionSection(dayPlan: DayPlan) -> some View {
+        let gymProfile = presenter.gymProfile ?? GymProfileModel(
+            authorId: presenter.userId,
+            freeWeights: [],
+            loadableBars: [],
+            fixedWeightBars: [],
+            bands: [],
+            bodyWeights: [],
+            supportEquipment: [],
+            accessoryEquipment: [],
+            loadableAccessoryEquipment: [],
+            cableMachines: [],
+            plateLoadedMachines: [],
+            pinLoadedMachines: []
+        )
+        let delegate = DefineWorkoutDelegate(
+            name: dayPlan.name,
+            gymProfile: gymProfile,
+            exercises: presenter.selectedDayPlanExercises,
+            topSectionStyle: .programDay
+        )
+        return workoutDefinitionView(delegate)
+            .navigationTitle(dayPlan.name)
+            // Ensure switching selected day plan rebuilds DefineWorkoutView state.
+            .id(dayPlan.id)
     }
     
     private var daySelectionSection: some View {
         ScrollView(.horizontal) {
             HStack {
                 ForEach(presenter.dayPlans) { dayPlan in
-                    VStack {
-                        Text(dayPlan.name)
-                            .fontWeight(presenter.selectedDayPlan.id == dayPlan.id ? .bold : .regular)
-                    }
-                    .anyButton {
-                        presenter.onDayPlanSelected(dayPlan)
-                    }
-                    .frame(minWidth: 50)
+                    dayPlanCell(dayPlan)
                 }
-                HStack {
-                    Text("Add Day")
-                    ZStack {
-                        Circle()
-                            .foregroundColor(.secondary.opacity(0.4))
-                        Image(systemName: "plus")
-                            .font(.caption2)
-                    }
-                    .frame(width: 20, height: 20)
-                }
-                .padding(8)
-                .anyButton {
+                Button {
                     presenter.onAddDayPressed()
+                } label: {
+                    HStack {
+                        Text("Add Day")
+                        Image(systemName: "plus")
+                    }
+
                 }
+                .buttonStyle(.glass)
             }
             .padding(8)
         }
         .scrollIndicators(.hidden)
+    }
+    
+    private func dayPlanCell(_ dayPlan: DayPlan) -> some View {
+        Group {
+            if presenter.selectedDayPlan.id == dayPlan.id {
+                Button {
+                    presenter.onDayPlanSelected(dayPlan)
+                } label: {
+                    Text(dayPlan.name)
+                        .fontWeight(.bold)
+                }
+                .buttonStyle(.glassProminent)
+            } else {
+                Button {
+                    presenter.onDayPlanSelected(dayPlan)
+                } label: {
+                    Text(dayPlan.name)
+                        .fontWeight(.regular)
+                }
+                .buttonStyle(.glass)
+            }
+        }
+    }
+    
+    private var topSafeAreaSection: some View {
+        VStack {
+            daySelectionSection
+            dayOptionBar
+        }
+    }
+    
+    private var bottomSafeAreaSection: some View {
+        VStack {
+            HStack {
+                Spacer()
+                Text("Activate Program")
+                    .foregroundStyle(.white)
+                Spacer()
+            }
+            .padding(.vertical)
+            .background {
+                Capsule()
+                    .frame(maxWidth: .infinity)
+            }
+            .anyButton {
+                presenter.onActivatePressed(delegate: delegate)
+            }
+            .padding()
+            
+            Text("Save Program")
+                .anyButton {
+                    presenter.onSavePressed(delegate: delegate)
+                }
+        }
+        .frame(maxWidth: .infinity)
+
     }
     
     private var dayOptionBar: some View {
@@ -99,61 +145,20 @@ struct ProgramDesignView: View {
                             presenter.onRemoveDayPlanPressed()
                         }
                         .disabled(!presenter.canRemoveDayPlan)
+                        .padding(.leading)
                     
                     OptionCell(imageName: "pencil", title: "Rename")
                         .anyButton {
                             presenter.onRenameDayPlanPressed()
                         }
                         .disabled(presenter.selectedDayPlan.exercises.isEmpty)
+                        .padding(.trailing)
                 }
             }
             .scrollIndicators(.hidden)
             .removeListRowFormatting()
         }
         .listSectionMargins(.vertical, 0)
-    }
-    
-    @ViewBuilder
-    private func overviewCard() -> some View {
-        if presenter.selectedDayPlan.exercises.isEmpty {
-            Section {
-                HStack {
-                    Image(systemName: "sun.max")
-                    Text("You can convert the rest day into a workout day by add exercises below")
-                }
-                .frame(maxWidth: .infinity)
-                
-            } header: {
-                Text("Rest Day")
-            }
-        } else {
-            Section {
-                ScrollView {
-                    HStack {
-                        ForEach(MuscleGroup.allCases, id: \.self) { muscle in
-                            Text(muscle.description)
-                        }
-                    }
-                }
-            } header: {
-                Text("Target Muscles")
-            }
-        }
-    }
-    
-    private var exercisesSection: some View {
-        Section {
-            ForEach(presenter.selectedDayPlan.exercises, id: \.id) { exercise in
-                Text(exercise.exercise.name)
-            }
-            Text("Add Exercises")
-                .underline()
-                .anyButton {
-                    presenter.onAddExercisePressed()
-                }
-        } header: {
-            Text(String.countCaption(count: presenter.selectedDayPlan.exercises.count, unit: "Exercise"))
-        }
     }
     
     @ToolbarContentBuilder
@@ -184,7 +189,10 @@ extension CoreBuilder {
                 router: CoreRouter(router: router, builder: self),
                 program: program
             ),
-            delegate: delegate
+            delegate: delegate,
+            workoutDefinitionView: { delegate in
+                self.defineWorkoutView(router: router, delegate: delegate)
+            }
         )
     }
     
@@ -229,9 +237,10 @@ struct OptionCell: View {
                 .font(.caption)
         }
         .padding(8)
-        .background {
-            Capsule()
-                .foregroundStyle(Color.secondary.opacity(0.4))
-        }
+        .glassEffect()
+//        .background {
+//            Capsule()
+//                .foregroundStyle(Color.secondary.opacity(0.4))
+//        }
     }
 }

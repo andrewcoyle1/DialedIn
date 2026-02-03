@@ -14,6 +14,8 @@ struct WorkoutSessionModel: Identifiable, Codable, Hashable {
     let workoutTemplateId: String?
     let scheduledWorkoutId: String?
     let trainingPlanId: String?
+    let programId: String?
+    let dayPlanId: String?
     let dateCreated: Date
     private(set) var dateModified: Date
     private(set) var endedAt: Date?
@@ -21,12 +23,14 @@ struct WorkoutSessionModel: Identifiable, Codable, Hashable {
     private(set) var exercises: [WorkoutExerciseModel]
     
     init(
-        id: String,
+        id: String = UUID().uuidString,
         authorId: String,
         name: String,
         workoutTemplateId: String? = nil,
         scheduledWorkoutId: String? = nil,
         trainingPlanId: String? = nil,
+        programId: String? = nil,
+        dayPlanId: String? = nil,
         dateCreated: Date,
         dateModified: Date? = nil,
         endedAt: Date? = nil,
@@ -39,6 +43,8 @@ struct WorkoutSessionModel: Identifiable, Codable, Hashable {
         self.workoutTemplateId = workoutTemplateId
         self.scheduledWorkoutId = scheduledWorkoutId
         self.trainingPlanId = trainingPlanId
+        self.programId = programId
+        self.dayPlanId = dayPlanId
         self.dateCreated = dateCreated
         self.dateModified = dateModified ?? dateCreated
         self.endedAt = endedAt
@@ -53,6 +59,8 @@ struct WorkoutSessionModel: Identifiable, Codable, Hashable {
         case workoutTemplateId = "workout_template_id"
         case scheduledWorkoutId = "scheduled_workout_id"
         case trainingPlanId = "training_plan_id"
+        case programId = "program_id"
+        case dayPlanId = "day_plan_id"
         case dateCreated = "date_created"
         case dateModified = "date_modified"
         case endedAt = "ended_at"
@@ -60,31 +68,48 @@ struct WorkoutSessionModel: Identifiable, Codable, Hashable {
         case exercises
     }
 
-    init(id: String = UUID().uuidString, authorId: String, template: WorkoutTemplateModel, notes: String? = nil, scheduledWorkoutId: String? = nil, trainingPlanId: String? = nil) {
+    init(
+        id: String = UUID().uuidString,
+        authorId: String,
+        template: WorkoutTemplateModel,
+        notes: String? = nil,
+        scheduledWorkoutId: String? = nil,
+        trainingPlanId: String? = nil,
+        programId: String? = nil,
+        dayPlanId: String? = nil
+    ) {
         self.id = id
         self.authorId = authorId
         self.name = template.name
         self.workoutTemplateId = template.id
         self.scheduledWorkoutId = scheduledWorkoutId
         self.trainingPlanId = trainingPlanId
+        self.programId = programId
+        self.dayPlanId = dayPlanId
         self.dateCreated = .now
         self.dateModified = .now
         self.endedAt = nil
         self.notes = notes
         self.exercises = template.exercises.enumerated().map { (idx, exerciseTemplate) in
-            let mode = WorkoutSessionModel.trackingMode(for: exerciseTemplate)
-            let sets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: authorId)
-            let imageName = Constants.exerciseImageName(for: exerciseTemplate.name)
+            let mode = WorkoutSessionModel.trackingMode(for: exerciseTemplate.exercise)
+            let targetCount = exerciseTemplate.setTargets.count
+            let targetSets = WorkoutSessionModel.defaultSets(
+                trackingMode: mode,
+                authorId: authorId,
+                targetCount: max(targetCount, 1)
+            )
+            let imageName = Constants.exerciseImageName(for: exerciseTemplate.exercise.name)
             return WorkoutExerciseModel(
                 id: UUID().uuidString,
                 authorId: authorId,
-                templateId: exerciseTemplate.id,
-                name: exerciseTemplate.name,
+                templateId: exerciseTemplate.exercise.id,
+                name: exerciseTemplate.exercise.name,
                 trackingMode: mode,
                 index: idx + 1,
                 notes: nil,
                 imageName: imageName,
-                sets: sets
+                sets: targetSets,
+                setTargets: exerciseTemplate.setTargets
             )
         }
     }
@@ -123,28 +148,37 @@ struct WorkoutSessionModel: Identifiable, Codable, Hashable {
         self.dateModified = date
     }
     
-    static func defaultSets(trackingMode: TrackingMode, authorId: String) -> [WorkoutSetModel] {
+    static func defaultSets(
+        trackingMode: TrackingMode,
+        authorId: String,
+        targetCount: Int = 3
+    ) -> [WorkoutSetModel] {
+        let count = max(targetCount, 1)
         switch trackingMode {
         case .weightReps:
-            return [0, 1, 2].map { index in
+            return (0..<count).map { index in
                 WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
                                 weightKg: nil, durationSec: nil, distanceMeters: nil, rpe: nil,
                                 isWarmup: index == 0, completedAt: nil, dateCreated: .now)
             }
         case .repsOnly:
-            return [0, 1, 2].map { index in
+            return (0..<count).map { index in
                 WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
                                 weightKg: nil, durationSec: nil, distanceMeters: nil, rpe: nil,
                                 isWarmup: index == 0, completedAt: nil, dateCreated: .now)
             }
         case .timeOnly:
-            return [WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: 1, reps: nil,
+            return (0..<count).map { index in
+                WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
                                     weightKg: nil, durationSec: 60, distanceMeters: nil, rpe: nil,
-                                    isWarmup: false, completedAt: nil, dateCreated: .now)]
+                                    isWarmup: false, completedAt: nil, dateCreated: .now)
+            }
         case .distanceTime:
-            return [WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: 1, reps: nil,
+            return (0..<count).map { index in
+                WorkoutSetModel(id: UUID().uuidString, authorId: authorId, index: index + 1, reps: nil,
                                     weightKg: nil, durationSec: 120, distanceMeters: 400, rpe: nil,
-                                    isWarmup: false, completedAt: nil, dateCreated: .now)]
+                                    isWarmup: false, completedAt: nil, dateCreated: .now)
+            }
         }
     }
     

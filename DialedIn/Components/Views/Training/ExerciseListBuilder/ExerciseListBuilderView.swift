@@ -2,6 +2,9 @@ import SwiftUI
 
 struct ExerciseListBuilderDelegate {
     var onExerciseSelectionChanged: ((ExerciseModel) -> Void)?
+    /// Optional list of exercises that should display as "selected" in the UI.
+    /// If `nil`, no selection state is shown.
+    var selectedExercises: [ExerciseModel]?
 }
 
 struct ExerciseListBuilderView: View {
@@ -10,9 +13,13 @@ struct ExerciseListBuilderView: View {
     
     let delegate: ExerciseListBuilderDelegate
     
+    private func isExerciseSelected(_ exercise: ExerciseModel) -> Bool {
+        delegate.selectedExercises?.contains(exercise) ?? false
+    }
+    
     var body: some View {
         List {
-
+            
             if !presenter.favouriteExercisesVisible.isEmpty {
                 favouriteExerciseTemplatesSection
             }
@@ -33,13 +40,12 @@ struct ExerciseListBuilderView: View {
                 exerciseTemplateSection
             }
         }
-        .searchable(text: $presenter.searchText, prompt: Text("Search exercises"))
+        .searchable(text: $presenter.searchText, placement: .toolbar, prompt: Text("Search exercises"))
         .refreshable {
             await presenter.loadExercises()
         }
-        .navigationTitle("Exercises")
-        .navigationSubtitle("\(presenter.exercises.count) exercises")
         .scrollIndicators(.hidden)
+        .toolbarVisibility(.hidden)
         .screenAppearAnalytics(name: "ExerciseListBuilderView")
         .onFirstTask {
             await presenter.loadExercises()
@@ -49,9 +55,82 @@ struct ExerciseListBuilderView: View {
                 await presenter.syncSavedExercisesFromUser()
             }
         }
-        .toolbar {
-            toolbarContent
+        .safeAreaInset(edge: .top) {
+            filterSection
         }
+    }
+    
+    private var filterSection: some View {
+        ScrollView(.horizontal) {
+            HStack {
+                Image(systemName: "arrow.counterclockwise")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+                    .padding(.leading)
+                
+                Label("Gym", systemImage: "building")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+
+                Label("Type", systemImage: "signpost.right")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+
+                Label("Laterality", systemImage: "arrowshape.left.arrowshape.right")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+
+                Label("Resistance", systemImage: "scalemass")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+
+                Label("Support", systemImage: "bed.double")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+
+                Label("Range of Motion", systemImage: "arrowshape.left.arrowshape.right")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+
+                Label("Stability", systemImage: "camera.metering.center.weighted.average")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+
+                Label("Library", systemImage: "book.closed")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+                    .padding(.trailing)
+
+            }
+        }
+        .scrollIndicators(.hidden)
     }
 
     private var favouriteExerciseTemplatesSection: some View {
@@ -60,7 +139,8 @@ struct ExerciseListBuilderView: View {
                 CustomListCellView(
                     imageName: exercise.imageURL,
                     title: exercise.name,
-                    subtitle: exercise.description
+                    subtitle: exercise.description,
+                    isSelected: isExerciseSelected(exercise)
                 )
                 .anyButton(.highlight) {
                     presenter.onExercisePressed(exercise: exercise, onExercisePressed: delegate.onExerciseSelectionChanged)
@@ -81,7 +161,8 @@ struct ExerciseListBuilderView: View {
                 CustomListCellView(
                     imageName: exercise.imageURL,
                     title: exercise.name,
-                    subtitle: exercise.description
+                    subtitle: exercise.description,
+                    isSelected: isExerciseSelected(exercise)
                 )
                 .anyButton(.highlight) {
                     presenter.onExercisePressed(exercise: exercise, onExercisePressed: delegate.onExerciseSelectionChanged)
@@ -173,7 +254,8 @@ struct ExerciseListBuilderView: View {
                     CustomListCellView(
                         imageName: exercise.imageURL,
                         title: exercise.name,
-                        subtitle: exercise.description
+                        subtitle: exercise.description,
+                        isSelected: isExerciseSelected(exercise)
                     )
                     .anyButton(.highlight) {
                         presenter.onExercisePressed(exercise: exercise, onExercisePressed: delegate.onExerciseSelectionChanged)

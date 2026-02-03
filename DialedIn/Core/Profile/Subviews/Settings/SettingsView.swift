@@ -16,7 +16,6 @@ struct SettingsView: View {
         List {
             accountSection
             purchaseSection
-            dataManagementSection
             applicationSection
         }
         .navigationTitle("Settings")

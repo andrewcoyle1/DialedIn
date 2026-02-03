@@ -46,14 +46,6 @@ struct ExerciseSaveView: View {
     var body: some View {
         List {
             definitionSection
-//            nameSection
-//            trackableMetricSection
-//            if let type = delegate.type {
-//                typeSection(type)
-//            }
-//            if let laterality = delegate.laterality {
-//                lateralitySection(laterality)
-//            }
 
             if !delegate.targetMuscles.isEmpty {
                 targetMusclesSection

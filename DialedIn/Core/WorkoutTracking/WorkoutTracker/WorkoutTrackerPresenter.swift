@@ -83,11 +83,16 @@ class WorkoutTrackerPresenter {
     func loadWorkoutSession(_ workoutSessionId: String) async {
         do {
             self.workoutSession = try interactor.getLocalWorkoutSession(id: workoutSessionId)
-        } catch {
+        } catch let localError {
+            print("⚠️ Failed to load workout session locally: \(localError.localizedDescription)")
             do {
                 self.workoutSession = try await interactor.getWorkoutSession(id: workoutSessionId)
-            } catch {
-                router.showSimpleAlert(title: "Failed to load workout session", subtitle: "Please try again")
+            } catch let remoteError {
+                print("⚠️ Failed to load workout session remotely: \(remoteError.localizedDescription)")
+                // Only show error if we don't already have a valid session from activeSession
+                if workoutSession.id != workoutSessionId {
+                    router.showSimpleAlert(title: "Failed to load workout session", subtitle: "Please try again")
+                }
             }
         }
         self.workoutNotes = workoutSession.notes ?? ""

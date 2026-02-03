@@ -31,6 +31,10 @@ class WorkoutHistoryPresenter {
         router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
     }
     
+    func onDismissPressed() {
+        router.dismissScreen()
+    }
+    
     func loadInitialSessions() {
         guard !isLoading else { return }
         isLoading = true

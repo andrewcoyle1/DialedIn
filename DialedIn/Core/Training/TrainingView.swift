@@ -11,34 +11,28 @@ import UIKit
 #endif
 import SwiftfulRouting
 
-struct TrainingView<
-    TodaysWorkout: View,
-    WeeksWorkouts: View,
-    CalendarHeaderView: View
->: View {
+struct TrainingView<CalendarHeaderView: View>: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
     @State var presenter: TrainingPresenter
 
-    @ViewBuilder var todaysWorkoutSectionView: () -> TodaysWorkout
-    @ViewBuilder var thisWeeksWorkoutsView: () -> WeeksWorkouts
     @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
-
-    @Namespace private var namespace
 
     var body: some View {
         List {
-            if presenter.currentTrainingPlan != nil {
-                activeProgramView
+            
+            if let program = presenter.activeTrainingProgram {
+                trainingProgramHeaderSection(program: program)
             } else {
-                noProgramView
+                noScheduleView
             }
+            
             moreSection
         }
-        .refreshable {
-            await presenter.refreshData()
-        }
+//        .refreshable {
+//            await presenter.refreshData()
+//        }
         .navigationTitle("Training")
         .toolbarTitleDisplayMode(.inlineLarge)
         .scrollIndicators(.hidden)
@@ -69,125 +63,91 @@ struct TrainingView<
         }
     }
     
-    private var activeProgramView: some View {
-        Group {
-            programOverviewSection
-            todaysWorkoutSectionView()
-            thisWeeksWorkoutsView()
-        }
-    }
-
-    private var programOverviewSection: some View {
+    private func trainingProgramHeaderSection(program: TrainingProgram) -> some View {
         Section {
-            if let plan = presenter.currentTrainingPlan {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(plan.name)
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                            if let description = plan.description {
-                                Text(description)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        Spacer()
-                        Menu {
-                            Button {
-                                presenter.onProgramManagementPressed()
-                            } label: {
-                                Label("Manage Programs", systemImage: "list.bullet")
-                            }
-                            
-                            Button {
-                                presenter.onProgessDashboardPressed()
-                            } label: {
-                                Label("View Analytics", systemImage: "chart.xyaxis.line")
-                            }
-
-                            Button {
-                                presenter.onStrengthProgressPressed()
-                            } label: {
-                                Label("Strength Progress", systemImage: "chart.line.uptrend.xyaxis")
-                            }
-
-                            Button {
-                                presenter.onWorkoutHeatmapPressed()
-                            } label: {
-                                Label("Training Frequency", systemImage: "square.grid.3x3.fill.square")
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
-                        }
-                    }
-                    
-                    // Quick stats
-                    HStack(spacing: 20) {
-                        StatCard(
-                            value: "\(Int(presenter.adherenceRate*100))%",
-                            label: "Adherence",
-                            icon: "checkmark.circle.fill",
-                            color: presenter.adherenceColor(presenter.adherenceRate)
-                        )
-                        
-                        if let progress = presenter.weekProgress {
-                            StatCard(
-                                value: "\(progress.completedWorkouts)/\(progress.totalWorkouts)",
-                                label: "This Week",
-                                icon: "calendar",
-                                color: .blue
-                            )
-                        }
-                        
-                        let upcomingCount = presenter.upcomingWorkouts.count
-                        StatCard(
-                            value: "\(upcomingCount)",
-                            label: "Upcoming",
-                            icon: "clock",
-                            color: .orange
-                        )
-                    }
-                    
-                    // Program timeline
-                    if let endDate = plan.endDate {
-                        ProgressView(value: presenter.progressValue(start: plan.startDate, end: endDate)) {
-                            HStack {
-                                Text("Week \(presenter.currentWeekNumber(start: plan.startDate)) of \(presenter.totalWeeks(start: plan.startDate, end: endDate))")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Text(presenter.daysRemaining(until: endDate))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
+            DisclosureGroup(isExpanded: $presenter.activeProgramisExpanded) {
+                let items = presenter.currentMicrocycleItems()
+                ForEach(items) { item in
+                    microcycleItemRow(item: item)
                 }
-                .padding(.vertical, 4)
+            } label: {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: program.colour).opacity(0.2))
+                        Image(systemName: program.icon)
+                        
+                            .foregroundStyle(Color(hex: program.colour))
+                    }
+                    .frame(width: 44, height: 44)
+                    
+                    Text(program.name)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                    Spacer()
+                }
+            }
+            .swipeActions(edge: .trailing) {
+                Button(role: .destructive) {
+                    
+                }
             }
         } header: {
-            Text("Active Program")
+            HStack {
+                Text("Active Program")
+                Spacer()
+                Text(presenter.microcycleHeaderText)
+                    .font(.caption)
+                    .underline()
+
+            }
         }
+        .listSectionMargins(.top, 0)
     }
     
-    private var todaysWorkoutSection: some View {
-        todaysWorkoutSectionView()
+    @ViewBuilder
+    private func microcycleItemRow(item: MicrocycleItem) -> some View {
+        HStack(spacing: 16) {
+            Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(item.isCompleted ? .green : .secondary)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.dayPlan.name)
+                    .font(.subheadline)
+                MetricView(
+                    label: "Exercises",
+                    value: "\(item.dayPlan.exercises.count)",
+                    icon: "dumbbell"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+            
+            Spacer()
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if let sessionId = item.completedSessionId {
+                presenter.openCompletedSession(sessionId: sessionId)
+            } else {
+                presenter.startDayPlanWorkout(item.dayPlan)
+            }
+        }
     }
-        
-    private var noProgramView: some View {
+            
+    private var noScheduleView: some View {
         Group {
             Section {
                 VStack(spacing: 16) {
-                    Image(systemName: "calendar.badge.plus")
+                    Image(systemName: "calendar.badge.clock")
                         .font(.system(size: 48))
                         .foregroundStyle(.secondary)
                     
-                    Text("No Active Program")
+                    Text("No Active Schedule")
                         .font(.title3)
                         .fontWeight(.semibold)
                     
-                    Text("Start a training program to schedule workouts and track your progress")
+                    Text("Start a training plan to schedule workouts and track your progress")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -210,10 +170,19 @@ struct TrainingView<
     private var moreSection: some View {
         Group {
             Section {
+
                 CustomListCellView(
-                    imageName: nil,
-                    title: "Workout Library",
-                    subtitle: nil
+                    sfSymbolName: "books.vertical",
+                    title: "Training Program Library"
+                )
+                .anyButton {
+                    presenter.onProgramManagementPressed()
+                }
+                .removeListRowFormatting()
+
+                CustomListCellView(
+                    sfSymbolName: "dumbbell",
+                    title: "Workout Library"
                 )
                 .anyButton {
                     presenter.onWorkoutLibraryPressed()
@@ -221,9 +190,8 @@ struct TrainingView<
                 .removeListRowFormatting()
             
                 CustomListCellView(
-                    imageName: nil,
-                    title: "Workout History",
-                    subtitle: nil
+                    sfSymbolName: "list.bullet",
+                    title: "Workout History"
                 )
                 .anyButton {
                     presenter.onWorkoutHistoryPressed()
@@ -275,12 +243,6 @@ extension CoreBuilder {
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
             ),
-            todaysWorkoutSectionView: {
-                self.todaysWorkoutSectionView(router: router)
-            },
-            thisWeeksWorkoutsView: {
-                self.thisWeeksWorkoutsView(router: router)
-            },
             calendarHeader: { delegate in
                 self.calendarHeaderView(router: router, delegate: delegate)
             }

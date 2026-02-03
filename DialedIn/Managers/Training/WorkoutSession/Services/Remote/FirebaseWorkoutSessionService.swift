@@ -111,6 +111,8 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
             workoutTemplateId: storage.workoutTemplateId,
             scheduledWorkoutId: storage.scheduledWorkoutId,
             trainingPlanId: storage.trainingPlanId,
+            programId: storage.programId,
+            dayPlanId: storage.dayPlanId,
             dateCreated: storage.dateCreated,
             dateModified: storage.dateModified,
             endedAt: storage.endedAt,
@@ -453,6 +455,8 @@ extension WorkoutSessionModel {
             workoutTemplateId: workoutTemplateId,
             scheduledWorkoutId: scheduledWorkoutId,
             trainingPlanId: trainingPlanId,
+            programId: programId,
+            dayPlanId: dayPlanId,
             dateCreated: dateCreated,
             dateModified: dateModified,
             endedAt: endedAt,
@@ -469,6 +473,8 @@ extension WorkoutSessionModel {
             workoutTemplateId: workoutTemplateId,
             scheduledWorkoutId: scheduledWorkoutId,
             trainingPlanId: trainingPlanId,
+            programId: programId,
+            dayPlanId: dayPlanId,
             dateCreated: dateCreated,
             dateModified: dateModified,
             endedAt: endedAt,
@@ -519,6 +525,8 @@ struct WorkoutSessionForFirebase: Codable {
     let workoutTemplateId: String?
     let scheduledWorkoutId: String?
     let trainingPlanId: String?
+    let programId: String?
+    let dayPlanId: String?
     let dateCreated: Date
     let dateModified: Date
     let endedAt: Date?
@@ -531,6 +539,8 @@ struct WorkoutSessionForFirebase: Codable {
         case workoutTemplateId = "workout_template_id"
         case scheduledWorkoutId = "scheduled_workout_id"
         case trainingPlanId = "training_plan_id"
+        case programId = "program_id"
+        case dayPlanId = "day_plan_id"
         case dateCreated = "date_created"
         case dateModified = "date_modified"
         case endedAt = "ended_at"

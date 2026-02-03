@@ -8,13 +8,11 @@
 import SwiftUI
 
 @MainActor
-protocol ProgramManagementRouter {
+protocol ProgramManagementRouter: GlobalRouter {
     func showDevSettingsView()
-    func showProgramTemplatePickerView()
     func showEditProgramView(delegate: EditProgramDelegate)
-    func dismissScreen()
-
-    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
+    func showProgramSettingsView(program: Binding<TrainingProgram>)
+    func showCreateProgramView(delegate: CreateProgramDelegate)
 }
 
 extension CoreRouter: ProgramManagementRouter { }

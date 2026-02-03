@@ -6,10 +6,9 @@
 //
 
 protocol ProgramManagementInteractor {
-    var currentTrainingPlan: TrainingPlan? { get }
-    var allPlans: [TrainingPlan] { get }
-    func setActivePlan(_ plan: TrainingPlan)
-    func deletePlan(id: String) async throws
+    func readAllLocalTrainingPrograms() throws -> [TrainingProgram]
+    func setActiveTrainingProgram(programId: String) async throws
+    func deleteTrainingProgram(program: TrainingProgram) async throws
 }
 
 extension CoreInteractor: ProgramManagementInteractor { }

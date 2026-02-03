@@ -23,6 +23,7 @@ class TrainingProgramEntity {
     var dateCreated: Date
     var dateModified: Date
     
+    @MainActor
     init(from model: TrainingProgram) {
         self.id = model.id
         self.authorId = model.authorId
@@ -42,13 +43,9 @@ class TrainingProgramEntity {
     @MainActor
     func toModel() -> TrainingProgram {
         var dayPlanModels: [DayPlan] = []
-        for dayPlan in dayPlans {
-            var exercisePlanModels: [ExercisePlan] = []
-            
-            for exercisePlan in dayPlan.exercises {
-                exercisePlanModels.append(ExercisePlan(id: exercisePlan.id, authorId: exercisePlan.authorId, exercise: exercisePlan.exercise.toModel()))
-            }
-            
+        let sortedDayPlans = dayPlans.sorted { $0.dateCreated < $1.dateCreated }
+        for dayPlan in sortedDayPlans {
+            let exercisePlanModels = dayPlan.exercises.map { $0.toModel() }
             dayPlanModels.append(
                 DayPlan(
                     id: dayPlan.id,

@@ -16,7 +16,7 @@ class WorkoutSeedingManager {
     private let userDefaults = UserDefaults.standard
     private static let hasSeededKey = "hasSeededPrebuiltWorkouts"
     private static let seedingVersionKey = "prebuiltWorkoutsSeedingVersion"
-    private static let currentSeedingVersion = 1
+    private static let currentSeedingVersion = 2
     
     init(modelContext: ModelContext, exerciseManager: ExerciseTemplateManager) {
         self.modelContext = modelContext
@@ -170,12 +170,13 @@ private struct PrebuiltWorkoutDTO: Codable {
     
     func toModel(exerciseManager: ExerciseTemplateManager) async throws -> WorkoutTemplateModel {
         // Fetch actual exercise templates from LOCAL storage (where they were seeded)
-        var exercises: [ExerciseModel] = []
+        var exercises: [WorkoutTemplateExercise] = []
         for exerciseId in exerciseIds {
             do {
                 // Use local fetch instead of remote
                 let exercise = try exerciseManager.getLocalExerciseTemplate(id: exerciseId)
-                exercises.append(exercise)
+                let workoutExercise = WorkoutTemplateExercise(exercise: exercise, setRestTimers: false)
+                exercises.append(workoutExercise)
             } catch {
                 print("⚠️ Warning: Exercise '\(exerciseId)' not found in local storage, skipping")
             }

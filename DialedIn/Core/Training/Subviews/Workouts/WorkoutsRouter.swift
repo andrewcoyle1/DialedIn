@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol WorkoutsRouter {
+protocol WorkoutsRouter: GlobalRouter {
     func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate)
 }
 

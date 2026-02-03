@@ -21,7 +21,7 @@ class AboutPresenter {
     }
 
     func onLicencesPressed() {
-
+        router.showLicencesView(delegate: LicencesDelegate())
     }
 
     func onViewAppear(delegate: AboutDelegate) {

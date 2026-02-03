@@ -112,6 +112,7 @@ struct CustomListCellView: View {
                 if let subtitle {
                     Text(subtitle)
                         .font(.subheadline)
+                        .lineLimit(2)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

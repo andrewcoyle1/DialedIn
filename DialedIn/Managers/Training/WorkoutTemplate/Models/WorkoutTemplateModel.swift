@@ -20,13 +20,13 @@ struct WorkoutTemplateModel: @MainActor TemplateModel {
     let isSystemWorkout: Bool
     let dateCreated: Date
     let dateModified: Date
-    var exercises: [ExerciseModel]
+    var exercises: [WorkoutTemplateExercise]
     let clickCount: Int?
     let bookmarkCount: Int?
     let favouriteCount: Int?
     
     init(
-        id: String,
+        id: String = UUID().uuidString,
         authorId: String,
         name: String,
         description: String? = nil,
@@ -34,7 +34,7 @@ struct WorkoutTemplateModel: @MainActor TemplateModel {
         isSystemWorkout: Bool = false,
         dateCreated: Date,
         dateModified: Date,
-        exercises: [ExerciseModel] = [],
+        exercises: [WorkoutTemplateExercise] = [],
         clickCount: Int? = 0,
         bookmarkCount: Int? = 0,
         favouriteCount: Int? = 0
@@ -111,7 +111,7 @@ struct WorkoutTemplateModel: @MainActor TemplateModel {
         description: String? = nil,
         imageURL: String? = nil,
         isSystemWorkout: Bool = false,
-        exercises: [ExerciseModel] = [],
+        exercises: [WorkoutTemplateExercise] = [],
         clickCount: Int? = 0,
         bookmarkCount: Int? = 0,
         favouriteCount: Int? = 0
@@ -147,7 +147,7 @@ struct WorkoutTemplateModel: @MainActor TemplateModel {
             imageURL: Constants.randomImage,
             dateCreated: Date(timeIntervalSinceNow: -86400 * 7),
             dateModified: Date(timeIntervalSinceNow: -86400 * 2),
-            exercises: ExerciseModel.mocks,
+            exercises: WorkoutTemplateExercise.mocks,
             bookmarkCount: 12,
             favouriteCount: 3
         ),
@@ -159,7 +159,7 @@ struct WorkoutTemplateModel: @MainActor TemplateModel {
             imageURL: nil,
             dateCreated: Date(timeIntervalSinceNow: -86400 * 14),
             dateModified: Date(),
-            exercises: ExerciseModel.mocks,
+            exercises: WorkoutTemplateExercise.mocks,
             bookmarkCount: 18,
             favouriteCount: 1
         ),
@@ -171,10 +171,20 @@ struct WorkoutTemplateModel: @MainActor TemplateModel {
             imageURL: Constants.randomImage,
             dateCreated: Date(timeIntervalSinceNow: -86400 * 3),
             dateModified: Date(timeIntervalSinceNow: -86400),
-            exercises: ExerciseModel.mocks,
+            exercises: WorkoutTemplateExercise.mocks,
             bookmarkCount: 28,
             favouriteCount: 5
         )
         ]
+    }
+}
+
+extension WorkoutTemplateModel: Hashable {
+    nonisolated static func == (lhs: WorkoutTemplateModel, rhs: WorkoutTemplateModel) -> Bool {
+        lhs.workoutId == rhs.workoutId
+    }
+
+    nonisolated func hash(into hasher: inout Hasher) {
+        hasher.combine(workoutId)
     }
 }

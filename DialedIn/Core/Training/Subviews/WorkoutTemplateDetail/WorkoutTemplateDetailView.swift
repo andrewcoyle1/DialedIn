@@ -138,17 +138,17 @@ struct WorkoutTemplateDetailView: View {
         .removeListRowFormatting()
     }
     
-    private func exerciseSection(exercise: ExerciseModel) -> some View {
+    private func exerciseSection(exercise: WorkoutTemplateExercise) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(exercise.name)
+                Text(exercise.exercise.name)
                     .fontWeight(.semibold)
                 Spacer()
-                Text(exercise.type?.name ?? "Uncategorized")
+                Text(exercise.exercise.type?.name ?? "Uncategorized")
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }
-            if let notes = exercise.description, !notes.isEmpty {
+            if let notes = exercise.exercise.description, !notes.isEmpty {
                 Text(notes)
                     .foregroundColor(.secondary)
             }
@@ -168,7 +168,7 @@ extension CoreBuilder {
 
 extension CoreRouter {
     func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate) {
-        router.showScreen(.sheet) { router in
+        router.showScreen(.push) { router in
             builder.workoutTemplateDetailView(router: router, delegate: delegate)
         }
     }

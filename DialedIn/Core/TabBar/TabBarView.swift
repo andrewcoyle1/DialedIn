@@ -17,6 +17,7 @@ struct TabBarView<TabAccessory: View, Search: View>: View {
     @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
 
     @ViewBuilder var searchView: () -> Search
+        
     var body: some View {
         TabView {
             ForEach(tabs) { tab in
@@ -34,7 +35,7 @@ struct TabBarView<TabAccessory: View, Search: View>: View {
         }
         .tabViewStyle(.tabBarOnly)
         .tabBarMinimizeBehavior(.onScrollDown)
-        .tabViewBottomAccessory(isEnabled: presenter.activeSession != nil) {
+        .tabViewBottomAccessory {
             GeometryReader { geometry in
                 ScrollView(.horizontal) {
                     HStack(alignment: .center) {
@@ -42,20 +43,18 @@ struct TabBarView<TabAccessory: View, Search: View>: View {
                             tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
                                 .frame(width: geometry.size.width)
                         }
-                        Text("Hello")
-                            .frame(width: geometry.size.width)
-                        Text("Hello")
-                            .frame(width: geometry.size.width)
-                        Text("Hello")
-                            .frame(width: geometry.size.width)
-                        Text("Hello")
-                            .frame(width: geometry.size.width)
-                        Text("Hello")
-                            .frame(width: geometry.size.width)
+
+                        HStack {
+                            Image(systemName: "magnifyingglass")
+                            TextField("Search for a food", text: .constant(""))
+                            Image(systemName: "barcode.viewfinder")
+                        }
+                        .padding(.horizontal)
+                        .frame(width: geometry.size.width)
                     }
+                    .scrollTargetLayout()
                 }
                 .scrollIndicators(.hidden)
-                .scrollTargetLayout()
                 .scrollTargetBehavior(.viewAligned)
                 .frame(maxHeight: .infinity)
             }
@@ -79,21 +78,21 @@ extension CoreBuilder {
                 }
             ),
             TabBarScreen(
-                title: "Nutrition",
-                systemImage: "carrot",
-                screen: {
-                    RouterView { router in
-                        self.nutritionView(router: router)
-                    }
-                    .any()
-                }
-            ),
-            TabBarScreen(
                 title: "Training",
                 systemImage: "dumbbell",
                 screen: {
                     RouterView { router in
                         self.trainingView(router: router)
+                    }
+                    .any()
+                }
+            ),
+            TabBarScreen(
+                title: "Nutrition",
+                systemImage: "carrot",
+                screen: {
+                    RouterView { router in
+                        self.nutritionView(router: router)
                     }
                     .any()
                 }

@@ -15,4 +15,15 @@ class ProgramSettingsPresenter {
     func onDismissPressed() {
         router.dismissScreen()
     }
+
+    func onActivatePressed(programId: String) {
+        Task {
+            do {
+                try await interactor.setActiveTrainingProgram(programId: programId)
+                router.dismissScreen()
+            } catch {
+                router.showAlert(error: error)
+            }
+        }
+    }
 }

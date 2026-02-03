@@ -38,6 +38,10 @@ class AccountPresenter {
     func onViewDisappear(delegate: AccountDelegate) {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
+    
+    func onDataVisibilityPressed() {
+        router.showDataVisibilityView(delegate: DataVisibilityDelegate())
+    }
 
     func presentImagePicker() {
         isImagePickerPresented = true

@@ -16,7 +16,23 @@ struct ProgramSettingsView: View {
                 editPeriodisation
             }
             .listSectionMargins(.top, 0)
+
+            Section {
+                Button {
+                    presenter.onActivatePressed(programId: program.id)
+                } label: {
+                    HStack {
+                        Spacer()
+                        Text("Activate Program")
+                        Spacer()
+                    }
+                    .padding()
+                }
+                .buttonStyle(.glassProminent)
+                .removeListRowFormatting()
+            }
         }
+        .listSectionSpacing(8)
         .navigationTitle("Program Settings")
         .navigationSubtitle(program.name)
         .navigationBarTitleDisplayMode(.inline)
@@ -194,7 +210,7 @@ extension CoreBuilder {
 extension CoreRouter {
     
     func showProgramSettingsView(program: Binding<TrainingProgram>) {
-        router.showScreen(.sheetConfig(config: ResizableSheetConfig(detents: [.fraction(0.65)]))) { router in
+        router.showScreen(.sheetConfig(config: ResizableSheetConfig(detents: [.fraction(0.7)]))) { router in
             builder.programSettingsView(router: router, program: program)
         }
     }

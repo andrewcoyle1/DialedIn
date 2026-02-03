@@ -17,8 +17,20 @@ struct WorkoutExerciseModel: Identifiable, Codable, Hashable {
     var notes: String?
     var imageName: String?
     var sets: [WorkoutSetModel]
+    var setTargets: [SetTarget]
     
-    init(id: String, authorId: String, templateId: String, name: String, trackingMode: TrackingMode, index: Int, notes: String? = nil, imageName: String? = nil, sets: [WorkoutSetModel]) {
+    init(
+        id: String,
+        authorId: String,
+        templateId: String,
+        name: String,
+        trackingMode: TrackingMode,
+        index: Int,
+        notes: String? = nil,
+        imageName: String? = nil,
+        sets: [WorkoutSetModel],
+        setTargets: [SetTarget] = []
+    ) {
         self.id = id
         self.authorId = authorId
         self.templateId = templateId
@@ -28,6 +40,7 @@ struct WorkoutExerciseModel: Identifiable, Codable, Hashable {
         self.notes = notes
         self.imageName = imageName
         self.sets = sets
+        self.setTargets = setTargets
     }
 
     enum CodingKeys: String, CodingKey {
@@ -40,6 +53,7 @@ struct WorkoutExerciseModel: Identifiable, Codable, Hashable {
         case notes
         case imageName = "image_name"
         case sets
+        case setTargets = "set_targets"
     }
     
     var completedSetsCount: Int {

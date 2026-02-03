@@ -61,7 +61,7 @@ struct TrainingProgram: Identifiable, Codable {
     }
 
     static var defaultDayPlans: [DayPlan] = [
-        DayPlan(id: UUID().uuidString, authorId: "", name: "Rest", exercises: [])
+        DayPlan(id: UUID().uuidString, authorId: "", name: "Rest", dateCreated: Date(), exercises: [])
     ]
     
     static var mock: TrainingProgram {
