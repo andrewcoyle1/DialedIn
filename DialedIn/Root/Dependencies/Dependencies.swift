@@ -47,7 +47,6 @@ struct Dependencies {
         
         let reportManager: ReportManager
         let healthKitManager: HealthKitManager
-        let trainingAnalyticsManager: TrainingAnalyticsManager
         let userWeightManager: UserWeightManager
         let goalManager: GoalManager
         let googleSignInConfig: GoogleSignInConfig
@@ -84,7 +83,6 @@ struct Dependencies {
             mealLogManager = MealLogManager(services: MockMealLogServices(mealsByDay: MealLogModel.mockWeekMealsByDay))
             aiManager = AIManager(service: MockAIService())
             reportManager = ReportManager(service: MockReportService(), userManager: userManager, logManager: logManager)
-            trainingAnalyticsManager = TrainingAnalyticsManager(services: MockTrainingAnalyticsServices())
             userWeightManager = UserWeightManager(services: MockUserWeightServices())
             goalManager = GoalManager(services: MockGoalServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -129,7 +127,6 @@ struct Dependencies {
             mealLogManager = MealLogManager(services: ProductionMealLogServices())
             aiManager = AIManager(service: GoogleAIService())
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logManager)
-            trainingAnalyticsManager = TrainingAnalyticsManager(services: ProductionTrainingAnalyticsServices(workoutSessionManager: workoutSessionManager, exerciseTemplateManager: exerciseTemplateManager))
             userWeightManager = UserWeightManager(services: ProductionUserWeightServices())
             goalManager = GoalManager(services: ProductionGoalServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -176,7 +173,6 @@ struct Dependencies {
             mealLogManager = MealLogManager(services: ProductionMealLogServices())
             aiManager = AIManager(service: GoogleAIService())
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logManager)
-            trainingAnalyticsManager = TrainingAnalyticsManager(services: ProductionTrainingAnalyticsServices(workoutSessionManager: workoutSessionManager, exerciseTemplateManager: exerciseTemplateManager))
             userWeightManager = UserWeightManager(services: ProductionUserWeightServices())
             goalManager = GoalManager(services: ProductionGoalServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -220,7 +216,6 @@ struct Dependencies {
         container.register(AIManager.self, service: aiManager)
         container.register(ReportManager.self, service: reportManager)
         container.register(HealthKitManager.self, service: healthKitManager)
-        container.register(TrainingAnalyticsManager.self, service: trainingAnalyticsManager)
         container.register(UserWeightManager.self, service: userWeightManager)
         container.register(GoalManager.self, service: goalManager)
         container.register(GoogleSignInConfig.self, service: googleSignInConfig)
@@ -273,7 +268,6 @@ class DevPreview {
         container.register(LogManager.self, service: logManager)
         container.register(ReportManager.self, service: reportManager)
         container.register(HealthKitManager.self, service: healthKitManager)
-        container.register(TrainingAnalyticsManager.self, service: trainingAnalyticsManager)
         container.register(UserWeightManager.self, service: userWeightManager)
         container.register(GoalManager.self, service: goalManager)
         container.register(GoogleSignInConfig.self, service: googleSignInConfig)
@@ -311,7 +305,6 @@ class DevPreview {
     let logManager: LogManager
     let reportManager: ReportManager
     let healthKitManager: HealthKitManager
-    let trainingAnalyticsManager: TrainingAnalyticsManager
     let userWeightManager: UserWeightManager
     let goalManager: GoalManager
     let googleSignInConfig: GoogleSignInConfig
@@ -356,7 +349,6 @@ class DevPreview {
         self.logManager = logManager
         self.reportManager = ReportManager(service: MockReportService(), userManager: userManager)
         self.healthKitManager = HealthKitManager(service: MockHealthService())
-        self.trainingAnalyticsManager = TrainingAnalyticsManager(services: MockTrainingAnalyticsServices())
         self.userWeightManager = UserWeightManager(services: MockUserWeightServices())
         self.goalManager = GoalManager(services: MockGoalServices())
         self.googleSignInConfig = GoogleSignInConfig(clientID: "mock-client-id")

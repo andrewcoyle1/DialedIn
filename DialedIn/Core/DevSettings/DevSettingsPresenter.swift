@@ -93,19 +93,7 @@ class DevSettingsPresenter {
     func getLocalWorkoutTemplates() -> [WorkoutTemplateModel] {
         (try? interactor.getAllLocalWorkoutTemplates()) ?? []
     }
-    
-    func getLocalTrainingPlan() -> TrainingPlan? {
-        interactor.currentTrainingPlan
-    }
-    
-    func getCurrentTrainingPlanWeek() -> TrainingWeek? {
-        interactor.getCurrentWeek()
-    }
-    
-    func getTodaysWorkouts() -> [ScheduledWorkout] {
-        interactor.getTodaysWorkouts()
-    }
-    
+            
     func getActiveSession() -> WorkoutSessionModel? {
         interactor.activeSession
     }
@@ -161,52 +149,7 @@ class DevSettingsPresenter {
         isReseeding = false
         reseedingMessage = ""
     }
-    
-    func resetTodaysWorkouts() async {
-        isReseeding = true
-        reseedingMessage = "Resetting today's workouts..."
         
-        guard var plan = interactor.currentTrainingPlan else {
-            reseedingMessage = "No active plan"
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            isReseeding = false
-            reseedingMessage = ""
-            return
-        }
-        
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        // Find and reset today's workouts
-        for (weekIndex, week) in plan.weeks.enumerated() {
-            for (workoutIndex, workout) in week.scheduledWorkouts.enumerated() {
-                if let scheduledDate = workout.scheduledDate,
-                   calendar.isDate(scheduledDate, inSameDayAs: today) {
-                    // Reset to incomplete
-                    let resetWorkout = ScheduledWorkout(
-                        id: workout.id,
-                        workoutTemplateId: workout.workoutTemplateId,
-                        dayOfWeek: workout.dayOfWeek,
-                        scheduledDate: workout.scheduledDate,
-                        completedSessionId: nil,
-                        isCompleted: false,
-                        notes: workout.notes
-                    )
-                    plan.weeks[weekIndex].scheduledWorkouts[workoutIndex] = resetWorkout
-                }
-            }
-        }
-        
-        // Save updated plan
-        try? await interactor.updatePlan(plan)
-        
-        reseedingMessage = "Reset complete!"
-        
-        try? await Task.sleep(nanoseconds: 1_500_000_000)
-        isReseeding = false
-        reseedingMessage = ""
-    }
-    
     func fetchSessionFromFirebase() async {
         isFetchingSession = true
         fetchError = nil

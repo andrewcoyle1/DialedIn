@@ -67,6 +67,10 @@ class DashboardPresenter {
         router.showProfileView()
     }
 
+    func onAddWeightPressed() {
+        router.showLogWeightView()
+    }
+    
     enum Event: LoggableEvent {
         case onNotificationsPressed
 

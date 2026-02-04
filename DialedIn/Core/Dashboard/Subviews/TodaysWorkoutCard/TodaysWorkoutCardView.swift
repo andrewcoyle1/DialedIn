@@ -8,6 +8,11 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct TodaysWorkoutCardDelegate {
+    let scheduledWorkout: ScheduledWorkout
+    let onStart: () -> Void
+}
+
 struct TodaysWorkoutCardView: View {
     @State var presenter: TodaysWorkoutCardPresenter
 

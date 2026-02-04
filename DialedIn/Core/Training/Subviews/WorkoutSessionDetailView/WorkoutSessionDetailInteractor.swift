@@ -13,7 +13,6 @@ protocol WorkoutSessionDetailInteractor {
     func setPreference(weightUnit: ExerciseWeightUnit?, distanceUnit: ExerciseDistanceUnit?, for templateId: String)
     func deleteLocalWorkoutSession(id: String) throws
     func deleteWorkoutSession(id: String) async throws
-    func markWorkoutIncompleteIfSessionDeleted(scheduledWorkoutId: String, sessionId: String) async throws
 }
 
 extension CoreInteractor: WorkoutSessionDetailInteractor { }

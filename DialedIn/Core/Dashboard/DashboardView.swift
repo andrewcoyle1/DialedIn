@@ -82,6 +82,14 @@ struct DashboardView: View {
     private var toolbarContent: some ToolbarContent {
 
         ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onAddWeightPressed()
+            } label: {
+                Image(systemName: "scalemass")
+            }
+        }
+        
+        ToolbarItem(placement: .topBarTrailing) {
             let avatarSize: CGFloat = 44
 
             Button {

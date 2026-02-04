@@ -21,11 +21,13 @@ struct NutritionView<CalendarHeaderView: View>: View {
     
     var body: some View {
         List {
-            mealsSection
-
-            recipeLibraryButton
-
-            ingredientLibraryButton
+            mealLogSection
+            moreSection
+            //            mealsSection
+//
+//            recipeLibraryButton
+//
+//            ingredientLibraryButton
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
@@ -43,68 +45,109 @@ struct NutritionView<CalendarHeaderView: View>: View {
             }
         }
         .safeAreaInset(edge: .top) {
-            VStack {
-                calendarHeader(
-                    CalendarHeaderDelegate(
-                        onDatePressed: { date in
-                            presenter.selectedDate = date.startOfDay
-                        },
-                        getForDate: { date in
-                            presenter.getMealCountForDate(
-                                date: date
-                            )
-                        }
-                    )
+            topSafeAreaSection
+        }
+    }
+    
+    private var topSafeAreaSection: some View {
+        VStack {
+            calendarHeader(
+                CalendarHeaderDelegate(
+                    onDatePressed: { date in
+                        presenter.selectedDate = date.startOfDay
+                    },
+                    getForDate: { date in
+                        presenter.getMealCountForDate(
+                            date: date
+                        )
+                    }
                 )
-                HStack {
-                    VStack(alignment: .leading) {
-                        HStack(spacing: 0) {
-                            Image(systemName: "flame")
-                                .font(.system(size: 16))
-                            Text("\(Int(presenter.dailyTotals?.calories ?? 0))/\(Int(presenter.dailyTarget?.calories ?? 0))")
-                                .lineLimit(1)
-                                .font(.caption)
-                        }
-                        .frame(height: 16)
-                        ProgressView(value: presenter.caloriePercentage)
-                            .tint(.blue)
-                    }
-
-                    VStack(alignment: .leading) {
-                        Text("P \(Int(presenter.dailyTotals?.proteinGrams ?? 0))/\(Int(presenter.dailyTarget?.proteinGrams ?? 0))")
+            )
+            HStack {
+                VStack(alignment: .leading) {
+                    HStack(spacing: 0) {
+                        Image(systemName: "flame")
+                            .font(.system(size: 16))
+                        Text("\(Int(presenter.dailyTotals?.calories ?? 0))/\(Int(presenter.dailyTarget?.calories ?? 0))")
                             .lineLimit(1)
                             .font(.caption)
-                            .frame(height: 16)
-
-                        ProgressView(value: presenter.carbsPercentage)
-                            .tint(.red)
                     }
-
-                    VStack(alignment: .leading) {
-                        Text("F \(Int(presenter.dailyTotals?.fatGrams ?? 0))/\(Int(presenter.dailyTarget?.fatGrams ?? 0))")
-                            .lineLimit(1)
-                            .font(.caption)
-                            .frame(height: 16)
-
-                        ProgressView(value: presenter.fatPercentage)
-                            .tint(.yellow)
-                    }
-                    
-                    VStack(alignment: .leading) {
-                        Text("C \(Int(presenter.dailyTotals?.carbGrams ?? 0))/\(Int(presenter.dailyTarget?.carbGrams ?? 0))")
-                            .lineLimit(1)
-                            .font(.caption)
-                            .frame(height: 16)
-
-                        ProgressView(value: presenter.carbsPercentage)
-                            .tint(.green)
-                    }
+                    .frame(height: 16)
+                    ProgressView(value: presenter.caloriePercentage)
+                        .tint(.blue)
                 }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .glassEffect()
-                .padding(.horizontal)
+
+                VStack(alignment: .leading) {
+                    Text("P \(Int(presenter.dailyTotals?.proteinGrams ?? 0))/\(Int(presenter.dailyTarget?.proteinGrams ?? 0))")
+                        .lineLimit(1)
+                        .font(.caption)
+                        .frame(height: 16)
+
+                    ProgressView(value: presenter.carbsPercentage)
+                        .tint(.red)
+                }
+
+                VStack(alignment: .leading) {
+                    Text("F \(Int(presenter.dailyTotals?.fatGrams ?? 0))/\(Int(presenter.dailyTarget?.fatGrams ?? 0))")
+                        .lineLimit(1)
+                        .font(.caption)
+                        .frame(height: 16)
+
+                    ProgressView(value: presenter.fatPercentage)
+                        .tint(.yellow)
+                }
+                
+                VStack(alignment: .leading) {
+                    Text("C \(Int(presenter.dailyTotals?.carbGrams ?? 0))/\(Int(presenter.dailyTarget?.carbGrams ?? 0))")
+                        .lineLimit(1)
+                        .font(.caption)
+                        .frame(height: 16)
+
+                    ProgressView(value: presenter.carbsPercentage)
+                        .tint(.green)
+                }
             }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .glassEffect()
+            .padding(.horizontal)
+        }
+    }
+
+    private var mealLogSection: some View {
+        Section {
+            ForEach(7...23) { hour in
+                HStack {
+                    Text("\(hour) AM")
+                        .lineLimit(1)
+                        .padding(8)
+                        .frame(width: 70)
+                        .background(.secondary.opacity(0.2), in: .capsule)
+                    
+                    Image(systemName: "plus")
+                        .padding(8)
+                        .background(.secondary.opacity(0.2), in: .circle)
+                }
+                .font(.caption)
+                .padding(.bottom)
+            }
+            .removeListRowFormatting()
+            .padding(.horizontal)
+        }
+        .listSectionMargins(.top, 0)
+        .listSectionMargins(.horizontal, 0)
+        .listRowSeparator(.hidden)
+    }
+    
+    private var moreSection: some View {
+        Section {
+            Group {
+                CustomListCellView(sfSymbolName: "list.bullet", title: "Nutrition Overview")
+                CustomListCellView(sfSymbolName: "slider.horizontal.3", title: "Customise Food Log")
+            }
+            .removeListRowFormatting()
+        } header: {
+            Text("More")
         }
     }
     

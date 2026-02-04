@@ -13,6 +13,7 @@ protocol DashboardRouter {
     func showDevSettingsView()
     func showCorePaywall()
     func showProfileView()
+    func showLogWeightView()
 }
 
 extension CoreRouter: DashboardRouter { }

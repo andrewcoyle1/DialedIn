@@ -59,8 +59,6 @@ class TrainingPresenter {
         let normalizedToday = Date().startOfDay
         self.today = normalizedToday
         self.selectedDate = normalizedToday
-        
-        loadScheduledWorkouts()
     }
     
     var currentUser: UserModel? {
@@ -77,38 +75,10 @@ class TrainingPresenter {
 
     private(set) var favouriteGymProfileImageUrl: String?
     
-    var currentTrainingPlan: TrainingPlan? {
-        interactor.currentTrainingPlan
-    }
-
     var activeSession: WorkoutSessionModel? {
         interactor.activeSession
     }
-
-    var adherenceRate: Double {
-        interactor.getAdherenceRate()
-    }
-    
-    var currentWeek: TrainingWeek? {
-        interactor.getCurrentWeek()
-    }
-    
-    var upcomingWorkouts: [ScheduledWorkout] {
-        interactor.getUpcomingWorkouts(limit: 5)
-    }
-    
-    var todaysWorkouts: [ScheduledWorkout] {
-        interactor.getTodaysWorkouts()
-    }
-    
-    private func loadScheduledWorkouts() {
-        guard let plan = interactor.currentTrainingPlan else {
-            scheduledWorkouts = []
-            return
-        }
-        scheduledWorkouts = plan.weeks.flatMap { $0.scheduledWorkouts }
-    }
-    
+        
     func onAddPressed() {
         let delegate = AddTrainingDelegate(
             onSelectProgram: { [weak self] in
@@ -135,7 +105,6 @@ class TrainingPresenter {
             .map { calendar.startOfDay(for: $0) }
         let weekDateSet = Set(weekDates)
         
-        let completionWindowStart = interactor.currentTrainingPlan?.startDate ?? program.dateCreated
         let dayPlans = program.dayPlans
         let dayPlanNames = Set(dayPlans.map { $0.name })
         let dayPlanById = Dictionary(uniqueKeysWithValues: dayPlans.map { ($0.id, $0) })
@@ -144,7 +113,7 @@ class TrainingPresenter {
         let sessions = (try? interactor.getAllLocalWorkoutSessions()) ?? []
         let completedSessions = sessions
             .compactMap { session -> (WorkoutSessionModel, DayPlan)? in
-                guard let endedAt = session.endedAt, endedAt >= completionWindowStart else { return nil }
+                guard let endedAt = session.endedAt else { return nil }
                 let shouldInclude = session.programId == program.id
                     || (session.programId == nil && session.dayPlanId == nil && dayPlanNames.contains(session.name))
                 guard shouldInclude else { return nil }
@@ -220,7 +189,6 @@ class TrainingPresenter {
             return []
         }
         
-        let completionWindowStart = interactor.currentTrainingPlan?.startDate ?? program.dateCreated
         let dayPlans = program.dayPlans
         let dayPlanNames = Set(dayPlans.map { $0.name })
         let dayPlanById = Dictionary(uniqueKeysWithValues: dayPlans.map { ($0.id, $0) })
@@ -229,7 +197,7 @@ class TrainingPresenter {
         let sessions = (try? interactor.getAllLocalWorkoutSessions()) ?? []
         let completedSessions = sessions
             .compactMap { session -> (WorkoutSessionModel, DayPlan)? in
-                guard let endedAt = session.endedAt, endedAt >= completionWindowStart else { return nil }
+                guard let endedAt = session.endedAt else { return nil }
                 let shouldInclude = session.programId == program.id
                     || (session.programId == nil && session.dayPlanId == nil && dayPlanNames.contains(session.name))
                 guard shouldInclude else { return nil }
@@ -509,13 +477,7 @@ class TrainingPresenter {
             await startWorkout(workout)
         }
     }
-            
-    func getWeeklyProgress() {
-        guard let weekNumber = currentWeek?.weekNumber else { return }
-        interactor.trackEvent(event: Event.getWeeklyProgress)
-        self.weekProgress =  interactor.getWeeklyProgress(for: weekNumber)
-    }
-    
+                
     func getWorkoutsForDay(_ day: Date, calendar: Calendar) -> [ScheduledWorkout] {
         scheduledWorkouts
             .filter { workout in
@@ -672,9 +634,7 @@ class TrainingPresenter {
     
     func loadData() async {
         interactor.trackEvent(event: Event.loadDataStart)
-        defer { loadScheduledWorkouts() }
         do {
-            try await interactor.syncFromRemote()
             await refreshFavouriteGymProfileImage()
             interactor.trackEvent(event: Event.loadDataSuccess)
         } catch {
@@ -684,9 +644,7 @@ class TrainingPresenter {
     
     func refreshData() async {
         interactor.trackEvent(event: Event.refreshDataStart)
-        defer { loadScheduledWorkouts() }
         do {
-            try await interactor.syncFromRemote()
             await refreshFavouriteGymProfileImage()
             interactor.trackEvent(event: Event.refreshDataSuccess)
         } catch {
@@ -723,48 +681,6 @@ class TrainingPresenter {
 
     func onChooseProgramPressed() {
         router.showProgramManagementView()
-    }
-
-    func startTodaysWorkout() {
-        let shouldProceed = checkForActiveWorkout(
-            onResumeWorkout: { [weak self] in
-                Task {
-                    await self?.resumeActiveWorkout()
-                }
-            },
-            onStartNewWorkout: { [weak self] in
-                Task {
-                    await self?.performStartTodaysWorkout()
-                }
-            }
-        )
-        
-        if shouldProceed {
-            performStartTodaysWorkout()
-        }
-    }
-    
-    private func performStartTodaysWorkout() {
-        Task {
-            do {
-                let todaysWorkouts = interactor.getTodaysWorkouts()
-                guard let firstIncomplete = todaysWorkouts.first(where: { !$0.isCompleted }) else { return }
-
-                let template = try await interactor.getWorkoutTemplate(id: firstIncomplete.workoutTemplateId)
-
-                // Small delay to ensure any pending presentations complete
-                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-
-                // Show WorkoutStartView (preview, notes, etc.)
-                handleWorkoutStartRequest(template: template, scheduledWorkout: firstIncomplete)
-            } catch {
-                router.showAlert(error: error)
-            }
-        }
-    }
-    
-    func getTodaysWorkouts() -> Bool {
-        interactor.getTodaysWorkouts().contains(where: { !$0.isCompleted })
     }
     
     func onWorkoutLibraryPressed() {

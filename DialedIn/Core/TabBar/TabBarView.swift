@@ -8,6 +8,16 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct TabBarScreen: Identifiable {
+    var id: String {
+        title
+    }
+
+    let title: String
+    let systemImage: String
+    @ViewBuilder var screen: () -> AnyView
+}
+
 struct TabBarView<TabAccessory: View, Search: View>: View {
 
     @State var presenter: TabBarPresenter

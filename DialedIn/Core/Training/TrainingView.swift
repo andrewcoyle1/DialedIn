@@ -41,7 +41,6 @@ struct TrainingView<CalendarHeaderView: View>: View {
         }
         .toolbarRole(.browser)
         .onAppear {
-            presenter.getWeeklyProgress()
             Task {
                 await presenter.refreshFavouriteGymProfileImage()
             }
@@ -259,16 +258,6 @@ extension CoreBuilder {
 #Preview {
     let builder = CoreBuilder(container: DevPreview.shared.container())
     RouterView { router in
-        builder.trainingView(router: router)
-    }
-    .previewEnvironment()
-}
-
-#Preview("No Training Plan") {
-    let container = DevPreview.shared.container()
-    container.register(TrainingPlanManager.self, service: TrainingPlanManager(services: MockTrainingPlanServices(delay: 0, showError: false, plans: [])))
-    let builder = CoreBuilder(container: container)
-    return RouterView { router in
         builder.trainingView(router: router)
     }
     .previewEnvironment()

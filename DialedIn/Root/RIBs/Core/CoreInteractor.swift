@@ -40,7 +40,6 @@ struct CoreInteractor: GlobalInteractor {
     private let logManager: LogManager
     private let reportManager: ReportManager
     private let healthKitManager: HealthKitManager
-    private let trainingAnalyticsManager: TrainingAnalyticsManager
     private let userWeightManager: UserWeightManager
     private let goalManager: GoalManager
     private let imageUploadManager: ImageUploadManager
@@ -77,7 +76,6 @@ struct CoreInteractor: GlobalInteractor {
         self.logManager = container.resolve(LogManager.self)!
         self.reportManager = container.resolve(ReportManager.self)!
         self.healthKitManager = container.resolve(HealthKitManager.self)!
-        self.trainingAnalyticsManager = container.resolve(TrainingAnalyticsManager.self)!
         self.userWeightManager = container.resolve(UserWeightManager.self)!
         self.goalManager = container.resolve(GoalManager.self)!
         self.imageUploadManager = container.resolve(ImageUploadManager.self)!
@@ -1007,196 +1005,6 @@ struct CoreInteractor: GlobalInteractor {
     func deleteGymProfile(profile: GymProfileModel) async throws {
         try await gymProfileManager.deleteGymProfile(profile: profile)
     }
-
-    // MARK: TrainingPlanManager
-    
-    var currentTrainingPlan: TrainingPlan? {
-        trainingPlanManager.currentTrainingPlan
-    }
-    
-    var allPlans: [TrainingPlan] {
-        trainingPlanManager.allPlans
-    }
-    
-    @MainActor
-    func clearAllTrainingPlanLocalData() throws {
-        try trainingPlanManager.clearAllLocalData()
-    }
-    
-    // Plan Management
-    
-    func createPlan(_ plan: TrainingPlan) async throws {
-        try await trainingPlanManager.createPlan(plan)
-    }
-    
-    func createPlanFromTemplate(
-        _ template: ProgramTemplateModel,
-        startDate: Date,
-        endDate: Date? = nil,
-        userId: String,
-        planName: String? = nil
-    ) async throws -> TrainingPlan {
-        try await trainingPlanManager.createPlanFromTemplate(template, startDate: startDate, endDate: endDate, userId: userId, planName: planName)
-    }
-    
-    func createBlankPlan(
-        name: String,
-        userId: String,
-        description: String? = nil,
-        startDate: Date = .now
-    ) async throws -> TrainingPlan {
-        try await trainingPlanManager.createBlankPlan(name: name, userId: userId, description: description, startDate: startDate)
-    }
-    
-    func updatePlan(_ plan: TrainingPlan) async throws {
-        try await trainingPlanManager.updatePlan(plan)
-    }
-    
-    func deletePlan(id: String) async throws {
-        try await trainingPlanManager.deletePlan(id: id)
-        
-    }
-    
-    func setActivePlan(_ plan: TrainingPlan) {
-        trainingPlanManager.setActivePlan(plan)
-    }
-
-    func markWorkoutIncompleteIfSessionDeleted(scheduledWorkoutId: String, sessionId: String) async throws {
-        try await trainingPlanManager.markWorkoutIncompleteIfSessionDeleted(
-            scheduledWorkoutId: scheduledWorkoutId,
-            sessionId: sessionId
-        )
-    }
-    
-    // Progress Tracking
-    
-    func getWeeklyProgress(for weekNumber: Int) -> WeekProgress {
-        trainingPlanManager.getWeeklyProgress(for: weekNumber)
-    }
-    
-    func getCurrentWeek() -> TrainingWeek? {
-        trainingPlanManager.getCurrentWeek()
-    }
-    
-    func getUpcomingWorkouts(limit: Int = 5) -> [ScheduledWorkout] {
-        trainingPlanManager.getUpcomingWorkouts(limit: limit)
-    }
-    
-    func getTodaysWorkouts() -> [ScheduledWorkout] {
-        trainingPlanManager.getTodaysWorkouts()
-    }
-    
-    func getAdherenceRate() -> Double {
-        trainingPlanManager.getAdherenceRate()
-    }
-    
-    // Goal Management
-    
-    func addGoal(_ goal: TrainingGoal) async throws {
-        try await trainingPlanManager.addGoal(goal)
-    }
-    
-    func updateGoal(_ goal: TrainingGoal) async throws {
-        try await trainingPlanManager.updateGoal(goal)
-    }
-    
-    func removeGoal(id: String) async throws {
-        try await trainingPlanManager.removeGoal(id: id)
-    }
-    
-    // Smart Suggestions
-    
-    func suggestNextWeekWorkouts(basedOn currentWeek: TrainingWeek) -> [ScheduledWorkout] {
-        trainingPlanManager.suggestNextWeekWorkouts(basedOn: currentWeek)
-    }
-    
-    // Sync Operations
-    
-    func syncFromRemote() async throws {
-        let userId = try userManager.currentUserId()
-        try await trainingPlanManager.syncFromRemote(userId: userId)
-    }
-    
-    // MARK: ProgramTemplateManager
-    
-    var programTemplates: [ProgramTemplateModel] {
-        programTemplateManager.templates
-    }
-    
-    func getAll() -> [ProgramTemplateModel] {
-        programTemplateManager.getAll()
-    }
-    
-    func get(id: String) -> ProgramTemplateModel? {
-        programTemplateManager.get(id: id)
-    }
-    
-    func getBuiltInTemplates() -> [ProgramTemplateModel] {
-        programTemplateManager.getBuiltInTemplates()
-    }
-    
-    func create(_ template: ProgramTemplateModel) async throws {
-        try await programTemplateManager.create(template)
-    }
-    
-    func update(_ template: ProgramTemplateModel) async throws {
-        try await programTemplateManager.update(template)
-    }
-    
-    func delete(id: String) async throws {
-        try await programTemplateManager.delete(id: id)
-    }
-    
-    // Sync Operations
-    
-    func syncProgramTemplatesFromRemote() async throws {
-        try await programTemplateManager.syncFromRemote()
-    }
-    
-    func fetchPublicTemplates() async throws -> [ProgramTemplateModel] {
-        try await programTemplateManager.fetchPublicTemplates()
-    }
-    
-    func fetchTemplateFromRemote(id: String) async throws -> ProgramTemplateModel {
-        try await programTemplateManager.fetchTemplateFromRemote(id: id)
-    }
-    
-    // Template Instantiation
-    
-    /// Converts a ProgramTemplate into a TrainingPlan ready to be used
-    func instantiateTemplate(
-        _ template: ProgramTemplateModel,
-        for userId: String,
-        startDate: Date,
-        endDate: Date? = nil,
-        planName: String? = nil
-    ) -> TrainingPlan {
-        programTemplateManager.instantiateTemplate(
-            template,
-            for: userId,
-            startDate: startDate,
-            endDate: endDate,
-            planName: planName
-        )
-    }
-    
-    func templatesByDifficulty(_ difficulty: DifficultyLevel) -> [ProgramTemplateModel] {
-        programTemplateManager.templatesByDifficulty(difficulty)
-    }
-    
-    func templatesByFocusArea(_ focusArea: FocusArea) -> [ProgramTemplateModel] {
-        programTemplateManager.templatesByFocusArea(focusArea)
-    }
-    
-    // Filtering Helpers
-    
-    func isBuiltIn(_ template: ProgramTemplateModel) -> Bool {
-        programTemplateManager.isBuiltIn(template)
-    }
-    
-    func getUserTemplates(userId: String) -> [ProgramTemplateModel] {
-        programTemplateManager.getUserTemplates(userId: userId)
-    }
     
     // MARK: IngredientTemplateManager
     
@@ -1536,37 +1344,7 @@ struct CoreInteractor: GlobalInteractor {
     func getHealthStore() -> HKHealthStore {
         healthKitManager.getHealthStore()
     }
-    
-    // MARK: TrainingAnalyticsManager
-    
-    var cachedSnapshot: ProgressSnapshot? {
-        trainingAnalyticsManager.cachedSnapshot
-    }
-    
-    func getProgressSnapshot(for period: DateInterval) async throws -> ProgressSnapshot {
-        try await trainingAnalyticsManager.getProgressSnapshot(for: period)
-    }
-    
-    func getVolumeTrend(for period: DateInterval, interval: Calendar.Component = .weekOfYear) async -> VolumeTrend {
-        await trainingAnalyticsManager.getVolumeTrend(for: period, interval: interval)
-    }
-    
-    func getStrengthProgression(for exerciseId: String, in period: DateInterval) async throws -> StrengthProgression? {
-        try await trainingAnalyticsManager.getStrengthProgression(for: exerciseId, in: period)
-    }
-    
-    func getCompletedSessions(in period: DateInterval) async -> [WorkoutSessionModel] {
-        let sessions = (try? workoutSessionManager.getAllLocalWorkoutSessions()) ?? []
-        return sessions.filter { session in
-            guard let endedAt = session.endedAt else { return false }
-            return period.contains(endedAt)
-        }
-    }
-    
-    func invalidateCache() {
-        trainingAnalyticsManager.invalidateCache()
-    }
-    
+        
     // UserWeightManager
     
     var weightHistory: [WeightEntry] {
