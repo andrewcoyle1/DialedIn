@@ -18,6 +18,9 @@ protocol WorkoutTrackerInteractor {
     /// The current logged-in user, or nil if not available.
     var currentUser: UserModel? { get }
     
+    /// The favourite gym profile of the user, or nil if not available
+    var favouriteGymProfile: GymProfileModel? { get }
+    
     /// The current rest end time for the active session, if any.
     var restEndTime: Date? { get }
     
@@ -146,6 +149,9 @@ protocol WorkoutTrackerInteractor {
         parameters: [String: Any]?,
         type: LogType
     )
+
+    /// Load unit preferences for an exercise template.
+    func getPreference(templateId: String) -> ExerciseUnitPreference
 }
 
 extension CoreInteractor: WorkoutTrackerInteractor { }

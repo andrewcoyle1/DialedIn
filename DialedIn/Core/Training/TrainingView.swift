@@ -70,6 +70,7 @@ struct TrainingView<CalendarHeaderView: View>: View {
                 ForEach(items) { item in
                     microcycleItemRow(item: item)
                 }
+                .listRowInsets(.leading, 0)
             } label: {
                 HStack(spacing: 12) {
                     ZStack {
@@ -86,10 +87,10 @@ struct TrainingView<CalendarHeaderView: View>: View {
                         .fontWeight(.semibold)
                     Spacer()
                 }
-            }
-            .swipeActions(edge: .trailing) {
-                Button(role: .destructive) {
-                    
+                .swipeActions(edge: .trailing) {
+                    Button(role: .destructive) {
+                        presenter.onProgramDeletePressed(program: program)
+                    }
                 }
             }
         } header: {

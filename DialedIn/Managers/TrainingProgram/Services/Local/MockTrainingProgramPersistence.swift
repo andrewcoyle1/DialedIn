@@ -40,6 +40,7 @@ class MockTrainingProgramPersistence: LocalTrainingProgramPersistence {
     }
 
     // MARK: READ
+    
     func getActiveTrainingProgram() throws -> TrainingProgram? {
         try tryShowError()
         

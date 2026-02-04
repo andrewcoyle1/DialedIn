@@ -13,7 +13,9 @@ protocol WorkoutTrackerRouter: GlobalRouter {
     func showDevSettingsView()
     func showAddExercisesView(delegate: AddExerciseModalDelegate)
     func showWorkoutNotesView(delegate: WorkoutNotesDelegate)
-        
+    func showWorkoutSettingsView(delegate: WorkoutSettingsDelegate)
+    func showGymProfileView(gymProfile: GymProfileModel)
+    func showWarmupSetInfoModal(primaryButtonAction: @escaping () -> Void)
     func showRestModal(primaryButtonAction: @escaping () -> Void, secondaryButtonAction: @escaping () -> Void, minutesSelection: Binding<Int>, secondsSelection: Binding<Int>)
 }
 

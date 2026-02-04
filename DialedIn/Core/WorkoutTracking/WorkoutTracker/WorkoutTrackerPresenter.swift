@@ -37,6 +37,7 @@ class WorkoutTrackerPresenter {
     var currentExerciseIndex = 0
     
     var previousWorkoutSession: WorkoutSessionModel?
+    var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
 
     // Internal timers
     var widgetSyncTimer: Timer?
@@ -62,6 +63,10 @@ class WorkoutTrackerPresenter {
     
     var completedSetsFraction: String {
         "\(completedSetsCount)/\(totalSetsCount)"
+    }
+    
+    var favouriteGymProfile: GymProfileModel? {
+        interactor.favouriteGymProfile
     }
     
     // MARK: - Initialization
@@ -256,6 +261,16 @@ class WorkoutTrackerPresenter {
             }
         }
     }
+
+    func getUnitPreference(for templateId: String) -> (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit) {
+        if let cached = exerciseUnitPreferences[templateId] {
+            return cached
+        }
+        let preference = interactor.getPreference(templateId: templateId)
+        let result = (weightUnit: preference.weightUnit, distanceUnit: preference.distanceUnit)
+        exerciseUnitPreferences[templateId] = result
+        return result
+    }
     
     func buildPreviousLookup(for exercise: WorkoutExerciseModel) -> [Int: WorkoutSetModel] {
         guard let prevSession = previousWorkoutSession else { return [:] }
@@ -276,18 +291,18 @@ class WorkoutTrackerPresenter {
         Task {
             do {
                 try? await Task.sleep(for: .seconds(1))
-#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+                #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 // End HK session first
                 interactor.endWorkout()
-#endif
+                #endif
 
                 // Cancel any pending rest timer notifications
                 await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
 
-#if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+                #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 // End live activity with immediate dismissal for discarded workouts
                 interactor.endLiveActivity(session: workoutSession, isCompleted: false, statusMessage: "Workout Discarded")
-#endif
+                #endif
 
                 try interactor.deleteLocalWorkoutSession(id: workoutSession.id)
                 // Don't mark scheduled workout as complete when discarding
@@ -732,6 +747,33 @@ class WorkoutTrackerPresenter {
         saveWorkoutProgress()
     }
 
+    func onRestPickerRequested(setId: String) {
+        restPickerTargetSetId = setId
+        let existing = restBeforeSetIdToSec[setId] ?? restDurationSeconds
+        restPickerMinutesSelection = existing / 60
+        restPickerSecondsSelection = existing % 60
+
+        router.showRestModal(
+            primaryButtonAction: { [weak self] in
+                guard let self else { return }
+                let totalSeconds = (self.restPickerMinutesSelection * 60) + self.restPickerSecondsSelection
+                self.updateRestBefore(setId: setId, seconds: totalSeconds > 0 ? totalSeconds : nil)
+                self.router.dismissModal()
+            },
+            secondaryButtonAction: { [weak self] in
+                self?.router.dismissModal()
+            },
+            minutesSelection: Binding(
+                get: { self.restPickerMinutesSelection },
+                set: { self.restPickerMinutesSelection = $0 }
+            ),
+            secondsSelection: Binding(
+                get: { self.restPickerSecondsSelection },
+                set: { self.restPickerSecondsSelection = $0 }
+            )
+        )
+    }
+
     func startRestTimer(durationSeconds: Int = 0) {
         let duration = durationSeconds > 0 ? durationSeconds : restDurationSeconds
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -770,6 +812,11 @@ class WorkoutTrackerPresenter {
         print("✅ Widget Workout Completion: Triggering finishWorkout()")
         
         SharedWorkoutStorage.clearPendingWorkoutCompletion()
+    }
+    
+    func onGymProfilePressed() {
+        guard let gymProfile = favouriteGymProfile else { return }
+        router.showGymProfileView(gymProfile: gymProfile)
     }
 
     // MARK: - Exercise Management
@@ -844,6 +891,10 @@ class WorkoutTrackerPresenter {
         #endif
     }
     
+    func onWorkoutSettingsPressed() {
+        router.showWorkoutSettingsView(delegate: WorkoutSettingsDelegate())
+    }
+    
     func moveExercises(from source: IndexSet, to destination: Int) {
         var updated = workoutSession.exercises
         updated.move(fromOffsets: source, toOffset: destination)
@@ -869,4 +920,106 @@ class WorkoutTrackerPresenter {
         updated.insert(element, at: targetIndex)
         applyReorderedExercises(updated, movedFrom: sourceIndex, movedTo: targetIndex)
     }
+    
+    func buttonColor(set: WorkoutSetModel, canComplete: Bool) -> Color {
+        if set.completedAt != nil {
+            return .green
+        } else if canComplete {
+            return .secondary
+        } else {
+            return .red.opacity(0.6)
+        }
+    }
+    
+    func canComplete(trackingMode: TrackingMode, set: WorkoutSetModel) -> Bool {
+        switch trackingMode {
+        case .weightReps:
+            let hasValidWeight = set.weightKg == nil || set.weightKg! >= 0
+            let hasValidReps = set.reps != nil && set.reps! > 0
+            return hasValidWeight && hasValidReps
+            
+        case .repsOnly:
+            return set.reps != nil && set.reps! > 0
+            
+        case .timeOnly:
+            return set.durationSec != nil && set.durationSec! > 0
+            
+        case .distanceTime:
+            let hasValidDistance = set.distanceMeters != nil && set.distanceMeters! > 0
+            let hasValidTime = set.durationSec != nil && set.durationSec! > 0
+            return hasValidDistance && hasValidTime
+        }
+    }
+        
+    func validateSetData(trackingMode: TrackingMode, set: WorkoutSetModel) -> Bool {
+        switch trackingMode {
+        case .weightReps:
+            return validateWeightReps(set: set)
+        case .repsOnly:
+            return validateRepsOnly(set: set)
+        case .timeOnly:
+            return validateTimeOnly(set: set)
+        case .distanceTime:
+            return validateDistanceTime(set: set)
+        }
+    }
+    
+    func validateWeightReps(set: WorkoutSetModel) -> Bool {
+        // Weight must be non-negative (including 0 for bodyweight exercises)
+        if let weight = set.weightKg, weight < 0 {
+            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Weight must be a non-negative number")
+            return false
+        }
+        
+        // Reps must be positive
+        guard let reps = set.reps, reps > 0 else {
+            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Reps must be a positive number")
+            return false
+        }
+        
+        return true
+    }
+    
+    func validateRepsOnly(set: WorkoutSetModel) -> Bool {
+        // Reps must be positive
+        guard let reps = set.reps, reps > 0 else {
+            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Reps must be a positive number")
+            return false
+        }
+        
+        return true
+    }
+    
+    func validateTimeOnly(set: WorkoutSetModel) -> Bool {
+        // Time must be positive
+        guard let duration = set.durationSec, duration > 0 else {
+            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Duration must be a positive time")
+            return false
+        }
+        
+        return true
+    }
+    
+    func validateDistanceTime(set: WorkoutSetModel) -> Bool {
+        // Distance must be positive
+        guard let distance = set.distanceMeters, distance > 0 else {
+            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Distance must be a positive number")
+            return false
+        }
+        
+        // Time must be positive
+        guard let duration = set.durationSec, duration > 0 else {
+            router.showSimpleAlert(title: "Invalid Set Data", subtitle: "Duration must be a positive time")
+            return false
+        }
+        
+        return true
+    }
+
+    func onWarmupSetHelpPressed() {
+        router.showWarmupSetInfoModal {
+            self.router.dismissModal()
+        }
+    }
+
 }

@@ -9,6 +9,7 @@ protocol TrainingInteractor {
     var currentUser: UserModel? { get }
     var userImageUrl: String? { get }
     var currentTrainingPlan: TrainingPlan? { get }
+    var activeTrainingProgram: TrainingProgram? { get }
     var activeSession: WorkoutSessionModel? { get }
     func getAllLocalWorkoutSessions() throws -> [WorkoutSessionModel]
     func getActiveTrainingProgram() async throws -> TrainingProgram?
@@ -26,6 +27,7 @@ protocol TrainingInteractor {
     func syncFromRemote() async throws
     func readLocalGymProfile(profileId: String) throws -> GymProfileModel
     func readRemoteGymProfile(profileId: String) async throws -> GymProfileModel
+    func deleteTrainingProgram(program: TrainingProgram) async throws
 }
 
 extension CoreInteractor: TrainingInteractor { }

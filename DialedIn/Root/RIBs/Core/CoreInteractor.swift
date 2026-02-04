@@ -91,6 +91,7 @@ struct CoreInteractor: GlobalInteractor {
         self.hapticManager = container.resolve(HapticManager.self)!
         self.soundEffectManager = container.resolve(SoundEffectManager.self)!
 
+        try? getActiveTrainingProgram()
     }
 
     // MARK: Shared
@@ -896,21 +897,11 @@ struct CoreInteractor: GlobalInteractor {
     func setActiveTrainingProgram(programId: String) async throws {
         try await userManager.updateActiveTrainingProgramId(programId: programId)
     }
-    
-    func getActiveTrainingProgram() async throws -> TrainingProgram? {
+       
+    @discardableResult
+    func getActiveTrainingProgram() throws -> TrainingProgram? {
         guard let programId = currentUser?.activeTrainingProgramId else { return nil }
-        do {
-            return try trainingProgramManager.readLocalTrainingProgram(programId: programId)
-        } catch {
-            let urlError = error as? URLError
-            if urlError?.code != .fileDoesNotExist {
-                throw error
-            }
-        }
-
-        let remoteProgram = try await trainingProgramManager.readRemoteTrainingProgram(programId: programId)
-        try? await trainingProgramManager.updateTrainingProgram(program: remoteProgram)
-        return remoteProgram
+        return try trainingProgramManager.readActiveTrainingProgram(programId: programId)
     }
     
     // CREATE
@@ -965,6 +956,11 @@ struct CoreInteractor: GlobalInteractor {
     }
     
     // MARK: GymProfileManager
+    
+    var favouriteGymProfile: GymProfileModel? {
+        guard let favouriteGymProfileId = currentUser?.favouriteGymProfileId else { return nil }
+        return try? readLocalGymProfile(profileId: favouriteGymProfileId)
+    }
     
     // CREATE
     func createGymProfile(profile: GymProfileModel) async throws {

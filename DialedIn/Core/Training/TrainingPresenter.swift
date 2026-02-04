@@ -47,7 +47,6 @@ class TrainingPresenter {
     private(set) var scheduledWorkouts: [ScheduledWorkout] = []
     private(set) var workoutsForMenu: [ScheduledWorkout] = []
     private(set) var weekProgress: WeekProgress?
-    private(set) var activeTrainingProgram: TrainingProgram?
 
     init(
         interactor: TrainingInteractor,
@@ -62,15 +61,14 @@ class TrainingPresenter {
         self.selectedDate = normalizedToday
         
         loadScheduledWorkouts()
-        
-        Task {
-            await loadActiveTrainingProgram()
-        }
-
     }
     
     var currentUser: UserModel? {
         interactor.currentUser
+    }
+    
+    var activeTrainingProgram: TrainingProgram? {
+        interactor.activeTrainingProgram
     }
 
     var userImageUrl: String? {
@@ -310,6 +308,30 @@ class TrainingPresenter {
         )
         
         return false
+    }
+    
+    func onProgramDeletePressed(program: TrainingProgram) {
+        router.showAlert(
+            title: "Delete Training Program",
+            subtitle: "Are you sure you want to delete your active training program? This cannot be undone.",
+            buttons: {
+                AnyView(
+                    VStack {
+                        Button(role:.destructive) {
+                            self.deleteTrainingProgram(program: program)
+                        }
+                        Button(role: .cancel) { }
+                    }
+                )
+            }
+        )
+    }
+    
+    private func deleteTrainingProgram(program: TrainingProgram) {
+        Task {
+            try? await interactor.deleteTrainingProgram(program: program)
+            
+        }
     }
     
     private func resumeActiveWorkout() {
@@ -648,7 +670,6 @@ class TrainingPresenter {
         interactor.trackEvent(event: Event.loadDataStart)
         defer { loadScheduledWorkouts() }
         do {
-            await loadActiveTrainingProgram()
             try await interactor.syncFromRemote()
             await refreshFavouriteGymProfileImage()
             interactor.trackEvent(event: Event.loadDataSuccess)
@@ -661,7 +682,6 @@ class TrainingPresenter {
         interactor.trackEvent(event: Event.refreshDataStart)
         defer { loadScheduledWorkouts() }
         do {
-            await loadActiveTrainingProgram()
             try await interactor.syncFromRemote()
             await refreshFavouriteGymProfileImage()
             interactor.trackEvent(event: Event.refreshDataSuccess)
@@ -669,10 +689,6 @@ class TrainingPresenter {
             interactor.trackEvent(event: Event.refreshDataFail(error: error))
             router.showAlert(error: error)
         }
-    }
-
-    private func loadActiveTrainingProgram() async {
-        activeTrainingProgram = try? await interactor.getActiveTrainingProgram()
     }
 
     func refreshFavouriteGymProfileImage() async {

@@ -8,6 +8,18 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct SetTrackerRowDelegate {
+    var set: WorkoutSetModel
+    let trackingMode: TrackingMode
+    var weightUnit: ExerciseWeightUnit = .kilograms
+    var distanceUnit: ExerciseDistanceUnit = .meters
+    var previousSet: WorkoutSetModel?
+    var restBeforeSec: Int?
+    let onRestBeforeChange: (Int?) -> Void
+    var onRequestRestPicker: (String, Int?) -> Void = { _, _ in }
+    let onUpdate: (WorkoutSetModel) -> Void
+}
+
 struct SetTrackerRowView: View {
     
     @State var presenter: SetTrackerRowPresenter
@@ -40,7 +52,7 @@ struct SetTrackerRowView: View {
     }
     
     private var setNumber: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .center) {
             if delegate.set.index == 1 {
                 Text("Set")
                     .font(.caption2)
@@ -74,7 +86,7 @@ struct SetTrackerRowView: View {
     
     // MARK: Previous Values
     private var previousValues: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .center) {
             if delegate.set.index == 1 {
                 Text("Prev")
                     .font(.caption2)
@@ -149,7 +161,7 @@ struct SetTrackerRowView: View {
                     .frame(height: cellHeight)
             }
         }
-        .frame(width: 60, alignment: .leading)
+        .frame(width: 60, alignment: .center)
     }
     
     // MARK: - Input Fields
@@ -367,7 +379,7 @@ struct SetTrackerRowView: View {
                 updateSet { $0.completedAt = nil }
             }
         } label: {
-            VStack(alignment: .trailing) {
+            VStack(alignment: .center) {
                 if delegate.set.index == 1 {
                     Text("Done")
                         .font(.caption2)
@@ -380,7 +392,7 @@ struct SetTrackerRowView: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
-        .frame(width: 32, alignment: .trailing)
+        .frame(width: 32, alignment: .center)
     }
     
     // MARK: - Rest Selector

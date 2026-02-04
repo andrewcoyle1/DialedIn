@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+struct WorkoutNotesDelegate {
+    var notes: Binding<String>
+    let onSave: () -> Void
+}
+
 struct WorkoutNotesView: View {
 
     @State var presenter: WorkoutNotesPresenter

@@ -31,6 +31,10 @@ class WorkoutListPresenterBuilder {
         interactor.currentUser
     }
     
+    var workoutsCount: Int {
+        [myWorkouts, favouriteWorkouts, bookmarkedWorkouts, systemWorkouts].reduce(0) { $0 + $1.count }
+    }
+    
     var myWorkoutIds: Set<String> {
         Set(myWorkouts.map { $0.id })
     }

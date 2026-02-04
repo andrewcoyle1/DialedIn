@@ -65,6 +65,7 @@ struct SwiftTrainingProgramPersistence: LocalTrainingProgramPersistence {
     }
     
     // MARK: READ
+    
     func readTrainingProgram(programId: String) throws -> TrainingProgram {
         
         let descriptor = FetchDescriptor<TrainingProgramEntity>(
