@@ -10,7 +10,6 @@ import SwiftUI
 @MainActor
 protocol ProgramManagementRouter: GlobalRouter {
     func showDevSettingsView()
-    func showEditProgramView(delegate: EditProgramDelegate)
     func showProgramSettingsView(program: Binding<TrainingProgram>)
     func showCreateProgramView(delegate: CreateProgramDelegate)
 }

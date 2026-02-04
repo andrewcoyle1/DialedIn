@@ -91,7 +91,7 @@ struct CoreInteractor: GlobalInteractor {
         self.hapticManager = container.resolve(HapticManager.self)!
         self.soundEffectManager = container.resolve(SoundEffectManager.self)!
 
-        try? getActiveTrainingProgram()
+        _ = try? getActiveTrainingProgram()
     }
 
     // MARK: Shared
@@ -1854,21 +1854,15 @@ struct CoreInteractor: GlobalInteractor {
     // MARK: Haptics
 
     func prepareHaptic(option: HapticOption) {
-        Task {
-            await hapticManager.prepare(option: option)
-        }
+        hapticManager.prepare(option: option)
     }
 
     func playHaptic(option: HapticOption) {
-        Task {
-            await hapticManager.play(option: option)
-        }
+        hapticManager.play(option: option)
     }
 
     func tearDownHaptic(option: HapticOption) {
-        Task {
-            await hapticManager.tearDown(option: option)
-        }
+        hapticManager.tearDown(option: option)
     }
 
     // MARK: Sound Effects

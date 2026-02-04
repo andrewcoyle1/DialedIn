@@ -14,18 +14,16 @@ protocol TrainingRouter: GlobalRouter {
     func showWorkoutStartModal(delegate: WorkoutStartDelegate)
     func showProgramManagementView()
     func showProgressDashboardView()
-    func showStrengthProgressView()
-    func showWorkoutHeatmapView()
     func showWorkoutsView()
     func showWorkoutHistoryView()
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
-    func showAddGoalView(delegate: AddGoalDelegate)
     func showWorkoutTrackerView(delegate: WorkoutTrackerDelegate)
     func showAddTrainingView(delegate: AddTrainingDelegate, onDismiss: (() -> Void)?)
     func showCreateProgramView(delegate: CreateProgramDelegate)
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
     func showCreateExerciseView()
     func showProfileView()
+    func showEditTrainingProgramView(delegate: EditTrainingProgramDelegate)
 
 }
 

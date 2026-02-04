@@ -51,14 +51,33 @@ struct WorkoutTemplateDetailView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.onDismissPressed()
-            } label: {
-                Image(systemName: "xmark")
+        // Show edit button when not in edit mode
+        if isAuthor {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    presenter.onEditWorkoutPressed(template: delegate.workoutTemplate)
+                } label: {
+                    Image(systemName: "pencil")
+                }
             }
         }
-        ToolbarSpacer(.fixed, placement: .topBarLeading)
+
+        // Show delete button only in edit mode
+        if isAuthor {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(role: .destructive) {
+                    presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate)
+                } label: {
+                    if presenter.isDeleting {
+                        ProgressView()
+                    } else {
+                        Image(systemName: "trash")
+                    }
+                }
+                .disabled(presenter.isDeleting)
+            }
+        }
+
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
@@ -89,33 +108,6 @@ struct WorkoutTemplateDetailView: View {
                 } label: {
                     Image(systemName: presenter.isBookmarked ? "book.closed.fill" : "book.closed")
                 }
-            }
-        }
-
-        // Show edit button when not in edit mode
-        if isAuthor {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    presenter.onEditWorkoutPressed(template: delegate.workoutTemplate)
-                } label: {
-                    Image(systemName: "pencil")
-                }
-            }
-        }
-
-        // Show delete button only in edit mode
-        if isAuthor {
-            ToolbarItem(placement: .topBarLeading) {
-                Button(role: .destructive) {
-                    presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate)
-                } label: {
-                    if presenter.isDeleting {
-                        ProgressView()
-                    } else {
-                        Image(systemName: "trash")
-                    }
-                }
-                .disabled(presenter.isDeleting)
             }
         }
 

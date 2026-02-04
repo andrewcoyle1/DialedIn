@@ -73,18 +73,23 @@ struct TrainingView<CalendarHeaderView: View>: View {
                 .listRowInsets(.leading, 0)
             } label: {
                 HStack(spacing: 12) {
-                    ZStack {
-                        Circle()
-                            .fill(Color(hex: program.colour).opacity(0.2))
-                        Image(systemName: program.icon)
+                    HStack {
+                        ZStack {
+                            Circle()
+                                .fill(Color(hex: program.colour).opacity(0.2))
+                            Image(systemName: program.icon)
+                            
+                                .foregroundStyle(Color(hex: program.colour))
+                        }
+                        .frame(width: 44, height: 44)
                         
-                            .foregroundStyle(Color(hex: program.colour))
+                        Text(program.name)
+                            .font(.title3)
+                            .fontWeight(.semibold)
                     }
-                    .frame(width: 44, height: 44)
-                    
-                    Text(program.name)
-                        .font(.title3)
-                        .fontWeight(.semibold)
+                    .anyButton(.press) {
+                        presenter.onProgramPressed(program: program)
+                    }
                     Spacer()
                 }
                 .swipeActions(edge: .trailing) {

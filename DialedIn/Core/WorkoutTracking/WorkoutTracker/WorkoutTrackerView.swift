@@ -677,7 +677,6 @@ struct WorkoutTrackerView: View {
         presenter.updateSet(updated, in: exerciseId)
     }
 
-
     @ViewBuilder
     private func unitPreferenceMenu(_ exercise: WorkoutExerciseModel) -> some View {
         Menu {

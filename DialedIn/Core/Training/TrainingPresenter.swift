@@ -310,6 +310,10 @@ class TrainingPresenter {
         return false
     }
     
+    func onProgramPressed(program: TrainingProgram) {
+        router.showEditTrainingProgramView(delegate: EditTrainingProgramDelegate(program: program))
+    }
+    
     func onProgramDeletePressed(program: TrainingProgram) {
         router.showAlert(
             title: "Delete Training Program",
@@ -317,7 +321,7 @@ class TrainingPresenter {
             buttons: {
                 AnyView(
                     VStack {
-                        Button(role:.destructive) {
+                        Button(role: .destructive) {
                             self.deleteTrainingProgram(program: program)
                         }
                         Button(role: .cancel) { }
@@ -717,23 +721,6 @@ class TrainingPresenter {
         router.showProgramManagementView()
     }
 
-    func onProgessDashboardPressed() {
-        router.showProgressDashboardView()
-    }
-
-    func onStrengthProgressPressed() {
-        router.showStrengthProgressView()
-    }
-
-    func onWorkoutHeatmapPressed() {
-        router.showWorkoutHeatmapView()
-    }
-
-    func onAddGoalPressed() {
-        guard let plan = currentTrainingPlan else { return }
-        router.showAddGoalView(delegate: AddGoalDelegate(plan: plan))
-    }
-    
     func onChooseProgramPressed() {
         router.showProgramManagementView()
     }

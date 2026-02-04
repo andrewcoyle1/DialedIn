@@ -12,8 +12,6 @@ struct ProgramManagementView: View {
 
     @State var presenter: ProgramManagementPresenter
 
-    @ViewBuilder var programRowView: (ProgramRowDelegate) -> AnyView
-
     var body: some View {
         List {
             if !presenter.savedPrograms.isEmpty {
@@ -118,11 +116,7 @@ struct ProgramManagementView: View {
 extension CoreBuilder {
     func programManagementView(router: AnyRouter) -> some View {
         ProgramManagementView(
-            presenter: ProgramManagementPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            programRowView: { delegate in
-                self.programRowView(delegate: delegate)
-                    .any()
-            }
+            presenter: ProgramManagementPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
