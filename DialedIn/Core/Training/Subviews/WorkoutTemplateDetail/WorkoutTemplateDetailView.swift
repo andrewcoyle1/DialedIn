@@ -8,6 +8,10 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct WorkoutTemplateDetailDelegate {
+    let workoutTemplate: WorkoutTemplateModel
+}
+
 struct WorkoutTemplateDetailView: View {
 
     @State var presenter: WorkoutTemplateDetailPresenter

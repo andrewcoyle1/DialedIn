@@ -19,5 +19,25 @@ struct CoreRouter: GlobalRouter {
             builder.workoutStartModal(delegate: delegate)
         }
     }
+    
+    func showWarmupSetInfoModal(primaryButtonAction: @escaping () -> Void) {
+        router.showModal(
+            transition: .move(edge: .bottom),
+            backgroundColor: .black.opacity(0.3),
+            destination: {
+                CustomModalView(
+                    title: "Warmup Sets",
+                    subtitle: "Warmup sets are lighter weight sets performed before your working sets to prepare your muscles and joints. They don't count toward your total volume or personal records.",
+                    primaryButtonTitle: "Got it",
+                    primaryButtonAction: {
+                        primaryButtonAction()
+                    },
+                    secondaryButtonTitle: "",
+                    secondaryButtonAction: {}
+                )
+            }
+        )
+    }
+
 
 }

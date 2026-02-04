@@ -118,7 +118,7 @@ class ProgramDesignPresenter {
     }
     
     func onAddExercisePressed() {
-        router.showAddExercisesView(delegate: AddExerciseModalDelegate(selectedExercises: .constant([])))
+        router.showExercisePickerView(delegate: ExercisePickerDelegate(selectedExercises: .constant([])))
     }
     
     func onProgramSettingsPressed(program: Binding<TrainingProgram>) {

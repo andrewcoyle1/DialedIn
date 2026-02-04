@@ -99,11 +99,6 @@ class ProfilePresenter {
         interactor.trackEvent(event: Event.navigate)
         router.showSettingsView()
     }
-
-    func navToNutritionDetail() {
-        interactor.trackEvent(event: Event.navigate)
-        router.showProfileNutritionDetailView()
-    }
     
     func onShortcutsPressed() {
         router.showShortcutsView(delegate: ShortcutsDelegate())
@@ -205,15 +200,6 @@ class ProfilePresenter {
         }
     }
 
-    func navToPhysicalStats() {
-        interactor.trackEvent(event: Event.navigate)
-        router.showPhysicalStatsView()
-    }
-
-    func navToProfileGoals() {
-        interactor.trackEvent(event: Event.navigate)
-        router.showProfileGoalsView()
-    }
 
     enum Event: LoggableEvent {
         case navigate

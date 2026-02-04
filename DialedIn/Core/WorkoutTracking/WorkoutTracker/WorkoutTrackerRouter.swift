@@ -11,7 +11,7 @@ import SwiftfulRouting
 @MainActor
 protocol WorkoutTrackerRouter: GlobalRouter {
     func showDevSettingsView()
-    func showAddExercisesView(delegate: AddExerciseModalDelegate)
+    func showExercisePickerView(delegate: ExercisePickerDelegate)
     func showWorkoutNotesView(delegate: WorkoutNotesDelegate)
     func showWorkoutSettingsView(delegate: WorkoutSettingsDelegate)
     func showGymProfileView(gymProfile: GymProfileModel)

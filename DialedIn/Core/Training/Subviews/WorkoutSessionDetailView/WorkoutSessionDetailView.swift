@@ -8,6 +8,10 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct WorkoutSessionDetailDelegate {
+    let workoutSession: WorkoutSessionModel
+}
+
 struct WorkoutSessionDetailView: View {
 
     @State var presenter: WorkoutSessionDetailPresenter

@@ -341,8 +341,8 @@ class WorkoutSessionDetailPresenter {
     }
 
     func onAddExercisePressed() {
-        router.showAddExercisesView(
-            delegate: AddExerciseModalDelegate(
+        router.showExercisePickerView(
+            delegate: ExercisePickerDelegate(
                 selectedExercises: Binding(
                     get: {
                         self.selectedExerciseTemplates

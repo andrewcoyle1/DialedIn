@@ -8,6 +8,10 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct MealDetailDelegate {
+    let meal: MealLogModel
+}
+
 struct MealDetailView: View {
     @State var presenter: MealDetailPresenter
 

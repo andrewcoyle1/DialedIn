@@ -8,6 +8,10 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct IngredientTemplateListDelegate {
+    var templateIds: [String]
+}
+
 struct IngredientTemplateListView: View {
     @State var presenter: IngredientTemplateListPresenter
     let genericTemplateListView: (

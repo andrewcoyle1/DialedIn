@@ -8,14 +8,9 @@
 import SwiftUI
 
 @MainActor
-protocol WorkoutSessionDetailRouter {
+protocol WorkoutSessionDetailRouter: GlobalRouter {
     func showDevSettingsView()
-    func showAddExercisesView(delegate: AddExerciseModalDelegate)
-
-    func dismissScreen()
-
-    func showSimpleAlert(title: String, subtitle: String?)
-    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
+    func showExercisePickerView(delegate: ExercisePickerDelegate)
 }
 
 extension CoreRouter: WorkoutSessionDetailRouter { }

@@ -1,5 +1,5 @@
 //
-//  AddExerciseModalView.swift
+//  ExercisePickerView.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 24/09/2025.
@@ -8,15 +8,15 @@
 import SwiftUI
 import SwiftfulRouting
 
-struct AddExerciseModalDelegate {
+struct ExercisePickerDelegate {
     let selectedExercises: Binding<[ExerciseModel]>
 }
 
-struct AddExerciseModalView: View {
+struct ExercisePickerView: View {
 
-    @State var presenter: AddExerciseModalPresenter
+    @State var presenter: ExercisePickerPresenter
 
-    var delegate: AddExerciseModalDelegate
+    var delegate: ExercisePickerDelegate
 
     var body: some View {
         Group {
@@ -101,18 +101,18 @@ struct AddExerciseModalView: View {
 }
 
 extension CoreBuilder {
-    func addExerciseModalView(router: AnyRouter, delegate: AddExerciseModalDelegate) -> some View {
-        AddExerciseModalView(
-            presenter: AddExerciseModalPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+    func exercisePickerView(router: AnyRouter, delegate: ExercisePickerDelegate) -> some View {
+        ExercisePickerView(
+            presenter: ExercisePickerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
 extension CoreRouter {
-    func showAddExercisesView(delegate: AddExerciseModalDelegate) {
+    func showExercisePickerView(delegate: ExercisePickerDelegate) {
         router.showScreen(.sheet) { router in
-            builder.addExerciseModalView(router: router, delegate: delegate)
+            builder.exercisePickerView(router: router, delegate: delegate)
         }
     }
 }
@@ -120,9 +120,9 @@ extension CoreRouter {
 #Preview {
     @Previewable @State var selectedExercises: [ExerciseModel] = [ExerciseModel.mock]
     let builder = CoreBuilder(container: DevPreview.shared.container())
-    let delegate = AddExerciseModalDelegate(selectedExercises: $selectedExercises)
+    let delegate = ExercisePickerDelegate(selectedExercises: $selectedExercises)
     RouterView { router in
-        builder.addExerciseModalView(router: router, delegate: delegate)
+        builder.exercisePickerView(router: router, delegate: delegate)
     }
     .previewEnvironment()
 }

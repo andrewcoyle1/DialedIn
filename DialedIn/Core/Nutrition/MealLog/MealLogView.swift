@@ -8,6 +8,12 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct MealLogDelegate {
+    var isShowingInspector: Binding<Bool>
+    var selectedIngredientTemplate: Binding<IngredientTemplateModel?>
+    var selectedRecipeTemplate: Binding<RecipeTemplateModel?>
+}
+
 struct MealLogView: View {
 
     @State var presenter: MealLogPresenter

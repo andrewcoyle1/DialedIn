@@ -8,6 +8,10 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct WorkoutsDelegate {
+    var onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)?
+}
+
 struct WorkoutsView<WorkoutList: View>: View {
 
     @State var presenter: WorkoutsPresenter

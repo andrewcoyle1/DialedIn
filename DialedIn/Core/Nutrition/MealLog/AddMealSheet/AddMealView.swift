@@ -8,6 +8,12 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct AddMealDelegate {
+    let selectedDate: Date
+    let mealType: MealType
+    let onSave: (MealLogModel) -> Void
+}
+
 struct AddMealView: View {
 
     @State var presenter: AddMealPresenter

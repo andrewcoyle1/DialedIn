@@ -8,9 +8,6 @@
 @MainActor
 protocol ProfileRouter: GlobalRouter {
     func showAccountView(delegate: AccountDelegate)
-    func showPhysicalStatsView()
-    func showProfileGoalsView()
-    func showProfileNutritionDetailView()
     func showSettingsView()
     func showNotificationsView()
     func showExercisesView()

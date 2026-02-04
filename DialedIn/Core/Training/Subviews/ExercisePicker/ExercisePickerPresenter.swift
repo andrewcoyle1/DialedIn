@@ -1,5 +1,5 @@
 //
-//  AddExerciseModalPresenter.swift
+//  ExercisePickerPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 22/10/2025.
@@ -9,9 +9,9 @@ import SwiftUI
 
 @Observable
 @MainActor
-class AddExerciseModalPresenter {
-    private let interactor: AddExerciseInteractor
-    private let router: AddExerciseModalRouter
+class ExercisePickerPresenter {
+    private let interactor: ExercisePickerInteractor
+    private let router: ExercisePickerRouter
 
     private(set) var exercises: [ExerciseModel] = []
     var searchText: String = ""
@@ -33,8 +33,8 @@ class AddExerciseModalPresenter {
     }
     
     init(
-        interactor: AddExerciseInteractor,
-        router: AddExerciseModalRouter
+        interactor: ExercisePickerInteractor,
+        router: ExercisePickerRouter
     ) {
         self.interactor = interactor
         self.router = router

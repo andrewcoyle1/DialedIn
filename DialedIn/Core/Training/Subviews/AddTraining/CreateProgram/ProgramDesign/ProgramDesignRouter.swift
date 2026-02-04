@@ -4,7 +4,7 @@ import SwiftUI
 protocol ProgramDesignRouter: GlobalRouter {
     func showRenameDayPlanView(delegate: RenameDayPlanDelegate)
     func showProgramSettingsView(program: Binding<TrainingProgram>)
-    func showAddExercisesView(delegate: AddExerciseModalDelegate)
+    func showExercisePickerView(delegate: ExercisePickerDelegate)
 }
 
 extension CoreRouter: ProgramDesignRouter { }

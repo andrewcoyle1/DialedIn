@@ -520,8 +520,8 @@ class WorkoutTrackerPresenter {
     }
     
     func presentAddExercise() {
-        router.showAddExercisesView(
-            delegate: AddExerciseModalDelegate(
+        router.showExercisePickerView(
+            delegate: ExercisePickerDelegate(
                 selectedExercises: Binding(
                     get: { self.pendingSelectedTemplates },
                     set: { self.pendingSelectedTemplates = $0 }
