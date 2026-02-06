@@ -26,6 +26,7 @@ protocol ProfileRouter: GlobalRouter {
     func showFoodLogSettingsView(delegate: FoodLogSettingsDelegate)
     func showExpenditureSettingsView(delegate: ExpenditureSettingsDelegate)
     func showStrategySettingsView(delegate: StrategySettingsDelegate)
+    func showRatingsModal(onYesPressed: @escaping () -> Void, onNoPressed: @escaping () -> Void)
 }
 
 extension CoreRouter: ProfileRouter { }

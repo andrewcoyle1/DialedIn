@@ -7,15 +7,20 @@
 
 import Foundation
 
-final class MockRemoteUserWeightService: RemoteUserWeightService {
+class MockRemoteUserWeightService: RemoteUserWeightService {
+    
     let delay: Double
     let showError: Bool
-    
-    private var entriesByUser: [String: [WeightEntry]] = [:]
-    
-    init(delay: Double, showError: Bool) {
+    private var weightEntries: [WeightEntry] = []
+
+    init(
+        delay: Double,
+        showError: Bool,
+        weightEntries: [WeightEntry] = DialedIn.WeightEntry.mocks
+    ) {
         self.delay = delay
         self.showError = showError
+        self.weightEntries = weightEntries
     }
     
     private func tryShowError() throws {
@@ -24,27 +29,37 @@ final class MockRemoteUserWeightService: RemoteUserWeightService {
         }
     }
     
-    func saveWeightEntry(_ entry: WeightEntry) async throws {
+    // MARK: CREATE
+    func createWeightEntry(entry: WeightEntry) async throws {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
-        var list = entriesByUser[entry.userId, default: []]
-        list.append(entry)
-        entriesByUser[entry.userId] = list
+        weightEntries.append(entry)
     }
     
-    func getWeightHistory(userId: String, limit: Int?) async throws -> [WeightEntry] {
+    // MARK: READ
+    func readWeightEntry(userId: String, entryId: String) async throws -> WeightEntry {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
-        let list = entriesByUser[userId, default: []].sorted { $0.date > $1.date }
-        if let limit = limit { return Array(list.prefix(limit)) }
-        return list
+        
+        return DialedIn.WeightEntry.mock
     }
     
-    func deleteWeightEntry(id: String, userId: String) async throws {
+    func readAllWeightEntriesForAuthor(userId: String) async throws -> [WeightEntry] {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
-        var list = entriesByUser[userId, default: []]
-        list.removeAll { $0.id == id }
-        entriesByUser[userId] = list
+        
+        return DialedIn.WeightEntry.mocks
+    }
+    
+    // MARK: UPDATE
+    func updateWeightEntry(entry: WeightEntry) async throws {
+        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        try tryShowError()
+    }
+    
+    // MARK: DELETE
+    func deleteWeightEntry(userId: String, entryId: String) async throws {
+        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        try tryShowError()
     }
 }

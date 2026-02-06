@@ -20,13 +20,13 @@ struct ContributionChartView: View {
     var heatMapRectangleSpacing: CGFloat = 2.0
     var heatMapRectangleRadius: CGFloat = 5.0
     private let dayLabelColumnWidth: CGFloat = 20.0
-    
+    var showsCaptioning: Bool = true
     // Calendar properties for proper date mapping
     private let calendar = Calendar.current
     private let startDate: Date
     private let endDate: Date
     
-    public init(data: [Double], rows: Int, columns: Int, targetValue: Double, blockColor: Color = Color.green, blockBackgroundColor: Color, rectangleWidth: CGFloat = 20.0, rectangleSpacing: CGFloat = 2.0, rectangleRadius: CGFloat = 5.0, endDate: Date = Date()) {
+    public init(data: [Double], rows: Int, columns: Int, targetValue: Double, blockColor: Color = Color.green, blockBackgroundColor: Color, rectangleWidth: CGFloat = 20.0, rectangleSpacing: CGFloat = 2.0, rectangleRadius: CGFloat = 5.0, endDate: Date = Date(), showsCaptioning: Bool = true) {
         // Validate inputs
         let validRows = max(1, rows)
         let validColumns = max(1, columns)
@@ -49,9 +49,10 @@ struct ContributionChartView: View {
         let daysBackToSunday = endWeekday - 1
         let endWeekStartSunday = calendar.date(byAdding: .day, value: -daysBackToSunday, to: endDayStart) ?? endDayStart
         self.startDate = calendar.date(byAdding: .day, value: -7 * (validColumns - 1), to: endWeekStartSunday) ?? endWeekStartSunday
+        self.showsCaptioning = showsCaptioning
     }
     
-    public init(data: [Double], rows: Int, columns: Int, targetValue: Double, blockColor: Color = Color.green, rectangleWidth: CGFloat = 20.0, rectangleSpacing: CGFloat = 2.0, rectangleRadius: CGFloat = 5.0, endDate: Date = Date()) {
+    public init(data: [Double], rows: Int, columns: Int, targetValue: Double, blockColor: Color = Color.green, rectangleWidth: CGFloat = 20.0, rectangleSpacing: CGFloat = 2.0, rectangleRadius: CGFloat = 5.0, endDate: Date = Date(), showsCaptioning: Bool = true) {
         // Validate inputs
         let validRows = max(1, rows)
         let validColumns = max(1, columns)
@@ -77,23 +78,27 @@ struct ContributionChartView: View {
         let daysBackToSunday = endWeekday - 1
         let endWeekStartSunday = calendar.date(byAdding: .day, value: -daysBackToSunday, to: endDayStart) ?? endDayStart
         self.startDate = calendar.date(byAdding: .day, value: -7 * (validColumns - 1), to: endWeekStartSunday) ?? endWeekStartSunday
+        self.showsCaptioning = showsCaptioning
+
     }
     
     public var body: some View {
         VStack(spacing: CGFloat(heatMapRectangleSpacing)) {
-            /*
-            statisticsSection
-            */
+            if showsCaptioning {
+                statisticsSection
+            }
+            
             chartSection
             
-            // Date range indicator
-            Text(dateRangeString)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-                .padding(.top, 2)
-
-            legendSection
-             
+            if showsCaptioning {
+                // Date range indicator
+                Text(dateRangeString)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 2)
+                
+                legendSection
+            }
         }
 //        .padding()
 //        .background(
@@ -103,8 +108,6 @@ struct ContributionChartView: View {
 //        )
         .animation(.easeInOut(duration: 0.3), value: data)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Study History Contribution Chart")
-        .accessibilityHint("Shows your daily study activity over the past \(rows * columns) days. Each cell represents one day, with darker colors indicating more study sessions.")
     }
     
     private var statisticsSection: some View {
@@ -145,41 +148,48 @@ struct ContributionChartView: View {
         // Chart
         GeometryReader { geo in
             let spacing = CGFloat(heatMapRectangleSpacing)
-            let monthLabelHeight: CGFloat = 16
-            let availableChartWidth = max(0, geo.size.width - dayLabelColumnWidth - spacing)
-            let cellWidth = max(2, floor((availableChartWidth - CGFloat(max(0, columns - 1)) * spacing) / CGFloat(max(1, columns))))
-            let chartHeight = monthLabelHeight + spacing + (CGFloat(rows) * cellWidth) + (CGFloat(max(0, rows - 1)) * spacing)
+            let monthLabelHeight: CGFloat = showsCaptioning ? 16 : 0
+            let dayLabelWidth: CGFloat = showsCaptioning ? dayLabelColumnWidth + spacing : 0
+            let availableChartWidth = max(0, geo.size.width - dayLabelWidth)
+            let cellWidthFromWidth = max(2, floor((availableChartWidth - CGFloat(max(0, columns - 1)) * spacing) / CGFloat(max(1, columns))))
+            let availableChartHeight = max(0, geo.size.height - monthLabelHeight - (showsCaptioning ? spacing : 0))
+            let cellWidthFromHeight = max(2, floor((availableChartHeight - CGFloat(max(0, rows - 1)) * spacing) / CGFloat(max(1, rows))))
+            let cellWidth = min(cellWidthFromWidth, cellWidthFromHeight)
+            let chartHeight = monthLabelHeight + (showsCaptioning ? spacing : 0) + (CGFloat(rows) * cellWidth) + (CGFloat(max(0, rows - 1)) * spacing)
             HStack(alignment: .top, spacing: spacing) {
-                // Day labels
-                VStack(spacing: spacing) {
-                    ForEach(0..<rows, id: \.self) { rowIndex in
-                        Text(dayLabel(for: rowIndex))
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                            .frame(width: dayLabelColumnWidth, height: cellWidth, alignment: .center)
+                if showsCaptioning {
+                    // Day labels
+                    VStack(spacing: spacing) {
+                        ForEach(0..<rows, id: \.self) { rowIndex in
+                            Text(dayLabel(for: rowIndex))
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .frame(width: dayLabelColumnWidth, height: cellWidth, alignment: .center)
+                        }
                     }
+                    .frame(height: (CGFloat(rows) * cellWidth) + (CGFloat(max(0, rows - 1)) * spacing), alignment: .top)
+                    .padding(.top, monthLabelHeight + spacing)
+                    
                 }
-                .frame(height: (CGFloat(rows) * cellWidth) + (CGFloat(max(0, rows - 1)) * spacing), alignment: .top)
-                .padding(.top, monthLabelHeight + spacing)
-                
                 // Chart
                 ZStack {
                     VStack(spacing: spacing) {
-                        // Month labels
-                        HStack(spacing: spacing) {
-                            ForEach(0..<columns, id: \.self) { columnIndex in
-                                let showLabel = shouldShowMonthLabel(for: columnIndex)
-                                Text(showLabel ? monthLabel(for: columnIndex) : "")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.7)
-                                    .allowsTightening(true)
-                                    .frame(width: cellWidth, height: monthLabelHeight, alignment: .center)
+                        if showsCaptioning {
+                            // Month labels
+                            HStack(spacing: spacing) {
+                                ForEach(0..<columns, id: \.self) { columnIndex in
+                                    let showLabel = shouldShowMonthLabel(for: columnIndex)
+                                    Text(showLabel ? monthLabel(for: columnIndex) : "")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.7)
+                                        .allowsTightening(true)
+                                        .frame(width: cellWidth, height: monthLabelHeight, alignment: .center)
+                                }
                             }
+                            .frame(height: monthLabelHeight, alignment: .top)
                         }
-                        .frame(height: monthLabelHeight, alignment: .top)
-                        
                         // Chart grid
                         HStack(spacing: spacing) {
                             ForEach(0..<columns, id: \.self) { columnIndex in

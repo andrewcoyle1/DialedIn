@@ -56,7 +56,7 @@ class LogWeightPresenter {
         }
 
         // Load recent entries
-        _ = try? await interactor.getWeightHistory(userId: user.userId, limit: 5)
+        _ = try? await interactor.readAllRemoteWeightEntries(userId: user.userId)
     }
 
     func saveWeight() async {
@@ -66,12 +66,8 @@ class LogWeightPresenter {
 
         do {
             // Save weight entry
-            try await interactor.logWeight(
-                weightKg,
-                date: selectedDate,
-                notes: notes.isEmpty ? nil : notes,
-                userId: user.userId
-            )
+            let entry = WeightEntry(authorId: user.userId, weightKg: weightKg, date: selectedDate)
+            try await interactor.createWeightEntry(weightEntry: entry)
 
             // Update user's current weight
             try await interactor.updateWeight(userId: user.userId, weightKg: weightKg)

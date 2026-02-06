@@ -79,4 +79,19 @@ struct CoreBuilder: Builder {
         )
     }
 
+    func ratingsModal(onYesPressed: @escaping () -> Void, onNoPressed: @escaping () -> Void) -> some View {
+        CustomModalView(
+            title: "Are you enjoying AIChat?",
+            subtitle: "We'd love to hear your feedback!",
+            primaryButtonTitle: "Yes",
+            primaryButtonAction: {
+                onYesPressed()
+            },
+            secondaryButtonTitle: "No",
+            secondaryButtonAction: {
+                onNoPressed()
+            }
+        )
+    }
+
 }

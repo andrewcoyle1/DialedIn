@@ -10,9 +10,10 @@ import SwiftUI
 protocol LogWeightInteractor {
     var currentUser: UserModel? { get }
     var weightHistory: [WeightEntry] { get }
+    func createWeightEntry(weightEntry: WeightEntry) async throws
+    func readAllLocalWeightEntries() throws -> [WeightEntry]
+    func readAllRemoteWeightEntries(userId: String) async throws -> [WeightEntry]
     func updateWeight(userId: String, weightKg: Double) async throws
-    func getWeightHistory(userId: String, limit: Int?) async throws -> [WeightEntry]
-    func logWeight(_ weightKg: Double, date: Date, notes: String?, userId: String) async throws
 }
 
 extension CoreInteractor: LogWeightInteractor { }

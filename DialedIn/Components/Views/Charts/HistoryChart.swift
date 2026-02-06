@@ -12,61 +12,6 @@ func date(year: Int, month: Int, day: Int = 1) -> Date {
     Calendar.current.date(from: DateComponents(year: year, month: month, day: day)) ?? Date()
 }
 
-struct TimeSeriesDatapoint: Identifiable {
-    var id = UUID().uuidString
-    var date: Date
-    var value: Double
-}
-
-struct TimeSeriesData {
-    struct TimeSeries: Identifiable {
-        
-        /// Series name
-        let name: String
-        
-        /// Dataset
-        let data: [(date: Date, value: Double)]
-        
-        /// The identifier for the series
-        var id: String {
-            name
-        }
-    }
-    
-    /// Mock data for demo-ing charts
-    static let last30Days: [TimeSeries] = [
-        .init(name: "Bench Press", data: [
-            (date: date(year: 2022, month: 5, day: 2), value: 54),
-            (date: date(year: 2022, month: 5, day: 3), value: 42),
-            (date: date(year: 2022, month: 5, day: 4), value: 88),
-            (date: date(year: 2022, month: 5, day: 5), value: 49),
-            (date: date(year: 2022, month: 5, day: 6), value: 42),
-            (date: date(year: 2022, month: 5, day: 7), value: 125),
-            (date: date(year: 2022, month: 5, day: 8), value: 67)
-        ]),
-        .init(name: "Barbell Squat", data: [
-            (date: date(year: 2022, month: 5, day: 2), value: 81),
-            (date: date(year: 2022, month: 5, day: 3), value: 90),
-            (date: date(year: 2022, month: 5, day: 4), value: 52),
-            (date: date(year: 2022, month: 5, day: 5), value: 72),
-            (date: date(year: 2022, month: 5, day: 6), value: 84),
-            (date: date(year: 2022, month: 5, day: 7), value: 84),
-            (date: date(year: 2022, month: 5, day: 8), value: 137)
-        ])
-    ]
-    
-}
-
-// MARK: - Helpers
-extension TimeSeriesData.TimeSeries {
-    var sortedByDate: [(date: Date, value: Double)] {
-        data.sorted { $0.date < $1.date }
-    }
-    var lastByDate: (date: Date, value: Double)? {
-        data.max { $0.date < $1.date }
-    }
-}
-
 struct HistoryChart: View {
     
     var series: [TimeSeriesData.TimeSeries]
@@ -166,37 +111,10 @@ private struct SeriesMarks: ChartContent {
     }
 }
 
-// MARK: - View Extensions for Conditional Chart Styling
-extension View {
-    @ViewBuilder
-    func applyChartForegroundStyleScale(_ mapping: [String: Color]?) -> some View {
-        if let mapping = mapping {
-            let sorted = mapping.sorted { $0.key < $1.key }
-            let domain = sorted.map { $0.key }
-            let range = sorted.map { $0.value }
-            self.chartForegroundStyleScale(domain: domain, range: range)
-        } else {
-            self
-        }
-    }
-
-    @ViewBuilder
-    func applyChartSymbolScale(_ mapping: [String: AnyChartSymbolShape]?) -> some View {
-        if let mapping = mapping {
-            let sorted = mapping.sorted { $0.key < $1.key }
-            let domain = sorted.map { $0.key }
-            let range = sorted.map { $0.value }
-            self.chartSymbolScale(domain: domain, range: range)
-        } else {
-            self
-        }
-    }
-}
-
 #Preview("With Data") {
     List {
         Section {
-            HistoryChart(series: TimeSeriesData.last30Days, yAxisSuffix: " kg")
+            HistoryChart(series: TimeSeriesData.lastYear, yAxisSuffix: " kg")
         } header: {
             Text("History Chart")
         }
@@ -217,7 +135,7 @@ extension View {
     List {
         Section {
             HistoryChart(
-                series: TimeSeriesData.last30Days,
+                series: TimeSeriesData.lastYear,
                 colorMapping: [
                     "Bench Press": .purple,
                     "Barbell Squat": .green

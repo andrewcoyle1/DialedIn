@@ -192,7 +192,6 @@ struct Dependencies {
         hapticManager = HapticManager(logger: logManager)
         soundEffectManager = SoundEffectManager(logger: logManager)
 
-
         let container = DependencyContainer()
         container.register(AuthManager.self, service: authManager)
         container.register(UserManager.self, service: userManager)

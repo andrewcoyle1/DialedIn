@@ -134,6 +134,9 @@ class SettingsPresenter {
         case ratingsYesPressed
         case ratingsNoPressed
         case navigate
+        case dedupeWeightsStart
+        case dedupeWeightsSuccess
+        case dedupeWeightsFail(error: Error)
 
         var eventName: String {
             switch self {
@@ -149,12 +152,17 @@ class SettingsPresenter {
             case .ratingsYesPressed:            return "Settings_RatingsYes_Press"
             case .ratingsNoPressed:             return "Settings_RatingsNo_Press"
             case .navigate:                     return "Settings_Navigate"
+            case .dedupeWeightsStart:           return "Settings_DedupeWeights_Start"
+            case .dedupeWeightsSuccess:         return "Settings_DedupeWeights_Success"
+            case .dedupeWeightsFail:            return "Settings_DedupeWeights_Fail"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
-            case .signOutFail(error: let error), .deleteAccountFail(error: let error):
+            case .signOutFail(error: let error),
+                 .deleteAccountFail(error: let error),
+                 .dedupeWeightsFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -163,7 +171,7 @@ class SettingsPresenter {
         
         var type: LogType {
             switch self {
-            case .signOutFail, .deleteAccountFail:
+            case .signOutFail, .deleteAccountFail, .dedupeWeightsFail:
                 return .severe
             case .navigate:
                 return .info

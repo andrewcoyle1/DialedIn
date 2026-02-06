@@ -633,24 +633,12 @@ class TrainingPresenter {
     // MARK: - Data Loading
     
     func loadData() async {
-        interactor.trackEvent(event: Event.loadDataStart)
-        do {
-            await refreshFavouriteGymProfileImage()
-            interactor.trackEvent(event: Event.loadDataSuccess)
-        } catch {
-            interactor.trackEvent(event: Event.loadDataFail(error: error))
-        }
+        await refreshFavouriteGymProfileImage()
     }
     
     func refreshData() async {
         interactor.trackEvent(event: Event.refreshDataStart)
-        do {
-            await refreshFavouriteGymProfileImage()
-            interactor.trackEvent(event: Event.refreshDataSuccess)
-        } catch {
-            interactor.trackEvent(event: Event.refreshDataFail(error: error))
-            router.showAlert(error: error)
-        }
+        await refreshFavouriteGymProfileImage()
     }
 
     func refreshFavouriteGymProfileImage() async {

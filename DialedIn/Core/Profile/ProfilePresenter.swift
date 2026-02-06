@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftfulUtilities
 
 @Observable
 @MainActor
@@ -112,6 +113,26 @@ class ProfilePresenter {
         router.showLegalView(delegate: LegalDelegate())
     }
     
+    func onRatingsButtonPressed() {
+        interactor.trackEvent(event: Event.ratingsPressed)
+        
+        func onEnjoyingAppYesPressed() {
+            interactor.trackEvent(event: Event.ratingsYesPressed)
+            router.dismissModal()
+            AppStoreRatingsHelper.requestRatingsReview()
+        }
+        
+        func onEnjoyingAppNoPressed() {
+            interactor.trackEvent(event: Event.ratingsNoPressed)
+            router.dismissModal()
+        }
+        
+        router.showRatingsModal(
+            onYesPressed: onEnjoyingAppYesPressed,
+            onNoPressed: onEnjoyingAppNoPressed
+        )
+    }
+    
     func onFoodLogSettingsPressed() {
         router.showFoodLogSettingsView(delegate: FoodLogSettingsDelegate())
     }
@@ -200,25 +221,32 @@ class ProfilePresenter {
         }
     }
 
-
     enum Event: LoggableEvent {
         case navigate
+        case ratingsPressed
+        case ratingsYesPressed
+        case ratingsNoPressed
 
         var eventName: String {
             switch self {
             case .navigate:     return "Fail"
+            case .ratingsPressed:               return "SettingsView_Ratings_Pressed"
+            case .ratingsYesPressed:            return "SettingsView_RatingsYes_Pressed"
+            case .ratingsNoPressed:             return "SettingsView_RatingsNo_Pressed"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate:
+            default:
                 return nil
             }
         }
 
         var type: LogType {
             switch self {
+            case .ratingsPressed, .ratingsYesPressed, .ratingsNoPressed:
+                return .analytic
             case .navigate:
                 return .info
             }

@@ -1351,24 +1351,45 @@ struct CoreInteractor: GlobalInteractor {
         userWeightManager.weightHistory
     }
     
-    func logWeight(_ weightKg: Double, date: Date = Date(), notes: String? = nil, userId: String) async throws {
-        try await userWeightManager.logWeight(weightKg, date: date, notes: notes, userId: userId)
+    /// CREATE
+    func createWeightEntry(weightEntry: WeightEntry) async throws {
+        try await userWeightManager.createWeightEntry(weightEntry: weightEntry)
     }
     
-    func getWeightHistory(userId: String, limit: Int? = nil) async throws -> [WeightEntry] {
-        try await userWeightManager.getWeightHistory(userId: userId, limit: limit)
+    /// READ
+    func readLocalWeightEntry(id: String) throws -> WeightEntry {
+        try userWeightManager.readLocalWeightEntry(id: id)
     }
     
-    func getLatestWeight(userId: String) async throws -> WeightEntry? {
-        try await userWeightManager.getLatestWeight(userId: userId)
+    func readRemoteWeightEntry(userId: String, entryId: String) async throws -> WeightEntry {
+        try await userWeightManager.readRemoteWeightEntry(userId: userId, entryId: entryId)
     }
     
-    func deleteWeightEntry(id: String, userId: String) async throws {
-        try await userWeightManager.deleteWeightEntry(id: id, userId: userId)
+    func readAllLocalWeightEntries() throws -> [WeightEntry] {
+        try userWeightManager.readAllLocalWeightEntries()
     }
     
-    func refresh(userId: String) async throws {
-        try await userWeightManager.refresh(userId: userId)
+    func readAllRemoteWeightEntries(userId: String) async throws -> [WeightEntry] {
+        try await userWeightManager.readAllRemoteWeightEntries(userId: userId)
+    }
+    
+    /// UPDATE
+    func updateWeightEntry(entry: WeightEntry) async throws {
+        try await userWeightManager.updateWeightEntry(entry: entry)
+    }
+    
+    /// DELETE
+    func deleteWeightEntry(userId: String, entryId: String) async throws {
+        try await userWeightManager.deleteWeightEntry(userId: userId, entryId: entryId)
+    }
+
+    func dedupeWeightEntriesByDay(userId: String) async throws {
+        try await userWeightManager.dedupeWeightEntriesByDay(userId: userId)
+    }
+    
+    func backfillBodyFatFromHealthKit() async {
+        guard let userId else { return }
+        await userWeightManager.backfillBodyFatFromHealthKit(userId: userId)
     }
     
     // MARK: GoalManager

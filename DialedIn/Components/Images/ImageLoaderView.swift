@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import SDWebImageSwiftUI
+@_exported import SDWebImageSwiftUI
 
 /// Type-erased `Shape` so we can store shapes as properties without using `any Shape`.
 struct AnyShape: Shape {

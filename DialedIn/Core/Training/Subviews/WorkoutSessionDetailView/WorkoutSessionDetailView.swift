@@ -33,7 +33,8 @@ struct WorkoutSessionDetailView: View {
         .showModal(showModal: Binding(get: { presenter.isLoading }, set: { _ in })) {
             ProgressView()
                 .tint(.white)
-        }.scrollIndicators(.hidden)
+        }
+        .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }

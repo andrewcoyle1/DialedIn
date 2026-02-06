@@ -23,21 +23,8 @@ struct SettingsView: View {
             presenter.setAnonymousAccountStatus()
         }
         .screenAppearAnalytics(name: "Settings")
-        .showModal(showModal: $presenter.showRatingsModal) {
-            ratingsModal
-        }
     }
 
-    private var ratingsModal: some View {
-        CustomModalView(
-            title: "Are you enjoying Dialed?",
-            subtitle: "We'd love to hear your feedback!",
-            primaryButtonTitle: "Yes",
-            primaryButtonAction: { presenter.onEnjoyingAppYesPressed() },
-            secondaryButtonTitle: "Not now",
-            secondaryButtonAction: { presenter.onEnjoyingAppNoPressed() }
-        )
-    }
     private var accountSection: some View {
         Section {
             if presenter.isAnonymousUser {
