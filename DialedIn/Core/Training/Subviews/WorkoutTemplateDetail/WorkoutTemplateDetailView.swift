@@ -8,6 +8,10 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct WorkoutTemplateDetailDelegate {
+    let workoutTemplate: WorkoutTemplateModel
+}
+
 struct WorkoutTemplateDetailView: View {
 
     @State var presenter: WorkoutTemplateDetailPresenter
@@ -51,14 +55,33 @@ struct WorkoutTemplateDetailView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.onDismissPressed()
-            } label: {
-                Image(systemName: "xmark")
+        // Show edit button when not in edit mode
+        if isAuthor {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    presenter.onEditWorkoutPressed(template: delegate.workoutTemplate)
+                } label: {
+                    Image(systemName: "pencil")
+                }
             }
         }
-        ToolbarSpacer(.fixed, placement: .topBarLeading)
+
+        // Show delete button only in edit mode
+        if isAuthor {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(role: .destructive) {
+                    presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate)
+                } label: {
+                    if presenter.isDeleting {
+                        ProgressView()
+                    } else {
+                        Image(systemName: "trash")
+                    }
+                }
+                .disabled(presenter.isDeleting)
+            }
+        }
+
         #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
@@ -92,33 +115,6 @@ struct WorkoutTemplateDetailView: View {
             }
         }
 
-        // Show edit button when not in edit mode
-        if isAuthor {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    presenter.onEditWorkoutPressed(template: delegate.workoutTemplate)
-                } label: {
-                    Image(systemName: "pencil")
-                }
-            }
-        }
-
-        // Show delete button only in edit mode
-        if isAuthor {
-            ToolbarItem(placement: .topBarLeading) {
-                Button(role: .destructive) {
-                    presenter.showDeleteConfirmation(workoutTemplate: delegate.workoutTemplate)
-                } label: {
-                    if presenter.isDeleting {
-                        ProgressView()
-                    } else {
-                        Image(systemName: "trash")
-                    }
-                }
-                .disabled(presenter.isDeleting)
-            }
-        }
-
         // Hide start button in edit mode
         ToolbarItem(placement: .topBarTrailing) {
             Button {
@@ -138,17 +134,17 @@ struct WorkoutTemplateDetailView: View {
         .removeListRowFormatting()
     }
     
-    private func exerciseSection(exercise: ExerciseTemplateModel) -> some View {
+    private func exerciseSection(exercise: WorkoutTemplateExercise) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(exercise.name)
+                Text(exercise.exercise.name)
                     .fontWeight(.semibold)
                 Spacer()
-                Text(exercise.type.description)
+                Text(exercise.exercise.type?.name ?? "Uncategorized")
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }
-            if let notes = exercise.description, !notes.isEmpty {
+            if let notes = exercise.exercise.description, !notes.isEmpty {
                 Text(notes)
                     .foregroundColor(.secondary)
             }
@@ -168,7 +164,7 @@ extension CoreBuilder {
 
 extension CoreRouter {
     func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate) {
-        router.showScreen(.sheet) { router in
+        router.showScreen(.push) { router in
             builder.workoutTemplateDetailView(router: router, delegate: delegate)
         }
     }

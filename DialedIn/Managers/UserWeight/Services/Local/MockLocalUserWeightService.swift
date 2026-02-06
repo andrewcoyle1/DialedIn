@@ -11,48 +11,49 @@ final class MockLocalUserWeightService: LocalUserWeightService {
     let delay: Double
     let showError: Bool
     
-    private var entriesByUser: [String: [WeightEntry]] = [:]
-    
+    private var weightEntries: [WeightEntry] = []
+
     private func tryShowError() throws {
         if showError {
             throw URLError(.unknown)
         }
     }
     
-    init(delay: Double, showError: Bool) {
+    init(delay: Double, showError: Bool, weightEntries: [WeightEntry] = WeightEntry.mocks) {
         self.delay = delay
         self.showError = showError
+        self.weightEntries = weightEntries
     }
     
-    func saveWeightEntry(_ entry: WeightEntry) async throws {
-        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+    // MARK: CREATE
+    func createWeightEntry(weightEntry: WeightEntry) throws {
         try tryShowError()
-        var list = entriesByUser[entry.userId, default: []]
         // Upsert by id to avoid duplicates when refreshing
-        list.removeAll { $0.id == entry.id }
-        list.append(entry)
-        entriesByUser[entry.userId] = list
+        weightEntries.removeAll { $0.id == weightEntry.id }
+        weightEntries.append(weightEntry)
     }
     
-    func getWeightHistory(userId: String, limit: Int?) async throws -> [WeightEntry] {
-        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+    // MARK: READ
+    func readWeightEntry(id: String) throws -> WeightEntry {
         try tryShowError()
-        let list = entriesByUser[userId, default: []].sorted { $0.date > $1.date }
-        if let limit = limit { return Array(list.prefix(limit)) }
-        return list
+        return WeightEntry.mock
     }
     
-    func deleteWeightEntry(id: String, userId: String) async throws {
-        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+    func readWeightEntries() throws -> [WeightEntry] {
         try tryShowError()
-        var list = entriesByUser[userId, default: []]
-        list.removeAll { $0.id == id }
-        entriesByUser[userId] = list
+        return WeightEntry.mocks
     }
     
-    func clearCache(userId: String) async throws {
-        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+    // MARK: UPDATE
+    func updateWeightEntry(entry: WeightEntry) throws {
         try tryShowError()
-        entriesByUser[userId] = []
+        weightEntries.removeAll { $0.id == entry.id }
+        weightEntries.append(entry)
+    }
+    
+    // MARK: DELETE
+    func deleteWeightEntry(id: String) throws {
+        try tryShowError()
+        weightEntries.removeAll { $0.id == id }
     }
 }

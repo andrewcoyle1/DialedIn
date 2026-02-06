@@ -15,26 +15,41 @@ struct ProductionRemoteUserWeightService: RemoteUserWeightService {
     private func weightEntriesCollection(userId: String) -> CollectionReference {
         database.collection("users").document(userId).collection("weight_entries")
     }
-    
-    func saveWeightEntry(_ entry: WeightEntry) async throws {
-        try weightEntriesCollection(userId: entry.userId)
+
+    // MARK: CREATE
+    func createWeightEntry(entry: WeightEntry) async throws {
+        try weightEntriesCollection(userId: entry.authorId)
             .document(entry.id)
             .setData(from: entry, merge: false)
+
     }
     
-    func getWeightHistory(userId: String, limit: Int?) async throws -> [WeightEntry] {
-        var query: Query = weightEntriesCollection(userId: userId)
+    // MARK: READ
+    func readWeightEntry(userId: String, entryId: String) async throws -> WeightEntry {
+        try await weightEntriesCollection(userId: userId)
+            .getDocument(id: entryId)
+    }
+    
+    func readAllWeightEntriesForAuthor(userId: String) async throws -> [WeightEntry] {
+        try await weightEntriesCollection(userId: userId)
+            .whereField(DialedIn.WeightEntry.CodingKeys.authorId.rawValue, isEqualTo: userId)
             .order(by: "date", descending: true)
-        
-        if let limit = limit {
-            query = query.limit(to: limit)
-        }
-        
-        let snapshot = try await query.getDocuments()
-        return try snapshot.documents.compactMap { try $0.data(as: WeightEntry.self) }
+            .limit(to: 200)
+            .getAllDocuments()
     }
     
-    func deleteWeightEntry(id: String, userId: String) async throws {
-        try await weightEntriesCollection(userId: userId).document(id).delete()
+    // MARK: UPDATE
+    func updateWeightEntry(entry: WeightEntry) async throws {
+        try weightEntriesCollection(userId: entry.authorId)
+            .document(entry.id)
+            .setData(from: entry, merge: true)
+    }
+    
+    // MARK: DELETE
+    func deleteWeightEntry(userId: String, entryId: String) async throws {
+        try await weightEntriesCollection(userId: userId)
+            .document(entryId)
+            .delete()
+
     }
 }

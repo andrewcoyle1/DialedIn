@@ -14,36 +14,27 @@ struct AddTrainingView: View {
     var body: some View {
         List {
             Section {
-                HStack {
-                    Image(systemName: "clipboard")
-                    Text("New Program")
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                }
+                CustomListCellView(sfSymbolName: "clipboard", title: "New Program")
                 .tappableBackground()
                 .anyButton {
                     presenter.onNewProgramPressed()
                 }
-                HStack {
-                    Image(systemName: "dumbbell")
-                    Text("New Workout")
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                }
+                .removeListRowFormatting()
+                
+                CustomListCellView(sfSymbolName: "dumbbell", title: "New Workout")
                 .tappableBackground()
                 .anyButton {
                     presenter.onNewEmptyWorkoutPressed()
                 }
-                HStack {
-                    Image(systemName: "dumbbell")
-                    Text("New Exercise")
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                }
+                .removeListRowFormatting()
+
+                CustomListCellView(sfSymbolName: "list.bullet", title: "New Exercise")
                 .tappableBackground()
                 .anyButton {
                     presenter.onNewExercisePressed()
                 }
+                .removeListRowFormatting()
+
             }
             .listSectionMargins(.top, 0)
         }

@@ -20,6 +20,26 @@ class NutritionPresenter {
     private(set) var isLoading: Bool = false
     var selectedMealType: MealType = .breakfast
 
+    var caloriePercentage: Double {
+        guard let target = dailyTarget?.calories, target > 0 else { return 0 }
+        return (dailyTotals?.calories ?? 0) / target
+    }
+    
+    var proteinPercentage: Double {
+        guard let target = dailyTarget?.proteinGrams, target > 0 else { return 0 }
+        return (dailyTotals?.proteinGrams ?? 0) / target
+    }
+
+    var fatPercentage: Double {
+        guard let target = dailyTarget?.fatGrams, target > 0 else { return 0 }
+        return (dailyTotals?.fatGrams ?? 0) / target
+    }
+
+    var carbsPercentage: Double {
+        guard let target = dailyTarget?.carbGrams, target > 0 else { return 0 }
+        return (dailyTotals?.carbGrams ?? 0) / target
+    }
+
     var currentUser: UserModel? {
         interactor.currentUser
     }

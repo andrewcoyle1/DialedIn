@@ -114,8 +114,8 @@ struct FirebaseWorkoutTemplateService: RemoteWorkoutTemplateService {
     
     func getWorkoutTemplatesForAuthor(authorId: String) async throws -> [WorkoutTemplateModel] {
         let snapshot = try await collection
-            .whereField(ExerciseTemplateModel.CodingKeys.authorId.rawValue, isEqualTo: authorId)
-            .order(by: ExerciseTemplateModel.CodingKeys.dateCreated.rawValue, descending: true)
+            .whereField(WorkoutTemplateModel.CodingKeys.authorId.rawValue, isEqualTo: authorId)
+            .order(by: WorkoutTemplateModel.CodingKeys.dateCreated.rawValue, descending: true)
             .getDocuments()
         
         return try snapshot.documents.compactMap { try $0.data(as: WorkoutTemplateModel.self) }

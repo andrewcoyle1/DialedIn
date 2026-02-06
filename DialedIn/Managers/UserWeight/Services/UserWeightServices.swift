@@ -8,4 +8,7 @@
 protocol UserWeightServices {
     var remote: RemoteUserWeightService { get }
     var local: LocalUserWeightService { get }
+#if canImport(HealthKit)
+    var healthKit: HealthKitWeightService? { get }
+#endif
 }

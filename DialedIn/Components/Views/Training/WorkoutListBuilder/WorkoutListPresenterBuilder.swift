@@ -24,11 +24,15 @@ class WorkoutListPresenterBuilder {
     private(set) var workouts: [WorkoutTemplateModel] = []
     
     var showCreateWorkout: Bool = false
-    var selectedExerciseTemplate: ExerciseTemplateModel?
+    var selectedExerciseTemplate: ExerciseModel?
     var selectedWorkoutTemplate: WorkoutTemplateModel?
     
     var currentUser: UserModel? {
         interactor.currentUser
+    }
+    
+    var workoutsCount: Int {
+        [myWorkouts, favouriteWorkouts, bookmarkedWorkouts, systemWorkouts].reduce(0) { $0 + $1.count }
     }
     
     var myWorkoutIds: Set<String> {

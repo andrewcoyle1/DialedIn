@@ -40,7 +40,6 @@ struct CoreInteractor: GlobalInteractor {
     private let logManager: LogManager
     private let reportManager: ReportManager
     private let healthKitManager: HealthKitManager
-    private let trainingAnalyticsManager: TrainingAnalyticsManager
     private let userWeightManager: UserWeightManager
     private let goalManager: GoalManager
     private let imageUploadManager: ImageUploadManager
@@ -77,7 +76,6 @@ struct CoreInteractor: GlobalInteractor {
         self.logManager = container.resolve(LogManager.self)!
         self.reportManager = container.resolve(ReportManager.self)!
         self.healthKitManager = container.resolve(HealthKitManager.self)!
-        self.trainingAnalyticsManager = container.resolve(TrainingAnalyticsManager.self)!
         self.userWeightManager = container.resolve(UserWeightManager.self)!
         self.goalManager = container.resolve(GoalManager.self)!
         self.imageUploadManager = container.resolve(ImageUploadManager.self)!
@@ -91,6 +89,7 @@ struct CoreInteractor: GlobalInteractor {
         self.hapticManager = container.resolve(HapticManager.self)!
         self.soundEffectManager = container.resolve(SoundEffectManager.self)!
 
+        _ = try? getActiveTrainingProgram()
     }
 
     // MARK: Shared
@@ -524,48 +523,48 @@ struct CoreInteractor: GlobalInteractor {
     }
 
     // MARK: ExerciseTemplateManager
-    
-    func addLocalExerciseTemplate(exercise: ExerciseTemplateModel) async throws {
+
+    func addLocalExerciseTemplate(exercise: ExerciseModel) async throws {
         try await exerciseTemplateManager.addLocalExerciseTemplate(exercise: exercise)
     }
     
-    func getLocalExerciseTemplate(id: String) throws -> ExerciseTemplateModel {
+    func getLocalExerciseTemplate(id: String) throws -> ExerciseModel {
         try exerciseTemplateManager.getLocalExerciseTemplate(id: id)
     }
     
-    func getLocalExerciseTemplates(ids: [String]) throws -> [ExerciseTemplateModel] {
+    func getLocalExerciseTemplates(ids: [String]) throws -> [ExerciseModel] {
         try exerciseTemplateManager.getLocalExerciseTemplates(ids: ids)
     }
     
-    func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel] {
+    func getAllLocalExerciseTemplates() throws -> [ExerciseModel] {
         try exerciseTemplateManager.getAllLocalExerciseTemplates()
     }
     
-    func getSystemExerciseTemplates() throws -> [ExerciseTemplateModel] {
+    func getSystemExerciseTemplates() throws -> [ExerciseModel] {
         try exerciseTemplateManager.getSystemExerciseTemplates()
     }
     
-    func createExerciseTemplate(exercise: ExerciseTemplateModel, image: PlatformImage?) async throws {
+    func createExerciseTemplate(exercise: ExerciseModel, image: PlatformImage?) async throws {
         try await exerciseTemplateManager.createExerciseTemplate(exercise: exercise, image: image)
     }
     
-    func getExerciseTemplate(id: String) async throws -> ExerciseTemplateModel {
+    func getExerciseTemplate(id: String) async throws -> ExerciseModel {
         try await exerciseTemplateManager.getExerciseTemplate(id: id)
     }
     
-    func getExerciseTemplates(ids: [String], limitTo: Int = 20) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplates(ids: [String], limitTo: Int = 20) async throws -> [ExerciseModel] {
         try await exerciseTemplateManager.getExerciseTemplates(ids: ids, limitTo: limitTo)
     }
     
-    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseModel] {
         try await exerciseTemplateManager.getExerciseTemplatesByName(name: name)
     }
     
-    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseModel] {
         try await exerciseTemplateManager.getExerciseTemplatesForAuthor(authorId: authorId)
     }
     
-    func getTopExerciseTemplatesByClicks(limitTo: Int = 10) async throws -> [ExerciseTemplateModel] {
+    func getTopExerciseTemplatesByClicks(limitTo: Int = 10) async throws -> [ExerciseModel] {
         try await exerciseTemplateManager.getTopExerciseTemplatesByClicks(limitTo: limitTo)
     }
     
@@ -896,16 +895,32 @@ struct CoreInteractor: GlobalInteractor {
     func setActiveTrainingProgram(programId: String) async throws {
         try await userManager.updateActiveTrainingProgramId(programId: programId)
     }
-    
-    func getActiveTrainingProgram() async throws -> TrainingProgram? {
+       
+    @discardableResult
+    func getActiveTrainingProgram() throws -> TrainingProgram? {
         guard let programId = currentUser?.activeTrainingProgramId else { return nil }
-        return try trainingProgramManager.readLocalTrainingProgram(programId: programId)
+        return try trainingProgramManager.readActiveTrainingProgram(programId: programId)
     }
     
     // CREATE
     
     func createTrainingProgram(program: TrainingProgram) async throws {
         try await trainingProgramManager.createTrainingProgram(program: program)
+    }
+
+    // UPSERT
+
+    func upsertTrainingProgram(program: TrainingProgram) async throws {
+        do {
+            try await trainingProgramManager.updateTrainingProgram(program: program)
+        } catch {
+            let urlError = error as? URLError
+            if urlError?.code == .fileDoesNotExist {
+                try await trainingProgramManager.createTrainingProgram(program: program)
+            } else {
+                throw error
+            }
+        }
     }
     
     // READ
@@ -939,6 +954,11 @@ struct CoreInteractor: GlobalInteractor {
     }
     
     // MARK: GymProfileManager
+    
+    var favouriteGymProfile: GymProfileModel? {
+        guard let favouriteGymProfileId = currentUser?.favouriteGymProfileId else { return nil }
+        return try? readLocalGymProfile(profileId: favouriteGymProfileId)
+    }
     
     // CREATE
     func createGymProfile(profile: GymProfileModel) async throws {
@@ -984,196 +1004,6 @@ struct CoreInteractor: GlobalInteractor {
         
     func deleteGymProfile(profile: GymProfileModel) async throws {
         try await gymProfileManager.deleteGymProfile(profile: profile)
-    }
-
-    // MARK: TrainingPlanManager
-    
-    var currentTrainingPlan: TrainingPlan? {
-        trainingPlanManager.currentTrainingPlan
-    }
-    
-    var allPlans: [TrainingPlan] {
-        trainingPlanManager.allPlans
-    }
-    
-    @MainActor
-    func clearAllTrainingPlanLocalData() throws {
-        try trainingPlanManager.clearAllLocalData()
-    }
-    
-    // Plan Management
-    
-    func createPlan(_ plan: TrainingPlan) async throws {
-        try await trainingPlanManager.createPlan(plan)
-    }
-    
-    func createPlanFromTemplate(
-        _ template: ProgramTemplateModel,
-        startDate: Date,
-        endDate: Date? = nil,
-        userId: String,
-        planName: String? = nil
-    ) async throws -> TrainingPlan {
-        try await trainingPlanManager.createPlanFromTemplate(template, startDate: startDate, endDate: endDate, userId: userId, planName: planName)
-    }
-    
-    func createBlankPlan(
-        name: String,
-        userId: String,
-        description: String? = nil,
-        startDate: Date = .now
-    ) async throws -> TrainingPlan {
-        try await trainingPlanManager.createBlankPlan(name: name, userId: userId, description: description, startDate: startDate)
-    }
-    
-    func updatePlan(_ plan: TrainingPlan) async throws {
-        try await trainingPlanManager.updatePlan(plan)
-    }
-    
-    func deletePlan(id: String) async throws {
-        try await trainingPlanManager.deletePlan(id: id)
-        
-    }
-    
-    func setActivePlan(_ plan: TrainingPlan) {
-        trainingPlanManager.setActivePlan(plan)
-    }
-
-    func markWorkoutIncompleteIfSessionDeleted(scheduledWorkoutId: String, sessionId: String) async throws {
-        try await trainingPlanManager.markWorkoutIncompleteIfSessionDeleted(
-            scheduledWorkoutId: scheduledWorkoutId,
-            sessionId: sessionId
-        )
-    }
-    
-    // Progress Tracking
-    
-    func getWeeklyProgress(for weekNumber: Int) -> WeekProgress {
-        trainingPlanManager.getWeeklyProgress(for: weekNumber)
-    }
-    
-    func getCurrentWeek() -> TrainingWeek? {
-        trainingPlanManager.getCurrentWeek()
-    }
-    
-    func getUpcomingWorkouts(limit: Int = 5) -> [ScheduledWorkout] {
-        trainingPlanManager.getUpcomingWorkouts(limit: limit)
-    }
-    
-    func getTodaysWorkouts() -> [ScheduledWorkout] {
-        trainingPlanManager.getTodaysWorkouts()
-    }
-    
-    func getAdherenceRate() -> Double {
-        trainingPlanManager.getAdherenceRate()
-    }
-    
-    // Goal Management
-    
-    func addGoal(_ goal: TrainingGoal) async throws {
-        try await trainingPlanManager.addGoal(goal)
-    }
-    
-    func updateGoal(_ goal: TrainingGoal) async throws {
-        try await trainingPlanManager.updateGoal(goal)
-    }
-    
-    func removeGoal(id: String) async throws {
-        try await trainingPlanManager.removeGoal(id: id)
-    }
-    
-    // Smart Suggestions
-    
-    func suggestNextWeekWorkouts(basedOn currentWeek: TrainingWeek) -> [ScheduledWorkout] {
-        trainingPlanManager.suggestNextWeekWorkouts(basedOn: currentWeek)
-    }
-    
-    // Sync Operations
-    
-    func syncFromRemote() async throws {
-        let userId = try userManager.currentUserId()
-        try await trainingPlanManager.syncFromRemote(userId: userId)
-    }
-    
-    // MARK: ProgramTemplateManager
-    
-    var programTemplates: [ProgramTemplateModel] {
-        programTemplateManager.templates
-    }
-    
-    func getAll() -> [ProgramTemplateModel] {
-        programTemplateManager.getAll()
-    }
-    
-    func get(id: String) -> ProgramTemplateModel? {
-        programTemplateManager.get(id: id)
-    }
-    
-    func getBuiltInTemplates() -> [ProgramTemplateModel] {
-        programTemplateManager.getBuiltInTemplates()
-    }
-    
-    func create(_ template: ProgramTemplateModel) async throws {
-        try await programTemplateManager.create(template)
-    }
-    
-    func update(_ template: ProgramTemplateModel) async throws {
-        try await programTemplateManager.update(template)
-    }
-    
-    func delete(id: String) async throws {
-        try await programTemplateManager.delete(id: id)
-    }
-    
-    // Sync Operations
-    
-    func syncProgramTemplatesFromRemote() async throws {
-        try await programTemplateManager.syncFromRemote()
-    }
-    
-    func fetchPublicTemplates() async throws -> [ProgramTemplateModel] {
-        try await programTemplateManager.fetchPublicTemplates()
-    }
-    
-    func fetchTemplateFromRemote(id: String) async throws -> ProgramTemplateModel {
-        try await programTemplateManager.fetchTemplateFromRemote(id: id)
-    }
-    
-    // Template Instantiation
-    
-    /// Converts a ProgramTemplate into a TrainingPlan ready to be used
-    func instantiateTemplate(
-        _ template: ProgramTemplateModel,
-        for userId: String,
-        startDate: Date,
-        endDate: Date? = nil,
-        planName: String? = nil
-    ) -> TrainingPlan {
-        programTemplateManager.instantiateTemplate(
-            template,
-            for: userId,
-            startDate: startDate,
-            endDate: endDate,
-            planName: planName
-        )
-    }
-    
-    func templatesByDifficulty(_ difficulty: DifficultyLevel) -> [ProgramTemplateModel] {
-        programTemplateManager.templatesByDifficulty(difficulty)
-    }
-    
-    func templatesByFocusArea(_ focusArea: FocusArea) -> [ProgramTemplateModel] {
-        programTemplateManager.templatesByFocusArea(focusArea)
-    }
-    
-    // Filtering Helpers
-    
-    func isBuiltIn(_ template: ProgramTemplateModel) -> Bool {
-        programTemplateManager.isBuiltIn(template)
-    }
-    
-    func getUserTemplates(userId: String) -> [ProgramTemplateModel] {
-        programTemplateManager.getUserTemplates(userId: userId)
     }
     
     // MARK: IngredientTemplateManager
@@ -1514,61 +1344,52 @@ struct CoreInteractor: GlobalInteractor {
     func getHealthStore() -> HKHealthStore {
         healthKitManager.getHealthStore()
     }
-    
-    // MARK: TrainingAnalyticsManager
-    
-    var cachedSnapshot: ProgressSnapshot? {
-        trainingAnalyticsManager.cachedSnapshot
-    }
-    
-    func getProgressSnapshot(for period: DateInterval) async throws -> ProgressSnapshot {
-        try await trainingAnalyticsManager.getProgressSnapshot(for: period)
-    }
-    
-    func getVolumeTrend(for period: DateInterval, interval: Calendar.Component = .weekOfYear) async -> VolumeTrend {
-        await trainingAnalyticsManager.getVolumeTrend(for: period, interval: interval)
-    }
-    
-    func getStrengthProgression(for exerciseId: String, in period: DateInterval) async throws -> StrengthProgression? {
-        try await trainingAnalyticsManager.getStrengthProgression(for: exerciseId, in: period)
-    }
-    
-    func getCompletedSessions(in period: DateInterval) async -> [WorkoutSessionModel] {
-        let sessions = (try? workoutSessionManager.getAllLocalWorkoutSessions()) ?? []
-        return sessions.filter { session in
-            guard let endedAt = session.endedAt else { return false }
-            return period.contains(endedAt)
-        }
-    }
-    
-    func invalidateCache() {
-        trainingAnalyticsManager.invalidateCache()
-    }
-    
+        
     // UserWeightManager
     
     var weightHistory: [WeightEntry] {
         userWeightManager.weightHistory
     }
     
-    func logWeight(_ weightKg: Double, date: Date = Date(), notes: String? = nil, userId: String) async throws {
-        try await userWeightManager.logWeight(weightKg, date: date, notes: notes, userId: userId)
+    /// CREATE
+    func createWeightEntry(weightEntry: WeightEntry) async throws {
+        try await userWeightManager.createWeightEntry(weightEntry: weightEntry)
     }
     
-    func getWeightHistory(userId: String, limit: Int? = nil) async throws -> [WeightEntry] {
-        try await userWeightManager.getWeightHistory(userId: userId, limit: limit)
+    /// READ
+    func readLocalWeightEntry(id: String) throws -> WeightEntry {
+        try userWeightManager.readLocalWeightEntry(id: id)
     }
     
-    func getLatestWeight(userId: String) async throws -> WeightEntry? {
-        try await userWeightManager.getLatestWeight(userId: userId)
+    func readRemoteWeightEntry(userId: String, entryId: String) async throws -> WeightEntry {
+        try await userWeightManager.readRemoteWeightEntry(userId: userId, entryId: entryId)
     }
     
-    func deleteWeightEntry(id: String, userId: String) async throws {
-        try await userWeightManager.deleteWeightEntry(id: id, userId: userId)
+    func readAllLocalWeightEntries() throws -> [WeightEntry] {
+        try userWeightManager.readAllLocalWeightEntries()
     }
     
-    func refresh(userId: String) async throws {
-        try await userWeightManager.refresh(userId: userId)
+    func readAllRemoteWeightEntries(userId: String) async throws -> [WeightEntry] {
+        try await userWeightManager.readAllRemoteWeightEntries(userId: userId)
+    }
+    
+    /// UPDATE
+    func updateWeightEntry(entry: WeightEntry) async throws {
+        try await userWeightManager.updateWeightEntry(entry: entry)
+    }
+    
+    /// DELETE
+    func deleteWeightEntry(userId: String, entryId: String) async throws {
+        try await userWeightManager.deleteWeightEntry(userId: userId, entryId: entryId)
+    }
+
+    func dedupeWeightEntriesByDay(userId: String) async throws {
+        try await userWeightManager.dedupeWeightEntriesByDay(userId: userId)
+    }
+    
+    func backfillBodyFatFromHealthKit() async {
+        guard let userId else { return }
+        await userWeightManager.backfillBodyFatFromHealthKit(userId: userId)
     }
     
     // MARK: GoalManager
@@ -1832,21 +1653,15 @@ struct CoreInteractor: GlobalInteractor {
     // MARK: Haptics
 
     func prepareHaptic(option: HapticOption) {
-        Task {
-            await hapticManager.prepare(option: option)
-        }
+        hapticManager.prepare(option: option)
     }
 
     func playHaptic(option: HapticOption) {
-        Task {
-            await hapticManager.play(option: option)
-        }
+        hapticManager.play(option: option)
     }
 
     func tearDownHaptic(option: HapticOption) {
-        Task {
-            await hapticManager.tearDown(option: option)
-        }
+        hapticManager.tearDown(option: option)
     }
 
     // MARK: Sound Effects

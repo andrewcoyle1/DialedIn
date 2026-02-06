@@ -20,17 +20,43 @@ struct DashboardView: View {
 
     var body: some View {
         List {
-            carouselSection
-            nutritionTargetSection
-            contributionChartSection
+            Group {
+                Section {
+                    ScrollView(.horizontal) {
+                        HStack {
+                            nutritionTargetSection
+                            contributionChartSection
+                        }
+                        .padding(.horizontal)
+                    }
+                    .scrollTargetLayout()
+                    .scrollTargetBehavior(.paging)
+                    .removeListRowFormatting()
+                }
+                carouselSection
+                insightsAndAnalyticsSection
+                habitsSection
+                nutritionSection
+                bodyMetricsSection
+                muscleGroupsSection
+                exercisesSection
+                generalSection
+            }
+            .listSectionMargins(.horizontal, 0)
+            .listRowSeparator(.hidden)
+            moreSection
         }
         .navigationTitle("Dashboard")
+        .navigationSubtitle(presenter.selectedDate.formattedDate)
         .toolbarTitleDisplayMode(.inlineLarge)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }
         .toolbarRole(.browser)
+        .onFirstTask {
+            await presenter.onFirstTask()
+        }
         .onOpenURL { url in
             presenter.handleDeepLink(url: url)
         }
@@ -53,27 +79,247 @@ struct DashboardView: View {
         }
     }
     
-    private var nutritionTargetSection: some View {
+    private var insightsAndAnalyticsSection: some View {
         Section {
-            nutritionTargetChartView()
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(title: "Workouts", subtitle: "Last 7 Workouts", subsubtitle: "12", subsubsubtitle: "sets")
+                    .tappableBackground()
+                    .anyButton(.press) {
+                        
+                    }
+                DashboardCard(title: "Expenditure", subtitle: "Last 7 Days", subsubtitle: "2993", subsubsubtitle: "kcal")
+                    .tappableBackground()
+                    .anyButton(.press) {
+                        
+                    }
+//                DashboardCard(title: "Weight Trend", subtitle: "Last 7 Days", subsubtitle: "83.2", subsubsubtitle: "kg")
+//                DashboardCard(title: "Energy Balance", subtitle: "Last 7 Days", subsubtitle: "1696", subsubsubtitle: "kcal deficit")
+//                DashboardCard(title: "Goal Progress", subtitle: "Last 4 Days", subsubtitle: "7", subsubsubtitle: "%")
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
         } header: {
-            Text("Nutrition & Targets")
+            HStack(alignment: .firstTextBaseline) {
+                Text("Insights & Analytics")
+             Spacer()
+                Text("See All")
+                    .font(.caption)
+                    .underline()
+                    .anyButton {
+                        presenter.onSeeAllInsightsPressed()
+                    }
+            }
         }
     }
     
-    private var contributionChartSection: some View {
+    private var habitsSection: some View {
         Section {
-            ContributionChartView(
-                data: presenter.contributionChartData,
-                rows: 7,
-                columns: 16,
-                targetValue: 1.0,
-                blockColor: .accent,
-                endDate: presenter.chartEndDate
-            )
-            .frame(height: 220)
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(title: "Weigh In", subtitle: "Last 30 Days", subsubtitle: "3/7", subsubsubtitle: "this week")
+                    .tappableBackground()
+                    .anyButton(.press) {
+                        
+                    }
+                DashboardCard(title: "Workouts", subtitle: "Last 30 Days", subsubtitle: "2", subsubsubtitle: "this week")
+                    .tappableBackground()
+                    .anyButton(.press) {
+                        
+                    }
+//                DashboardCard(title: "Food Logging", subtitle: "Last 30 Days", subsubtitle: "3/7", subsubsubtitle: "this week")
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+
         } header: {
-            Text("Workout Consistency")
+            HStack(alignment: .firstTextBaseline) {
+                Text("Habits")
+             Spacer()
+                Text("See All")
+                    .font(.caption)
+                    .underline()
+                    .anyButton {
+                        presenter.onSeeAllHabitsPressed()
+                    }
+            }
+        }
+    }
+    
+    private var nutritionSection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(title: "Macros", subtitle: "Last 7 Days", subsubtitle: "700", subsubsubtitle: "kcal")
+                    .tappableBackground()
+                    .anyButton(.press) {
+                        
+                    }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+
+        } header: {
+            Text("Nutrition")
+        }
+    }
+
+    private var bodyMetricsSection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Scale Weight",
+                    subtitle: presenter.scaleWeightSubtitle,
+                    subsubtitle: presenter.scaleWeightLatestValueText,
+                    subsubsubtitle: presenter.scaleWeightUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.scaleWeightSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onScaleWeightPressed()
+                }
+                DashboardCard(title: "Visual Body Fat", subtitle: presenter.bodyFatSubtitle, subsubtitle: presenter.bodyFatLatestValueText, subsubsubtitle: presenter.bodyFatUnitText, chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)) {
+                    SparklineChart(
+                        data: presenter.bodyFatSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onVisualBodyFatPressed()
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            HStack {
+                Text("Body Metrics")
+                Spacer()
+                Text("See All")
+                    .font(.caption)
+                    .underline()
+                    .anyButton(.press) {
+                        presenter.onSeeAllBodyMetricsPressed()
+                    }
+            }
+        }
+    }
+
+    private var muscleGroupsSection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(title: "Upper Back", subtitle: "Last 7 Days", subsubtitle: "6", subsubsubtitle: "sets")
+                    .tappableBackground()
+                    .anyButton(.press) {
+
+                    }
+                DashboardCard(title: "Rear Delts", subtitle: "Last 7 Entries", subsubtitle: "6", subsubsubtitle: "sets")
+                    .tappableBackground()
+                    .anyButton(.press) {
+
+                    }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            HStack {
+                Text("Muscle Groups")
+                Spacer()
+                Text("See All")
+                    .font(.caption)
+                    .underline()
+                    .anyButton(.press) {
+                        presenter.onSeeAllMuscleGroupsPressed()
+                    }
+            }
+        }
+    }
+
+    private var exercisesSection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(title: "Neutral Grip Machine Fly", subtitle: "Last 7 Workouts", subsubtitle: "116", subsubsubtitle: "kg")
+                    .tappableBackground()
+                    .anyButton(.press) {
+
+                    }
+                DashboardCard(title: "Low Pulley Cable Rope Overhead Triceps Extension", subtitle: "Last 7 Entries", subsubtitle: "80", subsubsubtitle: "kg")
+                    .tappableBackground()
+                    .anyButton(.press) {
+
+                    }
+
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            HStack {
+                Text("Exercises")
+                Spacer()
+                Text("See All")
+                    .font(.caption)
+                    .underline()
+                    .anyButton(.press) {
+                        presenter.onSeeAllExercisesPressed()
+                    }
+            }
+        }
+    }
+
+    private var generalSection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(title: "Steps", subtitle: "Last 7 Entries", subsubtitle: "342", subsubsubtitle: "steps")
+                    .tappableBackground()
+                    .anyButton(.press) {
+
+                    }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            Text("General")
+        }
+    }
+
+    private var nutritionTargetSection: some View {
+        nutritionTargetChartView()
+            .frame(width: 400)
+
+    }
+    
+    private var contributionChartSection: some View {
+        ContributionChartView(
+            data: presenter.contributionChartData,
+            rows: 7,
+            columns: 16,
+            targetValue: 1.0,
+            blockColor: .accent,
+            endDate: presenter.chartEndDate
+        )
+        .frame(height: 220)
+        .frame(width: 400)
+    }
+    
+    private var moreSection: some View {
+        Section {
+            CustomListCellView(sfSymbolName: "house", title: "Customise Dashboard")
+                .removeListRowFormatting()
+        } header: {
+            Text("More")
         }
     }
 
@@ -81,16 +327,19 @@ struct DashboardView: View {
     private var toolbarContent: some ToolbarContent {
 
         ToolbarItem(placement: .topBarTrailing) {
+            let avatarSize: CGFloat = 44
+
             Button {
                 presenter.onProfilePressed()
             } label: {
-                if let urlString = presenter.userImageUrl {
-                    ImageLoaderView(urlString: urlString)
-                        .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
-                        .clipShape(Circle())
-                } else {
-                    Image(systemName: "person")
-                        .glassEffect()
+                ZStack {
+                    Image(systemName: "person.circle")
+                        .font(.system(size: 24))
+                    if let urlString = presenter.userImageUrl {
+                        ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
+                            .frame(width: avatarSize, height: avatarSize)
+                            .contentShape(Circle())
+                    }
                 }
             }
         }

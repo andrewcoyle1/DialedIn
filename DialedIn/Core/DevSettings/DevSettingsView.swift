@@ -20,7 +20,6 @@ struct DevSettingsView: View {
             userSection
             deviceSection
             activeWorkoutSessionSection
-            trainingPlanSection
             localStorageDebugSection
             firebaseTestSection
             exerciseTemplateSection
@@ -104,13 +103,13 @@ struct DevSettingsView: View {
         Group {
             let array = presenter.getLocalExercises()
             Section {
-                ForEach(array, id: \.exerciseId) { item in
+                ForEach(array, id: \.id) { item in
                     CustomListCellView(imageName: item.imageURL, title: item.name, subtitle: item.description)
                         .removeListRowFormatting()
                 }
             } header: {
                 HStack {
-                    Text("Exercise Templates")
+                    Text("Exercises")
                     Spacer()
                     Text("\(array.count)")
                         .foregroundStyle(.secondary)
@@ -165,78 +164,6 @@ struct DevSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-        }
-    }
-    
-    private var trainingPlanSection: some View {
-        Section {
-            if let plan = presenter.getLocalTrainingPlan() {
-                VStack(alignment: .leading, spacing: 8) {
-                    // Plan basics
-                    debugRow(label: "Plan ID", value: plan.planId)
-                    debugRow(label: "User ID", value: plan.userId ?? "nil")
-                    debugRow(label: "Name", value: plan.name)
-                    debugRow(label: "Is Active", value: "\(plan.isActive)")
-                    debugRow(label: "Weeks Count", value: "\(plan.weeks.count)")
-                    
-                    if let currentWeek = presenter.getCurrentTrainingPlanWeek() {
-                        debugRow(label: "Current Week #", value: "\(currentWeek.weekNumber)")
-                    }
-                    
-                    // Today's workouts detail
-                    let todaysWorkouts = presenter.getTodaysWorkouts()
-                    if !todaysWorkouts.isEmpty {
-                        Divider()
-                        Text("Today's Workouts (\(todaysWorkouts.count))")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.secondary)
-                            .padding(.top, 4)
-                        
-                        ForEach(todaysWorkouts) { workout in
-                            VStack(alignment: .leading, spacing: 2) {
-                                debugRow(label: "  Scheduled ID", value: workout.id)
-                                debugRow(label: "  Template ID", value: workout.workoutTemplateId)
-                                debugRow(label: "  Name", value: workout.workoutName ?? "nil")
-                                if let date = workout.scheduledDate {
-                                    debugRow(label: "  Scheduled", value: date.formatted(date: .numeric, time: .shortened))
-                                }
-                                debugRow(label: "  Is Completed", value: "\(workout.isCompleted)")
-                                if let sessionId = workout.completedSessionId {
-                                    debugRow(label: "  Session ID", value: sessionId)
-                                } else {
-                                    debugRow(label: "  Session ID", value: "nil")
-                                }
-                                debugRow(label: "  Is Missed", value: "\(workout.isMissed)")
-                            }
-                            .padding(.vertical, 2)
-                            .padding(.horizontal, 4)
-                            .background(Color.secondary.opacity(0.1))
-                            .cornerRadius(4)
-                        }
-                        
-                        Button {
-                            Task {
-                                await presenter.resetTodaysWorkouts()
-                            }
-                        } label: {
-                            Label("Reset Today's Workouts", systemImage: "arrow.counterclockwise")
-                                .font(.caption)
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(presenter.isReseeding)
-                    }
-                }
-                .padding(.vertical, 4)
-            } else {
-                Text("No active training plan")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        } header: {
-            Text("Training Plan Debug")
-        } footer: {
-            Text("Shows the current training plan state and today's scheduled workouts with all IDs.")
         }
     }
     

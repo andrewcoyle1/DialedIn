@@ -8,6 +8,11 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct RecipeAmountDelegate {
+    let recipe: RecipeTemplateModel
+    let onPick: (MealItemModel) -> Void
+}
+
 struct RecipeAmountView: View {
     @State var presenter: RecipeAmountPresenter
 

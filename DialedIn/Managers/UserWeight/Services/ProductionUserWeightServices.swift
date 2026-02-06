@@ -7,5 +7,8 @@
 
 struct ProductionUserWeightServices: UserWeightServices {
     let remote: RemoteUserWeightService = ProductionRemoteUserWeightService()
-    let local: LocalUserWeightService = ProductionLocalUserWeightService()
+    let local: LocalUserWeightService = SwiftLocalUserWeightService()
+#if canImport(HealthKit)
+    let healthKit: HealthKitWeightService? = ProductionHealthKitWeightService()
+#endif
 }

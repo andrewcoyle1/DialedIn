@@ -16,6 +16,8 @@ class WorkoutSessionEntity {
     var workoutTemplateId: String?
     var scheduledWorkoutId: String?
     var trainingPlanId: String?
+    var programId: String?
+    var dayPlanId: String?
     var dateCreated: Date
     var dateModified: Date
     var endedAt: Date?
@@ -29,6 +31,8 @@ class WorkoutSessionEntity {
         self.workoutTemplateId = model.workoutTemplateId
         self.scheduledWorkoutId = model.scheduledWorkoutId
         self.trainingPlanId = model.trainingPlanId
+        self.programId = model.programId
+        self.dayPlanId = model.dayPlanId
         self.dateCreated = model.dateCreated
         self.dateModified = model.dateModified
         self.endedAt = model.endedAt
@@ -48,6 +52,8 @@ class WorkoutSessionEntity {
             workoutTemplateId: workoutTemplateId,
             scheduledWorkoutId: scheduledWorkoutId,
             trainingPlanId: trainingPlanId,
+            programId: programId,
+            dayPlanId: dayPlanId,
             dateCreated: dateCreated,
             dateModified: dateModified,
             endedAt: endedAt,

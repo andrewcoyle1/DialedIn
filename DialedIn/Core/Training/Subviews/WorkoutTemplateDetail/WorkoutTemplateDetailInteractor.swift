@@ -8,6 +8,8 @@
 protocol WorkoutTemplateDetailInteractor {
     var currentUser: UserModel? { get }
     var activeSession: WorkoutSessionModel? { get }
+    func addLocalWorkoutSession(session: WorkoutSessionModel) throws
+    func startActiveSession(_ session: WorkoutSessionModel)
     func favouriteWorkoutTemplate(id: String, isFavourited: Bool) async throws
     func removeFavouritedWorkoutTemplate(workoutId: String) async throws
     func bookmarkWorkoutTemplate(id: String, isBookmarked: Bool) async throws

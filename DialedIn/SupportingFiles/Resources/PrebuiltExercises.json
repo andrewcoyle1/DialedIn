@@ -1,369 +1,686 @@
 {
   "exercises": [
     {
-      "exerciseId": "system-barbell-bench-press",
+      "id": "system-barbell-bench-press",
+      "author_id": "official",
       "name": "Barbell Bench Press",
       "description": "A compound exercise that primarily targets the chest, shoulders, and triceps. Performed lying flat on a bench.",
-      "type": "barbell",
-      "muscleGroups": ["chest", "shoulders", "arms"],
-      "instructions": [
-        "Lie flat on a bench with feet firmly on the ground",
-        "Grip the bar slightly wider than shoulder width",
-        "Unrack the bar and lower it to mid-chest",
-        "Press the bar back up to starting position",
-        "Keep your shoulder blades retracted throughout"
+      "image_url": "BarbellBenchPress",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "chest": false,
+        "frontDelts": true,
+        "triceps": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "loadableBar", "id": "barbell" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [
+        { "kind": "supportEquipment", "id": "flat_bench_press_station" }
+      ],
+      "range_of_motion": 4,
+      "stability": 5,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Flat Barbell Bench Press", "Barbell Bench Press (Flat)"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-barbell-incline-bench-press",
+      "id": "system-barbell-incline-bench-press",
+      "author_id": "official",
       "name": "Barbell Incline Bench Press",
       "description": "An incline pressing movement that emphasizes the upper chest and front deltoids.",
-      "type": "barbell",
-      "muscleGroups": ["chest", "shoulders", "arms"],
-      "instructions": [
-        "Set bench to 30-45 degree incline",
-        "Lie back with feet flat on floor",
-        "Grip bar slightly wider than shoulders",
-        "Lower bar to upper chest",
-        "Press back to starting position"
+      "image_url": "BarbellInclineBenchPress",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "chest": false,
+        "frontDelts": true,
+        "triceps": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "loadableBar", "id": "barbell" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [
+        { "kind": "supportEquipment", "id": "incline_bench_press_station" }
+      ],
+      "range_of_motion": 4,
+      "stability": 5,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Incline Barbell Bench Press"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-barbell-romanian-deadlift",
+      "id": "system-barbell-romanian-deadlift",
+      "author_id": "official",
       "name": "Barbell Romanian Deadlift",
       "description": "A hip-hinge movement that targets the posterior chain, primarily hamstrings and glutes.",
-      "type": "barbell",
-      "muscleGroups": ["legs", "back"],
-      "instructions": [
-        "Stand with feet hip-width apart holding barbell",
-        "Keep slight bend in knees",
-        "Hinge at hips, pushing them back",
-        "Lower bar along shins until you feel hamstring stretch",
-        "Drive hips forward to return to standing"
+      "image_url": "Barbell_RomanianDeadlift",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundLower",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "hamstrings": false,
+        "glutes": false,
+        "lowerBack": true,
+        "upperBack": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "loadableBar", "id": "barbell" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 4,
+      "body_weight_contribution": 0,
+      "alternate_names": ["RDL", "Romanian Deadlift"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-barbell-sumo-deadlift",
+      "id": "system-barbell-sumo-deadlift",
+      "author_id": "official",
       "name": "Barbell Sumo Deadlift",
       "description": "A deadlift variation with wide stance that emphasizes glutes, quads, and adductors.",
-      "type": "barbell",
-      "muscleGroups": ["legs", "back"],
-      "instructions": [
-        "Stand with feet wider than shoulder width, toes pointed out",
-        "Grip bar with hands inside knees",
-        "Keep chest up and back flat",
-        "Drive through heels to stand up",
-        "Lower bar back down with control"
+      "image_url": "BarbellSumoDeadlift",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundLower",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "glutes": false,
+        "adductors": true,
+        "quads": true,
+        "hamstrings": true,
+        "lowerBack": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "loadableBar", "id": "barbell" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 4,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Sumo Deadlift"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-cable-bicep-curl-straight-bar",
+      "id": "system-cable-bicep-curl-straight-bar",
+      "author_id": "official",
       "name": "Cable Bicep Curl (Straight Bar)",
       "description": "An isolation exercise for the biceps using constant tension from cable resistance.",
-      "type": "cable",
-      "muscleGroups": ["arms"],
-      "instructions": [
-        "Attach straight bar to low pulley",
-        "Stand facing cable with feet shoulder-width apart",
-        "Grip bar with underhand grip",
-        "Curl bar up toward shoulders",
-        "Lower with control to starting position"
+      "image_url": "CableBicepCurl_StraightBar",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "isolationUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "biceps": false,
+        "forearms": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 5,
+      "stability": 4,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Cable Curl (Straight Bar)", "Straight Bar Cable Curl"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-cable-pushdown-straight-bar",
+      "id": "system-cable-pushdown-straight-bar",
+      "author_id": "official",
       "name": "Cable Pushdown (Straight Bar)",
       "description": "A triceps isolation exercise using a cable machine with constant tension.",
-      "type": "cable",
-      "muscleGroups": ["arms"],
-      "instructions": [
-        "Attach straight bar to high pulley",
-        "Stand facing cable, grip bar with overhand grip",
-        "Keep elbows tucked to sides",
-        "Push bar down until arms are fully extended",
-        "Return to starting position with control"
+      "image_url": "CablePushdown_StraightBar",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "isolationUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "triceps": false
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 4,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Straight Bar Pushdown", "Cable Tricep Pushdown (Straight Bar)"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-calf-press-leg-press",
+      "id": "system-calf-press-leg-press",
+      "author_id": "official",
       "name": "Calf Press on Leg Press",
       "description": "An isolation exercise for the calves using the leg press machine.",
-      "type": "machine",
-      "muscleGroups": ["legs"],
-      "instructions": [
-        "Sit in leg press machine",
-        "Place balls of feet on lower edge of platform",
-        "Extend legs to unlock sled",
-        "Lower heels by flexing ankles",
-        "Press up through balls of feet to full calf extension"
+      "image_url": "CalfPressOnLegPress",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "isolationLower",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "calves": false
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "pinLoadedMachine", "id": "pin-loaded_leg_press_machine" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 3,
+      "stability": 5,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Leg Press Calf Raise", "Seated Calf Press"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-chest-dip",
+      "id": "system-chest-dip",
+      "author_id": "official",
       "name": "Chest Dip",
       "description": "A bodyweight exercise that targets the chest and triceps with forward lean.",
-      "type": "weightedBodyweight",
-      "muscleGroups": ["chest", "arms"],
-      "instructions": [
-        "Grip parallel bars and support body weight",
-        "Lean torso forward slightly",
-        "Lower body by bending elbows",
-        "Descend until shoulders are below elbows",
-        "Push back up to starting position"
+      "image_url": "ChestDip",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "chest": false,
+        "frontDelts": true,
+        "triceps": true
+      },
+      "is_bodyweight": true,
+      "resistance_equipment": [],
+      "support_equipment": [
+        { "kind": "supportEquipment", "id": "parallel_bars" }
       ],
-      "isSystemExercise": true
+      "range_of_motion": 4,
+      "stability": 4,
+      "body_weight_contribution": 100,
+      "alternate_names": ["Dips", "Parallel Bar Dip"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-dumbbell-incline-fly",
+      "id": "system-dumbbell-incline-fly",
+      "author_id": "official",
       "name": "Dumbbell Incline Fly",
       "description": "An isolation exercise for the chest performed on an incline bench.",
-      "type": "dumbbell",
-      "muscleGroups": ["chest"],
-      "instructions": [
-        "Set bench to 30-45 degree incline",
-        "Lie back holding dumbbells above chest",
-        "Keep slight bend in elbows",
-        "Lower dumbbells out to sides in arc motion",
-        "Bring dumbbells back together above chest"
+      "image_url": "Dumbbell_InclineFlyChest",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "isolationUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "chest": false,
+        "frontDelts": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "freeWeight", "id": "dumbbells" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [
+        { "kind": "supportEquipment", "id": "adjustable_bench" }
+      ],
+      "range_of_motion": 5,
+      "stability": 3,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Incline Dumbbell Fly", "Incline Chest Fly"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-dumbbell-bench-press",
+      "id": "system-dumbbell-bench-press",
+      "author_id": "official",
       "name": "Dumbbell Bench Press",
       "description": "A chest pressing exercise using dumbbells for greater range of motion.",
-      "type": "dumbbell",
-      "muscleGroups": ["chest", "shoulders", "arms"],
-      "instructions": [
-        "Lie flat on bench holding dumbbells",
-        "Start with dumbbells at chest level",
-        "Press dumbbells up until arms are extended",
-        "Lower dumbbells back to chest level",
-        "Keep control throughout movement"
+      "image_url": "DumbbellBenchPress",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "chest": false,
+        "frontDelts": true,
+        "triceps": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "freeWeight", "id": "dumbbells" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [
+        { "kind": "supportEquipment", "id": "flat_bench" }
+      ],
+      "range_of_motion": 4,
+      "stability": 4,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Flat Dumbbell Bench Press"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-dumbbell-seated-shoulder-press",
+      "id": "system-dumbbell-seated-shoulder-press",
+      "author_id": "official",
       "name": "Dumbbell Seated Shoulder Press",
       "description": "A shoulder pressing exercise performed seated for stability and isolation.",
-      "type": "dumbbell",
-      "muscleGroups": ["shoulders", "arms"],
-      "instructions": [
-        "Sit on bench with back support",
-        "Hold dumbbells at shoulder height",
-        "Press dumbbells overhead until arms are extended",
-        "Lower dumbbells back to shoulder height",
-        "Keep core engaged throughout"
+      "image_url": "DumbbellSeatedShoulderPress",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "frontDelts": false,
+        "sideDelts": true,
+        "triceps": true,
+        "upperTraps": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "freeWeight", "id": "dumbbells" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [
+        { "kind": "supportEquipment", "id": "seated_bench" }
+      ],
+      "range_of_motion": 4,
+      "stability": 3,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Seated Dumbbell Shoulder Press", "Dumbbell Overhead Press (Seated)"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-ez-barbell-preacher-curl",
+      "id": "system-ez-barbell-preacher-curl",
+      "author_id": "official",
       "name": "EZ Barbell Preacher Curl",
       "description": "An isolation exercise for biceps using a preacher bench to prevent momentum.",
-      "type": "barbell",
-      "muscleGroups": ["arms"],
-      "instructions": [
-        "Sit at preacher bench with arms over pad",
-        "Grip EZ bar with underhand grip",
-        "Curl bar up toward shoulders",
-        "Squeeze biceps at top",
-        "Lower bar with control to full extension"
+      "image_url": "EZBarbell_PreacherCurl",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "isolationUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "biceps": false,
+        "forearms": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "loadableBar", "id": "ez_bar" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [
+        { "kind": "supportEquipment", "id": "preacher_curl_bench" }
+      ],
+      "range_of_motion": 4,
+      "stability": 5,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Preacher Curl (EZ Bar)"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-hack-squat",
+      "id": "system-hack-squat",
+      "author_id": "official",
       "name": "Hack Squat",
       "description": "A machine-based squat variation that targets quads with back support.",
-      "type": "machine",
-      "muscleGroups": ["legs"],
-      "instructions": [
-        "Position shoulders under pads",
-        "Place feet shoulder-width on platform",
-        "Release safety handles",
-        "Lower body by bending knees",
-        "Push through heels to return to starting position"
+      "image_url": "HackSquat",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundLower",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "quads": false,
+        "glutes": true,
+        "hamstrings": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "plateLoadedMachine", "id": "hack_squat_machine" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 5,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Machine Hack Squat"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-lat-prayer-straight-bar",
+      "id": "system-lat-prayer-straight-bar",
+      "author_id": "official",
       "name": "Lat Prayer (Straight Bar)",
       "description": "A lat pulldown variation that targets the lats and upper back.",
-      "type": "cable",
-      "muscleGroups": ["back"],
-      "instructions": [
-        "Attach straight bar to high pulley",
-        "Kneel facing cable machine",
-        "Grip bar with overhand grip",
-        "Pull bar down toward upper chest",
-        "Return to starting position with control"
+      "image_url": "LatPrayer_StraightBar",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "lats": false,
+        "upperBack": true,
+        "biceps": true,
+        "forearms": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "cableMachine", "id": "cable_lat_pulldown_machine" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 5,
+      "stability": 4,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Lat Pulldown (Straight Bar)", "Prayer Pulldown"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-overhead-extension-straight-bar",
+      "id": "system-overhead-extension-straight-bar",
+      "author_id": "official",
       "name": "Overhead Extension (Straight Bar)",
       "description": "A triceps isolation exercise using overhead cable extension.",
-      "type": "cable",
-      "muscleGroups": ["arms"],
-      "instructions": [
-        "Attach straight bar to high pulley",
-        "Turn away from cable, grip bar overhead",
-        "Keep elbows pointed forward",
-        "Extend arms forward and up",
-        "Return to starting position behind head"
+      "image_url": "OverheadExtensionStraightBar",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "isolationUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "triceps": false
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 4,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Cable Overhead Tricep Extension (Straight Bar)"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-reverse-fly",
+      "id": "system-reverse-fly",
+      "author_id": "official",
       "name": "Reverse Fly",
       "description": "An isolation exercise for rear deltoids and upper back.",
-      "type": "machine",
-      "muscleGroups": ["shoulders", "back"],
-      "instructions": [
-        "Sit facing pec deck machine",
-        "Grip handles with arms extended forward",
-        "Pull handles back in arc motion",
-        "Squeeze shoulder blades together",
-        "Return to starting position with control"
-      ],
-      "isSystemExercise": true
+      "image_url": "ReverseFly",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "isolationUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "rearDelts": false,
+        "upperBack": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [],
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 5,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Reverse Pec Deck Fly", "Rear Delt Fly"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-seated-leg-extension",
+      "id": "system-seated-leg-extension",
+      "author_id": "official",
       "name": "Seated Leg Extension",
       "description": "An isolation exercise for the quadriceps using a leg extension machine.",
-      "type": "machine",
-      "muscleGroups": ["legs"],
-      "instructions": [
-        "Sit in leg extension machine",
-        "Position ankles under padded bar",
-        "Grip handles for support",
-        "Extend legs until fully straight",
-        "Lower weight back to starting position"
+      "image_url": "SeatedLegExtension",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "isolationLower",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "quads": false
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "pinLoadedMachine", "id": "pin-loaded_leg_extension_machine" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 5,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Leg Extension"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-standing-lateral-raise-cable",
+      "id": "system-standing-lateral-raise-cable",
+      "author_id": "official",
       "name": "Standing Lateral Raise (Cable)",
       "description": "A shoulder isolation exercise for the lateral deltoids using cable resistance.",
-      "type": "cable",
-      "muscleGroups": ["shoulders"],
-      "instructions": [
-        "Stand sideways to cable machine",
-        "Grip handle with far hand at side",
-        "Keep slight bend in elbow",
-        "Raise arm out to side to shoulder height",
-        "Lower with control to starting position"
+      "image_url": "StandingLatRaise_Cable",
+      "trackable_metrics": ["repsPerSide", "weight"],
+      "type": "isolationUpper",
+      "laterality": "unilateral",
+      "muscle_groups": {
+        "sideDelts": false,
+        "upperTraps": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 5,
+      "stability": 3,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Cable Lateral Raise"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-barbell-squat",
+      "id": "system-barbell-squat",
+      "author_id": "official",
       "name": "Barbell Squat",
       "description": "A fundamental compound exercise that targets the entire lower body, primarily quads, glutes, and hamstrings.",
-      "type": "barbell",
-      "muscleGroups": ["legs", "back"],
-      "instructions": [
-        "Position barbell across upper back/traps",
-        "Stand with feet shoulder-width apart",
-        "Keep chest up and core engaged",
-        "Lower by bending knees and hips",
-        "Descend until thighs are parallel to ground",
-        "Drive through heels to return to standing"
+      "image_url": "BarbellSquat",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundLower",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "quads": false,
+        "glutes": false,
+        "hamstrings": true,
+        "lowerBack": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "loadableBar", "id": "barbell" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [
+        { "kind": "supportEquipment", "id": "power_rack" }
+      ],
+      "range_of_motion": 5,
+      "stability": 3,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Barbell Back Squat", "Back Squat"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-bulgarian-split-squat",
+      "id": "system-bulgarian-split-squat",
+      "author_id": "official",
       "name": "Bulgarian Split Squat",
       "description": "A unilateral leg exercise that targets quads, glutes, and balance with rear foot elevated.",
-      "type": "dumbbell",
-      "muscleGroups": ["legs"],
-      "instructions": [
-        "Stand facing away from bench",
-        "Place rear foot on bench behind you",
-        "Hold dumbbells at sides",
-        "Lower by bending front knee",
-        "Descend until front thigh is parallel to ground",
-        "Push through front heel to return to start"
+      "image_url": "BulgarianSplitSquat",
+      "trackable_metrics": ["repsPerSide", "weight"],
+      "type": "compoundLower",
+      "laterality": "unilateral",
+      "muscle_groups": {
+        "quads": false,
+        "glutes": false,
+        "hamstrings": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "freeWeight", "id": "dumbbells" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [
+        { "kind": "supportEquipment", "id": "flat_bench" }
+      ],
+      "range_of_motion": 4,
+      "stability": 2,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Rear Foot Elevated Split Squat"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-lying-leg-curl",
+      "id": "system-lying-leg-curl",
+      "author_id": "official",
       "name": "Lying Leg Curl",
       "description": "An isolation exercise for the hamstrings performed lying face down on a leg curl machine.",
-      "type": "machine",
-      "muscleGroups": ["legs"],
-      "instructions": [
-        "Lie face down on leg curl machine",
-        "Position ankles under padded lever",
-        "Grip handles for support",
-        "Curl legs up toward glutes",
-        "Squeeze hamstrings at top",
-        "Lower weight back to starting position with control"
+      "image_url": "LyingLegCurl",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "isolationLower",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "hamstrings": false
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "pinLoadedMachine", "id": "lying_pin-loaded_leg_curl_machine" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 5,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Leg Curl (Lying)"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-seated-row",
+      "id": "system-seated-row",
+      "author_id": "official",
       "name": "Seated Row",
       "description": "A compound pulling exercise that targets the middle back, lats, and biceps.",
-      "type": "cable",
-      "muscleGroups": ["back", "arms"],
-      "instructions": [
-        "Sit at cable row machine with feet on platform",
-        "Grip handle with both hands",
-        "Keep back straight and chest up",
-        "Pull handle to torso, squeezing shoulder blades",
-        "Return to starting position with control"
+      "image_url": "SeatedRow",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "upperBack": false,
+        "lats": true,
+        "biceps": true,
+        "forearms": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "cableMachine", "id": "seated_cable_row_machine" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 4,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Cable Seated Row"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-single-arm-row",
+      "id": "system-single-arm-row",
+      "author_id": "official",
       "name": "Single Arm Row",
       "description": "A unilateral back exercise that targets the lats, rhomboids, and biceps with dumbbells.",
-      "type": "dumbbell",
-      "muscleGroups": ["back", "arms"],
-      "instructions": [
-        "Place one knee and hand on bench for support",
-        "Hold dumbbell in opposite hand",
-        "Keep back flat and parallel to ground",
-        "Pull dumbbell up to hip, leading with elbow",
-        "Squeeze back at top",
-        "Lower with control to starting position"
+      "image_url": "SingleArmRow",
+      "trackable_metrics": ["repsPerSide", "weight"],
+      "type": "compoundUpper",
+      "laterality": "unilateral",
+      "muscle_groups": {
+        "lats": false,
+        "upperBack": true,
+        "biceps": true,
+        "forearms": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "freeWeight", "id": "dumbbells" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [
+        { "kind": "supportEquipment", "id": "flat_bench" }
+      ],
+      "range_of_motion": 4,
+      "stability": 3,
+      "body_weight_contribution": 0,
+      "alternate_names": ["One Arm Dumbbell Row", "Single-Arm Dumbbell Row"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     },
     {
-      "exerciseId": "system-t-bar-row",
+      "id": "system-t-bar-row",
+      "author_id": "official",
       "name": "T-Bar Row",
       "description": "A compound pulling exercise that targets the entire back with emphasis on thickness and mass.",
-      "type": "barbell",
-      "muscleGroups": ["back"],
-      "instructions": [
-        "Straddle T-bar with feet shoulder-width apart",
-        "Bend at hips with slight knee bend",
-        "Grip handles with both hands",
-        "Pull weight toward chest, squeezing shoulder blades",
-        "Keep back flat throughout movement",
-        "Lower weight with control to starting position"
+      "image_url": "TBarRow",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "upperBack": false,
+        "lats": true,
+        "biceps": true,
+        "forearms": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "loadableBar", "id": "barbell" }
       ],
-      "isSystemExercise": true
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 3,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Landmine Row", "T Bar Row"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     }
   ]
 }

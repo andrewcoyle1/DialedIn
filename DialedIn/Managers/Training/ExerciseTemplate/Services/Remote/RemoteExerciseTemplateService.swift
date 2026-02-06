@@ -8,12 +8,12 @@
 import SwiftUI
 
 protocol RemoteExerciseTemplateService {
-    func createExerciseTemplate(exercise: ExerciseTemplateModel, image: PlatformImage?) async throws
-    func getExerciseTemplate(id: String) async throws -> ExerciseTemplateModel
-    func getExerciseTemplates(ids: [String], limitTo: Int) async throws -> [ExerciseTemplateModel]
-    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseTemplateModel]
-    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseTemplateModel]
-    func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseTemplateModel]
+    func createExerciseTemplate(exercise: ExerciseModel, image: PlatformImage?) async throws
+    func getExerciseTemplate(id: String) async throws -> ExerciseModel
+    func getExerciseTemplates(ids: [String], limitTo: Int) async throws -> [ExerciseModel]
+    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseModel]
+    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseModel]
+    func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseModel]
     func incrementExerciseTemplateInteraction(id: String) async throws
     func removeAuthorIdFromExerciseTemplate(id: String) async throws
     func removeAuthorIdFromAllExerciseTemplates(id: String) async throws

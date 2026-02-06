@@ -33,14 +33,28 @@ struct SwiftTrainingProgramPersistence: LocalTrainingProgramPersistence {
             }
         }()
         let configuration = ModelConfiguration(url: storeURL)
-        // swiftlint:disable:next force_try
-        self.container = try! ModelContainer(
-            for: TrainingProgramEntity.self,
-            DayPlanEntity.self,
-            ExercisePlanEntity.self,
-            ExerciseTemplateEntity.self,
-            configurations: configuration
-        )
+
+        do {
+            self.container = try ModelContainer(
+                for: TrainingProgramEntity.self,
+                DayPlanEntity.self,
+                ExercisePlanEntity.self,
+                ExerciseTemplateEntity.self,
+                configurations: configuration
+            )
+        } catch {
+            // If the on-disk store schema is incompatible (common during active dev),
+            // wipe the local store and recreate it to avoid a hard crash.
+            try? FileManager.default.removeItem(at: storeURL.deletingLastPathComponent())
+            // swiftlint:disable:next force_try
+            self.container = try! ModelContainer(
+                for: TrainingProgramEntity.self,
+                DayPlanEntity.self,
+                ExercisePlanEntity.self,
+                ExerciseTemplateEntity.self,
+                configurations: configuration
+            )
+        }
     }
         
     // MARK: CREATE
@@ -51,6 +65,7 @@ struct SwiftTrainingProgramPersistence: LocalTrainingProgramPersistence {
     }
     
     // MARK: READ
+    
     func readTrainingProgram(programId: String) throws -> TrainingProgram {
         
         let descriptor = FetchDescriptor<TrainingProgramEntity>(
@@ -90,10 +105,7 @@ struct SwiftTrainingProgramPersistence: LocalTrainingProgramPersistence {
         for existingDayPlan in entity.dayPlans {
             mainContext.delete(existingDayPlan)
         }
-        for dayPlan in program.dayPlans {
-            let dayPlanEntity = DayPlanEntity(from: dayPlan)
-            mainContext.insert(dayPlanEntity)
-        }
+        entity.dayPlans = program.dayPlans.map { DayPlanEntity(from: $0) }
         entity.dateCreated = program.dateCreated
         entity.dateModified = program.dateModified
         

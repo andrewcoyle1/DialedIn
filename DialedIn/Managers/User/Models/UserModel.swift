@@ -339,6 +339,7 @@ struct UserModel: Codable, Equatable, Sendable {
                 exerciseFrequency: .daily,
                 dailyActivityLevel: .active,
                 cardioFitnessLevel: .intermediate,
+                profileImageUrl: Constants.randomImage,
                 creationDate: now,
                 creationVersion: "1.0.0",
                 lastSignInDate: now,
@@ -496,11 +497,81 @@ enum ProfileCardioFitnessLevel: String, Codable, Sendable {
 enum LengthUnitPreference: String, Codable, Sendable {
     case centimeters
     case inches
+    
+    var abbreviation: String {
+        switch self {
+        case .centimeters: return "m"
+        case .inches: return "m"
+        }
+    }
+    
+    var displayName: String {
+        switch self {
+        case .centimeters: return "Kilometers & Metres"
+        case .inches: return "Miles & Yards"
+        }
+    }
+
+}
+
+enum HeightUnitPreference: String, Codable, Sendable {
+    case centimeters
+    case inches
+    
+    var abbreviation: String {
+        switch self {
+        case .centimeters: return "cm"
+        case .inches: return "\""
+        }
+    }
+    
+    var displayName: String {
+        switch self {
+        case .centimeters: return "Centimeters"
+        case .inches: return "Feet & Inches"
+        }
+    }
+
 }
 
 enum WeightUnitPreference: String, Codable, Sendable {
     case kilograms
     case pounds
+    
+    var abbreviation: String {
+        switch self {
+        case .kilograms: return "kg"
+        case .pounds: return "lbs"
+        }
+    }
+    
+    var displayName: String {
+        switch self {
+        case .kilograms: return "Kilograms"
+        case .pounds: return "Pounds"
+        }
+    }
+
+}
+
+enum ClockUnitPreference: String, Codable, Sendable {
+    case twelveHour
+    case twentyFourHour
+    
+    var abbreviation: String {
+        switch self {
+        case .twelveHour: return "12hr"
+        case .twentyFourHour: return "24hr"
+        }
+    }
+    
+    var displayName: String {
+        switch self {
+        case .twelveHour: return "12 Hour"
+        case .twentyFourHour: return "24 Hour"
+        }
+    }
+
 }
 
 enum OnboardingStep: String, Codable, Sendable {

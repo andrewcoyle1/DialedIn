@@ -6,7 +6,17 @@
 //
 
 protocol RemoteUserWeightService {
-    func saveWeightEntry(_ entry: WeightEntry) async throws
-    func getWeightHistory(userId: String, limit: Int?) async throws -> [WeightEntry]
-    func deleteWeightEntry(id: String, userId: String) async throws
+    // MARK: CREATE
+    func createWeightEntry(entry: WeightEntry) async throws
+    
+    // MARK: READ
+    func readWeightEntry(userId: String, entryId: String) async throws -> WeightEntry
+    func readAllWeightEntriesForAuthor(userId: String) async throws -> [WeightEntry]
+    
+    // MARK: UPDATE
+    func updateWeightEntry(entry: WeightEntry) async throws
+    
+    // MARK: DELETE
+    func deleteWeightEntry(userId: String, entryId: String) async throws
+
 }

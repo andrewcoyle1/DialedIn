@@ -8,15 +8,11 @@
 import SwiftUI
 
 @MainActor
-protocol WorkoutTemplateDetailRouter {
+protocol WorkoutTemplateDetailRouter: GlobalRouter {
     func showDevSettingsView()
-    func showWorkoutStartView(delegate: WorkoutStartDelegate)
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
-
-    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
-    func showSimpleAlert(title: String, subtitle: String?)
-
-    func dismissScreen()
+    func showWorkoutStartModal(delegate: WorkoutStartDelegate)
+    func showWorkoutTrackerView(delegate: WorkoutTrackerDelegate)
 }
 
 extension CoreRouter: WorkoutTemplateDetailRouter { }

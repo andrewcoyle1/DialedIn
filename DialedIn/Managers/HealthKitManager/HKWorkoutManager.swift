@@ -276,20 +276,21 @@ class HKWorkoutManager: NSObject {
 
     // Starts a timer for the ongoing `workoutManager` session and updates the Live Activity.
     func startWorkoutTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            Task {
-                await MainActor.run {
-                    self.metrics.elapsedTime = self.builder?.elapsedTime ?? 0
-                    
-                    // Sync rest end time from shared storage (in case widget updated it)
-                    self.syncRestEndTimeFromSharedStorage()
-                    
-                    // Don't update Live Activity from here - let WorkoutTrackerView handle it
-                    // HKWorkoutManager should only update rest/elapsed time via updateRestAndActive
-                    // to avoid interfering with the currentExerciseIndex managed by WorkoutTrackerView
-                }
-            }
-        }
+        
+//        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+//            Task {
+//                await MainActor.run {
+//                    self.metrics.elapsedTime = self.builder?.elapsedTime ?? 0
+//                    
+//                    // Sync rest end time from shared storage (in case widget updated it)
+//                    self.syncRestEndTimeFromSharedStorage()
+//                    
+//                    // Don't update Live Activity from here - let WorkoutTrackerView handle it
+//                    // HKWorkoutManager should only update rest/elapsed time via updateRestAndActive
+//                    // to avoid interfering with the currentExerciseIndex managed by WorkoutTrackerView
+//                }
+//            }
+//        }
     }
 
     func stopTimer() {

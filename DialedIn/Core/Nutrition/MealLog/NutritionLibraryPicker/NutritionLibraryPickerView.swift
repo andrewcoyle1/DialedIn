@@ -8,6 +8,10 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct NutritionLibraryPickerDelegate {
+    var onPick: (MealItemModel) -> Void
+}
+
 struct NutritionLibraryPickerView: View {
 
     @State var presenter: NutritionLibraryPickerPresenter

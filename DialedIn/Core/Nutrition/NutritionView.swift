@@ -21,15 +21,13 @@ struct NutritionView<CalendarHeaderView: View>: View {
     
     var body: some View {
         List {
-            dailySummarySection
-
-            mealsSection
-
-            addMealSection
-
-            recipeLibraryButton
-
-            ingredientLibraryButton
+            mealLogSection
+            moreSection
+            //            mealsSection
+//
+//            recipeLibraryButton
+//
+//            ingredientLibraryButton
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
@@ -47,6 +45,12 @@ struct NutritionView<CalendarHeaderView: View>: View {
             }
         }
         .safeAreaInset(edge: .top) {
+            topSafeAreaSection
+        }
+    }
+    
+    private var topSafeAreaSection: some View {
+        VStack {
             calendarHeader(
                 CalendarHeaderDelegate(
                     onDatePressed: { date in
@@ -59,50 +63,91 @@ struct NutritionView<CalendarHeaderView: View>: View {
                     }
                 )
             )
+            HStack {
+                VStack(alignment: .leading) {
+                    HStack(spacing: 0) {
+                        Image(systemName: "flame")
+                            .font(.system(size: 16))
+                        Text("\(Int(presenter.dailyTotals?.calories ?? 0))/\(Int(presenter.dailyTarget?.calories ?? 0))")
+                            .lineLimit(1)
+                            .font(.caption)
+                    }
+                    .frame(height: 16)
+                    ProgressView(value: presenter.caloriePercentage)
+                        .tint(.blue)
+                }
+
+                VStack(alignment: .leading) {
+                    Text("P \(Int(presenter.dailyTotals?.proteinGrams ?? 0))/\(Int(presenter.dailyTarget?.proteinGrams ?? 0))")
+                        .lineLimit(1)
+                        .font(.caption)
+                        .frame(height: 16)
+
+                    ProgressView(value: presenter.carbsPercentage)
+                        .tint(.red)
+                }
+
+                VStack(alignment: .leading) {
+                    Text("F \(Int(presenter.dailyTotals?.fatGrams ?? 0))/\(Int(presenter.dailyTarget?.fatGrams ?? 0))")
+                        .lineLimit(1)
+                        .font(.caption)
+                        .frame(height: 16)
+
+                    ProgressView(value: presenter.fatPercentage)
+                        .tint(.yellow)
+                }
+                
+                VStack(alignment: .leading) {
+                    Text("C \(Int(presenter.dailyTotals?.carbGrams ?? 0))/\(Int(presenter.dailyTarget?.carbGrams ?? 0))")
+                        .lineLimit(1)
+                        .font(.caption)
+                        .frame(height: 16)
+
+                    ProgressView(value: presenter.carbsPercentage)
+                        .tint(.green)
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .glassEffect()
+            .padding(.horizontal)
         }
     }
 
-    // MARK: - Daily Summary Section
-    
-    private var dailySummarySection: some View {
+    private var mealLogSection: some View {
         Section {
-            VStack(spacing: 16) {
-                HStack(spacing: 12) {
-                    MacroStatCard(
-                        title: "Calories",
-                        current: presenter.dailyTotals?.calories ?? 0,
-                        target: presenter.dailyTarget?.calories,
-                        unit: "kcal"
-                    )
+            ForEach(7...23) { hour in
+                HStack {
+                    Text("\(hour) AM")
+                        .lineLimit(1)
+                        .padding(8)
+                        .frame(width: 70)
+                        .background(.secondary.opacity(0.2), in: .capsule)
                     
-                    MacroStatCard(
-                        title: "Protein",
-                        current: presenter.dailyTotals?.proteinGrams ?? 0,
-                        target: presenter.dailyTarget?.proteinGrams,
-                        unit: "g"
-                    )
+                    Image(systemName: "plus")
+                        .padding(8)
+                        .background(.secondary.opacity(0.2), in: .circle)
                 }
-                
-                HStack(spacing: 12) {
-                    MacroStatCard(
-                        title: "Carbs",
-                        current: presenter.dailyTotals?.carbGrams ?? 0,
-                        target: presenter.dailyTarget?.carbGrams,
-                        unit: "g"
-                    )
-                    
-                    MacroStatCard(
-                        title: "Fat",
-                        current: presenter.dailyTotals?.fatGrams ?? 0,
-                        target: presenter.dailyTarget?.fatGrams,
-                        unit: "g"
-                    )
-                }
+                .font(.caption)
+                .padding(.bottom)
             }
             .removeListRowFormatting()
-            .padding(.vertical, 8)
+            .padding(.horizontal)
+        }
+        .listSectionMargins(.top, 0)
+        .listSectionMargins(.horizontal, 0)
+        .listRowSeparator(.hidden)
+    }
+    
+    private var moreSection: some View {
+        Section {
+            Group {
+                CustomListCellView(sfSymbolName: "list.bullet", title: "Nutrition Overview")
+                CustomListCellView(sfSymbolName: "slider.horizontal.3", title: "Customise Food Log")
+            }
+            .removeListRowFormatting()
         } header: {
-            Text("Daily Summary - \(presenter.selectedDate.formattedDate)")
+            Text("More")
         }
     }
     
@@ -150,10 +195,10 @@ struct NutritionView<CalendarHeaderView: View>: View {
         }
     }
     
-    // MARK: - Add Meal Section
-    
-    private var addMealSection: some View {
-        Section {
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        
+        ToolbarItem(placement: .topBarTrailing) {
             Menu {
                 ForEach(MealType.allCases, id: \.self) { mealType in
                     Button {
@@ -164,30 +209,32 @@ struct NutritionView<CalendarHeaderView: View>: View {
                     }
                 }
             } label: {
-                HStack {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(.accent)
-                    Text("Log Meal")
-                        .font(.headline)
-                    Spacer()
-                }
+                Image(systemName: "plus")
             }
         }
-    }
-    
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
+                
+            } label: {
+                Image(systemName: "line.3.horizontal")
+            }
+        }
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            let avatarSize: CGFloat = 44
+
+            Button {
                 presenter.onProfilePressed()
             } label: {
-                if let urlString = presenter.userImageUrl {
-                    ImageLoaderView(urlString: urlString)
-                        .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
-                        .clipShape(Circle())
-                } else {
-                    Image(systemName: "person")
+                ZStack {
+                    Image(systemName: "person.circle")
+                        .font(.system(size: 24))
+                    if let urlString = presenter.userImageUrl {
+                        ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
+                            .frame(width: avatarSize, height: avatarSize)
+                            .contentShape(Circle())
+                    }
                 }
             }
         }

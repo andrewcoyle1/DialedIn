@@ -8,6 +8,16 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct TabBarScreen: Identifiable {
+    var id: String {
+        title
+    }
+
+    let title: String
+    let systemImage: String
+    @ViewBuilder var screen: () -> AnyView
+}
+
 struct TabBarView<TabAccessory: View, Search: View>: View {
 
     @State var presenter: TabBarPresenter
@@ -17,6 +27,7 @@ struct TabBarView<TabAccessory: View, Search: View>: View {
     @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
 
     @ViewBuilder var searchView: () -> Search
+        
     var body: some View {
         TabView {
             ForEach(tabs) { tab in
@@ -34,9 +45,28 @@ struct TabBarView<TabAccessory: View, Search: View>: View {
         }
         .tabViewStyle(.tabBarOnly)
         .tabBarMinimizeBehavior(.onScrollDown)
-        .tabViewBottomAccessory(isEnabled: presenter.activeSession != nil) {
-            if let active = presenter.activeSession {
-                tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
+        .tabViewBottomAccessory {
+            GeometryReader { geometry in
+                ScrollView(.horizontal) {
+                    HStack(alignment: .center) {
+                        if let active = presenter.activeSession {
+                            tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
+                                .frame(width: geometry.size.width)
+                        }
+
+                        HStack {
+                            Image(systemName: "magnifyingglass")
+                            TextField("Search for a food", text: .constant(""))
+                            Image(systemName: "barcode.viewfinder")
+                        }
+                        .padding(.horizontal)
+                        .frame(width: geometry.size.width)
+                    }
+                    .scrollTargetLayout()
+                }
+                .scrollIndicators(.hidden)
+                .scrollTargetBehavior(.viewAligned)
+                .frame(maxHeight: .infinity)
             }
         }
     }
@@ -58,16 +88,6 @@ extension CoreBuilder {
                 }
             ),
             TabBarScreen(
-                title: "Nutrition",
-                systemImage: "carrot",
-                screen: {
-                    RouterView { router in
-                        self.nutritionView(router: router)
-                    }
-                    .any()
-                }
-            ),
-            TabBarScreen(
                 title: "Training",
                 systemImage: "dumbbell",
                 screen: {
@@ -76,17 +96,17 @@ extension CoreBuilder {
                     }
                     .any()
                 }
+            ),
+            TabBarScreen(
+                title: "Nutrition",
+                systemImage: "carrot",
+                screen: {
+                    RouterView { router in
+                        self.nutritionView(router: router)
+                    }
+                    .any()
+                }
             )
-//            TabBarScreen(
-//                title: "Profile",
-//                systemImage: "person",
-//                screen: {
-//                    RouterView { router in
-//                        self.profileView(router: router)
-//                    }
-//                    .any()
-//                }
-//            )
         ]
 
         return TabBarView(

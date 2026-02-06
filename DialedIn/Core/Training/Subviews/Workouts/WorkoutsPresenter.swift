@@ -22,6 +22,10 @@ class WorkoutsPresenter {
         self.router = router
     }
     
+    func onDismissPressed() {
+        router.dismissScreen()
+    }
+    
     func onWorkoutPressed(workout: WorkoutTemplateModel) {
         // Only increment click count for non-system workouts
         // System workouts (IDs starting with "system-") are read-only

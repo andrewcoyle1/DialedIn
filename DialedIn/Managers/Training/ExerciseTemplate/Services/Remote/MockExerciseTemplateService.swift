@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct MockExerciseTemplateService: RemoteExerciseTemplateService {
-    let exercises: [ExerciseTemplateModel]
+    let exercises: [ExerciseModel]
     let delay: Double
     let showError: Bool
     
-    init(exercises: [ExerciseTemplateModel] = ExerciseTemplateModel.mocks, delay: Double = 0.0, showError: Bool = false) {
+    init(exercises: [ExerciseModel] = ExerciseModel.mocks, delay: Double = 0.0, showError: Bool = false) {
         self.exercises = exercises
         self.delay = delay
         self.showError = showError
@@ -24,11 +24,11 @@ struct MockExerciseTemplateService: RemoteExerciseTemplateService {
         }
     }
     
-    func createExerciseTemplate(exercise: ExerciseTemplateModel, image: PlatformImage?) async throws {
+    func createExerciseTemplate(exercise: ExerciseModel, image: PlatformImage?) async throws {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
     }
-    func getExerciseTemplate(id: String) async throws -> ExerciseTemplateModel {
+    func getExerciseTemplate(id: String) async throws -> ExerciseModel {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
         
@@ -39,7 +39,7 @@ struct MockExerciseTemplateService: RemoteExerciseTemplateService {
         return exercise
     }
     
-    func getExerciseTemplates(ids: [String], limitTo: Int = 20) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplates(ids: [String], limitTo: Int = 20) async throws -> [ExerciseModel] {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
         
@@ -49,21 +49,21 @@ struct MockExerciseTemplateService: RemoteExerciseTemplateService {
             .map { $0 }
     }
     
-    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseModel] {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
         
         return exercises.filter { $0.name.localizedCaseInsensitiveContains(name) }
     }
     
-    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseModel] {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
         
         return exercises.filter { $0.authorId == authorId }
     }
     
-    func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseTemplateModel] {
+    func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseModel] {
         try await Task.sleep(for: .seconds(delay))
         try tryShowError()
         

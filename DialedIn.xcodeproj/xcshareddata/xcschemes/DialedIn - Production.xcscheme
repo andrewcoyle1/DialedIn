@@ -75,7 +75,7 @@
          </BuildableReference>
       </BuildableProductRunnable>
       <StoreKitConfigurationFileReference
-         identifier = "../../DialedIn/Services/Purchases/StoreKit/DialedInPurchaseConfiguration.storekit">
+         identifier = "../../DialedIn/Managers/Purchases/StoreKit/DialedInPurchaseConfiguration.storekit">
       </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction

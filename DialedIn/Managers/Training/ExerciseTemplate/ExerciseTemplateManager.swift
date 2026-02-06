@@ -8,20 +8,20 @@
 import SwiftUI
 
 @Observable
-class ExerciseTemplateManager: BaseTemplateManager<ExerciseTemplateModel> {
+class ExerciseTemplateManager: BaseTemplateManager<ExerciseModel> {
     
-    private let local: LocalExerciseTemplatePersistence
+    private let local: LocalExercisePersistence
     private let remote: RemoteExerciseTemplateService
-    
+
     init(services: ExerciseTemplateServices) {
         self.local = services.local
         self.remote = services.remote
         
         super.init(
-            addLocal: { try services.local.addLocalExerciseTemplate(exercise: $0) },
-            getLocal: { try services.local.getLocalExerciseTemplate(id: $0) },
-            getLocalMany: { try services.local.getLocalExerciseTemplates(ids: $0) },
-            getAllLocal: { try services.local.getAllLocalExerciseTemplates() },
+            addLocal: { try services.local.addLocalExercise(exercise: $0) },
+            getLocal: { try services.local.getLocalExercise(id: $0) },
+            getLocalMany: { try services.local.getLocalExercises(ids: $0) },
+            getAllLocal: { try services.local.getAllLocalExercises() },
             deleteLocal: nil,
             createRemote: { try await services.remote.createExerciseTemplate(exercise: $0, image: $1) },
             updateRemote: nil,
@@ -41,49 +41,49 @@ class ExerciseTemplateManager: BaseTemplateManager<ExerciseTemplateModel> {
     
     // MARK: - Specialized Methods
     
-    func getSystemExerciseTemplates() throws -> [ExerciseTemplateModel] {
-        try local.getSystemExerciseTemplates()
+    func getSystemExerciseTemplates() throws -> [ExerciseModel] {
+        try local.getSystemExercises()
     }
     
     // MARK: - Method Aliases for Backward Compatibility
     
-    func addLocalExerciseTemplate(exercise: ExerciseTemplateModel) async throws {
+    func addLocalExerciseTemplate(exercise: ExerciseModel) async throws {
         try await addLocalTemplate(exercise)
     }
     
-    func getLocalExerciseTemplate(id: String) throws -> ExerciseTemplateModel {
+    func getLocalExerciseTemplate(id: String) throws -> ExerciseModel {
         try getLocalTemplate(id: id)
     }
     
-    func getLocalExerciseTemplates(ids: [String]) throws -> [ExerciseTemplateModel] {
+    func getLocalExerciseTemplates(ids: [String]) throws -> [ExerciseModel] {
         try getLocalTemplates(ids: ids)
     }
     
-    func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel] {
+    func getAllLocalExerciseTemplates() throws -> [ExerciseModel] {
         try getAllLocalTemplates()
     }
     
-    func createExerciseTemplate(exercise: ExerciseTemplateModel, image: PlatformImage?) async throws {
+    func createExerciseTemplate(exercise: ExerciseModel, image: PlatformImage?) async throws {
         try await createTemplate(exercise, image: image)
     }
     
-    func getExerciseTemplate(id: String) async throws -> ExerciseTemplateModel {
+    func getExerciseTemplate(id: String) async throws -> ExerciseModel {
         try await getTemplate(id: id)
     }
     
-    func getExerciseTemplates(ids: [String], limitTo: Int = 20) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplates(ids: [String], limitTo: Int = 20) async throws -> [ExerciseModel] {
         try await getTemplates(ids: ids, limitTo: limitTo)
     }
     
-    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseModel] {
         try await getTemplatesByName(name: name)
     }
     
-    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseTemplateModel] {
+    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseModel] {
         try await getTemplatesForAuthor(authorId: authorId)
     }
     
-    func getTopExerciseTemplatesByClicks(limitTo: Int = 10) async throws -> [ExerciseTemplateModel] {
+    func getTopExerciseTemplatesByClicks(limitTo: Int = 10) async throws -> [ExerciseModel] {
         try await getTopTemplatesByClicks(limitTo: limitTo)
     }
     

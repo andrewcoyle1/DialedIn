@@ -22,7 +22,7 @@ class WorkoutSessionDetailPresenter {
     var isLoading: Bool {
         isSaving || isDeleting
     }
-    var selectedExerciseTemplates: [ExerciseTemplateModel] = []
+    var selectedExerciseTemplates: [ExerciseModel] = []
     
     func currentSession(session: WorkoutSessionModel) -> WorkoutSessionModel {
         isEditMode ? editedSession ?? session : session
@@ -229,7 +229,7 @@ class WorkoutSessionDetailPresenter {
         
         for (offset, template) in selectedExerciseTemplates.enumerated() {
             let index = startIndex + offset + 1
-            let mode = WorkoutSessionModel.trackingMode(for: template.type)
+            let mode = WorkoutSessionModel.trackingMode(for: template)
             let defaultSets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: userId)
             let imageName = Constants.exerciseImageName(for: template.name)
             
@@ -304,14 +304,6 @@ class WorkoutSessionDetailPresenter {
         defer { isDeleting = false }
         
         do {
-            // If this session is linked to a scheduled workout, unmark it as complete
-            // Only if this session was the one that completed it
-            if let scheduledWorkoutId = session.scheduledWorkoutId {
-                try? await interactor.markWorkoutIncompleteIfSessionDeleted(
-                    scheduledWorkoutId: scheduledWorkoutId,
-                    sessionId: session.id
-                )
-            }
             
             // Delete from local first for instant feedback
             try interactor.deleteLocalWorkoutSession(id: session.id)
@@ -341,8 +333,8 @@ class WorkoutSessionDetailPresenter {
     }
 
     func onAddExercisePressed() {
-        router.showAddExercisesView(
-            delegate: AddExerciseModalDelegate(
+        router.showExercisePickerView(
+            delegate: ExercisePickerDelegate(
                 selectedExercises: Binding(
                     get: {
                         self.selectedExerciseTemplates

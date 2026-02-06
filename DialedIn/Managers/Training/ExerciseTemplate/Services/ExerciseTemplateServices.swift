@@ -7,5 +7,5 @@
 
 protocol ExerciseTemplateServices {
     var remote: RemoteExerciseTemplateService { get }
-    var local: LocalExerciseTemplatePersistence { get }
+    var local: LocalExercisePersistence { get }
 }

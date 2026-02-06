@@ -8,6 +8,10 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct WorkoutListDelegateBuilder {
+    var onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)?
+}
+
 struct WorkoutListViewBuilder: View {
 
     @State var presenter: WorkoutListPresenterBuilder
@@ -22,7 +26,9 @@ struct WorkoutListViewBuilder: View {
                     favouriteWorkoutTemplatesSection
                 }
 
-                myWorkoutsSection
+                if !presenter.myWorkouts.isEmpty {
+                    myWorkoutsSection
+                }
                 
                 if !presenter.systemWorkouts.isEmpty {
                     systemWorkoutTemplatesSection
@@ -42,7 +48,8 @@ struct WorkoutListViewBuilder: View {
         }
         .screenAppearAnalytics(name: "WorkoutsView")
         .navigationTitle("Workouts")
-        .navigationSubtitle("\(presenter.workouts.count) workouts")
+        .navigationSubtitle("\(presenter.workoutsCount) workouts")
+        .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
         .onFirstTask {
             await presenter.loadAllWorkouts()
@@ -71,15 +78,7 @@ struct WorkoutListViewBuilder: View {
     private var favouriteWorkoutTemplatesSection: some View {
         Section {
             ForEach(presenter.favouriteWorkouts) { workout in
-                CustomListCellView(
-                    imageName: workout.imageURL,
-                    title: workout.name,
-                    subtitle: workout.description
-                )
-                .anyButton(.highlight) {
-                    presenter.onWorkoutPressedFromFavourites(workout: workout, onWorkoutPressed: delegate.onWorkoutSelectionChanged)
-                }
-                .removeListRowFormatting()
+                workoutRow(workout)
             }
         } header: {
             Text("Favourites")
@@ -92,15 +91,7 @@ struct WorkoutListViewBuilder: View {
     private var bookmarkedWorkoutTemplatesSection: some View {
         Section {
             ForEach(presenter.bookmarkedOnlyWorkouts) { workout in
-                CustomListCellView(
-                    imageName: workout.imageURL,
-                    title: workout.name,
-                    subtitle: workout.description
-                )
-                .anyButton(.highlight) {
-                    presenter.onWorkoutPressedFromBookmarked(workout: workout, onWorkoutPressed: delegate.onWorkoutSelectionChanged)
-                }
-                .removeListRowFormatting()
+                workoutRow(workout)
             }
         } header: {
             Text("Bookmarked")
@@ -121,15 +112,7 @@ struct WorkoutListViewBuilder: View {
                 .removeListRowFormatting()
             }
             ForEach(presenter.visibleWorkoutTemplates) { workout in
-                CustomListCellView(
-                    imageName: workout.imageURL,
-                    title: workout.name,
-                    subtitle: workout.description
-                )
-                .anyButton(.highlight) {
-                    presenter.onWorkoutPressedFromTrending(workout: workout, onWorkoutPressed: delegate.onWorkoutSelectionChanged)
-                }
-                .removeListRowFormatting()
+                workoutRow(workout)
             }
         } header: {
             Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
@@ -157,15 +140,7 @@ struct WorkoutListViewBuilder: View {
                 }
             } else {
                 ForEach(presenter.myWorkoutsVisible) { workout in
-                    CustomListCellView(
-                        imageName: workout.imageURL,
-                        title: workout.name,
-                        subtitle: workout.description
-                    )
-                    .anyButton(.highlight) {
-                        presenter.onWorkoutPressedFromMyTemplates(workout: workout, onWorkoutPressed: delegate.onWorkoutSelectionChanged)
-                    }
-                    .removeListRowFormatting()
+                    workoutRow(workout)
                 }
             }
         } header: {
@@ -176,18 +151,23 @@ struct WorkoutListViewBuilder: View {
         }
     }
     
+    private func workoutRow(_ workout: WorkoutTemplateModel) -> some View {
+        let subtitle = workout.exercises.map { "\($0.exercise.name)"}.joined(separator: ", ")
+        return CustomListCellView(
+            imageName: workout.imageURL,
+            title: workout.name,
+            subtitle: subtitle
+        )
+        .anyButton(.highlight) {
+            presenter.onWorkoutPressedFromMyTemplates(workout: workout, onWorkoutPressed: delegate.onWorkoutSelectionChanged)
+        }
+        .removeListRowFormatting()
+    }
+    
     private var systemWorkoutTemplatesSection: some View {
         Section {
             ForEach(presenter.systemWorkouts) { workout in
-                CustomListCellView(
-                    imageName: workout.imageURL,
-                    title: workout.name,
-                    subtitle: workout.description
-                )
-                .anyButton(.highlight) {
-                    presenter.onWorkoutPressedFromSystem(workout: workout, onWorkoutPressed: delegate.onWorkoutSelectionChanged)
-                }
-                .removeListRowFormatting()
+                workoutRow(workout)
             }
         } header: {
             HStack {

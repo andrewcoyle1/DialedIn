@@ -27,6 +27,11 @@ class TrainingProgramManager {
 
     // MARK: READ
     
+    func readActiveTrainingProgram(programId: String) throws -> TrainingProgram? {
+        self.activeTrainingProgram = try local.readTrainingProgram(programId: programId)
+        return self.activeTrainingProgram
+    }
+    
     func readLocalTrainingProgram(programId: String) throws -> TrainingProgram {
         try local.readTrainingProgram(programId: programId)
     }

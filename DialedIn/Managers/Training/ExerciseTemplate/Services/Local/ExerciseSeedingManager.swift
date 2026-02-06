@@ -8,13 +8,13 @@
 import Foundation
 import SwiftData
 
-/// Manages seeding of pre-built exercise templates into SwiftData
+/// Manages seeding of pre-built exercises into SwiftData
 class ExerciseSeedingManager {
     
     private let modelContext: ModelContext
     private let userDefaults = UserDefaults.standard
-    private static let hasSeededKey = "hasSeededPrebuiltExercises"
-    private static let seedingVersionKey = "prebuiltExercisesSeedingVersion"
+    private static let hasSeededKey = "hasSeededPrebuiltExercisesV2"
+    private static let seedingVersionKey = "prebuiltExercisesSeedingVersionV2"
     private static let currentSeedingVersion = 2
     
     init(modelContext: ModelContext) {
@@ -42,7 +42,7 @@ class ExerciseSeedingManager {
         print("🌱 Seeding pre-built exercises...")
         
         do {
-            let exercises = try loadPrebuiltExercises()
+            let exercises = try await loadPrebuiltExercises()
             try seedExercises(exercises)
             
             // Mark as seeded
@@ -74,38 +74,34 @@ class ExerciseSeedingManager {
     // MARK: - Private Methods
     
     /// Load pre-built exercises from JSON bundle
-    private func loadPrebuiltExercises() throws -> [ExerciseTemplateModel] {
+    private func loadPrebuiltExercises() async throws -> [ExerciseModel] {
         guard let url = Bundle.main.url(forResource: "PrebuiltExercises", withExtension: "json") else {
             throw SeedingError.bundleNotFound
         }
         
         let data = try Data(contentsOf: url)
         let container = try JSONDecoder().decode(PrebuiltExercisesContainer.self, from: data)
-        
-        // Convert DTOs to models
-        let exercises = container.exercises.map { $0.toModel() }
-        
-        return exercises
+        return container.exercises
     }
     
     /// Seed exercises into SwiftData
-    private func seedExercises(_ exercises: [ExerciseTemplateModel]) throws {
+    private func seedExercises(_ exercises: [ExerciseModel]) throws {
         for exercise in exercises {
             // Check if this system exercise already exists
-            let exerciseId = exercise.exerciseId // Capture in local variable
-            let predicate = #Predicate<ExerciseTemplateEntity> { entity in
-                entity.exerciseTemplateId == exerciseId
+            let exerciseId = exercise.id // Capture in local variable
+            let predicate = #Predicate<ExerciseEntity> { entity in
+                entity.exerciseId == exerciseId
             }
             
-            let descriptor = FetchDescriptor<ExerciseTemplateEntity>(predicate: predicate)
+            let descriptor = FetchDescriptor<ExerciseEntity>(predicate: predicate)
             let existing = try modelContext.fetch(descriptor)
             
-            // Only insert if doesn't exist
-            if existing.isEmpty {
-                let entity = ExerciseTemplateEntity(from: exercise)
-                modelContext.insert(entity)
+            // Insert if missing; otherwise update to keep prebuilt fields current
+            if let entity = existing.first {
+                updateExistingSystemExercise(entity: entity, with: exercise)
             } else {
-                print("⚠️ System exercise '\(exercise.name)' already exists, skipping")
+                let entity = ExerciseEntity(from: exercise)
+                modelContext.insert(entity)
             }
         }
         
@@ -113,13 +109,44 @@ class ExerciseSeedingManager {
         try modelContext.save()
     }
     
+    private func updateExistingSystemExercise(entity: ExerciseEntity, with model: ExerciseModel) {
+        entity.authorId = model.authorId
+        entity.name = model.name
+        entity.exerciseDescription = model.description
+        entity.imageURL = model.imageURL
+        
+        entity.trackableMetrics = Self.encode(model.trackableMetrics)
+        entity.typeRaw = model.type?.rawValue
+        entity.lateralityRaw = model.laterality?.rawValue
+        entity.muscleGroups = Self.encode(model.muscleGroups)
+        entity.isBodyweight = model.isBodyweight
+        entity.resistanceEquipment = Self.encode(model.resistanceEquipment)
+        entity.supportEquipment = Self.encode(model.supportEquipment)
+        entity.rangeOfMotion = model.rangeOfMotion
+        entity.stability = model.stability
+        entity.bodyWeightContribution = model.bodyWeightContribution
+        entity.alternateNames = Self.encode(model.alternateNames)
+        
+        entity.isSystemExercise = model.isSystemExercise
+        entity.dateModified = .now
+        
+        // Preserve local counters (click/bookmark/favourite) if present
+        if entity.clickCount == nil { entity.clickCount = model.clickCount ?? 0 }
+        if entity.bookmarkCount == nil { entity.bookmarkCount = model.bookmarkCount ?? 0 }
+        if entity.favouriteCount == nil { entity.favouriteCount = model.favouriteCount ?? 0 }
+    }
+    
+    private static func encode<T: Encodable>(_ value: T) -> Data {
+        (try? JSONEncoder().encode(value)) ?? Data()
+    }
+    
     /// Delete existing system exercises
     private func deleteExistingSystemExercises() throws {
-        let predicate = #Predicate<ExerciseTemplateEntity> { entity in
+        let predicate = #Predicate<ExerciseEntity> { entity in
             entity.isSystemExercise == true
         }
         
-        let descriptor = FetchDescriptor<ExerciseTemplateEntity>(predicate: predicate)
+        let descriptor = FetchDescriptor<ExerciseEntity>(predicate: predicate)
         let systemExercises = try modelContext.fetch(descriptor)
         
         for exercise in systemExercises {
@@ -135,39 +162,7 @@ class ExerciseSeedingManager {
 
 /// Container for decoding JSON
 private struct PrebuiltExercisesContainer: Codable {
-    let exercises: [PrebuiltExerciseDTO]
-}
-
-/// DTO for decoding JSON (without date fields)
-private struct PrebuiltExerciseDTO: Codable {
-    let exerciseId: String
-    let name: String
-    let description: String?
-    let type: ExerciseCategory
-    let muscleGroups: [MuscleGroup]
-    let instructions: [String]
-    let isSystemExercise: Bool
-    
-    func toModel() -> ExerciseTemplateModel {
-        // Try to map to bundled asset image
-        let assetImageName = Constants.exerciseImageName(for: name)
-        return ExerciseTemplateModel(
-            exerciseId: exerciseId,
-            authorId: nil,
-            name: name,
-            description: description,
-            instructions: instructions,
-            type: type,
-            muscleGroups: muscleGroups,
-            imageURL: assetImageName,
-            isSystemExercise: isSystemExercise,
-            dateCreated: Date(),
-            dateModified: Date(),
-            clickCount: 0,
-            bookmarkCount: 0,
-            favouriteCount: 0
-        )
-    }
+    let exercises: [ExerciseModel]
 }
 
 /// Errors that can occur during seeding

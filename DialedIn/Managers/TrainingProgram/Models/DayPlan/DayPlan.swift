@@ -11,13 +11,21 @@ struct DayPlan: Identifiable, Codable {
     let id: String
     let authorId: String
     var name: String
+    let dateCreated: Date
     
-    var exercises: [ExercisePlan] = []
+    var exercises: [WorkoutTemplateExercise] = []
     
-    init(id: String, authorId: String, name: String, exercises: [ExercisePlan]) {
+    init(
+        id: String,
+        authorId: String,
+        name: String,
+        dateCreated: Date = Date(),
+        exercises: [WorkoutTemplateExercise]
+    ) {
         self.id = id
         self.authorId = authorId
         self.name = name
+        self.dateCreated = dateCreated
         self.exercises = exercises
     }
     
@@ -25,6 +33,7 @@ struct DayPlan: Identifiable, Codable {
         case id
         case authorId = "author_id"
         case name
+        case dateCreated = "date_created"
         case exercises
     }
     
@@ -33,513 +42,41 @@ struct DayPlan: Identifiable, Codable {
     }
     
     static var mocks: [DayPlan] {
-        [
+        let samples = ExerciseModel.mocks
+        let makePlans: ([ExerciseModel]) -> [WorkoutTemplateExercise] = { exercises in
+            exercises.map { exercise in
+                WorkoutTemplateExercise(exercise: exercise, setRestTimers: false)
+            }
+        }
+        let baseDate = Date()
+
+        return [
             DayPlan(
                 id: UUID().uuidString,
                 authorId: "user123",
                 name: "Push Day A",
-                exercises: [
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Seated Pin-Loaded Machine Incline Press",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.chest, .arms, .shoulders],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Neutral Grip Machine Fly",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.chest, .shoulders],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-20*86400),
-                            dateModified: Date.now.addingTimeInterval(-8*86400),
-                            clickCount: 8,
-                            bookmarkCount: 3,
-                            favouriteCount: 2
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Low Pulley Cable Rope Overhead Triceps Extension",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.arms],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-15*86400),
-                            dateModified: Date.now.addingTimeInterval(-9*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Single Arm Cable Lateral Raise (With Cable In Front Of Body",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.shoulders],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    )
-                ]
+                dateCreated: baseDate,
+                exercises: makePlans(Array(samples.prefix(3)))
             ),
             DayPlan(
                 id: UUID().uuidString,
                 authorId: "user123",
                 name: "Pull Day A",
-                exercises: [
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Seated Neutral Grip Cable Row",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.back, .arms, .shoulders],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Neutral Grip Weighted Pull Up",
-                            description: nil,
-                            instructions: [],
-                            type: .weightedBodyweight,
-                            muscleGroups: [.back, .arms],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Close Grip Ez Bar Preacher Curl",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.arms],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Sideways Single Arm Machine Reverse Fly",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.back, .shoulders],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    )
-                ]
+                dateCreated: baseDate.addingTimeInterval(1),
+                exercises: makePlans(Array(samples.dropFirst(3).prefix(3)))
             ),
             DayPlan(
                 id: UUID().uuidString,
                 authorId: "user123",
                 name: "Leg Day A",
-                exercises: [
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Machine Pendulum Squat",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.legs],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Barbell Romanian Deadlift",
-                            description: nil,
-                            instructions: [],
-                            type: .barbell,
-                            muscleGroups: [.back, .legs],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Pin-Loaded Machine Leg Extension",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.legs],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Single Arm Cable Lateral Raise (With Cable In Front Of Body)",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.shoulders],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    )
-                ]
-            ),
-            DayPlan(
-                id: UUID().uuidString,
-                authorId: "user123",
-                name: "Push Day B",
-                exercises: [
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Barbell Bench Press",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.chest, .arms, .shoulders],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Weighted Chest Dip",
-                            description: nil,
-                            instructions: [],
-                            type: .weightedBodyweight,
-                            muscleGroups: [.chest, .arms, .shoulders],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Low Pulley Cable Rope Overhead Triceps Extension",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.arms],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    )
-                ]
-            ),
-            DayPlan(
-                id: UUID().uuidString,
-                authorId: "user123",
-                name: "Pull Day B",
-                exercises: [
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Chest-Support Neutral Grip T-Bar Row",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.back, .arms, .shoulders],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Neutral Shoulder Width Grip Cable Lat Pulldown",
-                            description: nil,
-                            instructions: [],
-                            type: .barbell,
-                            muscleGroups: [.back, .arms, .shoulders],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Cable Face Pull",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.shoulders, .back, .arms],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Single Arm Cable Lateral Raise (With Cable In Front Of Body)",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.shoulders],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Close Grip Ez Bar Preacher Curl",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.arms],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    )
-                ]
-            ),
-            DayPlan(
-                id: UUID().uuidString,
-                authorId: "user123",
-                name: "Leg Day B",
-                exercises: [
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Plate-Loaded Machine Hip Thrust (Starting From The Top)",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.legs],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Offset Dumbbell Rear Foot Elevated Split Squat",
-                            description: nil,
-                            instructions: [],
-                            type: .dumbbell,
-                            muscleGroups: [.legs],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    ),
-                    ExercisePlan(
-                        id: UUID().uuidString,
-                        authorId: "user123",
-                        exercise: ExerciseTemplateModel(
-                            exerciseId: UUID().uuidString,
-                            authorId: "user123",
-                            name: "Lying Pin-Loaded Machine Hamstring Curl",
-                            description: nil,
-                            instructions: [],
-                            type: .machine,
-                            muscleGroups: [.legs],
-                            imageURL: nil,
-                            isSystemExercise: false,
-                            dateCreated: Date.now.addingTimeInterval(-10*86400),
-                            dateModified: Date.now.addingTimeInterval(-2*86400),
-                            clickCount: 5,
-                            bookmarkCount: 2,
-                            favouriteCount: 1
-                        )
-                    )
-                ]
+                dateCreated: baseDate.addingTimeInterval(2),
+                exercises: makePlans(Array(samples.dropFirst(6).prefix(3)))
             ),
             DayPlan(
                 id: UUID().uuidString,
                 authorId: "user123",
                 name: "Rest",
+                dateCreated: baseDate.addingTimeInterval(3),
                 exercises: []
             )
         ]

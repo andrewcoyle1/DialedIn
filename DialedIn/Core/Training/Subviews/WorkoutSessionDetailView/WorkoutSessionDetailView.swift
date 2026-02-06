@@ -8,6 +8,10 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct WorkoutSessionDetailDelegate {
+    let workoutSession: WorkoutSessionModel
+}
+
 struct WorkoutSessionDetailView: View {
 
     @State var presenter: WorkoutSessionDetailPresenter
@@ -29,7 +33,8 @@ struct WorkoutSessionDetailView: View {
         .showModal(showModal: Binding(get: { presenter.isLoading }, set: { _ in })) {
             ProgressView()
                 .tint(.white)
-        }.scrollIndicators(.hidden)
+        }
+        .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }

@@ -6,8 +6,17 @@
 //
 
 protocol LocalUserWeightService {
-    func saveWeightEntry(_ entry: WeightEntry) async throws
-    func getWeightHistory(userId: String, limit: Int?) async throws -> [WeightEntry]
-    func deleteWeightEntry(id: String, userId: String) async throws
-    func clearCache(userId: String) async throws
+    // MARK: CREATE
+    func createWeightEntry(weightEntry: WeightEntry) throws
+    
+    // MARK: READ
+    func readWeightEntry(id: String) throws -> WeightEntry
+    func readWeightEntries() throws -> [WeightEntry]
+    
+    // MARK: UPDATE
+    func updateWeightEntry(entry: WeightEntry) throws
+    
+    // MARK: DELETE
+    func deleteWeightEntry(id: String) throws
+    
 }

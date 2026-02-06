@@ -10,19 +10,14 @@ protocol DevSettingsInteractor {
     var currentUser: UserModel? { get }
     var activeTests: ActiveABTests { get }
     func override(updatedTests: ActiveABTests) throws
-    var currentTrainingPlan: TrainingPlan? { get }
     var activeSession: WorkoutSessionModel? { get }
     func updateAppState(showTabBarView: Bool)
-    func getAllLocalExerciseTemplates() throws -> [ExerciseTemplateModel]
+    func getAllLocalExerciseTemplates() throws -> [ExerciseModel]
     func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel]
     func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
-    func getCurrentWeek() -> TrainingWeek?
-    func getTodaysWorkouts() -> [ScheduledWorkout]
     func getAllLocalWorkoutSessions() throws -> [WorkoutSessionModel]
-    func updatePlan(_ plan: TrainingPlan) async throws
     func trackEvent(event: LoggableEvent)
     func getWorkoutSession(id: String) async throws -> WorkoutSessionModel
-    func clearAllTrainingPlanLocalData() throws
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws
     func signOut() async throws
 }

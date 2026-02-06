@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 24/09/2025.
 //
 
+import Foundation
 import SwiftUI
 import SwiftData
 
@@ -19,6 +20,7 @@ class WorkoutTemplateEntity {
     var dateCreated: Date
     var dateModified: Date
     var exercises: [String]
+    var exercisesData: Data?
     var clickCount: Int?
     var bookmarkCount: Int?
     var favouriteCount: Int?
@@ -32,7 +34,8 @@ class WorkoutTemplateEntity {
         self.isSystemWorkout = model.isSystemWorkout
         self.dateCreated = model.dateCreated
         self.dateModified = model.dateModified
-        self.exercises = model.exercises.map(\.exerciseId)
+        self.exercises = model.exercises.map(\.exercise.id)
+        self.exercisesData = try? JSONEncoder().encode(model.exercises)
         self.clickCount = model.clickCount
         self.bookmarkCount = model.bookmarkCount
         self.favouriteCount = model.favouriteCount
@@ -40,12 +43,16 @@ class WorkoutTemplateEntity {
     
     @MainActor
     func toModel(exerciseManager: ExerciseTemplateManager? = nil) -> WorkoutTemplateModel {
-        // Fetch actual exercise templates if manager is provided
-        var exerciseTemplates: [ExerciseTemplateModel] = []
-        if let exerciseManager = exerciseManager {
+        // Fetch actual exercises if manager is provided
+        var exerciseTemplates: [WorkoutTemplateExercise] = []
+        if let exercisesData,
+           let decoded = try? JSONDecoder().decode([WorkoutTemplateExercise].self, from: exercisesData) {
+            exerciseTemplates = decoded
+        } else if let exerciseManager = exerciseManager {
             for exerciseId in exercises {
                 if let exercise = try? exerciseManager.getLocalExerciseTemplate(id: exerciseId) {
-                    exerciseTemplates.append(exercise)
+                    let workoutExercise = WorkoutTemplateExercise(exercise: exercise, setRestTimers: false)
+                    exerciseTemplates.append(workoutExercise)
                 }
             }
         }

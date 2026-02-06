@@ -1,18 +1,52 @@
 import SwiftUI
 
+struct ExerciseListBuilderDelegate {
+    var onExerciseSelectionChanged: ((ExerciseModel) -> Void)?
+    /// Optional list of exercises that should display as "selected" in the UI.
+    /// If `nil`, no selection state is shown.
+    var selectedExercises: [ExerciseModel]?
+}
+
 struct ExerciseListBuilderView: View {
     
     @State var presenter: ExerciseListBuilderPresenter
     
     let delegate: ExerciseListBuilderDelegate
     
+    private func isExerciseSelected(_ exercise: ExerciseModel) -> Bool {
+        delegate.selectedExercises?.contains(exercise) ?? false
+    }
+    
     var body: some View {
-        listContents
-        .screenAppearAnalytics(name: "ExerciseListBuilderView")
-        .navigationTitle("Exercises")
-        .navigationSubtitle("\(presenter.exercises.count) exercises")
-        .navigationBarTitleDisplayMode(.large)
+        List {
+            
+            if !presenter.favouriteExercisesVisible.isEmpty {
+                favouriteExerciseTemplatesSection
+            }
+
+            if !presenter.myExercisesVisible.isEmpty {
+                myExercisesSection
+            }
+
+            if !presenter.officialExercisesVisible.isEmpty {
+                officialExercisesSection
+            }
+
+            if !presenter.bookmarkedOnlyExercises.isEmpty {
+                bookmarkedExerciseTemplatesSection
+            }
+
+            if !presenter.trendingExercisesDeduped.isEmpty || presenter.isLoading {
+                exerciseTemplateSection
+            }
+        }
+        .searchable(text: $presenter.searchText, placement: .toolbar, prompt: Text("Search exercises"))
+        .refreshable {
+            await presenter.loadExercises()
+        }
         .scrollIndicators(.hidden)
+        .toolbarVisibility(.hidden)
+        .screenAppearAnalytics(name: "ExerciseListBuilderView")
         .onFirstTask {
             await presenter.loadExercises()
         }
@@ -21,49 +55,92 @@ struct ExerciseListBuilderView: View {
                 await presenter.syncSavedExercisesFromUser()
             }
         }
-        .toolbar {
-            toolbarContent
+        .safeAreaInset(edge: .top) {
+            filterSection
         }
     }
     
-    private var listContents: some View {
-        List {
-            if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-
-                if !presenter.favouriteExercises.isEmpty {
-                    favouriteExerciseTemplatesSection
-                }
-
-                myExercisesSection
+    private var filterSection: some View {
+        ScrollView(.horizontal) {
+            HStack {
+                Image(systemName: "arrow.counterclockwise")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+                    .padding(.leading)
                 
-                if !presenter.officialExercisesVisible.isEmpty {
-                    officialExercisesSection
-                }
+                Label("Gym", systemImage: "building")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
 
-                if !presenter.bookmarkedOnlyExercises.isEmpty {
-                    bookmarkedExerciseTemplatesSection
-                }
+                Label("Type", systemImage: "signpost.right")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
 
-                if !presenter.trendingExercisesDeduped.isEmpty {
-                    exerciseTemplateSection
-                }
-            } else {
-                // Show search results when there is a query
-                exerciseTemplateSection
+                Label("Laterality", systemImage: "arrowshape.left.arrowshape.right")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+
+                Label("Resistance", systemImage: "scalemass")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+
+                Label("Support", systemImage: "bed.double")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+
+                Label("Range of Motion", systemImage: "arrowshape.left.arrowshape.right")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+
+                Label("Stability", systemImage: "camera.metering.center.weighted.average")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+
+                Label("Library", systemImage: "book.closed")
+                    .padding(8)
+                    .glassEffect(.clear)
+                    .anyButton {
+                        
+                    }
+                    .padding(.trailing)
+
             }
         }
-        .refreshable {
-            await presenter.loadExercises()
-        }
+        .scrollIndicators(.hidden)
     }
-    
+
     private var favouriteExerciseTemplatesSection: some View {
         Section {
-            ForEach(presenter.favouriteExercises) { exercise in
+            ForEach(presenter.favouriteExercisesVisible) { exercise in
                 CustomListCellView(
                     imageName: exercise.imageURL,
                     title: exercise.name,
-                    subtitle: exercise.description
+                    subtitle: exercise.description,
+                    isSelected: isExerciseSelected(exercise)
                 )
                 .anyButton(.highlight) {
                     presenter.onExercisePressed(exercise: exercise, onExercisePressed: delegate.onExerciseSelectionChanged)
@@ -84,7 +161,8 @@ struct ExerciseListBuilderView: View {
                 CustomListCellView(
                     imageName: exercise.imageURL,
                     title: exercise.name,
-                    subtitle: exercise.description
+                    subtitle: exercise.description,
+                    isSelected: isExerciseSelected(exercise)
                 )
                 .anyButton(.highlight) {
                     presenter.onExercisePressed(exercise: exercise, onExercisePressed: delegate.onExerciseSelectionChanged)
@@ -157,7 +235,7 @@ struct ExerciseListBuilderView: View {
 
     private var myExercisesSection: some View {
         Section {
-            if presenter.myExercisesVisible.isEmpty {
+            if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && presenter.myExercisesVisible.isEmpty {
                 HStack {
                     Image(systemName: "tray")
                         .foregroundColor(.secondary)
@@ -171,12 +249,13 @@ struct ExerciseListBuilderView: View {
                 .onAppear {
                     presenter.emptyStateShown()
                 }
-            } else {
+            } else if !presenter.myExercisesVisible.isEmpty {
                 ForEach(presenter.myExercisesVisible) { exercise in
                     CustomListCellView(
                         imageName: exercise.imageURL,
                         title: exercise.name,
-                        subtitle: exercise.description
+                        subtitle: exercise.description,
+                        isSelected: isExerciseSelected(exercise)
                     )
                     .anyButton(.highlight) {
                         presenter.onExercisePressed(exercise: exercise, onExercisePressed: delegate.onExerciseSelectionChanged)
