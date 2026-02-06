@@ -115,17 +115,52 @@ struct DashboardView: View {
     private var habitsSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(title: "Weigh In", subtitle: "Last 30 Days", subsubtitle: "3/7", subsubsubtitle: "this week")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Workouts", subtitle: "Last 30 Days", subsubtitle: "2", subsubsubtitle: "this week")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-//                DashboardCard(title: "Food Logging", subtitle: "Last 30 Days", subsubtitle: "3/7", subsubsubtitle: "this week")
+                DashboardCard(
+                    title: "Weigh In",
+                    subtitle: "Last 30 Days",
+                    subsubtitle: "\(presenter.weighInCountThisWeek)",
+                    subsubsubtitle: "this week",
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    ContributionChartView(
+                        data: presenter.weighInContributionData,
+                        rows: 3,
+                        columns: 10,
+                        targetValue: 1.0,
+                        blockColor: .green,
+                        blockBackgroundColor: .background,
+                        rectangleWidth: .infinity,
+                        endDate: .now,
+                        showsCaptioning: false
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    
+                }
+                DashboardCard(
+                    title: "Workouts",
+                    subtitle: "Last 30 Days",
+                    subsubtitle: "\(presenter.workoutCountThisWeek)",
+                    subsubsubtitle: "this week",
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    ContributionChartView(
+                        data: presenter.workoutContributionData,
+                        rows: 3,
+                        columns: 10,
+                        targetValue: 1.0,
+                        blockColor: .orange,
+                        blockBackgroundColor: .background,
+                        rectangleWidth: .infinity,
+                        endDate: .now,
+                        showsCaptioning: false
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    
+                }
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -152,6 +187,21 @@ struct DashboardView: View {
                     .anyButton(.press) {
                         
                     }
+                DashboardCard(title: "Protein", subtitle: "Today", subsubtitle: "48.3", subsubsubtitle: "g")
+                    .tappableBackground()
+                    .anyButton(.press) {
+                        
+                    }
+                DashboardCard(title: "Fat", subtitle: "Today", subsubtitle: "29.2", subsubsubtitle: "g")
+                    .tappableBackground()
+                    .anyButton(.press) {
+                        
+                    }
+                DashboardCard(title: "Carbs", subtitle: "Today", subsubtitle: "91.5", subsubsubtitle: "g")
+                    .tappableBackground()
+                    .anyButton(.press) {
+                        
+                    }
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -174,9 +224,9 @@ struct DashboardView: View {
                     SparklineChart(
                         data: presenter.scaleWeightSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -189,9 +239,9 @@ struct DashboardView: View {
                     SparklineChart(
                         data: presenter.bodyFatSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )

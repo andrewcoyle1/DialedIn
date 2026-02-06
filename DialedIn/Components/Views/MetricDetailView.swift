@@ -82,7 +82,7 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
     private func chartSection(configuration: MetricConfiguration, series: [TimeSeriesData.TimeSeries]) -> some View {
         Section {
             VStack(alignment: .leading) {
-                NewHistoryChart(series: series, yAxisSuffix: configuration.yAxisSuffix)
+                NewHistoryChart(series: series, yAxisSuffix: configuration.yAxisSuffix, chartColor: configuration.chartColor)
                     .frame(height: 300)
             }
             .listRowInsets(.horizontal, 0)

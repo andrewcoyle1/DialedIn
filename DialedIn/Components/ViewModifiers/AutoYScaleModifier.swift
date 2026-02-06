@@ -29,6 +29,8 @@ struct AutoYScaleModifier: ViewModifier {
             }
             .onAppear {
                 rebuildCache()
+                // Update immediately on first appearance, then schedule debounced updates
+                updateVisibleDomain()
                 scheduleUpdate()
             }
             .onChange(of: seriesSignature) { _, _ in
@@ -100,7 +102,7 @@ struct AutoYScaleModifier: ViewModifier {
 
     private func rebuildCache() {
         cachedAllValues = series
-            .flatMap { $0.data }
+            .flatMap { $0.sortedByDate }
             .sorted { $0.date < $1.date }
     }
 
@@ -128,8 +130,17 @@ struct AutoYScaleModifier: ViewModifier {
         let extendedLower = max(lowerIndex - 1, 0)
         let extendedUpper = min(upperIndex + 1, cachedAllValues.count)
         
+        // If no values found in visible range, use all values to ensure chart displays
         guard extendedLower < extendedUpper else {
-            metrics = .empty
+            // Fallback: use all values if scroll position doesn't align with data
+            if let first = cachedAllValues.first, let last = cachedAllValues.last {
+                let allMin = cachedAllValues.map(\.value).min() ?? 0
+                let allMax = cachedAllValues.map(\.value).max() ?? 1
+                setDomain(minValue: allMin, maxValue: allMax)
+                calculateMetrics(for: cachedAllValues, xStart: first.date, xEnd: last.date)
+            } else {
+                metrics = .empty
+            }
             return
         }
         

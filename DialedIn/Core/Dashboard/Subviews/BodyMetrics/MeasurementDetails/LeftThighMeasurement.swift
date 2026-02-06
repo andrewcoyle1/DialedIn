@@ -60,7 +60,8 @@ final class LeftThighMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No left thigh measurement entries",
-            pageSize: nil
+            pageSize: nil,
+            chartColor: .green
         )
     }
 

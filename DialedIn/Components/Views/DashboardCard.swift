@@ -62,13 +62,10 @@ struct DashboardCard<MetricChart: View>: View {
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
-            
-            Spacer()
-            
+                        
             chart()
-                .frame(height: chartConfiguration.height)
+                .frame(maxWidth: .infinity, maxHeight: chartConfiguration.height)
                 .padding(.vertical, chartConfiguration.verticalPadding)
-            Spacer()
 
             HStack {
                 HStack(alignment: .firstTextBaseline) {

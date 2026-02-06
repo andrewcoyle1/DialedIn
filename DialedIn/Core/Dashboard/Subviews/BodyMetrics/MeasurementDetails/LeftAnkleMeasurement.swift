@@ -60,7 +60,8 @@ final class LeftAnkleMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No left ankle measurement entries",
-            pageSize: nil
+            pageSize: nil,
+            chartColor: .green
         )
     }
 

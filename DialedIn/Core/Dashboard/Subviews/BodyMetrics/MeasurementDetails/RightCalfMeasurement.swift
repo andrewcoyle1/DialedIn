@@ -60,7 +60,8 @@ final class RightCalfMeasurementPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Entries",
             emptyStateMessage: "No right calf measurement entries",
-            pageSize: nil
+            pageSize: nil,
+            chartColor: .green
         )
     }
 

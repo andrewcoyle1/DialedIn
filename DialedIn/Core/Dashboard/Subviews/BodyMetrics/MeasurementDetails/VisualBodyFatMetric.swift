@@ -60,7 +60,8 @@ final class VisualBodyFatPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: false,
             sectionHeader: "Entries",
             emptyStateMessage: "No body fat entries",
-            pageSize: nil
+            pageSize: nil,
+            chartColor: .green
         )
     }
 

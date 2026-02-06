@@ -41,7 +41,7 @@ struct ProductionRemoteBodyMeasurementService: RemoteBodyMeasurementService {
     func updateWeightEntry(entry: BodyMeasurementEntry) async throws {
         try weightEntriesCollection(userId: entry.authorId)
             .document(entry.id)
-            .setData(from: entry, merge: true)
+            .setData(from: entry, merge: false)
     }
 
     // MARK: DELETE

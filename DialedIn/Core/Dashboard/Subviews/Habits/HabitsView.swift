@@ -11,37 +11,133 @@ struct HabitsView: View {
     
     var body: some View {
         List {
-            Section {
-                LazyVGrid(columns: [GridItem(), GridItem()]) {
-                    DashboardCard(title: "Weigh In", subtitle: "Last 30 Days", subsubtitle: "3/7", subsubsubtitle: "this week")
-                        .tappableBackground()
-                        .anyButton(.press) {
-                            
-                        }
-                    DashboardCard(title: "Workouts", subtitle: "Last 30 Days", subsubtitle: "2", subsubsubtitle: "this week")
-                        .tappableBackground()
-                        .anyButton(.press) {
-                            
-                        }
-                    DashboardCard(title: "Food Logging", subtitle: "Last 30 Days", subsubtitle: "3/7", subsubsubtitle: "this week")
-                        .tappableBackground()
-                        .anyButton(.press) {
-                            
-                        }
-                }
-                .padding(.horizontal, 8)
-                .removeListRowFormatting()
+            Group {
+                generalSection
+                trainingSection
+                nutritionSection
             }
+            .listSectionMargins(.horizontal, 0)
+            .listRowSeparator(.hidden)
         }
         .navigationTitle("Habits")
         .navigationBarTitleDisplayMode(.inline)
         .screenAppearAnalytics(name: "HabitsView")
+        .onFirstTask {
+            await presenter.onFirstTask()
+        }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(role: .close) {
                     presenter.onDismissPressed()
                 }
             }
+        }
+    }
+    
+    private var generalSection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Weigh In",
+                    subtitle: "Last 30 Days",
+                    subsubtitle: "\(presenter.weighInCountThisWeek)",
+                    subsubsubtitle: "this week",
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    ContributionChartView(
+                        data: presenter.weighInContributionData,
+                        rows: 3,
+                        columns: 10,
+                        targetValue: 1.0,
+                        blockColor: .green,
+                        blockBackgroundColor: .background,
+                        rectangleWidth: .infinity,
+                        endDate: .now,
+                        showsCaptioning: false
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            Text("General")
+        }
+    }
+    
+    private var trainingSection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Workouts",
+                    subtitle: "Last 30 Days",
+                    subsubtitle: "\(presenter.workoutCountThisWeek)",
+                    subsubsubtitle: "this week",
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    ContributionChartView(
+                        data: presenter.workoutContributionData,
+                        rows: 3,
+                        columns: 10,
+                        targetValue: 1.0,
+                        blockColor: .orange,
+                        blockBackgroundColor: .background,
+                        rectangleWidth: .infinity,
+                        endDate: .now,
+                        showsCaptioning: false
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            Text("Training")
+        }
+    }
+    
+    private var nutritionSection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Food Logging",
+                    subtitle: "Last 30 Days",
+                    subsubtitle: "5/7",
+                    subsubsubtitle: "this week",
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    ContributionChartView(
+                        data: [
+                            1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0,  // Week 1
+                            0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0,  // Week 2
+                            1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0,  // Week 3
+                            1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0   // Week 4
+                        ],
+                        rows: 3,
+                        columns: 10,
+                        targetValue: 1.0,
+                        blockColor: .accent,
+                        blockBackgroundColor: .background,
+                        rectangleWidth: .infinity,
+                        endDate: .now,
+                        showsCaptioning: false
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            Text("Nutrition")
         }
     }
 }

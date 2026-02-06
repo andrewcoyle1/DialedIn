@@ -51,9 +51,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.scaleWeightSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -72,9 +72,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.bodyFatSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -129,9 +129,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.neckSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -150,9 +150,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.shouldersSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -171,9 +171,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.bustSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -192,9 +192,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.chestSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -213,9 +213,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.waistSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -234,9 +234,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.hipsSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -266,9 +266,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.leftBicepSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -287,9 +287,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.rightBicepSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -308,9 +308,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.leftForearmSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -329,9 +329,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.rightForearmSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -350,9 +350,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.leftWristSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -371,9 +371,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.rightWristSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -403,9 +403,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.leftThighSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -424,9 +424,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.rightThighSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -445,9 +445,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.leftCalfSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -466,9 +466,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.rightCalfSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -487,9 +487,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.leftAnkleSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )
@@ -508,9 +508,9 @@ struct BodyMetricsView: View {
                     SparklineChart(
                         data: presenter.rightAnkleSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .accent,
+                            lineColor: .green,
                             lineWidth: 2,
-                            fillColor: .accent,
+                            fillColor: .green,
                             height: 36
                         )
                     )

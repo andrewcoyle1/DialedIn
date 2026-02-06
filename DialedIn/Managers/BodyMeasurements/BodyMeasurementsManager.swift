@@ -85,6 +85,13 @@ class BodyMeasurementsManager {
     func updateWeightEntry(entry: BodyMeasurementEntry) async throws {
         try local.updateWeightEntry(entry: entry)
         try await remote.updateWeightEntry(entry: entry)
+        // Update the in-memory cache to reflect the changes
+        if let index = measurementHistory.firstIndex(where: { $0.id == entry.id }) {
+            measurementHistory[index] = entry
+        } else {
+            // If entry not found in cache, refresh from local storage
+            _ = try? readAllLocalWeightEntries()
+        }
     }
 
     // MARK: DELETE

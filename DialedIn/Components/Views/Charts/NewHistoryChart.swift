@@ -16,10 +16,24 @@ struct NewHistoryChart: View {
     )
     @State private var visibleMetrics: VisibleMetrics = .empty
     @State private var selectedTimeRange: TimeRange = .oneWeek
+    @State private var hasInitialized = false
     
     var series: [TimeSeriesData.TimeSeries]
     var yAxisSuffix: String = ""
     var chartType: ChartType = .line
+    var chartColor: Color?
+    
+    private var seriesSignature: Int {
+        var hasher = Hasher()
+        series.forEach { item in
+            hasher.combine(item.id)
+            hasher.combine(item.data.count)
+            if let lastDate = item.lastByDate?.date {
+                hasher.combine(lastDate)
+            }
+        }
+        return hasher.finalize()
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -29,35 +43,47 @@ struct NewHistoryChart: View {
                 ForEach(series) { singleSeries in
                     
                     if chartType == .line {
-                        ForEach(singleSeries.data) { day in
+                        let lineMarks = ForEach(singleSeries.sortedByDate) { day in
                             LineMark(
                                 x: .value("Date", day.date, unit: .day),
                                 y: .value("Value", day.value)
                             )
 //                            .interpolationMethod(.catmullRom)
-                            
                         }
-                        .foregroundStyle(by: .value("Exercise", singleSeries.name))
+                        
+                        if let chartColor {
+                            lineMarks.foregroundStyle(chartColor)
+                        } else {
+                            lineMarks.foregroundStyle(by: .value("Exercise", singleSeries.name))
+                        }
                         
                         if let last = singleSeries.lastByDate {
-                            PointMark(
+                            let pointMark = PointMark(
                                 x: .value("Date", last.date, unit: .day),
                                 y: .value("Value", last.value)
                             )
-                            .foregroundStyle(by: .value("Exercise", singleSeries.name))
+                            
+                            if let chartColor {
+                                pointMark.foregroundStyle(chartColor)
+                            } else {
+                                pointMark.foregroundStyle(by: .value("Exercise", singleSeries.name))
+                            }
                         }
                     } else {
-                        ForEach(singleSeries.data) { day in
+                        let barMarks = ForEach(singleSeries.sortedByDate) { day in
                             BarMark(
                                 x: .value("Date", day.date, unit: .day),
                                 yStart: .value("Value", 0),
                                 yEnd: .value("Value", day.value)
                             )
 //                            .interpolationMethod(.catmullRom)
-                            
                         }
-                        .foregroundStyle(by: .value("Exercise", singleSeries.name))
-
+                        
+                        if let chartColor {
+                            barMarks.foregroundStyle(chartColor)
+                        } else {
+                            barMarks.foregroundStyle(by: .value("Exercise", singleSeries.name))
+                        }
                     }
                 }
             }
@@ -68,6 +94,18 @@ struct NewHistoryChart: View {
                 scrollZoomState: scrollZoomState,
                 metrics: $visibleMetrics
             )
+            .onAppear {
+                if !hasInitialized && !series.isEmpty {
+                    initializeScrollPosition()
+                    hasInitialized = true
+                }
+            }
+            .onChange(of: seriesSignature) { _, _ in
+                if !hasInitialized && !series.isEmpty {
+                    initializeScrollPosition()
+                    hasInitialized = true
+                }
+            }
             .chartXAxis {
                 AxisMarks(values: .stride(by: xStrideComponent, count: 1)) { value in
                     AxisTick()
@@ -139,8 +177,8 @@ struct NewHistoryChart: View {
     }
     
     private var xAxisDomain: ClosedRange<Date> {
-        // Find the earliest and latest dates across all series
-        let allDates = series.flatMap { $0.data.map { $0.date } }
+        // Find the earliest and latest dates across all series (using sorted data for consistency)
+        let allDates = series.flatMap { $0.sortedByDate.map { $0.date } }
         guard let earliest = allDates.min(),
               let latest = allDates.max() else {
             // Fallback: last year to now
@@ -219,7 +257,7 @@ struct NewHistoryChart: View {
         scrollZoomState.totalZoomDays = scrollZoomState.clampZoomDays(days)
         
         // Scroll so the most recent data is at the right edge
-        let allDates = series.flatMap { $0.data.map { $0.date } }
+        let allDates = series.flatMap { $0.sortedByDate.map { $0.date } }
         guard let latest = allDates.max() else { return }
         let futureBuffer: TimeInterval = 4 * 86400
         let visibleLength = scrollZoomState.visibleDomainLength
@@ -227,10 +265,18 @@ struct NewHistoryChart: View {
     }
     
     private var totalDataDays: Double {
-        let allDates = series.flatMap { $0.data.map { $0.date } }
+        let allDates = series.flatMap { $0.sortedByDate.map { $0.date } }
         guard let earliest = allDates.min(), let latest = allDates.max() else { return 365 }
         let days = latest.timeIntervalSince(earliest) / 86400
         return max(days + 8, 7)
+    }
+    
+    private func initializeScrollPosition() {
+        let allDates = series.flatMap { $0.sortedByDate.map { $0.date } }
+        guard let latest = allDates.max() else { return }
+        let futureBuffer: TimeInterval = 4 * 86400
+        let visibleLength = scrollZoomState.visibleDomainLength
+        scrollZoomState.scrollPosition = latest.addingTimeInterval(futureBuffer - visibleLength)
     }
     
     enum TimeRange: String, CaseIterable, Identifiable {
@@ -274,6 +320,7 @@ struct NewHistoryChart: View {
         )
     }
 }
+
 
 #Preview("Line Chart") {
     NewHistoryChart(series: TimeSeriesData.lastYear, yAxisSuffix: " kg")
