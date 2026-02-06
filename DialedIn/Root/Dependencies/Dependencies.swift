@@ -47,7 +47,7 @@ struct Dependencies {
         
         let reportManager: ReportManager
         let healthKitManager: HealthKitManager
-        let userWeightManager: UserWeightManager
+        let bodyMeasurementsManager: BodyMeasurementsManager
         let goalManager: GoalManager
         let googleSignInConfig: GoogleSignInConfig
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -83,7 +83,7 @@ struct Dependencies {
             mealLogManager = MealLogManager(services: MockMealLogServices(mealsByDay: MealLogModel.mockWeekMealsByDay))
             aiManager = AIManager(service: MockAIService())
             reportManager = ReportManager(service: MockReportService(), userManager: userManager, logManager: logManager)
-            userWeightManager = UserWeightManager(services: MockUserWeightServices())
+            bodyMeasurementsManager = BodyMeasurementsManager(services: MockBodyMeasurementServices())
             goalManager = GoalManager(services: MockGoalServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             hkWorkoutManager = HKWorkoutManager()
@@ -127,7 +127,7 @@ struct Dependencies {
             mealLogManager = MealLogManager(services: ProductionMealLogServices())
             aiManager = AIManager(service: GoogleAIService())
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logManager)
-            userWeightManager = UserWeightManager(services: ProductionUserWeightServices())
+            bodyMeasurementsManager = BodyMeasurementsManager(services: ProductionBodyMeasurementServices())
             goalManager = GoalManager(services: ProductionGoalServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             hkWorkoutManager = HKWorkoutManager()
@@ -173,7 +173,7 @@ struct Dependencies {
             mealLogManager = MealLogManager(services: ProductionMealLogServices())
             aiManager = AIManager(service: GoogleAIService())
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logManager)
-            userWeightManager = UserWeightManager(services: ProductionUserWeightServices())
+            bodyMeasurementsManager = BodyMeasurementsManager(services: ProductionBodyMeasurementServices())
             goalManager = GoalManager(services: ProductionGoalServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             hkWorkoutManager = HKWorkoutManager()
@@ -215,7 +215,7 @@ struct Dependencies {
         container.register(AIManager.self, service: aiManager)
         container.register(ReportManager.self, service: reportManager)
         container.register(HealthKitManager.self, service: healthKitManager)
-        container.register(UserWeightManager.self, service: userWeightManager)
+        container.register(BodyMeasurementsManager.self, service: bodyMeasurementsManager)
         container.register(GoalManager.self, service: goalManager)
         container.register(GoogleSignInConfig.self, service: googleSignInConfig)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -267,7 +267,7 @@ class DevPreview {
         container.register(LogManager.self, service: logManager)
         container.register(ReportManager.self, service: reportManager)
         container.register(HealthKitManager.self, service: healthKitManager)
-        container.register(UserWeightManager.self, service: userWeightManager)
+        container.register(BodyMeasurementsManager.self, service: bodyMeasurementsManager)
         container.register(GoalManager.self, service: goalManager)
         container.register(GoogleSignInConfig.self, service: googleSignInConfig)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -304,7 +304,7 @@ class DevPreview {
     let logManager: LogManager
     let reportManager: ReportManager
     let healthKitManager: HealthKitManager
-    let userWeightManager: UserWeightManager
+    let bodyMeasurementsManager: BodyMeasurementsManager
     let goalManager: GoalManager
     let googleSignInConfig: GoogleSignInConfig
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -348,7 +348,7 @@ class DevPreview {
         self.logManager = logManager
         self.reportManager = ReportManager(service: MockReportService(), userManager: userManager)
         self.healthKitManager = HealthKitManager(service: MockHealthService())
-        self.userWeightManager = UserWeightManager(services: MockUserWeightServices())
+        self.bodyMeasurementsManager = BodyMeasurementsManager(services: MockBodyMeasurementServices())
         self.goalManager = GoalManager(services: MockGoalServices())
         self.googleSignInConfig = GoogleSignInConfig(clientID: "mock-client-id")
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)

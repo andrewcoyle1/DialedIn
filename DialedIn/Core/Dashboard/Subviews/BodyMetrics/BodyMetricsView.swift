@@ -25,6 +25,7 @@ struct BodyMetricsView: View {
         .navigationTitle("Body Metrics")
         .navigationBarTitleDisplayMode(.inline)
         .screenAppearAnalytics(name: "BodyMetricsView")
+        .scrollIndicators(.hidden)
         .onFirstTask {
             await presenter.onFirstTask()
         }
@@ -93,17 +94,16 @@ struct BodyMetricsView: View {
     private var visualMetricSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(title: "Weigh In", subtitle: "Last 30 Days", subsubtitle: "3/7", subsubsubtitle: "this week")
+                DashboardCard(title: nil, subtitle: nil, subsubtitle: "No Photos", subsubsubtitle: nil) {
+                    Image(systemName: "photo")
+                        .font(.system(size: 32))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
                     .tappableBackground()
                     .anyButton(.press) {
                         
                     }
-                DashboardCard(title: "Workouts", subtitle: "Last 30 Days", subsubtitle: "2", subsubsubtitle: "this week")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Food Logging", subtitle: "Last 30 Days", subsubtitle: "3/7", subsubsubtitle: "this week")
+                DashboardCard(title: "Full Body", subtitle: "12 Jan 2026", subsubtitle: "1", subsubsubtitle: "metric")
                     .tappableBackground()
                     .anyButton(.press) {
                         
@@ -119,36 +119,132 @@ struct BodyMetricsView: View {
     private var upperBodySection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(title: "Neck", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Shoulders", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Bust", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Chest", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Waist", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Hips", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
+                DashboardCard(
+                    title: "Neck",
+                    subtitle: presenter.neckCircumferenceSubtitle,
+                    subsubtitle: presenter.neckLatestValueText,
+                    subsubsubtitle: presenter.neckUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.neckSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onNeckMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Shoulders",
+                    subtitle: presenter.shoulderCircumferenceSubtitle,
+                    subsubtitle: presenter.shouldersLastEntriesLatestValueText,
+                    subsubsubtitle: presenter.shouldersUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.shouldersSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onShouldersMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Bust",
+                    subtitle: presenter.bustSubtitle,
+                    subsubtitle: presenter.bustLatestValueText,
+                    subsubsubtitle: presenter.bustUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.bustSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onBustMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Chest",
+                    subtitle: presenter.chestSubtitle,
+                    subsubtitle: presenter.chestLatestValueText,
+                    subsubsubtitle: presenter.chestUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.chestSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onChestMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Waist",
+                    subtitle: presenter.waistSubtitle,
+                    subsubtitle: presenter.waistLatestValueText,
+                    subsubsubtitle: presenter.waistUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.waistSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onWaistMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Hips",
+                    subtitle: presenter.hipsSubtitle,
+                    subsubtitle: presenter.hipsLatestValueText,
+                    subsubsubtitle: presenter.hipsUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.hipsSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onHipsMeasurementPressed()
+                }
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -160,36 +256,132 @@ struct BodyMetricsView: View {
     private var armsSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(title: "Left Bicep", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Right Bicep", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Left Forearm", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Right Forearm", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Left Wrist", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Right Wrist", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
+                DashboardCard(
+                    title: "Left Bicep",
+                    subtitle: presenter.leftBicepSubtitle,
+                    subsubtitle: presenter.leftBicepLatestValueText,
+                    subsubsubtitle: presenter.leftBicepUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.leftBicepSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onLeftBicepMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Right Bicep",
+                    subtitle: presenter.rightBicepSubtitle,
+                    subsubtitle: presenter.rightBicepLatestValueText,
+                    subsubsubtitle: presenter.rightBicepUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.rightBicepSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onRightBicepMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Left Forearm",
+                    subtitle: presenter.leftForearmSubtitle,
+                    subsubtitle: presenter.leftForearmLatestValueText,
+                    subsubsubtitle: presenter.leftForearmUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.leftForearmSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onLeftForearmMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Right Forearm",
+                    subtitle: presenter.rightForearmSubtitle,
+                    subsubtitle: presenter.rightForearmLatestValueText,
+                    subsubsubtitle: presenter.rightForearmUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.rightForearmSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onRightForearmMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Left Wrist",
+                    subtitle: presenter.leftWristSubtitle,
+                    subsubtitle: presenter.leftWristLatestValueText,
+                    subsubsubtitle: presenter.leftWristUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.leftWristSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onLeftWristMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Right Wrist",
+                    subtitle: presenter.rightWristSubtitle,
+                    subsubtitle: presenter.rightWristLatestValueText,
+                    subsubsubtitle: presenter.rightWristUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.rightWristSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onRightWristMeasurementPressed()
+                }
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -201,36 +393,132 @@ struct BodyMetricsView: View {
     private var legsSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(title: "Left Thigh", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Right Thigh", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Left Calf", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Right Calf", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Left Ankle", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Right Ankle", subtitle: "Last 7 Entries", subsubtitle: "---", subsubsubtitle: "in")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
+                DashboardCard(
+                    title: "Left Thigh",
+                    subtitle: presenter.leftThighSubtitle,
+                    subsubtitle: presenter.leftThighLatestValueText,
+                    subsubsubtitle: presenter.leftThighUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.leftThighSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onLeftThighMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Right Thigh",
+                    subtitle: presenter.rightThighSubtitle,
+                    subsubtitle: presenter.rightThighLatestValueText,
+                    subsubsubtitle: presenter.rightThighUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.rightThighSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onRightThighMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Left Calf",
+                    subtitle: presenter.leftCalfSubtitle,
+                    subsubtitle: presenter.leftCalfLatestValueText,
+                    subsubsubtitle: presenter.leftCalfUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.leftCalfSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onLeftCalfMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Right Calf",
+                    subtitle: presenter.rightCalfSubtitle,
+                    subsubtitle: presenter.rightCalfLatestValueText,
+                    subsubsubtitle: presenter.rightCalfUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.rightCalfSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onRightCalfMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Left Ankle",
+                    subtitle: presenter.leftAnkleSubtitle,
+                    subsubtitle: presenter.leftAnkleLatestValueText,
+                    subsubsubtitle: presenter.leftAnkleUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.leftAnkleSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onLeftAnkleMeasurementPressed()
+                }
+                DashboardCard(
+                    title: "Right Ankle",
+                    subtitle: presenter.rightAnkleSubtitle,
+                    subsubtitle: presenter.rightAnkleLatestValueText,
+                    subsubsubtitle: presenter.rightAnkleUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.rightAnkleSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .accent,
+                            lineWidth: 2,
+                            fillColor: .accent,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onRightAnkleMeasurementPressed()
+                }
             }
             .padding(.horizontal)
             .removeListRowFormatting()

@@ -7,6 +7,11 @@ struct ChartYDomainCalculator {
         let minimumPadding: Double
     }
 
+    struct NiceScale {
+        let tickValues: [Double]
+        let domain: ClosedRange<Double>
+    }
+
     static func paddedDomain(
         for values: [Double],
         config: Configuration
@@ -37,5 +42,80 @@ struct ChartYDomainCalculator {
             yMax += 1
         }
         return yMin...yMax
+    }
+
+    /// Computes a nice tick-aligned domain with at most `maxTicks` ticks.
+    /// The returned domain's lower and upper bounds are the first and last tick values,
+    /// so they align exactly with the edges of the chart.
+    static func niceScale(
+        minValue: Double,
+        maxValue: Double,
+        maxTicks: Int = 6
+    ) -> NiceScale {
+        guard minValue.isFinite, maxValue.isFinite else {
+            return NiceScale(tickValues: [0, 1], domain: 0...1)
+        }
+
+        var low = minValue
+        var high = maxValue
+        if low == high {
+            low -= 1
+            high += 1
+        }
+
+        let rawRange = high - low
+        let niceRange = niceNumber(rawRange, round: false)
+        let tickSpacing = niceNumber(niceRange / Double(maxTicks - 1), round: true)
+        let niceMin = floor(low / tickSpacing) * tickSpacing
+        let niceMax = ceil(high / tickSpacing) * tickSpacing
+
+        var ticks: [Double] = []
+        var tick = niceMin
+        // Use a small epsilon to avoid floating-point issues at the boundary
+        while tick <= niceMax + tickSpacing * 0.01 {
+            ticks.append(tick)
+            tick += tickSpacing
+        }
+
+        // Safety: trim if floating-point drift produced an extra tick
+        if ticks.count > maxTicks, let last = ticks.last, last > niceMax + tickSpacing * 0.5 {
+            ticks.removeLast()
+        }
+
+        guard let first = ticks.first, let last = ticks.last else {
+            return NiceScale(tickValues: [0, 1], domain: 0...1)
+        }
+
+        return NiceScale(tickValues: ticks, domain: first...last)
+    }
+
+    /// Rounds a positive value to a "nice" number (1, 2, 5 × 10^n).
+    private static func niceNumber(_ value: Double, round: Bool) -> Double {
+        guard value > 0 else { return 1 }
+        let exponent = floor(log10(value))
+        let fraction = value / pow(10, exponent)
+        let niceFraction: Double
+        if round {
+            if fraction < 1.5 {
+                niceFraction = 1
+            } else if fraction < 3 {
+                niceFraction = 2
+            } else if fraction < 7 {
+                niceFraction = 5
+            } else {
+                niceFraction = 10
+            }
+        } else {
+            if fraction <= 1 {
+                niceFraction = 1
+            } else if fraction <= 2 {
+                niceFraction = 2
+            } else if fraction <= 5 {
+                niceFraction = 5
+            } else {
+                niceFraction = 10
+            }
+        }
+        return niceFraction * pow(10, exponent)
     }
 }

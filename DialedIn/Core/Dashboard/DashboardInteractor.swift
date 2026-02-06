@@ -9,10 +9,10 @@ protocol DashboardInteractor {
     var userImageUrl: String? { get }
     var activeTests: ActiveABTests { get }
     var userId: String? { get }
-    var weightHistory: [WeightEntry] { get }
+    var measurementHistory: [BodyMeasurementEntry] { get }
     func trackEvent(event: LoggableEvent)
-    func readAllLocalWeightEntries() throws -> [WeightEntry]
-    func readAllRemoteWeightEntries(userId: String) async throws -> [WeightEntry]
+    func readAllLocalWeightEntries() throws -> [BodyMeasurementEntry]
+    func readAllRemoteWeightEntries(userId: String) async throws -> [BodyMeasurementEntry]
 }
 
 extension CoreInteractor: DashboardInteractor { }

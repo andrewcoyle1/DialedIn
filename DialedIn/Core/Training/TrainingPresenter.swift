@@ -113,7 +113,7 @@ class TrainingPresenter {
         let sessions = (try? interactor.getAllLocalWorkoutSessions()) ?? []
         let completedSessions = sessions
             .compactMap { session -> (WorkoutSessionModel, DayPlan)? in
-                guard let endedAt = session.endedAt else { return nil }
+                guard let _ = session.endedAt else { return nil }
                 let shouldInclude = session.programId == program.id
                     || (session.programId == nil && session.dayPlanId == nil && dayPlanNames.contains(session.name))
                 guard shouldInclude else { return nil }

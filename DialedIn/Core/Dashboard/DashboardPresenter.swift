@@ -18,7 +18,7 @@ class DashboardPresenter {
     var isShowingInspector: Bool = false
     private(set) var contributionChartData: [Double] = []
     private(set) var chartEndDate: Date = Date()
-    private(set) var scaleWeightEntries: [WeightEntry] = []
+    private(set) var scaleWeightEntries: [BodyMeasurementEntry] = []
 
     var isInNotificationsABTest: Bool {
         interactor.activeTests.notificationsTest
@@ -102,7 +102,10 @@ class DashboardPresenter {
     }
 
     var scaleWeightSparklineData: [(date: Date, value: Double)] {
-        scaleWeightLastEntries.map { (date: $0.date, value: $0.weightKg) }
+        scaleWeightLastEntries.compactMap { entry in
+            guard let weightKg = entry.weightKg else { return nil }
+            return (date: entry.date, value: weightKg)
+        }
     }
 
     var scaleWeightSubtitle: String {
@@ -110,16 +113,17 @@ class DashboardPresenter {
     }
 
     var scaleWeightLatestValueText: String {
-        guard let latest = scaleWeightLastEntries.last else { return "--" }
-        return latest.weightKg.formatted(.number.precision(.fractionLength(1)))
+        guard let latest = scaleWeightLastEntries.last,
+              let weightKg = latest.weightKg else { return "--" }
+        return weightKg.formatted(.number.precision(.fractionLength(1)))
     }
 
     var scaleWeightUnitText: String {
         "kg"
     }
 
-    private var scaleWeightLastEntries: [WeightEntry] {
-        let filtered = scaleWeightEntries.filter { $0.deletedAt == nil }
+    private var scaleWeightLastEntries: [BodyMeasurementEntry] {
+        let filtered = scaleWeightEntries.filter { $0.deletedAt == nil && $0.weightKg != nil }
         let sorted = filtered.sorted { $0.date < $1.date }
         return Array(sorted.suffix(7))
     }
@@ -128,7 +132,7 @@ class DashboardPresenter {
         do {
             scaleWeightEntries = try interactor.readAllLocalWeightEntries()
         } catch {
-            scaleWeightEntries = interactor.weightHistory
+            scaleWeightEntries = interactor.measurementHistory
         }
     }
 
@@ -164,7 +168,7 @@ class DashboardPresenter {
         "%"
     }
 
-    private var bodyFatLastEntries: [WeightEntry] {
+    private var bodyFatLastEntries: [BodyMeasurementEntry] {
         let filtered = scaleWeightEntries.filter {
             $0.deletedAt == nil && $0.bodyFatPercentage != nil
         }

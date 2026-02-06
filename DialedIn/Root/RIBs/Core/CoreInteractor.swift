@@ -40,7 +40,7 @@ struct CoreInteractor: GlobalInteractor {
     private let logManager: LogManager
     private let reportManager: ReportManager
     private let healthKitManager: HealthKitManager
-    private let userWeightManager: UserWeightManager
+    private let bodyMeasurementsManager: BodyMeasurementsManager
     private let goalManager: GoalManager
     private let imageUploadManager: ImageUploadManager
     private let gIDClientID: String
@@ -76,7 +76,7 @@ struct CoreInteractor: GlobalInteractor {
         self.logManager = container.resolve(LogManager.self)!
         self.reportManager = container.resolve(ReportManager.self)!
         self.healthKitManager = container.resolve(HealthKitManager.self)!
-        self.userWeightManager = container.resolve(UserWeightManager.self)!
+        self.bodyMeasurementsManager = container.resolve(BodyMeasurementsManager.self)!
         self.goalManager = container.resolve(GoalManager.self)!
         self.imageUploadManager = container.resolve(ImageUploadManager.self)!
         self.gIDClientID = container.resolve(GoogleSignInConfig.self)!.clientID
@@ -1345,51 +1345,61 @@ struct CoreInteractor: GlobalInteractor {
         healthKitManager.getHealthStore()
     }
         
-    // UserWeightManager
-    
-    var weightHistory: [WeightEntry] {
-        userWeightManager.weightHistory
+    // BodyMeasurementsManager
+
+    var measurementHistory: [BodyMeasurementEntry] {
+        bodyMeasurementsManager.measurementHistory
     }
-    
+
     /// CREATE
-    func createWeightEntry(weightEntry: WeightEntry) async throws {
-        try await userWeightManager.createWeightEntry(weightEntry: weightEntry)
+    func createWeightEntry(weightEntry: BodyMeasurementEntry) async throws {
+        try await bodyMeasurementsManager.createWeightEntry(weightEntry: weightEntry)
     }
-    
+
     /// READ
-    func readLocalWeightEntry(id: String) throws -> WeightEntry {
-        try userWeightManager.readLocalWeightEntry(id: id)
+    func readLocalWeightEntry(id: String) throws -> BodyMeasurementEntry {
+        try bodyMeasurementsManager.readLocalWeightEntry(id: id)
     }
-    
-    func readRemoteWeightEntry(userId: String, entryId: String) async throws -> WeightEntry {
-        try await userWeightManager.readRemoteWeightEntry(userId: userId, entryId: entryId)
+
+    func readRemoteWeightEntry(userId: String, entryId: String) async throws -> BodyMeasurementEntry {
+        try await bodyMeasurementsManager.readRemoteWeightEntry(userId: userId, entryId: entryId)
     }
-    
-    func readAllLocalWeightEntries() throws -> [WeightEntry] {
-        try userWeightManager.readAllLocalWeightEntries()
+
+    func readAllLocalWeightEntries() throws -> [BodyMeasurementEntry] {
+        try bodyMeasurementsManager.readAllLocalWeightEntries()
     }
-    
-    func readAllRemoteWeightEntries(userId: String) async throws -> [WeightEntry] {
-        try await userWeightManager.readAllRemoteWeightEntries(userId: userId)
+
+    func readAllRemoteWeightEntries(userId: String) async throws -> [BodyMeasurementEntry] {
+        try await bodyMeasurementsManager.readAllRemoteWeightEntries(userId: userId)
     }
-    
+
     /// UPDATE
-    func updateWeightEntry(entry: WeightEntry) async throws {
-        try await userWeightManager.updateWeightEntry(entry: entry)
+    func updateWeightEntry(entry: BodyMeasurementEntry) async throws {
+        try await bodyMeasurementsManager.updateWeightEntry(entry: entry)
     }
-    
+
     /// DELETE
     func deleteWeightEntry(userId: String, entryId: String) async throws {
-        try await userWeightManager.deleteWeightEntry(userId: userId, entryId: entryId)
+        try await bodyMeasurementsManager.deleteWeightEntry(userId: userId, entryId: entryId)
     }
 
     func dedupeWeightEntriesByDay(userId: String) async throws {
-        try await userWeightManager.dedupeWeightEntriesByDay(userId: userId)
+        try await bodyMeasurementsManager.dedupeWeightEntriesByDay(userId: userId)
     }
-    
+
     func backfillBodyFatFromHealthKit() async {
         guard let userId else { return }
-        await userWeightManager.backfillBodyFatFromHealthKit(userId: userId)
+        await bodyMeasurementsManager.backfillBodyFatFromHealthKit(userId: userId)
+    }
+    
+    // MARK: ImageUploadManager
+    
+    func uploadImage(image: PlatformImage, path: String) async throws -> URL {
+        try await imageUploadManager.uploadImage(image: image, path: path)
+    }
+    
+    func deleteImage(path: String) async throws {
+        try await imageUploadManager.deleteImage(path: path)
     }
     
     // MARK: GoalManager
