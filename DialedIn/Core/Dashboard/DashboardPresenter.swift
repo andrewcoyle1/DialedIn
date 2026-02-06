@@ -101,6 +101,10 @@ class DashboardPresenter {
         router.showHabitsView(delegate: HabitsDelegate())
     }
     
+    func onSeeAllNutritionAnalyticsPressed() {
+        router.showNutritionAnalyticsView(delegate: NutritionAnalyticsDelegate())
+    }
+    
     func onSeeAllBodyMetricsPressed() {
         router.showBodyMetricsView(delegate: BodyMetricsDelegate())
     }

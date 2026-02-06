@@ -192,22 +192,22 @@ struct DashboardView: View {
                     .anyButton(.press) {
                         
                     }
-                DashboardCard(title: "Fat", subtitle: "Today", subsubtitle: "29.2", subsubsubtitle: "g")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-                DashboardCard(title: "Carbs", subtitle: "Today", subsubtitle: "91.5", subsubsubtitle: "g")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
             }
             .padding(.horizontal)
             .removeListRowFormatting()
 
         } header: {
-            Text("Nutrition")
+            HStack {
+                Text("Nutrition")
+                Spacer()
+                Text("See All")
+                    .font(.caption)
+                    .underline()
+                    .anyButton(.press) {
+                        presenter.onSeeAllNutritionAnalyticsPressed()
+                    }
+            }
+
         }
     }
 

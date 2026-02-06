@@ -16,6 +16,7 @@ protocol DashboardRouter: GlobalRouter {
     func showScaleWeightView(delegate: ScaleWeightDelegate)
     func showVisualBodyFatView(delegate: VisualBodyFatDelegate)
     func showInsightsAndAnalyticsView(delegate: InsightsAndAnalyticsDelegate)
+    func showNutritionAnalyticsView(delegate: NutritionAnalyticsDelegate)
     func showHabitsView(delegate: HabitsDelegate)
     func showBodyMetricsView(delegate: BodyMetricsDelegate)
     func showMuscleGroupsView(delegate: MuscleGroupsDelegate)
