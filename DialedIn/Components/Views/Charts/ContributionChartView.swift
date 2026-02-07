@@ -42,13 +42,12 @@ struct ContributionChartView: View {
         self.heatMapRectangleSpacing = rectangleSpacing
         self.heatMapRectangleRadius = rectangleRadius
         
-        // Calculate week-aligned start date (weeks start on Sunday)
+        // Calculate start date based on total days (rows * columns)
+        // Days flow continuously from left to right, with each column containing 'rows' consecutive days
         self.endDate = endDate
         let endDayStart = calendar.startOfDay(for: endDate)
-        let endWeekday = calendar.component(.weekday, from: endDayStart) // Sunday = 1
-        let daysBackToSunday = endWeekday - 1
-        let endWeekStartSunday = calendar.date(byAdding: .day, value: -daysBackToSunday, to: endDayStart) ?? endDayStart
-        self.startDate = calendar.date(byAdding: .day, value: -7 * (validColumns - 1), to: endWeekStartSunday) ?? endWeekStartSunday
+        let totalDays = validRows * validColumns
+        self.startDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDayStart) ?? endDayStart
         self.showsCaptioning = showsCaptioning
     }
     
@@ -151,11 +150,16 @@ struct ContributionChartView: View {
             let monthLabelHeight: CGFloat = showsCaptioning ? 16 : 0
             let dayLabelWidth: CGFloat = showsCaptioning ? dayLabelColumnWidth + spacing : 0
             let availableChartWidth = max(0, geo.size.width - dayLabelWidth)
-            let cellWidthFromWidth = max(2, floor((availableChartWidth - CGFloat(max(0, columns - 1)) * spacing) / CGFloat(max(1, columns))))
+            let cellWidthFromWidth = max(2, (availableChartWidth - CGFloat(max(0, columns - 1)) * spacing) / CGFloat(max(1, columns)))
             let availableChartHeight = max(0, geo.size.height - monthLabelHeight - (showsCaptioning ? spacing : 0))
-            let cellWidthFromHeight = max(2, floor((availableChartHeight - CGFloat(max(0, rows - 1)) * spacing) / CGFloat(max(1, rows))))
-            let cellWidth = min(cellWidthFromWidth, cellWidthFromHeight)
-            let chartHeight = monthLabelHeight + (showsCaptioning ? spacing : 0) + (CGFloat(rows) * cellWidth) + (CGFloat(max(0, rows - 1)) * spacing)
+            let cellHeightFromHeight = max(2, (availableChartHeight - CGFloat(max(0, rows - 1)) * spacing) / CGFloat(max(1, rows)))
+            
+            // Prioritize filling available width, but respect height constraints
+            // Allow rectangular cells when needed to fill the available space
+            let cellWidth = cellWidthFromWidth
+            let cellHeight = min(cellWidth, cellHeightFromHeight) // Prefer square, but allow rectangular if needed
+            
+            let chartHeight = monthLabelHeight + (showsCaptioning ? spacing : 0) + (CGFloat(rows) * cellHeight) + (CGFloat(max(0, rows - 1)) * spacing)
             HStack(alignment: .top, spacing: spacing) {
                 if showsCaptioning {
                     // Day labels
@@ -164,10 +168,10 @@ struct ContributionChartView: View {
                             Text(dayLabel(for: rowIndex))
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
-                                .frame(width: dayLabelColumnWidth, height: cellWidth, alignment: .center)
+                                .frame(width: dayLabelColumnWidth, height: cellHeight, alignment: .center)
                         }
                     }
-                    .frame(height: (CGFloat(rows) * cellWidth) + (CGFloat(max(0, rows - 1)) * spacing), alignment: .top)
+                    .frame(height: (CGFloat(rows) * cellHeight) + (CGFloat(max(0, rows - 1)) * spacing), alignment: .top)
                     .padding(.top, monthLabelHeight + spacing)
                     
                 }
@@ -203,13 +207,14 @@ struct ContributionChartView: View {
                                     blockColor: blockColor,
                                     blockBackgroundColor: blockBackgroundColor,
                                     heatMapRectangleWidth: cellWidth,
+                                    heatMapRectangleHeight: cellHeight,
                                     heatMapRectangleSpacing: spacing,
                                     heatMapRectangleRadius: heatMapRectangleRadius,
-                                    weekStartDate: weekStartDate(for: columnIndex)
+                                    columnStartDate: columnStartDate(for: columnIndex)
                                 )
                             }
                         }
-                        .frame(height: (CGFloat(rows) * cellWidth) + (CGFloat(max(0, rows - 1)) * spacing), alignment: .top)
+                        .frame(height: (CGFloat(rows) * cellHeight) + (CGFloat(max(0, rows - 1)) * spacing), alignment: .top)
                     }
                 }
             }
@@ -251,31 +256,36 @@ struct ContributionChartView: View {
     }
     
     private func dayLabel(for rowIndex: Int) -> String {
+        // Calculate the actual day of week for the first row (row 0) of the first column
+        // Then add rowIndex to get the day for this row
+        let firstRowDate = dateForCell(columnIndex: 0, rowIndex: rowIndex)
+        let weekday = calendar.component(.weekday, from: firstRowDate) // Sunday = 1, Monday = 2, etc.
         let days = ["S", "M", "T", "W", "T", "F", "S"]
-        return days[rowIndex % 7]
+        // weekday is 1-based (Sunday=1), array is 0-based
+        return days[(weekday - 1) % 7]
     }
     
     private func monthLabel(for columnIndex: Int) -> String {
-        let currentWeekStart = weekStartDate(for: columnIndex)
+        let columnStart = columnStartDate(for: columnIndex)
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM"
-        return formatter.string(from: currentWeekStart)
+        return formatter.string(from: columnStart)
     }
 
     private func shouldShowMonthLabel(for columnIndex: Int) -> Bool {
-        let currentWeekStart = weekStartDate(for: columnIndex)
-        let previousWeekStart: Date? = columnIndex > 0 ? weekStartDate(for: columnIndex - 1) : nil
-        let nextWeekStart: Date? = columnIndex < columns - 1 ? weekStartDate(for: columnIndex + 1) : nil
+        let currentColumnStart = columnStartDate(for: columnIndex)
+        let previousColumnStart: Date? = columnIndex > 0 ? columnStartDate(for: columnIndex - 1) : nil
+        let nextColumnStart: Date? = columnIndex < columns - 1 ? columnStartDate(for: columnIndex + 1) : nil
         let isFirstColumn = columnIndex == 0
         let monthChangedFromPrev: Bool
-        if let prev = previousWeekStart {
-            monthChangedFromPrev = calendar.component(.month, from: currentWeekStart) != calendar.component(.month, from: prev)
+        if let prev = previousColumnStart {
+            monthChangedFromPrev = calendar.component(.month, from: currentColumnStart) != calendar.component(.month, from: prev)
         } else {
             monthChangedFromPrev = false
         }
         let monthChangedToNext: Bool
-        if let next = nextWeekStart {
-            monthChangedToNext = calendar.component(.month, from: currentWeekStart) != calendar.component(.month, from: next)
+        if let next = nextColumnStart {
+            monthChangedToNext = calendar.component(.month, from: currentColumnStart) != calendar.component(.month, from: next)
         } else {
             monthChangedToNext = false
         }
@@ -285,19 +295,20 @@ struct ContributionChartView: View {
         return false
     }
     
-    private func weekStartDate(for columnIndex: Int) -> Date {
-        let weekOffset = columnIndex * 7
-        return calendar.date(byAdding: .day, value: weekOffset, to: startDate) ?? startDate
+    /// Calculates the start date for a specific column
+    /// Each column contains 'rows' consecutive days
+    private func columnStartDate(for columnIndex: Int) -> Date {
+        let dayOffset = columnIndex * rows
+        return calendar.date(byAdding: .day, value: dayOffset, to: startDate) ?? startDate
     }
     
     /// Calculates the actual date for a specific cell position
     /// - Parameters:
-    ///   - columnIndex: Column index (week number)
-    ///   - rowIndex: Row index (day of week, 0-6)
+    ///   - columnIndex: Column index (0-based)
+    ///   - rowIndex: Row index within the column (0-based)
     /// - Returns: The actual date for this cell
     private func dateForCell(columnIndex: Int, rowIndex: Int) -> Date {
-        let weekOffset = columnIndex * 7
-        let dayOffset = weekOffset + rowIndex
+        let dayOffset = columnIndex * rows + rowIndex
         return calendar.date(byAdding: .day, value: dayOffset, to: startDate) ?? startDate
     }
     
@@ -403,29 +414,34 @@ struct ContributionChartRowView: View {
     var blockColor: Color
     var blockBackgroundColor: Color
     var heatMapRectangleWidth: CGFloat
+    var heatMapRectangleHeight: CGFloat?
     var heatMapRectangleSpacing: CGFloat
     var heatMapRectangleRadius: CGFloat
-    var weekStartDate: Date
+    var columnStartDate: Date
     
     private let calendar = Calendar.current
+    
+    private var rectangleHeight: CGFloat {
+        heatMapRectangleHeight ?? heatMapRectangleWidth
+    }
     
     var body: some View {
         VStack(spacing: CGFloat(heatMapRectangleSpacing)) {
             ForEach(0..<rows, id: \.self) { index in
                 ZStack {
                     RoundedRectangle(cornerRadius: CGFloat(heatMapRectangleRadius))
-                        .frame(width: CGFloat(heatMapRectangleWidth), height: CGFloat(heatMapRectangleWidth), alignment: .center
+                        .frame(width: CGFloat(heatMapRectangleWidth), height: CGFloat(rectangleHeight), alignment: .center
                         )
                         .foregroundColor(blockBackgroundColor)
                     RoundedRectangle(cornerRadius: CGFloat(heatMapRectangleRadius))
-                        .frame(width: CGFloat(heatMapRectangleWidth), height: CGFloat(heatMapRectangleWidth), alignment: .center)
+                        .frame(width: CGFloat(heatMapRectangleWidth), height: CGFloat(rectangleHeight), alignment: .center)
                         .foregroundColor(blockColor
                             .opacity(CGFloat(opacityRatio(index: index))))
                 }
                 .overlay(
                     RoundedRectangle(cornerRadius: CGFloat(heatMapRectangleRadius))
                         .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
-                        .frame(width: CGFloat(heatMapRectangleWidth), height: CGFloat(heatMapRectangleWidth))
+                        .frame(width: CGFloat(heatMapRectangleWidth), height: CGFloat(rectangleHeight))
                 )
                 .accessibilityLabel(accessibilityLabel(for: index))
                 .scaleEffect(opacityRatio(index: index) > 0 ? CGFloat(1.0) : CGFloat(0.95))
@@ -445,7 +461,8 @@ struct ContributionChartRowView: View {
     
     private func accessibilityLabel(for index: Int) -> String {
         guard index >= 0 && index < rowData.count else { return "Invalid date" }
-        let date = calendar.date(byAdding: .day, value: index, to: weekStartDate) ?? weekStartDate
+        // Each row in the column represents consecutive days starting from columnStartDate
+        let date = calendar.date(byAdding: .day, value: index, to: columnStartDate) ?? columnStartDate
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         let dateString = formatter.string(from: date)

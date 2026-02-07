@@ -19,6 +19,7 @@ protocol DevSettingsInteractor {
     func trackEvent(event: LoggableEvent)
     func getWorkoutSession(id: String) async throws -> WorkoutSessionModel
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws
+    func clearAllLocalStepsData() throws
     func signOut() async throws
 }
 

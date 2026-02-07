@@ -263,10 +263,17 @@ struct DevSettingsView: View {
                 }
             }
             .padding(.vertical, 4)
+            
+            Button(role: .destructive) {
+                presenter.clearAllLocalStepsData()
+            } label: {
+                Label("Clear All Local Steps Data", systemImage: "trash")
+            }
+            .font(.caption)
         } header: {
             Text("Local Storage Debug")
         } footer: {
-            Text("Verifies that scheduledWorkoutId and other IDs are properly persisted in local SwiftData storage.")
+            Text("Verifies that scheduledWorkoutId and other IDs are properly persisted in local SwiftData storage. Clears local Steps data only (remote and HealthKit unaffected).")
         }
     }
     

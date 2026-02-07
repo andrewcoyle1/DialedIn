@@ -11,49 +11,67 @@ struct MuscleGroupsView: View {
     
     var body: some View {
         List {
-            Section {
-                LazyVGrid(columns: [GridItem(), GridItem()]) {
-                    ForEach(presenter.upperMuscles, id: \.self) { muscle in
-                        DashboardCard(title: muscle.name, subtitle: "Last 7 Days", subsubtitle: "6", subsubsubtitle: "sets")
-                            .tappableBackground()
-                            .anyButton(.press) {
-
-                            }
+            Group {
+                Section {
+                    LazyVGrid(columns: [GridItem(), GridItem()]) {
+                        ForEach(presenter.upperMuscles, id: \.self) { muscle in
+                            muscleCard(muscle: muscle)
+                        }
                     }
+                    .padding(.horizontal)
+                    .removeListRowFormatting()
+                    
+                } header: {
+                    Text("Upper")
                 }
-                .padding(.horizontal, 8)
-                .removeListRowFormatting()
-
-            } header: {
-                Text("Upper")
-            }
-
-            Section {
-                LazyVGrid(columns: [GridItem(), GridItem()]) {
-                    ForEach(presenter.lowerMuscles, id: \.self) { muscle in
-                        DashboardCard(title: muscle.name, subtitle: "Last 7 Days", subsubtitle: "6", subsubsubtitle: "sets")
-                            .tappableBackground()
-                            .anyButton(.press) {
-
-                            }
+                
+                Section {
+                    LazyVGrid(columns: [GridItem(), GridItem()]) {
+                        ForEach(presenter.lowerMuscles, id: \.self) { muscle in
+                            muscleCard(muscle: muscle)
+                        }
                     }
+                    .padding(.horizontal)
+                    .removeListRowFormatting()
+                    
+                } header: {
+                    Text("Lower")
                 }
-                .padding(.horizontal, 8)
-                .removeListRowFormatting()
-
-            } header: {
-                Text("Lower")
             }
+            .listSectionMargins(.horizontal, 0)
+            .listRowSeparator(.hidden)
+        }
+        .onFirstTask {
+            await presenter.loadData()
         }
         .navigationTitle("Muscle Groups")
         .navigationBarTitleDisplayMode(.inline)
         .screenAppearAnalytics(name: "MuscleGroupsView")
+        .scrollIndicators(.hidden)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(role: .close) {
                     presenter.onDismissPressed()
                 }
             }
+        }
+    }
+    
+    @ViewBuilder
+    private func muscleCard(muscle: Muscles) -> some View {
+        let data = presenter.setsData(for: muscle)
+        DashboardCard(
+            title: muscle.name,
+            subtitle: "Last 7 Days",
+            subsubtitle: "\(data.total)",
+            subsubsubtitle: "sets",
+            chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+        ) {
+            SetsBarChart(data: data.last7Days, color: .blue)
+        }
+        .tappableBackground()
+        .anyButton(.press) {
+            presenter.onMusclePressed(muscle: muscle)
         }
     }
 }

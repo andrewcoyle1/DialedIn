@@ -40,7 +40,9 @@ struct CoreInteractor: GlobalInteractor {
     private let logManager: LogManager
     private let reportManager: ReportManager
     private let healthKitManager: HealthKitManager
-    private let userWeightManager: UserWeightManager
+    private let healthKitStepService: HealthKitStepService
+    private let bodyMeasurementsManager: BodyMeasurementsManager
+    private let stepsManager: StepsManager
     private let goalManager: GoalManager
     private let imageUploadManager: ImageUploadManager
     private let gIDClientID: String
@@ -76,7 +78,9 @@ struct CoreInteractor: GlobalInteractor {
         self.logManager = container.resolve(LogManager.self)!
         self.reportManager = container.resolve(ReportManager.self)!
         self.healthKitManager = container.resolve(HealthKitManager.self)!
-        self.userWeightManager = container.resolve(UserWeightManager.self)!
+        self.healthKitStepService = container.resolve(HealthKitStepService.self)!
+        self.bodyMeasurementsManager = container.resolve(BodyMeasurementsManager.self)!
+        self.stepsManager = container.resolve(StepsManager.self)!
         self.goalManager = container.resolve(GoalManager.self)!
         self.imageUploadManager = container.resolve(ImageUploadManager.self)!
         self.gIDClientID = container.resolve(GoogleSignInConfig.self)!.clientID
@@ -763,6 +767,10 @@ struct CoreInteractor: GlobalInteractor {
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws {
         try workoutSessionManager.deleteAllLocalWorkoutSessionsForAuthor(authorId: authorId)
     }
+
+    func clearAllLocalStepsData() throws {
+        try stepsManager.clearAllLocalStepsData()
+    }
     
     // Remote Operations
     
@@ -1188,6 +1196,16 @@ struct CoreInteractor: GlobalInteractor {
         try mealLogManager.getLocalDailyTotals(dayKey: dayKey)
     }
     
+    func getDailyTotals(startDayKey: String, endDayKey: String) throws -> [(dayKey: String, totals: DailyMacroTarget)] {
+        guard let startDate = Date(dayKey: startDayKey), let endDate = Date(dayKey: endDayKey), startDate <= endDate else {
+            return []
+        }
+        let keys = Date.dayKeys(from: startDate, to: endDate)
+        return keys.map { key in
+            (dayKey: key, totals: (try? mealLogManager.getLocalDailyTotals(dayKey: key)) ?? DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0))
+        }
+    }
+    
     // LocalMealLogPersistence
     
     func addLocalMeal(_ meal: MealLogModel) throws {
@@ -1216,6 +1234,190 @@ struct CoreInteractor: GlobalInteractor {
     
     func getLocalDailyTotals(dayKey: String) throws -> DailyMacroTarget {
         try mealLogManager.getLocalDailyTotals(dayKey: dayKey)
+    }
+    
+    func getDailyNutritionBreakdown(dayKey: String) throws -> DailyNutritionBreakdown {
+        let meals = try mealLogManager.getMeals(for: dayKey)
+        var breakdown = DailyNutritionBreakdown()
+        for meal in meals {
+            for item in meal.items {
+                if item.sourceType == .ingredient {
+                    if let ingredient = try? ingredientTemplateManager.getLocalIngredientTemplate(id: item.sourceId) {
+                        let scale = ((item.resolvedGrams ?? item.resolvedMilliliters) ?? 0) / 100.0
+                        addIngredientToBreakdown(ingredient, scale: scale, into: &breakdown)
+                    }
+                } else if item.sourceType == .recipe {
+                    if let recipe = try? recipeTemplateManager.getLocalRecipeTemplate(id: item.sourceId) {
+                        let recipeTotals = aggregateRecipeNutrients(recipe: recipe)
+                        let scale = item.amount
+                        addRecipeTotalsToBreakdown(recipeTotals, scale: scale, into: &breakdown)
+                    }
+                }
+            }
+        }
+        if let fiber = breakdown.fiberGrams, let carbs = try? mealLogManager.getLocalDailyTotals(dayKey: dayKey).carbGrams {
+            breakdown.netCarbsGrams = max(0, carbs - fiber)
+        }
+        return breakdown
+    }
+    
+    func getDailyNutritionBreakdown(startDayKey: String, endDayKey: String) throws -> [(dayKey: String, breakdown: DailyNutritionBreakdown)] {
+        guard let startDate = Date(dayKey: startDayKey), let endDate = Date(dayKey: endDayKey), startDate <= endDate else {
+            return []
+        }
+        let keys = Date.dayKeys(from: startDate, to: endDate)
+        return keys.map { key in
+            (dayKey: key, breakdown: (try? getDailyNutritionBreakdown(dayKey: key)) ?? DailyNutritionBreakdown.empty)
+        }
+    }
+    
+    private func addIngredientToBreakdown(_ ingredient: IngredientTemplateModel, scale: Double, into breakdown: inout DailyNutritionBreakdown) {
+        func add(_ value: Double?, to keyPath: inout Double?) {
+            guard let value, value > 0 else { return }
+            keyPath = (keyPath ?? 0) + value * scale
+        }
+        add(ingredient.fiber, to: &breakdown.fiberGrams)
+        add(ingredient.sugar, to: &breakdown.sugarGrams)
+        add(ingredient.fatSaturated, to: &breakdown.fatSaturatedGrams)
+        add(ingredient.fatMonounsaturated, to: &breakdown.fatMonounsaturatedGrams)
+        add(ingredient.fatPolyunsaturated, to: &breakdown.fatPolyunsaturatedGrams)
+        add(ingredient.sodiumMg, to: &breakdown.sodiumMg)
+        add(ingredient.potassiumMg, to: &breakdown.potassiumMg)
+        add(ingredient.calciumMg, to: &breakdown.calciumMg)
+        add(ingredient.ironMg, to: &breakdown.ironMg)
+        add(ingredient.magnesiumMg, to: &breakdown.magnesiumMg)
+        add(ingredient.zincMg, to: &breakdown.zincMg)
+        add(ingredient.copperMg, to: &breakdown.copperMg)
+        add(ingredient.manganeseMg, to: &breakdown.manganeseMg)
+        add(ingredient.phosphorusMg, to: &breakdown.phosphorusMg)
+        add(ingredient.seleniumMcg, to: &breakdown.seleniumMcg)
+        add(ingredient.vitaminAMcg, to: &breakdown.vitaminAMcg)
+        add(ingredient.vitaminB6Mg, to: &breakdown.vitaminB6Mg)
+        add(ingredient.vitaminB12Mcg, to: &breakdown.vitaminB12Mcg)
+        add(ingredient.vitaminCMg, to: &breakdown.vitaminCMg)
+        add(ingredient.vitaminDMcg, to: &breakdown.vitaminDMcg)
+        add(ingredient.vitaminEMg, to: &breakdown.vitaminEMg)
+        add(ingredient.vitaminKMcg, to: &breakdown.vitaminKMcg)
+        add(ingredient.thiaminMg, to: &breakdown.thiaminMg)
+        add(ingredient.riboflavinMg, to: &breakdown.riboflavinMg)
+        add(ingredient.niacinMg, to: &breakdown.niacinMg)
+        add(ingredient.pantothenicAcidMg, to: &breakdown.pantothenicAcidMg)
+        add(ingredient.folateMcg, to: &breakdown.folateMcg)
+        add(ingredient.caffeineMg, to: &breakdown.caffeineMg)
+        add(ingredient.cholesterolMg, to: &breakdown.cholesterolMg)
+    }
+    
+    private struct RecipeNutrientTotals {
+        var fiberGrams: Double = 0
+        var sugarGrams: Double = 0
+        var fatSaturatedGrams: Double = 0
+        var fatMonounsaturatedGrams: Double = 0
+        var fatPolyunsaturatedGrams: Double = 0
+        var sodiumMg: Double = 0
+        var potassiumMg: Double = 0
+        var calciumMg: Double = 0
+        var ironMg: Double = 0
+        var magnesiumMg: Double = 0
+        var zincMg: Double = 0
+        var copperMg: Double = 0
+        var manganeseMg: Double = 0
+        var phosphorusMg: Double = 0
+        var seleniumMcg: Double = 0
+        var vitaminAMcg: Double = 0
+        var vitaminB6Mg: Double = 0
+        var vitaminB12Mcg: Double = 0
+        var vitaminCMg: Double = 0
+        var vitaminDMcg: Double = 0
+        var vitaminEMg: Double = 0
+        var vitaminKMcg: Double = 0
+        var thiaminMg: Double = 0
+        var riboflavinMg: Double = 0
+        var niacinMg: Double = 0
+        var pantothenicAcidMg: Double = 0
+        var folateMcg: Double = 0
+        var caffeineMg: Double = 0
+        var cholesterolMg: Double = 0
+    }
+    
+    // swiftlint:disable:next cyclomatic_complexity
+    private func aggregateRecipeNutrients(recipe: RecipeTemplateModel) -> RecipeNutrientTotals {
+        var totals = RecipeNutrientTotals()
+        for ringredient in recipe.ingredients {
+            let grams: Double
+            switch ringredient.unit {
+            case .grams: grams = ringredient.amount
+            case .milliliters: grams = ringredient.amount
+            case .units: grams = ringredient.amount * 100
+            }
+            let scale = grams / 100.0
+            let ingredient = ringredient.ingredient
+            if let value = ingredient.fiber { totals.fiberGrams += value * scale }
+            if let value = ingredient.sugar { totals.sugarGrams += value * scale }
+            if let value = ingredient.fatSaturated { totals.fatSaturatedGrams += value * scale }
+            if let value = ingredient.fatMonounsaturated { totals.fatMonounsaturatedGrams += value * scale }
+            if let value = ingredient.fatPolyunsaturated { totals.fatPolyunsaturatedGrams += value * scale }
+            if let value = ingredient.sodiumMg { totals.sodiumMg += value * scale }
+            if let value = ingredient.potassiumMg { totals.potassiumMg += value * scale }
+            if let value = ingredient.calciumMg { totals.calciumMg += value * scale }
+            if let value = ingredient.ironMg { totals.ironMg += value * scale }
+            if let value = ingredient.magnesiumMg { totals.magnesiumMg += value * scale }
+            if let value = ingredient.zincMg { totals.zincMg += value * scale }
+            if let value = ingredient.copperMg { totals.copperMg += value * scale }
+            if let value = ingredient.manganeseMg { totals.manganeseMg += value * scale }
+            if let value = ingredient.phosphorusMg { totals.phosphorusMg += value * scale }
+            if let value = ingredient.seleniumMcg { totals.seleniumMcg += value * scale }
+            if let value = ingredient.vitaminAMcg { totals.vitaminAMcg += value * scale }
+            if let value = ingredient.vitaminB6Mg { totals.vitaminB6Mg += value * scale }
+            if let value = ingredient.vitaminB12Mcg { totals.vitaminB12Mcg += value * scale }
+            if let value = ingredient.vitaminCMg { totals.vitaminCMg += value * scale }
+            if let value = ingredient.vitaminDMcg { totals.vitaminDMcg += value * scale }
+            if let value = ingredient.vitaminEMg { totals.vitaminEMg += value * scale }
+            if let value = ingredient.vitaminKMcg { totals.vitaminKMcg += value * scale }
+            if let value = ingredient.thiaminMg { totals.thiaminMg += value * scale }
+            if let value = ingredient.riboflavinMg { totals.riboflavinMg += value * scale }
+            if let value = ingredient.niacinMg { totals.niacinMg += value * scale }
+            if let value = ingredient.pantothenicAcidMg { totals.pantothenicAcidMg += value * scale }
+            if let value = ingredient.folateMcg { totals.folateMcg += value * scale }
+            if let value = ingredient.caffeineMg { totals.caffeineMg += value * scale }
+            if let value = ingredient.cholesterolMg { totals.cholesterolMg += value * scale }
+        }
+        return totals
+    }
+    
+    private func addRecipeTotalsToBreakdown(_ totals: RecipeNutrientTotals, scale: Double, into breakdown: inout DailyNutritionBreakdown) {
+        func add(_ value: Double, to keyPath: inout Double?) {
+            guard value > 0 else { return }
+            keyPath = (keyPath ?? 0) + value * scale
+        }
+        add(totals.fiberGrams, to: &breakdown.fiberGrams)
+        add(totals.sugarGrams, to: &breakdown.sugarGrams)
+        add(totals.fatSaturatedGrams, to: &breakdown.fatSaturatedGrams)
+        add(totals.fatMonounsaturatedGrams, to: &breakdown.fatMonounsaturatedGrams)
+        add(totals.fatPolyunsaturatedGrams, to: &breakdown.fatPolyunsaturatedGrams)
+        add(totals.sodiumMg, to: &breakdown.sodiumMg)
+        add(totals.potassiumMg, to: &breakdown.potassiumMg)
+        add(totals.calciumMg, to: &breakdown.calciumMg)
+        add(totals.ironMg, to: &breakdown.ironMg)
+        add(totals.magnesiumMg, to: &breakdown.magnesiumMg)
+        add(totals.zincMg, to: &breakdown.zincMg)
+        add(totals.copperMg, to: &breakdown.copperMg)
+        add(totals.manganeseMg, to: &breakdown.manganeseMg)
+        add(totals.phosphorusMg, to: &breakdown.phosphorusMg)
+        add(totals.seleniumMcg, to: &breakdown.seleniumMcg)
+        add(totals.vitaminAMcg, to: &breakdown.vitaminAMcg)
+        add(totals.vitaminB6Mg, to: &breakdown.vitaminB6Mg)
+        add(totals.vitaminB12Mcg, to: &breakdown.vitaminB12Mcg)
+        add(totals.vitaminCMg, to: &breakdown.vitaminCMg)
+        add(totals.vitaminDMcg, to: &breakdown.vitaminDMcg)
+        add(totals.vitaminEMg, to: &breakdown.vitaminEMg)
+        add(totals.vitaminKMcg, to: &breakdown.vitaminKMcg)
+        add(totals.thiaminMg, to: &breakdown.thiaminMg)
+        add(totals.riboflavinMg, to: &breakdown.riboflavinMg)
+        add(totals.niacinMg, to: &breakdown.niacinMg)
+        add(totals.pantothenicAcidMg, to: &breakdown.pantothenicAcidMg)
+        add(totals.folateMcg, to: &breakdown.folateMcg)
+        add(totals.caffeineMg, to: &breakdown.caffeineMg)
+        add(totals.cholesterolMg, to: &breakdown.cholesterolMg)
     }
     
     // RemoteMealLogService
@@ -1344,52 +1546,62 @@ struct CoreInteractor: GlobalInteractor {
     func getHealthStore() -> HKHealthStore {
         healthKitManager.getHealthStore()
     }
-        
-    // UserWeightManager
-    
-    var weightHistory: [WeightEntry] {
-        userWeightManager.weightHistory
+
+    // BodyMeasurementsManager
+
+    var measurementHistory: [BodyMeasurementEntry] {
+        bodyMeasurementsManager.measurementHistory
     }
-    
+
     /// CREATE
-    func createWeightEntry(weightEntry: WeightEntry) async throws {
-        try await userWeightManager.createWeightEntry(weightEntry: weightEntry)
+    func createWeightEntry(weightEntry: BodyMeasurementEntry) async throws {
+        try await bodyMeasurementsManager.createWeightEntry(weightEntry: weightEntry)
     }
-    
+
     /// READ
-    func readLocalWeightEntry(id: String) throws -> WeightEntry {
-        try userWeightManager.readLocalWeightEntry(id: id)
+    func readLocalWeightEntry(id: String) throws -> BodyMeasurementEntry {
+        try bodyMeasurementsManager.readLocalWeightEntry(id: id)
     }
-    
-    func readRemoteWeightEntry(userId: String, entryId: String) async throws -> WeightEntry {
-        try await userWeightManager.readRemoteWeightEntry(userId: userId, entryId: entryId)
+
+    func readRemoteWeightEntry(userId: String, entryId: String) async throws -> BodyMeasurementEntry {
+        try await bodyMeasurementsManager.readRemoteWeightEntry(userId: userId, entryId: entryId)
     }
-    
-    func readAllLocalWeightEntries() throws -> [WeightEntry] {
-        try userWeightManager.readAllLocalWeightEntries()
+
+    func readAllLocalWeightEntries() throws -> [BodyMeasurementEntry] {
+        try bodyMeasurementsManager.readAllLocalWeightEntries()
     }
-    
-    func readAllRemoteWeightEntries(userId: String) async throws -> [WeightEntry] {
-        try await userWeightManager.readAllRemoteWeightEntries(userId: userId)
+
+    func readAllRemoteWeightEntries(userId: String) async throws -> [BodyMeasurementEntry] {
+        try await bodyMeasurementsManager.readAllRemoteWeightEntries(userId: userId)
     }
-    
+
     /// UPDATE
-    func updateWeightEntry(entry: WeightEntry) async throws {
-        try await userWeightManager.updateWeightEntry(entry: entry)
+    func updateWeightEntry(entry: BodyMeasurementEntry) async throws {
+        try await bodyMeasurementsManager.updateWeightEntry(entry: entry)
     }
-    
+
     /// DELETE
     func deleteWeightEntry(userId: String, entryId: String) async throws {
-        try await userWeightManager.deleteWeightEntry(userId: userId, entryId: entryId)
+        try await bodyMeasurementsManager.deleteWeightEntry(userId: userId, entryId: entryId)
     }
 
     func dedupeWeightEntriesByDay(userId: String) async throws {
-        try await userWeightManager.dedupeWeightEntriesByDay(userId: userId)
+        try await bodyMeasurementsManager.dedupeWeightEntriesByDay(userId: userId)
     }
-    
+
     func backfillBodyFatFromHealthKit() async {
         guard let userId else { return }
-        await userWeightManager.backfillBodyFatFromHealthKit(userId: userId)
+        await bodyMeasurementsManager.backfillBodyFatFromHealthKit(userId: userId)
+    }
+    
+    // MARK: ImageUploadManager
+    
+    func uploadImage(image: PlatformImage, path: String) async throws -> URL {
+        try await imageUploadManager.uploadImage(image: image, path: path)
+    }
+    
+    func deleteImage(path: String) async throws {
+        try await imageUploadManager.deleteImage(path: path)
     }
     
     // MARK: GoalManager
@@ -1435,6 +1647,53 @@ struct CoreInteractor: GlobalInteractor {
     /// Delete a goal
     func deleteGoal(goalId: String, userId: String) async throws {
         try await goalManager.deleteGoal(goalId: goalId, userId: userId)
+    }
+    
+    // StepsManager
+
+    var stepsHistory: [StepsModel] {
+        stepsManager.stepsHistory
+    }
+
+    /// CREATE
+    func createStepsEntry(steps: StepsModel) async throws {
+        try await stepsManager.createStepsEntry(steps: steps)
+    }
+
+    /// READ
+    func readLocalStepsEntry(id: String) throws -> StepsModel {
+        try stepsManager.readLocalStepsEntry(id: id)
+    }
+
+    func readRemoteStepsEntry(userId: String, stepsId: String) async throws -> StepsModel {
+        try await stepsManager.readRemoteStepsEntry(userId: userId, stepsId: stepsId)
+    }
+
+    func readAllLocalStepsEntries() throws -> [StepsModel] {
+        try stepsManager.readAllLocalStepsEntries()
+    }
+
+    func readAllRemoteStepsEntries(userId: String) async throws -> [StepsModel] {
+        try await stepsManager.readAllRemoteStepsEntries(userId: userId, userCreationDate: currentUser?.creationDate)
+    }
+
+    /// UPDATE
+    func updateStepsEntry(steps: StepsModel) async throws {
+        try await stepsManager.updateStepsEntry(steps: steps)
+    }
+
+    /// DELETE
+    func deleteWeightEntry(userId: String, stepsId: String) async throws {
+        try await stepsManager.deleteStepsEntry(userId: userId, stepsId: stepsId)
+    }
+
+    func dedupeStepsEntriesByDay(userId: String) async throws {
+        try await stepsManager.dedupeStepsEntriesByDay(userId: userId)
+    }
+
+    func backfillStepsFromHealthKit() async {
+        guard let userId else { return }
+        await stepsManager.backfillStepsFromHealthKit(userId: userId, userCreationDate: currentUser?.creationDate)
     }
     
     // Testing Helper

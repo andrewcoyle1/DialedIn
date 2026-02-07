@@ -7,10 +7,21 @@ protocol MetricDetailPresenter {
     var entries: [Entry] { get }
     var timeSeries: [TimeSeriesData.TimeSeries] { get }
     var configuration: MetricConfiguration { get }
+    /// When non-nil, this view is used instead of the default NewHistoryChart (e.g. for Energy Balance's line+bar chart).
+    var customChartView: AnyView? { get }
 
     func onAppear() async
     func onAddPressed()
     func onDismissPressed()
+    func onDeleteEntry(_ entry: Entry) async
+}
+
+extension MetricDetailPresenter {
+    var customChartView: AnyView? { nil }
+
+    func onDeleteEntry(_ entry: Entry) async {
+        // Default no-op for presenters that don't support deletion
+    }
 }
 
 struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
@@ -41,7 +52,8 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
         let entries = presenter.entries
         let pageSize = configuration.pageSize
 
-        let pagedEntries = MetricDetailView.paged(entries: entries, page: page, pageSize: pageSize)
+        let sortedEntries = entries.sorted { $0.date > $1.date }
+        let pagedEntries = MetricDetailView.paged(entries: sortedEntries, page: page, pageSize: pageSize)
         let hasMore = pagedEntries.count < entries.count
         
         // Filter time series to last year for chart performance
@@ -71,11 +83,22 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
         }
     }
     
+    @ViewBuilder
     private func chartSection(configuration: MetricConfiguration, series: [TimeSeriesData.TimeSeries]) -> some View {
         Section {
             VStack(alignment: .leading) {
-                NewHistoryChart(series: series, yAxisSuffix: configuration.yAxisSuffix)
+                if let customChart = presenter.customChartView {
+                    customChart
+                        .frame(height: 300)
+                } else {
+                    NewHistoryChart(
+                        series: series,
+                        yAxisSuffix: configuration.isMacrosChart ? (configuration.macrosYAxisSuffix ?? " g") : configuration.yAxisSuffix,
+                        chartType: configuration.chartType ?? .line,
+                        chartColor: configuration.chartColor
+                    )
                     .frame(height: 300)
+                }
             }
             .listRowInsets(.horizontal, 0)
             .removeListRowFormatting()
@@ -119,11 +142,22 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
             }
         } else {
             let grouped = groupedByMonth(Array(pagedEntries))
-            ForEach(grouped.sorted(by: { $0.key < $1.key }), id: \.key) { group in
+            ForEach(grouped.sorted(by: { $0.key > $1.key }), id: \.key) { group in
                 Section {
                     ForEach(group.entries) { entry in
-                        
-                        Label("\(entry.displayLabel) \(entry.displayValue) \(configuration.yAxisSuffix)", systemImage: entry.systemImageName)
+                        Label(
+                            configuration.isMacrosChart
+                                ? "\(entry.displayLabel) \(entry.displayValue)"
+                                : "\(entry.displayLabel) \(entry.displayValue) \(configuration.yAxisSuffix)",
+                            systemImage: entry.systemImageName
+                        )
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    Task { await presenter.onDeleteEntry(entry) }
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
                     }
                 } header: {
                     Text(group.title)
@@ -165,7 +199,7 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
             guard let entries = groups[components],
                   let date = calendar.date(from: components) else { return nil }
             let title = date.formatted(.dateTime.month(.wide).year())
-            let key = "\(components.year ?? 0)-\(components.month ?? 0)"
+            let key = String(format: "%04d-%02d", components.year ?? 0, components.month ?? 0)
             return MonthGroup(key: key, title: title, entries: entries)
         }
     }

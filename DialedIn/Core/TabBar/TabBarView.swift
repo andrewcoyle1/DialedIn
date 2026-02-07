@@ -45,29 +45,29 @@ struct TabBarView<TabAccessory: View, Search: View>: View {
         }
         .tabViewStyle(.tabBarOnly)
         .tabBarMinimizeBehavior(.onScrollDown)
-        .tabViewBottomAccessory {
-            GeometryReader { geometry in
-                ScrollView(.horizontal) {
-                    HStack(alignment: .center) {
+        .tabViewBottomAccessory(isEnabled: presenter.activeSession != nil) {
+//            GeometryReader { geometry in
+//                ScrollView(.horizontal) {
+//                    HStack(alignment: .center) {
                         if let active = presenter.activeSession {
                             tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
-                                .frame(width: geometry.size.width)
+//                                .frame(width: geometry.size.width)
                         }
 
-                        HStack {
-                            Image(systemName: "magnifyingglass")
-                            TextField("Search for a food", text: .constant(""))
-                            Image(systemName: "barcode.viewfinder")
-                        }
-                        .padding(.horizontal)
-                        .frame(width: geometry.size.width)
-                    }
-                    .scrollTargetLayout()
-                }
-                .scrollIndicators(.hidden)
-                .scrollTargetBehavior(.viewAligned)
-                .frame(maxHeight: .infinity)
-            }
+//                        HStack {
+//                            Image(systemName: "magnifyingglass")
+//                            TextField("Search for a food", text: .constant(""))
+//                            Image(systemName: "barcode.viewfinder")
+//                        }
+//                        .padding(.horizontal)
+//                        .frame(width: geometry.size.width)
+//                    }
+//                    .scrollTargetLayout()
+//                }
+//                .scrollIndicators(.hidden)
+//                .scrollTargetBehavior(.viewAligned)
+//                .frame(maxHeight: .infinity)
+//            }
         }
     }
 }

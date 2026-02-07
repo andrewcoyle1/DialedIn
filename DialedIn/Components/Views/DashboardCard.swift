@@ -16,7 +16,7 @@ struct DashboardCard<MetricChart: View>: View {
     
     @Environment(\.colorScheme) private var colorScheme
     
-    var title: String
+    var title: String?
     var subtitle: String?
     var subsubtitle: String?
     var subsubsubtitle: String?
@@ -24,7 +24,7 @@ struct DashboardCard<MetricChart: View>: View {
     var chart: () -> MetricChart
     
     init(
-        title: String = "Title",
+        title: String? = "Title",
         subtitle: String? = "Subtitle",
         subsubtitle: String? = "Subsubtitle",
         subsubsubtitle: String? = "Subsubsubtitle",
@@ -52,21 +52,25 @@ struct DashboardCard<MetricChart: View>: View {
     
     var body: some View {
         VStack(alignment: .leading) {
-            Text(title)
-                .lineLimit(1)
+            if let title {
+                Text(title)
+                    .lineLimit(1)
+            }
             
             if let subtitle {
                 Text(subtitle)
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
-            
+                
             Spacer()
             
             chart()
-                .frame(height: chartConfiguration.height)
+                .frame(maxWidth: .infinity, maxHeight: chartConfiguration.height)
                 .padding(.vertical, chartConfiguration.verticalPadding)
-            
+
+            Spacer()
+
             HStack {
                 HStack(alignment: .firstTextBaseline) {
                     if let subsubtitle {

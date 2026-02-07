@@ -7,15 +7,15 @@ class ScaleWeightPresenter {
     private let interactor: ScaleWeightInteractor
     private let router: ScaleWeightRouter
 
-    private(set) var cachedEntries: [WeightEntry] = []
+    private(set) var cachedEntries: [BodyMeasurementEntry] = []
     private(set) var cachedTimeSeries: [TimeSeriesData.TimeSeries] = []
     
     var currentUser: UserModel? {
         interactor.currentUser
     }
     
-    var weightHistory: [WeightEntry] {
-        interactor.weightHistory
+    var weightHistory: [BodyMeasurementEntry] {
+        interactor.measurementHistory
     }
     
     var timeSeries: [TimeSeriesData.TimeSeries] {
@@ -68,21 +68,24 @@ class ScaleWeightPresenter {
     }
 
     private func rebuildCaches() {
-        let entries = interactor.weightHistory.filter { $0.deletedAt == nil }
+        let entries = interactor.measurementHistory.filter { $0.deletedAt == nil && $0.weightKg != nil }
         cachedEntries = entries
         cachedTimeSeries = [
             TimeSeriesData.TimeSeries(
                 name: "Weight",
-                data: entries.map { TimeSeriesDatapoint(id: $0.id, date: $0.date, value: $0.weightKg) }
+                data: entries.compactMap { entry in
+                    guard let weightKg = entry.weightKg else { return nil }
+                    return TimeSeriesDatapoint(id: entry.id, date: entry.date, value: weightKg)
+                }
             )
         ]
     }
 }
 
 extension ScaleWeightPresenter: @MainActor MetricDetailPresenter {
-    typealias Entry = WeightEntry
+    typealias Entry = BodyMeasurementEntry
 
-    var entries: [WeightEntry] {
+    var entries: [BodyMeasurementEntry] {
         cachedEntries
     }
 
@@ -95,7 +98,8 @@ extension ScaleWeightPresenter: @MainActor MetricDetailPresenter {
             showsAddButton: true,
             sectionHeader: "Weight Entries",
             emptyStateMessage: "No weight entries",
-            pageSize: 20
+            pageSize: 20,
+            chartColor: .green
         )
     }
 
@@ -107,6 +111,13 @@ extension ScaleWeightPresenter: @MainActor MetricDetailPresenter {
 
     func onAddPressed() {
         onAddWeightPressed()
+    }
+
+    func onDeleteEntry(_ entry: BodyMeasurementEntry) async {
+        let updatedEntry = entry.withCleared(.weightKg)
+        try? await interactor.updateWeightEntry(entry: updatedEntry)
+        _ = try? interactor.readAllLocalWeightEntries()
+        rebuildCaches()
     }
 }
 

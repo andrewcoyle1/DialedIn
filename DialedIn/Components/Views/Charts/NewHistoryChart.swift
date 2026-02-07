@@ -9,80 +9,122 @@ import SwiftUI
 import Charts
 
 struct NewHistoryChart: View {
-    enum ChartType {
-        case line
-        case bar
-    }
     
-    struct VisibleMetrics {
-        var startDate: Date?
-        var endDate: Date?
-        var average: Double?
-        var delta: Double?
-        
-        static let empty = VisibleMetrics(
-            startDate: nil,
-            endDate: nil,
-            average: nil,
-            delta: nil
-        )
-    }
-    
-    @State var scrollZoomState: ChartScrollZoomState = ChartScrollZoomState(initialVisibleDays: 7)
+    @State var scrollZoomState = ChartScrollZoomState(
+        initialVisibleDays: 7,
+        config: .init(maxZoomDays: 3650)
+    )
     @State private var visibleMetrics: VisibleMetrics = .empty
+    @State private var selectedTimeRange: TimeRange = .oneWeek
+    @State private var hasInitialized = false
     
-    var xStrideComponent: Calendar.Component {
-        switch scrollZoomState.visibleDomainLength / 86400 {
-        case 51...:
-            return .month
-        case 10...:
-            return .weekOfYear
-        default:
-            return .day
-        }
-    }
-
     var series: [TimeSeriesData.TimeSeries]
     var yAxisSuffix: String = ""
     var chartType: ChartType = .line
+    var chartColor: Color?
+    
+    private struct StackedBarDay {
+        let date: Date
+        let protein: Double
+        let carbs: Double
+        let fat: Double
+    }
+
+    private var stackedBarDayData: [StackedBarDay] {
+        guard series.count >= 3 else { return [] }
+        let proteinSeries = series[0]
+        let carbsSeries = series[1]
+        let fatSeries = series[2]
+        var byDate: [Date: (Double, Double, Double)] = [:]
+        for protein in proteinSeries.sortedByDate {
+            byDate[protein.date, default: (0, 0, 0)].0 = protein.value
+        }
+        for carb in carbsSeries.sortedByDate {
+            byDate[carb.date, default: (0, 0, 0)].1 = carb.value
+        }
+        for fats in fatSeries.sortedByDate {
+            byDate[fats.date, default: (0, 0, 0)].2 = fats.value
+        }
+        return byDate.keys.sorted().map { date in
+            let total = byDate[date] ?? (0, 0, 0)
+            return StackedBarDay(date: date, protein: total.0, carbs: total.1, fat: total.2)
+        }
+    }
+
+    private var seriesSignature: Int {
+        var hasher = Hasher()
+        series.forEach { item in
+            hasher.combine(item.id)
+            hasher.combine(item.data.count)
+            if let lastDate = item.lastByDate?.date {
+                hasher.combine(lastDate)
+            }
+        }
+        return hasher.finalize()
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             headerView
             
             Chart {
-                ForEach(series) { singleSeries in
-                    
-                    if chartType == .line {
-                        ForEach(singleSeries.data) { day in
-                            LineMark(
-                                x: .value("Date", day.date, unit: .day),
-                                y: .value("Value", day.value)
-                            )
-                            .interpolationMethod(.catmullRom)
-                            
+                if chartType == .stackedBar, series.count >= 3 {
+                    ForEach(stackedBarDayData, id: \.date) { day in
+                        BarMark(
+                            x: .value("Date", day.date, unit: .day),
+                            y: .value("Protein", day.protein)
+                        )
+                        .foregroundStyle(MacroProgressChart.proteinColor)
+                        BarMark(
+                            x: .value("Date", day.date, unit: .day),
+                            y: .value("Carbs", day.carbs)
+                        )
+                        .foregroundStyle(MacroProgressChart.carbsColor)
+                        BarMark(
+                            x: .value("Date", day.date, unit: .day),
+                            y: .value("Fat", day.fat)
+                        )
+                        .foregroundStyle(MacroProgressChart.fatColor)
+                    }
+                } else {
+                    ForEach(series) { singleSeries in
+                        if chartType == .line {
+                            let lineMarks = ForEach(singleSeries.sortedByDate) { day in
+                                LineMark(
+                                    x: .value("Date", day.date, unit: .day),
+                                    y: .value("Value", day.value)
+                                )
+                            }
+                            if let chartColor {
+                                lineMarks.foregroundStyle(chartColor)
+                            } else {
+                                lineMarks.foregroundStyle(by: .value("Exercise", singleSeries.name))
+                            }
+                            if let last = singleSeries.lastByDate {
+                                let pointMark = PointMark(
+                                    x: .value("Date", last.date, unit: .day),
+                                    y: .value("Value", last.value)
+                                )
+                                if let chartColor {
+                                    pointMark.foregroundStyle(chartColor)
+                                } else {
+                                    pointMark.foregroundStyle(by: .value("Exercise", singleSeries.name))
+                                }
+                            }
+                        } else {
+                            let barMarks = ForEach(singleSeries.sortedByDate) { day in
+                                BarMark(
+                                    x: .value("Date", day.date, unit: .day),
+                                    yStart: .value("Value", 0),
+                                    yEnd: .value("Value", day.value)
+                                )
+                            }
+                            if let chartColor {
+                                barMarks.foregroundStyle(chartColor)
+                            } else {
+                                barMarks.foregroundStyle(by: .value("Exercise", singleSeries.name))
+                            }
                         }
-                        .foregroundStyle(by: .value("Exercise", singleSeries.name))
-                        
-                        if let last = singleSeries.lastByDate {
-                            PointMark(
-                                x: .value("Date", last.date, unit: .day),
-                                y: .value("Value", last.value)
-                            )
-                            .foregroundStyle(by: .value("Exercise", singleSeries.name))
-                        }
-                    } else {
-                        ForEach(singleSeries.data) { day in
-                            BarMark(
-                                x: .value("Date", day.date, unit: .day),
-                                yStart: .value("Value", 0),
-                                yEnd: .value("Value", day.value)
-                            )
-                            .interpolationMethod(.catmullRom)
-                            
-                        }
-                        .foregroundStyle(by: .value("Exercise", singleSeries.name))
-
                     }
                 }
             }
@@ -91,33 +133,49 @@ struct NewHistoryChart: View {
             .autoYScale(
                 series: series,
                 scrollZoomState: scrollZoomState,
-                metrics: $visibleMetrics
+                metrics: $visibleMetrics,
+                yDomainIncludesZero: chartType == .bar || chartType == .stackedBar,
+                isStackedBar: chartType == .stackedBar
             )
+            .onAppear {
+                if !hasInitialized && !series.isEmpty {
+                    initializeScrollPosition()
+                    hasInitialized = true
+                }
+            }
+            .onChange(of: seriesSignature) { _, _ in
+                if !hasInitialized && !series.isEmpty {
+                    initializeScrollPosition()
+                    hasInitialized = true
+                }
+            }
             .chartXAxis {
                 AxisMarks(values: .stride(by: xStrideComponent, count: 1)) { value in
                     AxisTick()
-                    AxisGridLine()
-                    AxisValueLabel {
+//                    AxisGridLine()
+                    AxisValueLabel(centered: true) {
                         if let date = value.as(Date.self) {
                             Text(date, format: xAxisLabelFormat)
                         }
                     }
                 }
             }
+            
+            timeRangePicker
         }
         .padding(.horizontal, 2)
     }
     
-    var xAxisLabelFormat: Date.FormatStyle {
-        switch xStrideComponent {
-        case .month:
-            return .dateTime.month(.abbreviated)
-        default:
-            return .dateTime.month(.abbreviated).day(.defaultDigits)
+    @ViewBuilder
+    private var headerView: some View {
+        if chartType == .stackedBar {
+            macrosHeaderView
+        } else {
+            standardHeaderView
         }
     }
 
-    private var headerView: some View {
+    private var standardHeaderView: some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading) {
                 Text("Average")
@@ -127,6 +185,7 @@ struct NewHistoryChart: View {
                     Text(formatValue(visibleMetrics.average))
                     Text(unitLabel)
                         .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 Text(dateRangeText)
                     .foregroundStyle(.secondary)
@@ -141,10 +200,76 @@ struct NewHistoryChart: View {
                     Text(formatValue(visibleMetrics.delta, showSign: true))
                     Text(unitLabel)
                         .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
         }
         .padding(.horizontal)
+    }
+
+    private var macrosHeaderView: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                if let protein = visibleMetrics.averageProtein {
+                    Text("Protein: \(formatValue(protein))g")
+                        .font(.subheadline)
+                }
+                if let carbs = visibleMetrics.averageCarbs {
+                    Text("Carbs: \(formatValue(carbs))g")
+                        .font(.subheadline)
+                }
+                if let fats = visibleMetrics.averageFat {
+                    Text("Fat: \(formatValue(fats))g")
+                        .font(.subheadline)
+                }
+                if visibleMetrics.averageProtein == nil, visibleMetrics.averageCarbs == nil, visibleMetrics.averageFat == nil {
+                    Text("--")
+                        .font(.subheadline)
+                }
+            }
+            Text(dateRangeText)
+                .foregroundStyle(.secondary)
+                .font(.caption)
+        }
+        .padding(.horizontal)
+    }
+    
+    var xStrideComponent: Calendar.Component {
+        switch scrollZoomState.visibleDomainLength / 86400 {
+        case 51...:
+            return .month
+        case 10...:
+            return .weekOfYear
+        default:
+            return .day
+        }
+    }
+    
+    var xAxisLabelFormat: Date.FormatStyle {
+        switch xStrideComponent {
+        case .month:
+            return .dateTime.month(.abbreviated)
+        default:
+            return .dateTime.month(.abbreviated).day(.defaultDigits)
+        }
+    }
+    
+    private var xAxisDomain: ClosedRange<Date> {
+        // Find the earliest and latest dates across all series (using sorted data for consistency)
+        let allDates = series.flatMap { $0.sortedByDate.map { $0.date } }
+        guard let earliest = allDates.min(),
+              let latest = allDates.max() else {
+            // Fallback: last year to now
+            let oneYearAgo = Calendar.current.date(byAdding: .year, value: -1, to: Date.now) ?? Date.now
+            return oneYearAgo...Date.now
+        }
+        
+        // Extend 4 days into the past and future
+        let fourDaysInSeconds: TimeInterval = 4 * 24 * 60 * 60
+        let extendedEarliest = earliest.addingTimeInterval(-fourDaysInSeconds)
+        let extendedLatest = latest.addingTimeInterval(fourDaysInSeconds)
+        
+        return extendedEarliest...extendedLatest
     }
     
     private var unitLabel: String {
@@ -182,218 +307,108 @@ struct NewHistoryChart: View {
         let formatted = String(format: "%.1f", value)
         return showSign && value >= 0 ? "+\(formatted)" : formatted
     }
+        
+    // MARK: - Time Range Picker
     
-    private var xAxisDomain: ClosedRange<Date> {
-        // Find the earliest and latest dates across all series
-        let allDates = series.flatMap { $0.data.map { $0.date } }
-        guard let earliest = allDates.min(),
-              let latest = allDates.max() else {
-            // Fallback: last year to now
-            let oneYearAgo = Calendar.current.date(byAdding: .year, value: -1, to: Date.now) ?? Date.now
-            return oneYearAgo...Date.now
-        }
-        
-        // Extend 4 days into the future
-        let fourDaysInSeconds: TimeInterval = 4 * 24 * 60 * 60
-        let extendedLatest = latest.addingTimeInterval(fourDaysInSeconds)
-        
-        return earliest...extendedLatest
-    }
-}
-
-private struct AutoYScaleModifier: ViewModifier {
-    let series: [TimeSeriesData.TimeSeries]
-    @Bindable var scrollZoomState: ChartScrollZoomState
-    @Binding var metrics: NewHistoryChart.VisibleMetrics
-    var debounce: Duration = .milliseconds(50)
-    var minUpdateInterval: Duration = .milliseconds(75)
-
-    @State private var yDomain: ClosedRange<Double> = 0...1
-    @State private var cachedAllValues: [TimeSeriesDatapoint] = []
-    @State private var updateTask: Task<Void, Never>?
-    @State private var lastUpdateTime: Date?
-
-    func body(content: Content) -> some View {
-        content
-            .chartYScale(domain: yDomain)
-            .onAppear {
-                rebuildCache()
-                scheduleUpdate()
-            }
-            .onChange(of: seriesSignature) { _, _ in
-                rebuildCache()
-                scheduleUpdate()
-            }
-            .onChange(of: scrollZoomState.scrollPosition) { _, _ in
-                scheduleUpdate()
-            }
-            .onChange(of: scrollZoomState.currentZoomDays) { _, _ in
-                scheduleUpdate()
-            }
-            .onChange(of: scrollZoomState.totalZoomDays) { _, _ in
-                scheduleUpdate()
-            }
-    }
-
-    private var seriesSignature: Int {
-        var hasher = Hasher()
-        series.forEach { item in
-            hasher.combine(item.id)
-            hasher.combine(item.data.count)
-            if let lastDate = item.lastByDate?.date {
-                hasher.combine(lastDate)
+    private var timeRangePicker: some View {
+        Picker("Time Range", selection: $selectedTimeRange) {
+            ForEach(TimeRange.allCases) { range in
+                Text(range.rawValue).tag(range)
             }
         }
-        return hasher.finalize()
-    }
-
-    private func scheduleUpdate() {
-        updateTask?.cancel()
-        let now = Date()
-        if shouldUpdateNow(now) {
-            updateVisibleDomain()
-            lastUpdateTime = now
-        }
-        updateTask = Task { @MainActor in
-            let delay = remainingDelay(from: now)
-            if delay > .zero {
-                try? await Task.sleep(for: delay)
-            }
-            guard !Task.isCancelled else { return }
-            updateVisibleDomain()
-            lastUpdateTime = Date()
+        .pickerStyle(.segmented)
+        .padding(.horizontal)
+        .onChange(of: selectedTimeRange) { _, newRange in
+            applyTimeRange(newRange)
         }
     }
-
-    private func shouldUpdateNow(_ now: Date) -> Bool {
-        guard let lastUpdateTime else { return true }
-        return now.timeIntervalSince(lastUpdateTime) >= minUpdateIntervalSeconds
-    }
-
-    private func remainingDelay(from now: Date) -> Duration {
-        let throttleDelay: Duration
-        if let lastUpdateTime {
-            let elapsed = now.timeIntervalSince(lastUpdateTime)
-            let remaining = max(0, minUpdateIntervalSeconds - elapsed)
-            throttleDelay = .seconds(remaining)
+    
+    private func applyTimeRange(_ range: TimeRange) {
+        let days: Double
+        if let rangeDays = range.days {
+            days = rangeDays
         } else {
-            throttleDelay = .zero
+            days = totalDataDays
         }
-        return max(throttleDelay, debounce)
-    }
-
-    private var minUpdateIntervalSeconds: Double {
-        let components = minUpdateInterval.components
-        return Double(components.seconds) + (Double(components.attoseconds) / 1_000_000_000_000_000_000)
-    }
-
-    private func rebuildCache() {
-        cachedAllValues = series
-            .flatMap { $0.data }
-            .sorted { $0.date < $1.date }
-    }
-
-    private func updateVisibleDomain() {
-        guard !cachedAllValues.isEmpty else {
-            yDomain = 0...1
-            metrics = .empty
-            return
-        }
-
-        let start = scrollZoomState.scrollPosition
-        let end = start.addingTimeInterval(scrollZoomState.visibleDomainLength)
-        guard let range = DateSortedSearch.visibleRange(
-            start: start,
-            end: end,
-            values: cachedAllValues
-        ) else {
-            // No datapoints in the visible region — emit nil metrics
-            metrics = .empty
-            return
-        }
-
-        let visibleValues = Array(cachedAllValues[range])
         
-        var minValue = Double.greatestFiniteMagnitude
-        var maxValue = -Double.greatestFiniteMagnitude
-        for element in visibleValues {
-            minValue = min(minValue, element.value)
-            maxValue = max(maxValue, element.value)
-        }
-        setDomain(minValue: minValue, maxValue: maxValue)
-        calculateMetrics(for: visibleValues)
+        scrollZoomState.currentZoomDays = 0
+        scrollZoomState.totalZoomDays = scrollZoomState.clampZoomDays(days)
+        
+        // Scroll so the most recent data is at the right edge
+        let allDates = series.flatMap { $0.sortedByDate.map { $0.date } }
+        guard let latest = allDates.max() else { return }
+        let futureBuffer: TimeInterval = 4 * 86400
+        let visibleLength = scrollZoomState.visibleDomainLength
+        scrollZoomState.scrollPosition = latest.addingTimeInterval(futureBuffer - visibleLength)
     }
     
-    private func calculateMetrics(for values: [TimeSeriesDatapoint]) {
-        guard !values.isEmpty else {
-            metrics = .empty
-            return
+    private var totalDataDays: Double {
+        let allDates = series.flatMap { $0.sortedByDate.map { $0.date } }
+        guard let earliest = allDates.min(), let latest = allDates.max() else { return 365 }
+        let days = latest.timeIntervalSince(earliest) / 86400
+        return max(days + 8, 7)
+    }
+    
+    private func initializeScrollPosition() {
+        let allDates = series.flatMap { $0.sortedByDate.map { $0.date } }
+        guard let latest = allDates.max() else { return }
+        let futureBuffer: TimeInterval = 4 * 86400
+        let visibleLength = scrollZoomState.visibleDomainLength
+        scrollZoomState.scrollPosition = latest.addingTimeInterval(futureBuffer - visibleLength)
+    }
+    
+    enum TimeRange: String, CaseIterable, Identifiable {
+        case oneWeek = "1W"
+        case oneMonth = "1M"
+        case threeMonths = "3M"
+        case sixMonths = "6M"
+        case oneYear = "1Y"
+        case all = "All"
+        
+        var id: String { rawValue }
+        
+        var days: Double? {
+            switch self {
+            case .oneWeek: return 7
+            case .oneMonth: return 30
+            case .threeMonths: return 90
+            case .sixMonths: return 180
+            case .oneYear: return 365
+            case .all: return nil
+            }
         }
-        
-        let average = values.reduce(0.0) { $0 + $1.value } / Double(values.count)
-        let startValue = values.first?.value
-        let endValue = values.last?.value
-        let delta: Double? = {
-            guard let start = startValue, let end = endValue else { return nil }
-            return end - start
-        }()
-        
-        metrics = NewHistoryChart.VisibleMetrics(
-            startDate: values.first?.date,
-            endDate: values.last?.date,
-            average: average,
-            delta: delta
-        )
+    }
+    
+    enum ChartType {
+        case line
+        case bar
+        case stackedBar
     }
 
-    private func setDomain(for values: [TimeSeriesDatapoint]) {
-        let domain = ChartYDomainCalculator.paddedDomain(
-            for: values.map(\.value),
-            config: yDomainConfig
-        )
-        yDomain = domain
-    }
+    struct VisibleMetrics {
+        var startDate: Date?
+        var endDate: Date?
+        var average: Double?
+        var delta: Double?
+        var averageProtein: Double?
+        var averageCarbs: Double?
+        var averageFat: Double?
 
-    private func setDomain(minValue: Double, maxValue: Double) {
-        let domain = ChartYDomainCalculator.paddedDomain(
-            minValue: minValue,
-            maxValue: maxValue,
-            config: yDomainConfig
-        )
-        yDomain = domain
-    }
-
-    private var yDomainConfig: ChartYDomainCalculator.Configuration {
-        .init(
-            rangePaddingPercent: 0.1,
-            minValuePaddingPercent: 0.05,
-            minimumPadding: 0.5
-        )
-    }
-}
-
-private extension View {
-    func autoYScale(
-        series: [TimeSeriesData.TimeSeries],
-        scrollZoomState: ChartScrollZoomState,
-        metrics: Binding<NewHistoryChart.VisibleMetrics>,
-        debounce: Duration = .milliseconds(50),
-        minUpdateInterval: Duration = .milliseconds(250)
-    ) -> some View {
-        modifier(
-            AutoYScaleModifier(
-                series: series,
-                scrollZoomState: scrollZoomState,
-                metrics: metrics,
-                debounce: debounce,
-                minUpdateInterval: minUpdateInterval
-            )
+        static let empty = VisibleMetrics(
+            startDate: nil,
+            endDate: nil,
+            average: nil,
+            delta: nil,
+            averageProtein: nil,
+            averageCarbs: nil,
+            averageFat: nil
         )
     }
 }
 
 #Preview("Line Chart") {
     NewHistoryChart(series: TimeSeriesData.lastYear, yAxisSuffix: " kg")
+        .frame(height: 400)
 }
 
 #Preview("Bar Chart") {

@@ -59,4 +59,29 @@ extension Date {
     func addingDays(_ days: Int) -> Date {
         Calendar.current.date(byAdding: .day, value: days, to: self) ?? self
     }
+    
+    /// Parses a dayKey string (yyyy-MM-dd) to a Date at start of day.
+    init?(dayKey: String) {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone.current
+        guard let date = formatter.date(from: dayKey) else { return nil }
+        self = date
+    }
+    
+    /// Returns all day keys from startDate through endDate (inclusive).
+    static func dayKeys(from startDate: Date, to endDate: Date) -> [String] {
+        let calendar = Calendar.current
+        var keys: [String] = []
+        var current = calendar.startOfDay(for: startDate)
+        let end = calendar.startOfDay(for: endDate)
+        while current <= end {
+            keys.append(current.dayKey)
+            guard let next = calendar.date(byAdding: .day, value: 1, to: current) else { break }
+            current = next
+        }
+        return keys
+    }
 }
