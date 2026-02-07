@@ -23,11 +23,24 @@ class DashboardPresenter {
     // Workout data
     private(set) var workoutContributionData: [Double] = []
     private(set) var workoutCountThisWeek: Int = 0
+    private(set) var workoutLast7Sessions: [WorkoutSessionModel] = []
     
     // Weigh-in data
     private(set) var weighInContributionData: [Double] = []
     private(set) var weighInCountThisWeek: Int = 0
     
+    // Macros (last 7 days)
+    private(set) var macrosLast7Days: [DailyMacroTarget] = []
+
+    // Steps (from StepsManager - last 7 days for card)
+    private(set) var stepsLast7: [StepsModel] = []
+
+    // Muscle groups (last 7 days sets per muscle)
+    private(set) var muscleGroupCards: [(muscle: Muscles, last7DaysData: [Double], totalSets: Int)] = []
+
+    // Exercises (last 7 days 1-RM per exercise)
+    private(set) var exerciseCards: [ExerciseCardItem] = []
+
     private let calendar = Calendar.current
 
     var isInNotificationsABTest: Bool {
@@ -51,6 +64,10 @@ class DashboardPresenter {
         await loadRemoteScaleWeightEntriesIfNeeded()
         loadWorkoutData()
         loadWeighInData()
+        loadMacrosData()
+        await loadMuscleGroupsData()
+        await loadExerciseCardsData()
+        await loadStepsData()
     }
     
     func handleDeepLink(url: URL) {
@@ -112,9 +129,54 @@ class DashboardPresenter {
     func onSeeAllMuscleGroupsPressed() {
         router.showMuscleGroupsView(delegate: MuscleGroupsDelegate())
     }
+
+    func onMuscleGroupPressed(muscle: Muscles) {
+        router.showMuscleGroupDetailView(muscle: muscle, delegate: MuscleGroupDetailDelegate())
+    }
+
+    func onExercisePressed(templateId: String, name: String) {
+        router.showExerciseDetailView(templateId: templateId, name: name, delegate: ExerciseDetailDelegate())
+    }
     
     func onSeeAllExercisesPressed() {
         router.showExerciseAnalyticsView(delegate: ExerciseAnalyticsDelegate())
+    }
+
+    func onWeightTrendPressed() {
+        router.showWeightTrendView(delegate: WeightTrendDelegate())
+    }
+
+    func onEnergyBalancePressed() {
+        router.showEnergyBalanceView(delegate: EnergyBalanceDelegate())
+    }
+
+    func onWorkoutsPressed() {
+        router.showWorkoutView(delegate: WorkoutDelegate())
+    }
+
+    func onExpenditurePressed() {
+        router.showExpenditureView(delegate: ExpenditureDelegate())
+    }
+
+    func onStepsPressed() {
+        router.showStepsView(delegate: StepsDelegate())
+    }
+
+    var stepsSparklineData: [(date: Date, value: Double)] {
+        stepsLast7.map { (date: $0.date, value: Double($0.number)) }
+    }
+
+    var stepsSubtitle: String {
+        stepsLast7.isEmpty ? "No Data" : "Last 7 Days"
+    }
+
+    var stepsLatestValueText: String {
+        guard let latest = stepsLast7.last else { return "--" }
+        return "\(latest.number)"
+    }
+
+    var stepsUnitText: String {
+        "steps"
     }
 
     var scaleWeightSparklineData: [(date: Date, value: Double)] {
@@ -142,6 +204,79 @@ class DashboardPresenter {
         let filtered = scaleWeightEntries.filter { $0.deletedAt == nil && $0.weightKg != nil }
         let sorted = filtered.sorted { $0.date < $1.date }
         return Array(sorted.suffix(7))
+    }
+
+    var weightTrendSparklineData: [(date: Date, value: Double)] {
+        let pairs = scaleWeightLastEntries.compactMap { entry -> (date: Date, value: Double)? in
+            guard let weightKg = entry.weightKg else { return nil }
+            return (date: entry.date, value: weightKg)
+        }
+        return WeightTrendCalculator.exponentialMovingAverage(data: pairs)
+    }
+
+    var weightTrendSubtitle: String {
+        scaleWeightLastEntries.isEmpty ? "No Entries" : "Last 7 Days"
+    }
+
+    var weightTrendLatestValueText: String {
+        let trend = weightTrendSparklineData
+        guard let last = trend.last else { return "--" }
+        return last.value.formatted(.number.precision(.fractionLength(1)))
+    }
+
+    var weightTrendUnitText: String {
+        "kg"
+    }
+
+    var energyBalanceExpenditure: TimeSeriesData.TimeSeries {
+        let tdee = interactor.estimateTDEE(user: interactor.currentUser)
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday) else {
+            return TimeSeriesData.TimeSeries(name: "Expenditure", data: [])
+        }
+        var data: [TimeSeriesDatapoint] = []
+        for offset in -1..<7 {
+            guard let date = calendar.date(byAdding: .day, value: offset, to: startDate) else { continue }
+            data.append(TimeSeriesDatapoint(id: "exp-\(offset)", date: date, value: tdee))
+        }
+        return TimeSeriesData.TimeSeries(name: "Expenditure", data: data)
+    }
+
+    var energyBalanceIntake: TimeSeriesData.TimeSeries {
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday) else {
+            return TimeSeriesData.TimeSeries(name: "Intake", data: [])
+        }
+        var data: [TimeSeriesDatapoint] = []
+        for (offset, totals) in macrosLast7Days.enumerated() {
+            guard let date = calendar.date(byAdding: .day, value: offset, to: startDate) else { continue }
+            data.append(TimeSeriesDatapoint(id: "intake-\(offset)", date: date, value: totals.calories))
+        }
+        return TimeSeriesData.TimeSeries(name: "Intake", data: data)
+    }
+
+    var energyBalanceSubtitle: String {
+        "Last 7 Days"
+    }
+
+    var energyBalanceLatestValueText: String {
+        guard macrosLast7Days.count == 7 else { return "--" }
+        let tdee = interactor.estimateTDEE(user: interactor.currentUser)
+        let avgIntake = macrosLast7Days.map(\.calories).reduce(0, +) / 7
+        let deficit = tdee - avgIntake
+        let value = Int(deficit.rounded())
+        if value > 0 {
+            return "\(value) deficit"
+        } else if value < 0 {
+            return "\(-value) surplus"
+        }
+        return "Balanced"
+    }
+
+    var energyBalanceUnitText: String {
+        "kcal"
     }
 
     private func loadLocalScaleWeightEntries() {
@@ -192,9 +327,59 @@ class DashboardPresenter {
         return Array(sorted.suffix(7))
     }
 
+    var workoutSparklineData: [(date: Date, value: Double)] {
+        workoutLast7Sessions.map { session in
+            let date = session.endedAt ?? session.dateCreated
+            let setCount = session.exercises.flatMap { $0.sets }.filter { !$0.isWarmup }.count
+            return (date: date, value: Double(setCount))
+        }
+    }
+
+    var workoutSubtitle: String {
+        workoutLast7Sessions.isEmpty ? "No Workouts" : "Last 7 Workouts"
+    }
+
+    var workoutLatestValueText: String {
+        let total = workoutLast7Sessions.reduce(0) { sum, session in
+            sum + session.exercises.flatMap { $0.sets }.filter { !$0.isWarmup }.count
+        }
+        return total > 0 ? "\(total)" : "--"
+    }
+
+    var workoutUnitText: String {
+        "sets"
+    }
+
+    var expenditureSparklineData: [(date: Date, value: Double)] {
+        let tdee = interactor.estimateTDEE(user: interactor.currentUser)
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday) else {
+            return []
+        }
+        return (0..<7).compactMap { offset -> (date: Date, value: Double)? in
+            guard let date = calendar.date(byAdding: .day, value: offset, to: startDate) else { return nil }
+            return (date: date, value: tdee)
+        }
+    }
+
+    var expenditureSubtitle: String {
+        "Last 7 Days"
+    }
+
+    var expenditureLatestValueText: String {
+        let tdee = interactor.estimateTDEE(user: interactor.currentUser)
+        return tdee > 0 ? "\(Int(tdee.rounded()))" : "--"
+    }
+
+    var expenditureUnitText: String {
+        "kcal"
+    }
+
     func loadWorkoutData() {
         guard let userId = interactor.auth?.uid else {
             workoutContributionData = Array(repeating: 0.0, count: 30)
+            workoutLast7Sessions = []
             return
         }
         
@@ -271,11 +456,111 @@ class DashboardPresenter {
             }
             
             self.workoutContributionData = contributionData
+
+            // Cache last 7 completed sessions for Insights card
+            let completed = allSessions
+                .filter { $0.endedAt != nil }
+                .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
+            self.workoutLast7Sessions = Array(completed.prefix(7))
+                .sorted { ($0.endedAt ?? .distantPast) < ($1.endedAt ?? .distantPast) }
             
         } catch {
             // On error, set empty data
             self.workoutContributionData = Array(repeating: 0.0, count: 30)
             self.workoutCountThisWeek = 0
+            self.workoutLast7Sessions = []
+        }
+    }
+
+    func loadMuscleGroupsData() async {
+        guard let userId = interactor.auth?.uid else {
+            muscleGroupCards = []
+            return
+        }
+        do {
+            let sessions = try interactor.getLocalWorkoutSessionsForAuthor(
+                authorId: userId,
+                limitTo: 0
+            )
+            let completed = sessions.filter { $0.endedAt != nil }
+
+            let templateIds = Set(completed.flatMap { $0.exercises.map(\.templateId) })
+            let templates: [String: ExerciseModel]
+            if templateIds.isEmpty {
+                templates = [:]
+            } else {
+                let fetched = try await interactor.getExerciseTemplates(
+                    ids: Array(templateIds),
+                    limitTo: templateIds.count
+                )
+                templates = Dictionary(uniqueKeysWithValues: fetched.map { ($0.id, $0) })
+            }
+
+            let aggregated = MuscleGroupSetsAggregator.aggregate(
+                sessions: completed,
+                templates: templates,
+                calendar: calendar
+            )
+
+            // Build cards for muscles with recent activity, or top 2 from upper body as default
+            let musclesWithData = Muscles.allCases
+                .filter { (aggregated[$0]?.total ?? 0) > 0 }
+                .sorted { (aggregated[$0]?.total ?? 0) > (aggregated[$1]?.total ?? 0) }
+
+            if musclesWithData.isEmpty {
+                muscleGroupCards = [Muscles.upperBack, Muscles.rearDelts].map { muscle in
+                    let data = aggregated[muscle] ?? (Array(repeating: 0.0, count: 7), 0)
+                    return (muscle: muscle, last7DaysData: data.last7Days, totalSets: data.total)
+                }
+            } else {
+                muscleGroupCards = Array(musclesWithData.prefix(4)).map { muscle in
+                    let data = aggregated[muscle] ?? (Array(repeating: 0.0, count: 7), 0)
+                    return (muscle: muscle, last7DaysData: data.last7Days, totalSets: data.total)
+                }
+            }
+        } catch {
+            muscleGroupCards = [Muscles.upperBack, Muscles.rearDelts].map { muscle in
+                (muscle: muscle, last7DaysData: Array(repeating: 0.0, count: 7), totalSets: 0)
+            }
+        }
+    }
+
+    func loadExerciseCardsData() async {
+        guard let userId = interactor.auth?.uid else {
+            exerciseCards = []
+            return
+        }
+        do {
+            let sessions = try interactor.getLocalWorkoutSessionsForAuthor(
+                authorId: userId,
+                limitTo: 0
+            )
+            let completed = sessions.filter { $0.endedAt != nil }
+            let aggregated = ExerciseOneRMAggregator.aggregate(
+                sessions: completed,
+                calendar: calendar
+            )
+
+            let systemExercises = (try? interactor.getSystemExerciseTemplates()) ?? []
+            let userExercises = (try? await interactor.getExerciseTemplatesForAuthor(authorId: userId)) ?? []
+            var seenIds = Set<String>()
+            let allExercises = (userExercises + systemExercises)
+                .filter { seenIds.insert($0.id).inserted }
+                .sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
+
+            let emptyData = Array(repeating: 0.0, count: 7)
+            let allCards = allExercises.map { exercise in
+                let data = aggregated[exercise.id]
+                return ExerciseCardItem(
+                    templateId: exercise.id,
+                    name: exercise.name,
+                    last7DaysData: data?.last7Days ?? emptyData,
+                    latest1RM: data?.latest1RM ?? 0
+                )
+            }
+            exerciseCards = Array(allCards.sorted { $0.latest1RM > $1.latest1RM }.prefix(2))
+        } catch {
+            exerciseCards = []
         }
     }
     
@@ -350,6 +635,50 @@ class DashboardPresenter {
             self.weighInContributionData = Array(repeating: 0.0, count: 30)
             self.weighInCountThisWeek = 0
         }
+    }
+    
+    func loadMacrosData() {
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday) else { return }
+        
+        var totals: [DailyMacroTarget] = []
+        totals.reserveCapacity(7)
+        for offset in 0..<7 {
+            let date = calendar.date(byAdding: .day, value: offset, to: startDate) ?? startDate
+            let key = date.dayKey
+            do {
+                let dayTotals = try interactor.getDailyTotals(dayKey: key)
+                totals.append(dayTotals)
+            } catch {
+                totals.append(DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0))
+            }
+        }
+        macrosLast7Days = totals
+    }
+
+    func loadStepsData() async {
+        await interactor.backfillStepsFromHealthKit()
+        _ = try? interactor.readAllLocalStepsEntries()
+        let history = interactor.stepsHistory
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: startOfToday) else {
+            stepsLast7 = []
+            return
+        }
+        let userId = interactor.userId
+        let last7 = history
+            .filter { $0.deletedAt == nil && $0.date >= startDate && $0.date <= startOfToday && (userId == nil || $0.authorId == userId) }
+            .sorted { $0.date < $1.date }
+        stepsLast7 = Array(Self.consolidateStepsByDay(Array(last7)).suffix(7))
+    }
+
+    private static func consolidateStepsByDay(_ entries: [StepsModel]) -> [StepsModel] {
+        let byDay = Dictionary(grouping: entries) { Calendar.current.startOfDay(for: $0.date) }
+        return byDay.compactMap { (_, dayEntries) in
+            dayEntries.max { $0.number < $1.number }
+        }.sorted { $0.date < $1.date }
     }
 
     enum Event: LoggableEvent {

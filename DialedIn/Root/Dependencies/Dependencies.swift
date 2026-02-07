@@ -47,7 +47,9 @@ struct Dependencies {
         
         let reportManager: ReportManager
         let healthKitManager: HealthKitManager
+        let healthKitStepService: HealthKitStepService
         let bodyMeasurementsManager: BodyMeasurementsManager
+        let stepsManager: StepsManager
         let goalManager: GoalManager
         let googleSignInConfig: GoogleSignInConfig
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -84,6 +86,7 @@ struct Dependencies {
             aiManager = AIManager(service: MockAIService())
             reportManager = ReportManager(service: MockReportService(), userManager: userManager, logManager: logManager)
             bodyMeasurementsManager = BodyMeasurementsManager(services: MockBodyMeasurementServices())
+            stepsManager = StepsManager(services: MockStepsServices())
             goalManager = GoalManager(services: MockGoalServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             hkWorkoutManager = HKWorkoutManager()
@@ -94,6 +97,7 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
             pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
+            healthKitStepService = MockHealthKitStepService()
             googleSignInConfig = GoogleSignInConfig(clientID: "mock-client-id")
 
         case .dev:
@@ -128,6 +132,7 @@ struct Dependencies {
             aiManager = AIManager(service: GoogleAIService())
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logManager)
             bodyMeasurementsManager = BodyMeasurementsManager(services: ProductionBodyMeasurementServices())
+            stepsManager = StepsManager(services: ProductionStepsServices())
             goalManager = GoalManager(services: ProductionGoalServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             hkWorkoutManager = HKWorkoutManager()
@@ -138,6 +143,11 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
             pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
+            #if canImport(HealthKit)
+            healthKitStepService = ProductionHealthKitStepService(healthStore: healthKitManager.getHealthStore())
+            #else
+            healthKitStepService = MockHealthKitStepService()
+            #endif
             guard let clientId = FirebaseApp.app()?.options.clientID else {
                 fatalError("No Google client ID found in Firebase options")
             }
@@ -174,6 +184,7 @@ struct Dependencies {
             aiManager = AIManager(service: GoogleAIService())
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logManager)
             bodyMeasurementsManager = BodyMeasurementsManager(services: ProductionBodyMeasurementServices())
+            stepsManager = StepsManager(services: ProductionStepsServices())
             goalManager = GoalManager(services: ProductionGoalServices())
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             hkWorkoutManager = HKWorkoutManager()
@@ -184,6 +195,11 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
             pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
+            #if canImport(HealthKit)
+            healthKitStepService = ProductionHealthKitStepService(healthStore: healthKitManager.getHealthStore())
+            #else
+            healthKitStepService = MockHealthKitStepService()
+            #endif
             guard let clientId = FirebaseApp.app()?.options.clientID else {
                 fatalError("No Google client ID found in Firebase options")
             }
@@ -215,7 +231,9 @@ struct Dependencies {
         container.register(AIManager.self, service: aiManager)
         container.register(ReportManager.self, service: reportManager)
         container.register(HealthKitManager.self, service: healthKitManager)
+        container.register(HealthKitStepService.self, service: healthKitStepService)
         container.register(BodyMeasurementsManager.self, service: bodyMeasurementsManager)
+        container.register(StepsManager.self, service: stepsManager)
         container.register(GoalManager.self, service: goalManager)
         container.register(GoogleSignInConfig.self, service: googleSignInConfig)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -267,7 +285,9 @@ class DevPreview {
         container.register(LogManager.self, service: logManager)
         container.register(ReportManager.self, service: reportManager)
         container.register(HealthKitManager.self, service: healthKitManager)
+        container.register(HealthKitStepService.self, service: healthKitStepService)
         container.register(BodyMeasurementsManager.self, service: bodyMeasurementsManager)
+        container.register(StepsManager.self, service: stepsManager)
         container.register(GoalManager.self, service: goalManager)
         container.register(GoogleSignInConfig.self, service: googleSignInConfig)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -304,7 +324,9 @@ class DevPreview {
     let logManager: LogManager
     let reportManager: ReportManager
     let healthKitManager: HealthKitManager
+    let healthKitStepService: HealthKitStepService
     let bodyMeasurementsManager: BodyMeasurementsManager
+    let stepsManager: StepsManager
     let goalManager: GoalManager
     let googleSignInConfig: GoogleSignInConfig
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -348,7 +370,9 @@ class DevPreview {
         self.logManager = logManager
         self.reportManager = ReportManager(service: MockReportService(), userManager: userManager)
         self.healthKitManager = HealthKitManager(service: MockHealthService())
+        self.healthKitStepService = MockHealthKitStepService()
         self.bodyMeasurementsManager = BodyMeasurementsManager(services: MockBodyMeasurementServices())
+        self.stepsManager = StepsManager(services: MockStepsServices())
         self.goalManager = GoalManager(services: MockGoalServices())
         self.googleSignInConfig = GoogleSignInConfig(clientID: "mock-client-id")
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)

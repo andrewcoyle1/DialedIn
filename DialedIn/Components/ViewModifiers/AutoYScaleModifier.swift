@@ -12,6 +12,10 @@ struct AutoYScaleModifier: ViewModifier {
     let series: [TimeSeriesData.TimeSeries]
     @Bindable var scrollZoomState: ChartScrollZoomState
     @Binding var metrics: NewHistoryChart.VisibleMetrics
+    /// When true, lower bound is always 0 and only the upper bound is auto-scaled (for BarMark charts).
+    var yDomainIncludesZero: Bool = false
+    /// When true, y-domain max is sum of series per date; metrics include averageProtein, averageCarbs, averageFat.
+    var isStackedBar: Bool = false
     var debounce: Duration = .milliseconds(50)
     var minUpdateInterval: Duration = .milliseconds(75)
 
@@ -107,6 +111,10 @@ struct AutoYScaleModifier: ViewModifier {
     }
 
     private func updateVisibleDomain() {
+        if isStackedBar, series.count >= 3 {
+            updateVisibleDomainStacked()
+            return
+        }
         guard !cachedAllValues.isEmpty else {
             yDomain = 0...1
             metrics = .empty
@@ -116,23 +124,17 @@ struct AutoYScaleModifier: ViewModifier {
         let start = scrollZoomState.scrollPosition
         let end = start.addingTimeInterval(scrollZoomState.visibleDomainLength)
         
-        // Strict range: only points whose dates fall within the visible window (for metrics)
         let strictRange = DateSortedSearch.visibleRange(
             start: start,
             end: end,
             values: cachedAllValues
         )
-        
-        // Extended range: include one point before and after the visible window
-        // so the interpolated line segments entering/leaving the view are covered
         let lowerIndex = DateSortedSearch.lowerBound(for: start, values: cachedAllValues)
         let upperIndex = DateSortedSearch.upperBound(for: end, values: cachedAllValues)
         let extendedLower = max(lowerIndex - 1, 0)
         let extendedUpper = min(upperIndex + 1, cachedAllValues.count)
         
-        // If no values found in visible range, use all values to ensure chart displays
         guard extendedLower < extendedUpper else {
-            // Fallback: use all values if scroll position doesn't align with data
             if let first = cachedAllValues.first, let last = cachedAllValues.last {
                 let allMin = cachedAllValues.map(\.value).min() ?? 0
                 let allMax = cachedAllValues.map(\.value).max() ?? 1
@@ -144,7 +146,6 @@ struct AutoYScaleModifier: ViewModifier {
             return
         }
         
-        // Use the extended range for the y-domain so the line never exceeds the axis
         var minValue = Double.greatestFiniteMagnitude
         var maxValue = -Double.greatestFiniteMagnitude
         for element in cachedAllValues[extendedLower..<extendedUpper] {
@@ -153,7 +154,6 @@ struct AutoYScaleModifier: ViewModifier {
         }
         setDomain(minValue: minValue, maxValue: maxValue)
         
-        // Use the strict range for header metrics, with x-axis bounds as the dates
         if let range = strictRange {
             calculateMetrics(for: Array(cachedAllValues[range]), xStart: start, xEnd: end)
         } else {
@@ -161,9 +161,64 @@ struct AutoYScaleModifier: ViewModifier {
                 startDate: start,
                 endDate: end,
                 average: nil,
-                delta: nil
+                delta: nil,
+                averageProtein: nil,
+                averageCarbs: nil,
+                averageFat: nil
             )
         }
+    }
+
+    private func updateVisibleDomainStacked() {
+        let start = scrollZoomState.scrollPosition
+        let end = start.addingTimeInterval(scrollZoomState.visibleDomainLength)
+        let proteinSeries = series[0]
+        let carbsSeries = series[1]
+        let fatSeries = series[2]
+        var byDate: [Date: (Double, Double, Double)] = [:]
+        for protein in proteinSeries.sortedByDate where protein.date >= start && protein.date <= end {
+            byDate[protein.date, default: (0, 0, 0)].0 = protein.value
+        }
+        for carb in carbsSeries.sortedByDate where carb.date >= start && carb.date <= end {
+            byDate[carb.date, default: (0, 0, 0)].1 = carb.value
+        }
+        for fat in fatSeries.sortedByDate where fat.date >= start && fat.date <= end {
+            byDate[fat.date, default: (0, 0, 0)].2 = fat.value
+        }
+        let dates = byDate.keys.sorted()
+        guard !dates.isEmpty else {
+            yDomain = 0...1
+            metrics = NewHistoryChart.VisibleMetrics(
+                startDate: start,
+                endDate: end,
+                average: nil,
+                delta: nil,
+                averageProtein: nil,
+                averageCarbs: nil,
+                averageFat: nil
+            )
+            return
+        }
+        var maxSum: Double = 0
+        var sumP: Double = 0, sumC: Double = 0, sumF: Double = 0
+        for date in dates {
+            let total = byDate[date] ?? (0, 0, 0)
+            maxSum = max(maxSum, total.0 + total.1 + total.2)
+            sumP += total.0
+            sumC += total.1
+            sumF += total.2
+        }
+        let number = Double(dates.count)
+        setDomain(minValue: 0, maxValue: max(maxSum, 1))
+        metrics = NewHistoryChart.VisibleMetrics(
+            startDate: start,
+            endDate: end,
+            average: nil,
+            delta: nil,
+            averageProtein: number > 0 ? sumP / number : nil,
+            averageCarbs: number > 0 ? sumC / number : nil,
+            averageFat: number > 0 ? sumF / number : nil
+        )
     }
     
     private func calculateMetrics(for values: [TimeSeriesDatapoint], xStart: Date, xEnd: Date) {
@@ -172,7 +227,10 @@ struct AutoYScaleModifier: ViewModifier {
                 startDate: xStart,
                 endDate: xEnd,
                 average: nil,
-                delta: nil
+                delta: nil,
+                averageProtein: nil,
+                averageCarbs: nil,
+                averageFat: nil
             )
             return
         }
@@ -189,7 +247,10 @@ struct AutoYScaleModifier: ViewModifier {
             startDate: xStart,
             endDate: xEnd,
             average: average,
-            delta: delta
+            delta: delta,
+            averageProtein: nil,
+            averageCarbs: nil,
+            averageFat: nil
         )
     }
 
@@ -204,14 +265,30 @@ struct AutoYScaleModifier: ViewModifier {
     }
 
     private func setDomain(minValue: Double, maxValue: Double) {
-        let scale = ChartYDomainCalculator.niceScale(
-            minValue: minValue,
-            maxValue: maxValue,
-            maxTicks: 6
-        )
-        withAnimation(.easeInOut(duration: 0.25)) {
-            yDomain = scale.domain
-            yTicks = scale.tickValues
+        let scale: ChartYDomainCalculator.NiceScale
+        if yDomainIncludesZero {
+            // Lower bound is always 0; only upper bound is auto-scaled
+            scale = ChartYDomainCalculator.niceScale(
+                minValue: 0,
+                maxValue: max(maxValue, 1),
+                maxTicks: 6
+            )
+            let domain = 0...scale.domain.upperBound
+            let ticks = scale.tickValues.filter { $0 >= 0 }
+            withAnimation(.easeInOut(duration: 0.25)) {
+                yDomain = domain
+                yTicks = ticks.isEmpty ? [0, domain.upperBound] : ticks
+            }
+        } else {
+            scale = ChartYDomainCalculator.niceScale(
+                minValue: minValue,
+                maxValue: maxValue,
+                maxTicks: 6
+            )
+            withAnimation(.easeInOut(duration: 0.25)) {
+                yDomain = scale.domain
+                yTicks = scale.tickValues
+            }
         }
     }
 }
@@ -221,6 +298,8 @@ extension View {
         series: [TimeSeriesData.TimeSeries],
         scrollZoomState: ChartScrollZoomState,
         metrics: Binding<NewHistoryChart.VisibleMetrics>,
+        yDomainIncludesZero: Bool = false,
+        isStackedBar: Bool = false,
         debounce: Duration = .milliseconds(50),
         minUpdateInterval: Duration = .milliseconds(250)
     ) -> some View {
@@ -229,6 +308,8 @@ extension View {
                 series: series,
                 scrollZoomState: scrollZoomState,
                 metrics: metrics,
+                yDomainIncludesZero: yDomainIncludesZero,
+                isStackedBar: isStackedBar,
                 debounce: debounce,
                 minUpdateInterval: minUpdateInterval
             )

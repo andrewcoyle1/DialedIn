@@ -80,57 +80,45 @@ struct ProfileView: View {
         Section {
             Group {
                 Label("Subscription", systemImage: "tag")
-                //                CustomListCellView(
-                //                    sfSymbolName: "tag",
-                //                    title: "Subscription"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton(.highlight) {
                         presenter.onSubscriptionPressed()
                     }
                 Label("Integrations", systemImage: "app.connected.to.app.below.fill")
-                //                CustomListCellView(
-                //                    sfSymbolName: "app.connected.to.app.below.fill",
-                //                    title: "Integrations"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         presenter.onIntegrationsPressed()
                     }
                 Label("Units", systemImage: "base.unit")
-                //                CustomListCellView(
-                //                    sfSymbolName: "base.unit",
-                //                    title: "Units"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         presenter.onUnitsPressed()
                     }
                 Label("Dashboard", systemImage: "house")
-                //                CustomListCellView(
-                //                    sfSymbolName: "house",
-                //                    title: "Dashboard"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         presenter.onCustomiseDashboardPressed()
                     }
                 Label("Siri", systemImage: "siri")
-                //                CustomListCellView(
-                //                    sfSymbolName: "siri",
-                //                    title: "Siri"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         presenter.onSiriPressed()
                     }
                 Label("Shortcuts", systemImage: "bolt")
-                //                CustomListCellView(
-                //                    sfSymbolName: "bolt",
-                //                    title: "Shortcuts"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         presenter.onShortcutsPressed()
                     }
                 
             }
             .foregroundStyle(.primary)
-            //            .removeListRowFormatting()
+
         } header: {
             Text("General")
         }
@@ -140,26 +128,20 @@ struct ProfileView: View {
         Section {
             Group {
                 Label("Food Log", systemImage: "carrot")
-                //                CustomListCellView(
-                //                    sfSymbolName: "carrot",
-                //                    title: "Food Log"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         presenter.onFoodLogSettingsPressed()
                     }
                 Label("Expenditure", systemImage: "flame")
-                //                CustomListCellView(
-                //                    sfSymbolName: "flame",
-                //                    title: "Expenditure"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         presenter.onExpenditureSettingsPressed()
                     }
                 Label("Strategy", systemImage: "map")
-                //                CustomListCellView(
-                //                    sfSymbolName: "map",
-                //                    title: "Strategy"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         presenter.onStrategySettingsPressed()
                     }
@@ -175,26 +157,20 @@ struct ProfileView: View {
         Section {
             Group {
                 Label("Gym Profiles", systemImage: "building")
-                //                CustomListCellView(
-                //                    sfSymbolName: "building",
-                //                    title: "Gym Profiles"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         presenter.onGymProfilesPressed()
                     }
                 Label("Exercises", systemImage: "list.bullet")
-                //                CustomListCellView(
-                //                    sfSymbolName: "list.bullet",
-                //                    title: "Exercises"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         presenter.onExerciseLibraryPressed()
                     }
                 Label("Workout Settings", systemImage: "dumbbell")
-                //                CustomListCellView(
-                //                    sfSymbolName: "dumbbell",
-                //                    title: "Workout Settings"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         presenter.onWorkoutSettingsPressed()
                     }
@@ -210,40 +186,32 @@ struct ProfileView: View {
         Section {
             Group {
                 Label("Knowledge Base", systemImage: "book.closed")
-                //                CustomListCellView(
-                //                    sfSymbolName: "book.closed",
-                //                    title: "Knowledge Base"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         
                     }
                 Label("Roadmap", systemImage: "map")
-                //                CustomListCellView(
-                //                    sfSymbolName: "map",
-                //                    title: "Roadmap"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         
                     }
                 Label("Support", systemImage: "questionmark.circle")
-                //                CustomListCellView(
-                //                    sfSymbolName: "questionmark.circle",
-                //                    title: "Support"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         
                     }
                 Label("Rate us on the app store", systemImage: "star")
-                //                CustomListCellView(
-                //                    sfSymbolName: "star",
-                //                    title: "Rate us on the app store"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton {
                         presenter.onRatingsButtonPressed()
                     }
             }
             .foregroundStyle(.primary)
-            //            .removeListRowFormatting()
+
         } header: {
             Text("Community & Support")
         }
@@ -253,34 +221,26 @@ struct ProfileView: View {
         Section {
             Group {
                 Label("Legal", systemImage: "book")
-                //                CustomListCellView(
-                //                    sfSymbolName: "book",
-                //                    title: "Legal"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton(.highlight) {
                         presenter.onLegalPressed()
                     }
                 Label("App Icon", systemImage: "app.grid")
-                //                CustomListCellView(
-                //                    sfSymbolName: "app.grid",
-                //                    title: "App Icon"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton(.highlight) {
                         presenter.onAppIconPressed()
                     }
                 Label("Tutorials", systemImage: "book")
-                //                CustomListCellView(
-                //                    sfSymbolName: "book",
-                //                    title: "Tutorials"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton(.highlight) {
                         presenter.onTutorialPressed()
                     }
                 Label("About", systemImage: "info.circle")
-                //                CustomListCellView(
-                //                    sfSymbolName: "info.circle",
-                //                    title: "About"
-                //                )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
                     .anyButton(.highlight) {
                         presenter.onAboutPressed()
                     }

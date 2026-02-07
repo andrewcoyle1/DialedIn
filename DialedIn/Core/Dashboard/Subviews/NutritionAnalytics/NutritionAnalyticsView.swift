@@ -27,6 +27,9 @@ struct NutritionAnalyticsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .screenAppearAnalytics(name: "NutritionAnalyticsView")
         .scrollIndicators(.hidden)
+        .task {
+            await presenter.loadData()
+        }
     }
     
     private var caloriesAndMacrosSection: some View {
@@ -35,57 +38,95 @@ struct NutritionAnalyticsView: View {
                 DashboardCard(
                     title: "Macros",
                     subtitle: "Last 7 Days",
-                    subsubtitle: "824",
+                    subsubtitle: presenter.macrosLast7Days.isEmpty ? "--" : Int(presenter.macrosAverageCalories).formatted(),
                     subsubsubtitle: "kcal",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chart: {
+                        let chartData = presenter.macrosLast7Days.isEmpty
+                            ? Array(repeating: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0), count: 7)
+                            : presenter.macrosLast7Days
+                        return MacroStackedBarChart(data: chartData)
+                    }
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onMacrosPressed()
                 }
                 DashboardCard(
                     title: "Calories",
                     subtitle: "Today",
-                    subsubtitle: "824",
+                    subsubtitle: presenter.dailyTotals != nil ? Int(presenter.caloriesCurrent).formatted() : "--",
                     subsubsubtitle: "kcal",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chart: {
+                        MacroProgressChart(
+                            current: presenter.caloriesCurrent,
+                            target: presenter.caloriesTarget,
+                            maxValue: presenter.caloriesMax,
+                            color: .blue
+                        )
+                    }
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onCaloriesPressed()
                 }
                 DashboardCard(
                     title: "Protein",
                     subtitle: "Today",
-                    subsubtitle: "48.3",
+                    subsubtitle: presenter.dailyTotals != nil ? presenter.proteinCurrent.formatted(.number.precision(.fractionLength(1))) : "--",
                     subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chart: {
+                        MacroProgressChart(
+                            current: presenter.proteinCurrent,
+                            target: presenter.proteinTarget,
+                            maxValue: presenter.proteinMax,
+                            color: MacroProgressChart.proteinColor
+                        )
+                    }
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onProteinPressed()
                 }
                 DashboardCard(
-                    title: "Calories",
+                    title: "Fat",
                     subtitle: "Today",
-                    subsubtitle: "29.2",
+                    subsubtitle: presenter.dailyTotals != nil ? presenter.fatCurrent.formatted(.number.precision(.fractionLength(1))) : "--",
                     subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chart: {
+                        MacroProgressChart(
+                            current: presenter.fatCurrent,
+                            target: presenter.fatTarget,
+                            maxValue: presenter.fatMax,
+                            color: MacroProgressChart.fatColor
+                        )
+                    }
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onFatPressed()
                 }
                 DashboardCard(
-                    title: "Calories",
+                    title: "Carbs",
                     subtitle: "Today",
-                    subsubtitle: "91.5",
+                    subsubtitle: presenter.dailyTotals != nil ? presenter.carbsCurrent.formatted(.number.precision(.fractionLength(1))) : "--",
                     subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chart: {
+                        MacroProgressChart(
+                            current: presenter.carbsCurrent,
+                            target: presenter.carbsTarget,
+                            maxValue: presenter.carbsMax,
+                            color: MacroProgressChart.carbsColor
+                        )
+                    }
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onCarbsPressed()
                 }
             }
             .padding(.horizontal)
@@ -95,64 +136,37 @@ struct NutritionAnalyticsView: View {
         }
     }
     
+    @ViewBuilder
+    private func breakdownCard(title: String, metric: NutritionMetric, value: Double?, unit: String, color: Color) -> some View {
+        DashboardCard(
+            title: title,
+            subtitle: "Today",
+            subsubtitle: presenter.formatBreakdown(value, unit: unit),
+            subsubsubtitle: unit,
+            chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+            chart: {
+                MacroProgressChart(
+                    current: value ?? 0,
+                    target: nil,
+                    maxValue: presenter.breakdownChartMax(current: value, defaultMax: 50),
+                    color: color
+                )
+            }
+        )
+        .tappableBackground()
+        .anyButton(.press) {
+            presenter.onBreakdownMetricPressed(metric)
+        }
+    }
+    
     private var carbBreakdownSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(
-                    title: "Fiber",
-                    subtitle: "Today",
-                    subsubtitle: "11.2",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Net (Non-fiber)",
-                    subtitle: "Today",
-                    subsubtitle: "80.3",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Starch",
-                    subtitle: "Today",
-                    subsubtitle: "0",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Sugars",
-                    subtitle: "Today",
-                    subsubtitle: "7.7",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Sugars Added",
-                    subtitle: "Today",
-                    subsubtitle: "0.6",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
+                breakdownCard(title: "Fiber", metric: .fiber, value: presenter.dailyBreakdown?.fiberGrams, unit: "g", color: MacroProgressChart.carbsColor)
+                breakdownCard(title: "Net (Non-fiber)", metric: .netCarbs, value: presenter.dailyBreakdown?.netCarbsGrams, unit: "g", color: MacroProgressChart.carbsColor)
+                breakdownCard(title: "Starch", metric: .starch, value: nil, unit: "g", color: MacroProgressChart.carbsColor)
+                breakdownCard(title: "Sugars", metric: .sugars, value: presenter.dailyBreakdown?.sugarGrams, unit: "g", color: MacroProgressChart.carbsColor)
+                breakdownCard(title: "Sugars Added", metric: .sugarsAdded, value: nil, unit: "g", color: MacroProgressChart.carbsColor)
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -164,105 +178,15 @@ struct NutritionAnalyticsView: View {
     private var fatBreakdownSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(
-                    title: "Monounsaturated",
-                    subtitle: "Today",
-                    subsubtitle: "1.2",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Polyunsaturated",
-                    subtitle: "Today",
-                    subsubtitle: "1.4",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Omega-3",
-                    subtitle: "Today",
-                    subsubtitle: "0.1",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Omega-3 ALA",
-                    subtitle: "Today",
-                    subsubtitle: "0.1",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Omega-3 DHA",
-                    subtitle: "Today",
-                    subsubtitle: "0",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Omega-3 EPA",
-                    subtitle: "Today",
-                    subsubtitle: "0",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Omega-6",
-                    subtitle: "Today",
-                    subsubtitle: "1.3",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Saturated",
-                    subtitle: "Today",
-                    subsubtitle: "0.7",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Trans Fat",
-                    subtitle: "Today",
-                    subsubtitle: "0",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
+                breakdownCard(title: "Monounsaturated", metric: .fatMono, value: presenter.dailyBreakdown?.fatMonounsaturatedGrams, unit: "g", color: MacroProgressChart.fatColor)
+                breakdownCard(title: "Polyunsaturated", metric: .fatPoly, value: presenter.dailyBreakdown?.fatPolyunsaturatedGrams, unit: "g", color: MacroProgressChart.fatColor)
+                breakdownCard(title: "Omega-3", metric: .omega3, value: nil, unit: "g", color: MacroProgressChart.fatColor)
+                breakdownCard(title: "Omega-3 ALA", metric: .omega3ALA, value: nil, unit: "g", color: MacroProgressChart.fatColor)
+                breakdownCard(title: "Omega-3 DHA", metric: .omega3DHA, value: nil, unit: "g", color: MacroProgressChart.fatColor)
+                breakdownCard(title: "Omega-3 EPA", metric: .omega3EPA, value: nil, unit: "g", color: MacroProgressChart.fatColor)
+                breakdownCard(title: "Omega-6", metric: .omega6, value: nil, unit: "g", color: MacroProgressChart.fatColor)
+                breakdownCard(title: "Saturated", metric: .fatSaturated, value: presenter.dailyBreakdown?.fatSaturatedGrams, unit: "g", color: MacroProgressChart.fatColor)
+                breakdownCard(title: "Trans Fat", metric: .transFat, value: nil, unit: "g", color: MacroProgressChart.fatColor)
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -274,127 +198,17 @@ struct NutritionAnalyticsView: View {
     private var proteinBreakdownSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(
-                    title: "Cysteine",
-                    subtitle: "Today",
-                    subsubtitle: "0.1",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Histidine",
-                    subtitle: "Today",
-                    subsubtitle: "0.2",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Isoleucine",
-                    subtitle: "Today",
-                    subsubtitle: "0.3",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Leucine",
-                    subtitle: "Today",
-                    subsubtitle: "0.5",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Lysine",
-                    subtitle: "Today",
-                    subsubtitle: "0.4",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Methionine",
-                    subtitle: "Today",
-                    subsubtitle: "0.1",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Phenylaninine",
-                    subtitle: "Today",
-                    subsubtitle: "0.3",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Threonine",
-                    subtitle: "Today",
-                    subsubtitle: "0.3",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Tryptophan",
-                    subtitle: "Today",
-                    subsubtitle: "0.1",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Tyrosine",
-                    subtitle: "Today",
-                    subsubtitle: "0.2",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Valine",
-                    subtitle: "Today",
-                    subsubtitle: "0.4",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
+                breakdownCard(title: "Cysteine", metric: .cysteine, value: nil, unit: "g", color: MacroProgressChart.proteinColor)
+                breakdownCard(title: "Histidine", metric: .histidine, value: nil, unit: "g", color: MacroProgressChart.proteinColor)
+                breakdownCard(title: "Isoleucine", metric: .isoleucine, value: nil, unit: "g", color: MacroProgressChart.proteinColor)
+                breakdownCard(title: "Leucine", metric: .leucine, value: nil, unit: "g", color: MacroProgressChart.proteinColor)
+                breakdownCard(title: "Lysine", metric: .lysine, value: nil, unit: "g", color: MacroProgressChart.proteinColor)
+                breakdownCard(title: "Methionine", metric: .methionine, value: nil, unit: "g", color: MacroProgressChart.proteinColor)
+                breakdownCard(title: "Phenylalanine", metric: .phenylalanine, value: nil, unit: "g", color: MacroProgressChart.proteinColor)
+                breakdownCard(title: "Threonine", metric: .threonine, value: nil, unit: "g", color: MacroProgressChart.proteinColor)
+                breakdownCard(title: "Tryptophan", metric: .tryptophan, value: nil, unit: "g", color: MacroProgressChart.proteinColor)
+                breakdownCard(title: "Tyrosine", metric: .tyrosine, value: nil, unit: "g", color: MacroProgressChart.proteinColor)
+                breakdownCard(title: "Valine", metric: .valine, value: nil, unit: "g", color: MacroProgressChart.proteinColor)
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -406,139 +220,18 @@ struct NutritionAnalyticsView: View {
     private var vitaminBreakdownSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(
-                    title: "B1, Thiamine",
-                    subtitle: "Today",
-                    subsubtitle: "0.2",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "B2, Riboflavin",
-                    subtitle: "Today",
-                    subsubtitle: "0.3",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "B3, Niacin",
-                    subtitle: "Today",
-                    subsubtitle: "2.2",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "B5, Pantothenic Acid",
-                    subtitle: "Today",
-                    subsubtitle: "0.4",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "B6, Pyridoxine",
-                    subtitle: "Today",
-                    subsubtitle: "0.2",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "B12, Cobalamin",
-                    subtitle: "Today",
-                    subsubtitle: "0",
-                    subsubsubtitle: "mcg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Folate",
-                    subtitle: "Today",
-                    subsubtitle: "55.4",
-                    subsubsubtitle: "mcg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Vitamin A",
-                    subtitle: "Today",
-                    subsubtitle: "451.1",
-                    subsubsubtitle: "mcg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Vitamin C",
-                    subtitle: "Today",
-                    subsubtitle: "11",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Vitamin D",
-                    subtitle: "Today",
-                    subsubtitle: "0",
-                    subsubsubtitle: "mcg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Vitamin E",
-                    subtitle: "Today",
-                    subsubtitle: "1",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Vitamin K",
-                    subtitle: "Today",
-                    subsubtitle: "96",
-                    subsubsubtitle: "mcg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-
+                breakdownCard(title: "B1, Thiamine", metric: .thiamin, value: presenter.dailyBreakdown?.thiaminMg, unit: "mg", color: MacroProgressChart.vitaminColor)
+                breakdownCard(title: "B2, Riboflavin", metric: .riboflavin, value: presenter.dailyBreakdown?.riboflavinMg, unit: "mg", color: MacroProgressChart.vitaminColor)
+                breakdownCard(title: "B3, Niacin", metric: .niacin, value: presenter.dailyBreakdown?.niacinMg, unit: "mg", color: MacroProgressChart.vitaminColor)
+                breakdownCard(title: "B5, Pantothenic Acid", metric: .pantothenicAcid, value: presenter.dailyBreakdown?.pantothenicAcidMg, unit: "mg", color: MacroProgressChart.vitaminColor)
+                breakdownCard(title: "B6, Pyridoxine", metric: .vitaminB6, value: presenter.dailyBreakdown?.vitaminB6Mg, unit: "mg", color: MacroProgressChart.vitaminColor)
+                breakdownCard(title: "B12, Cobalamin", metric: .vitaminB12, value: presenter.dailyBreakdown?.vitaminB12Mcg, unit: "mcg", color: MacroProgressChart.vitaminColor)
+                breakdownCard(title: "Folate", metric: .folate, value: presenter.dailyBreakdown?.folateMcg, unit: "mcg", color: MacroProgressChart.vitaminColor)
+                breakdownCard(title: "Vitamin A", metric: .vitaminA, value: presenter.dailyBreakdown?.vitaminAMcg, unit: "mcg", color: MacroProgressChart.vitaminColor)
+                breakdownCard(title: "Vitamin C", metric: .vitaminC, value: presenter.dailyBreakdown?.vitaminCMg, unit: "mg", color: MacroProgressChart.vitaminColor)
+                breakdownCard(title: "Vitamin D", metric: .vitaminD, value: presenter.dailyBreakdown?.vitaminDMcg, unit: "mcg", color: MacroProgressChart.vitaminColor)
+                breakdownCard(title: "Vitamin E", metric: .vitaminE, value: presenter.dailyBreakdown?.vitaminEMg, unit: "mg", color: MacroProgressChart.vitaminColor)
+                breakdownCard(title: "Vitamin K", metric: .vitaminK, value: presenter.dailyBreakdown?.vitaminKMcg, unit: "mcg", color: MacroProgressChart.vitaminColor)
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -550,117 +243,16 @@ struct NutritionAnalyticsView: View {
     private var mineralBreakdownSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(
-                    title: "Calcium",
-                    subtitle: "Today",
-                    subsubtitle: "71.7",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Copper",
-                    subtitle: "Today",
-                    subsubtitle: "0.3",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Iron",
-                    subtitle: "Today",
-                    subsubtitle: "2.3",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Magnesium",
-                    subtitle: "Today",
-                    subsubtitle: "65.8",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Manganese",
-                    subtitle: "Today",
-                    subsubtitle: "0.9",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Phosphorus",
-                    subtitle: "Today",
-                    subsubtitle: "145",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Potassium",
-                    subtitle: "Today",
-                    subsubtitle: "434.8",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Selenium",
-                    subtitle: "Today",
-                    subsubtitle: "2.4",
-                    subsubsubtitle: "mcg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Sodium",
-                    subtitle: "Today",
-                    subsubtitle: "389.5",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Zinc",
-                    subtitle: "Today",
-                    subsubtitle: "1.4",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-
+                breakdownCard(title: "Calcium", metric: .calcium, value: presenter.dailyBreakdown?.calciumMg, unit: "mg", color: MacroProgressChart.mineralColor)
+                breakdownCard(title: "Copper", metric: .copper, value: presenter.dailyBreakdown?.copperMg, unit: "mg", color: MacroProgressChart.mineralColor)
+                breakdownCard(title: "Iron", metric: .iron, value: presenter.dailyBreakdown?.ironMg, unit: "mg", color: MacroProgressChart.mineralColor)
+                breakdownCard(title: "Magnesium", metric: .magnesium, value: presenter.dailyBreakdown?.magnesiumMg, unit: "mg", color: MacroProgressChart.mineralColor)
+                breakdownCard(title: "Manganese", metric: .manganese, value: presenter.dailyBreakdown?.manganeseMg, unit: "mg", color: MacroProgressChart.mineralColor)
+                breakdownCard(title: "Phosphorus", metric: .phosphorus, value: presenter.dailyBreakdown?.phosphorusMg, unit: "mg", color: MacroProgressChart.mineralColor)
+                breakdownCard(title: "Potassium", metric: .potassium, value: presenter.dailyBreakdown?.potassiumMg, unit: "mg", color: MacroProgressChart.mineralColor)
+                breakdownCard(title: "Selenium", metric: .selenium, value: presenter.dailyBreakdown?.seleniumMcg, unit: "mcg", color: MacroProgressChart.mineralColor)
+                breakdownCard(title: "Sodium", metric: .sodium, value: presenter.dailyBreakdown?.sodiumMg, unit: "mg", color: MacroProgressChart.mineralColor)
+                breakdownCard(title: "Zinc", metric: .zinc, value: presenter.dailyBreakdown?.zincMg, unit: "mg", color: MacroProgressChart.mineralColor)
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -672,61 +264,11 @@ struct NutritionAnalyticsView: View {
     private var otherBreakdownSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(
-                    title: "Alcohol",
-                    subtitle: "Today",
-                    subsubtitle: "0",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Caffeine",
-                    subtitle: "Today",
-                    subsubtitle: "0",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Cholesterol",
-                    subtitle: "Today",
-                    subsubtitle: "0",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Choline",
-                    subtitle: "Today",
-                    subsubtitle: "51.8",
-                    subsubsubtitle: "mg",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
-                DashboardCard(
-                    title: "Water",
-                    subtitle: "Today",
-                    subsubtitle: "285.1",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    
-                }
+                breakdownCard(title: "Alcohol", metric: .alcohol, value: nil, unit: "g", color: MacroProgressChart.otherColor)
+                breakdownCard(title: "Caffeine", metric: .caffeine, value: presenter.dailyBreakdown?.caffeineMg, unit: "mg", color: MacroProgressChart.otherColor)
+                breakdownCard(title: "Cholesterol", metric: .cholesterol, value: presenter.dailyBreakdown?.cholesterolMg, unit: "mg", color: MacroProgressChart.otherColor)
+                breakdownCard(title: "Choline", metric: .choline, value: nil, unit: "mg", color: MacroProgressChart.otherColor)
+                breakdownCard(title: "Water", metric: .water, value: nil, unit: "g", color: MacroProgressChart.otherColor)
             }
             .padding(.horizontal)
             .removeListRowFormatting()

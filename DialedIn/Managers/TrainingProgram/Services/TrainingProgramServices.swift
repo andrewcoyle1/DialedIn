@@ -9,4 +9,5 @@ protocol TrainingProgramServices {
     
     var remote: RemoteTrainingProgramService { get }
     var local: LocalTrainingProgramPersistence { get }
+    
 }

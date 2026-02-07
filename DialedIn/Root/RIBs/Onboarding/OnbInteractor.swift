@@ -23,6 +23,7 @@ struct OnbInteractor {
     private let goalManager: GoalManager
     private let healthKitManager: HealthKitManager
     private let logManager: LogManager
+    private let stepsManager: StepsManager
     private let appState: AppState
 
     init(container: DependencyContainer) {
@@ -42,6 +43,7 @@ struct OnbInteractor {
         self.healthKitManager = container.resolve(HealthKitManager.self)!
         self.goalManager = container.resolve(GoalManager.self)!
         self.pushManager = container.resolve(PushManager.self)!
+        self.stepsManager = container.resolve(StepsManager.self)!
     }
     
     var currentUser: UserModel? {
@@ -171,6 +173,10 @@ struct OnbInteractor {
 
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws {
         try workoutSessionManager.deleteAllLocalWorkoutSessionsForAuthor(authorId: authorId)
+    }
+
+    func clearAllLocalStepsData() throws {
+        try stepsManager.clearAllLocalStepsData()
     }
     
     var paywallTest: PaywallTestOption {

@@ -190,6 +190,14 @@ class DevSettingsPresenter {
         }
     }
     
+    func clearAllLocalStepsData() {
+        do {
+            try interactor.clearAllLocalStepsData()
+        } catch {
+            router.showAlert(error: error)
+        }
+    }
+    
     func onDismissPressed() {
         router.dismissScreen()
     }

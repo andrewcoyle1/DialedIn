@@ -82,19 +82,101 @@ struct DashboardView: View {
     private var insightsAndAnalyticsSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(title: "Workouts", subtitle: "Last 7 Workouts", subsubtitle: "12", subsubsubtitle: "sets")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
+                DashboardCard(
+                    title: "Workouts",
+                    subtitle: presenter.workoutSubtitle,
+                    subsubtitle: presenter.workoutLatestValueText,
+                    subsubsubtitle: presenter.workoutUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.workoutSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .green,
+                            lineWidth: 2,
+                            fillColor: .green,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onWorkoutsPressed()
+                }
+                
+                DashboardCard(
+                    title: "Expenditure",
+                    subtitle: presenter.expenditureSubtitle,
+                    subsubtitle: presenter.expenditureLatestValueText,
+                    subsubsubtitle: presenter.expenditureUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.expenditureSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .green,
+                            lineWidth: 2,
+                            fillColor: .green,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onExpenditurePressed()
+                }
+
+                DashboardCard(
+                    title: "Weight Trend",
+                    subtitle: presenter.weightTrendSubtitle,
+                    subsubtitle: presenter.weightTrendLatestValueText,
+                    subsubsubtitle: presenter.weightTrendUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.weightTrendSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .green,
+                            lineWidth: 2,
+                            fillColor: .green,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onWeightTrendPressed()
+                }
+                DashboardCard(
+                    title: "Goal Progress",
+                    subtitle: "Last 7 Days",
+                    subsubtitle: "14",
+                    subsubsubtitle: "%",
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chart: {
+                        MacroProgressChart(current: 14, target: 100, maxValue: 100, color: .green)
                     }
-                DashboardCard(title: "Expenditure", subtitle: "Last 7 Days", subsubtitle: "2993", subsubsubtitle: "kcal")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
-                    }
-//                DashboardCard(title: "Weight Trend", subtitle: "Last 7 Days", subsubtitle: "83.2", subsubsubtitle: "kg")
-//                DashboardCard(title: "Energy Balance", subtitle: "Last 7 Days", subsubtitle: "1696", subsubsubtitle: "kcal deficit")
-//                DashboardCard(title: "Goal Progress", subtitle: "Last 4 Days", subsubtitle: "7", subsubsubtitle: "%")
+                )
+                .tappableBackground()
+                .anyButton(.press) {
+                    
+                }
+                DashboardCard(
+                    title: "Energy Balance",
+                    subtitle: presenter.energyBalanceSubtitle,
+                    subsubtitle: presenter.energyBalanceLatestValueText,
+                    subsubsubtitle: presenter.energyBalanceUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    EnergyBalanceChart(
+                        expenditure: presenter.energyBalanceExpenditure,
+                        energyIntake: presenter.energyBalanceIntake
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onEnergyBalancePressed()
+                }
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -182,16 +264,37 @@ struct DashboardView: View {
     private var nutritionSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(title: "Macros", subtitle: "Last 7 Days", subsubtitle: "700", subsubsubtitle: "kcal")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
+                DashboardCard(
+                    title: "Macros",
+                    subtitle: "Last 7 Days",
+                    subsubtitle: "700",
+                    subsubsubtitle: "kcal",
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chart: {
+                        let chartData = presenter.macrosLast7Days.isEmpty
+                            ? Array(repeating: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0), count: 7)
+                            : presenter.macrosLast7Days
+                        return MacroStackedBarChart(data: chartData)
                     }
-                DashboardCard(title: "Protein", subtitle: "Today", subsubtitle: "48.3", subsubsubtitle: "g")
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        
+                )
+                .tappableBackground()
+                .anyButton(.press) {
+                    
+                }
+                DashboardCard(
+                    title: "Protein",
+                    subtitle: "Today",
+                    subsubtitle: "48.3",
+                    subsubsubtitle: "g",
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chart: {
+                        MacroProgressChart(current: 48.3, target: 150, maxValue: 200, color: MacroProgressChart.proteinColor)
                     }
+                )
+                .tappableBackground()
+                .anyButton(.press) {
+                    
+                }
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -271,16 +374,21 @@ struct DashboardView: View {
     private var muscleGroupsSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(title: "Upper Back", subtitle: "Last 7 Days", subsubtitle: "6", subsubsubtitle: "sets")
+                ForEach(presenter.muscleGroupCards, id: \.muscle) { item in
+                    DashboardCard(
+                        title: item.muscle.name,
+                        subtitle: "Last 7 Days",
+                        subsubtitle: "\(item.totalSets)",
+                        subsubsubtitle: "sets",
+                        chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                    ) {
+                        SetsBarChart(data: item.last7DaysData, color: .blue)
+                    }
                     .tappableBackground()
                     .anyButton(.press) {
-
+                        presenter.onMuscleGroupPressed(muscle: item.muscle)
                     }
-                DashboardCard(title: "Rear Delts", subtitle: "Last 7 Entries", subsubtitle: "6", subsubsubtitle: "sets")
-                    .tappableBackground()
-                    .anyButton(.press) {
-
-                    }
+                }
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -301,17 +409,21 @@ struct DashboardView: View {
     private var exercisesSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(title: "Neutral Grip Machine Fly", subtitle: "Last 7 Workouts", subsubtitle: "116", subsubsubtitle: "kg")
+                ForEach(presenter.exerciseCards) { item in
+                    DashboardCard(
+                        title: item.name,
+                        subtitle: "Last 7 Days",
+                        subsubtitle: item.latest1RM > 0 ? item.latest1RM.formatted(.number.precision(.fractionLength(1))) : "--",
+                        subsubsubtitle: "kg",
+                        chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                    ) {
+                        SetsBarChart(data: item.last7DaysData, color: .blue)
+                    }
                     .tappableBackground()
                     .anyButton(.press) {
-
+                        presenter.onExercisePressed(templateId: item.templateId, name: item.name)
                     }
-                DashboardCard(title: "Low Pulley Cable Rope Overhead Triceps Extension", subtitle: "Last 7 Entries", subsubtitle: "80", subsubsubtitle: "kg")
-                    .tappableBackground()
-                    .anyButton(.press) {
-
-                    }
-
+                }
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -332,11 +444,27 @@ struct DashboardView: View {
     private var generalSection: some View {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(title: "Steps", subtitle: "Last 7 Entries", subsubtitle: "342", subsubsubtitle: "steps")
-                    .tappableBackground()
-                    .anyButton(.press) {
-
-                    }
+                DashboardCard(
+                    title: "Steps",
+                    subtitle: presenter.stepsSubtitle,
+                    subsubtitle: presenter.stepsLatestValueText,
+                    subsubsubtitle: presenter.stepsUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.stepsSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .orange,
+                            lineWidth: 2,
+                            fillColor: .orange,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onStepsPressed()
+                }
             }
             .padding(.horizontal)
             .removeListRowFormatting()
@@ -366,8 +494,7 @@ struct DashboardView: View {
     
     private var moreSection: some View {
         Section {
-            CustomListCellView(sfSymbolName: "house", title: "Customise Dashboard")
-                .removeListRowFormatting()
+            Label("Customise Dashboard", systemImage: "house")
         } header: {
             Text("More")
         }

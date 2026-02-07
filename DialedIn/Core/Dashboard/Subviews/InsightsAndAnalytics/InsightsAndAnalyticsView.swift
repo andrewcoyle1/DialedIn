@@ -11,41 +11,17 @@ struct InsightsAndAnalyticsView: View {
     
     var body: some View {
         List {
-            Section {
-                LazyVGrid(columns: [GridItem(), GridItem()]) {
-                    DashboardCard(title: "Workouts", subtitle: "Last 7 Workouts", subsubtitle: "12", subsubsubtitle: "sets")
-                        .tappableBackground()
-                        .anyButton(.press) {
-                            
-                        }
-                    DashboardCard(title: "Expenditure", subtitle: "Last 7 Days", subsubtitle: "2993", subsubsubtitle: "kcal")
-                        .tappableBackground()
-                        .anyButton(.press) {
-                            
-                        }
-                    DashboardCard(title: "Weight Trend", subtitle: "Last 7 Days", subsubtitle: "83.2", subsubsubtitle: "kg")
-                        .tappableBackground()
-                        .anyButton(.press) {
-                            
-                        }
-                    DashboardCard(title: "Energy Balance", subtitle: "Last 7 Days", subsubtitle: "1696", subsubsubtitle: "kcal deficit")
-                        .tappableBackground()
-                        .anyButton(.press) {
-                            
-                        }
-                    DashboardCard(title: "Goal Progress", subtitle: "Last 4 Days", subsubtitle: "7", subsubsubtitle: "%")
-                        .tappableBackground()
-                        .anyButton(.press) {
-                            
-                        }
-                }
-                .padding(.horizontal, 8)
-                .removeListRowFormatting()
-            }
+            activitySection
+            energySection
+            bodySection
+            goalsSection
         }
         .navigationTitle("Insights & Analytics")
         .navigationBarTitleDisplayMode(.inline)
         .screenAppearAnalytics(name: "InsightsAndAnalyticsView")
+        .onFirstTask {
+            await presenter.onFirstTask()
+        }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(role: .close) {
@@ -53,6 +29,149 @@ struct InsightsAndAnalyticsView: View {
                 }
             }
         }
+    }
+
+    private var activitySection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Workouts",
+                    subtitle: presenter.workoutSubtitle,
+                    subsubtitle: presenter.workoutLatestValueText,
+                    subsubsubtitle: presenter.workoutUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.workoutSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .green,
+                            lineWidth: 2,
+                            fillColor: .green,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onWorkoutsPressed()
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            Text("Activity")
+        }
+        .listSectionMargins(.horizontal, 0)
+        .listRowSeparator(.hidden)
+    }
+
+    private var energySection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Expenditure",
+                    subtitle: presenter.expenditureSubtitle,
+                    subsubtitle: presenter.expenditureLatestValueText,
+                    subsubsubtitle: presenter.expenditureUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.expenditureSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .green,
+                            lineWidth: 2,
+                            fillColor: .green,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onExpenditurePressed()
+                }
+                DashboardCard(
+                    title: "Energy Balance",
+                    subtitle: presenter.energyBalanceSubtitle,
+                    subsubtitle: presenter.energyBalanceLatestValueText,
+                    subsubsubtitle: presenter.energyBalanceUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    EnergyBalanceChart(
+                        expenditure: presenter.energyBalanceExpenditure,
+                        energyIntake: presenter.energyBalanceIntake
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onEnergyBalancePressed()
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            Text("Energy")
+        }
+        .listSectionMargins(.horizontal, 0)
+        .listRowSeparator(.hidden)
+    }
+
+    private var bodySection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Weight Trend",
+                    subtitle: presenter.weightTrendSubtitle,
+                    subsubtitle: presenter.weightTrendLatestValueText,
+                    subsubsubtitle: presenter.weightTrendUnitText,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.weightTrendSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: .green,
+                            lineWidth: 2,
+                            fillColor: .green,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onWeightTrendPressed()
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            Text("Body")
+        }
+        .listSectionMargins(.horizontal, 0)
+        .listRowSeparator(.hidden)
+    }
+
+    private var goalsSection: some View {
+        Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Goal Progress",
+                    subtitle: "Last 7 Days",
+                    subsubtitle: "14",
+                    subsubsubtitle: "%",
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chart: {
+                        MacroProgressChart(current: 14, target: 100, maxValue: 100, color: .green)
+                    }
+                )
+                .tappableBackground()
+                .anyButton(.press) { }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            Text("Goals")
+        }
+        .listSectionMargins(.horizontal, 0)
+        .listRowSeparator(.hidden)
     }
 }
 

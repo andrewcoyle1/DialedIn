@@ -77,6 +77,7 @@ struct HealthKitService: HealthService {
         HKQuantityType(.activeEnergyBurned),
         HKQuantityType(.basalEnergyBurned),
         HKQuantityType(.heartRate),
+        HKQuantityType(.stepCount),
 
         // MARK: Nutrition Data
         HKQuantityType(.dietaryEnergyConsumed),

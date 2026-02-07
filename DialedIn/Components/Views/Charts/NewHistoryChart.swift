@@ -23,6 +23,34 @@ struct NewHistoryChart: View {
     var chartType: ChartType = .line
     var chartColor: Color?
     
+    private struct StackedBarDay {
+        let date: Date
+        let protein: Double
+        let carbs: Double
+        let fat: Double
+    }
+
+    private var stackedBarDayData: [StackedBarDay] {
+        guard series.count >= 3 else { return [] }
+        let proteinSeries = series[0]
+        let carbsSeries = series[1]
+        let fatSeries = series[2]
+        var byDate: [Date: (Double, Double, Double)] = [:]
+        for protein in proteinSeries.sortedByDate {
+            byDate[protein.date, default: (0, 0, 0)].0 = protein.value
+        }
+        for carb in carbsSeries.sortedByDate {
+            byDate[carb.date, default: (0, 0, 0)].1 = carb.value
+        }
+        for fats in fatSeries.sortedByDate {
+            byDate[fats.date, default: (0, 0, 0)].2 = fats.value
+        }
+        return byDate.keys.sorted().map { date in
+            let total = byDate[date] ?? (0, 0, 0)
+            return StackedBarDay(date: date, protein: total.0, carbs: total.1, fat: total.2)
+        }
+    }
+
     private var seriesSignature: Int {
         var hasher = Hasher()
         series.forEach { item in
@@ -40,49 +68,62 @@ struct NewHistoryChart: View {
             headerView
             
             Chart {
-                ForEach(series) { singleSeries in
-                    
-                    if chartType == .line {
-                        let lineMarks = ForEach(singleSeries.sortedByDate) { day in
-                            LineMark(
-                                x: .value("Date", day.date, unit: .day),
-                                y: .value("Value", day.value)
-                            )
-//                            .interpolationMethod(.catmullRom)
-                        }
-                        
-                        if let chartColor {
-                            lineMarks.foregroundStyle(chartColor)
-                        } else {
-                            lineMarks.foregroundStyle(by: .value("Exercise", singleSeries.name))
-                        }
-                        
-                        if let last = singleSeries.lastByDate {
-                            let pointMark = PointMark(
-                                x: .value("Date", last.date, unit: .day),
-                                y: .value("Value", last.value)
-                            )
-                            
-                            if let chartColor {
-                                pointMark.foregroundStyle(chartColor)
-                            } else {
-                                pointMark.foregroundStyle(by: .value("Exercise", singleSeries.name))
+                if chartType == .stackedBar, series.count >= 3 {
+                    ForEach(stackedBarDayData, id: \.date) { day in
+                        BarMark(
+                            x: .value("Date", day.date, unit: .day),
+                            y: .value("Protein", day.protein)
+                        )
+                        .foregroundStyle(MacroProgressChart.proteinColor)
+                        BarMark(
+                            x: .value("Date", day.date, unit: .day),
+                            y: .value("Carbs", day.carbs)
+                        )
+                        .foregroundStyle(MacroProgressChart.carbsColor)
+                        BarMark(
+                            x: .value("Date", day.date, unit: .day),
+                            y: .value("Fat", day.fat)
+                        )
+                        .foregroundStyle(MacroProgressChart.fatColor)
+                    }
+                } else {
+                    ForEach(series) { singleSeries in
+                        if chartType == .line {
+                            let lineMarks = ForEach(singleSeries.sortedByDate) { day in
+                                LineMark(
+                                    x: .value("Date", day.date, unit: .day),
+                                    y: .value("Value", day.value)
+                                )
                             }
-                        }
-                    } else {
-                        let barMarks = ForEach(singleSeries.sortedByDate) { day in
-                            BarMark(
-                                x: .value("Date", day.date, unit: .day),
-                                yStart: .value("Value", 0),
-                                yEnd: .value("Value", day.value)
-                            )
-//                            .interpolationMethod(.catmullRom)
-                        }
-                        
-                        if let chartColor {
-                            barMarks.foregroundStyle(chartColor)
+                            if let chartColor {
+                                lineMarks.foregroundStyle(chartColor)
+                            } else {
+                                lineMarks.foregroundStyle(by: .value("Exercise", singleSeries.name))
+                            }
+                            if let last = singleSeries.lastByDate {
+                                let pointMark = PointMark(
+                                    x: .value("Date", last.date, unit: .day),
+                                    y: .value("Value", last.value)
+                                )
+                                if let chartColor {
+                                    pointMark.foregroundStyle(chartColor)
+                                } else {
+                                    pointMark.foregroundStyle(by: .value("Exercise", singleSeries.name))
+                                }
+                            }
                         } else {
-                            barMarks.foregroundStyle(by: .value("Exercise", singleSeries.name))
+                            let barMarks = ForEach(singleSeries.sortedByDate) { day in
+                                BarMark(
+                                    x: .value("Date", day.date, unit: .day),
+                                    yStart: .value("Value", 0),
+                                    yEnd: .value("Value", day.value)
+                                )
+                            }
+                            if let chartColor {
+                                barMarks.foregroundStyle(chartColor)
+                            } else {
+                                barMarks.foregroundStyle(by: .value("Exercise", singleSeries.name))
+                            }
                         }
                     }
                 }
@@ -92,7 +133,9 @@ struct NewHistoryChart: View {
             .autoYScale(
                 series: series,
                 scrollZoomState: scrollZoomState,
-                metrics: $visibleMetrics
+                metrics: $visibleMetrics,
+                yDomainIncludesZero: chartType == .bar || chartType == .stackedBar,
+                isStackedBar: chartType == .stackedBar
             )
             .onAppear {
                 if !hasInitialized && !series.isEmpty {
@@ -123,7 +166,16 @@ struct NewHistoryChart: View {
         .padding(.horizontal, 2)
     }
     
+    @ViewBuilder
     private var headerView: some View {
+        if chartType == .stackedBar {
+            macrosHeaderView
+        } else {
+            standardHeaderView
+        }
+    }
+
+    private var standardHeaderView: some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading) {
                 Text("Average")
@@ -149,9 +201,35 @@ struct NewHistoryChart: View {
                     Text(unitLabel)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-
                 }
             }
+        }
+        .padding(.horizontal)
+    }
+
+    private var macrosHeaderView: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                if let protein = visibleMetrics.averageProtein {
+                    Text("Protein: \(formatValue(protein))g")
+                        .font(.subheadline)
+                }
+                if let carbs = visibleMetrics.averageCarbs {
+                    Text("Carbs: \(formatValue(carbs))g")
+                        .font(.subheadline)
+                }
+                if let fats = visibleMetrics.averageFat {
+                    Text("Fat: \(formatValue(fats))g")
+                        .font(.subheadline)
+                }
+                if visibleMetrics.averageProtein == nil, visibleMetrics.averageCarbs == nil, visibleMetrics.averageFat == nil {
+                    Text("--")
+                        .font(.subheadline)
+                }
+            }
+            Text(dateRangeText)
+                .foregroundStyle(.secondary)
+                .font(.caption)
         }
         .padding(.horizontal)
     }
@@ -304,23 +382,29 @@ struct NewHistoryChart: View {
     enum ChartType {
         case line
         case bar
+        case stackedBar
     }
-    
+
     struct VisibleMetrics {
         var startDate: Date?
         var endDate: Date?
         var average: Double?
         var delta: Double?
-        
+        var averageProtein: Double?
+        var averageCarbs: Double?
+        var averageFat: Double?
+
         static let empty = VisibleMetrics(
             startDate: nil,
             endDate: nil,
             average: nil,
-            delta: nil
+            delta: nil,
+            averageProtein: nil,
+            averageCarbs: nil,
+            averageFat: nil
         )
     }
 }
-
 
 #Preview("Line Chart") {
     NewHistoryChart(series: TimeSeriesData.lastYear, yAxisSuffix: " kg")

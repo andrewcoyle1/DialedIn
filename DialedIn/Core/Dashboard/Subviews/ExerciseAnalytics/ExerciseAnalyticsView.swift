@@ -5,73 +5,45 @@ struct ExerciseAnalyticsDelegate {
 }
 
 struct ExerciseAnalyticsView: View {
-    
+
     @State var presenter: ExerciseAnalyticsPresenter
     let delegate: ExerciseAnalyticsDelegate
-    
+
     var body: some View {
         List {
             Section {
                 LazyVGrid(columns: [GridItem(), GridItem()]) {
-                    ForEach(ExerciseModel.mocks) { exercise in
-                        DashboardCard(title: exercise.name, subtitle: "Last 7 Workouts", subsubtitle: "45", subsubsubtitle: "kg")
-                            .tappableBackground()
-                            .anyButton(.press) {
-
-                            }
-                    }
-                }
-                .padding(.horizontal, 8)
-                .removeListRowFormatting()
-            } header: {
-                Text("Last Week")
-            }
-
-            Section {
-                LazyVGrid(columns: [GridItem(), GridItem()]) {
-                    ForEach(ExerciseModel.mocks) { exercise in
-                        DashboardCard(title: exercise.name, subtitle: "Last 7 Workouts", subsubtitle: "45", subsubsubtitle: "kg")
-                            .tappableBackground()
-                            .anyButton(.press) {
-
-                            }
-                    }
-                }
-                .padding(.horizontal, 8)
-                .removeListRowFormatting()
-            } header: {
-                Text("Last Month")
-            }
-
-            Section(isExpanded: $presenter.isNeverExpanded) {
-                LazyVGrid(columns: [GridItem(), GridItem()]) {
-                    ForEach(ExerciseModel.mocks) { exercise in
-                        DashboardCard(title: exercise.name, subtitle: "Last 7 Workouts", subsubtitle: "45", subsubsubtitle: "kg")
-                            .tappableBackground()
-                            .anyButton(.press) {
-
-                            }
-                    }
-                }
-                .padding(.horizontal, 8)
-                .removeListRowFormatting()
-            } header: {
-                HStack {
-                    Text("Last Week")
-                    Spacer()
-                    Text(presenter.isNeverExpanded ? "Collapse" : "Expand")
-                        .font(.caption)
-                        .underline()
-                        .anyButton {
-                            presenter.isNeverExpanded.toggle()
+                    ForEach(presenter.exerciseCards) { item in
+                        DashboardCard(
+                            title: item.name,
+                            subtitle: "Last 7 Days",
+                            subsubtitle: item.latest1RM > 0 ? item.latest1RM.formatted(.number.precision(.fractionLength(1))) : "--",
+                            subsubsubtitle: "kg",
+                            chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                        ) {
+                            SetsBarChart(data: item.last7DaysData, color: .blue)
                         }
+                        .tappableBackground()
+                        .anyButton(.press) {
+                            presenter.onExercisePressed(templateId: item.templateId, name: item.name)
+                        }
+                    }
                 }
+                .padding(.horizontal)
+                .removeListRowFormatting()
+            } header: {
+                Text("Exercises")
             }
-
+            .listSectionMargins(.horizontal, 0)
+            .listRowSeparator(.hidden)
+        }
+        .onFirstTask {
+            await presenter.loadData()
         }
         .navigationTitle("Exercises")
         .navigationBarTitleDisplayMode(.inline)
         .screenAppearAnalytics(name: "ExerciseAnalyticsView")
+        .scrollIndicators(.hidden)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(role: .close) {

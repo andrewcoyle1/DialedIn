@@ -175,33 +175,29 @@ struct TrainingView<CalendarHeaderView: View>: View {
     private var moreSection: some View {
         Group {
             Section {
-
-                CustomListCellView(
-                    sfSymbolName: "books.vertical",
-                    title: "Training Program Library"
-                )
-                .anyButton {
-                    presenter.onProgramManagementPressed()
+                Group {
+                    Label("Training Program Library", systemImage: "books.vertical")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                        .tappableBackground()
+                        .anyButton {
+                            presenter.onProgramManagementPressed()
+                        }
+                    
+                    Label("Workout Library", systemImage: "dumbbell")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                        .tappableBackground()
+                        .anyButton {
+                            presenter.onWorkoutLibraryPressed()
+                        }
+                    
+                    Label("Workout History", systemImage: "list.bullet")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                        .tappableBackground()
+                        .anyButton {
+                            presenter.onWorkoutHistoryPressed()
+                        }
                 }
-                .removeListRowFormatting()
-
-                CustomListCellView(
-                    sfSymbolName: "dumbbell",
-                    title: "Workout Library"
-                )
-                .anyButton {
-                    presenter.onWorkoutLibraryPressed()
-                }
-                .removeListRowFormatting()
-            
-                CustomListCellView(
-                    sfSymbolName: "list.bullet",
-                    title: "Workout History"
-                )
-                .anyButton {
-                    presenter.onWorkoutHistoryPressed()
-                }
-                .removeListRowFormatting()
+                .foregroundStyle(.primary)
             } header: {
                 Text("More")
             }

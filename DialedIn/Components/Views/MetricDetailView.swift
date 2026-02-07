@@ -7,6 +7,8 @@ protocol MetricDetailPresenter {
     var entries: [Entry] { get }
     var timeSeries: [TimeSeriesData.TimeSeries] { get }
     var configuration: MetricConfiguration { get }
+    /// When non-nil, this view is used instead of the default NewHistoryChart (e.g. for Energy Balance's line+bar chart).
+    var customChartView: AnyView? { get }
 
     func onAppear() async
     func onAddPressed()
@@ -15,6 +17,8 @@ protocol MetricDetailPresenter {
 }
 
 extension MetricDetailPresenter {
+    var customChartView: AnyView? { nil }
+
     func onDeleteEntry(_ entry: Entry) async {
         // Default no-op for presenters that don't support deletion
     }
@@ -79,11 +83,22 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
         }
     }
     
+    @ViewBuilder
     private func chartSection(configuration: MetricConfiguration, series: [TimeSeriesData.TimeSeries]) -> some View {
         Section {
             VStack(alignment: .leading) {
-                NewHistoryChart(series: series, yAxisSuffix: configuration.yAxisSuffix, chartColor: configuration.chartColor)
+                if let customChart = presenter.customChartView {
+                    customChart
+                        .frame(height: 300)
+                } else {
+                    NewHistoryChart(
+                        series: series,
+                        yAxisSuffix: configuration.isMacrosChart ? (configuration.macrosYAxisSuffix ?? " g") : configuration.yAxisSuffix,
+                        chartType: configuration.chartType ?? .line,
+                        chartColor: configuration.chartColor
+                    )
                     .frame(height: 300)
+                }
             }
             .listRowInsets(.horizontal, 0)
             .removeListRowFormatting()
@@ -130,7 +145,12 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
             ForEach(grouped.sorted(by: { $0.key > $1.key }), id: \.key) { group in
                 Section {
                     ForEach(group.entries) { entry in
-                        Label("\(entry.displayLabel) \(entry.displayValue) \(configuration.yAxisSuffix)", systemImage: entry.systemImageName)
+                        Label(
+                            configuration.isMacrosChart
+                                ? "\(entry.displayLabel) \(entry.displayValue)"
+                                : "\(entry.displayLabel) \(entry.displayValue) \(configuration.yAxisSuffix)",
+                            systemImage: entry.systemImageName
+                        )
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
                                     Task { await presenter.onDeleteEntry(entry) }

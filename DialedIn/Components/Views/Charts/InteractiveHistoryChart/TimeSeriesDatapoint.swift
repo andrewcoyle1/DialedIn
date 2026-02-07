@@ -45,6 +45,32 @@ struct TimeSeriesData {
     }
 
     /// Mock data for demo-ing charts (approx 500 datapoints per series)
+    static let last14Days: [TimeSeries] = {
+        let startDate = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? Date.now
+        let days = 14
+        return [
+            makeSeries(
+                name: "Bench Press",
+                startDate: startDate,
+                days: days,
+                base: 85,
+                amplitude: 18,
+                trendPerDay: 4,
+                phase: 0
+            ),
+            makeSeries(
+                name: "Barbell Squat",
+                startDate: startDate,
+                days: days,
+                base: 55,
+                amplitude: 22,
+                trendPerDay: 5,
+                phase: 1.2
+            )
+        ]
+    }()
+
+    /// Mock data for demo-ing charts (approx 500 datapoints per series)
     static let lastYear: [TimeSeries] = {
         let startDate = makeDate(year: 2022, month: 1, day: 1)
         let days = 500
