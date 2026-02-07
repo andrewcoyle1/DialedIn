@@ -142,10 +142,20 @@ struct NutritionView<CalendarHeaderView: View>: View {
     private var moreSection: some View {
         Section {
             Group {
-                CustomListCellView(sfSymbolName: "list.bullet", title: "Nutrition Overview")
-                CustomListCellView(sfSymbolName: "slider.horizontal.3", title: "Customise Food Log")
+                Label("Nutrition Overview", systemImage: "list.bullet")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
+                    .anyButton {
+                        
+                    }
+                Label("Customise Food Log", systemImage: "slider.horizontal.3")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .tappableBackground()
+                    .anyButton {
+                        
+                    }
             }
-            .removeListRowFormatting()
+            .foregroundStyle(.primary)
         } header: {
             Text("More")
         }
