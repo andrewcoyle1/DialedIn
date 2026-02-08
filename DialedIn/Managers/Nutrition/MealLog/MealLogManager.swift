@@ -72,4 +72,46 @@ class MealLogManager: LocalMealLogPersistence, RemoteMealLogService {
         mealsLastModified = Date()
 
     }
+    
+    // MARK: - Sync Operations
+    
+    /// Syncs meal logs from remote Firebase to local storage.
+    /// Fetches meals for the last 90 days and upserts into local store.
+    func syncMealsFromRemote(authorId: String, limitTo: Int = 1000) async throws {
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -90, to: endDate) else { return }
+        let startDayKey = startDate.dayKey
+        let endDayKey = endDate.dayKey
+        let remoteMeals = try await remote.getMeals(
+            startDayKey: startDayKey,
+            endDayKey: endDayKey,
+            authorId: authorId,
+            limitTo: limitTo
+        )
+        for meal in remoteMeals {
+            do {
+                _ = try local.getLocalMeal(id: meal.mealId)
+                try local.updateLocalMeal(meal)
+            } catch {
+                try local.addLocalMeal(meal)
+            }
+        }
+        mealsLastModified = Date()
+    }
+
+    /// Uploads local meal logs to Firebase so they appear on other devices.
+    /// Use when meals may exist only locally (e.g. added offline, prior sync failure).
+    func uploadLocalMealsToRemote(authorId: String) async throws {
+        let calendar = Calendar.current
+        let endDate = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -90, to: endDate) else { return }
+        let startDayKey = startDate.dayKey
+        let endDayKey = endDate.dayKey
+        let localMeals = try local.getLocalMeals(startDayKey: startDayKey, endDayKey: endDayKey)
+        for meal in localMeals where meal.authorId == authorId {
+            try? await remote.updateMeal(meal)
+        }
+        mealsLastModified = Date()
+    }
 }

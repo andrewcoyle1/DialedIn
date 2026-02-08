@@ -22,6 +22,7 @@ struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
                 onApplicationWillEnterForeground: { _ in
                     Task {
                         await presenter.checkUserStatus()
+                        await presenter.syncRemoteDataIfLoggedIn()
                     }
                 },
                 onApplicationDidBecomeActive: nil,
@@ -45,6 +46,7 @@ struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
                 }
                 .task {
                     await presenter.checkUserStatus()
+                    await presenter.syncRemoteDataIfLoggedIn()
                     try? await Task.sleep(for: .seconds(2))
                     await presenter.showATTPromptIfNeeded()
                 }

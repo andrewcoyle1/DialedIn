@@ -20,6 +20,7 @@ protocol DashboardInteractor {
     func getSystemExerciseTemplates() throws -> [ExerciseModel]
     func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseModel]
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget
+    func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget?
     func estimateTDEE(user: UserModel?) -> Double
     func readAllLocalStepsEntries() throws -> [StepsModel]
     var stepsHistory: [StepsModel] { get }

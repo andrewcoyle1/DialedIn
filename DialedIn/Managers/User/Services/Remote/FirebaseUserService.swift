@@ -90,9 +90,13 @@ struct FirebaseUserService: RemoteUserService {
     }
     
     func updateActiveTrainingProgramId(userId: String, programId: String?) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.activeTrainingProgramId.rawValue: programId as Any
-        ])
+        var data: [String: Any] = [:]
+        if let programId {
+            data[UserModel.CodingKeys.activeTrainingProgramId.rawValue] = programId
+        } else {
+            data[UserModel.CodingKeys.activeTrainingProgramId.rawValue] = FieldValue.delete()
+        }
+        try await collection.document(userId).updateData(data)
     }
 
     func updateFavouriteGymProfileId(userId: String, profileId: String?) async throws {

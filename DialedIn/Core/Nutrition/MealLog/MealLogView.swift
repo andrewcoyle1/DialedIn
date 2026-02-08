@@ -16,6 +16,7 @@ struct MealLogDelegate {
 
 struct MealLogView: View {
 
+    @Environment(\.scenePhase) private var scenePhase
     @State var presenter: MealLogPresenter
 
     var body: some View {
@@ -37,6 +38,11 @@ struct MealLogView: View {
         }
         .task {
             await presenter.loadMeals()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task { await presenter.loadMeals() }
+            }
         }
         .onChange(of: presenter.selectedDate) { _, _ in
             Task {

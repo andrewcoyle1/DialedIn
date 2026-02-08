@@ -54,6 +54,11 @@ class AppPresenter {
             // User is not authenticated – no-op; onboarding will be shown
         }
     }
+    
+    /// Syncs remote data when user is logged in so data from other devices appears.
+    func syncRemoteDataIfLoggedIn() async {
+        await interactor.syncAllRemoteDataIfLoggedIn()
+    }
 
     enum Event: LoggableEvent {
         case existingAuthStart

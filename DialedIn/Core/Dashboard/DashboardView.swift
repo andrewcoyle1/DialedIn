@@ -11,6 +11,7 @@ import SwiftfulRouting
 struct DashboardView<NutritionChart: View>: View {
 
     @Environment(\.layoutMode) private var layoutMode
+    @Environment(\.scenePhase) private var scenePhase
 
     @State var presenter: DashboardPresenter
 
@@ -55,6 +56,14 @@ struct DashboardView<NutritionChart: View>: View {
         .toolbarRole(.browser)
         .onFirstTask {
             await presenter.onFirstTask()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task { await presenter.onFirstTask() }
+            }
+        }
+        .onNotificationReceived(name: Constants.remoteDataSyncDidComplete) { _ in
+            Task { await presenter.onFirstTask() }
         }
         .onOpenURL { url in
             presenter.handleDeepLink(url: url)
@@ -262,7 +271,7 @@ struct DashboardView<NutritionChart: View>: View {
                 DashboardCard(
                     title: "Macros",
                     subtitle: "Last 7 Days",
-                    subsubtitle: "700",
+                    subsubtitle: presenter.macrosLast7Days.isEmpty ? "--" : Int(presenter.macrosAverageCalories).formatted(),
                     subsubsubtitle: "kcal",
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
                     chart: {
@@ -279,11 +288,16 @@ struct DashboardView<NutritionChart: View>: View {
                 DashboardCard(
                     title: "Protein",
                     subtitle: "Today",
-                    subsubtitle: "48.3",
+                    subsubtitle: !presenter.macrosLast7Days.isEmpty ? presenter.proteinCurrent.formatted(.number.precision(.fractionLength(1))) : "--",
                     subsubsubtitle: "g",
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
                     chart: {
-                        MacroProgressChart(current: 48.3, target: 150, maxValue: 200, color: MacroProgressChart.proteinColor)
+                        MacroProgressChart(
+                            current: presenter.proteinCurrent,
+                            target: presenter.proteinTarget,
+                            maxValue: presenter.proteinMax,
+                            color: MacroProgressChart.proteinColor
+                        )
                     }
                 )
                 .tappableBackground()

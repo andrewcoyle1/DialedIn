@@ -16,10 +16,11 @@ class ProgramSettingsPresenter {
         router.dismissScreen()
     }
 
-    func onActivatePressed(programId: String) {
+    func onActivatePressed(program: TrainingProgram) {
         Task {
             do {
-                try await interactor.setActiveTrainingProgram(programId: programId)
+                try await interactor.upsertTrainingProgram(program: program)
+                try await interactor.setActiveTrainingProgram(programId: program.id)
                 router.dismissScreen()
             } catch {
                 router.showAlert(error: error)

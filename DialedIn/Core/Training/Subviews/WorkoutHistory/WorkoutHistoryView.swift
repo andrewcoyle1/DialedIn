@@ -14,6 +14,7 @@ struct WorkoutHistoryDelegate {
 
 struct WorkoutHistoryView: View {
     @Environment(\.layoutMode) private var layoutMode
+    @Environment(\.scenePhase) private var scenePhase
     
     @State var presenter: WorkoutHistoryPresenter
 
@@ -36,6 +37,11 @@ struct WorkoutHistoryView: View {
         }
         .onFirstTask {
             await presenter.syncSessions()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                presenter.loadInitialSessions()
+            }
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

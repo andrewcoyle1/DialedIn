@@ -1,0 +1,166 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+		// Ensures the document's userId (if provided) matches the doc id/owner
+    function ownerMatches(user_id) {
+      return !('userId' in request.resource.data) || request.resource.data.userId == user_id;
+    }
+    
+    // Allow only a +1 change to clickCount and no other field changes
+    function isClickCountIncrement() {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly(['click_count']) &&
+             request.resource.data.clickCount == resource.data.clickCount + 1;
+    }
+    
+    // ---------------- USERS ----------------
+    match /users/{user_id} {
+      allow read: if isAuthed();
+      allow write: if isAuthed() && request.auth.uid == user_id;
+
+      // Weight entries subcollection
+      match /weight_entries/{entry_id} {
+        allow read: if isAuthed() && request.auth.uid == user_id;
+        allow create: if isAuthed() && request.auth.uid == user_id
+                      && request.resource.data.author_id == user_id;
+        allow update: if isAuthed() && request.auth.uid == user_id
+                      && resource.data.author_id == user_id;
+				allow delete: if isAuthed() && request.auth.uid == user_id 
+        							&& (resource == null || resource.data.author_id == user_id);
+      }
+
+      // Steps subcollection
+      match /steps/{entry_id} {
+        allow read: if isAuthed() && request.auth.uid == user_id;
+        allow create: if isAuthed() && request.auth.uid == user_id
+                      && request.resource.data.author_id == user_id;
+        allow update: if isAuthed() && request.auth.uid == user_id
+                      && resource.data.author_id == user_id;
+				allow delete: if isAuthed() && request.auth.uid == user_id 
+        							&& (resource == null || resource.data.author_id == user_id);
+      }
+
+      // Goals subcollection
+      match /goals/{goal_id} {
+        allow read: if isAuthed() && request.auth.uid == user_id;
+        allow create: if isAuthed() && request.auth.uid == user_id && request.resource.data.user_id == user_id;
+        allow update: if isAuthed() && request.auth.uid == user_id && resource.data.user_id == user_id
+                      && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+                          'goal_id', 'user_id', 'starting_weight_kg', 'target_weight_kg', 
+                          'weekly_change_kg', 'objective', 'created_at'
+                      ]);
+        allow delete: if isAuthed() && request.auth.uid == user_id && resource.data.user_id == user_id;
+      }
+      
+      // Meal logs: users/{user_id}/meal_logs/{dayKey}/meals/{mealId}
+      // Recursive wildcard covers day docs and nested meals subcollection
+      match /meal_logs/{document=**} {
+        allow read, write: if isAuthed() && request.auth.uid == user_id;
+      }
+    }
+
+    // ---------------- INGREDIENTS ----------------
+    match /ingredient_templates/{ingredient_id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+      allow update, delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+
+    // ---------------- RECIPES ----------------
+    match /recipe_templates/{recipe_id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+      allow update, delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+    
+    // ---------------- DIET PLANS ----------------
+    match /diet_plans/{user_id} {
+      // Only the owner can read/write their diet plan
+      allow read: if isAuthed() && request.auth.uid == user_id;
+      allow create: if isAuthed() && request.auth.uid == user_id && ownerMatches(user_id);
+      allow update, delete: if isAuthed() && request.auth.uid == user_id && ownerMatches(user_id);
+    }
+    
+  	// -------------- GYM PROFILES --------------
+    match /gym_profiles/{gym_profile_id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+      allow update, delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+
+    // ---------------- EXERCISES ----------------
+    match /exercise_templates/{exercise_id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+      allow update, delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+
+    // ---------------- EXERCISE HISTORY ----------------
+    match /exercise_history/{exercise_history_id} {
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+      allow read, update, delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+
+    // ---------------- WORKOUT TEMPLATES ----------------
+    match /workout_templates/{workout_template_id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+
+      // Author can update anything; anyone authed can increment clickCount by exactly +1
+      allow update: if isAuthed() && (
+        request.auth.uid == resource.data.author_id ||
+        isClickCountIncrement()
+      );
+
+      allow delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+
+    // ---------------- WORKOUT SESSIONS ----------------
+    match /workout_sessions/{workout_session_id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+      allow update, delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+
+    // ---------------- WORKOUT EXERCISES ----------------
+    match /workout_exercises/{exercise_id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+      allow update, delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+
+    // ---------------- WORKOUT SETS ----------------
+    match /workout_sets/{set_id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+      allow update, delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+    
+    // ---------------- PROGRAM TEMPLATES ----------------
+    match /program_templates/{program_template_id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+      allow update, delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+    
+    // ---------------- TRAINING PLANS ----------------
+    match /training_plans/{training_plan_id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.user_id;
+      allow update, delete: if isAuthed() && request.auth.uid == resource.data.user_id;
+    }
+    
+    // --------------- TRAINING PROGRAMS ---------------
+    // Uses author_id (not user_id) - see TrainingProgram.CodingKeys
+    match /training_programs/{training_program_id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+      allow update, delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+  }
+}
