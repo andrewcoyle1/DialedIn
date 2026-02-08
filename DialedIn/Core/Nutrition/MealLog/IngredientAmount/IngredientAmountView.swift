@@ -95,9 +95,7 @@ extension CoreRouter {
             delegate: IngredientAmountDelegate(
                 ingredient: IngredientTemplateModel.mock,
                 onPick: {ingredient in
-                    print(
-                        ingredient.displayName
-                    )
+                    print(ingredient.displayName)
                 }
             )
         )

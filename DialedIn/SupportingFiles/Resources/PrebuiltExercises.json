@@ -681,6 +681,229 @@
       "click_count": 0,
       "bookmark_count": 0,
       "favourite_count": 0
+    },
+    {
+      "id": "system-cable-neutral-grip-lat-pulldown",
+      "author_id": "official",
+      "name": "Cable Neutral Grip Lat Pulldown",
+      "description": "A lat pulldown variation using a neutral grip that targets the lats and upper back.",
+      "image_url": "CableNeutralGripLatPulldown",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "lats": false,
+        "upperBack": true,
+        "biceps": true,
+        "forearms": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "cableMachine", "id": "cable_lat_pulldown_machine" }
+      ],
+      "support_equipment": [],
+      "range_of_motion": 5,
+      "stability": 4,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Neutral Grip Pulldown", "Close Grip Lat Pulldown"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
+    },
+    {
+      "id": "system-cable-overhead-triceps-extension",
+      "author_id": "official",
+      "name": "Cable Overhead Triceps Extension",
+      "description": "A triceps isolation exercise performed with cable resistance, arms overhead.",
+      "image_url": "CableOverheadTricepsExtension",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "isolationUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "triceps": false
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" }
+      ],
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 4,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Cable Tricep Extension", "Overhead Cable Tricep Extension"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
+    },
+    {
+      "id": "system-cable-standing-supinated-face-pull",
+      "author_id": "official",
+      "name": "Cable Standing Supinated Face Pull",
+      "description": "A rear delt and upper back exercise pulling the cable toward the face with supinated grip.",
+      "image_url": "CableStandingSupinatedFacePull",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "isolationUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "rearDelts": false,
+        "upperBack": true,
+        "biceps": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" }
+      ],
+      "support_equipment": [],
+      "range_of_motion": 5,
+      "stability": 4,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Face Pull (Supinated)", "Cable Face Pull"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
+    },
+    {
+      "id": "system-lever-hip-thrust",
+      "author_id": "official",
+      "name": "Lever Hip Thrust",
+      "description": "A machine hip thrust that targets the glutes and hamstrings with back support.",
+      "image_url": "LeverHipThrust",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundLower",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "glutes": false,
+        "hamstrings": true,
+        "lowerBack": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "plateLoadedMachine", "id": "hip_thrust_machine" }
+      ],
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 5,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Machine Hip Thrust", "Seated Hip Thrust"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
+    },
+    {
+      "id": "system-lever-incline-hammer-chest-press",
+      "author_id": "official",
+      "name": "Lever Incline Hammer Chest Press",
+      "description": "An incline chest press on a leverage machine with neutral grip, emphasizing upper chest.",
+      "image_url": "LeverInclineHammerChestPress",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "chest": false,
+        "frontDelts": true,
+        "triceps": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "plateLoadedMachine", "id": "incline_chest_press_machine" }
+      ],
+      "support_equipment": [],
+      "range_of_motion": 4,
+      "stability": 5,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Incline Hammer Press", "Machine Incline Chest Press"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
+    },
+    {
+      "id": "system-lever-pec-deck-fly-chest",
+      "author_id": "official",
+      "name": "Lever Pec Deck Fly (Chest)",
+      "description": "An isolation exercise for the chest using a pec deck or chest fly machine.",
+      "image_url": "LeverPecDeckFlyChest",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "isolationUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "chest": false,
+        "frontDelts": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "plateLoadedMachine", "id": "pec_deck_machine" }
+      ],
+      "support_equipment": [],
+      "range_of_motion": 5,
+      "stability": 5,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Pec Deck", "Chest Fly Machine"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
+    },
+    {
+      "id": "system-lever-pendulum-squat",
+      "author_id": "official",
+      "name": "Lever Pendulum Squat",
+      "description": "A machine squat variation with pendulum motion that targets quads and glutes with reduced spinal loading.",
+      "image_url": "LeverPendulumSquat",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundLower",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "quads": false,
+        "glutes": true,
+        "hamstrings": true
+      },
+      "is_bodyweight": false,
+      "resistance_equipment": [
+        { "kind": "plateLoadedMachine", "id": "pendulum_squat_machine" }
+      ],
+      "support_equipment": [],
+      "range_of_motion": 5,
+      "stability": 5,
+      "body_weight_contribution": 0,
+      "alternate_names": ["Pendulum Squat", "V-Squat"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
+    },
+    {
+      "id": "system-weighted-hammer-grip-pull-up-on-dip",
+      "author_id": "official",
+      "name": "Weighted Hammer Grip Pull-Up on Dip",
+      "description": "A pull-up variation with neutral grip performed on parallel bars or dip station, optionally weighted.",
+      "image_url": "WeightedHammerGripPullUpOnDip",
+      "trackable_metrics": ["reps", "weight"],
+      "type": "compoundUpper",
+      "laterality": "bilateral",
+      "muscle_groups": {
+        "lats": false,
+        "upperBack": true,
+        "biceps": true,
+        "forearms": true
+      },
+      "is_bodyweight": true,
+      "resistance_equipment": [],
+      "support_equipment": [
+        { "kind": "supportEquipment", "id": "parallel_bars" }
+      ],
+      "range_of_motion": 4,
+      "stability": 4,
+      "body_weight_contribution": 100,
+      "alternate_names": ["Neutral Grip Pull-Up", "Hammer Grip Chin-Up"],
+      "is_system_exercise": true,
+      "click_count": 0,
+      "bookmark_count": 0,
+      "favourite_count": 0
     }
   ]
 }

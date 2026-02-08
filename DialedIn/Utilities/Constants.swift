@@ -83,7 +83,25 @@ struct Constants {
             "standing lateral raise (cable)": "StandingLatRaise_Cable",
             "cable lateral raise": "StandingLatRaise_Cable",
             "t-bar row": "TBarRow",
-            "t bar row": "TBarRow"
+            "t bar row": "TBarRow",
+            "cable neutral grip lat pulldown": "CableNeutralGripLatPulldown",
+            "neutral grip lat pulldown": "CableNeutralGripLatPulldown",
+            "cable overhead triceps extension": "CableOverheadTricepsExtension",
+            "cable overhead tricep extension": "CableOverheadTricepsExtension",
+            "cable standing supinated face pull": "CableStandingSupinatedFacePull",
+            "face pull (supinated)": "CableStandingSupinatedFacePull",
+            "cable face pull": "CableStandingSupinatedFacePull",
+            "lever hip thrust": "LeverHipThrust",
+            "machine hip thrust": "LeverHipThrust",
+            "lever incline hammer chest press": "LeverInclineHammerChestPress",
+            "incline hammer press": "LeverInclineHammerChestPress",
+            "lever pec deck fly (chest)": "LeverPecDeckFlyChest",
+            "pec deck": "LeverPecDeckFlyChest",
+            "lever pendulum squat": "LeverPendulumSquat",
+            "pendulum squat": "LeverPendulumSquat",
+            "weighted hammer grip pull-up on dip": "WeightedHammerGripPullUpOnDip",
+            "neutral grip pull-up": "WeightedHammerGripPullUpOnDip",
+            "hammer grip chin-up": "WeightedHammerGripPullUpOnDip"
         ]
         
         return exerciseImageMap[normalized]

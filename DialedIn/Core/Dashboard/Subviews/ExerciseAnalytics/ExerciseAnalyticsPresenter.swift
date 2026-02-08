@@ -26,10 +26,7 @@ class ExerciseAnalyticsPresenter {
                 limitTo: 0
             )
             let completed = sessions.filter { $0.endedAt != nil }
-            let aggregated = ExerciseOneRMAggregator.aggregate(
-                sessions: completed,
-                calendar: calendar
-            )
+            let aggregated = ExerciseOneRMAggregator.aggregate(sessions: completed)
 
             let systemExercises = (try? interactor.getSystemExerciseTemplates()) ?? []
             let userExercises = (try? await interactor.getExerciseTemplatesForAuthor(authorId: userId)) ?? []
@@ -38,13 +35,13 @@ class ExerciseAnalyticsPresenter {
                 .filter { seenIds.insert($0.id).inserted }
                 .sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
 
-            let emptyData = Array(repeating: 0.0, count: 7)
+            let emptySparkline: [(date: Date, value: Double)] = []
             exerciseCards = allExercises.map { exercise in
                 let data = aggregated[exercise.id]
                 return ExerciseCardItem(
                     templateId: exercise.id,
                     name: exercise.name,
-                    last7DaysData: data?.last7Days ?? emptyData,
+                    sparklineData: data?.last7Workouts ?? emptySparkline,
                     latest1RM: data?.latest1RM ?? 0
                 )
             }

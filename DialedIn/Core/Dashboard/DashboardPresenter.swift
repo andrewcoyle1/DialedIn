@@ -36,7 +36,7 @@ class DashboardPresenter {
     private(set) var stepsLast7: [StepsModel] = []
 
     // Muscle groups (last 7 days sets per muscle)
-    private(set) var muscleGroupCards: [(muscle: Muscles, last7DaysData: [Double], totalSets: Int)] = []
+    private(set) var muscleGroupCards: [(muscle: Muscles, last7DaysData: [Double], totalSets: Double)] = []
 
     // Exercises (last 7 days 1-RM per exercise)
     private(set) var exerciseCards: [ExerciseCardItem] = []
@@ -121,6 +121,14 @@ class DashboardPresenter {
     func onSeeAllNutritionAnalyticsPressed() {
         router.showNutritionAnalyticsView(delegate: NutritionAnalyticsDelegate())
     }
+
+    func onMacrosPressed() {
+        router.showNutritionMetricDetailView(metric: .macros, delegate: NutritionMetricDetailDelegate())
+    }
+
+    func onProteinPressed() {
+        router.showNutritionMetricDetailView(metric: .protein, delegate: NutritionMetricDetailDelegate())
+    }
     
     func onSeeAllBodyMetricsPressed() {
         router.showBodyMetricsView(delegate: BodyMetricsDelegate())
@@ -144,6 +152,10 @@ class DashboardPresenter {
 
     func onWeightTrendPressed() {
         router.showWeightTrendView(delegate: WeightTrendDelegate())
+    }
+
+    func onGoalProgressPressed() {
+        router.showGoalProgressView(delegate: GoalProgressDelegate())
     }
 
     func onEnergyBalancePressed() {
@@ -375,6 +387,10 @@ class DashboardPresenter {
     var expenditureUnitText: String {
         "kcal"
     }
+    
+    func onCustomiseDashboardPressed() {
+        router.showCustomiseDashboardView(delegate: CustomiseDashboardDelegate())
+    }
 
     func loadWorkoutData() {
         guard let userId = interactor.auth?.uid else {
@@ -509,18 +525,18 @@ class DashboardPresenter {
 
             if musclesWithData.isEmpty {
                 muscleGroupCards = [Muscles.upperBack, Muscles.rearDelts].map { muscle in
-                    let data = aggregated[muscle] ?? (Array(repeating: 0.0, count: 7), 0)
+                    let data = aggregated[muscle] ?? (Array(repeating: 0.0, count: 7), 0.0)
                     return (muscle: muscle, last7DaysData: data.last7Days, totalSets: data.total)
                 }
             } else {
-                muscleGroupCards = Array(musclesWithData.prefix(4)).map { muscle in
-                    let data = aggregated[muscle] ?? (Array(repeating: 0.0, count: 7), 0)
+                muscleGroupCards = Array(musclesWithData.prefix(2)).map { muscle in
+                    let data = aggregated[muscle] ?? (Array(repeating: 0.0, count: 7), 0.0)
                     return (muscle: muscle, last7DaysData: data.last7Days, totalSets: data.total)
                 }
             }
         } catch {
             muscleGroupCards = [Muscles.upperBack, Muscles.rearDelts].map { muscle in
-                (muscle: muscle, last7DaysData: Array(repeating: 0.0, count: 7), totalSets: 0)
+                (muscle: muscle, last7DaysData: Array(repeating: 0.0, count: 7), totalSets: 0.0)
             }
         }
     }
@@ -536,10 +552,7 @@ class DashboardPresenter {
                 limitTo: 0
             )
             let completed = sessions.filter { $0.endedAt != nil }
-            let aggregated = ExerciseOneRMAggregator.aggregate(
-                sessions: completed,
-                calendar: calendar
-            )
+            let aggregated = ExerciseOneRMAggregator.aggregate(sessions: completed)
 
             let systemExercises = (try? interactor.getSystemExerciseTemplates()) ?? []
             let userExercises = (try? await interactor.getExerciseTemplatesForAuthor(authorId: userId)) ?? []
@@ -548,13 +561,13 @@ class DashboardPresenter {
                 .filter { seenIds.insert($0.id).inserted }
                 .sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
 
-            let emptyData = Array(repeating: 0.0, count: 7)
+            let emptySparkline: [(date: Date, value: Double)] = []
             let allCards = allExercises.map { exercise in
                 let data = aggregated[exercise.id]
                 return ExerciseCardItem(
                     templateId: exercise.id,
                     name: exercise.name,
-                    last7DaysData: data?.last7Days ?? emptyData,
+                    sparklineData: data?.last7Workouts ?? emptySparkline,
                     latest1RM: data?.latest1RM ?? 0
                 )
             }

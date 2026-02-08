@@ -63,7 +63,7 @@ struct MuscleGroupsView: View {
         DashboardCard(
             title: muscle.name,
             subtitle: "Last 7 Days",
-            subsubtitle: "\(data.total)",
+            subsubtitle: data.total.formatted(.number.precision(.fractionLength(0...1))),
             subsubsubtitle: "sets",
             chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
         ) {

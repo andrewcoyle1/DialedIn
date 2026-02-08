@@ -13,14 +13,24 @@ struct SparklineChart: View {
     var data: [(date: Date, value: Double)]
     var configuration: SparklineConfiguration = SparklineConfiguration()
 
+    /// Chart needs at least 2 points for LineMark. Single point gets a synthetic prior point.
+    private var chartData: [(date: Date, value: Double)] {
+        let sorted = data.sorted { $0.date < $1.date }
+        guard let first = sorted.first else { return [] }
+        if sorted.count == 1, let priorDate = Calendar.current.date(byAdding: .day, value: -1, to: first.date) {
+            return [(date: priorDate, value: first.value), first]
+        }
+        return sorted
+    }
+
     var body: some View {
         Group {
             if data.isEmpty {
-                Color.clear
+                emptyPlaceholder
             } else {
                 Chart {
-                    let sorted = data.sorted { $0.date < $1.date }
-                    ForEach(sorted, id: \.date) { point in
+                    let points = chartData
+                    ForEach(Array(points.enumerated()), id: \.offset) { _, point in
                         LineMark(
                             x: .value("Date", point.date),
                             y: .value("Value", point.value)
@@ -39,7 +49,7 @@ struct SparklineChart: View {
                     }
 
                     if let fillColor = configuration.fillColor {
-                        ForEach(sorted, id: \.date) { point in
+                        ForEach(Array(points.enumerated()), id: \.offset) { _, point in
                             AreaMark(
                                 x: .value("Date", point.date),
                                 y: .value("Value", point.value)
@@ -62,9 +72,20 @@ struct SparklineChart: View {
         }
         .frame(height: configuration.height)
     }
+
+    private var emptyPlaceholder: some View {
+        GeometryReader { geo in
+            Path { path in
+                let yVal = geo.size.height * 0.5
+                path.move(to: CGPoint(x: 0, y: yVal))
+                path.addLine(to: CGPoint(x: geo.size.width, y: yVal))
+            }
+            .stroke(Color.gray.opacity(0.2), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+        }
+    }
 }
 
-#Preview {
+#Preview("Full data") {
     SparklineChart(
         data: [
             (date: Date.now.addingTimeInterval(-86400 * 6), value: 82.3),
@@ -77,5 +98,21 @@ struct SparklineChart: View {
         ],
         configuration: SparklineConfiguration(fillColor: .accent)
     )
+    .frame(height: 36)
     .padding()
+}
+
+#Preview("Single point") {
+    SparklineChart(
+        data: [(date: Date.now, value: 82.5)],
+        configuration: SparklineConfiguration(fillColor: .accent)
+    )
+    .frame(height: 36)
+    .padding()
+}
+
+#Preview("Empty") {
+    SparklineChart(data: [], configuration: SparklineConfiguration(fillColor: .accent))
+        .frame(height: 36)
+        .padding()
 }

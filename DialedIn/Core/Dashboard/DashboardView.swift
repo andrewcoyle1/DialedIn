@@ -8,15 +8,13 @@
 import SwiftUI
 import SwiftfulRouting
 
-struct DashboardView: View {
+struct DashboardView<NutritionChart: View>: View {
 
     @Environment(\.layoutMode) private var layoutMode
 
     @State var presenter: DashboardPresenter
 
-    @ViewBuilder var nutritionTargetChartView: () -> AnyView
-
-    @Namespace private var namespace
+    @ViewBuilder var nutritionTargetChartView: () -> NutritionChart
 
     var body: some View {
         List {
@@ -48,7 +46,7 @@ struct DashboardView: View {
         }
         .navigationTitle("Dashboard")
         .navigationSubtitle(presenter.selectedDate.formattedDate)
-        .toolbarTitleDisplayMode(.inlineLarge)
+        .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
@@ -89,14 +87,10 @@ struct DashboardView: View {
                     subsubsubtitle: presenter.workoutUnitText,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                 ) {
-                    SparklineChart(
-                        data: presenter.workoutSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: .green,
-                            lineWidth: 2,
-                            fillColor: .green,
-                            height: 36
-                        )
+                    SetsBarChart(
+                        data: presenter.workoutSparklineData.map(\.value),
+                        slotCount: 7,
+                        color: .orange
                     )
                 }
                 .tappableBackground()
@@ -114,9 +108,9 @@ struct DashboardView: View {
                     SparklineChart(
                         data: presenter.expenditureSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .green,
+                            lineColor: .pink,
                             lineWidth: 2,
-                            fillColor: .green,
+                            fillColor: .pink,
                             height: 36
                         )
                     )
@@ -136,9 +130,9 @@ struct DashboardView: View {
                     SparklineChart(
                         data: presenter.weightTrendSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .green,
+                            lineColor: .purple,
                             lineWidth: 2,
-                            fillColor: .green,
+                            fillColor: .purple,
                             height: 36
                         )
                     )
@@ -159,7 +153,7 @@ struct DashboardView: View {
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onGoalProgressPressed()
                 }
                 DashboardCard(
                     title: "Energy Balance",
@@ -218,7 +212,7 @@ struct DashboardView: View {
                 }
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onScaleWeightPressed()
                 }
                 DashboardCard(
                     title: "Workouts",
@@ -241,7 +235,7 @@ struct DashboardView: View {
                 }
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onWorkoutsPressed()
                 }
             }
             .padding(.horizontal)
@@ -279,7 +273,7 @@ struct DashboardView: View {
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onMacrosPressed()
                 }
                 DashboardCard(
                     title: "Protein",
@@ -293,7 +287,7 @@ struct DashboardView: View {
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onProteinPressed()
                 }
             }
             .padding(.horizontal)
@@ -378,7 +372,7 @@ struct DashboardView: View {
                     DashboardCard(
                         title: item.muscle.name,
                         subtitle: "Last 7 Days",
-                        subsubtitle: "\(item.totalSets)",
+                        subsubtitle: item.totalSets.formatted(.number.precision(.fractionLength(0...1))),
                         subsubsubtitle: "sets",
                         chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                     ) {
@@ -412,12 +406,20 @@ struct DashboardView: View {
                 ForEach(presenter.exerciseCards) { item in
                     DashboardCard(
                         title: item.name,
-                        subtitle: "Last 7 Days",
+                        subtitle: "Last 7 Workouts",
                         subsubtitle: item.latest1RM > 0 ? item.latest1RM.formatted(.number.precision(.fractionLength(1))) : "--",
                         subsubsubtitle: "kg",
                         chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                     ) {
-                        SetsBarChart(data: item.last7DaysData, color: .blue)
+                        SparklineChart(
+                            data: item.sparklineData,
+                            configuration: SparklineConfiguration(
+                                lineColor: .cyan,
+                                lineWidth: 2,
+                                fillColor: .cyan,
+                                height: 36
+                            )
+                        )
                     }
                     .tappableBackground()
                     .anyButton(.press) {
@@ -475,8 +477,7 @@ struct DashboardView: View {
 
     private var nutritionTargetSection: some View {
         nutritionTargetChartView()
-            .frame(width: 400)
-
+            .frame(maxWidth: .infinity)
     }
     
     private var contributionChartSection: some View {
@@ -489,12 +490,17 @@ struct DashboardView: View {
             endDate: presenter.chartEndDate
         )
         .frame(height: 220)
-        .frame(width: 400)
+        .frame(maxWidth: .infinity)
     }
     
     private var moreSection: some View {
         Section {
             Label("Customise Dashboard", systemImage: "house")
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .tappableBackground()
+                .anyButton {
+                    presenter.onCustomiseDashboardPressed()
+                }
         } header: {
             Text("More")
         }
@@ -503,6 +509,15 @@ struct DashboardView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
 
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                presenter.onPushNotificationsPressed()
+            } label: {
+                Image(systemName: "bell")
+            }
+            .badge(3)
+        }
+        
         ToolbarItem(placement: .topBarTrailing) {
             let avatarSize: CGFloat = 44
 
@@ -531,7 +546,6 @@ extension CoreBuilder {
             presenter: DashboardPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             nutritionTargetChartView: {
                 self.nutritionTargetChartView()
-                    .any()
             }
         )
     }

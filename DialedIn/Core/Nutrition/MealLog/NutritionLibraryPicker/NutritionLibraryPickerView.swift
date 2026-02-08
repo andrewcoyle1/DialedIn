@@ -145,9 +145,7 @@ extension CoreRouter {
     let builder = CoreBuilder(container: DevPreview.shared.container())
     let delegate = NutritionLibraryPickerDelegate(
         onPick: { item in
-            print(
-                item.displayName
-            )
+            print(item.displayName)
         }
     )
     RouterView { router in
