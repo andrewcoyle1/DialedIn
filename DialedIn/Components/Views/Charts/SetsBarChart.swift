@@ -13,7 +13,7 @@ import SwiftUI
 struct SetsBarChart: View {
     var data: [Double]
     /// When set, pads data to this many slots so the chart always shows this many bars (e.g. 7 for "last 7 workouts").
-    var slotCount: Int? = nil
+    var slotCount: Int?
     var color: Color = .blue
 
     private let barSpacing: CGFloat = 3

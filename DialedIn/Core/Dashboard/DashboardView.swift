@@ -31,6 +31,7 @@ struct DashboardView<NutritionChart: View>: View {
                     .scrollTargetBehavior(.paging)
                     .removeListRowFormatting()
                 }
+                .listSectionMargins(.top, 0)
                 carouselSection
                 insightsAndAnalyticsSection
                 habitsSection
@@ -477,7 +478,8 @@ struct DashboardView<NutritionChart: View>: View {
 
     private var nutritionTargetSection: some View {
         nutritionTargetChartView()
-            .frame(maxWidth: .infinity)
+            .frame(height: 300)
+            .frame(width: 420)
     }
     
     private var contributionChartSection: some View {
@@ -489,8 +491,8 @@ struct DashboardView<NutritionChart: View>: View {
             blockColor: .accent,
             endDate: presenter.chartEndDate
         )
-        .frame(height: 220)
-        .frame(maxWidth: .infinity)
+        .frame(height: 300)
+        .frame(width: 420)
     }
     
     private var moreSection: some View {
