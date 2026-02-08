@@ -11,7 +11,7 @@ import Foundation
 struct MuscleGroupDetailEntry: Identifiable {
     let id: String
     let date: Date
-    let sets: Int
+    let sets: Double
 }
 
 extension MuscleGroupDetailEntry: @MainActor MetricEntry {
@@ -20,7 +20,7 @@ extension MuscleGroupDetailEntry: @MainActor MetricEntry {
     }
 
     var displayValue: String {
-        "\(sets) sets"
+        "\(sets.formatted(.number.precision(.fractionLength(0...1)))) sets"
     }
 
     var systemImageName: String {
@@ -28,6 +28,6 @@ extension MuscleGroupDetailEntry: @MainActor MetricEntry {
     }
 
     func timeSeriesData() -> [MetricTimeSeriesPoint] {
-        [MetricTimeSeriesPoint(seriesName: "Sets", date: date, value: Double(sets))]
+        [MetricTimeSeriesPoint(seriesName: "Sets", date: date, value: sets)]
     }
 }

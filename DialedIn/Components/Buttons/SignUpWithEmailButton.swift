@@ -30,6 +30,6 @@ struct SignUpWithEmailButton: View {
 
 #Preview {
     SignUpWithEmailButton {
-        print("Sign up with email pressed")
+
     }
 }

@@ -9,6 +9,8 @@ protocol MetricDetailPresenter {
     var configuration: MetricConfiguration { get }
     /// When non-nil, this view is used instead of the default NewHistoryChart (e.g. for Energy Balance's line+bar chart).
     var customChartView: AnyView? { get }
+    /// When non-nil, a contribution-style chart is shown instead of the default chart.
+    var contributionChartData: [Double]? { get }
 
     func onAppear() async
     func onAddPressed()
@@ -18,6 +20,7 @@ protocol MetricDetailPresenter {
 
 extension MetricDetailPresenter {
     var customChartView: AnyView? { nil }
+    var contributionChartData: [Double]? { nil }
 
     func onDeleteEntry(_ entry: Entry) async {
         // Default no-op for presenters that don't support deletion
@@ -87,7 +90,20 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
     private func chartSection(configuration: MetricConfiguration, series: [TimeSeriesData.TimeSeries]) -> some View {
         Section {
             VStack(alignment: .leading) {
-                if let customChart = presenter.customChartView {
+                if let contributionData = presenter.contributionChartData {
+                    ContributionChartView(
+                        data: contributionData,
+                        rows: 3,
+                        columns: 10,
+                        targetValue: 1.0,
+                        blockColor: configuration.chartColor ?? .green,
+                        blockBackgroundColor: .background,
+                        rectangleWidth: .infinity,
+                        endDate: .now,
+                        showsCaptioning: false
+                    )
+                    .frame(height: 300)
+                } else if let customChart = presenter.customChartView {
                     customChart
                         .frame(height: 300)
                 } else {

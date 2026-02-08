@@ -52,7 +52,7 @@ class MuscleGroupDetailPresenter {
                 templates = Dictionary(uniqueKeysWithValues: fetched.map { ($0.id, $0) })
             }
 
-            var setsByDay: [Date: Int] = [:]
+            var setsByDay: [Date: Double] = [:]
             let startOfDay: (Date) -> Date = { self.calendar.startOfDay(for: $0) }
 
             for session in completed {
@@ -61,14 +61,16 @@ class MuscleGroupDetailPresenter {
 
                 for exercise in session.exercises {
                     guard let template = templates[exercise.templateId] else { continue }
-                    guard template.muscleGroups[muscle] != nil else { continue }
+                    guard let isSecondary = template.muscleGroups[muscle] else { continue }
 
                     let completedSets = exercise.sets
                         .filter { !$0.isWarmup && $0.completedAt != nil }
                         .count
 
                     if completedSets > 0 {
-                        setsByDay[day, default: 0] += completedSets
+                        let factor: Double = isSecondary ? 0.5 : 1.0
+                        let weightedSets = Double(completedSets) * factor
+                        setsByDay[day, default: 0] += weightedSets
                     }
                 }
             }
@@ -87,7 +89,7 @@ class MuscleGroupDetailPresenter {
                 TimeSeriesDatapoint(
                     id: day.timeIntervalSince1970.description,
                     date: day,
-                    value: Double(setsByDay[day] ?? 0)
+                    value: setsByDay[day] ?? 0
                 )
             }
             cachedTimeSeries = [

@@ -295,7 +295,7 @@ extension CoreBuilder {
 extension CoreRouter {
     
     func showNutritionAnalyticsView(delegate: NutritionAnalyticsDelegate) {
-        router.showScreen(.push) { router in
+        router.showScreen(.sheet) { router in
             builder.nutritionAnalyticsView(router: router, delegate: delegate)
         }
     }

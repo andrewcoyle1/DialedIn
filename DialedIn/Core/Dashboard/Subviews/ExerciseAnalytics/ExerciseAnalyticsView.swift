@@ -16,12 +16,20 @@ struct ExerciseAnalyticsView: View {
                     ForEach(presenter.exerciseCards) { item in
                         DashboardCard(
                             title: item.name,
-                            subtitle: "Last 7 Days",
+                            subtitle: "Last 7 Workouts",
                             subsubtitle: item.latest1RM > 0 ? item.latest1RM.formatted(.number.precision(.fractionLength(1))) : "--",
                             subsubsubtitle: "kg",
                             chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                         ) {
-                            SetsBarChart(data: item.last7DaysData, color: .blue)
+                            SparklineChart(
+                                data: item.sparklineData,
+                                configuration: SparklineConfiguration(
+                                    lineColor: .cyan,
+                                    lineWidth: 2,
+                                    fillColor: .cyan,
+                                    height: 36
+                                )
+                            )
                         }
                         .tappableBackground()
                         .anyButton(.press) {

@@ -72,7 +72,19 @@ class ExerciseTemplateManager: BaseTemplateManager<ExerciseModel> {
     }
     
     func getExerciseTemplates(ids: [String], limitTo: Int = 20) async throws -> [ExerciseModel] {
-        try await getTemplates(ids: ids, limitTo: limitTo)
+        // Try local first (covers system exercises from PrebuiltExercises.json).
+        // Fall back to remote for any IDs not found locally (avoids Firebase decode errors for missing docs).
+        let localExercises = (try? await MainActor.run { try local.getLocalExercises(ids: ids) }) ?? []
+        let foundIds = Set(localExercises.map(\.id))
+        let missingIds = ids.filter { !foundIds.contains($0) }
+
+        guard !missingIds.isEmpty else {
+            return Array(localExercises.prefix(limitTo))
+        }
+
+        let remoteExercises = try await remote.getExerciseTemplates(ids: missingIds, limitTo: missingIds.count)
+        let merged = localExercises + remoteExercises
+        return Array(merged.prefix(limitTo))
     }
     
     func getExerciseTemplatesByName(name: String) async throws -> [ExerciseModel] {

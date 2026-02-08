@@ -58,7 +58,7 @@ struct HabitsView: View {
                 }
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onWeighInPressed()
                 }
             }
             .padding(.horizontal)
@@ -92,7 +92,7 @@ struct HabitsView: View {
                 }
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onWorkoutsPressed()
                 }
             }
             .padding(.horizontal)
@@ -108,17 +108,12 @@ struct HabitsView: View {
                 DashboardCard(
                     title: "Food Logging",
                     subtitle: "Last 30 Days",
-                    subsubtitle: "5/7",
+                    subsubtitle: "\(presenter.foodLoggingCountThisWeek)/7",
                     subsubsubtitle: "this week",
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                 ) {
                     ContributionChartView(
-                        data: [
-                            1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0,  // Week 1
-                            0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0,  // Week 2
-                            1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0,  // Week 3
-                            1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0   // Week 4
-                        ],
+                        data: presenter.foodLoggingContributionData,
                         rows: 3,
                         columns: 10,
                         targetValue: 1.0,
@@ -131,7 +126,7 @@ struct HabitsView: View {
                 }
                 .tappableBackground()
                 .anyButton(.press) {
-                    
+                    presenter.onFoodLoggingPressed()
                 }
             }
             .padding(.horizontal)

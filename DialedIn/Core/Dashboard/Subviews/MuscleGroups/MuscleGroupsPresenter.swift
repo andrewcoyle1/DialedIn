@@ -8,7 +8,7 @@ class MuscleGroupsPresenter {
     private let router: MuscleGroupsRouter
     private let calendar = Calendar.current
 
-    private(set) var muscleSetsData: [Muscles: (last7Days: [Double], total: Int)] = [:]
+    private(set) var muscleSetsData: [Muscles: (last7Days: [Double], total: Double)] = [:]
 
     var upperMuscles: [Muscles] {
         Muscles.allCases.filter { $0.bodyRegion == .upperBody }
@@ -57,8 +57,8 @@ class MuscleGroupsPresenter {
         }
     }
 
-    func setsData(for muscle: Muscles) -> (last7Days: [Double], total: Int) {
-        muscleSetsData[muscle] ?? (Array(repeating: 0, count: 7).map(Double.init), 0)
+    func setsData(for muscle: Muscles) -> (last7Days: [Double], total: Double) {
+        muscleSetsData[muscle] ?? (Array(repeating: 0, count: 7).map(Double.init), 0.0)
     }
 
     func onMusclePressed(muscle: Muscles) {

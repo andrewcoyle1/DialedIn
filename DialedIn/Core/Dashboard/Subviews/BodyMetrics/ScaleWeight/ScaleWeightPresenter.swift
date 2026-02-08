@@ -89,6 +89,30 @@ extension ScaleWeightPresenter: @MainActor MetricDetailPresenter {
         cachedEntries
     }
 
+    var contributionChartData: [Double]? {
+        let calendar = Calendar.current
+        let now = Date()
+        let endDate = calendar.startOfDay(for: now)
+        let totalDays = 3 * 10
+        guard let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) else { return nil }
+        let weighInDates = Set(cachedEntries.compactMap { entry -> Date? in
+            guard entry.weightKg != nil else { return nil }
+            return calendar.startOfDay(for: entry.date)
+        })
+        var data = Array(repeating: 0.0, count: 30)
+        for column in 0..<10 {
+            for row in 0..<3 {
+                let dayOffset = column * 3 + row
+                guard let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate),
+                      dayOffset < 30 else { continue }
+                if weighInDates.contains(calendar.startOfDay(for: cellDate)) {
+                    data[dayOffset] = 1.0
+                }
+            }
+        }
+        return data
+    }
+
     var configuration: MetricConfiguration {
         MetricConfiguration(
             title: "Scale Weight",

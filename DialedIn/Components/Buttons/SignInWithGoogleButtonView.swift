@@ -102,7 +102,7 @@ struct SignInWithGoogleButtonView: View {
     ZStack {
         Color.white.ignoresSafeArea()
         SignInWithGoogleButtonView(style: .light, scheme: .signInWithGoogle) {
-            print("Text")
+
         }
     }
 }
@@ -111,7 +111,7 @@ struct SignInWithGoogleButtonView: View {
     ZStack {
         Color.black.ignoresSafeArea()
         SignInWithGoogleButtonView(style: .dark, scheme: .signUpWithGoogle) {
-            print("Text")
+
         }
     }
 }
@@ -120,7 +120,7 @@ struct SignInWithGoogleButtonView: View {
     ZStack {
         Color.black.ignoresSafeArea()
         SignInWithGoogleButtonView(style: .dark, scheme: .continueWithGoogle) {
-            print("Text")
+
         }
     }
 }

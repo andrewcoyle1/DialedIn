@@ -448,9 +448,6 @@ struct ContributionChartRowView: View {
                 .animation(.easeInOut(duration: 0.1), value: opacityRatio(index: index))
             }
         }
-        .onAppear {
-            print(rowData)
-        }
     }
     
     func opacityRatio(index: Int) -> Double {

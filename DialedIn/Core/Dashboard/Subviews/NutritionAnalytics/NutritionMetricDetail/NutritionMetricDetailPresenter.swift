@@ -21,6 +21,25 @@ final class NutritionMetricDetailPresenter: @MainActor MetricDetailPresenter {
 
     private(set) var entries: [NutritionMetricEntry] = []
 
+    var contributionChartData: [Double]? {
+        let endDate = calendar.startOfDay(for: Date())
+        let totalDays = 3 * 10
+        guard let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) else { return nil }
+        let loggedDates = Set(entries.map { calendar.startOfDay(for: $0.date) })
+        var data = Array(repeating: 0.0, count: 30)
+        for column in 0..<10 {
+            for row in 0..<3 {
+                let dayOffset = column * 3 + row
+                guard let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate),
+                      dayOffset < 30 else { continue }
+                if loggedDates.contains(calendar.startOfDay(for: cellDate)) {
+                    data[dayOffset] = 1.0
+                }
+            }
+        }
+        return data
+    }
+
     var timeSeries: [TimeSeriesData.TimeSeries] {
         if metric == .macros {
             let proteinData = entries.compactMap { entry -> TimeSeriesDatapoint? in

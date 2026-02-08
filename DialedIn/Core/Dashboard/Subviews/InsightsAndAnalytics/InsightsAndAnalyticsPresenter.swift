@@ -50,6 +50,10 @@ class InsightsAndAnalyticsPresenter {
         router.showWeightTrendView(delegate: WeightTrendDelegate())
     }
 
+    func onGoalProgressPressed() {
+        router.showGoalProgressView(delegate: GoalProgressDelegate())
+    }
+
     func onEnergyBalancePressed() {
         router.showEnergyBalanceView(delegate: EnergyBalanceDelegate())
     }

@@ -41,14 +41,10 @@ struct InsightsAndAnalyticsView: View {
                     subsubsubtitle: presenter.workoutUnitText,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                 ) {
-                    SparklineChart(
-                        data: presenter.workoutSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: .green,
-                            lineWidth: 2,
-                            fillColor: .green,
-                            height: 36
-                        )
+                    SetsBarChart(
+                        data: presenter.workoutSparklineData.map(\.value),
+                        slotCount: 7,
+                        color: .green
                     )
                 }
                 .tappableBackground()
@@ -163,7 +159,9 @@ struct InsightsAndAnalyticsView: View {
                     }
                 )
                 .tappableBackground()
-                .anyButton(.press) { }
+                .anyButton(.press) {
+                    presenter.onGoalProgressPressed()
+                }
             }
             .padding(.horizontal)
             .removeListRowFormatting()

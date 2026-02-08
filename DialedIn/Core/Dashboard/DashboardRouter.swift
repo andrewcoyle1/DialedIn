@@ -15,6 +15,7 @@ protocol DashboardRouter: GlobalRouter {
     func showProfileView()
     func showScaleWeightView(delegate: ScaleWeightDelegate)
     func showWeightTrendView(delegate: WeightTrendDelegate)
+    func showGoalProgressView(delegate: GoalProgressDelegate)
     func showEnergyBalanceView(delegate: EnergyBalanceDelegate)
     func showWorkoutView(delegate: WorkoutDelegate)
     func showExpenditureView(delegate: ExpenditureDelegate)
@@ -22,12 +23,14 @@ protocol DashboardRouter: GlobalRouter {
     func showVisualBodyFatView(delegate: VisualBodyFatDelegate)
     func showInsightsAndAnalyticsView(delegate: InsightsAndAnalyticsDelegate)
     func showNutritionAnalyticsView(delegate: NutritionAnalyticsDelegate)
+    func showNutritionMetricDetailView(metric: NutritionMetric, delegate: NutritionMetricDetailDelegate)
     func showHabitsView(delegate: HabitsDelegate)
     func showBodyMetricsView(delegate: BodyMetricsDelegate)
     func showMuscleGroupsView(delegate: MuscleGroupsDelegate)
     func showMuscleGroupDetailView(muscle: Muscles, delegate: MuscleGroupDetailDelegate)
     func showExerciseAnalyticsView(delegate: ExerciseAnalyticsDelegate)
     func showExerciseDetailView(templateId: String, name: String, delegate: ExerciseDetailDelegate)
+    func showCustomiseDashboardView(delegate: CustomiseDashboardDelegate)
 }
 
 extension CoreRouter: DashboardRouter { }

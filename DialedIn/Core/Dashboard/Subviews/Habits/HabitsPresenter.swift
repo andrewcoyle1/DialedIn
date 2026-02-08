@@ -15,6 +15,9 @@ class HabitsPresenter {
     private(set) var weighInContributionData: [Double] = []
     private(set) var weighInCountThisWeek: Int = 0
     
+    private(set) var foodLoggingContributionData: [Double] = []
+    private(set) var foodLoggingCountThisWeek: Int = 0
+    
     private let calendar = Calendar.current
     
     init(interactor: HabitsInteractor, router: HabitsRouter) {
@@ -25,10 +28,23 @@ class HabitsPresenter {
     func onDismissPressed() {
         router.dismissScreen()
     }
+
+    func onWeighInPressed() {
+        router.showScaleWeightView(delegate: ScaleWeightDelegate())
+    }
+
+    func onWorkoutsPressed() {
+        router.showWorkoutView(delegate: WorkoutDelegate())
+    }
+
+    func onFoodLoggingPressed() {
+        router.showNutritionMetricDetailView(metric: .calories, delegate: NutritionMetricDetailDelegate())
+    }
     
     func onFirstTask() async {
         loadWorkoutData()
         loadWeighInData()
+        loadFoodLoggingData()
     }
     
     func loadWorkoutData() {
@@ -195,6 +211,65 @@ class HabitsPresenter {
             // On error, set empty data
             self.weighInContributionData = Array(repeating: 0.0, count: 30)
             self.weighInCountThisWeek = 0
+        }
+    }
+
+    func loadFoodLoggingData() {
+        do {
+            let now = Date()
+            let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: now) ?? now
+            let startOfToday = calendar.startOfDay(for: now)
+            let startOf30DaysAgo = calendar.startOfDay(for: thirtyDaysAgo)
+            let startDayKey = startOf30DaysAgo.dayKey
+            let endDayKey = startOfToday.dayKey
+
+            let totalsData = try interactor.getDailyTotals(startDayKey: startDayKey, endDayKey: endDayKey)
+
+            // Days with logged food: calories > 0 (or any macro > 0)
+            let foodLoggedDates = Set(totalsData.compactMap { item -> Date? in
+                let total = item.totals.proteinGrams + item.totals.carbGrams + item.totals.fatGrams
+                guard total > 0, let date = Date(dayKey: item.dayKey) else { return nil }
+                return calendar.startOfDay(for: date)
+            })
+
+            // Count food logging days in current week
+            if let weekInterval = calendar.dateInterval(of: .weekOfYear, for: now) {
+                let weekStart = calendar.startOfDay(for: weekInterval.start)
+                let weekEnd = calendar.startOfDay(for: weekInterval.end)
+
+                self.foodLoggingCountThisWeek = foodLoggedDates.filter { date in
+                    date >= weekStart && date < weekEnd
+                }.count
+            } else {
+                self.foodLoggingCountThisWeek = 0
+            }
+
+            // Generate contribution chart data (30 days, 3 rows × 10 columns)
+            var contributionData = Array(repeating: 0.0, count: 30)
+            let endDate = calendar.startOfDay(for: now)
+            let totalDays = 3 * 10
+            let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) ?? endDate
+
+            for column in 0..<10 {
+                for row in 0..<3 {
+                    let dayOffset = column * 3 + row
+                    if let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate) {
+                        let normalizedCellDate = calendar.startOfDay(for: cellDate)
+                        if foodLoggedDates.contains(normalizedCellDate) {
+                            let dataIndex = column * 3 + row
+                            if dataIndex < 30 {
+                                contributionData[dataIndex] = 1.0
+                            }
+                        }
+                    }
+                }
+            }
+
+            self.foodLoggingContributionData = contributionData
+
+        } catch {
+            self.foodLoggingContributionData = Array(repeating: 0.0, count: 30)
+            self.foodLoggingCountThisWeek = 0
         }
     }
 }
