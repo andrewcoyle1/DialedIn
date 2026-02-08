@@ -14,6 +14,7 @@ import SwiftfulRouting
 struct TrainingView<CalendarHeaderView: View>: View {
 
     @Environment(\.layoutMode) private var layoutMode
+    @Environment(\.scenePhase) private var scenePhase
 
     @State var presenter: TrainingPresenter
 
@@ -47,6 +48,17 @@ struct TrainingView<CalendarHeaderView: View>: View {
         }
         .onFirstTask {
             await presenter.loadData()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task { await presenter.loadData() }
+            }
+        }
+        .onChange(of: presenter.currentUser?.activeTrainingProgramId) { _, _ in
+            Task { await presenter.loadData() }
+        }
+        .onNotificationReceived(name: Constants.remoteDataSyncDidComplete) { _ in
+            Task { await presenter.loadData() }
         }
         .safeAreaInset(edge: .top) {
             calendarHeader(

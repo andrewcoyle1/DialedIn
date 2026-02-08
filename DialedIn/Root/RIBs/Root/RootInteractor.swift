@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct RootInteractor {
+    private let container: DependencyContainer
     private let authManager: AuthManager
     private let userManager: UserManager
     private let abTestManager: ABTestManager
@@ -18,6 +19,7 @@ struct RootInteractor {
     private let trainingPlanManager: TrainingPlanManager
 
     init(container: DependencyContainer) {
+        self.container = container
         self.authManager = container.resolve(AuthManager.self)!
         self.userManager = container.resolve(UserManager.self)!
         self.abTestManager = container.resolve(ABTestManager.self)!
@@ -58,6 +60,29 @@ struct RootInteractor {
                 firebaseAppInstanceId: Constants.firebaseAnalyticsAppInstanceID
             )
         )
+        trainingPlanManager.startSyncListener(userId: user.uid)
+    }
+    
+    /// Syncs remote data (workouts, nutrition, steps, weight, training programs) to local storage.
+    /// Call when app enters foreground so data logged on other devices appears.
+    func syncAllRemoteDataIfLoggedIn() async {
+        guard let userId = auth?.uid else { return }
+        let workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
+        let mealLogManager = container.resolve(MealLogManager.self)!
+        let stepsManager = container.resolve(StepsManager.self)!
+        let bodyMeasurementsManager = container.resolve(BodyMeasurementsManager.self)!
+        let trainingProgramManager = container.resolve(TrainingProgramManager.self)!
+        let user = userManager.currentUser
+        
+        try? await workoutSessionManager.syncWorkoutSessionsFromRemote(authorId: userId, limitTo: 100)
+        try? await mealLogManager.syncMealsFromRemote(authorId: userId)
+        try? await mealLogManager.uploadLocalMealsToRemote(authorId: userId)
+        try? await trainingProgramManager.syncTrainingProgramsFromRemote(authorId: userId)
+        try? await trainingProgramManager.uploadLocalProgramsToRemote(authorId: userId)
+        _ = try? await stepsManager.readAllRemoteStepsEntries(userId: userId, userCreationDate: user?.creationDate)
+        _ = try? await bodyMeasurementsManager.readAllRemoteWeightEntries(userId: userId)
+        
+        NotificationCenter.default.post(name: Constants.remoteDataSyncDidComplete, object: nil)
     }
 
 }

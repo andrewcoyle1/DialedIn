@@ -6,6 +6,7 @@ struct NutritionAnalyticsDelegate {
 
 struct NutritionAnalyticsView: View {
     
+    @Environment(\.scenePhase) private var scenePhase
     @State var presenter: NutritionAnalyticsPresenter
     let delegate: NutritionAnalyticsDelegate
     
@@ -29,6 +30,14 @@ struct NutritionAnalyticsView: View {
         .scrollIndicators(.hidden)
         .task {
             await presenter.loadData()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task { await presenter.loadData() }
+            }
+        }
+        .onNotificationReceived(name: Constants.remoteDataSyncDidComplete) { _ in
+            Task { await presenter.loadData() }
         }
     }
     

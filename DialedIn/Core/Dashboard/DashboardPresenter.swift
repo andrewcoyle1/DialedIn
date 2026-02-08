@@ -31,6 +31,7 @@ class DashboardPresenter {
     
     // Macros (last 7 days)
     private(set) var macrosLast7Days: [DailyMacroTarget] = []
+    private(set) var dailyTarget: DailyMacroTarget?
 
     // Steps (from StepsManager - last 7 days for card)
     private(set) var stepsLast7: [StepsModel] = []
@@ -51,6 +52,21 @@ class DashboardPresenter {
         interactor.userImageUrl
     }
 
+    // MARK: - Nutrition (today's totals from macrosLast7Days.last)
+    private var dailyTotals: DailyMacroTarget? { macrosLast7Days.last }
+
+    var macrosAverageCalories: Double {
+        guard !macrosLast7Days.isEmpty else { return 0 }
+        return macrosLast7Days.map(\.calories).reduce(0, +) / Double(macrosLast7Days.count)
+    }
+
+    var proteinCurrent: Double { dailyTotals?.proteinGrams ?? 0 }
+    var proteinTarget: Double? { dailyTarget?.proteinGrams }
+    var proteinMax: Double {
+        let target = dailyTarget?.proteinGrams ?? 150
+        return max(proteinCurrent, target * 1.2)
+    }
+
     init(
         interactor: DashboardInteractor,
         router: DashboardRouter
@@ -65,6 +81,7 @@ class DashboardPresenter {
         loadWorkoutData()
         loadWeighInData()
         loadMacrosData()
+        await loadDailyTarget()
         await loadMuscleGroupsData()
         await loadExerciseCardsData()
         await loadStepsData()
@@ -668,6 +685,19 @@ class DashboardPresenter {
             }
         }
         macrosLast7Days = totals
+    }
+
+    private func loadDailyTarget() async {
+        guard let userId = interactor.userId else {
+            dailyTarget = nil
+            return
+        }
+        let now = Date()
+        do {
+            dailyTarget = try await interactor.getDailyTarget(for: now, userId: userId)
+        } catch {
+            dailyTarget = nil
+        }
     }
 
     func loadStepsData() async {

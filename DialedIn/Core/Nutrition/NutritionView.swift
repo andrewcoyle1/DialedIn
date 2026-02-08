@@ -23,11 +23,6 @@ struct NutritionView<CalendarHeaderView: View>: View {
         List {
             mealLogSection
             moreSection
-            //            mealsSection
-//
-//            recipeLibraryButton
-//
-//            ingredientLibraryButton
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")

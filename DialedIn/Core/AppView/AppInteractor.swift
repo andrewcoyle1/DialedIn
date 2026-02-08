@@ -12,6 +12,7 @@ protocol AppInteractor {
     func schedulePushNotificationsForNextWeek()
     func trackEvent(event: LoggableEvent)
     func logIn(user: UserAuthInfo, isNewUser: Bool) async throws
+    func syncAllRemoteDataIfLoggedIn() async
 }
 
 extension RootInteractor: AppInteractor {

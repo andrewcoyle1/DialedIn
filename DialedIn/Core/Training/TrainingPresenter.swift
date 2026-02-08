@@ -633,6 +633,7 @@ class TrainingPresenter {
     // MARK: - Data Loading
     
     func loadData() async {
+        _ = try? await interactor.getActiveTrainingProgram()
         await refreshFavouriteGymProfileImage()
     }
     

@@ -19,7 +19,7 @@ struct ProgramSettingsView: View {
 
             Section {
                 Button {
-                    presenter.onActivatePressed(programId: program.id)
+                    presenter.onActivatePressed(program: program)
                 } label: {
                     HStack {
                         Spacer()

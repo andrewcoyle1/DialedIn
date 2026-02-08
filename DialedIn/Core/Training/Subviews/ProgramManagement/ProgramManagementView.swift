@@ -10,6 +10,7 @@ import SwiftfulRouting
 
 struct ProgramManagementView: View {
 
+    @Environment(\.scenePhase) private var scenePhase
     @State var presenter: ProgramManagementPresenter
 
     var body: some View {
@@ -35,6 +36,11 @@ struct ProgramManagementView: View {
         }
         .task {
             await presenter.loadSavedPrograms()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task { await presenter.loadSavedPrograms() }
+            }
         }
     }
     

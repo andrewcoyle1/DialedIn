@@ -32,6 +32,9 @@ struct Constants {
     // App Group identifier for sharing data between app and widget extension
     static let appGroupIdentifier = "group.com.dialedin.app"
     
+    /// Posted when remote data sync completes (e.g. on app foreground). Listen to refresh active training program.
+    static let remoteDataSyncDidComplete = Notification.Name("DialedIn.RemoteDataSyncDidComplete")
+    
     /// Map exercise template names to bundled asset names for Live Activity
     /// Returns nil for exercises without bundled images
     static func exerciseImageName(for exerciseName: String) -> String? {
