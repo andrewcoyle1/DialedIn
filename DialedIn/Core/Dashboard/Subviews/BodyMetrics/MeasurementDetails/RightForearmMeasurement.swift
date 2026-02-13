@@ -126,20 +126,21 @@ extension RightForearmMeasurementEntry {
 }
 
 extension CoreRouter {
-    func showRightForearmMeasurementView(delegate: RightForearmMeasurementDelegate) {
+    func showRightForearmMeasurementView(delegate: RightForearmMeasurementDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.rightForearmMeasurementView(router: router, delegate: delegate)
+            builder.rightForearmMeasurementView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }
 
 extension CoreBuilder {
-    func rightForearmMeasurementView(router: Router, delegate: RightForearmMeasurementDelegate) -> some View {
+    func rightForearmMeasurementView(router: Router, delegate: RightForearmMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: RightForearmMeasurementPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }

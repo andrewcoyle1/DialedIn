@@ -106,14 +106,72 @@ struct ExerciseTemplateDetailView: View {
         }
     }
     
-    private var chartsSection: some View {
+    private var pickerSection: some View {
+        Section {
+            Picker("Section", selection: $presenter.section) {
+                Text("About").tag(CustomSection.description)
+                Text("History").tag(CustomSection.history)
+                Text("Charts").tag(CustomSection.charts)
+                Text("Records").tag(CustomSection.records)
+            }
+            .pickerStyle(.segmented)
+        }
+        .listSectionSpacing(0)
+        .removeListRowFormatting()
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                presenter.onDismissPressed()
+            } label: {
+                Image(systemName: "xmark")
+            }
+        }
+        #if DEBUG || MOCK
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                presenter.onDevSettingsPressed()
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                Task {
+                    await presenter.onFavoritePressed(exerciseTemplate: delegate.exerciseTemplate)
+                }
+            } label: {
+                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
+            }
+        }
+        // Hide bookmark button when the current user is the author
+        if presenter.currentUser?.userId != nil && presenter.currentUser?.userId != delegate.exerciseTemplate.authorId {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    Task {
+                        await presenter.onBookmarkPressed(exerciseTemplate: delegate.exerciseTemplate)
+                    }
+                } label: {
+                    Image(systemName: presenter.isBookmarked ? "book.closed.fill" : "book.closed")
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Sections (extracted for type_body_length)
+private extension ExerciseTemplateDetailView {
+    var chartsSection: some View {
         Group {
             weightProgressChart
             repsProgressChart
         }
     }
-    
-    private var weightProgressChart: some View {
+
+    var weightProgressChart: some View {
         Section(header: Text("Weight Progress Chart")) {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Weight lifted over last sessions")
@@ -140,8 +198,8 @@ struct ExerciseTemplateDetailView: View {
             .padding(.vertical, 8)
         }
     }
-    
-    private var repsProgressChart: some View {
+
+    var repsProgressChart: some View {
         Section(header: Text("Reps Progress Chart")) {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Reps performed over last sessions")
@@ -162,22 +220,19 @@ struct ExerciseTemplateDetailView: View {
             .padding(.vertical, 8)
         }
     }
-    
-    private var recordsSection: some View {
+
+    var recordsSection: some View {
         Group {
             personalBestSubSection
-            
             recentRecordsSubSection
-            
             allTimeStatsSubSection
         }
     }
-    
-    private var personalBestSubSection: some View {
+
+    var personalBestSubSection: some View {
         Section {
             HStack {
                 VStack {
-                    
                     Text("100 kg x 5 reps")
                         .font(.headline)
                         .fontWeight(.bold)
@@ -205,8 +260,8 @@ struct ExerciseTemplateDetailView: View {
             Text("Personal Best")
         }
     }
-    
-    private var recentRecordsSubSection: some View {
+
+    var recentRecordsSubSection: some View {
         Section {
             ForEach(presenter.records, id: \.0) { date, record in
                 HStack {
@@ -223,8 +278,8 @@ struct ExerciseTemplateDetailView: View {
             Text("Recent Records")
         }
     }
-    
-    private var allTimeStatsSubSection: some View {
+
+    var allTimeStatsSubSection: some View {
         Section {
             HStack(spacing: 24) {
                 VStack {
@@ -257,22 +312,8 @@ struct ExerciseTemplateDetailView: View {
         }
         .padding(.vertical, 8)
     }
-    
-    private var pickerSection: some View {
-        Section {
-            Picker("Section", selection: $presenter.section) {
-                Text("About").tag(CustomSection.description)
-                Text("History").tag(CustomSection.history)
-                Text("Charts").tag(CustomSection.charts)
-                Text("Records").tag(CustomSection.records)
-            }
-            .pickerStyle(.segmented)
-        }
-        .listSectionSpacing(0)
-        .removeListRowFormatting()
-    }
-    
-    private var definitionSection: some View {
+
+    var definitionSection: some View {
         Section {
             HStack(alignment: .firstTextBaseline) {
                 Text("Exercise Name")
@@ -315,7 +356,7 @@ struct ExerciseTemplateDetailView: View {
         }
     }
 
-    private var targetMusclesSection: some View {
+    var targetMusclesSection: some View {
         let muscles = Array(delegate.exerciseTemplate.muscleGroups).sorted { $0.key.name < $1.key.name }
         return Section {
             ScrollView(.horizontal) {
@@ -337,7 +378,7 @@ struct ExerciseTemplateDetailView: View {
         }
     }
 
-    private var movementQualitySection: some View {
+    var movementQualitySection: some View {
         Section {
             rangeOfMotionRow
             stabilityRow
@@ -346,7 +387,7 @@ struct ExerciseTemplateDetailView: View {
         }
     }
 
-    private var rangeOfMotionRow: some View {
+    var rangeOfMotionRow: some View {
         HStack {
             Text("Range of Motion")
             Spacer()
@@ -360,7 +401,7 @@ struct ExerciseTemplateDetailView: View {
         }
     }
 
-    private var stabilityRow: some View {
+    var stabilityRow: some View {
         HStack {
             Text("Stability")
             Spacer()
@@ -374,7 +415,7 @@ struct ExerciseTemplateDetailView: View {
         }
     }
 
-    private var resistanceEquipmentSection: some View {
+    var resistanceEquipmentSection: some View {
         Section {
             if delegate.exerciseTemplate.resistanceEquipment.isEmpty {
                 Text("None")
@@ -403,7 +444,7 @@ struct ExerciseTemplateDetailView: View {
         }
     }
 
-    private var supportEquipmentSection: some View {
+    var supportEquipmentSection: some View {
         Section {
             if delegate.exerciseTemplate.supportEquipment.isEmpty {
                 Text("None")
@@ -432,7 +473,7 @@ struct ExerciseTemplateDetailView: View {
         }
     }
 
-    private var detailsSection: some View {
+    var detailsSection: some View {
         Section {
             HStack(alignment: .firstTextBaseline) {
                 Text("Body Weight Contribution")
@@ -461,7 +502,7 @@ struct ExerciseTemplateDetailView: View {
         }
     }
 
-    private var metadataSection: some View {
+    var metadataSection: some View {
         Section {
             HStack(alignment: .firstTextBaseline) {
                 Text("Exercise ID")
@@ -538,81 +579,35 @@ struct ExerciseTemplateDetailView: View {
         }
     }
 
-    private func imageSection(url: String) -> some View {
+    func imageSection(url: String) -> some View {
         Section {
             if url.starts(with: "http://") || url.starts(with: "https://") {
                 ImageLoaderView(urlString: url, resizingMode: .fit)
                     .frame(maxWidth: .infinity, minHeight: 180, maxHeight: 250)
-
             } else {
-                // Treat as bundled asset name
                 Image(url)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: .infinity, minHeight: 180, maxHeight: 250)
-
             }
-            
-            // ImageLoaderView(urlString: url, resizingMode: .fill)
         }
         .removeListRowFormatting()
     }
-    
-    private func descriptionSection(description: String) -> some View {
+
+    func descriptionSection(description: String) -> some View {
         Section(header: Text("Description")) {
             Text(description)
                 .font(.body)
         }
     }
-    
-    private var trackableMetricString: String {
+
+    var trackableMetricString: String {
         let names = delegate.exerciseTemplate.trackableMetrics.map { $0.name }
         return names.isEmpty ? "None" : names.joined(separator: " x ")
     }
 
-    private var alternateNamesConcatenated: String {
+    var alternateNamesConcatenated: String {
         delegate.exerciseTemplate.alternateNames.joined(separator: ", ")
-    }
-
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.onDismissPressed()
-            } label: {
-                Image(systemName: "xmark")
-            }
-        }
-        #if DEBUG || MOCK
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.onDevSettingsPressed()
-            } label: {
-                Image(systemName: "info")
-            }
-        }
-        #endif
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                Task {
-                    await presenter.onFavoritePressed(exerciseTemplate: delegate.exerciseTemplate)
-                }
-            } label: {
-                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
-            }
-        }
-        // Hide bookmark button when the current user is the author
-        if presenter.currentUser?.userId != nil && presenter.currentUser?.userId != delegate.exerciseTemplate.authorId {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task {
-                        await presenter.onBookmarkPressed(exerciseTemplate: delegate.exerciseTemplate)
-                    }
-                } label: {
-                    Image(systemName: presenter.isBookmarked ? "book.closed.fill" : "book.closed")
-                }
-            }
-        }
     }
 }
 

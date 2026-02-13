@@ -9,6 +9,20 @@ import SwiftUI
 import SwiftfulUtilities
 import SwiftfulAuthenticating
 
+/// Input for completing account setup: profile fields + onboarding step.
+struct CompleteAccountSetupProfileInput {
+    let dateOfBirth: Date
+    let gender: Gender
+    let heightCentimeters: Double
+    let weightKilograms: Double
+    let exerciseFrequency: ProfileExerciseFrequency
+    let dailyActivityLevel: ProfileDailyActivityLevel
+    let cardioFitnessLevel: ProfileCardioFitnessLevel
+    let lengthUnitPreference: LengthUnitPreference
+    let weightUnitPreference: WeightUnitPreference
+    let onboardingStep: OnboardingStep
+}
+
 @Observable
 class UserManager {
     
@@ -182,19 +196,7 @@ class UserManager {
     }
     
     // MARK: - Onboarding: Complete Account Setup
-    // swiftlint:disable:next function_parameter_count
-    func saveCompleteAccountSetupProfile(
-        dateOfBirth: Date,
-        gender: Gender,
-        heightCentimeters: Double,
-        weightKilograms: Double,
-        exerciseFrequency: ProfileExerciseFrequency,
-        dailyActivityLevel: ProfileDailyActivityLevel,
-        cardioFitnessLevel: ProfileCardioFitnessLevel,
-        lengthUnitPreference: LengthUnitPreference,
-        weightUnitPreference: WeightUnitPreference,
-        onboardingStep: OnboardingStep
-    ) async throws -> UserModel {
+    func saveCompleteAccountSetupProfile(_ input: CompleteAccountSetupProfileInput) async throws -> UserModel {
         guard let existing = currentUser else { throw UserManagerError.noUserId }
         let updated = UserModel(
             userId: existing.userId,
@@ -202,21 +204,21 @@ class UserManager {
             isAnonymous: existing.isAnonymous,
             firstName: existing.firstName,
             lastName: existing.lastName,
-            dateOfBirth: dateOfBirth,
-            gender: gender,
-            heightCentimeters: heightCentimeters,
-            weightKilograms: weightKilograms,
-            exerciseFrequency: exerciseFrequency,
-            dailyActivityLevel: dailyActivityLevel,
-            cardioFitnessLevel: cardioFitnessLevel,
-            lengthUnitPreference: lengthUnitPreference,
-            weightUnitPreference: weightUnitPreference,
+            dateOfBirth: input.dateOfBirth,
+            gender: input.gender,
+            heightCentimeters: input.heightCentimeters,
+            weightKilograms: input.weightKilograms,
+            exerciseFrequency: input.exerciseFrequency,
+            dailyActivityLevel: input.dailyActivityLevel,
+            cardioFitnessLevel: input.cardioFitnessLevel,
+            lengthUnitPreference: input.lengthUnitPreference,
+            weightUnitPreference: input.weightUnitPreference,
             profileImageUrl: existing.profileImageUrl,
             creationDate: existing.creationDate,
             creationVersion: existing.creationVersion,
             lastSignInDate: existing.lastSignInDate,
             didCompleteOnboarding: existing.didCompleteOnboarding,
-            onboardingStep: onboardingStep,
+            onboardingStep: input.onboardingStep,
             createdExerciseTemplateIds: existing.createdExerciseTemplateIds,
             bookmarkedExerciseTemplateIds: existing.bookmarkedExerciseTemplateIds,
             favouritedExerciseTemplateIds: existing.favouritedExerciseTemplateIds,

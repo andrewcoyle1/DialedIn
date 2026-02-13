@@ -7,24 +7,28 @@
 
 import Foundation
 
+struct SyncEntitiesConfig<Model, Entity> {
+    var modelId: (Model) -> String
+    var entityId: (Entity) -> String
+    var update: (Entity, Model) -> Void
+    var create: (Model) -> Entity
+}
+
 func syncEntities<Model, Entity>(
     existing: [Entity],
     models: [Model],
-    modelId: (Model) -> String,
-    entityId: (Entity) -> String,
-    update: (Entity, Model) -> Void,
-    create: (Model) -> Entity
+    config: SyncEntitiesConfig<Model, Entity>
 ) -> [Entity] {
-    let existingById = Dictionary(uniqueKeysWithValues: existing.map { (entityId($0), $0) })
+    let existingById = Dictionary(uniqueKeysWithValues: existing.map { (config.entityId($0), $0) })
     var result: [Entity] = []
     result.reserveCapacity(models.count)
     for model in models {
-        let id = modelId(model)
+        let id = config.modelId(model)
         if let entity = existingById[id] {
-            update(entity, model)
+            config.update(entity, model)
             result.append(entity)
         } else {
-            result.append(create(model))
+            result.append(config.create(model))
         }
     }
     return result

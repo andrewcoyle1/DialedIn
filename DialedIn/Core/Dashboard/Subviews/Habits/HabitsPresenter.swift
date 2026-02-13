@@ -29,16 +29,16 @@ class HabitsPresenter {
         router.dismissScreen()
     }
 
-    func onWeighInPressed() {
-        router.showScaleWeightView(delegate: ScaleWeightDelegate())
+    func onWeighInPressed(themeColor: Color?) {
+        router.showWeighInConsistencyView(delegate: WeighInConsistencyDelegate(), themeColor: themeColor)
     }
 
-    func onWorkoutsPressed() {
-        router.showWorkoutView(delegate: WorkoutDelegate())
+    func onWorkoutsPressed(themeColor: Color?) {
+        router.showWorkoutConsistencyView(delegate: WorkoutConsistencyDelegate(), themeColor: themeColor)
     }
 
-    func onFoodLoggingPressed() {
-        router.showNutritionMetricDetailView(metric: .calories, delegate: NutritionMetricDetailDelegate())
+    func onFoodLoggingPressed(themeColor: Color?) {
+        router.showFoodLoggingConsistencyView(delegate: FoodLoggingConsistencyDelegate(), themeColor: themeColor)
     }
     
     func onFirstTask() async {
@@ -52,93 +52,64 @@ class HabitsPresenter {
             workoutContributionData = Array(repeating: 0.0, count: 30)
             return
         }
-        
         do {
-            // Fetch all workout sessions for the user
-            let allSessions = try interactor.getLocalWorkoutSessionsForAuthor(
-                authorId: userId,
-                limitTo: 0
-            )
-            
-            // Filter to completed sessions within last 30 days
+            let allSessions = try interactor.getLocalWorkoutSessionsForAuthor(authorId: userId, limitTo: 0)
             let now = Date()
             let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: now) ?? now
             let startOfToday = calendar.startOfDay(for: now)
             let startOf30DaysAgo = calendar.startOfDay(for: thirtyDaysAgo)
-            
             let completedSessions = allSessions.filter { session in
                 guard let endedAt = session.endedAt else { return false }
                 let sessionDate = calendar.startOfDay(for: endedAt)
                 return sessionDate >= startOf30DaysAgo && sessionDate <= startOfToday
             }
-            
-            self.workoutSessions = completedSessions
-            
-            // Count workouts in last 30 days
-            self.workoutCountLast30Days = completedSessions.count
-            
-            // Count workouts in current week
-            if let weekInterval = calendar.dateInterval(of: .weekOfYear, for: now) {
-                let weekStart = calendar.startOfDay(for: weekInterval.start)
-                let weekEnd = calendar.startOfDay(for: weekInterval.end)
-                
-                self.workoutCountThisWeek = completedSessions.filter { session in
-                    guard let endedAt = session.endedAt else { return false }
-                    let sessionDate = calendar.startOfDay(for: endedAt)
-                    return sessionDate >= weekStart && sessionDate < weekEnd
-                }.count
-            } else {
-                self.workoutCountThisWeek = 0
-            }
-            
-            // Generate contribution chart data (30 days, 3 rows × 10 columns)
-            // Days now flow continuously from left to right, with each column containing 'rows' consecutive days
-            // The chart's dateForCell uses: dayOffset = columnIndex * rows + rowIndex
-            
-            var contributionData = Array(repeating: 0.0, count: 30)
-            
-            // Create a set of dates that have workouts
-            let workoutDates = Set(completedSessions.compactMap { session -> Date? in
-                guard let endedAt = session.endedAt else { return nil }
-                return calendar.startOfDay(for: endedAt)
-            })
-            
-            // Calculate the start date exactly as the chart does (matches ContributionChartView init)
-            // Chart calculates: startDate = endDate - (totalDays - 1) where totalDays = rows * columns
-            let endDate = calendar.startOfDay(for: now)
-            let totalDays = 3 * 10 // rows * columns
-            let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) ?? endDate
-            
-            // Map workout dates to chart data array indices
-            // For each cell in the chart (column 0-9, row 0-2):
-            for column in 0..<10 {
-                for row in 0..<3 {
-                    // Calculate the actual date for this cell using the chart's date mapping
-                    // This matches dateForCell: dayOffset = columnIndex * rows + rowIndex
-                    let dayOffset = column * 3 + row
-                    if let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate) {
-                        let normalizedCellDate = calendar.startOfDay(for: cellDate)
-                        // Check if this date has a workout
-                        if workoutDates.contains(normalizedCellDate) {
-                            // Calculate the data array index: column * rows + row (where rows=3)
-                            let dataIndex = column * 3 + row
-                            if dataIndex < 30 {
-                                contributionData[dataIndex] = 1.0
-                            }
-                        }
+            workoutSessions = completedSessions
+            workoutCountLast30Days = completedSessions.count
+            workoutCountThisWeek = workoutCountThisWeek(from: completedSessions)
+            workoutContributionData = workoutContributionData(from: completedSessions)
+        } catch {
+            workoutSessions = []
+            workoutContributionData = Array(repeating: 0.0, count: 30)
+            workoutCountLast30Days = 0
+            workoutCountThisWeek = 0
+        }
+    }
+
+    private func workoutCountThisWeek(from completedSessions: [WorkoutSessionModel]) -> Int {
+        let now = Date()
+        guard let weekInterval = calendar.dateInterval(of: .weekOfYear, for: now) else { return 0 }
+        let weekStart = calendar.startOfDay(for: weekInterval.start)
+        let weekEnd = calendar.startOfDay(for: weekInterval.end)
+        return completedSessions.filter { session in
+            guard let endedAt = session.endedAt else { return false }
+            let sessionDate = calendar.startOfDay(for: endedAt)
+            return sessionDate >= weekStart && sessionDate < weekEnd
+        }.count
+    }
+
+    private func workoutContributionData(from completedSessions: [WorkoutSessionModel]) -> [Double] {
+        var contributionData = Array(repeating: 0.0, count: 30)
+        let workoutDates = Set(completedSessions.compactMap { session -> Date? in
+            guard let endedAt = session.endedAt else { return nil }
+            return calendar.startOfDay(for: endedAt)
+        })
+        let now = Date()
+        let endDate = calendar.startOfDay(for: now)
+        let totalDays = 3 * 10
+        let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) ?? endDate
+        for column in 0..<10 {
+            for row in 0..<3 {
+                let dayOffset = column * 3 + row
+                if let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate) {
+                    let normalizedCellDate = calendar.startOfDay(for: cellDate)
+                    if workoutDates.contains(normalizedCellDate) {
+                        let dataIndex = column * 3 + row
+                        if dataIndex < 30 { contributionData[dataIndex] = 1.0 }
                     }
                 }
             }
-            
-            self.workoutContributionData = contributionData
-            
-        } catch {
-            // On error, set empty data
-            self.workoutSessions = []
-            self.workoutContributionData = Array(repeating: 0.0, count: 30)
-            self.workoutCountLast30Days = 0
-            self.workoutCountThisWeek = 0
         }
+        return contributionData
     }
     
     func loadWeighInData() {

@@ -126,20 +126,21 @@ extension RightBicepMeasurementEntry {
 }
 
 extension CoreRouter {
-    func showRightBicepMeasurementView(delegate: RightBicepMeasurementDelegate) {
+    func showRightBicepMeasurementView(delegate: RightBicepMeasurementDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.rightBicepMeasurementView(router: router, delegate: delegate)
+            builder.rightBicepMeasurementView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }
 
 extension CoreBuilder {
-    func rightBicepMeasurementView(router: Router, delegate: RightBicepMeasurementDelegate) -> some View {
+    func rightBicepMeasurementView(router: Router, delegate: RightBicepMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: RightBicepMeasurementPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }

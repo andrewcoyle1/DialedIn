@@ -107,15 +107,15 @@ class LiveActivityManager: LiveActivityUpdating {
                     workoutTemplateId: session.workoutTemplateId
                 )
                 
-                let initialState = makeContentState(
-                    for: session,
+                let initialState = makeContentState(params: MakeContentStateParams(
+                    session: session,
                     isActive: isActive,
                     currentExerciseIndex: currentExerciseIndex,
                     restEndsAt: restEndsAt,
                     statusMessage: statusMessage,
                     totalVolumeKgOverride: nil,
                     elapsedTimeOverride: nil
-                )
+                ))
                 
                 lastContentState = initialState
                 
@@ -149,7 +149,7 @@ class LiveActivityManager: LiveActivityUpdating {
             activity.attributes.sessionId == session.id && activity.activityState == .active
         }) {
             currentActivity = existing
-            updateLiveActivity(
+            updateLiveActivity(params: LiveActivityUpdateParams(
                 session: session,
                 isActive: isActive,
                 currentExerciseIndex: currentExerciseIndex,
@@ -157,7 +157,7 @@ class LiveActivityManager: LiveActivityUpdating {
                 statusMessage: statusMessage,
                 totalVolumeKg: nil,
                 elapsedTime: nil
-            )
+            ))
             return
         }
         
@@ -209,24 +209,16 @@ class LiveActivityManager: LiveActivityUpdating {
     }
     
 	/// Update the Workout Live Activity with latest session progress
-	func updateLiveActivity(
-		session: WorkoutSessionModel,
-		isActive: Bool,
-		currentExerciseIndex: Int,
-		restEndsAt: Date?,
-		statusMessage: String? = nil,
-		totalVolumeKg: Double? = nil,
-		elapsedTime: TimeInterval? = nil
-	) {
-        let updatedState = makeContentState(
-			for: session,
-			isActive: isActive,
-			currentExerciseIndex: currentExerciseIndex,
-			restEndsAt: restEndsAt,
-			statusMessage: statusMessage,
-			totalVolumeKgOverride: totalVolumeKg,
-			elapsedTimeOverride: elapsedTime
-		)
+	func updateLiveActivity(params: LiveActivityUpdateParams) {
+        let updatedState = makeContentState(params: MakeContentStateParams(
+			session: params.session,
+			isActive: params.isActive,
+			currentExerciseIndex: params.currentExerciseIndex,
+			restEndsAt: params.restEndsAt,
+			statusMessage: params.statusMessage,
+			totalVolumeKgOverride: params.totalVolumeKg,
+			elapsedTimeOverride: params.elapsedTime
+		))
 		
 		// Only update if meaningful changes occurred
 		let shouldUpdate = lastContentState == nil ||
@@ -272,15 +264,15 @@ class LiveActivityManager: LiveActivityUpdating {
 		let message = statusMessage ?? (isCompleted ? "Workout completed" : "Workout ended")
 		
 		// Build final state with summary metrics if completed
-		var finalState = makeContentState(
-			for: session,
+		var finalState = makeContentState(params: MakeContentStateParams(
+			session: session,
 			isActive: false,
 			currentExerciseIndex: 0,
 			restEndsAt: nil,
 			statusMessage: message,
 			totalVolumeKgOverride: nil,
 			elapsedTimeOverride: Date().timeIntervalSince(session.dateCreated)
-		)
+		))
 		
 		// Update ended flags
 		finalState.isWorkoutEnded = true
@@ -388,28 +380,29 @@ extension LiveActivityManager {
     }
     
     // MARK: - Helpers
-    // swiftlint:disable:next function_parameter_count
-    private func makeContentState(
-        for session: WorkoutSessionModel,
-        isActive: Bool,
-        currentExerciseIndex: Int,
-        restEndsAt: Date?,
-        statusMessage: String?,
-        totalVolumeKgOverride: Double?,
-        elapsedTimeOverride: TimeInterval?
-    ) -> WorkoutActivityAttributes.ContentState {
-        let totals = computeTotals(session: session, totalVolumeKgOverride: totalVolumeKgOverride)
-        let current = deriveCurrentExerciseData(session: session, index: currentExerciseIndex)
-        logExerciseImageChange(current.imageName, currentExerciseIndex: currentExerciseIndex, exerciseName: current.name)
+    private struct MakeContentStateParams {
+        let session: WorkoutSessionModel
+        let isActive: Bool
+        let currentExerciseIndex: Int
+        let restEndsAt: Date?
+        let statusMessage: String?
+        let totalVolumeKgOverride: Double?
+        let elapsedTimeOverride: TimeInterval?
+    }
+
+    private func makeContentState(params: MakeContentStateParams) -> WorkoutActivityAttributes.ContentState {
+        let totals = computeTotals(session: params.session, totalVolumeKgOverride: params.totalVolumeKgOverride)
+        let current = deriveCurrentExerciseData(session: params.session, index: params.currentExerciseIndex)
+        logExerciseImageChange(current.imageName, currentExerciseIndex: params.currentExerciseIndex, exerciseName: current.name)
 
         return WorkoutActivityAttributes.ContentState(
-            isActive: isActive,
+            isActive: params.isActive,
             completedSetsCount: totals.completedSetsCount,
             totalSetsCount: totals.totalSetsCount,
             currentExerciseName: current.name,
             currentExerciseImageName: current.imageName,
-            currentExerciseIndex: currentExerciseIndex,
-            totalExercisesCount: session.exercises.count,
+            currentExerciseIndex: params.currentExerciseIndex,
+            totalExercisesCount: params.session.exercises.count,
             currentExerciseCompletedSetsCount: current.currentExerciseCompletedSetsCount,
             currentExerciseTotalSetsCount: current.currentExerciseTotalSetsCount,
             targetSetId: current.targetSet?.id,
@@ -417,8 +410,8 @@ extension LiveActivityManager {
             targetReps: current.targetSet?.reps,
             targetDistanceMeters: current.targetSet?.distanceMeters,
             targetDurationSec: current.targetSet?.durationSec,
-            restEndsAt: restEndsAt,
-            statusMessage: statusMessage,
+            restEndsAt: params.restEndsAt,
+            statusMessage: params.statusMessage,
             totalVolumeKg: totals.totalVolumeKg,
             progress: totals.progress,
             isWorkoutEnded: false,

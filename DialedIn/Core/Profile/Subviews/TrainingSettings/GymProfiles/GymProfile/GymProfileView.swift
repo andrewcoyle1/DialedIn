@@ -1,6 +1,34 @@
 import SwiftUI
 import PhotosUI
 
+// MARK: - Active Sorted Weight Subtitle Helper
+
+private enum ActiveSortedWeightSubtitle {
+    struct Config<T> {
+        let isActive: (T) -> Bool
+        let value: (T) -> Double
+        let unit: (T) -> ExerciseWeightUnit
+        let formatter: (T) -> String
+        let separator: String
+    }
+
+    static func format<T>(items: [T], config: Config<T>) -> String {
+        let sortedItems = items
+            .filter(config.isActive)
+            .enumerated()
+            .sorted { lhs, rhs in
+                let lhsValue = UnitConversion.convertWeightToKg(config.value(lhs.element), from: config.unit(lhs.element))
+                let rhsValue = UnitConversion.convertWeightToKg(config.value(rhs.element), from: config.unit(rhs.element))
+                if lhsValue == rhsValue {
+                    return lhs.offset < rhs.offset
+                }
+                return lhsValue < rhsValue
+            }
+            .map { $0.element }
+        return sortedItems.map(config.formatter).joined(separator: config.separator)
+    }
+}
+
 struct GymProfileView: View {
     
     @State var presenter: GymProfilePresenter
@@ -42,16 +70,8 @@ struct GymProfileView: View {
                 loadableAccessoriesSection
             }
 
-            if !presenter.filteredCableMachines.isEmpty {
-                cableMachinesSection
-            }
-
-            if !presenter.filteredPlateLoadedMachines.isEmpty {
-                plateLoadedMachineSection
-            }
-
-            if !presenter.filteredPinLoadedMachines.isEmpty {
-                pinLoadedMachineSection
+            if !presenter.filteredCableMachines.isEmpty || !presenter.filteredPlateLoadedMachines.isEmpty || !presenter.filteredPinLoadedMachines.isEmpty {
+                GymProfileMachineSectionsView(presenter: $presenter)
             }
         }
         .scrollIndicators(.hidden)
@@ -123,14 +143,13 @@ struct GymProfileView: View {
 
                         VStack(alignment: .leading) {
                             Text(freeWeight.name)
-                            Text(activeSortedWeightSubtitle(
-                                items: freeWeight.range,
+                            Text(ActiveSortedWeightSubtitle.format(items: freeWeight.range, config: .init(
                                 isActive: { $0.isActive },
                                 value: { $0.availableWeights },
                                 unit: { $0.unit },
                                 formatter: { "\(String(format: "%g", $0.availableWeights)) \($0.unit.abbreviation)" },
                                 separator: ", "
-                            ))
+                            )))
                                 .font(.caption)
                                 .lineLimit(2)
                             Text("Edit Weights")
@@ -167,14 +186,13 @@ struct GymProfileView: View {
                     }
                     VStack(alignment: .leading) {
                         Text(loadableBar.name)
-                        Text(activeSortedWeightSubtitle(
-                            items: loadableBar.baseWeights,
+                        Text(ActiveSortedWeightSubtitle.format(items: loadableBar.baseWeights, config: .init(
                             isActive: { $0.isActive },
                             value: { $0.baseWeight },
                             unit: { $0.unit },
                             formatter: { "\(String(format: "%g", $0.baseWeight)) \($0.unit.abbreviation)" },
                             separator: ", "
-                        ))
+                        )))
                             .font(.caption)
                             .lineLimit(2)
                         Text("Edit Weights")
@@ -211,14 +229,13 @@ struct GymProfileView: View {
 
                     VStack(alignment: .leading) {
                         Text(fixedWeightBar.name)
-                        Text(activeSortedWeightSubtitle(
-                            items: fixedWeightBar.baseWeights,
+                        Text(ActiveSortedWeightSubtitle.format(items: fixedWeightBar.baseWeights, config: .init(
                             isActive: { $0.isActive },
                             value: { $0.baseWeight },
                             unit: { $0.unit },
                             formatter: { "\(String(format: "%g", $0.baseWeight)) \($0.unit.abbreviation)" },
                             separator: ", "
-                        ))
+                        )))
                             .font(.caption)
                             .lineLimit(2)
                         Text("Edit Weights")
@@ -255,14 +272,13 @@ struct GymProfileView: View {
 
                     VStack(alignment: .leading) {
                         Text(band.name)
-                        Text(activeSortedWeightSubtitle(
-                            items: band.range,
+                        Text(ActiveSortedWeightSubtitle.format(items: band.range, config: .init(
                             isActive: { $0.isActive },
                             value: { $0.availableResistance },
                             unit: { $0.unit },
                             formatter: { "\(String(format: "%g", $0.availableResistance)) \($0.unit.abbreviation)" },
                             separator: ", "
-                        ))
+                        )))
                             .font(.caption)
                             .lineLimit(2)
                         Text("Edit Inventory")
@@ -302,14 +318,13 @@ struct GymProfileView: View {
 
                         VStack(alignment: .leading) {
                             Text(bodyWeight.name)
-                            Text(activeSortedWeightSubtitle(
-                                items: bodyWeight.range,
+                            Text(ActiveSortedWeightSubtitle.format(items: bodyWeight.range, config: .init(
                                 isActive: { $0.isActive },
                                 value: { $0.availableWeights },
                                 unit: { $0.unit },
                                 formatter: { "\(String(format: "%g", $0.availableWeights)) \($0.unit.abbreviation)" },
                                 separator: ", "
-                            ))
+                            )))
                                 .font(.caption)
                                 .lineLimit(2)
                             Text("Edit Weights")
@@ -422,6 +437,52 @@ struct GymProfileView: View {
         }
     }
 
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .title) {
+            TextField(text: $presenter.gymProfile.name) {
+                Text("Untitled Gym Profile")
+            }
+        }
+        
+        ToolbarItem(placement: .cancellationAction) {
+            Button {
+                presenter.onBackButtonPressed()
+            } label: {
+                Image(systemName: "chevron.left")
+            }
+        }
+        
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onAddImagePressed()
+            } label: {
+                Image(systemName: presenter.gymProfile.imageUrl == nil ? "photo.badge.plus" : "photo.badge.checkmark")
+            }
+        }
+    }
+
+}
+
+// MARK: - Machine Sections (extracted for type_body_length)
+
+private struct GymProfileMachineSectionsView: View {
+    @Binding var presenter: GymProfilePresenter
+
+    var body: some View {
+        Group {
+            if !presenter.filteredCableMachines.isEmpty {
+                cableMachinesSection
+            }
+            if !presenter.filteredPlateLoadedMachines.isEmpty {
+                plateLoadedMachineSection
+            }
+            if !presenter.filteredPinLoadedMachines.isEmpty {
+                pinLoadedMachineSection
+            }
+        }
+    }
+
     private var cableMachinesSection: some View {
         Section {
             ForEach(presenter.filteredCableMachines) { $cableMachines in
@@ -438,8 +499,7 @@ struct GymProfileView: View {
 
                     VStack(alignment: .leading) {
                         Text(cableMachines.name)
-                        Text(activeSortedWeightSubtitle(
-                            items: cableMachines.ranges,
+                        Text(ActiveSortedWeightSubtitle.format(items: cableMachines.ranges, config: .init(
                             isActive: { $0.isActive },
                             value: { $0.minWeight },
                             unit: { $0.unit },
@@ -447,7 +507,7 @@ struct GymProfileView: View {
                                 "\(String(format: "%g", $0.minWeight)) - \(String(format: "%g", $0.maxWeight)) \($0.unit.abbreviation), \(String(format: "%g", $0.increment)) \($0.unit.abbreviation) increments"
                             },
                             separator: "\n"
-                        ))
+                        )))
                             .font(.caption)
                             .lineLimit(2)
                         Text("Edit Machine")
@@ -467,7 +527,7 @@ struct GymProfileView: View {
             Text("Cable Machines")
         }
     }
-    
+
     private var plateLoadedMachineSection: some View {
         Section {
             ForEach(presenter.filteredPlateLoadedMachines) { $plateLoadedMachines in
@@ -503,7 +563,7 @@ struct GymProfileView: View {
             Text("Plate Loaded Machines")
         }
     }
-    
+
     private var pinLoadedMachineSection: some View {
         Section {
             ForEach(presenter.filteredPinLoadedMachines) { $pinLoadedMachines in
@@ -519,8 +579,7 @@ struct GymProfileView: View {
                     }
                     VStack(alignment: .leading) {
                         Text(pinLoadedMachines.name)
-                        Text(activeSortedWeightSubtitle(
-                            items: pinLoadedMachines.ranges,
+                        Text(ActiveSortedWeightSubtitle.format(items: pinLoadedMachines.ranges, config: .init(
                             isActive: { $0.isActive },
                             value: { $0.minWeight },
                             unit: { $0.unit },
@@ -528,7 +587,7 @@ struct GymProfileView: View {
                                 "\(String(format: "%g", $0.minWeight)) - \(String(format: "%g", $0.maxWeight)) \($0.unit.abbreviation), \(String(format: "%g", $0.increment)) \($0.unit.abbreviation) increments"
                             },
                             separator: "\n"
-                        ))
+                        )))
                             .font(.caption)
                             .lineLimit(2)
                         Text("Edit Machine")
@@ -547,54 +606,6 @@ struct GymProfileView: View {
         } header: {
             Text("Pin Loaded Machines")
         }
-    }
-    
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .title) {
-            TextField(text: $presenter.gymProfile.name) {
-                Text("Untitled Gym Profile")
-            }
-        }
-        
-        ToolbarItem(placement: .cancellationAction) {
-            Button {
-                presenter.onBackButtonPressed()
-            } label: {
-                Image(systemName: "chevron.left")
-            }
-        }
-        
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                presenter.onAddImagePressed()
-            } label: {
-                Image(systemName: presenter.gymProfile.imageUrl == nil ? "photo.badge.plus" : "photo.badge.checkmark")
-            }
-        }
-    }
-
-    private func activeSortedWeightSubtitle<T>(
-        items: [T],
-        isActive: (T) -> Bool,
-        value: (T) -> Double,
-        unit: (T) -> ExerciseWeightUnit,
-        formatter: (T) -> String,
-        separator: String
-    ) -> String {
-        let sortedItems = items
-            .filter(isActive)
-            .enumerated()
-            .sorted { lhs, rhs in
-                let lhsValue = UnitConversion.convertWeightToKg(value(lhs.element), from: unit(lhs.element))
-                let rhsValue = UnitConversion.convertWeightToKg(value(rhs.element), from: unit(rhs.element))
-                if lhsValue == rhsValue {
-                    return lhs.offset < rhs.offset
-                }
-                return lhsValue < rhsValue
-            }
-            .map { $0.element }
-        return sortedItems.map(formatter).joined(separator: separator)
     }
 }
 

@@ -126,20 +126,21 @@ extension HipsMeasurementEntry {
 }
 
 extension CoreRouter {
-    func showHipsMeasurementView(delegate: HipsMeasurementDelegate) {
+    func showHipsMeasurementView(delegate: HipsMeasurementDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.hipsMeasurementView(router: router, delegate: delegate)
+            builder.hipsMeasurementView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }
 
 extension CoreBuilder {
-    func hipsMeasurementView(router: Router, delegate: HipsMeasurementDelegate) -> some View {
+    func hipsMeasurementView(router: Router, delegate: HipsMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: HipsMeasurementPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }

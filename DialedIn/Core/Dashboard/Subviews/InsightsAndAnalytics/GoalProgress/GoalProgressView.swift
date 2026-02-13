@@ -12,9 +12,10 @@ struct GoalProgressView: View {
 
     @State var presenter: GoalProgressPresenter
     let delegate: GoalProgressDelegate
+    var themeColor: Color?
 
     var body: some View {
-        MetricDetailView(presenter: presenter)
+        MetricDetailView(presenter: presenter, themeColor: themeColor)
     }
 }
 
@@ -30,22 +31,23 @@ struct GoalProgressView: View {
 
 extension CoreBuilder {
 
-    func goalProgressView(router: Router, delegate: GoalProgressDelegate) -> some View {
+    func goalProgressView(router: Router, delegate: GoalProgressDelegate, themeColor: Color? = nil) -> some View {
         GoalProgressView(
             presenter: GoalProgressPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
             ),
-            delegate: delegate
+            delegate: delegate,
+            themeColor: themeColor
         )
     }
 }
 
 extension CoreRouter {
 
-    func showGoalProgressView(delegate: GoalProgressDelegate) {
+    func showGoalProgressView(delegate: GoalProgressDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.goalProgressView(router: router, delegate: delegate)
+            builder.goalProgressView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }

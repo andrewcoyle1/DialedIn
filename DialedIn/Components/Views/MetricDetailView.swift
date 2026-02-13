@@ -46,8 +46,14 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
     }
 
     @State var presenter: Presenter
+    var themeColor: Color?
     @State private var page: Int = 1
     @State private var visibleMetrics: VisibleMetrics = .empty
+
+    init(presenter: Presenter, themeColor: Color? = nil) {
+        _presenter = State(initialValue: presenter)
+        self.themeColor = themeColor
+    }
 
     var body: some View {
         let configuration = presenter.configuration
@@ -96,7 +102,7 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
                         rows: 3,
                         columns: 10,
                         targetValue: 1.0,
-                        blockColor: configuration.chartColor ?? .green,
+                        blockColor: themeColor ?? configuration.chartColor ?? .green,
                         blockBackgroundColor: .background,
                         rectangleWidth: .infinity,
                         endDate: .now,
@@ -111,7 +117,7 @@ struct MetricDetailView<Presenter: MetricDetailPresenter>: View {
                         series: series,
                         yAxisSuffix: configuration.isMacrosChart ? (configuration.macrosYAxisSuffix ?? " g") : configuration.yAxisSuffix,
                         chartType: configuration.chartType ?? .line,
-                        chartColor: configuration.chartColor
+                        chartColor: themeColor ?? configuration.chartColor
                     )
                     .frame(height: 300)
                 }

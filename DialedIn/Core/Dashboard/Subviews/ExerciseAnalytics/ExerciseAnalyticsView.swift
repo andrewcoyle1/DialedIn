@@ -12,6 +12,7 @@ struct ExerciseAnalyticsView: View {
     var body: some View {
         List {
             Section {
+                let exerciseColor = Color.cyan
                 LazyVGrid(columns: [GridItem(), GridItem()]) {
                     ForEach(presenter.exerciseCards) { item in
                         DashboardCard(
@@ -19,21 +20,22 @@ struct ExerciseAnalyticsView: View {
                             subtitle: "Last 7 Workouts",
                             subsubtitle: item.latest1RM > 0 ? item.latest1RM.formatted(.number.precision(.fractionLength(1))) : "--",
                             subsubsubtitle: "kg",
+                            themeColor: exerciseColor,
                             chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                         ) {
                             SparklineChart(
                                 data: item.sparklineData,
                                 configuration: SparklineConfiguration(
-                                    lineColor: .cyan,
+                                    lineColor: exerciseColor,
                                     lineWidth: 2,
-                                    fillColor: .cyan,
+                                    fillColor: exerciseColor,
                                     height: 36
                                 )
                             )
                         }
                         .tappableBackground()
                         .anyButton(.press) {
-                            presenter.onExercisePressed(templateId: item.templateId, name: item.name)
+                            presenter.onExercisePressed(templateId: item.templateId, name: item.name, themeColor: exerciseColor)
                         }
                     }
                 }

@@ -13,9 +13,7 @@ struct ExercisePlan: Identifiable, Codable {
     let authorId: String
     
     let exercise: ExerciseModel
-    
-    // TODO: Add sets etc.
-    
+
     enum CodingKeys: String, CodingKey {
         case id
         case authorId = "author_id"

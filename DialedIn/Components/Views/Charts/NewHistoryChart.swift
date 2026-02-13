@@ -35,19 +35,32 @@ struct NewHistoryChart: View {
         let proteinSeries = series[0]
         let carbsSeries = series[1]
         let fatSeries = series[2]
-        var byDate: [Date: (Double, Double, Double)] = [:]
+        
+        struct MacroTotals {
+            var protein: Double = 0
+            var carbs: Double = 0
+            var fat: Double = 0
+        }
+        
+        var byDate: [Date: MacroTotals] = [:]
         for protein in proteinSeries.sortedByDate {
-            byDate[protein.date, default: (0, 0, 0)].0 = protein.value
+            var totals = byDate[protein.date, default: MacroTotals()]
+            totals.protein = protein.value
+            byDate[protein.date] = totals
         }
         for carb in carbsSeries.sortedByDate {
-            byDate[carb.date, default: (0, 0, 0)].1 = carb.value
+            var totals = byDate[carb.date, default: MacroTotals()]
+            totals.carbs = carb.value
+            byDate[carb.date] = totals
         }
         for fats in fatSeries.sortedByDate {
-            byDate[fats.date, default: (0, 0, 0)].2 = fats.value
+            var totals = byDate[fats.date, default: MacroTotals()]
+            totals.fat = fats.value
+            byDate[fats.date] = totals
         }
         return byDate.keys.sorted().map { date in
-            let total = byDate[date] ?? (0, 0, 0)
-            return StackedBarDay(date: date, protein: total.0, carbs: total.1, fat: total.2)
+            let total = byDate[date] ?? MacroTotals()
+            return StackedBarDay(date: date, protein: total.protein, carbs: total.carbs, fat: total.fat)
         }
     }
 

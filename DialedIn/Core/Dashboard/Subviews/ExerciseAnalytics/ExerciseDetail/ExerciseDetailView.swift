@@ -32,23 +32,24 @@ struct ExerciseDetailView: View {
 
 extension CoreBuilder {
 
-    func exerciseDetailView(router: Router, delegate: ExerciseDetailDelegate, templateId: String, name: String) -> some View {
+    func exerciseDetailView(router: Router, delegate: ExerciseDetailDelegate, templateId: String, name: String, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: ExerciseDetailPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self),
                 templateId: templateId,
                 name: name
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }
 
 extension CoreRouter {
 
-    func showExerciseDetailView(templateId: String, name: String, delegate: ExerciseDetailDelegate) {
+    func showExerciseDetailView(templateId: String, name: String, delegate: ExerciseDetailDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.exerciseDetailView(router: router, delegate: delegate, templateId: templateId, name: name)
+            builder.exerciseDetailView(router: router, delegate: delegate, templateId: templateId, name: name, themeColor: themeColor)
         }
     }
 }

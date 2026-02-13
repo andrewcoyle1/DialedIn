@@ -125,27 +125,27 @@ class NutritionAnalyticsPresenter {
 
     // MARK: - Navigation
 
-    func onMacrosPressed() {
-        router.showNutritionMetricDetailView(metric: .macros, delegate: NutritionMetricDetailDelegate())
+    func onMacrosPressed(themeColor: Color?) {
+        router.showNutritionMetricDetailView(metric: .macros, delegate: NutritionMetricDetailDelegate(), themeColor: themeColor)
     }
 
-    func onCaloriesPressed() {
-        router.showNutritionMetricDetailView(metric: .calories, delegate: NutritionMetricDetailDelegate())
+    func onCaloriesPressed(themeColor: Color?) {
+        router.showNutritionMetricDetailView(metric: .calories, delegate: NutritionMetricDetailDelegate(), themeColor: themeColor)
     }
 
-    func onProteinPressed() {
-        router.showNutritionMetricDetailView(metric: .protein, delegate: NutritionMetricDetailDelegate())
+    func onProteinPressed(themeColor: Color?) {
+        router.showNutritionMetricDetailView(metric: .protein, delegate: NutritionMetricDetailDelegate(), themeColor: themeColor)
     }
 
-    func onFatPressed() {
-        router.showNutritionMetricDetailView(metric: .fat, delegate: NutritionMetricDetailDelegate())
+    func onFatPressed(themeColor: Color?) {
+        router.showNutritionMetricDetailView(metric: .fat, delegate: NutritionMetricDetailDelegate(), themeColor: themeColor)
     }
 
-    func onCarbsPressed() {
-        router.showNutritionMetricDetailView(metric: .carbs, delegate: NutritionMetricDetailDelegate())
+    func onCarbsPressed(themeColor: Color?) {
+        router.showNutritionMetricDetailView(metric: .carbs, delegate: NutritionMetricDetailDelegate(), themeColor: themeColor)
     }
 
-    func onBreakdownMetricPressed(_ metric: NutritionMetric) {
-        router.showNutritionMetricDetailView(metric: metric, delegate: NutritionMetricDetailDelegate())
+    func onBreakdownMetricPressed(_ metric: NutritionMetric, themeColor: Color?) {
+        router.showNutritionMetricDetailView(metric: metric, delegate: NutritionMetricDetailDelegate(), themeColor: themeColor)
     }
 }

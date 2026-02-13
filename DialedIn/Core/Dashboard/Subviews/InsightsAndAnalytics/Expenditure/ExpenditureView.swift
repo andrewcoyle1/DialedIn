@@ -32,21 +32,22 @@ struct ExpenditureView: View {
 
 extension CoreBuilder {
 
-    func expenditureView(router: Router, delegate: ExpenditureDelegate) -> some View {
+    func expenditureView(router: Router, delegate: ExpenditureDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: ExpenditurePresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }
 
 extension CoreRouter {
 
-    func showExpenditureView(delegate: ExpenditureDelegate) {
+    func showExpenditureView(delegate: ExpenditureDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.expenditureView(router: router, delegate: delegate)
+            builder.expenditureView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }

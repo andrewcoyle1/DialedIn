@@ -120,118 +120,153 @@ struct AutoYScaleModifier: ViewModifier {
             metrics = .empty
             return
         }
-
         let start = scrollZoomState.scrollPosition
         let end = start.addingTimeInterval(scrollZoomState.visibleDomainLength)
-        
-        let strictRange = DateSortedSearch.visibleRange(
-            start: start,
-            end: end,
-            values: cachedAllValues
-        )
+        let strictRange = DateSortedSearch.visibleRange(start: start, end: end, values: cachedAllValues)
+        let (extendedLower, extendedUpper) = extendedVisibleIndices(start: start, end: end)
+        guard extendedLower < extendedUpper else {
+            applyFallbackDomainAndMetrics(start: start, end: end)
+            return
+        }
+        let (minValue, maxValue) = minMaxValues(in: extendedLower..<extendedUpper)
+        setDomain(minValue: minValue, maxValue: maxValue)
+        if let range = strictRange {
+            calculateMetrics(for: Array(cachedAllValues[range]), xStart: start, xEnd: end)
+        } else {
+            metrics = emptyMetrics(startDate: start, endDate: end)
+        }
+    }
+
+    private func extendedVisibleIndices(start: Date, end: Date) -> (Int, Int) {
         let lowerIndex = DateSortedSearch.lowerBound(for: start, values: cachedAllValues)
         let upperIndex = DateSortedSearch.upperBound(for: end, values: cachedAllValues)
         let extendedLower = max(lowerIndex - 1, 0)
         let extendedUpper = min(upperIndex + 1, cachedAllValues.count)
-        
-        guard extendedLower < extendedUpper else {
-            if let first = cachedAllValues.first, let last = cachedAllValues.last {
-                let allMin = cachedAllValues.map(\.value).min() ?? 0
-                let allMax = cachedAllValues.map(\.value).max() ?? 1
-                setDomain(minValue: allMin, maxValue: allMax)
-                calculateMetrics(for: cachedAllValues, xStart: first.date, xEnd: last.date)
-            } else {
-                metrics = .empty
-            }
-            return
+        return (extendedLower, extendedUpper)
+    }
+
+    private func applyFallbackDomainAndMetrics(start: Date, end: Date) {
+        if let first = cachedAllValues.first, let last = cachedAllValues.last {
+            let allMin = cachedAllValues.map(\.value).min() ?? 0
+            let allMax = cachedAllValues.map(\.value).max() ?? 1
+            setDomain(minValue: allMin, maxValue: allMax)
+            calculateMetrics(for: cachedAllValues, xStart: first.date, xEnd: last.date)
+        } else {
+            metrics = .empty
         }
-        
+    }
+
+    private func minMaxValues(in range: Range<Int>) -> (min: Double, max: Double) {
         var minValue = Double.greatestFiniteMagnitude
         var maxValue = -Double.greatestFiniteMagnitude
-        for element in cachedAllValues[extendedLower..<extendedUpper] {
+        for element in cachedAllValues[range] {
             minValue = min(minValue, element.value)
             maxValue = max(maxValue, element.value)
         }
-        setDomain(minValue: minValue, maxValue: maxValue)
-        
-        if let range = strictRange {
-            calculateMetrics(for: Array(cachedAllValues[range]), xStart: start, xEnd: end)
-        } else {
-            metrics = NewHistoryChart.VisibleMetrics(
-                startDate: start,
-                endDate: end,
-                average: nil,
-                delta: nil,
-                averageProtein: nil,
-                averageCarbs: nil,
-                averageFat: nil
-            )
-        }
+        return (minValue, maxValue)
     }
 
     private func updateVisibleDomainStacked() {
         let start = scrollZoomState.scrollPosition
         let end = start.addingTimeInterval(scrollZoomState.visibleDomainLength)
-        let proteinSeries = series[0]
-        let carbsSeries = series[1]
-        let fatSeries = series[2]
-        var byDate: [Date: (Double, Double, Double)] = [:]
-        for protein in proteinSeries.sortedByDate where protein.date >= start && protein.date <= end {
-            byDate[protein.date, default: (0, 0, 0)].0 = protein.value
-        }
-        for carb in carbsSeries.sortedByDate where carb.date >= start && carb.date <= end {
-            byDate[carb.date, default: (0, 0, 0)].1 = carb.value
-        }
-        for fat in fatSeries.sortedByDate where fat.date >= start && fat.date <= end {
-            byDate[fat.date, default: (0, 0, 0)].2 = fat.value
-        }
+        let byDate = buildMacroTotalsByDate(
+            proteinSeries: series[0],
+            carbsSeries: series[1],
+            fatSeries: series[2],
+            start: start,
+            end: end
+        )
         let dates = byDate.keys.sorted()
         guard !dates.isEmpty else {
             yDomain = 0...1
-            metrics = NewHistoryChart.VisibleMetrics(
-                startDate: start,
-                endDate: end,
-                average: nil,
-                delta: nil,
-                averageProtein: nil,
-                averageCarbs: nil,
-                averageFat: nil
-            )
+            metrics = emptyMetrics(startDate: start, endDate: end)
             return
         }
+        let sums = aggregateMacroSums(dates: dates, byDate: byDate)
+        setDomain(minValue: 0, maxValue: max(sums.maxSum, 1))
+        metrics = stackedBarMetrics(start: start, end: end, count: dates.count, sums: sums)
+    }
+
+    private struct MacroTotals {
+        var protein: Double = 0
+        var carbs: Double = 0
+        var fat: Double = 0
+    }
+
+    private struct MacroSums {
+        var maxSum: Double
+        var sumP: Double
+        var sumC: Double
+        var sumF: Double
+    }
+
+    private func buildMacroTotalsByDate(
+        proteinSeries: TimeSeriesData.TimeSeries,
+        carbsSeries: TimeSeriesData.TimeSeries,
+        fatSeries: TimeSeriesData.TimeSeries,
+        start: Date,
+        end: Date
+    ) -> [Date: MacroTotals] {
+        var byDate: [Date: MacroTotals] = [:]
+        for protein in proteinSeries.sortedByDate where protein.date >= start && protein.date <= end {
+            var totals = byDate[protein.date, default: MacroTotals()]
+            totals.protein = protein.value
+            byDate[protein.date] = totals
+        }
+        for carb in carbsSeries.sortedByDate {
+            var totals = byDate[carb.date, default: MacroTotals()]
+            totals.carbs = carb.value
+            byDate[carb.date] = totals
+        }
+        for fats in fatSeries.sortedByDate {
+            var totals = byDate[fats.date, default: MacroTotals()]
+            totals.fat = fats.value
+            byDate[fats.date] = totals
+        }
+        return byDate
+    }
+
+    private func aggregateMacroSums(dates: [Date], byDate: [Date: MacroTotals]) -> MacroSums {
         var maxSum: Double = 0
         var sumP: Double = 0, sumC: Double = 0, sumF: Double = 0
         for date in dates {
-            let total = byDate[date] ?? (0, 0, 0)
-            maxSum = max(maxSum, total.0 + total.1 + total.2)
-            sumP += total.0
-            sumC += total.1
-            sumF += total.2
+            let total = byDate[date] ?? MacroTotals()
+            maxSum = max(maxSum, total.protein + total.carbs + total.fat)
+            sumP += total.protein
+            sumC += total.carbs
+            sumF += total.fat
         }
-        let number = Double(dates.count)
-        setDomain(minValue: 0, maxValue: max(maxSum, 1))
-        metrics = NewHistoryChart.VisibleMetrics(
+        return MacroSums(maxSum: maxSum, sumP: sumP, sumC: sumC, sumF: sumF)
+    }
+
+    private func emptyMetrics(startDate: Date, endDate: Date) -> NewHistoryChart.VisibleMetrics {
+        NewHistoryChart.VisibleMetrics(
+            startDate: startDate,
+            endDate: endDate,
+            average: nil,
+            delta: nil,
+            averageProtein: nil,
+            averageCarbs: nil,
+            averageFat: nil
+        )
+    }
+
+    private func stackedBarMetrics(start: Date, end: Date, count: Int, sums: MacroSums) -> NewHistoryChart.VisibleMetrics {
+        let number = Double(count)
+        return NewHistoryChart.VisibleMetrics(
             startDate: start,
             endDate: end,
             average: nil,
             delta: nil,
-            averageProtein: number > 0 ? sumP / number : nil,
-            averageCarbs: number > 0 ? sumC / number : nil,
-            averageFat: number > 0 ? sumF / number : nil
+            averageProtein: number > 0 ? sums.sumP / number : nil,
+            averageCarbs: number > 0 ? sums.sumC / number : nil,
+            averageFat: number > 0 ? sums.sumF / number : nil
         )
     }
-    
+
     private func calculateMetrics(for values: [TimeSeriesDatapoint], xStart: Date, xEnd: Date) {
         guard !values.isEmpty else {
-            metrics = NewHistoryChart.VisibleMetrics(
-                startDate: xStart,
-                endDate: xEnd,
-                average: nil,
-                delta: nil,
-                averageProtein: nil,
-                averageCarbs: nil,
-                averageFat: nil
-            )
+            metrics = emptyMetrics(startDate: xStart, endDate: xEnd)
             return
         }
         

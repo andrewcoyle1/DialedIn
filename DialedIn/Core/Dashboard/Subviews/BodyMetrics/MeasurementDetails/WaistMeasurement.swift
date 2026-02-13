@@ -126,20 +126,21 @@ extension WaistMeasurementEntry {
 }
 
 extension CoreRouter {
-    func showWaistMeasurementView(delegate: WaistMeasurementDelegate) {
+    func showWaistMeasurementView(delegate: WaistMeasurementDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.waistMeasurementView(router: router, delegate: delegate)
+            builder.waistMeasurementView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }
 
 extension CoreBuilder {
-    func waistMeasurementView(router: Router, delegate: WaistMeasurementDelegate) -> some View {
+    func waistMeasurementView(router: Router, delegate: WaistMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: WaistMeasurementPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }

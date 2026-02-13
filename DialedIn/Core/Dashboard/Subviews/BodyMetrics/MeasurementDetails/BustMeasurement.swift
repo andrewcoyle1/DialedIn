@@ -126,20 +126,21 @@ extension BustMeasurementEntry {
 }
 
 extension CoreRouter {
-    func showBustMeasurementView(delegate: BustMeasurementDelegate) {
+    func showBustMeasurementView(delegate: BustMeasurementDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.bustMeasurementView(router: router, delegate: delegate)
+            builder.bustMeasurementView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }
 
 extension CoreBuilder {
-    func bustMeasurementView(router: Router, delegate: BustMeasurementDelegate) -> some View {
+    func bustMeasurementView(router: Router, delegate: BustMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: BustMeasurementPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }

@@ -127,20 +127,21 @@ extension NeckMeasurementEntry {
 }
 
 extension CoreRouter {
-    func showNeckMeasurementView(delegate: NeckMeasurementDelegate) {
+    func showNeckMeasurementView(delegate: NeckMeasurementDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.neckMeasurementView(router: router, delegate: delegate)
+            builder.neckMeasurementView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }
 
 extension CoreBuilder {
-    func neckMeasurementView(router: Router, delegate: NeckMeasurementDelegate) -> some View {
+    func neckMeasurementView(router: Router, delegate: NeckMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: NeckMeasurementPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }

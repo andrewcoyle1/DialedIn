@@ -721,6 +721,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				Managers/Purchases/StoreKit/DialedInPurchaseConfiguration.storekit,
+				Managers/Purchases/StoreKit/StoreKitTestCertificate.cer,
 			);
 			target = D0A2993C2E54AEA700DA64F7 /* DialedIn */;
 		};

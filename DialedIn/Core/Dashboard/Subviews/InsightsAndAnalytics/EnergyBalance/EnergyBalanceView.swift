@@ -32,21 +32,22 @@ struct EnergyBalanceView: View {
 
 extension CoreBuilder {
 
-    func energyBalanceView(router: Router, delegate: EnergyBalanceDelegate) -> some View {
+    func energyBalanceView(router: Router, delegate: EnergyBalanceDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: EnergyBalancePresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }
 
 extension CoreRouter {
 
-    func showEnergyBalanceView(delegate: EnergyBalanceDelegate) {
+    func showEnergyBalanceView(delegate: EnergyBalanceDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.energyBalanceView(router: router, delegate: delegate)
+            builder.energyBalanceView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }

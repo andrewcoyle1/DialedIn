@@ -91,24 +91,27 @@ extension WorkoutPresenter: @MainActor MetricDetailPresenter {
         cachedTimeSeries
     }
 
-    var contributionChartData: [Double]? {
-        let endDate = calendar.startOfDay(for: Date())
-        let totalDays = 3 * 10
-        guard let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) else { return nil }
-        let workoutDates = Set(cachedEntries.map { calendar.startOfDay(for: $0.date) })
-        var data = Array(repeating: 0.0, count: 30)
-        for column in 0..<10 {
-            for row in 0..<3 {
-                let dayOffset = column * 3 + row
-                guard let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate),
-                      dayOffset < 30 else { continue }
-                if workoutDates.contains(calendar.startOfDay(for: cellDate)) {
-                    data[dayOffset] = 1.0
-                }
-            }
-        }
-        return data
-    }
+//    var contributionChartData: [Double]? {
+//        let endDate = calendar.startOfDay(for: Date())
+//        let totalDays = 3 * 10
+//        guard let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) else { return nil }
+//        let workoutDates = Set(cachedEntries.map { calendar.startOfDay(for: $0.date) })
+//        var data = Array(repeating: 0.0, count: 30)
+//        for column in 0..<10 {
+//            for row in 0..<3 {
+//                let dayOffset = column * 3 + row
+//                guard let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate),
+//                      dayOffset < 30 else { continue }
+//                if workoutDates.contains(calendar.startOfDay(for: cellDate)) {
+//                    data[dayOffset] = 1.0
+//                }
+//            }
+//        }
+//        return data
+//    }
+    
+    /// Nutrition metrics use NewHistoryChart (bar/stackedBar), not the contribution chart.
+    var contributionChartData: [Double]? { nil }
 
     var configuration: MetricConfiguration {
         MetricConfiguration(

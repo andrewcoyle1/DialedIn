@@ -179,7 +179,7 @@ struct UserManagerTests {
         let heightCm = 180.0
         let weightKg = 75.0
         
-        let updatedUser = try await manager.saveCompleteAccountSetupProfile(
+        let input = CompleteAccountSetupProfileInput(
             dateOfBirth: dateOfBirth,
             gender: Gender.male,
             heightCentimeters: heightCm,
@@ -191,6 +191,7 @@ struct UserManagerTests {
             weightUnitPreference: WeightUnitPreference.kilograms,
             onboardingStep: .completeAccountSetup
         )
+        let updatedUser = try await manager.saveCompleteAccountSetupProfile(input)
         
         #expect(updatedUser.userId == mockUser.userId)
         #expect(updatedUser.dateOfBirth == dateOfBirth)
@@ -207,19 +208,20 @@ struct UserManagerTests {
         let services = MockUserServices(user: nil)
         let manager = UserManager(services: services)
         
+        let input = CompleteAccountSetupProfileInput(
+            dateOfBirth: Date(),
+            gender: Gender.male,
+            heightCentimeters: 180.0,
+            weightKilograms: 75.0,
+            exerciseFrequency: ProfileExerciseFrequency.daily,
+            dailyActivityLevel: ProfileDailyActivityLevel.active,
+            cardioFitnessLevel: ProfileCardioFitnessLevel.intermediate,
+            lengthUnitPreference: LengthUnitPreference.centimeters,
+            weightUnitPreference: WeightUnitPreference.kilograms,
+            onboardingStep: .completeAccountSetup
+        )
         await #expect(throws: UserManager.UserManagerError.self) {
-            try await manager.saveCompleteAccountSetupProfile(
-                dateOfBirth: Date(),
-                gender: Gender.male,
-                heightCentimeters: 180.0,
-                weightKilograms: 75.0,
-                exerciseFrequency: ProfileExerciseFrequency.daily,
-                dailyActivityLevel: ProfileDailyActivityLevel.active,
-                cardioFitnessLevel: ProfileCardioFitnessLevel.intermediate,
-                lengthUnitPreference: LengthUnitPreference.centimeters,
-                weightUnitPreference: WeightUnitPreference.kilograms,
-                onboardingStep: .completeAccountSetup
-            )
+            try await manager.saveCompleteAccountSetupProfile(input)
         }
     }
     

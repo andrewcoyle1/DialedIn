@@ -127,20 +127,21 @@ extension VisualBodyFatEntry {
 }
 
 extension CoreRouter {
-    func showVisualBodyFatView(delegate: VisualBodyFatDelegate) {
+    func showVisualBodyFatView(delegate: VisualBodyFatDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.visualBodyFatView(router: router, delegate: delegate)
+            builder.visualBodyFatView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }
 
 extension CoreBuilder {
-    func visualBodyFatView(router: Router, delegate: VisualBodyFatDelegate) -> some View {
+    func visualBodyFatView(router: Router, delegate: VisualBodyFatDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: VisualBodyFatPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }

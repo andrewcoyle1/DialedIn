@@ -14,10 +14,10 @@ struct ChartScrollZoomModifier: ViewModifier {
                 GeometryReader { geo in
                     Color.clear
                         .onAppear {
-                            let width = geo[proxy.plotAreaFrame].size.width
+                            let width = proxy.plotFrame.map { geo[$0].size.width } ?? 300
                             state.updatePlotWidth(width)
                         }
-                        .onChange(of: geo[proxy.plotAreaFrame].size.width) { _, newValue in
+                        .onChange(of: proxy.plotFrame.map { geo[$0].size.width } ?? 300) { _, newValue in
                             state.updatePlotWidth(newValue)
                         }
                 }

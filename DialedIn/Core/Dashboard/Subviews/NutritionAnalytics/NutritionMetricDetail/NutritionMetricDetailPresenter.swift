@@ -21,24 +21,8 @@ final class NutritionMetricDetailPresenter: @MainActor MetricDetailPresenter {
 
     private(set) var entries: [NutritionMetricEntry] = []
 
-    var contributionChartData: [Double]? {
-        let endDate = calendar.startOfDay(for: Date())
-        let totalDays = 3 * 10
-        guard let chartStartDate = calendar.date(byAdding: .day, value: -(totalDays - 1), to: endDate) else { return nil }
-        let loggedDates = Set(entries.map { calendar.startOfDay(for: $0.date) })
-        var data = Array(repeating: 0.0, count: 30)
-        for column in 0..<10 {
-            for row in 0..<3 {
-                let dayOffset = column * 3 + row
-                guard let cellDate = calendar.date(byAdding: .day, value: dayOffset, to: chartStartDate),
-                      dayOffset < 30 else { continue }
-                if loggedDates.contains(calendar.startOfDay(for: cellDate)) {
-                    data[dayOffset] = 1.0
-                }
-            }
-        }
-        return data
-    }
+    /// Nutrition metrics use NewHistoryChart (bar/stackedBar), not the contribution chart.
+    var contributionChartData: [Double]? { nil }
 
     var timeSeries: [TimeSeriesData.TimeSeries] {
         if metric == .macros {
@@ -160,21 +144,22 @@ final class NutritionMetricDetailPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension CoreRouter {
-    func showNutritionMetricDetailView(metric: NutritionMetric, delegate: NutritionMetricDetailDelegate) {
+    func showNutritionMetricDetailView(metric: NutritionMetric, delegate: NutritionMetricDetailDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.nutritionMetricDetailView(router: router, metric: metric, delegate: delegate)
+            builder.nutritionMetricDetailView(router: router, metric: metric, delegate: delegate, themeColor: themeColor)
         }
     }
 }
 
 extension CoreBuilder {
-    func nutritionMetricDetailView(router: Router, metric: NutritionMetric, delegate: NutritionMetricDetailDelegate) -> some View {
+    func nutritionMetricDetailView(router: Router, metric: NutritionMetric, delegate: NutritionMetricDetailDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: NutritionMetricDetailPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self),
                 metric: metric
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }

@@ -16,16 +16,7 @@ protocol LiveActivityUpdating: AnyObject {
         statusMessage: String?
     )
     
-    // swiftlint:disable:next function_parameter_count
-    func updateLiveActivity(
-        session: WorkoutSessionModel,
-        isActive: Bool,
-        currentExerciseIndex: Int,
-        restEndsAt: Date?,
-        statusMessage: String?,
-        totalVolumeKg: Double?,
-        elapsedTime: TimeInterval?
-    )
+    func updateLiveActivity(params: LiveActivityUpdateParams)
     
     func updateRestAndActive(
         isActive: Bool,

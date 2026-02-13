@@ -41,10 +41,12 @@ class FreeWeightEntity {
         self.range = syncEntities(
             existing: range,
             models: model.range,
-            modelId: { $0.id },
-            entityId: { $0.id },
-            update: { $0.update(from: $1) },
-            create: { FreeWeightAvailableEntity(from: $0) }
+            config: SyncEntitiesConfig(
+                modelId: { $0.id },
+                entityId: { $0.id },
+                update: { $0.update(from: $1) },
+                create: { FreeWeightAvailableEntity(from: $0) }
+            )
         )
         self.isActive = model.isActive
     }

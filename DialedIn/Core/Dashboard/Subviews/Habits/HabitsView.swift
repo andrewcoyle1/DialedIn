@@ -35,13 +35,15 @@ struct HabitsView: View {
     }
     
     private var generalSection: some View {
-        Section {
+        let weighInColor = Color.green
+        return Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
                 DashboardCard(
                     title: "Weigh In",
                     subtitle: "Last 30 Days",
                     subsubtitle: "\(presenter.weighInCountThisWeek)",
                     subsubsubtitle: "this week",
+                    themeColor: weighInColor,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                 ) {
                     ContributionChartView(
@@ -49,7 +51,7 @@ struct HabitsView: View {
                         rows: 3,
                         columns: 10,
                         targetValue: 1.0,
-                        blockColor: .green,
+                        blockColor: weighInColor,
                         blockBackgroundColor: .background,
                         rectangleWidth: .infinity,
                         endDate: .now,
@@ -58,7 +60,7 @@ struct HabitsView: View {
                 }
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onWeighInPressed()
+                    presenter.onWeighInPressed(themeColor: weighInColor)
                 }
             }
             .padding(.horizontal)
@@ -69,13 +71,15 @@ struct HabitsView: View {
     }
     
     private var trainingSection: some View {
-        Section {
+        let workoutColor = Color.orange
+        return Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
                 DashboardCard(
                     title: "Workouts",
                     subtitle: "Last 30 Days",
                     subsubtitle: "\(presenter.workoutCountThisWeek)",
                     subsubsubtitle: "this week",
+                    themeColor: workoutColor,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                 ) {
                     ContributionChartView(
@@ -83,7 +87,7 @@ struct HabitsView: View {
                         rows: 3,
                         columns: 10,
                         targetValue: 1.0,
-                        blockColor: .orange,
+                        blockColor: workoutColor,
                         blockBackgroundColor: .background,
                         rectangleWidth: .infinity,
                         endDate: .now,
@@ -92,7 +96,7 @@ struct HabitsView: View {
                 }
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onWorkoutsPressed()
+                    presenter.onWorkoutsPressed(themeColor: workoutColor)
                 }
             }
             .padding(.horizontal)
@@ -103,13 +107,15 @@ struct HabitsView: View {
     }
     
     private var nutritionSection: some View {
-        Section {
+        let foodLoggingColor = Color.orange
+        return Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
                 DashboardCard(
                     title: "Food Logging",
                     subtitle: "Last 30 Days",
                     subsubtitle: "\(presenter.foodLoggingCountThisWeek)/7",
                     subsubsubtitle: "this week",
+                    themeColor: foodLoggingColor,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                 ) {
                     ContributionChartView(
@@ -117,7 +123,7 @@ struct HabitsView: View {
                         rows: 3,
                         columns: 10,
                         targetValue: 1.0,
-                        blockColor: .accent,
+                        blockColor: foodLoggingColor,
                         blockBackgroundColor: .background,
                         rectangleWidth: .infinity,
                         endDate: .now,
@@ -126,7 +132,7 @@ struct HabitsView: View {
                 }
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onFoodLoggingPressed()
+                    presenter.onFoodLoggingPressed(themeColor: foodLoggingColor)
                 }
             }
             .padding(.horizontal)

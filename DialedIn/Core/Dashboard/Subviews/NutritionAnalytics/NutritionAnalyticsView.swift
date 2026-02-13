@@ -42,13 +42,18 @@ struct NutritionAnalyticsView: View {
     }
     
     private var caloriesAndMacrosSection: some View {
-        Section {
+        let proteinColor = MacroProgressChart.proteinColor
+        let caloriesColor = Color.blue
+        let fatColor = MacroProgressChart.fatColor
+        let carbsColor = MacroProgressChart.carbsColor
+        return Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
                 DashboardCard(
                     title: "Macros",
                     subtitle: "Last 7 Days",
                     subsubtitle: presenter.macrosLast7Days.isEmpty ? "--" : Int(presenter.macrosAverageCalories).formatted(),
                     subsubsubtitle: "kcal",
+                    themeColor: proteinColor,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
                     chart: {
                         let chartData = presenter.macrosLast7Days.isEmpty
@@ -59,83 +64,87 @@ struct NutritionAnalyticsView: View {
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onMacrosPressed()
+                    presenter.onMacrosPressed(themeColor: proteinColor)
                 }
                 DashboardCard(
                     title: "Calories",
                     subtitle: "Today",
                     subsubtitle: presenter.dailyTotals != nil ? Int(presenter.caloriesCurrent).formatted() : "--",
                     subsubsubtitle: "kcal",
+                    themeColor: caloriesColor,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
                     chart: {
                         MacroProgressChart(
                             current: presenter.caloriesCurrent,
                             target: presenter.caloriesTarget,
                             maxValue: presenter.caloriesMax,
-                            color: .blue
+                            color: caloriesColor
                         )
                     }
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onCaloriesPressed()
+                    presenter.onCaloriesPressed(themeColor: caloriesColor)
                 }
                 DashboardCard(
                     title: "Protein",
                     subtitle: "Today",
                     subsubtitle: presenter.dailyTotals != nil ? presenter.proteinCurrent.formatted(.number.precision(.fractionLength(1))) : "--",
                     subsubsubtitle: "g",
+                    themeColor: proteinColor,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
                     chart: {
                         MacroProgressChart(
                             current: presenter.proteinCurrent,
                             target: presenter.proteinTarget,
                             maxValue: presenter.proteinMax,
-                            color: MacroProgressChart.proteinColor
+                            color: proteinColor
                         )
                     }
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onProteinPressed()
+                    presenter.onProteinPressed(themeColor: proteinColor)
                 }
                 DashboardCard(
                     title: "Fat",
                     subtitle: "Today",
                     subsubtitle: presenter.dailyTotals != nil ? presenter.fatCurrent.formatted(.number.precision(.fractionLength(1))) : "--",
                     subsubsubtitle: "g",
+                    themeColor: fatColor,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
                     chart: {
                         MacroProgressChart(
                             current: presenter.fatCurrent,
                             target: presenter.fatTarget,
                             maxValue: presenter.fatMax,
-                            color: MacroProgressChart.fatColor
+                            color: fatColor
                         )
                     }
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onFatPressed()
+                    presenter.onFatPressed(themeColor: fatColor)
                 }
                 DashboardCard(
                     title: "Carbs",
                     subtitle: "Today",
                     subsubtitle: presenter.dailyTotals != nil ? presenter.carbsCurrent.formatted(.number.precision(.fractionLength(1))) : "--",
                     subsubsubtitle: "g",
+                    themeColor: carbsColor,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
                     chart: {
                         MacroProgressChart(
                             current: presenter.carbsCurrent,
                             target: presenter.carbsTarget,
                             maxValue: presenter.carbsMax,
-                            color: MacroProgressChart.carbsColor
+                            color: carbsColor
                         )
                     }
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onCarbsPressed()
+                    presenter.onCarbsPressed(themeColor: carbsColor)
                 }
             }
             .padding(.horizontal)
@@ -152,6 +161,7 @@ struct NutritionAnalyticsView: View {
             subtitle: "Today",
             subsubtitle: presenter.formatBreakdown(value, unit: unit),
             subsubsubtitle: unit,
+            themeColor: color,
             chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
             chart: {
                 MacroProgressChart(
@@ -164,7 +174,7 @@ struct NutritionAnalyticsView: View {
         )
         .tappableBackground()
         .anyButton(.press) {
-            presenter.onBreakdownMetricPressed(metric)
+            presenter.onBreakdownMetricPressed(metric, themeColor: color)
         }
     }
     

@@ -190,31 +190,49 @@ class StepsManager {
 
         let existingEntries = (try? local.readAllLocalStepsEntries()) ?? []
         let existingIds = Set(existingEntries.compactMap(\.healthKitId))
-        let existingDayMaxs = Dictionary(grouping: existingEntries) { entry in
-            Calendar.current.startOfDay(for: entry.date)
-        }.compactMapValues { dayEntries in
-            let maxEntry = dayEntries
-                .filter { $0.authorId == userId && $0.deletedAt == nil }
-                .max { lhs, rhs in
-                    return lhs.number < rhs.number
-                }
-            return maxEntry?.number
+        let existingDayMaxs = existingDayMaxSteps(userId: userId, entries: existingEntries)
+
+        let newestDate = await processImportedStepsSamples(
+            samples: samples,
+            existingIds: existingIds,
+            existingDayMaxs: existingDayMaxs,
+            userId: userId,
+            lastSync: lastSync
+        )
+
+        if let newestDate {
+            setLastHealthKitSyncDate(newestDate)
         }
 
+        if let refreshed = try? local.readAllLocalStepsEntries() {
+            stepsHistory = refreshed
+        }
+    }
+
+    private func existingDayMaxSteps(userId: String, entries: [StepsModel]) -> [Date: Int] {
+        Dictionary(grouping: entries) { Calendar.current.startOfDay(for: $0.date) }
+            .compactMapValues { dayEntries in
+                dayEntries
+                    .filter { $0.authorId == userId && $0.deletedAt == nil }
+                    .max { $0.number < $1.number }?.number
+            }
+    }
+
+    private func processImportedStepsSamples(
+        samples: [HealthKitStepsSample],
+        existingIds: Set<String>,
+        existingDayMaxs: [Date: Int],
+        userId: String,
+        lastSync: Date?
+    ) async -> Date? {
         var newestDate = lastSync
         for sample in samples {
             if newestDate == nil || sample.date > newestDate! {
                 newestDate = sample.date
             }
-
-            if existingIds.contains(sample.id) {
-                continue
-            }
-
+            if existingIds.contains(sample.id) { continue }
             let sampleDay = Calendar.current.startOfDay(for: sample.date)
-            if let existingDayMax = existingDayMaxs[sampleDay], existingDayMax >= sample.steps {
-                continue
-            }
+            if let existingDayMax = existingDayMaxs[sampleDay], existingDayMax >= sample.steps { continue }
 
             let steps = StepsModel(
                 authorId: userId,
@@ -225,28 +243,18 @@ class StepsManager {
                 dateModified: sample.date,
                 healthKitId: sample.id
             )
-
             do {
                 try local.createStepsEntry(steps: steps)
             } catch {
                 try? local.updateStepsEntry(steps: steps)
             }
-
             do {
                 try await remote.createStepsEntry(steps: steps)
             } catch {
                 try? await remote.updateStepsEntry(steps: steps)
             }
         }
-
-        if let newestDate {
-            setLastHealthKitSyncDate(newestDate)
-        }
-
-        let refreshedEntries = (try? local.readAllLocalStepsEntries()) ?? existingEntries
-        if let refreshed = try? local.readAllLocalStepsEntries() {
-            stepsHistory = refreshed
-        }
+        return newestDate
     }
 
     private func exportToHealthKitIfNeeded(steps: StepsModel) async {

@@ -28,20 +28,25 @@ class ExerciseAnalyticsPresenter {
             let completed = sessions.filter { $0.endedAt != nil }
             let aggregated = ExerciseOneRMAggregator.aggregate(sessions: completed)
 
-            let systemExercises = (try? interactor.getSystemExerciseTemplates()) ?? []
-            let userExercises = (try? await interactor.getExerciseTemplatesForAuthor(authorId: userId)) ?? []
+            let systemExercises: [ExerciseModel] = (try? interactor.getSystemExerciseTemplates()) ?? []
+            let userExercises: [ExerciseModel] = (try? await interactor.getExerciseTemplatesForAuthor(authorId: userId)) ?? []
             var seenIds = Set<String>()
-            let allExercises = (userExercises + systemExercises)
-                .filter { seenIds.insert($0.id).inserted }
-                .sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
+            let combined: [ExerciseModel] = userExercises + systemExercises
+            let allExercises: [ExerciseModel] = combined
+                .filter { (template: ExerciseModel) in
+                    seenIds.insert(template.id).inserted
+                }
+                .sorted { (lhs: ExerciseModel, rhs: ExerciseModel) in
+                    lhs.name.localizedCompare(rhs.name) == .orderedAscending
+                }
 
-            let emptySparkline: [(date: Date, value: Double)] = []
-            exerciseCards = allExercises.map { exercise in
+            self.exerciseCards = allExercises.map { (exercise: ExerciseModel) -> ExerciseCardItem in
                 let data = aggregated[exercise.id]
+                let sparkline: [(date: Date, value: Double)] = (data?.last7Workouts ?? []).map { (date: $0.date, value: $0.value) }
                 return ExerciseCardItem(
                     templateId: exercise.id,
                     name: exercise.name,
-                    sparklineData: data?.last7Workouts ?? emptySparkline,
+                    sparklineData: sparkline,
                     latest1RM: data?.latest1RM ?? 0
                 )
             }
@@ -50,8 +55,8 @@ class ExerciseAnalyticsPresenter {
         }
     }
 
-    func onExercisePressed(templateId: String, name: String) {
-        router.showExerciseDetailView(templateId: templateId, name: name, delegate: ExerciseDetailDelegate())
+    func onExercisePressed(templateId: String, name: String, themeColor: Color?) {
+        router.showExerciseDetailView(templateId: templateId, name: name, delegate: ExerciseDetailDelegate(), themeColor: themeColor)
     }
 
     func onDismissPressed() {

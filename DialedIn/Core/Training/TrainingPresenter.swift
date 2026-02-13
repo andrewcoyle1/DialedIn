@@ -32,11 +32,11 @@ struct MicrocycleDayPlanItem: Identifiable {
 @MainActor
 class TrainingPresenter {
     
-    private let interactor: TrainingInteractor
-    private let router: TrainingRouter
+    let interactor: TrainingInteractor
+    let router: TrainingRouter
     
     let calendar = Calendar.current
-    private(set) var microcycleHeaderText: String = "Current Microcycle"
+    var microcycleHeaderText: String = "Current Microcycle"
 
     var activeProgramisExpanded: Bool = true
     var selectedDate: Date = Date()
@@ -94,154 +94,6 @@ class TrainingPresenter {
         router.showAddTrainingView(delegate: delegate, onDismiss: nil)
     }
     
-    func microcycleItemsForWeek(weekStart: Date, calendar: Calendar) -> [Date: MicrocycleDayPlanItem] {
-        guard let program = activeTrainingProgram, !program.dayPlans.isEmpty else {
-            microcycleHeaderText = "Current Microcycle"
-            return [:]
-        }
-        
-        let weekDates = (0..<7)
-            .compactMap { calendar.date(byAdding: .day, value: $0, to: weekStart) }
-            .map { calendar.startOfDay(for: $0) }
-        let weekDateSet = Set(weekDates)
-        
-        let dayPlans = program.dayPlans
-        let dayPlanNames = Set(dayPlans.map { $0.name })
-        let dayPlanById = Dictionary(uniqueKeysWithValues: dayPlans.map { ($0.id, $0) })
-        let workoutDayPlanIds = Set(dayPlans.filter { !$0.exercises.isEmpty }.map { $0.id })
-        
-        let sessions = (try? interactor.getAllLocalWorkoutSessions()) ?? []
-        let completedSessions = sessions
-            .compactMap { session -> (WorkoutSessionModel, DayPlan)? in
-                guard let _ = session.endedAt else { return nil }
-                let shouldInclude = session.programId == program.id
-                    || (session.programId == nil && session.dayPlanId == nil && dayPlanNames.contains(session.name))
-                guard shouldInclude else { return nil }
-                
-                if let dayPlanId = session.dayPlanId, let plan = dayPlanById[dayPlanId] {
-                    return (session, plan)
-                }
-                if let plan = dayPlans.first(where: { $0.name == session.name }) {
-                    return (session, plan)
-                }
-                return nil
-            }
-            .sorted { ($0.0.endedAt ?? .distantPast) < ($1.0.endedAt ?? .distantPast) }
-        
-        let cyclesTotal = max(program.numMicrocycles, 1)
-        var completedCycles = 0
-        var completedInCurrentCycle = Set<String>()
-        for (_, dayPlan) in completedSessions {
-            guard workoutDayPlanIds.contains(dayPlan.id) else { continue }
-            completedInCurrentCycle.insert(dayPlan.id)
-            if completedInCurrentCycle == workoutDayPlanIds && !workoutDayPlanIds.isEmpty {
-                completedCycles += 1
-                completedInCurrentCycle.removeAll()
-            }
-        }
-        let cycleIndex = min(completedCycles + 1, cyclesTotal)
-        microcycleHeaderText = "Microcycle \(cycleIndex) of \(cyclesTotal)"
-        
-        var itemsByDay: [Date: MicrocycleDayPlanItem] = [:]
-        
-        for (session, dayPlan) in completedSessions {
-            guard let endedAt = session.endedAt else { continue }
-            let day = calendar.startOfDay(for: endedAt)
-            guard weekDateSet.contains(day) else { continue }
-            guard itemsByDay[day] == nil else { continue }
-            
-            itemsByDay[day] = MicrocycleDayPlanItem(
-                id: "\(day.timeIntervalSince1970)-\(dayPlan.id)",
-                date: day,
-                dayPlan: dayPlan,
-                completedSessionId: session.id
-            )
-        }
-        
-        let startIndex: Int
-        if workoutDayPlanIds.isEmpty {
-            startIndex = 0
-        } else if let firstIncompleteIndex = dayPlans.firstIndex(where: { plan in
-            plan.exercises.isEmpty ? false : !completedInCurrentCycle.contains(plan.id)
-        }) {
-            startIndex = firstIncompleteIndex
-        } else {
-            startIndex = 0
-        }
-        var nextIndex = startIndex % dayPlans.count
-        for day in weekDates where itemsByDay[day] == nil {
-            let dayPlan = dayPlans[nextIndex]
-            itemsByDay[day] = MicrocycleDayPlanItem(
-                id: "\(day.timeIntervalSince1970)-\(dayPlan.id)",
-                date: day,
-                dayPlan: dayPlan,
-                completedSessionId: nil
-            )
-            nextIndex = (nextIndex + 1) % dayPlans.count
-        }
-        
-        return itemsByDay
-    }
-
-    func currentMicrocycleItems() -> [MicrocycleItem] {
-        guard let program = activeTrainingProgram, !program.dayPlans.isEmpty else {
-            microcycleHeaderText = "Current Microcycle"
-            return []
-        }
-        
-        let dayPlans = program.dayPlans
-        let dayPlanNames = Set(dayPlans.map { $0.name })
-        let dayPlanById = Dictionary(uniqueKeysWithValues: dayPlans.map { ($0.id, $0) })
-        let workoutDayPlanIds = Set(dayPlans.filter { !$0.exercises.isEmpty }.map { $0.id })
-        
-        let sessions = (try? interactor.getAllLocalWorkoutSessions()) ?? []
-        let completedSessions = sessions
-            .compactMap { session -> (WorkoutSessionModel, DayPlan)? in
-                guard let endedAt = session.endedAt else { return nil }
-                let shouldInclude = session.programId == program.id
-                    || (session.programId == nil && session.dayPlanId == nil && dayPlanNames.contains(session.name))
-                guard shouldInclude else { return nil }
-                
-                if let dayPlanId = session.dayPlanId, let plan = dayPlanById[dayPlanId] {
-                    return (session, plan)
-                }
-                if let plan = dayPlans.first(where: { $0.name == session.name }) {
-                    return (session, plan)
-                }
-                return nil
-            }
-            .sorted { ($0.0.endedAt ?? .distantPast) < ($1.0.endedAt ?? .distantPast) }
-        
-        let cyclesTotal = max(program.numMicrocycles, 1)
-        var completedCycles = 0
-        var completedInCurrentCycle = Set<String>()
-        var sessionByPlanId: [String: String] = [:]
-        
-        for (session, dayPlan) in completedSessions {
-            guard workoutDayPlanIds.contains(dayPlan.id) else { continue }
-            if !completedInCurrentCycle.contains(dayPlan.id) {
-                completedInCurrentCycle.insert(dayPlan.id)
-                sessionByPlanId[dayPlan.id] = session.id
-            }
-            if completedInCurrentCycle == workoutDayPlanIds && !workoutDayPlanIds.isEmpty {
-                completedCycles += 1
-                completedInCurrentCycle.removeAll()
-                sessionByPlanId.removeAll()
-            }
-        }
-        
-        let cycleIndex = min(completedCycles + 1, cyclesTotal)
-        microcycleHeaderText = "Microcycle \(cycleIndex) of \(cyclesTotal)"
-        
-        return dayPlans.map { plan in
-            MicrocycleItem(
-                id: plan.id,
-                dayPlan: plan,
-                completedSessionId: sessionByPlanId[plan.id]
-            )
-        }
-    }
-
     func onProfilePressed() {
         router.showProfileView()
     }

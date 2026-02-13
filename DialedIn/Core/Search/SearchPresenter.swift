@@ -107,7 +107,8 @@ class SearchPresenter {
         router.showExerciseDetailView(
             templateId: exercise.id,
             name: exercise.name,
-            delegate: ExerciseDetailDelegate()
+            delegate: ExerciseDetailDelegate(),
+            themeColor: nil
         )
     }
 

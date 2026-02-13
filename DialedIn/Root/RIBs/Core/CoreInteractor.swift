@@ -196,32 +196,8 @@ struct CoreInteractor: GlobalInteractor {
         try await userManager.saveUser(user: user, image: image)
     }
     
-    // swiftlint:disable:next function_parameter_count
-    func saveCompleteAccountSetupProfile(
-        dateOfBirth: Date,
-        gender: Gender,
-        heightCentimeters: Double,
-        weightKilograms: Double,
-        exerciseFrequency: ProfileExerciseFrequency,
-        dailyActivityLevel: ProfileDailyActivityLevel,
-        cardioFitnessLevel: ProfileCardioFitnessLevel,
-        lengthUnitPreference: LengthUnitPreference,
-        weightUnitPreference: WeightUnitPreference,
-        onboardingStep: OnboardingStep
-    ) async throws -> UserModel {
-        try await userManager
-            .saveCompleteAccountSetupProfile(
-                dateOfBirth: dateOfBirth,
-                gender: gender,
-                heightCentimeters: heightCentimeters,
-                weightKilograms: weightKilograms,
-                exerciseFrequency: exerciseFrequency,
-                dailyActivityLevel: dailyActivityLevel,
-                cardioFitnessLevel: cardioFitnessLevel,
-                lengthUnitPreference: lengthUnitPreference,
-                weightUnitPreference: weightUnitPreference,
-                onboardingStep: onboardingStep
-            )
+    func saveCompleteAccountSetupProfile(_ input: CompleteAccountSetupProfileInput) async throws -> UserModel {
+        try await userManager.saveCompleteAccountSetupProfile(input)
     }
 
     func saveCompleteAccountSetupProfile(userBuilder: UserModelBuilder, onboardingStep: OnboardingStep) async throws -> UserModel {
@@ -235,7 +211,7 @@ struct CoreInteractor: GlobalInteractor {
               let weightPref = userBuilder.weightUnitPreferene else {
             throw CoreInteractorError.incompleteUserBuilder
         }
-        return try await saveCompleteAccountSetupProfile(
+        let input = CompleteAccountSetupProfileInput(
             dateOfBirth: dob,
             gender: userBuilder.gender,
             heightCentimeters: height,
@@ -247,6 +223,7 @@ struct CoreInteractor: GlobalInteractor {
             weightUnitPreference: weightPref,
             onboardingStep: onboardingStep
         )
+        return try await saveCompleteAccountSetupProfile(input)
     }
 
     private func mapProfileExerciseFrequency(_ frequency: ExerciseFrequency) -> ProfileExerciseFrequency {
@@ -1339,7 +1316,6 @@ struct CoreInteractor: GlobalInteractor {
         var cholesterolMg: Double = 0
     }
     
-    // swiftlint:disable:next cyclomatic_complexity
     private func aggregateRecipeNutrients(recipe: RecipeTemplateModel) -> RecipeNutrientTotals {
         var totals = RecipeNutrientTotals()
         for ringredient in recipe.ingredients {
@@ -1350,38 +1326,46 @@ struct CoreInteractor: GlobalInteractor {
             case .units: grams = ringredient.amount * 100
             }
             let scale = grams / 100.0
-            let ingredient = ringredient.ingredient
-            if let value = ingredient.fiber { totals.fiberGrams += value * scale }
-            if let value = ingredient.sugar { totals.sugarGrams += value * scale }
-            if let value = ingredient.fatSaturated { totals.fatSaturatedGrams += value * scale }
-            if let value = ingredient.fatMonounsaturated { totals.fatMonounsaturatedGrams += value * scale }
-            if let value = ingredient.fatPolyunsaturated { totals.fatPolyunsaturatedGrams += value * scale }
-            if let value = ingredient.sodiumMg { totals.sodiumMg += value * scale }
-            if let value = ingredient.potassiumMg { totals.potassiumMg += value * scale }
-            if let value = ingredient.calciumMg { totals.calciumMg += value * scale }
-            if let value = ingredient.ironMg { totals.ironMg += value * scale }
-            if let value = ingredient.magnesiumMg { totals.magnesiumMg += value * scale }
-            if let value = ingredient.zincMg { totals.zincMg += value * scale }
-            if let value = ingredient.copperMg { totals.copperMg += value * scale }
-            if let value = ingredient.manganeseMg { totals.manganeseMg += value * scale }
-            if let value = ingredient.phosphorusMg { totals.phosphorusMg += value * scale }
-            if let value = ingredient.seleniumMcg { totals.seleniumMcg += value * scale }
-            if let value = ingredient.vitaminAMcg { totals.vitaminAMcg += value * scale }
-            if let value = ingredient.vitaminB6Mg { totals.vitaminB6Mg += value * scale }
-            if let value = ingredient.vitaminB12Mcg { totals.vitaminB12Mcg += value * scale }
-            if let value = ingredient.vitaminCMg { totals.vitaminCMg += value * scale }
-            if let value = ingredient.vitaminDMcg { totals.vitaminDMcg += value * scale }
-            if let value = ingredient.vitaminEMg { totals.vitaminEMg += value * scale }
-            if let value = ingredient.vitaminKMcg { totals.vitaminKMcg += value * scale }
-            if let value = ingredient.thiaminMg { totals.thiaminMg += value * scale }
-            if let value = ingredient.riboflavinMg { totals.riboflavinMg += value * scale }
-            if let value = ingredient.niacinMg { totals.niacinMg += value * scale }
-            if let value = ingredient.pantothenicAcidMg { totals.pantothenicAcidMg += value * scale }
-            if let value = ingredient.folateMcg { totals.folateMcg += value * scale }
-            if let value = ingredient.caffeineMg { totals.caffeineMg += value * scale }
-            if let value = ingredient.cholesterolMg { totals.cholesterolMg += value * scale }
+            addScaledIngredientNutrients(ringredient.ingredient, scale: scale, into: &totals)
         }
         return totals
+    }
+
+    private func addScaledIngredientNutrients(_ ingredient: IngredientTemplateModel, scale: Double, into totals: inout RecipeNutrientTotals) {
+        addScaled(ingredient.fiber, to: &totals.fiberGrams, scale: scale)
+        addScaled(ingredient.sugar, to: &totals.sugarGrams, scale: scale)
+        addScaled(ingredient.fatSaturated, to: &totals.fatSaturatedGrams, scale: scale)
+        addScaled(ingredient.fatMonounsaturated, to: &totals.fatMonounsaturatedGrams, scale: scale)
+        addScaled(ingredient.fatPolyunsaturated, to: &totals.fatPolyunsaturatedGrams, scale: scale)
+        addScaled(ingredient.sodiumMg, to: &totals.sodiumMg, scale: scale)
+        addScaled(ingredient.potassiumMg, to: &totals.potassiumMg, scale: scale)
+        addScaled(ingredient.calciumMg, to: &totals.calciumMg, scale: scale)
+        addScaled(ingredient.ironMg, to: &totals.ironMg, scale: scale)
+        addScaled(ingredient.magnesiumMg, to: &totals.magnesiumMg, scale: scale)
+        addScaled(ingredient.zincMg, to: &totals.zincMg, scale: scale)
+        addScaled(ingredient.copperMg, to: &totals.copperMg, scale: scale)
+        addScaled(ingredient.manganeseMg, to: &totals.manganeseMg, scale: scale)
+        addScaled(ingredient.phosphorusMg, to: &totals.phosphorusMg, scale: scale)
+        addScaled(ingredient.seleniumMcg, to: &totals.seleniumMcg, scale: scale)
+        addScaled(ingredient.vitaminAMcg, to: &totals.vitaminAMcg, scale: scale)
+        addScaled(ingredient.vitaminB6Mg, to: &totals.vitaminB6Mg, scale: scale)
+        addScaled(ingredient.vitaminB12Mcg, to: &totals.vitaminB12Mcg, scale: scale)
+        addScaled(ingredient.vitaminCMg, to: &totals.vitaminCMg, scale: scale)
+        addScaled(ingredient.vitaminDMcg, to: &totals.vitaminDMcg, scale: scale)
+        addScaled(ingredient.vitaminEMg, to: &totals.vitaminEMg, scale: scale)
+        addScaled(ingredient.vitaminKMcg, to: &totals.vitaminKMcg, scale: scale)
+        addScaled(ingredient.thiaminMg, to: &totals.thiaminMg, scale: scale)
+        addScaled(ingredient.riboflavinMg, to: &totals.riboflavinMg, scale: scale)
+        addScaled(ingredient.niacinMg, to: &totals.niacinMg, scale: scale)
+        addScaled(ingredient.pantothenicAcidMg, to: &totals.pantothenicAcidMg, scale: scale)
+        addScaled(ingredient.folateMcg, to: &totals.folateMcg, scale: scale)
+        addScaled(ingredient.caffeineMg, to: &totals.caffeineMg, scale: scale)
+        addScaled(ingredient.cholesterolMg, to: &totals.cholesterolMg, scale: scale)
+    }
+
+    private func addScaled(_ value: Double?, to total: inout Double, scale: Double) {
+        guard let value else { return }
+        total += value * scale
     }
     
     private func addRecipeTotalsToBreakdown(_ totals: RecipeNutrientTotals, scale: Double, into breakdown: inout DailyNutritionBreakdown) {
@@ -1843,25 +1827,8 @@ struct CoreInteractor: GlobalInteractor {
         liveActivityManager.ensureLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage)
     }
     
-    // swiftlint:disable:next function_parameter_count
-    func updateLiveActivity(
-        session: WorkoutSessionModel,
-        isActive: Bool,
-        currentExerciseIndex: Int,
-        restEndsAt: Date?,
-        statusMessage: String?,
-        totalVolumeKg: Double?,
-        elapsedTime: TimeInterval?
-    ) {
-        liveActivityManager.updateLiveActivity(
-            session: session,
-            isActive: isActive,
-            currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: restEndsAt,
-            statusMessage: statusMessage,
-            totalVolumeKg: totalVolumeKg,
-            elapsedTime: elapsedTime
-        )
+    func updateLiveActivity(params: LiveActivityUpdateParams) {
+        liveActivityManager.updateLiveActivity(params: params)
     }
     
     /// Update the Workout Live Activity with latest session progress

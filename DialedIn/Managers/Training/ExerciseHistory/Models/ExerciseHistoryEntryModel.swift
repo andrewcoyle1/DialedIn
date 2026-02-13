@@ -60,27 +60,29 @@ struct ExerciseHistoryEntryModel: Identifiable, Codable, Hashable {
         case dateModified = "date_modified"
     }
     
-    // swiftlint:disable:next function_parameter_count
-    static func newEntry(
-        authorId: String,
-        templateId: String,
-        templateName: String,
-        workoutSessionId: String,
-        workoutExerciseId: String,
-        performedAt: Date = .now,
-        notes: String? = nil,
-        sets: [WorkoutSetModel]
-    ) -> Self {
+    /// Parameters for creating a new exercise history entry.
+    struct NewEntryParams {
+        let authorId: String
+        let templateId: String
+        let templateName: String
+        let workoutSessionId: String
+        let workoutExerciseId: String
+        let performedAt: Date
+        let notes: String?
+        let sets: [WorkoutSetModel]
+    }
+
+    static func newEntry(params: NewEntryParams) -> Self {
         ExerciseHistoryEntryModel(
             id: UUID().uuidString,
-            authorId: authorId,
-            templateId: templateId,
-            templateName: templateName,
-            workoutSessionId: workoutSessionId,
-            workoutExerciseId: workoutExerciseId,
-            performedAt: performedAt,
-            notes: notes,
-            sets: sets,
+            authorId: params.authorId,
+            templateId: params.templateId,
+            templateName: params.templateName,
+            workoutSessionId: params.workoutSessionId,
+            workoutExerciseId: params.workoutExerciseId,
+            performedAt: params.performedAt,
+            notes: params.notes,
+            sets: params.sets,
             dateCreated: .now,
             dateModified: .now
         )

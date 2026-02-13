@@ -29,65 +29,66 @@ class ExerciseDetailPresenter {
 
     func loadData() async {
         guard let userId = interactor.auth?.uid else {
-            cachedEntries = []
-            cachedTimeSeries = []
+            clearCachedData()
             return
         }
         do {
-            let sessions = try interactor.getLocalWorkoutSessionsForAuthor(
-                authorId: userId,
-                limitTo: 0
-            )
+            let sessions = try interactor.getLocalWorkoutSessionsForAuthor(authorId: userId, limitTo: 0)
             let completed = sessions
                 .filter { $0.endedAt != nil }
                 .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
+            let oneRMByDay = computeOneRMByDay(from: completed)
+            applyCachedData(oneRMByDay: oneRMByDay)
+        } catch {
+            clearCachedData()
+        }
+    }
 
-            var oneRMByDay: [Date: Double] = [:]
-            let startOfDay: (Date) -> Date = { self.calendar.startOfDay(for: $0) }
+    private func clearCachedData() {
+        cachedEntries = []
+        cachedTimeSeries = []
+    }
 
-            for session in completed {
-                let sessionDate = session.endedAt ?? session.dateCreated
-                let day = startOfDay(sessionDate)
+    private func applyCachedData(oneRMByDay: [Date: Double]) {
+        let sortedDays = oneRMByDay.keys.sorted()
+        cachedEntries = sortedDays.reversed().map { day in
+            ExerciseDetailEntry(
+                id: day.timeIntervalSince1970.description,
+                date: day,
+                oneRMKg: oneRMByDay[day] ?? 0
+            )
+        }
+        let seriesData = sortedDays.map { day in
+            TimeSeriesDatapoint(
+                id: day.timeIntervalSince1970.description,
+                date: day,
+                value: oneRMByDay[day] ?? 0
+            )
+        }
+        cachedTimeSeries = [TimeSeriesData.TimeSeries(name: "1-RM", data: seriesData)]
+    }
 
-                for exercise in session.exercises where exercise.templateId == templateId {
-                    let best1RM = exercise.sets
-                        .filter { !$0.isWarmup && $0.completedAt != nil }
-                        .compactMap { set -> Double? in
-                            guard let weight = set.weightKg, weight > 0 else { return nil }
-                            let reps = set.reps ?? 1
-                            return ExerciseOneRMAggregator.estimated1RM(weightKg: weight, reps: max(1, reps))
-                        }
-                        .max()
-
-                    if let oneRM = best1RM, oneRM > 0 {
-                        oneRMByDay[day] = max(oneRMByDay[day] ?? 0, oneRM)
+    private func computeOneRMByDay(from completed: [WorkoutSessionModel]) -> [Date: Double] {
+        var oneRMByDay: [Date: Double] = [:]
+        let startOfDay: (Date) -> Date = { self.calendar.startOfDay(for: $0) }
+        for session in completed {
+            let sessionDate = session.endedAt ?? session.dateCreated
+            let day = startOfDay(sessionDate)
+            for exercise in session.exercises where exercise.templateId == templateId {
+                let best1RM = exercise.sets
+                    .filter { !$0.isWarmup && $0.completedAt != nil }
+                    .compactMap { set -> Double? in
+                        guard let weight = set.weightKg, weight > 0 else { return nil }
+                        let reps = set.reps ?? 1
+                        return ExerciseOneRMAggregator.estimated1RM(weightKg: weight, reps: max(1, reps))
                     }
+                    .max()
+                if let oneRM = best1RM, oneRM > 0 {
+                    oneRMByDay[day] = max(oneRMByDay[day] ?? 0, oneRM)
                 }
             }
-
-            let sortedDays = oneRMByDay.keys.sorted()
-            cachedEntries = sortedDays.reversed().map { day in
-                ExerciseDetailEntry(
-                    id: day.timeIntervalSince1970.description,
-                    date: day,
-                    oneRMKg: oneRMByDay[day] ?? 0
-                )
-            }
-
-            let seriesData = sortedDays.map { day in
-                TimeSeriesDatapoint(
-                    id: day.timeIntervalSince1970.description,
-                    date: day,
-                    value: oneRMByDay[day] ?? 0
-                )
-            }
-            cachedTimeSeries = [
-                TimeSeriesData.TimeSeries(name: "1-RM", data: seriesData)
-            ]
-        } catch {
-            cachedEntries = []
-            cachedTimeSeries = []
         }
+        return oneRMByDay
     }
 
     func onDismissPressed() {
@@ -117,7 +118,7 @@ extension ExerciseDetailPresenter: @MainActor MetricDetailPresenter {
             emptyStateMessage: "No 1-RM data for \(name)",
             pageSize: 20,
             chartColor: .blue,
-            chartType: .bar
+            chartType: .line
         )
     }
 

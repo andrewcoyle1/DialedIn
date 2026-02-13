@@ -199,32 +199,8 @@ struct OnbInteractor {
         try await userManager.saveUser(user: user, image: image)
     }
     
-    // swiftlint:disable:next function_parameter_count
-    func saveCompleteAccountSetupProfile(
-        dateOfBirth: Date,
-        gender: Gender,
-        heightCentimeters: Double,
-        weightKilograms: Double,
-        exerciseFrequency: ProfileExerciseFrequency,
-        dailyActivityLevel: ProfileDailyActivityLevel,
-        cardioFitnessLevel: ProfileCardioFitnessLevel,
-        lengthUnitPreference: LengthUnitPreference,
-        weightUnitPreference: WeightUnitPreference,
-        onboardingStep: OnboardingStep
-    ) async throws -> UserModel {
-        try await userManager
-            .saveCompleteAccountSetupProfile(
-                dateOfBirth: dateOfBirth,
-                gender: gender,
-                heightCentimeters: heightCentimeters,
-                weightKilograms: weightKilograms,
-                exerciseFrequency: exerciseFrequency,
-                dailyActivityLevel: dailyActivityLevel,
-                cardioFitnessLevel: cardioFitnessLevel,
-                lengthUnitPreference: lengthUnitPreference,
-                weightUnitPreference: weightUnitPreference,
-                onboardingStep: onboardingStep
-            )
+    func saveCompleteAccountSetupProfile(_ input: CompleteAccountSetupProfileInput) async throws -> UserModel {
+        try await userManager.saveCompleteAccountSetupProfile(input)
     }
 
     func saveCompleteAccountSetupProfile(userBuilder: UserModelBuilder, onboardingStep: OnboardingStep) async throws -> UserModel {
@@ -238,7 +214,7 @@ struct OnbInteractor {
               let weightPref = userBuilder.weightUnitPreferene else {
             throw CoreInteractorError.incompleteUserBuilder
         }
-        return try await saveCompleteAccountSetupProfile(
+        let input = CompleteAccountSetupProfileInput(
             dateOfBirth: dob,
             gender: userBuilder.gender,
             heightCentimeters: height,
@@ -250,6 +226,7 @@ struct OnbInteractor {
             weightUnitPreference: weightPref,
             onboardingStep: onboardingStep
         )
+        return try await saveCompleteAccountSetupProfile(input)
     }
     
     private func mapProfileExerciseFrequency(_ frequency: ExerciseFrequency) -> ProfileExerciseFrequency {

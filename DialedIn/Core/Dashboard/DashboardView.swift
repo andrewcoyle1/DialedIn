@@ -87,409 +87,6 @@ struct DashboardView<NutritionChart: View>: View {
         }
     }
     
-    private var insightsAndAnalyticsSection: some View {
-        Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(
-                    title: "Workouts",
-                    subtitle: presenter.workoutSubtitle,
-                    subsubtitle: presenter.workoutLatestValueText,
-                    subsubsubtitle: presenter.workoutUnitText,
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    SetsBarChart(
-                        data: presenter.workoutSparklineData.map(\.value),
-                        slotCount: 7,
-                        color: .orange
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onWorkoutsPressed()
-                }
-                
-                DashboardCard(
-                    title: "Expenditure",
-                    subtitle: presenter.expenditureSubtitle,
-                    subsubtitle: presenter.expenditureLatestValueText,
-                    subsubsubtitle: presenter.expenditureUnitText,
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    SparklineChart(
-                        data: presenter.expenditureSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: .pink,
-                            lineWidth: 2,
-                            fillColor: .pink,
-                            height: 36
-                        )
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onExpenditurePressed()
-                }
-
-                DashboardCard(
-                    title: "Weight Trend",
-                    subtitle: presenter.weightTrendSubtitle,
-                    subsubtitle: presenter.weightTrendLatestValueText,
-                    subsubsubtitle: presenter.weightTrendUnitText,
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    SparklineChart(
-                        data: presenter.weightTrendSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: .purple,
-                            lineWidth: 2,
-                            fillColor: .purple,
-                            height: 36
-                        )
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onWeightTrendPressed()
-                }
-                DashboardCard(
-                    title: "Goal Progress",
-                    subtitle: "Last 7 Days",
-                    subsubtitle: "14",
-                    subsubsubtitle: "%",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
-                    chart: {
-                        MacroProgressChart(current: 14, target: 100, maxValue: 100, color: .green)
-                    }
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onGoalProgressPressed()
-                }
-                DashboardCard(
-                    title: "Energy Balance",
-                    subtitle: presenter.energyBalanceSubtitle,
-                    subsubtitle: presenter.energyBalanceLatestValueText,
-                    subsubsubtitle: presenter.energyBalanceUnitText,
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    EnergyBalanceChart(
-                        expenditure: presenter.energyBalanceExpenditure,
-                        energyIntake: presenter.energyBalanceIntake
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onEnergyBalancePressed()
-                }
-            }
-            .padding(.horizontal)
-            .removeListRowFormatting()
-        } header: {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Insights & Analytics")
-             Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton {
-                        presenter.onSeeAllInsightsPressed()
-                    }
-            }
-        }
-    }
-    
-    private var habitsSection: some View {
-        Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(
-                    title: "Weigh In",
-                    subtitle: "Last 30 Days",
-                    subsubtitle: "\(presenter.weighInCountThisWeek)",
-                    subsubsubtitle: "this week",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    ContributionChartView(
-                        data: presenter.weighInContributionData,
-                        rows: 3,
-                        columns: 10,
-                        targetValue: 1.0,
-                        blockColor: .green,
-                        blockBackgroundColor: .background,
-                        rectangleWidth: .infinity,
-                        endDate: .now,
-                        showsCaptioning: false
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onScaleWeightPressed()
-                }
-                DashboardCard(
-                    title: "Workouts",
-                    subtitle: "Last 30 Days",
-                    subsubtitle: "\(presenter.workoutCountThisWeek)",
-                    subsubsubtitle: "this week",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    ContributionChartView(
-                        data: presenter.workoutContributionData,
-                        rows: 3,
-                        columns: 10,
-                        targetValue: 1.0,
-                        blockColor: .orange,
-                        blockBackgroundColor: .background,
-                        rectangleWidth: .infinity,
-                        endDate: .now,
-                        showsCaptioning: false
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onWorkoutsPressed()
-                }
-            }
-            .padding(.horizontal)
-            .removeListRowFormatting()
-
-        } header: {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Habits")
-             Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton {
-                        presenter.onSeeAllHabitsPressed()
-                    }
-            }
-        }
-    }
-    
-    private var nutritionSection: some View {
-        Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(
-                    title: "Macros",
-                    subtitle: "Last 7 Days",
-                    subsubtitle: presenter.macrosLast7Days.isEmpty ? "--" : Int(presenter.macrosAverageCalories).formatted(),
-                    subsubsubtitle: "kcal",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
-                    chart: {
-                        let chartData = presenter.macrosLast7Days.isEmpty
-                            ? Array(repeating: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0), count: 7)
-                            : presenter.macrosLast7Days
-                        return MacroStackedBarChart(data: chartData)
-                    }
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onMacrosPressed()
-                }
-                DashboardCard(
-                    title: "Protein",
-                    subtitle: "Today",
-                    subsubtitle: !presenter.macrosLast7Days.isEmpty ? presenter.proteinCurrent.formatted(.number.precision(.fractionLength(1))) : "--",
-                    subsubsubtitle: "g",
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
-                    chart: {
-                        MacroProgressChart(
-                            current: presenter.proteinCurrent,
-                            target: presenter.proteinTarget,
-                            maxValue: presenter.proteinMax,
-                            color: MacroProgressChart.proteinColor
-                        )
-                    }
-                )
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onProteinPressed()
-                }
-            }
-            .padding(.horizontal)
-            .removeListRowFormatting()
-
-        } header: {
-            HStack {
-                Text("Nutrition")
-                Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton(.press) {
-                        presenter.onSeeAllNutritionAnalyticsPressed()
-                    }
-            }
-
-        }
-    }
-
-    private var bodyMetricsSection: some View {
-        Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(
-                    title: "Scale Weight",
-                    subtitle: presenter.scaleWeightSubtitle,
-                    subsubtitle: presenter.scaleWeightLatestValueText,
-                    subsubsubtitle: presenter.scaleWeightUnitText,
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    SparklineChart(
-                        data: presenter.scaleWeightSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: .green,
-                            lineWidth: 2,
-                            fillColor: .green,
-                            height: 36
-                        )
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onScaleWeightPressed()
-                }
-                DashboardCard(title: "Visual Body Fat", subtitle: presenter.bodyFatSubtitle, subsubtitle: presenter.bodyFatLatestValueText, subsubsubtitle: presenter.bodyFatUnitText, chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)) {
-                    SparklineChart(
-                        data: presenter.bodyFatSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: .green,
-                            lineWidth: 2,
-                            fillColor: .green,
-                            height: 36
-                        )
-                    )
-
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onVisualBodyFatPressed()
-                }
-            }
-            .padding(.horizontal)
-            .removeListRowFormatting()
-        } header: {
-            HStack {
-                Text("Body Metrics")
-                Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton(.press) {
-                        presenter.onSeeAllBodyMetricsPressed()
-                    }
-            }
-        }
-    }
-
-    private var muscleGroupsSection: some View {
-        Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                ForEach(presenter.muscleGroupCards, id: \.muscle) { item in
-                    DashboardCard(
-                        title: item.muscle.name,
-                        subtitle: "Last 7 Days",
-                        subsubtitle: item.totalSets.formatted(.number.precision(.fractionLength(0...1))),
-                        subsubsubtitle: "sets",
-                        chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                    ) {
-                        SetsBarChart(data: item.last7DaysData, color: .blue)
-                    }
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        presenter.onMuscleGroupPressed(muscle: item.muscle)
-                    }
-                }
-            }
-            .padding(.horizontal)
-            .removeListRowFormatting()
-        } header: {
-            HStack {
-                Text("Muscle Groups")
-                Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton(.press) {
-                        presenter.onSeeAllMuscleGroupsPressed()
-                    }
-            }
-        }
-    }
-
-    private var exercisesSection: some View {
-        Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                ForEach(presenter.exerciseCards) { item in
-                    DashboardCard(
-                        title: item.name,
-                        subtitle: "Last 7 Workouts",
-                        subsubtitle: item.latest1RM > 0 ? item.latest1RM.formatted(.number.precision(.fractionLength(1))) : "--",
-                        subsubsubtitle: "kg",
-                        chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                    ) {
-                        SparklineChart(
-                            data: item.sparklineData,
-                            configuration: SparklineConfiguration(
-                                lineColor: .cyan,
-                                lineWidth: 2,
-                                fillColor: .cyan,
-                                height: 36
-                            )
-                        )
-                    }
-                    .tappableBackground()
-                    .anyButton(.press) {
-                        presenter.onExercisePressed(templateId: item.templateId, name: item.name)
-                    }
-                }
-            }
-            .padding(.horizontal)
-            .removeListRowFormatting()
-        } header: {
-            HStack {
-                Text("Exercises")
-                Spacer()
-                Text("See All")
-                    .font(.caption)
-                    .underline()
-                    .anyButton(.press) {
-                        presenter.onSeeAllExercisesPressed()
-                    }
-            }
-        }
-    }
-
-    private var generalSection: some View {
-        Section {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard(
-                    title: "Steps",
-                    subtitle: presenter.stepsSubtitle,
-                    subsubtitle: presenter.stepsLatestValueText,
-                    subsubsubtitle: presenter.stepsUnitText,
-                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
-                ) {
-                    SparklineChart(
-                        data: presenter.stepsSparklineData,
-                        configuration: SparklineConfiguration(
-                            lineColor: .orange,
-                            lineWidth: 2,
-                            fillColor: .orange,
-                            height: 36
-                        )
-                    )
-                }
-                .tappableBackground()
-                .anyButton(.press) {
-                    presenter.onStepsPressed()
-                }
-            }
-            .padding(.horizontal)
-            .removeListRowFormatting()
-        } header: {
-            Text("General")
-        }
-    }
-
     private var nutritionTargetSection: some View {
         nutritionTargetChartView()
             .frame(height: 300)
@@ -552,6 +149,437 @@ struct DashboardView<NutritionChart: View>: View {
             }
         }
         .sharedBackgroundVisibility(.hidden)
+    }
+}
+
+// MARK: - Dashboard Sections (extracted for type_body_length)
+private extension DashboardView {
+    var insightsAndAnalyticsSection: some View {
+        let workoutColor = Color.orange
+        let expenditureColor = Color.pink
+        let weightTrendColor = Color.purple
+        let goalProgressColor = Color.green
+        return Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Workouts",
+                    subtitle: presenter.workoutSubtitle,
+                    subsubtitle: presenter.workoutLatestValueText,
+                    subsubsubtitle: presenter.workoutUnitText,
+                    themeColor: workoutColor,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SetsBarChart(
+                        data: presenter.workoutSparklineData.map(\.value),
+                        slotCount: 7,
+                        color: workoutColor
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onWorkoutsPressed(themeColor: workoutColor)
+                }
+                
+                DashboardCard(
+                    title: "Expenditure",
+                    subtitle: presenter.expenditureSubtitle,
+                    subsubtitle: presenter.expenditureLatestValueText,
+                    subsubsubtitle: presenter.expenditureUnitText,
+                    themeColor: expenditureColor,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.expenditureSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: expenditureColor,
+                            lineWidth: 2,
+                            fillColor: expenditureColor,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onExpenditurePressed(themeColor: expenditureColor)
+                }
+
+                DashboardCard(
+                    title: "Weight Trend",
+                    subtitle: presenter.weightTrendSubtitle,
+                    subsubtitle: presenter.weightTrendLatestValueText,
+                    subsubsubtitle: presenter.weightTrendUnitText,
+                    themeColor: weightTrendColor,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.weightTrendSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: weightTrendColor,
+                            lineWidth: 2,
+                            fillColor: weightTrendColor,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onWeightTrendPressed(themeColor: weightTrendColor)
+                }
+                DashboardCard(
+                    title: "Goal Progress",
+                    subtitle: "Last 7 Days",
+                    subsubtitle: "14",
+                    subsubsubtitle: "%",
+                    themeColor: goalProgressColor,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chart: {
+                        MacroProgressChart(current: 14, target: 100, maxValue: 100, color: goalProgressColor)
+                    }
+                )
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onGoalProgressPressed(themeColor: goalProgressColor)
+                }
+                DashboardCard(
+                    title: "Energy Balance",
+                    subtitle: presenter.energyBalanceSubtitle,
+                    subsubtitle: presenter.energyBalanceLatestValueText,
+                    subsubsubtitle: presenter.energyBalanceUnitText,
+                    themeColor: nil,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    EnergyBalanceChart(
+                        expenditure: presenter.energyBalanceExpenditure,
+                        energyIntake: presenter.energyBalanceIntake
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onEnergyBalancePressed(themeColor: nil)
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Insights & Analytics")
+             Spacer()
+                Text("See All")
+                    .font(.caption)
+                    .underline()
+                    .anyButton {
+                        presenter.onSeeAllInsightsPressed()
+                    }
+            }
+        }
+    }
+    
+    var habitsSection: some View {
+        let weighInColor = Color.green
+        let habitsWorkoutColor = Color.orange
+        return Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Weigh In",
+                    subtitle: "Last 30 Days",
+                    subsubtitle: "\(presenter.weighInCountThisWeek)",
+                    subsubsubtitle: "this week",
+                    themeColor: weighInColor,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    ContributionChartView(
+                        data: presenter.weighInContributionData,
+                        rows: 3,
+                        columns: 10,
+                        targetValue: 1.0,
+                        blockColor: weighInColor,
+                        blockBackgroundColor: .background,
+                        rectangleWidth: .infinity,
+                        endDate: .now,
+                        showsCaptioning: false
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onWeighInConsistencyPressed(themeColor: weighInColor)
+                }
+                DashboardCard(
+                    title: "Workouts",
+                    subtitle: "Last 30 Days",
+                    subsubtitle: "\(presenter.workoutCountThisWeek)",
+                    subsubsubtitle: "this week",
+                    themeColor: habitsWorkoutColor,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    ContributionChartView(
+                        data: presenter.workoutContributionData,
+                        rows: 3,
+                        columns: 10,
+                        targetValue: 1.0,
+                        blockColor: habitsWorkoutColor,
+                        blockBackgroundColor: .background,
+                        rectangleWidth: .infinity,
+                        endDate: .now,
+                        showsCaptioning: false
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onWorkoutConsistencyPressed(themeColor: habitsWorkoutColor)
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+
+        } header: {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Habits")
+             Spacer()
+                Text("See All")
+                    .font(.caption)
+                    .underline()
+                    .anyButton {
+                        presenter.onSeeAllHabitsPressed()
+                    }
+            }
+        }
+    }
+    
+    var nutritionSection: some View {
+        let proteinColor = MacroProgressChart.proteinColor
+        return Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Macros",
+                    subtitle: "Last 7 Days",
+                    subsubtitle: presenter.macrosLast7Days.isEmpty ? "--" : Int(presenter.macrosAverageCalories).formatted(),
+                    subsubsubtitle: "kcal",
+                    themeColor: proteinColor,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chart: {
+                        let chartData = presenter.macrosLast7Days.isEmpty
+                            ? Array(repeating: DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0), count: 7)
+                            : presenter.macrosLast7Days
+                        return MacroStackedBarChart(data: chartData)
+                    }
+                )
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onMacrosPressed(themeColor: proteinColor)
+                }
+                DashboardCard(
+                    title: "Protein",
+                    subtitle: "Today",
+                    subsubtitle: !presenter.macrosLast7Days.isEmpty ? presenter.proteinCurrent.formatted(.number.precision(.fractionLength(1))) : "--",
+                    subsubsubtitle: "g",
+                    themeColor: proteinColor,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
+                    chart: {
+                        MacroProgressChart(
+                            current: presenter.proteinCurrent,
+                            target: presenter.proteinTarget,
+                            maxValue: presenter.proteinMax,
+                            color: proteinColor
+                        )
+                    }
+                )
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onProteinPressed(themeColor: proteinColor)
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+
+        } header: {
+            HStack {
+                Text("Nutrition")
+                Spacer()
+                Text("See All")
+                    .font(.caption)
+                    .underline()
+                    .anyButton(.press) {
+                        presenter.onSeeAllNutritionAnalyticsPressed()
+                    }
+            }
+
+        }
+    }
+
+    var bodyMetricsSection: some View {
+        let scaleWeightColor = Color.green
+        let bodyFatColor = Color.green
+        return Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Scale Weight",
+                    subtitle: presenter.scaleWeightSubtitle,
+                    subsubtitle: presenter.scaleWeightLatestValueText,
+                    subsubsubtitle: presenter.scaleWeightUnitText,
+                    themeColor: scaleWeightColor,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.scaleWeightSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: scaleWeightColor,
+                            lineWidth: 2,
+                            fillColor: scaleWeightColor,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onScaleWeightPressed(themeColor: scaleWeightColor)
+                }
+                DashboardCard(title: "Visual Body Fat", subtitle: presenter.bodyFatSubtitle, subsubtitle: presenter.bodyFatLatestValueText, subsubsubtitle: presenter.bodyFatUnitText, themeColor: bodyFatColor, chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)) {
+                    SparklineChart(
+                        data: presenter.bodyFatSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: bodyFatColor,
+                            lineWidth: 2,
+                            fillColor: bodyFatColor,
+                            height: 36
+                        )
+                    )
+
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onVisualBodyFatPressed(themeColor: bodyFatColor)
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            HStack {
+                Text("Body Metrics")
+                Spacer()
+                Text("See All")
+                    .font(.caption)
+                    .underline()
+                    .anyButton(.press) {
+                        presenter.onSeeAllBodyMetricsPressed()
+                    }
+            }
+        }
+    }
+
+    var muscleGroupsSection: some View {
+        let muscleGroupColor = Color.blue
+        return Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                ForEach(presenter.muscleGroupCards, id: \.muscle) { item in
+                    DashboardCard(
+                        title: item.muscle.name,
+                        subtitle: "Last 7 Days",
+                        subsubtitle: item.totalSets.formatted(.number.precision(.fractionLength(0...1))),
+                        subsubsubtitle: "sets",
+                        themeColor: muscleGroupColor,
+                        chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                    ) {
+                        SetsBarChart(data: item.last7DaysData, color: muscleGroupColor)
+                    }
+                    .tappableBackground()
+                    .anyButton(.press) {
+                        presenter.onMuscleGroupPressed(muscle: item.muscle, themeColor: muscleGroupColor)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            HStack {
+                Text("Muscle Groups")
+                Spacer()
+                Text("See All")
+                    .font(.caption)
+                    .underline()
+                    .anyButton(.press) {
+                        presenter.onSeeAllMuscleGroupsPressed()
+                    }
+            }
+        }
+    }
+
+    var exercisesSection: some View {
+        let exerciseColor = Color.cyan
+        return Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                ForEach(presenter.exerciseCards) { item in
+                    DashboardCard(
+                        title: item.name,
+                        subtitle: "Last 7 Workouts",
+                        subsubtitle: item.latest1RM > 0 ? item.latest1RM.formatted(.number.precision(.fractionLength(1))) : "--",
+                        subsubsubtitle: "kg",
+                        themeColor: exerciseColor,
+                        chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                    ) {
+                        SparklineChart(
+                            data: item.sparklineData,
+                            configuration: SparklineConfiguration(
+                                lineColor: exerciseColor,
+                                lineWidth: 2,
+                                fillColor: exerciseColor,
+                                height: 36
+                            )
+                        )
+                    }
+                    .tappableBackground()
+                    .anyButton(.press) {
+                        presenter.onExercisePressed(templateId: item.templateId, name: item.name, themeColor: exerciseColor)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            HStack {
+                Text("Exercises")
+                Spacer()
+                Text("See All")
+                    .font(.caption)
+                    .underline()
+                    .anyButton(.press) {
+                        presenter.onSeeAllExercisesPressed()
+                    }
+            }
+        }
+    }
+
+    var generalSection: some View {
+        let stepsColor = Color.orange
+        return Section {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                DashboardCard(
+                    title: "Steps",
+                    subtitle: presenter.stepsSubtitle,
+                    subsubtitle: presenter.stepsLatestValueText,
+                    subsubsubtitle: presenter.stepsUnitText,
+                    themeColor: stepsColor,
+                    chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
+                ) {
+                    SparklineChart(
+                        data: presenter.stepsSparklineData,
+                        configuration: SparklineConfiguration(
+                            lineColor: stepsColor,
+                            lineWidth: 2,
+                            fillColor: stepsColor,
+                            height: 36
+                        )
+                    )
+                }
+                .tappableBackground()
+                .anyButton(.press) {
+                    presenter.onStepsPressed(themeColor: stepsColor)
+                }
+            }
+            .padding(.horizontal)
+            .removeListRowFormatting()
+        } header: {
+            Text("General")
+        }
     }
 }
 

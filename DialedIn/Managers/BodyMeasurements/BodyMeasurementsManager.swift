@@ -180,68 +180,18 @@ class BodyMeasurementsManager {
         let samples = try await healthKit.readWeightSamples(since: lastSync)
         guard !samples.isEmpty else { return }
 
-        let samplesByDay = Dictionary(grouping: samples) { sample in
-            Calendar.current.startOfDay(for: sample.date)
-        }
-        let consolidatedSamples = samplesByDay
-            .compactMap { (_, daySamples) in
-                daySamples.min { $0.weightKg < $1.weightKg }
-            }
-
+        let consolidatedSamples = consolidateWeightSamplesByDay(samples)
         let existingEntries = (try? local.readWeightEntries()) ?? []
         let existingUUIDs = Set(existingEntries.compactMap(\.healthKitUUID))
-        let existingDayMins = Dictionary(grouping: existingEntries) { entry in
-            Calendar.current.startOfDay(for: entry.date)
-        }.compactMapValues { dayEntries in
-            let minEntry = dayEntries
-                .filter { $0.authorId == userId && $0.deletedAt == nil && $0.weightKg != nil }
-                .min { lhs, rhs in
-                    guard let lhsWeight = lhs.weightKg, let rhsWeight = rhs.weightKg else {
-                        return false
-                    }
-                    return lhsWeight < rhsWeight
-                }
-            return minEntry?.weightKg
-        }
+        let existingDayMins = existingDayMinWeights(userId: userId, entries: existingEntries)
 
-        var newestDate = lastSync
-        for sample in consolidatedSamples {
-            if newestDate == nil || sample.date > newestDate! {
-                newestDate = sample.date
-            }
-
-            if existingUUIDs.contains(sample.uuid) {
-                continue
-            }
-
-            let sampleDay = Calendar.current.startOfDay(for: sample.date)
-            if let existingDayMin = existingDayMins[sampleDay], existingDayMin <= sample.weightKg {
-                continue
-            }
-
-            let entry = BodyMeasurementEntry(
-                authorId: userId,
-                weightKg: sample.weightKg,
-                date: sample.date,
-                source: .healthkit,
-                notes: nil,
-                dateCreated: sample.date,
-                deletedAt: nil,
-                healthKitUUID: sample.uuid
-            )
-
-            do {
-                try local.createWeightEntry(weightEntry: entry)
-            } catch {
-                try? local.updateWeightEntry(entry: entry)
-            }
-
-            do {
-                try await remote.createWeightEntry(entry: entry)
-            } catch {
-                try? await remote.updateWeightEntry(entry: entry)
-            }
-        }
+        let newestDate = await processImportedWeightSamples(
+            consolidatedSamples: consolidatedSamples,
+            existingUUIDs: existingUUIDs,
+            existingDayMins: existingDayMins,
+            userId: userId,
+            lastSync: lastSync
+        )
 
         if let newestDate {
             setLastHealthKitSyncDate(newestDate)
@@ -259,6 +209,63 @@ class BodyMeasurementsManager {
         }
     }
 
+    private func consolidateWeightSamplesByDay(_ samples: [HealthKitWeightSample]) -> [HealthKitWeightSample] {
+        let samplesByDay = Dictionary(grouping: samples) { Calendar.current.startOfDay(for: $0.date) }
+        return samplesByDay.compactMap { (_, daySamples) in daySamples.min { $0.weightKg < $1.weightKg } }
+    }
+
+    private func existingDayMinWeights(userId: String, entries: [BodyMeasurementEntry]) -> [Date: Double] {
+        Dictionary(grouping: entries) { Calendar.current.startOfDay(for: $0.date) }
+            .compactMapValues { dayEntries in
+                dayEntries
+                    .filter { $0.authorId == userId && $0.deletedAt == nil && $0.weightKg != nil }
+                    .min { lhs, rhs in
+                        guard let lhsWeight = lhs.weightKg, let rhsWeight = rhs.weightKg else { return false }
+                        return lhsWeight < rhsWeight
+                    }?.weightKg
+            }
+    }
+
+    private func processImportedWeightSamples(
+        consolidatedSamples: [HealthKitWeightSample],
+        existingUUIDs: Set<UUID>,
+        existingDayMins: [Date: Double],
+        userId: String,
+        lastSync: Date?
+    ) async -> Date? {
+        var newestDate = lastSync
+        for sample in consolidatedSamples {
+            if newestDate == nil || sample.date > newestDate! {
+                newestDate = sample.date
+            }
+            if existingUUIDs.contains(sample.uuid) { continue }
+            let sampleDay = Calendar.current.startOfDay(for: sample.date)
+            if let existingDayMin = existingDayMins[sampleDay], existingDayMin <= sample.weightKg { continue }
+
+            let entry = BodyMeasurementEntry(
+                authorId: userId,
+                weightKg: sample.weightKg,
+                date: sample.date,
+                source: .healthkit,
+                notes: nil,
+                dateCreated: sample.date,
+                deletedAt: nil,
+                healthKitUUID: sample.uuid
+            )
+            do {
+                try local.createWeightEntry(weightEntry: entry)
+            } catch {
+                try? local.updateWeightEntry(entry: entry)
+            }
+            do {
+                try await remote.createWeightEntry(entry: entry)
+            } catch {
+                try? await remote.updateWeightEntry(entry: entry)
+            }
+        }
+        return newestDate
+    }
+
     private func importBodyFatFromHealthKit(
         userId: String,
         existingEntries: [BodyMeasurementEntry],
@@ -270,63 +277,46 @@ class BodyMeasurementsManager {
         let samples = try await healthKit.readBodyFatSamples(since: since)
         guard !samples.isEmpty else { return }
 
-        let samplesByDay = Dictionary(grouping: samples) { sample in
-            Calendar.current.startOfDay(for: sample.date)
-        }
-        let consolidatedSamples = samplesByDay
-            .compactMap { (_, daySamples) in
-                daySamples.max { $0.date < $1.date }
-            }
+        let consolidatedSamples = consolidateBodyFatSamplesByDay(samples)
+        let entriesByDay = Dictionary(grouping: existingEntries) { Calendar.current.startOfDay(for: $0.date) }
 
+        let newestDate = await processBodyFatSamples(
+            consolidatedSamples: consolidatedSamples,
+            entriesByDay: entriesByDay,
+            userId: userId,
+            since: since
+        )
+
+        if let newestDate {
+            setLastHealthKitBodyFatSyncDate(newestDate)
+        }
+    }
+
+    private func consolidateBodyFatSamplesByDay(_ samples: [HealthKitBodyFatSample]) -> [HealthKitBodyFatSample] {
+        let samplesByDay = Dictionary(grouping: samples) { Calendar.current.startOfDay(for: $0.date) }
+        return samplesByDay.compactMap { (_, daySamples) in daySamples.max { $0.date < $1.date } }
+    }
+
+    private func processBodyFatSamples(
+        consolidatedSamples: [HealthKitBodyFatSample],
+        entriesByDay: [Date: [BodyMeasurementEntry]],
+        userId: String,
+        since: Date?
+    ) async -> Date? {
         var newestDate = since
-        let entriesByDay = Dictionary(grouping: existingEntries) { entry in
-            Calendar.current.startOfDay(for: entry.date)
-        }
-
         for sample in consolidatedSamples {
             if newestDate == nil || sample.date > newestDate! {
                 newestDate = sample.date
             }
-
             let sampleDay = Calendar.current.startOfDay(for: sample.date)
-            guard let dayEntries = entriesByDay[sampleDay] else { continue }
-            guard let entryToUpdate = dayEntries.first(where: {
-                $0.authorId == userId && $0.deletedAt == nil && $0.source == .healthkit
-            }) else { continue }
-            guard entryToUpdate.bodyFatPercentage == nil else { continue }
+            guard let dayEntries = entriesByDay[sampleDay],
+                  let entryToUpdate = dayEntries.first(where: {
+                      $0.authorId == userId && $0.deletedAt == nil && $0.source == .healthkit
+                  }),
+                  entryToUpdate.bodyFatPercentage == nil
+            else { continue }
 
-            let updatedEntry = BodyMeasurementEntry(
-                id: entryToUpdate.id,
-                authorId: entryToUpdate.authorId,
-                weightKg: entryToUpdate.weightKg,
-                bodyFatPercentage: sample.bodyFatPercentage,
-                neckCircumference: entryToUpdate.neckCircumference,
-                shoulderCircumference: entryToUpdate.shoulderCircumference,
-                bustCircumference: entryToUpdate.bustCircumference,
-                chestCircumference: entryToUpdate.chestCircumference,
-                waistCircumference: entryToUpdate.waistCircumference,
-                hipCircumference: entryToUpdate.hipCircumference,
-                leftBicepCircumference: entryToUpdate.leftBicepCircumference,
-                rightBicepCircumference: entryToUpdate.rightBicepCircumference,
-                leftForearmCircumference: entryToUpdate.leftForearmCircumference,
-                rightForearmCircumference: entryToUpdate.rightForearmCircumference,
-                leftWristCircumference: entryToUpdate.leftWristCircumference,
-                rightWristCircumference: entryToUpdate.rightWristCircumference,
-                leftThighCircumference: entryToUpdate.leftThighCircumference,
-                rightThighCircumference: entryToUpdate.rightThighCircumference,
-                leftCalfCircumference: entryToUpdate.leftCalfCircumference,
-                rightCalfCircumference: entryToUpdate.rightCalfCircumference,
-                leftAnkleCircumference: entryToUpdate.leftAnkleCircumference,
-                rightAnkleCircumference: entryToUpdate.rightAnkleCircumference,
-                progressPhotoURLs: entryToUpdate.progressPhotoURLs,
-                date: entryToUpdate.date,
-                source: entryToUpdate.source,
-                notes: entryToUpdate.notes,
-                dateCreated: entryToUpdate.dateCreated,
-                deletedAt: entryToUpdate.deletedAt,
-                healthKitUUID: entryToUpdate.healthKitUUID
-            )
-
+            let updatedEntry = entryWithBodyFat(entryToUpdate, bodyFatPercentage: sample.bodyFatPercentage)
             do {
                 try local.updateWeightEntry(entry: updatedEntry)
                 try await remote.updateWeightEntry(entry: updatedEntry)
@@ -334,10 +324,41 @@ class BodyMeasurementsManager {
                 continue
             }
         }
+        return newestDate
+    }
 
-        if let newestDate {
-            setLastHealthKitBodyFatSyncDate(newestDate)
-        }
+    private func entryWithBodyFat(_ entry: BodyMeasurementEntry, bodyFatPercentage: Double?) -> BodyMeasurementEntry {
+        BodyMeasurementEntry(
+            id: entry.id,
+            authorId: entry.authorId,
+            weightKg: entry.weightKg,
+            bodyFatPercentage: bodyFatPercentage,
+            neckCircumference: entry.neckCircumference,
+            shoulderCircumference: entry.shoulderCircumference,
+            bustCircumference: entry.bustCircumference,
+            chestCircumference: entry.chestCircumference,
+            waistCircumference: entry.waistCircumference,
+            hipCircumference: entry.hipCircumference,
+            leftBicepCircumference: entry.leftBicepCircumference,
+            rightBicepCircumference: entry.rightBicepCircumference,
+            leftForearmCircumference: entry.leftForearmCircumference,
+            rightForearmCircumference: entry.rightForearmCircumference,
+            leftWristCircumference: entry.leftWristCircumference,
+            rightWristCircumference: entry.rightWristCircumference,
+            leftThighCircumference: entry.leftThighCircumference,
+            rightThighCircumference: entry.rightThighCircumference,
+            leftCalfCircumference: entry.leftCalfCircumference,
+            rightCalfCircumference: entry.rightCalfCircumference,
+            leftAnkleCircumference: entry.leftAnkleCircumference,
+            rightAnkleCircumference: entry.rightAnkleCircumference,
+            progressPhotoURLs: entry.progressPhotoURLs,
+            date: entry.date,
+            source: entry.source,
+            notes: entry.notes,
+            dateCreated: entry.dateCreated,
+            deletedAt: entry.deletedAt,
+            healthKitUUID: entry.healthKitUUID
+        )
     }
 
     private func exportToHealthKitIfNeeded(entry: BodyMeasurementEntry) async {
