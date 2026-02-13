@@ -57,21 +57,22 @@ struct MuscleGroupsView: View {
         }
     }
     
-    @ViewBuilder
     private func muscleCard(muscle: Muscles) -> some View {
+        let muscleGroupColor = Color.blue
         let data = presenter.setsData(for: muscle)
-        DashboardCard(
+        return DashboardCard(
             title: muscle.name,
             subtitle: "Last 7 Days",
             subsubtitle: data.total.formatted(.number.precision(.fractionLength(0...1))),
             subsubsubtitle: "sets",
+            themeColor: muscleGroupColor,
             chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
         ) {
-            SetsBarChart(data: data.last7Days, color: .blue)
+            SetsBarChart(data: data.last7Days, color: muscleGroupColor)
         }
         .tappableBackground()
         .anyButton(.press) {
-            presenter.onMusclePressed(muscle: muscle)
+            presenter.onMusclePressed(muscle: muscle, themeColor: muscleGroupColor)
         }
     }
 }

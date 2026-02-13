@@ -23,54 +23,12 @@ struct SwiftGymProfilePersistence: LocalGymProfilePersistence {
         self.storeURL = storeURL
         let configuration = ModelConfiguration(url: storeURL)
         do {
-            self.container = try ModelContainer(
-                for: GymProfileEntity.self,
-                FreeWeightEntity.self,
-                FreeWeightAvailableEntity.self,
-                LoadableBarEntity.self,
-                LoadableBarBaseWeightEntity.self,
-                FixedWeightBarEntity.self,
-                FixedWeightBarBaseWeightEntity.self,
-                BandsEntity.self,
-                BandsAvailableEntity.self,
-                BodyWeightEntity.self,
-                BodyWeightAvailableEntity.self,
-                SupportEquipmentEntity.self,
-                AccessoryEquipmentEntity.self,
-                LoadableAccessoryEquipmentEntity.self,
-                CableMachineEntity.self,
-                CableMachineRangeEntity.self,
-                PlateLoadedMachineEntity.self,
-                PinLoadedMachineEntity.self,
-                PinLoadedMachineRangeEntity.self,
-                configurations: configuration
-            )
+            self.container = try Self.makeModelContainer(configuration: configuration)
         } catch {
             if Self.isSchemaMismatchError(error) {
                 Self.resetStore(at: storeURL)
                 do {
-                    self.container = try ModelContainer(
-                        for: GymProfileEntity.self,
-                        FreeWeightEntity.self,
-                        FreeWeightAvailableEntity.self,
-                        LoadableBarEntity.self,
-                        LoadableBarBaseWeightEntity.self,
-                        FixedWeightBarEntity.self,
-                        FixedWeightBarBaseWeightEntity.self,
-                        BandsEntity.self,
-                        BandsAvailableEntity.self,
-                        BodyWeightEntity.self,
-                        BodyWeightAvailableEntity.self,
-                        SupportEquipmentEntity.self,
-                        AccessoryEquipmentEntity.self,
-                        LoadableAccessoryEquipmentEntity.self,
-                        CableMachineEntity.self,
-                        CableMachineRangeEntity.self,
-                        PlateLoadedMachineEntity.self,
-                        PinLoadedMachineEntity.self,
-                        PinLoadedMachineRangeEntity.self,
-                        configurations: configuration
-                    )
+                    self.container = try Self.makeModelContainer(configuration: configuration)
                 } catch {
                     fatalError("Failed to rebuild GymProfiles SwiftData store at \(storeURL.path). Error: \(error)")
                 }
@@ -78,6 +36,31 @@ struct SwiftGymProfilePersistence: LocalGymProfilePersistence {
                 fatalError("Failed to load GymProfiles SwiftData store at \(storeURL.path). Error: \(error)")
             }
         }
+    }
+
+    private static func makeModelContainer(configuration: ModelConfiguration) throws -> ModelContainer {
+        try ModelContainer(
+            for: GymProfileEntity.self,
+            FreeWeightEntity.self,
+            FreeWeightAvailableEntity.self,
+            LoadableBarEntity.self,
+            LoadableBarBaseWeightEntity.self,
+            FixedWeightBarEntity.self,
+            FixedWeightBarBaseWeightEntity.self,
+            BandsEntity.self,
+            BandsAvailableEntity.self,
+            BodyWeightEntity.self,
+            BodyWeightAvailableEntity.self,
+            SupportEquipmentEntity.self,
+            AccessoryEquipmentEntity.self,
+            LoadableAccessoryEquipmentEntity.self,
+            CableMachineEntity.self,
+            CableMachineRangeEntity.self,
+            PlateLoadedMachineEntity.self,
+            PinLoadedMachineEntity.self,
+            PinLoadedMachineRangeEntity.self,
+            configurations: configuration
+        )
     }
 
     private static func makeStoreURL() -> URL {

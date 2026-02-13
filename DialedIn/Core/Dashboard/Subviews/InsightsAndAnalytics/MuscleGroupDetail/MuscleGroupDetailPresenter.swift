@@ -32,14 +32,10 @@ class MuscleGroupDetailPresenter {
             return
         }
         do {
-            let sessions = try interactor.getLocalWorkoutSessionsForAuthor(
-                authorId: userId,
-                limitTo: 0
-            )
+            let sessions = try interactor.getLocalWorkoutSessionsForAuthor(authorId: userId, limitTo: 0)
             let completed = sessions
                 .filter { $0.endedAt != nil }
                 .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
-
             let templateIds = Set(completed.flatMap { $0.exercises.map(\.templateId) })
             let templates: [String: ExerciseModel]
             if templateIds.isEmpty {
@@ -51,54 +47,55 @@ class MuscleGroupDetailPresenter {
                 )
                 templates = Dictionary(uniqueKeysWithValues: fetched.map { ($0.id, $0) })
             }
-
-            var setsByDay: [Date: Double] = [:]
-            let startOfDay: (Date) -> Date = { self.calendar.startOfDay(for: $0) }
-
-            for session in completed {
-                let sessionDate = session.endedAt ?? session.dateCreated
-                let day = startOfDay(sessionDate)
-
-                for exercise in session.exercises {
-                    guard let template = templates[exercise.templateId] else { continue }
-                    guard let isSecondary = template.muscleGroups[muscle] else { continue }
-
-                    let completedSets = exercise.sets
-                        .filter { !$0.isWarmup && $0.completedAt != nil }
-                        .count
-
-                    if completedSets > 0 {
-                        let factor: Double = isSecondary ? 0.5 : 1.0
-                        let weightedSets = Double(completedSets) * factor
-                        setsByDay[day, default: 0] += weightedSets
-                    }
-                }
-            }
-
+            let setsByDay = computeSetsByDay(completed: completed, templates: templates)
             let sortedDays = setsByDay.keys.sorted()
             cachedEntries = sortedDays.reversed().map { day in
-                let sets = setsByDay[day] ?? 0
-                return MuscleGroupDetailEntry(
+                MuscleGroupDetailEntry(
                     id: day.timeIntervalSince1970.description,
                     date: day,
-                    sets: sets
-                )
-            }
-
-            let seriesData = sortedDays.map { day in
-                TimeSeriesDatapoint(
-                    id: day.timeIntervalSince1970.description,
-                    date: day,
-                    value: setsByDay[day] ?? 0
+                    sets: setsByDay[day] ?? 0
                 )
             }
             cachedTimeSeries = [
-                TimeSeriesData.TimeSeries(name: "Sets", data: seriesData)
+                TimeSeriesData.TimeSeries(
+                    name: "Sets",
+                    data: sortedDays.map { day in
+                        TimeSeriesDatapoint(
+                            id: day.timeIntervalSince1970.description,
+                            date: day,
+                            value: setsByDay[day] ?? 0
+                        )
+                    }
+                )
             ]
         } catch {
             cachedEntries = []
             cachedTimeSeries = []
         }
+    }
+
+    private func computeSetsByDay(
+        completed: [WorkoutSessionModel],
+        templates: [String: ExerciseModel]
+    ) -> [Date: Double] {
+        var setsByDay: [Date: Double] = [:]
+        let startOfDay: (Date) -> Date = { self.calendar.startOfDay(for: $0) }
+        for session in completed {
+            let sessionDate = session.endedAt ?? session.dateCreated
+            let day = startOfDay(sessionDate)
+            for exercise in session.exercises {
+                guard let template = templates[exercise.templateId],
+                      let isSecondary = template.muscleGroups[muscle] else { continue }
+                let completedSets = exercise.sets
+                    .filter { !$0.isWarmup && $0.completedAt != nil }
+                    .count
+                if completedSets > 0 {
+                    let factor: Double = isSecondary ? 0.5 : 1.0
+                    setsByDay[day, default: 0] += Double(completedSets) * factor
+                }
+            }
+        }
+        return setsByDay
     }
 
     func onDismissPressed() {

@@ -54,6 +54,13 @@ class GymProfileEntity {
 
     @MainActor
     func update(from model: GymProfileModel) {
+        applyScalarUpdates(from: model)
+        syncEquipmentRelations(from: model)
+        syncMachineRelations(from: model)
+    }
+
+    @MainActor
+    private func applyScalarUpdates(from model: GymProfileModel) {
         self.id = model.id
         self.authorId = model.authorId
         self.name = model.name
@@ -62,85 +69,148 @@ class GymProfileEntity {
         self.dateCreated = model.dateCreated
         self.dateModified = model.dateModified
         self.deletedAt = model.deletedAt
+    }
+
+    @MainActor
+    private func syncEquipmentRelations(from model: GymProfileModel) {
+        syncFreeWeights(from: model)
+        syncLoadableBars(from: model)
+        syncFixedWeightBars(from: model)
+        syncBands(from: model)
+        syncBodyWeights(from: model)
+        syncSupportEquipment(from: model)
+        syncAccessoryEquipment(from: model)
+    }
+
+    @MainActor
+    private func syncFreeWeights(from model: GymProfileModel) {
         self.freeWeights = syncEntities(
             existing: freeWeights,
             models: model.freeWeights,
-            modelId: { $0.id },
-            entityId: { $0.id },
-            update: { $0.update(from: $1) },
-            create: { FreeWeightEntity(from: $0) }
+            config: SyncEntitiesConfig(
+                modelId: { $0.id },
+                entityId: { $0.id },
+                update: { $0.update(from: $1) },
+                create: { FreeWeightEntity(from: $0) }
+            )
         )
+    }
+
+    @MainActor
+    private func syncLoadableBars(from model: GymProfileModel) {
         self.loadableBars = syncEntities(
             existing: loadableBars,
             models: model.loadableBars,
-            modelId: { $0.id },
-            entityId: { $0.id },
-            update: { $0.update(from: $1) },
-            create: { LoadableBarEntity(from: $0) }
+            config: SyncEntitiesConfig(
+                modelId: { $0.id },
+                entityId: { $0.id },
+                update: { $0.update(from: $1) },
+                create: { LoadableBarEntity(from: $0) }
+            )
         )
+    }
+
+    @MainActor
+    private func syncFixedWeightBars(from model: GymProfileModel) {
         self.fixedWeightBars = syncEntities(
             existing: fixedWeightBars,
             models: model.fixedWeightBars,
-            modelId: { $0.id },
-            entityId: { $0.id },
-            update: { $0.update(from: $1) },
-            create: { FixedWeightBarEntity(from: $0) }
+            config: SyncEntitiesConfig(
+                modelId: { $0.id },
+                entityId: { $0.id },
+                update: { $0.update(from: $1) },
+                create: { FixedWeightBarEntity(from: $0) }
+            )
         )
+    }
+
+    @MainActor
+    private func syncBands(from model: GymProfileModel) {
         self.bands = syncEntities(
             existing: bands,
             models: model.bands,
-            modelId: { $0.id },
-            entityId: { $0.id },
-            update: { $0.update(from: $1) },
-            create: { BandsEntity(from: $0) }
+            config: SyncEntitiesConfig(
+                modelId: { $0.id },
+                entityId: { $0.id },
+                update: { $0.update(from: $1) },
+                create: { BandsEntity(from: $0) }
+            )
         )
+    }
+
+    @MainActor
+    private func syncBodyWeights(from model: GymProfileModel) {
         self.bodyWeights = syncEntities(
             existing: bodyWeights,
             models: model.bodyWeights,
-            modelId: { $0.id },
-            entityId: { $0.id },
-            update: { $0.update(from: $1) },
-            create: { BodyWeightEntity(from: $0) }
+            config: SyncEntitiesConfig(
+                modelId: { $0.id },
+                entityId: { $0.id },
+                update: { $0.update(from: $1) },
+                create: { BodyWeightEntity(from: $0) }
+            )
         )
+    }
+
+    @MainActor
+    private func syncSupportEquipment(from model: GymProfileModel) {
         self.supportEquipment = syncEntities(
             existing: supportEquipment,
             models: model.supportEquipment,
-            modelId: { $0.id },
-            entityId: { $0.id },
-            update: { $0.update(from: $1) },
-            create: { SupportEquipmentEntity(from: $0) }
+            config: SyncEntitiesConfig(
+                modelId: { $0.id },
+                entityId: { $0.id },
+                update: { $0.update(from: $1) },
+                create: { SupportEquipmentEntity(from: $0) }
+            )
         )
+    }
+
+    @MainActor
+    private func syncAccessoryEquipment(from model: GymProfileModel) {
         self.accessoryEquipment = syncEntities(
             existing: accessoryEquipment,
             models: model.accessoryEquipment,
-            modelId: { $0.id },
-            entityId: { $0.id },
-            update: { $0.update(from: $1) },
-            create: { AccessoryEquipmentEntity(from: $0) }
+            config: SyncEntitiesConfig(
+                modelId: { $0.id },
+                entityId: { $0.id },
+                update: { $0.update(from: $1) },
+                create: { AccessoryEquipmentEntity(from: $0) }
+            )
         )
+    }
+
+    @MainActor
+    private func syncMachineRelations(from model: GymProfileModel) {
         self.cableMachines = syncEntities(
             existing: cableMachines,
             models: model.cableMachines,
-            modelId: { $0.id },
-            entityId: { $0.id },
-            update: { $0.update(from: $1) },
-            create: { CableMachineEntity(from: $0) }
+            config: SyncEntitiesConfig(
+                modelId: { $0.id },
+                entityId: { $0.id },
+                update: { $0.update(from: $1) },
+                create: { CableMachineEntity(from: $0) }
+            )
         )
         self.plateLoadedMachines = syncEntities(
             existing: plateLoadedMachines,
             models: model.plateLoadedMachines,
-            modelId: { $0.id },
-            entityId: { $0.id },
-            update: { $0.update(from: $1) },
-            create: { PlateLoadedMachineEntity(from: $0) }
+            config: SyncEntitiesConfig(
+                modelId: { $0.id },
+                entityId: { $0.id },
+                update: { $0.update(from: $1) },
+                create: { PlateLoadedMachineEntity(from: $0) }
+            )
         )
         self.pinLoadedMachines = syncEntities(
             existing: pinLoadedMachines,
             models: model.pinLoadedMachines,
-            modelId: { $0.id },
-            entityId: { $0.id },
-            update: { $0.update(from: $1) },
-            create: { PinLoadedMachineEntity(from: $0) }
+            config: SyncEntitiesConfig(
+                modelId: { $0.id },
+                entityId: { $0.id },
+                update: { $0.update(from: $1) },
+                create: { PinLoadedMachineEntity(from: $0) }
+            )
         )
     }
     

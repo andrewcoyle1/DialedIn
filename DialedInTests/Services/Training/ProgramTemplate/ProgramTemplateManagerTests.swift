@@ -9,17 +9,29 @@ import Testing
 import Foundation
 
 struct ProgramTemplateManagerTests {
-    
+
     @Test("getUserTemplates returns only non-built-in templates for given user, sorted by modifiedAt descending")
-    // swiftlint:disable:next function_body_length
     func testGetUserTemplatesFiltersAndSortsCorrectly() {
+        let fixtures = Self.makeUserTemplatesFixtures()
+        let local = MockProgramTemplatePersistence()
+        try? local.save(fixtures.builtIn)
+        try? local.save(fixtures.olderUserTemplate)
+        try? local.save(fixtures.newerUserTemplate)
+        try? local.save(fixtures.otherUserTemplate)
+        let services = ProgramTemplateServices(local: local, remote: MockProgramTemplateService())
+        let manager = ProgramTemplateManager(services: services)
+        let results = manager.getUserTemplates(userId: fixtures.userId)
+        #expect(results.count == 2)
+        #expect(results.allSatisfy { $0.authorId == fixtures.userId })
+        #expect(results.first?.id == fixtures.newerUserTemplate.id)
+        #expect(results.last?.id == fixtures.olderUserTemplate.id)
+        #expect(!results.contains(where: { $0.id == fixtures.builtIn.id }))
+    }
+
+    private static func makeUserTemplatesFixtures() -> UserTemplatesFixtures {
         let userId = "user-123"
         let otherUserId = "user-456"
-        
-        // Built-in template (should always be excluded)
         let builtIn = ProgramTemplateModel.pushPullLegs
-        
-        // User templates for target user
         let olderUserTemplate = ProgramTemplateModel(
             id: "user-template-1",
             name: "Older Template",
@@ -33,7 +45,6 @@ struct ProgramTemplateManagerTests {
             createdAt: Date(timeIntervalSince1970: 1_000),
             modifiedAt: Date(timeIntervalSince1970: 2_000)
         )
-        
         let newerUserTemplate = ProgramTemplateModel(
             id: "user-template-2",
             name: "Newer Template",
@@ -47,8 +58,6 @@ struct ProgramTemplateManagerTests {
             createdAt: Date(timeIntervalSince1970: 3_000),
             modifiedAt: Date(timeIntervalSince1970: 4_000)
         )
-        
-        // Template for a different user (should be excluded)
         let otherUserTemplate = ProgramTemplateModel(
             id: "other-user-template",
             name: "Other User Template",
@@ -62,26 +71,20 @@ struct ProgramTemplateManagerTests {
             createdAt: Date(timeIntervalSince1970: 5_000),
             modifiedAt: Date(timeIntervalSince1970: 6_000)
         )
-        
-        // Local persistence seeded with all templates
-        let local = MockProgramTemplatePersistence()
-        // Overwrite its storage to ensure we control the dataset
-        try? local.save(builtIn)
-        try? local.save(olderUserTemplate)
-        try? local.save(newerUserTemplate)
-        try? local.save(otherUserTemplate)
-        
-        let services = ProgramTemplateServices(local: local, remote: MockProgramTemplateService())
-        let manager = ProgramTemplateManager(services: services)
-        
-        let results = manager.getUserTemplates(userId: userId)
-        
-        #expect(results.count == 2)
-        #expect(results.allSatisfy { $0.authorId == userId })
-        // Should be sorted by modifiedAt descending (newest first)
-        #expect(results.first?.id == newerUserTemplate.id)
-        #expect(results.last?.id == olderUserTemplate.id)
-        // Ensure built-in template is excluded
-        #expect(!results.contains(where: { $0.id == builtIn.id }))
+        return UserTemplatesFixtures(
+            builtIn: builtIn,
+            olderUserTemplate: olderUserTemplate,
+            newerUserTemplate: newerUserTemplate,
+            otherUserTemplate: otherUserTemplate,
+            userId: userId
+        )
     }
+}
+
+private struct UserTemplatesFixtures {
+    let builtIn: ProgramTemplateModel
+    let olderUserTemplate: ProgramTemplateModel
+    let newerUserTemplate: ProgramTemplateModel
+    let otherUserTemplate: ProgramTemplateModel
+    let userId: String
 }

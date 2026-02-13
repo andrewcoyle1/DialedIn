@@ -32,24 +32,26 @@ struct InsightsAndAnalyticsView: View {
     }
 
     private var activitySection: some View {
-        Section {
+        let workoutColor = Color.orange
+        return Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
                 DashboardCard(
                     title: "Workouts",
                     subtitle: presenter.workoutSubtitle,
                     subsubtitle: presenter.workoutLatestValueText,
                     subsubsubtitle: presenter.workoutUnitText,
+                    themeColor: workoutColor,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                 ) {
                     SetsBarChart(
                         data: presenter.workoutSparklineData.map(\.value),
                         slotCount: 7,
-                        color: .green
+                        color: workoutColor
                     )
                 }
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onWorkoutsPressed()
+                    presenter.onWorkoutsPressed(themeColor: workoutColor)
                 }
             }
             .padding(.horizontal)
@@ -62,34 +64,37 @@ struct InsightsAndAnalyticsView: View {
     }
 
     private var energySection: some View {
-        Section {
+        let expenditureColor = Color.pink
+        return Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
                 DashboardCard(
                     title: "Expenditure",
                     subtitle: presenter.expenditureSubtitle,
                     subsubtitle: presenter.expenditureLatestValueText,
                     subsubsubtitle: presenter.expenditureUnitText,
+                    themeColor: expenditureColor,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                 ) {
                     SparklineChart(
                         data: presenter.expenditureSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .green,
+                            lineColor: expenditureColor,
                             lineWidth: 2,
-                            fillColor: .green,
+                            fillColor: expenditureColor,
                             height: 36
                         )
                     )
                 }
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onExpenditurePressed()
+                    presenter.onExpenditurePressed(themeColor: expenditureColor)
                 }
                 DashboardCard(
                     title: "Energy Balance",
                     subtitle: presenter.energyBalanceSubtitle,
                     subsubtitle: presenter.energyBalanceLatestValueText,
                     subsubsubtitle: presenter.energyBalanceUnitText,
+                    themeColor: nil,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                 ) {
                     EnergyBalanceChart(
@@ -99,7 +104,7 @@ struct InsightsAndAnalyticsView: View {
                 }
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onEnergyBalancePressed()
+                    presenter.onEnergyBalancePressed(themeColor: nil)
                 }
             }
             .padding(.horizontal)
@@ -112,28 +117,30 @@ struct InsightsAndAnalyticsView: View {
     }
 
     private var bodySection: some View {
-        Section {
+        let weightTrendColor = Color.purple
+        return Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
                 DashboardCard(
                     title: "Weight Trend",
                     subtitle: presenter.weightTrendSubtitle,
                     subsubtitle: presenter.weightTrendLatestValueText,
                     subsubsubtitle: presenter.weightTrendUnitText,
+                    themeColor: weightTrendColor,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2)
                 ) {
                     SparklineChart(
                         data: presenter.weightTrendSparklineData,
                         configuration: SparklineConfiguration(
-                            lineColor: .green,
+                            lineColor: weightTrendColor,
                             lineWidth: 2,
-                            fillColor: .green,
+                            fillColor: weightTrendColor,
                             height: 36
                         )
                     )
                 }
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onWeightTrendPressed()
+                    presenter.onWeightTrendPressed(themeColor: weightTrendColor)
                 }
             }
             .padding(.horizontal)
@@ -146,21 +153,23 @@ struct InsightsAndAnalyticsView: View {
     }
 
     private var goalsSection: some View {
-        Section {
+        let goalProgressColor = Color.green
+        return Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
                 DashboardCard(
                     title: "Goal Progress",
                     subtitle: "Last 7 Days",
                     subsubtitle: "14",
                     subsubsubtitle: "%",
+                    themeColor: goalProgressColor,
                     chartConfiguration: DashboardCardChartConfiguration(height: 36, verticalPadding: 2),
                     chart: {
-                        MacroProgressChart(current: 14, target: 100, maxValue: 100, color: .green)
+                        MacroProgressChart(current: 14, target: 100, maxValue: 100, color: goalProgressColor)
                     }
                 )
                 .tappableBackground()
                 .anyButton(.press) {
-                    presenter.onGoalProgressPressed()
+                    presenter.onGoalProgressPressed(themeColor: goalProgressColor)
                 }
             }
             .padding(.horizontal)

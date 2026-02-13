@@ -63,9 +63,26 @@ struct GymProfilePersistenceTests {
     }
 }
 
-// swiftlint:disable:next function_body_length
 private func makeMinimalProfile() -> GymProfileModel {
-    let freeWeights = [
+    GymProfileModel(
+        id: "gym-profile-1",
+        authorId: "author-1",
+        name: "Original Gym",
+        icon: "dumbbell",
+        dateCreated: Date(timeIntervalSince1970: 100),
+        dateModified: Date(timeIntervalSince1970: 100),
+        deletedAt: nil,
+        freeWeights: makeMinimalFreeWeights(),
+        loadableBars: makeMinimalLoadableBars(),
+        supportEquipment: makeMinimalSupportEquipment(),
+        cableMachines: makeMinimalCableMachines(),
+        plateLoadedMachines: makeMinimalPlateLoadedMachines(),
+        pinLoadedMachines: makeMinimalPinLoadedMachines()
+    )
+}
+
+private func makeMinimalFreeWeights() -> [FreeWeights] {
+    [
         FreeWeights(
             id: "free-weight-1",
             name: "Dumbbells",
@@ -82,7 +99,10 @@ private func makeMinimalProfile() -> GymProfileModel {
             isActive: true
         )
     ]
-    let loadableBars = [
+}
+
+private func makeMinimalLoadableBars() -> [LoadableBars] {
+    [
         LoadableBars(
             id: "loadable-bar-1",
             name: "Barbell",
@@ -98,7 +118,10 @@ private func makeMinimalProfile() -> GymProfileModel {
             isActive: true
         )
     ]
-    let supportEquipment = [
+}
+
+private func makeMinimalSupportEquipment() -> [SupportEquipment] {
+    [
         SupportEquipment(
             id: "support-1",
             name: "Bench",
@@ -106,7 +129,10 @@ private func makeMinimalProfile() -> GymProfileModel {
             isActive: true
         )
     ]
-    let cableMachines = [
+}
+
+private func makeMinimalCableMachines() -> [CableMachine] {
+    [
         CableMachine(
             id: "cable-1",
             name: "Cable Machine",
@@ -124,7 +150,10 @@ private func makeMinimalProfile() -> GymProfileModel {
             isActive: true
         )
     ]
-    let plateLoadedMachines = [
+}
+
+private func makeMinimalPlateLoadedMachines() -> [PlateLoadedMachine] {
+    [
         PlateLoadedMachine(
             id: "plate-1",
             name: "Plate Machine",
@@ -140,7 +169,10 @@ private func makeMinimalProfile() -> GymProfileModel {
             isActive: true
         )
     ]
-    let pinLoadedMachines = [
+}
+
+private func makeMinimalPinLoadedMachines() -> [PinLoadedMachine] {
+    [
         PinLoadedMachine(
             id: "pin-1",
             name: "Pin Machine",
@@ -158,19 +190,4 @@ private func makeMinimalProfile() -> GymProfileModel {
             isActive: true
         )
     ]
-    return GymProfileModel(
-        id: "gym-profile-1",
-        authorId: "author-1",
-        name: "Original Gym",
-        icon: "dumbbell",
-        dateCreated: Date(timeIntervalSince1970: 100),
-        dateModified: Date(timeIntervalSince1970: 100),
-        deletedAt: nil,
-        freeWeights: freeWeights,
-        loadableBars: loadableBars,
-        supportEquipment: supportEquipment,
-        cableMachines: cableMachines,
-        plateLoadedMachines: plateLoadedMachines,
-        pinLoadedMachines: pinLoadedMachines
-    )
 }

@@ -32,22 +32,23 @@ struct MuscleGroupDetailView: View {
 
 extension CoreBuilder {
 
-    func muscleGroupDetailView(router: Router, delegate: MuscleGroupDetailDelegate, muscle: Muscles) -> some View {
+    func muscleGroupDetailView(router: Router, delegate: MuscleGroupDetailDelegate, muscle: Muscles, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: MuscleGroupDetailPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self),
                 muscle: muscle
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }
 
 extension CoreRouter {
 
-    func showMuscleGroupDetailView(muscle: Muscles, delegate: MuscleGroupDetailDelegate) {
+    func showMuscleGroupDetailView(muscle: Muscles, delegate: MuscleGroupDetailDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.muscleGroupDetailView(router: router, delegate: delegate, muscle: muscle)
+            builder.muscleGroupDetailView(router: router, delegate: delegate, muscle: muscle, themeColor: themeColor)
         }
     }
 }

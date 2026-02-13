@@ -205,90 +205,115 @@ enum NutritionMetric {
         }
     }
 
+    /// Metrics that have no extractable value from totals or breakdown (e.g. not in HealthKit breakdown).
+    private static let metricsReturningNil: Set<NutritionMetric> = [
+        .starch, .sugarsAdded, .omega3, .omega3ALA, .omega3DHA, .omega3EPA, .omega6, .transFat,
+        .cysteine, .histidine, .isoleucine, .leucine, .lysine, .methionine,
+        .phenylalanine, .threonine, .tryptophan, .tyrosine, .valine,
+        .alcohol, .choline, .water
+    ]
+
     /// Extracts the metric value from daily totals and/or breakdown.
     /// For macro metrics, use totals; for breakdown metrics, use breakdown.
-    // swiftlint:disable:next cyclomatic_complexity function_body_length
     func extractValue(totals: DailyMacroTarget?, breakdown: DailyNutritionBreakdown?) -> Double? {
+        if Self.metricsReturningNil.contains(self) { return nil }
+        if usesTotals { return extractFromTotals(totals) }
+        return extractFromBreakdown(breakdown)
+    }
+
+    private func extractFromTotals(_ totals: DailyMacroTarget?) -> Double? {
+        guard let totals else { return nil }
         switch self {
-        case .macros, .calories:
-            return totals.map { $0.calories }
-        case .protein:
-            return totals.map { $0.proteinGrams }
-        case .fat:
-            return totals.map { $0.fatGrams }
-        case .carbs:
-            return totals.map { $0.carbGrams }
-        case .fiber:
-            return breakdown?.fiberGrams
-        case .netCarbs:
-            return breakdown?.netCarbsGrams
-        case .starch, .sugarsAdded:
+        case .macros, .calories: return totals.calories
+        case .protein: return totals.proteinGrams
+        case .fat: return totals.fatGrams
+        case .carbs: return totals.carbGrams
+        default: return nil
+        }
+    }
+
+    private func extractFromBreakdown(_ breakdown: DailyNutritionBreakdown?) -> Double? {
+        switch self {
+        case .fiber, .netCarbs, .sugars, .fatMono, .fatPoly, .fatSaturated, .caffeine, .cholesterol:
+            return extractBreakdownCarbsFatsOther(breakdown)
+        case .thiamin, .riboflavin, .niacin, .pantothenicAcid, .vitaminB6, .vitaminB12, .folate:
+            return extractBreakdownVitaminsB(breakdown)
+        case .vitaminA, .vitaminC, .vitaminD, .vitaminE, .vitaminK:
+            return extractBreakdownVitaminsOther(breakdown)
+        case .calcium, .copper, .iron, .magnesium, .manganese, .phosphorus,
+             .potassium, .selenium, .sodium, .zinc:
+            return extractBreakdownMinerals(breakdown)
+        default:
             return nil
-        case .sugars:
-            return breakdown?.sugarGrams
-        case .fatMono:
-            return breakdown?.fatMonounsaturatedGrams
-        case .fatPoly:
-            return breakdown?.fatPolyunsaturatedGrams
-        case .omega3, .omega3ALA, .omega3DHA, .omega3EPA, .omega6:
-            return nil
-        case .fatSaturated:
-            return breakdown?.fatSaturatedGrams
-        case .transFat:
-            return nil
-        case .cysteine, .histidine, .isoleucine, .leucine, .lysine, .methionine,
-             .phenylalanine, .threonine, .tryptophan, .tyrosine, .valine:
-            return nil
-        case .thiamin:
-            return breakdown?.thiaminMg
-        case .riboflavin:
-            return breakdown?.riboflavinMg
-        case .niacin:
-            return breakdown?.niacinMg
-        case .pantothenicAcid:
-            return breakdown?.pantothenicAcidMg
-        case .vitaminB6:
-            return breakdown?.vitaminB6Mg
-        case .vitaminB12:
-            return breakdown?.vitaminB12Mcg
-        case .folate:
-            return breakdown?.folateMcg
-        case .vitaminA:
-            return breakdown?.vitaminAMcg
-        case .vitaminC:
-            return breakdown?.vitaminCMg
-        case .vitaminD:
-            return breakdown?.vitaminDMcg
-        case .vitaminE:
-            return breakdown?.vitaminEMg
-        case .vitaminK:
-            return breakdown?.vitaminKMcg
-        case .calcium:
-            return breakdown?.calciumMg
-        case .copper:
-            return breakdown?.copperMg
-        case .iron:
-            return breakdown?.ironMg
-        case .magnesium:
-            return breakdown?.magnesiumMg
-        case .manganese:
-            return breakdown?.manganeseMg
-        case .phosphorus:
-            return breakdown?.phosphorusMg
-        case .potassium:
-            return breakdown?.potassiumMg
-        case .selenium:
-            return breakdown?.seleniumMcg
-        case .sodium:
-            return breakdown?.sodiumMg
-        case .zinc:
-            return breakdown?.zincMg
-        case .alcohol, .choline, .water:
-            return nil
-        case .caffeine:
-            return breakdown?.caffeineMg
-        case .cholesterol:
-            return breakdown?.cholesterolMg
+        }
+    }
+
+    private func extractBreakdownCarbsFatsOther(_ breakdown: DailyNutritionBreakdown?) -> Double? {
+        guard let breakdown else { return nil }
+        switch self {
+        case .fiber: return breakdown.fiberGrams
+        case .netCarbs: return breakdown.netCarbsGrams
+        case .sugars: return breakdown.sugarGrams
+        case .fatMono: return breakdown.fatMonounsaturatedGrams
+        case .fatPoly: return breakdown.fatPolyunsaturatedGrams
+        case .fatSaturated: return breakdown.fatSaturatedGrams
+        case .caffeine: return breakdown.caffeineMg
+        case .cholesterol: return breakdown.cholesterolMg
+        default: return nil
+        }
+    }
+
+    private func extractBreakdownVitaminsB(_ breakdown: DailyNutritionBreakdown?) -> Double? {
+        guard let breakdown else { return nil }
+        switch self {
+        case .thiamin: return breakdown.thiaminMg
+        case .riboflavin: return breakdown.riboflavinMg
+        case .niacin: return breakdown.niacinMg
+        case .pantothenicAcid: return breakdown.pantothenicAcidMg
+        case .vitaminB6: return breakdown.vitaminB6Mg
+        case .vitaminB12: return breakdown.vitaminB12Mcg
+        case .folate: return breakdown.folateMcg
+        default: return nil
+        }
+    }
+
+    private func extractBreakdownVitaminsOther(_ breakdown: DailyNutritionBreakdown?) -> Double? {
+        guard let breakdown else { return nil }
+        switch self {
+        case .vitaminA: return breakdown.vitaminAMcg
+        case .vitaminC: return breakdown.vitaminCMg
+        case .vitaminD: return breakdown.vitaminDMcg
+        case .vitaminE: return breakdown.vitaminEMg
+        case .vitaminK: return breakdown.vitaminKMcg
+        default: return nil
+        }
+    }
+
+    private func extractBreakdownMinerals(_ breakdown: DailyNutritionBreakdown?) -> Double? {
+        guard let breakdown else { return nil }
+        if let value = extractBreakdownMineralsFirstGroup(breakdown) { return value }
+        return extractBreakdownMineralsSecondGroup(breakdown)
+    }
+
+    private func extractBreakdownMineralsFirstGroup(_ breakdown: DailyNutritionBreakdown) -> Double? {
+        switch self {
+        case .calcium: return breakdown.calciumMg
+        case .copper: return breakdown.copperMg
+        case .iron: return breakdown.ironMg
+        case .magnesium: return breakdown.magnesiumMg
+        case .manganese: return breakdown.manganeseMg
+        default: return nil
+        }
+    }
+
+    private func extractBreakdownMineralsSecondGroup(_ breakdown: DailyNutritionBreakdown) -> Double? {
+        switch self {
+        case .phosphorus: return breakdown.phosphorusMg
+        case .potassium: return breakdown.potassiumMg
+        case .selenium: return breakdown.seleniumMcg
+        case .sodium: return breakdown.sodiumMg
+        case .zinc: return breakdown.zincMg
+        default: return nil
         }
     }
 

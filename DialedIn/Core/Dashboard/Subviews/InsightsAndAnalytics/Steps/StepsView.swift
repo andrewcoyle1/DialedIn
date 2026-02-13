@@ -32,21 +32,22 @@ struct StepsView: View {
 
 extension CoreBuilder {
 
-    func stepsView(router: Router, delegate: StepsDelegate) -> some View {
+    func stepsView(router: Router, delegate: StepsDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: StepsPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }
 
 extension CoreRouter {
 
-    func showStepsView(delegate: StepsDelegate) {
+    func showStepsView(delegate: StepsDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.stepsView(router: router, delegate: delegate)
+            builder.stepsView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }

@@ -417,7 +417,7 @@ extension HKWorkoutManager {
         SharedWorkoutStorage.restEndTime = restEndTime
 
         // Update Live Activity immediately to show Resting countdown
-        liveActivityUpdater?.updateLiveActivity(
+        liveActivityUpdater?.updateLiveActivity(params: LiveActivityUpdateParams(
             session: session,
             isActive: state == .running,
             currentExerciseIndex: currentExerciseIndex,
@@ -425,7 +425,7 @@ extension HKWorkoutManager {
             statusMessage: "Resting",
             totalVolumeKg: nil,
             elapsedTime: metrics.elapsedTime
-        )
+        ))
 
         // Schedule timer to fire exactly at rest end, even when app is backgrounded
         if let endTime = restEndTime {

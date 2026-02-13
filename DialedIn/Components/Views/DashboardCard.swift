@@ -20,6 +20,7 @@ struct DashboardCard<MetricChart: View>: View {
     var subtitle: String?
     var subsubtitle: String?
     var subsubsubtitle: String?
+    var themeColor: Color?
     var chartConfiguration: DashboardCardChartConfiguration
     var chart: () -> MetricChart
     
@@ -28,6 +29,7 @@ struct DashboardCard<MetricChart: View>: View {
         subtitle: String? = "Subtitle",
         subsubtitle: String? = "Subsubtitle",
         subsubsubtitle: String? = "Subsubsubtitle",
+        themeColor: Color? = nil,
         chartConfiguration: DashboardCardChartConfiguration = DashboardCardChartConfiguration(),
         chart: @escaping () -> MetricChart = {
             ContributionChartView(
@@ -46,6 +48,7 @@ struct DashboardCard<MetricChart: View>: View {
         self.subtitle = subtitle
         self.subsubtitle = subsubtitle
         self.subsubsubtitle = subsubsubtitle
+        self.themeColor = themeColor
         self.chartConfiguration = chartConfiguration
         self.chart = chart
     }

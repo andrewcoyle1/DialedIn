@@ -102,25 +102,44 @@ struct BodyMeasurementEntry: Codable, Identifiable, Equatable {
 
     /// Returns a copy with the specified circumference field updated to the given value.
     func withUpdated(_ update: CircumferenceUpdate) -> BodyMeasurementEntry {
+        if let result = applyUpperBodyUpdate(update) { return result }
+        if let result = applyArmsUpdate(update) { return result }
+        return applyLegsUpdate(update)!
+    }
+
+    private func applyUpperBodyUpdate(_ update: CircumferenceUpdate) -> BodyMeasurementEntry? {
         switch update {
-        case .neck(let value):          return copyWithOverrides(neckCircumference: value)
-        case .shoulder(let value):      return copyWithOverrides(shoulderCircumference: value)
-        case .bust(let value):          return copyWithOverrides(bustCircumference: value)
-        case .chest(let value):         return copyWithOverrides(chestCircumference: value)
-        case .waist(let value):         return copyWithOverrides(waistCircumference: value)
-        case .hip(let value):           return copyWithOverrides(hipCircumference: value)
-        case .leftBicep(let value):     return copyWithOverrides(leftBicepCircumference: value)
-        case .rightBicep(let value):    return copyWithOverrides(rightBicepCircumference: value)
-        case .leftForearm(let value):   return copyWithOverrides(leftForearmCircumference: value)
-        case .rightForearm(let value):  return copyWithOverrides(rightForearmCircumference: value)
-        case .leftWrist(let value):     return copyWithOverrides(leftWristCircumference: value)
-        case .rightWrist(let value):    return copyWithOverrides(rightWristCircumference: value)
-        case .leftThigh(let value):     return copyWithOverrides(leftThighCircumference: value)
-        case .rightThigh(let value):    return copyWithOverrides(rightThighCircumference: value)
-        case .leftCalf(let value):      return copyWithOverrides(leftCalfCircumference: value)
-        case .rightCalf(let value):     return copyWithOverrides(rightCalfCircumference: value)
-        case .leftAnkle(let value):     return copyWithOverrides(leftAnkleCircumference: value)
-        case .rightAnkle(let value):    return copyWithOverrides(rightAnkleCircumference: value)
+        case .neck(let value): return copyWithOverrides(neckCircumference: value)
+        case .shoulder(let value): return copyWithOverrides(shoulderCircumference: value)
+        case .bust(let value): return copyWithOverrides(bustCircumference: value)
+        case .chest(let value): return copyWithOverrides(chestCircumference: value)
+        case .waist(let value): return copyWithOverrides(waistCircumference: value)
+        case .hip(let value): return copyWithOverrides(hipCircumference: value)
+        default: return nil
+        }
+    }
+
+    private func applyArmsUpdate(_ update: CircumferenceUpdate) -> BodyMeasurementEntry? {
+        switch update {
+        case .leftBicep(let value): return copyWithOverrides(leftBicepCircumference: value)
+        case .rightBicep(let value): return copyWithOverrides(rightBicepCircumference: value)
+        case .leftForearm(let value): return copyWithOverrides(leftForearmCircumference: value)
+        case .rightForearm(let value): return copyWithOverrides(rightForearmCircumference: value)
+        case .leftWrist(let value): return copyWithOverrides(leftWristCircumference: value)
+        case .rightWrist(let value): return copyWithOverrides(rightWristCircumference: value)
+        default: return nil
+        }
+    }
+
+    private func applyLegsUpdate(_ update: CircumferenceUpdate) -> BodyMeasurementEntry? {
+        switch update {
+        case .leftThigh(let value): return copyWithOverrides(leftThighCircumference: value)
+        case .rightThigh(let value): return copyWithOverrides(rightThighCircumference: value)
+        case .leftCalf(let value): return copyWithOverrides(leftCalfCircumference: value)
+        case .rightCalf(let value): return copyWithOverrides(rightCalfCircumference: value)
+        case .leftAnkle(let value): return copyWithOverrides(leftAnkleCircumference: value)
+        case .rightAnkle(let value): return copyWithOverrides(rightAnkleCircumference: value)
+        default: return nil
         }
     }
 

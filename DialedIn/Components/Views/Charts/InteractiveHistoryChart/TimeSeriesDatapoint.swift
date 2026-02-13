@@ -49,24 +49,26 @@ struct TimeSeriesData {
         let startDate = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? Date.now
         let days = 14
         return [
-            makeSeries(
+            makeSeries(SeriesConfig(
                 name: "Bench Press",
                 startDate: startDate,
                 days: days,
+                dayMultiplier: 1,
                 base: 85,
                 amplitude: 18,
                 trendPerDay: 4,
                 phase: 0
-            ),
-            makeSeries(
+            )),
+            makeSeries(SeriesConfig(
                 name: "Barbell Squat",
                 startDate: startDate,
                 days: days,
+                dayMultiplier: 1,
                 base: 55,
                 amplitude: 22,
                 trendPerDay: 5,
                 phase: 1.2
-            )
+            ))
         ]
     }()
 
@@ -75,24 +77,26 @@ struct TimeSeriesData {
         let startDate = makeDate(year: 2022, month: 1, day: 1)
         let days = 500
         return [
-            makeSeries(
+            makeSeries(SeriesConfig(
                 name: "Bench Press",
                 startDate: startDate,
                 days: days,
+                dayMultiplier: 1,
                 base: 55,
                 amplitude: 18,
                 trendPerDay: 0.04,
                 phase: 0
-            ),
-            makeSeries(
+            )),
+            makeSeries(SeriesConfig(
                 name: "Barbell Squat",
                 startDate: startDate,
                 days: days,
+                dayMultiplier: 1,
                 base: 85,
                 amplitude: 22,
                 trendPerDay: 0.05,
                 phase: 1.2
-            )
+            ))
         ]
     }()
 
@@ -101,7 +105,7 @@ struct TimeSeriesData {
         let startDate = makeDate(year: 2022, month: 1, day: 1)
         let days = 500
         return [
-            makeSeries(
+            makeSeries(SeriesConfig(
                 name: "Bench Press",
                 startDate: startDate,
                 days: days,
@@ -110,17 +114,17 @@ struct TimeSeriesData {
                 amplitude: 18,
                 trendPerDay: 0.04,
                 phase: 0
-            ),
-            makeSeries(
+            )),
+            makeSeries(SeriesConfig(
                 name: "Barbell Squat",
                 startDate: startDate,
                 days: days,
-                dayMultiplier: 6, 
+                dayMultiplier: 6,
                 base: 85,
                 amplitude: 22,
                 trendPerDay: 0.05,
                 phase: 1.2
-            )
+            ))
         ]
     }()
 
@@ -128,24 +132,26 @@ struct TimeSeriesData {
         Calendar.current.date(from: DateComponents(year: year, month: month, day: day)) ?? Date()
     }
 
-    private static func makeSeries(
-        name: String,
-        startDate: Date,
-        days: Int,
-        dayMultiplier: Int = 1,
-        base: Double,
-        amplitude: Double,
-        trendPerDay: Double,
-        phase: Double
-    ) -> TimeSeries {
+    struct SeriesConfig {
+        let name: String
+        let startDate: Date
+        let days: Int
+        let dayMultiplier: Int
+        let base: Double
+        let amplitude: Double
+        let trendPerDay: Double
+        let phase: Double
+    }
+
+    private static func makeSeries(_ config: SeriesConfig) -> TimeSeries {
         let calendar = Calendar.current
-        let data = (0..<days).map { dayOffset in
-            let date = calendar.date(byAdding: .day, value: dayOffset*dayMultiplier, to: startDate) ?? startDate
-            let wave = sin(Double(dayOffset) / 14.0 + phase) * amplitude
-            let trend = Double(dayOffset) * trendPerDay
-            let value = max(0, base + wave + trend)
+        let data = (0..<config.days).map { dayOffset in
+            let date = calendar.date(byAdding: .day, value: dayOffset * config.dayMultiplier, to: config.startDate) ?? config.startDate
+            let wave = sin(Double(dayOffset) / 14.0 + config.phase) * config.amplitude
+            let trend = Double(dayOffset) * config.trendPerDay
+            let value = max(0, config.base + wave + trend)
             return TimeSeriesDatapoint(date: date, value: value)
         }
-        return TimeSeries(name: name, data: data)
+        return TimeSeries(name: config.name, data: data)
     }
 }

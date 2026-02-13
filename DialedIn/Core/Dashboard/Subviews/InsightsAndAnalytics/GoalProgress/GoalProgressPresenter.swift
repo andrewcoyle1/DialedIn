@@ -142,10 +142,10 @@ extension GoalProgressPresenter: @MainActor MetricDetailPresenter {
         )
     }
 
-    private func weightLabel(_ title: String, _ kg: Double) -> some View {
+    private func weightLabel(_ title: String, _ kilos: Double) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
-            Text("\(kg.formatted(.number.precision(.fractionLength(1)))) kg")
+            Text("\(kilos.formatted(.number.precision(.fractionLength(1)))) kg")
                 .fontWeight(.medium)
         }
     }

@@ -61,8 +61,8 @@ class MuscleGroupsPresenter {
         muscleSetsData[muscle] ?? (Array(repeating: 0, count: 7).map(Double.init), 0.0)
     }
 
-    func onMusclePressed(muscle: Muscles) {
-        router.showMuscleGroupDetailView(muscle: muscle, delegate: MuscleGroupDetailDelegate())
+    func onMusclePressed(muscle: Muscles, themeColor: Color?) {
+        router.showMuscleGroupDetailView(muscle: muscle, delegate: MuscleGroupDetailDelegate(), themeColor: themeColor)
     }
 
     func onDismissPressed() {

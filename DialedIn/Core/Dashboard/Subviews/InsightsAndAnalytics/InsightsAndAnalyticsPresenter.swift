@@ -46,24 +46,24 @@ class InsightsAndAnalyticsPresenter {
         router.dismissScreen()
     }
 
-    func onWeightTrendPressed() {
-        router.showWeightTrendView(delegate: WeightTrendDelegate())
+    func onWeightTrendPressed(themeColor: Color?) {
+        router.showWeightTrendView(delegate: WeightTrendDelegate(), themeColor: themeColor)
     }
 
-    func onGoalProgressPressed() {
-        router.showGoalProgressView(delegate: GoalProgressDelegate())
+    func onGoalProgressPressed(themeColor: Color?) {
+        router.showGoalProgressView(delegate: GoalProgressDelegate(), themeColor: themeColor)
     }
 
-    func onEnergyBalancePressed() {
-        router.showEnergyBalanceView(delegate: EnergyBalanceDelegate())
+    func onEnergyBalancePressed(themeColor: Color?) {
+        router.showEnergyBalanceView(delegate: EnergyBalanceDelegate(), themeColor: themeColor)
     }
 
-    func onWorkoutsPressed() {
-        router.showWorkoutView(delegate: WorkoutDelegate())
+    func onWorkoutsPressed(themeColor: Color?) {
+        router.showWorkoutView(delegate: WorkoutDelegate(), themeColor: themeColor)
     }
 
-    func onExpenditurePressed() {
-        router.showExpenditureView(delegate: ExpenditureDelegate())
+    func onExpenditurePressed(themeColor: Color?) {
+        router.showExpenditureView(delegate: ExpenditureDelegate(), themeColor: themeColor)
     }
 
     var weightTrendSparklineData: [(date: Date, value: Double)] {

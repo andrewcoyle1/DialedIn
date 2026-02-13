@@ -8,6 +8,17 @@
 import Foundation
 import HealthKit
 
+/// Parameters for updating a workout live activity's status and metrics.
+struct LiveActivityUpdateParams {
+    let session: WorkoutSessionModel
+    let isActive: Bool
+    let currentExerciseIndex: Int
+    let restEndsAt: Date?
+    let statusMessage: String?
+    let totalVolumeKg: Double?
+    let elapsedTime: TimeInterval?
+}
+
 /// Interactor protocol for handling all interactions between the Workout Tracker view model
 /// and data/services, supporting HealthKit session handling, local persistence, notifications,
 /// user event tracking, rest timing, preferences, and history management.
@@ -91,17 +102,8 @@ protocol WorkoutTrackerInteractor {
         statusMessage: String?
     )
 
-    // Update live activity status and metrics for widgets/external presentation.
-    // swiftlint:disable:next function_parameter_count
-    func updateLiveActivity(
-        session: WorkoutSessionModel,
-        isActive: Bool,
-        currentExerciseIndex: Int,
-        restEndsAt: Date?,
-        statusMessage: String?,
-        totalVolumeKg: Double?,
-        elapsedTime: TimeInterval?
-    )
+    /// Update live activity status and metrics for widgets/external presentation.
+    func updateLiveActivity(params: LiveActivityUpdateParams)
 
     // MARK: - Workout History
 

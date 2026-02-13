@@ -42,10 +42,12 @@ class PinLoadedMachineEntity {
         self.ranges = syncEntities(
             existing: ranges,
             models: model.ranges,
-            modelId: { $0.id },
-            entityId: { $0.id },
-            update: { $0.update(from: $1) },
-            create: { PinLoadedMachineRangeEntity(from: $0) }
+            config: SyncEntitiesConfig(
+                modelId: { $0.id },
+                entityId: { $0.id },
+                update: { $0.update(from: $1) },
+                create: { PinLoadedMachineRangeEntity(from: $0) }
+            )
         )
         self.isActive = model.isActive
     }

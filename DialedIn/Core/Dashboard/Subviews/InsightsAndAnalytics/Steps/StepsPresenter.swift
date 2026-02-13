@@ -98,8 +98,6 @@ extension StepsPresenter: @MainActor MetricDetailPresenter {
         await loadData()
     }
 
-    func onAddPressed() {
-        // TODO: Show add steps view
-    }
+    func onAddPressed() { }
 
 }

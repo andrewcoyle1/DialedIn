@@ -13,7 +13,7 @@ struct WorkoutTemplateExercise: Hashable, Identifiable, Codable, Equatable {
     var setTargets: [SetTarget]
     var setRestTimers: Bool
     
-    init(id: String = UUID().uuidString, exercise: ExerciseModel, setTargets: [SetTarget] = [SetTarget(setNumber: 1, setType: SetTarget.SetType.standard)], setRestTimers: Bool) {
+    init(id: String = UUID().uuidString, exercise: ExerciseModel, setTargets: [SetTarget] = [SetTarget(setNumber: 1, setType: SetTargetSetType.standard)], setRestTimers: Bool) {
         self.id = id
         self.exercise = exercise
         self.setTargets = setTargets
@@ -31,7 +31,7 @@ struct WorkoutTemplateExercise: Hashable, Identifiable, Codable, Equatable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
         setTargets = try container.decodeIfPresent([SetTarget].self, forKey: .setTargets) ?? [
-            SetTarget(setNumber: 1, setType: SetTarget.SetType.standard)
+            SetTarget(setNumber: 1, setType: SetTargetSetType.standard)
         ]
         setRestTimers = try container.decodeIfPresent(Bool.self, forKey: .setRestTimers) ?? false
 
@@ -79,15 +79,15 @@ struct SetTarget: Hashable, Identifiable, Codable, Equatable {
     var minReps: Int?
     var maxReps: Int?
     var rirTarget: Int?
-    var setType: SetType
-    
+    var setType: SetTargetSetType
+
     init(
         id: String = UUID().uuidString,
         setNumber: Int,
         minReps: Int? = nil,
         maxReps: Int? = nil,
         rirTarget: Int? = nil,
-        setType: SetType = .standard
+        setType: SetTargetSetType = .standard
     ) {
         self.id = id
         self.setNumber = setNumber
@@ -96,7 +96,7 @@ struct SetTarget: Hashable, Identifiable, Codable, Equatable {
         self.rirTarget = rirTarget
         self.setType = setType
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case id
         case setNumber = "set_number"
@@ -105,72 +105,70 @@ struct SetTarget: Hashable, Identifiable, Codable, Equatable {
         case rirTarget = "rir_target"
         case setType = "set_type"
     }
-    
-    enum SetType: String, Codable {
-        case standard
-        case drop
-        case myo
-        case failure
+}
 
-        init(from decoder: Decoder) throws {
-            if let rawValue = try? decoder.singleValueContainer().decode(String.self),
-               let value = SetType(rawValue: rawValue) {
+enum SetTargetSetType: String, Codable {
+    case standard
+    case drop
+    case myo
+    case failure
+
+    init(from decoder: Decoder) throws {
+        if let rawValue = try? decoder.singleValueContainer().decode(String.self),
+           let value = SetTargetSetType(rawValue: rawValue) {
+            self = value
+            return
+        }
+        if let container = try? decoder.container(keyedBy: LegacyCodingKeys.self) {
+            if let rawValue = try? container.decode(String.self, forKey: .rawValue),
+               let value = SetTargetSetType(rawValue: rawValue) {
                 self = value
                 return
             }
-
-            if let container = try? decoder.container(keyedBy: LegacyCodingKeys.self) {
-                if let rawValue = try? container.decode(String.self, forKey: .rawValue),
-                   let value = SetType(rawValue: rawValue) {
-                    self = value
-                    return
-                }
-                if let name = try? container.decode(String.self, forKey: .name),
-                   let value = SetType.fromName(name) {
-                    self = value
-                    return
-                }
-            }
-
-            self = .standard
-        }
-
-        func encode(to encoder: Encoder) throws {
-            var container = encoder.singleValueContainer()
-            try container.encode(rawValue)
-        }
-
-        private enum LegacyCodingKeys: String, CodingKey {
-            case rawValue
-            case name
-        }
-
-        private static func fromName(_ name: String) -> SetType? {
-            switch name {
-            case "Standard Set": return .standard
-            case "Drop Set": return .drop
-            case "Myo Set": return .myo
-            case "Failure Set": return .failure
-            default: return nil
+            if let name = try? container.decode(String.self, forKey: .name),
+               let value = SetTargetSetType.fromName(name) {
+                self = value
+                return
             }
         }
-        
-        var name: String {
-            switch self {
-            case .standard: return "Standard Set"
-            case .drop: return "Drop Set"
-            case .myo: return "Myo Set"
-            case .failure: return "Failure Set"
-            }
+        self = .standard
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+
+    private enum LegacyCodingKeys: String, CodingKey {
+        case rawValue
+        case name
+    }
+
+    private static func fromName(_ name: String) -> SetTargetSetType? {
+        switch name {
+        case "Standard Set": return .standard
+        case "Drop Set": return .drop
+        case "Myo Set": return .myo
+        case "Failure Set": return .failure
+        default: return nil
         }
-        
-        var subtitle: String {
-            switch self {
-            case .standard: return "A normal set of a fixed weight and target repitions."
-            case .drop: return "A set where you continue repping to push muscle fatigue with progressively lower weight after reaching failure at a heavier load."
-            case .myo: return "A set where you continue repping to push muscle fatigue with progressively low reps while keeping the weight constant."
-            case .failure: return "A set where you perform reps until you can no longer maintain proper form (for compound exercises) or complete another rep (for isolation exercises)."
-            }
+    }
+
+    var name: String {
+        switch self {
+        case .standard: return "Standard Set"
+        case .drop: return "Drop Set"
+        case .myo: return "Myo Set"
+        case .failure: return "Failure Set"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .standard: return "A normal set of a fixed weight and target repitions."
+        case .drop: return "A set where you continue repping to push muscle fatigue with progressively lower weight after reaching failure at a heavier load."
+        case .myo: return "A set where you continue repping to push muscle fatigue with progressively low reps while keeping the weight constant."
+        case .failure: return "A set where you perform reps until you can no longer maintain proper form (for compound exercises) or complete another rep (for isolation exercises)."
         }
     }
 }
@@ -304,54 +302,13 @@ struct ExerciseModel: @MainActor TemplateModel {
         name = try container.decodeIfPresent(String.self, forKey: .name) ?? "Untitled"
         description = try container.decodeIfPresent(String.self, forKey: .description)
         imageURL = try container.decodeIfPresent(String.self, forKey: .imageURL)
-        
-        // Be tolerant of legacy/unknown values so decoding doesn't hard-fail.
-        if let decodedMetrics = try? container.decodeIfPresent([TrackableExerciseMetric].self, forKey: .trackableMetrics) {
-            trackableMetrics = decodedMetrics
-        } else if let rawMetrics = try? container.decodeIfPresent([String].self, forKey: .trackableMetrics) {
-            trackableMetrics = rawMetrics.compactMap { TrackableExerciseMetric(rawValue: $0) }
-        } else {
-            trackableMetrics = []
-        }
-        
-        if let rawType = try? container.decodeIfPresent(String.self, forKey: .type) {
-            type = ExerciseType(rawValue: rawType)
-        } else {
-            type = nil
-        }
-        
-        if let rawLaterality = try? container.decodeIfPresent(String.self, forKey: .laterality) {
-            laterality = Laterality(rawValue: rawLaterality)
-        } else {
-            laterality = nil
-        }
-        
-        if let decodedMuscles = try? container.decodeIfPresent([Muscles: Bool].self, forKey: .muscleGroups) {
-            muscleGroups = decodedMuscles
-        } else if let rawMuscles = try? container.decodeIfPresent([String: Bool].self, forKey: .muscleGroups) {
-            var mapped: [Muscles: Bool] = [:]
-            for (key, value) in rawMuscles {
-                if let muscle = Muscles(rawValue: key) {
-                    mapped[muscle] = value
-                }
-            }
-            muscleGroups = mapped
-        } else {
-            muscleGroups = [:]
-        }
+        trackableMetrics = Self.decodeTrackableMetrics(from: container)
+        type = Self.decodeExerciseType(from: container)
+        laterality = Self.decodeLaterality(from: container)
+        muscleGroups = Self.decodeMuscleGroups(from: container)
         isBodyweight = try container.decodeIfPresent(Bool.self, forKey: .isBodyweight) ?? false
-        if let decodedResistance = try? container.decode([EquipmentRef].self, forKey: .resistanceEquipment) {
-            resistanceEquipment = decodedResistance
-        } else {
-            let legacyResistance = (try? container.decode([String].self, forKey: .resistanceEquipment)) ?? []
-            resistanceEquipment = legacyResistance.map { EquipmentRef(kind: .freeWeight, id: $0) }
-        }
-        if let decodedSupport = try? container.decode([EquipmentRef].self, forKey: .supportEquipment) {
-            supportEquipment = decodedSupport
-        } else {
-            let legacySupport = (try? container.decode([String].self, forKey: .supportEquipment)) ?? []
-            supportEquipment = legacySupport.map { EquipmentRef(kind: .supportEquipment, id: $0) }
-        }
+        resistanceEquipment = Self.decodeResistanceEquipment(from: container)
+        supportEquipment = Self.decodeSupportEquipment(from: container)
         rangeOfMotion = try container.decodeIfPresent(Int.self, forKey: .rangeOfMotion) ?? 0
         stability = try container.decodeIfPresent(Int.self, forKey: .stability) ?? 0
         bodyWeightContribution = try container.decodeIfPresent(Int.self, forKey: .bodyWeightContribution) ?? 0
@@ -362,6 +319,46 @@ struct ExerciseModel: @MainActor TemplateModel {
         clickCount = try container.decodeIfPresent(Int.self, forKey: .clickCount) ?? 0
         bookmarkCount = try container.decodeIfPresent(Int.self, forKey: .bookmarkCount) ?? 0
         favouriteCount = try container.decodeIfPresent(Int.self, forKey: .favouriteCount) ?? 0
+    }
+
+    private static func decodeTrackableMetrics(from container: KeyedDecodingContainer<ExerciseModel.CodingKeys>) -> [TrackableExerciseMetric] {
+        if let decoded = try? container.decodeIfPresent([TrackableExerciseMetric].self, forKey: .trackableMetrics) { return decoded }
+        if let raw = try? container.decodeIfPresent([String].self, forKey: .trackableMetrics) {
+            return raw.compactMap { TrackableExerciseMetric(rawValue: $0) }
+        }
+        return []
+    }
+
+    private static func decodeExerciseType(from container: KeyedDecodingContainer<ExerciseModel.CodingKeys>) -> ExerciseType? {
+        guard let raw = try? container.decodeIfPresent(String.self, forKey: .type) else { return nil }
+        return ExerciseType(rawValue: raw)
+    }
+
+    private static func decodeLaterality(from container: KeyedDecodingContainer<ExerciseModel.CodingKeys>) -> Laterality? {
+        guard let raw = try? container.decodeIfPresent(String.self, forKey: .laterality) else { return nil }
+        return Laterality(rawValue: raw)
+    }
+
+    private static func decodeMuscleGroups(from container: KeyedDecodingContainer<ExerciseModel.CodingKeys>) -> [Muscles: Bool] {
+        if let decoded = try? container.decodeIfPresent([Muscles: Bool].self, forKey: .muscleGroups) { return decoded }
+        guard let raw = try? container.decodeIfPresent([String: Bool].self, forKey: .muscleGroups) else { return [:] }
+        var mapped: [Muscles: Bool] = [:]
+        for (key, value) in raw {
+            if let muscle = Muscles(rawValue: key) { mapped[muscle] = value }
+        }
+        return mapped
+    }
+
+    private static func decodeResistanceEquipment(from container: KeyedDecodingContainer<ExerciseModel.CodingKeys>) -> [EquipmentRef] {
+        if let decoded = try? container.decode([EquipmentRef].self, forKey: .resistanceEquipment) { return decoded }
+        let legacy = (try? container.decode([String].self, forKey: .resistanceEquipment)) ?? []
+        return legacy.map { EquipmentRef(kind: .freeWeight, id: $0) }
+    }
+
+    private static func decodeSupportEquipment(from container: KeyedDecodingContainer<ExerciseModel.CodingKeys>) -> [EquipmentRef] {
+        if let decoded = try? container.decode([EquipmentRef].self, forKey: .supportEquipment) { return decoded }
+        let legacy = (try? container.decode([String].self, forKey: .supportEquipment)) ?? []
+        return legacy.map { EquipmentRef(kind: .supportEquipment, id: $0) }
     }
 
     mutating func updateImageURL(imageUrl: String) {

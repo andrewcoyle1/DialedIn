@@ -2,11 +2,11 @@ import SwiftUI
 
 @MainActor
 protocol InsightsAndAnalyticsRouter: GlobalRouter {
-    func showWeightTrendView(delegate: WeightTrendDelegate)
-    func showGoalProgressView(delegate: GoalProgressDelegate)
-    func showEnergyBalanceView(delegate: EnergyBalanceDelegate)
-    func showWorkoutView(delegate: WorkoutDelegate)
-    func showExpenditureView(delegate: ExpenditureDelegate)
+    func showWeightTrendView(delegate: WeightTrendDelegate, themeColor: Color?)
+    func showGoalProgressView(delegate: GoalProgressDelegate, themeColor: Color?)
+    func showEnergyBalanceView(delegate: EnergyBalanceDelegate, themeColor: Color?)
+    func showWorkoutView(delegate: WorkoutDelegate, themeColor: Color?)
+    func showExpenditureView(delegate: ExpenditureDelegate, themeColor: Color?)
 }
 
 extension CoreRouter: InsightsAndAnalyticsRouter { }

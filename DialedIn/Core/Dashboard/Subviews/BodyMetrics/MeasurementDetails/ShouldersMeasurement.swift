@@ -126,20 +126,21 @@ extension ShouldersMeasurementEntry {
 }
 
 extension CoreRouter {
-    func showShouldersMeasurementView(delegate: ShouldersMeasurementDelegate) {
+    func showShouldersMeasurementView(delegate: ShouldersMeasurementDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.shouldersMeasurementView(router: router, delegate: delegate)
+            builder.shouldersMeasurementView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }
 
 extension CoreBuilder {
-    func shouldersMeasurementView(router: Router, delegate: ShouldersMeasurementDelegate) -> some View {
+    func shouldersMeasurementView(router: Router, delegate: ShouldersMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: ShouldersMeasurementPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }

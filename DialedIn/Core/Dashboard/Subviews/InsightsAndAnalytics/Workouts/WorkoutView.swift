@@ -32,21 +32,22 @@ struct WorkoutView: View {
 
 extension CoreBuilder {
 
-    func workoutView(router: Router, delegate: WorkoutDelegate) -> some View {
+    func workoutView(router: Router, delegate: WorkoutDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: WorkoutPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
-            )
+            ),
+            themeColor: themeColor
         )
     }
 }
 
 extension CoreRouter {
 
-    func showWorkoutView(delegate: WorkoutDelegate) {
+    func showWorkoutView(delegate: WorkoutDelegate, themeColor: Color? = nil) {
         router.showScreen(.sheet) { router in
-            builder.workoutView(router: router, delegate: delegate)
+            builder.workoutView(router: router, delegate: delegate, themeColor: themeColor)
         }
     }
 }
