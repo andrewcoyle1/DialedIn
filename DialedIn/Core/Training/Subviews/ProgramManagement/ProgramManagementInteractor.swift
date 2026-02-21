@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
+@MainActor
 protocol ProgramManagementInteractor {
     func readAllLocalTrainingPrograms() throws -> [TrainingProgram]
     func setActiveTrainingProgram(programId: String) async throws

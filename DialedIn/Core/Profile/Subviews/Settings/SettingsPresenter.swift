@@ -71,6 +71,8 @@ class SettingsPresenter {
                 try await interactor.signOut()
                 interactor.trackEvent(event: Event.signOutSuccess)
                 await dismissScreen()
+                try await Task.sleep(for: .seconds(1))
+                router.switchToOnboardingModule()
             } catch {
                 router.showAlert(error: error)
                 interactor.trackEvent(event: Event.signOutFail(error: error))
@@ -80,8 +82,6 @@ class SettingsPresenter {
 
     private func dismissScreen() async {
         router.dismissScreen()
-        try? await Task.sleep(for: .seconds(1))
-        interactor.updateAppState(showTabBarView: false)
     }
 
     func onDeleteAccountPressed() {

@@ -447,15 +447,6 @@ extension CoreBuilder {
     }
 }
 
-extension OnbBuilder {
-    func devSettingsView(router: AnyRouter) -> AnyView {
-        DevSettingsView(
-            presenter: DevSettingsPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
-        )
-        .any()
-    }
-}
-
 extension CoreRouter {
     func showDevSettingsView() {
         router.showScreen(.fullScreenCover) { router in
@@ -464,16 +455,9 @@ extension CoreRouter {
     }
 }
 
-extension OnbRouter {
-    func showDevSettingsView() {
-        router.showScreen(.fullScreenCover) { router in
-            builder.devSettingsView(router: router)
-        }
-    }
-}
-
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     RouterView { router in
         builder.devSettingsView(router: router)
     }

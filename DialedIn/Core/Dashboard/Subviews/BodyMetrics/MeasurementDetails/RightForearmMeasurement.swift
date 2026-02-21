@@ -112,17 +112,15 @@ final class RightForearmMeasurementPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension RightForearmMeasurementEntry {
-    static var mocks: [RightForearmMeasurementEntry] {
-        [
-            RightForearmMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), rightForearmCircumference: 12.6),
-            RightForearmMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), rightForearmCircumference: 12.4),
-            RightForearmMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), rightForearmCircumference: 12.2),
-            RightForearmMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), rightForearmCircumference: 12.1),
-            RightForearmMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), rightForearmCircumference: 12.0),
-            RightForearmMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), rightForearmCircumference: 11.9),
-            RightForearmMeasurementEntry(date: Date.now, rightForearmCircumference: 11.8)
-        ]
-    }
+    static let mocks: [RightForearmMeasurementEntry] = [
+        RightForearmMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), rightForearmCircumference: 12.6),
+        RightForearmMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), rightForearmCircumference: 12.4),
+        RightForearmMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), rightForearmCircumference: 12.2),
+        RightForearmMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), rightForearmCircumference: 12.1),
+        RightForearmMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), rightForearmCircumference: 12.0),
+        RightForearmMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), rightForearmCircumference: 11.9),
+        RightForearmMeasurementEntry(date: Date.now, rightForearmCircumference: 11.8)
+    ]
 }
 
 extension CoreRouter {

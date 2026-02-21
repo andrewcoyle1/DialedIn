@@ -83,15 +83,15 @@ struct OnboardingOverarchingObjectiveView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingOverarchingObjectiveView(router: AnyRouter) -> some View {
         OnboardingOverarchingObjectiveView(
-            presenter: OnboardingOverarchingObjectivePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+            presenter: OnboardingOverarchingObjectivePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingOverarchingObjectiveView() {
         router.showScreen(.push) { router in
             builder.onboardingOverarchingObjectiveView(router: router)
@@ -101,7 +101,7 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingOverarchingObjectiveView(router: router)
     }

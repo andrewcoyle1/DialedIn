@@ -39,17 +39,19 @@ struct AdaptiveMainView<TabBarView: View, SplitView: View>: View {
 }
 
 extension CoreBuilder {
-    func adaptiveMainView(router: AnyRouter) -> some View {
-        AdaptiveMainView(
-            presenter: AdaptiveMainPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            tabBarView: {
-                self.tabBarView(router: router)
-                    .any()
-            },
-            splitViewContainer: { 
-                self.splitViewContainer(router: router)
-                    .any()
-            }
-        )
+    func adaptiveMainView() -> some View {
+        RouterView(id: Constants.tabBarModuleId, addModuleSupport: true) { router in
+            AdaptiveMainView(
+                presenter: AdaptiveMainPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+                tabBarView: {
+                    self.tabBarView(router: router)
+                        .any()
+                },
+                splitViewContainer: {
+                    self.splitViewContainer(router: router)
+                        .any()
+                }
+            )
+        }
     }
 }

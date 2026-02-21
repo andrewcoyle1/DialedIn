@@ -240,16 +240,16 @@ struct OnboardingExpenditureView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingExpenditureView(router: AnyRouter, delegate: OnboardingExpenditureDelegate) -> some View {
         OnboardingExpenditureView(
-            presenter: OnboardingExpenditurePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingExpenditurePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingExpenditureView(delegate: OnboardingExpenditureDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingExpenditureView(router: router, delegate: delegate)
@@ -259,7 +259,7 @@ extension OnbRouter {
 }
 
 #Preview("Functioning") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingExpenditureView(
             router: router, 

@@ -23,19 +23,9 @@ class OnboardingDietPlanPresenter {
     ) {
         self.interactor = interactor
         self.router = router
-        loadTrainingContext()
+
     }
     
-    private func loadTrainingContext() {
-        if let plan = interactor.currentTrainingPlan {
-            trainingProgramName = plan.name
-            // Calculate days per week from first week's scheduled workouts
-            if let firstWeek = plan.weeks.first {
-                trainingDaysPerWeek = firstWeek.scheduledWorkouts.count
-            }
-        }
-    }
-
     var currentUser: UserModel? {
         interactor.currentUser
     }

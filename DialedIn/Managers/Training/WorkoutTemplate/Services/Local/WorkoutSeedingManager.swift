@@ -9,6 +9,7 @@ import Foundation
 import SwiftData
 
 /// Manages seeding of pre-built workout templates into SwiftData
+@MainActor
 class WorkoutSeedingManager {
     
     private let modelContext: ModelContext
@@ -161,6 +162,7 @@ private struct PrebuiltWorkoutsContainer: Codable {
 }
 
 /// DTO for decoding JSON (without date fields)
+@MainActor
 private struct PrebuiltWorkoutDTO: Codable {
     let workoutId: String
     let name: String

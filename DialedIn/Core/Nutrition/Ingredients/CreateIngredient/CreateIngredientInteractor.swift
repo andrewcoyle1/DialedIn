@@ -7,12 +7,10 @@
 
 import SwiftUI
 
+@MainActor
 protocol CreateIngredientInteractor {
     var currentUser: UserModel? { get }
     func createIngredientTemplate(ingredient: IngredientTemplateModel, image: PlatformImage?) async throws
-    func addCreatedIngredientTemplate(ingredientId: String) async throws
-    func addBookmarkedIngredientTemplate(ingredientId: String) async throws
-    func bookmarkIngredientTemplate(id: String, isBookmarked: Bool) async throws
     func trackEvent(event: LoggableEvent)
     func trackEvent(eventName: String, parameters: [String: Any]?, type: LogType)
     func generateImage(input: String) async throws -> UIImage

@@ -112,17 +112,15 @@ final class ChestMeasurementPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension ChestMeasurementEntry {
-    static var mocks: [ChestMeasurementEntry] {
-        [
-            ChestMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), chestCircumference: 42.6),
-            ChestMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), chestCircumference: 42.4),
-            ChestMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), chestCircumference: 42.2),
-            ChestMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), chestCircumference: 42.1),
-            ChestMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), chestCircumference: 42.0),
-            ChestMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), chestCircumference: 41.9),
-            ChestMeasurementEntry(date: Date.now, chestCircumference: 41.8)
-        ]
-    }
+    static let mocks: [ChestMeasurementEntry] = [
+        ChestMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), chestCircumference: 42.6),
+        ChestMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), chestCircumference: 42.4),
+        ChestMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), chestCircumference: 42.2),
+        ChestMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), chestCircumference: 42.1),
+        ChestMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), chestCircumference: 42.0),
+        ChestMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), chestCircumference: 41.9),
+        ChestMeasurementEntry(date: Date.now, chestCircumference: 41.8)
+    ]
 }
 
 extension CoreRouter {

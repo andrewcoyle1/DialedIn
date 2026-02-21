@@ -57,11 +57,6 @@ struct WorkoutListViewBuilder: View {
         .refreshable {
             await presenter.loadAllWorkouts()
         }
-        .onChange(of: presenter.currentUser) {
-            Task {
-                await presenter.syncSavedWorkoutsFromUser()
-            }
-        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -206,7 +201,7 @@ extension CoreBuilder {
                 interactor: CoreInteractor(container: container),
                 router: CoreRouter(
                     router: router,
-                    builder: CoreBuilder(container: container)
+                    builder: CoreBuilder(interactor: CoreInteractor(container: container))
                 )
             ),
             delegate: WorkoutListDelegateBuilder(

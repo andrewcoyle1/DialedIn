@@ -57,7 +57,6 @@ class IngredientListBuilderPresenter {
     func loadAllIngredients() async {
         await loadMyIngredientsIfNeeded()
         await loadTopIngredientsIfNeeded()
-        await syncSavedIngredientsFromUser()
     }
     
     func onMyTemplatesShown() {
@@ -206,39 +205,6 @@ class IngredientListBuilderPresenter {
             isLoading = false
             interactor.trackEvent(event: Event.loadTopIngredientsFail(error: error))
             router.showSimpleAlert(title: "Unable to Load Trending Ingredients", subtitle: "We couldn't load top ingredients. Please try again later.")
-        }
-    }
-
-    func syncSavedIngredientsFromUser() async {
-        interactor.trackEvent(event: Event.syncIngredientsFromCurrentUserStart)
-        guard let user = currentUser else {
-            interactor.trackEvent(event: Event.syncIngredientsFromCurrentUserNoUid)
-            favouriteIngredients = []
-            bookmarkedIngredients = []
-            return
-        }
-        let bookmarkedIds = user.bookmarkedIngredientTemplateIds ?? []
-        let favouritedIds = user.favouritedIngredientTemplateIds ?? []
-        if bookmarkedIds.isEmpty && favouritedIds.isEmpty {
-            favouriteIngredients = []
-            bookmarkedIngredients = []
-            return
-        }
-        do {
-            var favs: [IngredientTemplateModel] = []
-            var bookmarks: [IngredientTemplateModel] = []
-            if !favouritedIds.isEmpty {
-                favs = try await interactor.getIngredientTemplates(ids: favouritedIds, limitTo: favouritedIds.count)
-            }
-            if !bookmarkedIds.isEmpty {
-                bookmarks = try await interactor.getIngredientTemplates(ids: bookmarkedIds, limitTo: bookmarkedIds.count)
-            }
-            favouriteIngredients = favs
-            bookmarkedIngredients = bookmarks
-            interactor.trackEvent(event: Event.syncIngredientsFromCurrentUserSuccess(favouriteCount: favs.count, bookmarkedCount: bookmarks.count))
-        } catch {
-            interactor.trackEvent(event: Event.syncIngredientsFromCurrentUserFail(error: error))
-            router.showSimpleAlert(title: "Unable to Load Saved Ingredients", subtitle: "We couldn't retrieve your saved ingredient templates. Please try again later.")
         }
     }
 

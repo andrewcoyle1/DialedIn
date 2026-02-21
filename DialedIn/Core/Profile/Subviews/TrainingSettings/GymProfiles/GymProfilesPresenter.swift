@@ -14,7 +14,7 @@ class GymProfilesPresenter {
     }
     
     var favouriteGymProfileId: String? {
-        interactor.currentUser?.favouriteGymProfileId
+        interactor.currentUser?.submittedFavouriteGymProfileId
     }
     
     init(interactor: GymProfilesInteractor, router: GymProfilesRouter) {

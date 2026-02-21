@@ -131,15 +131,15 @@ struct OnboardingNamePhotoView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingNamePhotoView(router: AnyRouter) -> some View {
         OnboardingNamePhotoView(
-            presenter: OnboardingNamePhotoPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+            presenter: OnboardingNamePhotoPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingNamePhotoView() {
         router.showScreen(.push) { router in
             builder.onboardingNamePhotoView(router: router)
@@ -148,7 +148,7 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingNamePhotoView(router: router)
     }

@@ -7,46 +7,46 @@
 
 import Foundation
 
-extension FreeWeights: @MainActor GymEquipmentItem {
+extension FreeWeights: GymEquipmentItem {
     static var kind: EquipmentKind { .freeWeight }
 }
 
-extension LoadableBars: @MainActor GymEquipmentItem {
+extension LoadableBars: GymEquipmentItem {
     static var kind: EquipmentKind { .loadableBar }
 }
 
-extension FixedWeightBars: @MainActor GymEquipmentItem {
+extension FixedWeightBars: GymEquipmentItem {
     static var kind: EquipmentKind { .fixedWeightBar }
 }
 
-extension Bands: @MainActor GymEquipmentItem {
+extension Bands: GymEquipmentItem {
     static var kind: EquipmentKind { .bands }
 }
 
-extension BodyWeights: @MainActor GymEquipmentItem {
+extension BodyWeights: GymEquipmentItem {
     static var kind: EquipmentKind { .bodyWeight }
 }
 
-extension SupportEquipment: @MainActor GymEquipmentItem {
+extension SupportEquipment: GymEquipmentItem {
     static var kind: EquipmentKind { .supportEquipment }
 }
 
-extension AccessoryEquipment: @MainActor GymEquipmentItem {
+extension AccessoryEquipment: GymEquipmentItem {
     static var kind: EquipmentKind { .accessoryEquipment }
 }
 
-extension LoadableAccessoryEquipment: @MainActor GymEquipmentItem {
+extension LoadableAccessoryEquipment: GymEquipmentItem {
     static var kind: EquipmentKind { .loadableAccessoryEquipment }
 }
 
-extension CableMachine: @MainActor GymEquipmentItem {
+extension CableMachine: GymEquipmentItem {
     static var kind: EquipmentKind { .cableMachine }
 }
 
-extension PlateLoadedMachine: @MainActor GymEquipmentItem {
+extension PlateLoadedMachine: GymEquipmentItem {
     static var kind: EquipmentKind { .plateLoadedMachine }
 }
 
-extension PinLoadedMachine: @MainActor GymEquipmentItem {
+extension PinLoadedMachine: GymEquipmentItem {
     static var kind: EquipmentKind { .pinLoadedMachine }
 }

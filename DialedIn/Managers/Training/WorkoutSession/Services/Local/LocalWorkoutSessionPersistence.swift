@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 protocol LocalWorkoutSessionPersistence {
     // Create / Update
     func addLocalWorkoutSession(session: WorkoutSessionModel) throws

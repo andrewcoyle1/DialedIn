@@ -11,4 +11,4 @@ protocol OnboardingGenderRouter {
     func showOnboardingDateOfBirthView(delegate: OnboardingDateOfBirthDelegate)
 }
 
-extension OnbRouter: OnboardingGenderRouter { }
+extension CoreRouter: OnboardingGenderRouter { }

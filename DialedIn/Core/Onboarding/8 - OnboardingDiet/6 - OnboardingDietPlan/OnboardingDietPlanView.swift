@@ -119,16 +119,16 @@ struct OnboardingDietPlanView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingDietPlanView(router: AnyRouter, delegate: OnboardingDietPlanDelegate) -> some View {
         OnboardingDietPlanView(
-            presenter: OnboardingDietPlanPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingDietPlanPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingDietPlanView(delegate: OnboardingDietPlanDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingDietPlanView(router: router, delegate: delegate)
@@ -137,7 +137,7 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingDietPlanView(
             router: router,

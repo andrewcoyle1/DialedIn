@@ -18,22 +18,17 @@ class OnboardingTrainingSchedulePresenter {
     init(
         interactor: OnboardingTrainingScheduleInteractor,
         router: OnboardingTrainingScheduleRouter,
-        builder: TrainingProgramBuilder? = nil
     ) {
         self.interactor = interactor
         self.router = router
-        if let builder = builder, !builder.weeklySchedule.isEmpty {
-            selectedDays = builder.weeklySchedule
-        }
     }
     
-    func navigateToEquipment(builder: TrainingProgramBuilder) {
+    func navigateToEquipment(delegate: OnboardingTrainingScheduleDelegate) {
         guard !selectedDays.isEmpty else { return }
         
-        var updatedBuilder = builder
-        updatedBuilder.setWeeklySchedule(selectedDays)
+        let delegate = OnboardingTrainingEquipmentDelegate(delegate: delegate, scheduledDays: selectedDays)
         interactor.trackEvent(event: Event.navigate)
-        router.showOnboardingTrainingEquipmentView(delegate: OnboardingTrainingEquipmentDelegate(trainingProgramBuilder: updatedBuilder))
+        router.showOnboardingTrainingEquipmentView(delegate: delegate)
     }
 
     func onDevSettingsPressed() {

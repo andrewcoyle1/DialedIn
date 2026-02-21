@@ -89,8 +89,10 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
             }
             entity.authorId = session.authorId
             entity.dateCreated = session.dateCreated
+            entity.dateModified = session.dateModified
             entity.endedAt = session.endedAt
             entity.notes = session.notes
+            entity.deletedAt = session.deletedAt
             // Persist exercises in a deterministic order based on their index
             entity.exercises = session.exercises
                 .sorted { $0.index < $1.index }
@@ -175,7 +177,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     @MainActor
     func getLocalWorkoutSessions(ids: [String]) throws -> [WorkoutSessionModel] {
         do {
-            let predicate = #Predicate<WorkoutSessionEntity> { ids.contains($0.workoutSessionId) }
+            let predicate = #Predicate<WorkoutSessionEntity> { ids.contains($0.workoutSessionId) && $0.deletedAt == nil }
             let descriptor = FetchDescriptor<WorkoutSessionEntity>(predicate: predicate, sortBy: [SortDescriptor(\.dateCreated, order: .reverse)])
             let entities = try mainContext.fetch(descriptor)
             return entities.map { $0.toModel() }
@@ -191,7 +193,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     @MainActor
     func getLocalWorkoutSessionsForAuthor(authorId: String, limitTo: Int) throws -> [WorkoutSessionModel] {
         do {
-            let predicate = #Predicate<WorkoutSessionEntity> { $0.authorId == authorId }
+            let predicate = #Predicate<WorkoutSessionEntity> { $0.authorId == authorId && $0.deletedAt == nil }
             let descriptor = FetchDescriptor<WorkoutSessionEntity>(predicate: predicate, sortBy: [SortDescriptor(\.dateCreated, order: .reverse)])
             let entities = try mainContext.fetch(descriptor)
             let limited = limitTo > 0 ? Array(entities.prefix(limitTo)) : entities
@@ -208,7 +210,8 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     @MainActor
     func getAllLocalWorkoutSessions() throws -> [WorkoutSessionModel] {
         do {
-            let descriptor = FetchDescriptor<WorkoutSessionEntity>(sortBy: [SortDescriptor(\.dateCreated, order: .forward)])
+            let predicate = #Predicate<WorkoutSessionEntity> { $0.deletedAt == nil }
+            let descriptor = FetchDescriptor<WorkoutSessionEntity>(predicate: predicate, sortBy: [SortDescriptor(\.dateCreated, order: .forward)])
             let entities = try mainContext.fetch(descriptor)
             return entities.map { $0.toModel() }
         } catch {
@@ -229,7 +232,7 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
             guard let entity = entities.first else {
                 throw NSError(domain: "SwiftWorkoutSessionPersistence", code: 404, userInfo: [NSLocalizedDescriptionKey: "WorkoutSession with id \(id) not found"])
             }
-            mainContext.delete(entity)
+            entity.deletedAt = Date()
             try mainContext.save()
         } catch {
             if isSchemaMismatchError(error) {
@@ -239,14 +242,16 @@ class SwiftWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
             }
         }
     }
-    
+
     @MainActor
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws {
         do {
             let predicate = #Predicate<WorkoutSessionEntity> { $0.authorId == authorId }
             let descriptor = FetchDescriptor<WorkoutSessionEntity>(predicate: predicate)
             let entities = try mainContext.fetch(descriptor)
-            for entity in entities { mainContext.delete(entity) }
+            for entity in entities {
+                entity.deletedAt = Date()
+            }
             try mainContext.save()
         } catch {
             if isSchemaMismatchError(error) {

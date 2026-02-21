@@ -21,7 +21,9 @@ struct ExpenditureView: View {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = ExpenditureDelegate()
 
     return RouterView { router in

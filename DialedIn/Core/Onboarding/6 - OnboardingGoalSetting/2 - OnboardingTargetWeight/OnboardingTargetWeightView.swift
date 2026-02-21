@@ -104,16 +104,16 @@ struct OnboardingTargetWeightView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingTargetWeightView(router: AnyRouter, delegate: OnboardingTargetWeightDelegate) -> some View {
         OnboardingTargetWeightView(
-            presenter: OnboardingTargetWeightPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingTargetWeightPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingTargetWeightView(delegate: OnboardingTargetWeightDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTargetWeightView(router: router, delegate: delegate)
@@ -122,7 +122,7 @@ extension OnbRouter {
 }
 
 #Preview("Gain Weight") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingTargetWeightView(
             router: router,
@@ -133,7 +133,7 @@ extension OnbRouter {
 }
 
 #Preview("Lose Weight") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingTargetWeightView(
             router: router,

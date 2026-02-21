@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct IngredientTemplateModel: @MainActor TemplateModel {
+struct IngredientTemplateModel: TemplateModel {
     var id: String {
         ingredientId
     }
@@ -313,64 +313,63 @@ struct IngredientTemplateModel: @MainActor TemplateModel {
         mocks[0]
     }
     
-    static var mocks: [IngredientTemplateModel] {
-        [
-            IngredientTemplateModel(
-                ingredientId: "ing-1",
-                authorId: "1",
-                name: "Rolled Oats",
-                description: "Whole grain oats.",
-                measurementMethod: .weight,
-                calories: 389,
-                protein: 16.9,
-                carbs: 66.3,
-                fatTotal: 6.9,
-                fiber: 10.6,
-                sugar: 0.0,
-                sodiumMg: 2,
-                potassiumMg: 429,
-                calciumMg: 54,
-                ironMg: 4.7,
-                vitaminCMg: 0.0,
-                vitaminDMcg: 0.0,
-                magnesiumMg: 0.0,
-                zincMg: 0.0,
-                imageURL: Constants.randomImage,
-                dateCreated: Date(),
-                dateModified: Date(),
-                clickCount: 12,
-                bookmarkCount: 3,
-                favouriteCount: 1
-            ),
-            IngredientTemplateModel(
-                ingredientId: "ing-2",
-                authorId: "2",
-                name: "Whole Milk",
-                description: "Dairy, 3.25% fat.",
-                measurementMethod: .volume,
-                calories: 61,
-                protein: 3.2,
-                carbs: 4.8,
-                fatTotal: 3.3,
-                fiber: nil,
-                sugar: 5.1,
-                sodiumMg: 43,
-                potassiumMg: 150,
-                calciumMg: 113,
-                ironMg: 0.0,
-                vitaminCMg: 0.0,
-                vitaminDMcg: 0.0,
-                magnesiumMg: 0.0,
-                zincMg: 0.0,
-                imageURL: nil,
-                dateCreated: Date(),
-                dateModified: Date(),
-                clickCount: 5,
-                bookmarkCount: 1,
-                favouriteCount: 0
-            )
-        ]
-    }
+    static let mocks: [IngredientTemplateModel] =
+    [
+        IngredientTemplateModel(
+            ingredientId: "ing-1",
+            authorId: "1",
+            name: "Rolled Oats",
+            description: "Whole grain oats.",
+            measurementMethod: .weight,
+            calories: 389,
+            protein: 16.9,
+            carbs: 66.3,
+            fatTotal: 6.9,
+            fiber: 10.6,
+            sugar: 0.0,
+            sodiumMg: 2,
+            potassiumMg: 429,
+            calciumMg: 54,
+            ironMg: 4.7,
+            vitaminCMg: 0.0,
+            vitaminDMcg: 0.0,
+            magnesiumMg: 0.0,
+            zincMg: 0.0,
+            imageURL: Constants.randomImage,
+            dateCreated: Date(),
+            dateModified: Date(),
+            clickCount: 12,
+            bookmarkCount: 3,
+            favouriteCount: 1
+        ),
+        IngredientTemplateModel(
+            ingredientId: "ing-2",
+            authorId: "2",
+            name: "Whole Milk",
+            description: "Dairy, 3.25% fat.",
+            measurementMethod: .volume,
+            calories: 61,
+            protein: 3.2,
+            carbs: 4.8,
+            fatTotal: 3.3,
+            fiber: nil,
+            sugar: 5.1,
+            sodiumMg: 43,
+            potassiumMg: 150,
+            calciumMg: 113,
+            ironMg: 0.0,
+            vitaminCMg: 0.0,
+            vitaminDMcg: 0.0,
+            magnesiumMg: 0.0,
+            zincMg: 0.0,
+            imageURL: nil,
+            dateCreated: Date(),
+            dateModified: Date(),
+            clickCount: 5,
+            bookmarkCount: 1,
+            favouriteCount: 0
+        )
+    ]
 }
 
 extension IngredientTemplateModel: Sendable {}

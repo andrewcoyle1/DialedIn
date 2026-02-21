@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MockRecipeTemplatePersistence: LocalRecipeTemplatePersistence {
+class MockRecipeTemplatePersistence: LocalRecipeTemplatePersistence {
     
     var recipeTemplates: [RecipeTemplateModel]
     var showError: Bool

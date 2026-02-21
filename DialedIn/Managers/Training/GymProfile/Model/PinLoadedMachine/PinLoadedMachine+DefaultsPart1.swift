@@ -9,7 +9,7 @@ import Foundation
 
 extension PinLoadedMachine {
 
-    static var defaultPinLoadedMachinesPart1: [PinLoadedMachine] = [
+    static let defaultPinLoadedMachinesPart1: [PinLoadedMachine] = [
         PinLoadedMachine(
             id: "biceps_curl_machine_with_arms_at_side",
             name: "Biceps Curl Machine With Arms At Side",
@@ -113,7 +113,7 @@ extension PinLoadedMachine {
             isActive: true
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "multi_hip_machine",
             name: "Multi-Hip Machine",
             description: nil,
             ranges: [
@@ -130,7 +130,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pec_deck",
             name: "Pec Deck",
             description: nil,
             ranges: [
@@ -147,7 +147,7 @@ extension PinLoadedMachine {
             isActive: true
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_abdominal_crunch_machine_with_chest_pad",
             name: "Pin-Loaded Abdominal Crunch Machine (With Chest Pad)",
             description: nil,
             ranges: [
@@ -164,7 +164,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_abdominal_crunch_machine_with_front_handles",
             name: "Pin-Loaded Abdominal Crunch Machine (With Front Handles)",
             description: nil,
             ranges: [
@@ -181,7 +181,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_abdominal_crunch_machine_with_overhead_handles",
             name: "Pin-Loaded Abdominal Crunch Machine (With Overhead Handles)",
             description: nil,
             ranges: [
@@ -198,7 +198,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_assisted_pull-up_dip_machine",
             name: "Pin-Loaded Assisted Pull-Up/Dip Machine",
             description: nil,
             ranges: [
@@ -215,7 +215,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_back_extension_machine",
             name: "Pin-Loaded Back Extension Machine",
             description: nil,
             ranges: [
@@ -232,7 +232,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_chest_fly_machine_with_arm_pads",
             name: "Pin-Loaded Chest Fly Machine With Arm Pads",
             description: nil,
             ranges: [
@@ -249,7 +249,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_dip_machine",
             name: "Pin-Loaded Dip Machine",
             description: nil,
             ranges: [
@@ -266,7 +266,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_hip_thrust_machine",
             name: "Pin-Loaded Hip Thrust Machine",
             description: nil,
             ranges: [
@@ -283,7 +283,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_leg_extension_machine",
             name: "Pin-Loaded Leg Extension Machine",
             description: nil,
             ranges: [
@@ -300,7 +300,7 @@ extension PinLoadedMachine {
             isActive: true
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_leg_press_machine",
             name: "Pin-Loaded Leg Press Machine",
             description: nil,
             ranges: [
@@ -317,7 +317,7 @@ extension PinLoadedMachine {
             isActive: true
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_overhead_triceps_extension_machine",
             name: "Pin-Loaded Overhead Triceps Extension Machine",
             description: nil,
             ranges: [
@@ -334,7 +334,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_preacher_curl_machine",
             name: "Pin-Loaded Preacher Curl Machine",
             description: nil,
             ranges: [
@@ -351,7 +351,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_preacher_curl_triceps_extension_combo_machine",
             name: "Pin-Loaded Preacher Curl/Triceps Extension Combo Machine",
             description: nil,
             ranges: [
@@ -368,7 +368,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_pulldown_machine",
             name: "Pin-Loaded Pulldown Machine",
             description: nil,
             ranges: [

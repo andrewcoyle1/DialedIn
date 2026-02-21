@@ -36,8 +36,6 @@ struct RecipeDetailView: View {
         .onChange(of: presenter.currentUser) {_, _ in
             let user = presenter.currentUser
             let isAuthor = user?.userId == delegate.recipeTemplate.authorId
-            presenter.isBookmarked = isAuthor || (user?.bookmarkedRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false) || (user?.createdRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false)
-            presenter.isFavourited = user?.favouritedRecipeTemplateIds?.contains(delegate.recipeTemplate.id) ?? false
         }
     }
     
@@ -80,28 +78,6 @@ struct RecipeDetailView: View {
 
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                Task {
-                    await presenter.onFavoritePressed(recipeTemplate: delegate.recipeTemplate)
-                }
-            } label: {
-                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
-            }
-        }
-        // Hide bookmark button when the current user is the author
-        if presenter.currentUser?.userId != nil && presenter.currentUser?.userId != delegate.recipeTemplate.authorId {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task {
-                        await presenter.onBookmarkPressed(recipeTemplate: delegate.recipeTemplate)
-                    }
-                } label: {
-                    Image(systemName: presenter.isBookmarked ? "book.closed.fill" : "book.closed")
-                }
-            }
-        }
-
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
                 presenter.onStartRecipePressed(recipe: delegate.recipeTemplate)
             } label: {
                 Label("Start", systemImage: "play.fill")
@@ -129,7 +105,9 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.recipeDetailView(router: router, delegate: RecipeDetailDelegate(recipeTemplate: .mock))
     }

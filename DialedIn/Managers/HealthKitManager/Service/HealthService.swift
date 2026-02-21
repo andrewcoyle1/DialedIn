@@ -7,6 +7,8 @@
 
 #if canImport(HealthKit)
 import HealthKit
+
+@MainActor
 protocol HealthService {
     func canRequestAuthorisation() -> Bool
     func requestAuthorisation() async throws

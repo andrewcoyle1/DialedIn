@@ -8,6 +8,7 @@
 import Foundation
 
 @Observable
+@MainActor
 class GoalManager {
     private let remote: RemoteGoalService
     private let local: LocalGoalService

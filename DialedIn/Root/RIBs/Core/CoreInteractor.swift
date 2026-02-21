@@ -27,8 +27,6 @@ struct CoreInteractor: GlobalInteractor {
     private let workoutTemplateManager: WorkoutTemplateManager
     private let workoutSessionManager: WorkoutSessionManager
     private let exerciseHistoryManager: ExerciseHistoryManager
-    private let trainingPlanManager: TrainingPlanManager
-    private let programTemplateManager: ProgramTemplateManager
     private let trainingProgramManager: TrainingProgramManager
     private let gymProfileManager: GymProfileManager
     private let ingredientTemplateManager: IngredientTemplateManager
@@ -40,7 +38,6 @@ struct CoreInteractor: GlobalInteractor {
     private let logManager: LogManager
     private let reportManager: ReportManager
     private let healthKitManager: HealthKitManager
-    private let healthKitStepService: HealthKitStepService
     private let bodyMeasurementsManager: BodyMeasurementsManager
     private let stepsManager: StepsManager
     private let goalManager: GoalManager
@@ -65,8 +62,6 @@ struct CoreInteractor: GlobalInteractor {
         self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
         self.exerciseHistoryManager = container.resolve(ExerciseHistoryManager.self)!
-        self.trainingPlanManager = container.resolve(TrainingPlanManager.self)!
-        self.programTemplateManager = container.resolve(ProgramTemplateManager.self)!
         self.trainingProgramManager = container.resolve(TrainingProgramManager.self)!
         self.gymProfileManager = container.resolve(GymProfileManager.self)!
         self.ingredientTemplateManager = container.resolve(IngredientTemplateManager.self)!
@@ -78,7 +73,6 @@ struct CoreInteractor: GlobalInteractor {
         self.logManager = container.resolve(LogManager.self)!
         self.reportManager = container.resolve(ReportManager.self)!
         self.healthKitManager = container.resolve(HealthKitManager.self)!
-        self.healthKitStepService = container.resolve(HealthKitStepService.self)!
         self.bodyMeasurementsManager = container.resolve(BodyMeasurementsManager.self)!
         self.stepsManager = container.resolve(StepsManager.self)!
         self.goalManager = container.resolve(GoalManager.self)!
@@ -132,10 +126,10 @@ struct CoreInteractor: GlobalInteractor {
     
     // MARK: AppState
 
-    func updateAppState(showTabBarView: Bool) {
-        appState.updateViewState(showTabBarView: showTabBarView)
+    var startingModuleId: String {
+        appState.startingModuleId
     }
-
+    
     // MARK: AuthManager
     
     var auth: UserAuthInfo? {
@@ -145,15 +139,31 @@ struct CoreInteractor: GlobalInteractor {
     func getAuthId() throws -> String {
         try authManager.getAuthId()
     }
-                
+    
+    func signInAnonymously() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        try await authManager.signInAnonymously()
+    }
+               
+    func signInApple() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        try await authManager.signInApple()
+    }
+    
+    func signInGoogle() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        try await authManager.signInGoogle(GIDClientID: gIDClientID)
+    }
+
+    func signIn(option: SignInOption) async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        try await authManager.signIn(option: option)
+    }
+    
     func reauthenticateApple() async throws {
        _ = try await authManager.signInApple()
     }
     
-    func signInGoogle() async throws -> (UserAuthInfo, Bool) {
-        try await authManager.signInGoogle(GIDClientID: gIDClientID)
+    func signOut() throws {
+        try authManager.signOut()
     }
-        
+                
     // MARK: UserManager
     
     var currentUser: UserModel? {
@@ -177,7 +187,7 @@ struct CoreInteractor: GlobalInteractor {
     }
 
     var userImageUrl: String? {
-        currentUser?.profileImageUrl
+        currentUser?.submittedProfileImage
     }
 
     func clearAllLocalData() {
@@ -189,7 +199,6 @@ struct CoreInteractor: GlobalInteractor {
         
         // Start the sync listener for training plans
         let userId = try userManager.currentUserId()
-        trainingPlanManager.startSyncListener(userId: userId)
     }
     
     func saveUser(user: UserModel, image: PlatformImage? = nil) async throws {
@@ -238,14 +247,10 @@ struct CoreInteractor: GlobalInteractor {
         ProfileCardioFitnessLevel(rawValue: level.rawValue) ?? .intermediate
     }
             
-    func updateFirstName(firstName: String) async throws {
-        try await userManager.updateFirstName(firstName: firstName)
+    func updateFirstName(firstName: String? = nil, lastName: String? = nil) async throws {
+        try await userManager.updateUserName(firstName: firstName)
     }
-    
-    func updateLastName(lastName: String) async throws {
-        try await userManager.updateLastName(lastName: lastName)
-    }
-    
+        
     func updateDateOfBirth(dob: Date) async throws {
         try await userManager.updateDateOfBirth(dob: dob)
     }
@@ -260,8 +265,8 @@ struct CoreInteractor: GlobalInteractor {
     
     // Image URL
     
-    func updateProfileImageUrl(url: String?) async throws {
-        try await userManager.updateProfileImageUrl(url: url)
+    func updateProfileImageUrl(image: PlatformImage) async throws {
+        try await userManager.updateProfileImage(image: image)
     }
     
     // Active Training Program
@@ -276,6 +281,12 @@ struct CoreInteractor: GlobalInteractor {
         try await userManager.updateFavouriteGymProfileId(profileId: profileId)
     }
     
+    // FCM Token
+    
+    func saveUserFCMToken(token: String) async throws {
+        try await userManager.saveUserFCMToken(token: token)
+    }
+
     // Update Metadata
     
     func updateLastSignInDate() async throws {
@@ -359,110 +370,6 @@ struct CoreInteractor: GlobalInteractor {
         try await userManager.deleteCurrentUser()
     }
     
-    // Template Management
-    
-    func addCreatedExerciseTemplate(exerciseId: String) async throws {
-        try await userManager.addCreatedExerciseTemplate(exerciseId: exerciseId)
-    }
-    
-    func removeCreatedExerciseTemplate(exerciseId: String) async throws {
-        try await userManager.removeCreatedExerciseTemplate(exerciseId: exerciseId)
-    }
-    
-    func addBookmarkedExerciseTemplate(exerciseId: String) async throws {
-        try await userManager.addBookmarkedExerciseTemplate(exerciseId: exerciseId)
-    }
-    
-    func removeBookmarkedExerciseTemplate(exerciseId: String) async throws {
-        try await userManager.removeBookmarkedExerciseTemplate(exerciseId: exerciseId)
-    }
-    
-    func addFavouritedExerciseTemplate(exerciseId: String) async throws {
-        try await userManager.addFavouritedExerciseTemplate(exerciseId: exerciseId)
-    }
-    
-    func removeFavouritedExerciseTemplate(exerciseId: String) async throws {
-        try await userManager.removeFavouritedExerciseTemplate(exerciseId: exerciseId)
-    }
-    
-    // Created/Bookmarked/Favourited Workout Templates
-    
-    func addCreatedWorkoutTemplate(workoutId: String) async throws {
-        try await userManager.addCreatedWorkoutTemplate(workoutId: workoutId)
-    }
-    
-    func removeCreatedWorkoutTemplate(workoutId: String) async throws {
-        try await userManager.removeCreatedWorkoutTemplate(workoutId: workoutId)
-    }
-    
-    func addBookmarkedWorkoutTemplate(workoutId: String) async throws {
-        try await userManager.addBookmarkedWorkoutTemplate(workoutId: workoutId)
-    }
-    
-    func removeBookmarkedWorkoutTemplate(workoutId: String) async throws {
-        try await userManager.removeBookmarkedWorkoutTemplate(workoutId: workoutId)
-    }
-    
-    func addFavouritedWorkoutTemplate(workoutId: String) async throws {
-        try await userManager.addFavouritedWorkoutTemplate(workoutId: workoutId)
-    }
-    
-    func removeFavouritedWorkoutTemplate(workoutId: String) async throws {
-        try await userManager.removeFavouritedWorkoutTemplate(workoutId: workoutId)
-    }
-    
-    // MARK: - Created/Bookmarked/Favourited Ingredient Templates
-
-    func addCreatedIngredientTemplate(ingredientId: String) async throws {
-        try await userManager.addCreatedIngredientTemplate(ingredientId: ingredientId)
-    }
-
-    func removeCreatedIngredientTemplate(ingredientId: String) async throws {
-        try await userManager.removeCreatedIngredientTemplate(ingredientId: ingredientId)
-    }
-
-    func addBookmarkedIngredientTemplate(ingredientId: String) async throws {
-        try await userManager.addBookmarkedIngredientTemplate(ingredientId: ingredientId)
-    }
-
-    func removeBookmarkedIngredientTemplate(ingredientId: String) async throws {
-        try await userManager.removeBookmarkedIngredientTemplate(ingredientId: ingredientId)
-    }
-
-    func addFavouritedIngredientTemplate(ingredientId: String) async throws {
-        try await userManager.addFavouritedIngredientTemplate(ingredientId: ingredientId)
-    }
-
-    func removeFavouritedIngredientTemplate(ingredientId: String) async throws {
-        try await userManager.removeFavouritedIngredientTemplate(ingredientId: ingredientId)
-    }
-
-    // MARK: - Created/Bookmarked/Favourited Recipe Templates
-
-    func addCreatedRecipeTemplate(recipeId: String) async throws {
-        try await userManager.addCreatedRecipeTemplate(recipeId: recipeId)
-    }
-
-    func removeCreatedRecipeTemplate(recipeId: String) async throws {
-        try await userManager.removeCreatedRecipeTemplate(recipeId: recipeId)
-    }
-
-    func addBookmarkedRecipeTemplate(recipeId: String) async throws {
-        try await userManager.addBookmarkedRecipeTemplate(recipeId: recipeId)
-    }
-
-    func removeBookmarkedRecipeTemplate(recipeId: String) async throws {
-        try await userManager.removeBookmarkedRecipeTemplate(recipeId: recipeId)
-    }
-
-    func addFavouritedRecipeTemplate(recipeId: String) async throws {
-        try await userManager.addFavouritedRecipeTemplate(recipeId: recipeId)
-    }
-
-    func removeFavouritedRecipeTemplate(recipeId: String) async throws {
-        try await userManager.removeFavouritedRecipeTemplate(recipeId: recipeId)
-    }
-    
     // MARK: ABTestManager
     
     var activeTests: ActiveABTests {
@@ -506,7 +413,7 @@ struct CoreInteractor: GlobalInteractor {
     // MARK: ExerciseTemplateManager
 
     func addLocalExerciseTemplate(exercise: ExerciseModel) async throws {
-        try await exerciseTemplateManager.addLocalExerciseTemplate(exercise: exercise)
+        try exerciseTemplateManager.addLocalExerciseTemplate(exercise: exercise)
     }
     
     func getLocalExerciseTemplate(id: String) throws -> ExerciseModel {
@@ -795,7 +702,7 @@ struct CoreInteractor: GlobalInteractor {
     func deleteWorkoutSession(id: String) async throws {
         try await workoutSessionManager.deleteWorkoutSession(id: id)
     }
-    
+
     func deleteAllWorkoutSessionsForAuthor(authorId: String) async throws {
         try await workoutSessionManager.deleteAllWorkoutSessionsForAuthor(authorId: authorId)
     }
@@ -883,7 +790,7 @@ struct CoreInteractor: GlobalInteractor {
        
     @discardableResult
     func getActiveTrainingProgram() throws -> TrainingProgram? {
-        guard let programId = currentUser?.activeTrainingProgramId else { return nil }
+        guard let programId = currentUser?.submittedActiveTrainingProgramId else { return nil }
         return try trainingProgramManager.readActiveTrainingProgram(programId: programId)
     }
     
@@ -941,7 +848,7 @@ struct CoreInteractor: GlobalInteractor {
     // MARK: GymProfileManager
     
     var favouriteGymProfile: GymProfileModel? {
-        guard let favouriteGymProfileId = currentUser?.favouriteGymProfileId else { return nil }
+        guard let favouriteGymProfileId = currentUser?.submittedFavouriteGymProfileId else { return nil }
         return try? readLocalGymProfile(profileId: favouriteGymProfileId)
     }
     
@@ -954,7 +861,7 @@ struct CoreInteractor: GlobalInteractor {
     
     func readFavouriteGymProfile() async throws -> GymProfileModel {
         guard let user = currentUser,
-              let favourite = user.favouriteGymProfileId else { throw CoreError.noCurrentUser }
+              let favourite = user.submittedFavouriteGymProfileId else { throw CoreError.noCurrentUser }
         do {
             return try gymProfileManager.readLocalGymProfile(profileId: favourite)
         } catch {
@@ -993,8 +900,8 @@ struct CoreInteractor: GlobalInteractor {
     
     // MARK: IngredientTemplateManager
     
-    func addLocalIngredientTemplate(ingredient: IngredientTemplateModel) async throws {
-        try await ingredientTemplateManager.addLocalIngredientTemplate(ingredient: ingredient)
+    func addLocalIngredientTemplate(ingredient: IngredientTemplateModel) throws {
+        try ingredientTemplateManager.addLocalIngredientTemplate(ingredient: ingredient)
     }
     
     func getLocalIngredientTemplate(id: String) throws -> IngredientTemplateModel {
@@ -1428,42 +1335,18 @@ struct CoreInteractor: GlobalInteractor {
     
     // MARK: PushManager
     
-    func requestPushAuthorisation() async throws -> Bool {
+    func requestPushAuthorization() async throws -> Bool {
         try await pushManager.requestAuthorisation()
     }
     
-    func canRequestNotificationAuthorisation() async -> Bool {
+    func canRequestNotificationAuthorization() async -> Bool {
         await pushManager.canRequestAuthorisation()
     }
     
     func schedulePushNotificationsForNextWeek() {
         pushManager.schedulePushNotificationsForNextWeek()
     }
-    
-    func schedulePushNotification(title: String, body: String, date: Date) async throws {
-        try await pushManager.schedulePushNotification(title: title, body: body, date: date)
-    }
-    
-    func schedulePushNotification(identifier: String, title: String, body: String, date: Date) async throws {
-        try await pushManager.schedulePushNotification(identifier: identifier, title: title, body: body, date: date)
-    }
-    
-    func getDeliveredNotifications() async -> [UNNotification] {
-        await pushManager.getDeliveredNotifications()
-    }
-    
-    func removeDeliveredNotification(identifier: String) async {
-        await pushManager.removeDeliveredNotification(identifier: identifier)
-    }
-    
-    func removePendingNotifications(withIdentifiers identifiers: [String]) async {
-        await pushManager.removePendingNotifications(withIdentifiers: identifiers)
-    }
-    
-    func getNotificationAuthorisationStatus() async -> UNAuthorizationStatus {
-        await pushManager.getAuthorizationStatus()
-    }
-    
+        
     // MARK: AIManager
     
     func generateImage(input: String) async throws -> UIImage {
@@ -1909,6 +1792,27 @@ struct CoreInteractor: GlobalInteractor {
             await soundEffectManager.play(url: sound.url)
         }
     }
+    
+    func logIn(auth: UserAuthInfo, image: PlatformImage? = nil, isNewUser: Bool) async throws {
+        // Reuse shared login that persists the user profile for new accounts and logs into purchases
+        try await logIn(user: auth, isNewUser: isNewUser)
+    }
+    
+    func syncAllRemoteDataIfLoggedIn() async {
+        guard let userId = auth?.uid else { return }
+        let user = userManager.currentUser
+        
+        try? await workoutSessionManager.syncWorkoutSessionsFromRemote(authorId: userId, limitTo: 100)
+        try? await mealLogManager.syncMealsFromRemote(authorId: userId)
+        try? await mealLogManager.uploadLocalMealsToRemote(authorId: userId)
+        try? await trainingProgramManager.syncTrainingProgramsFromRemote(authorId: userId)
+        try? await trainingProgramManager.uploadLocalProgramsToRemote(authorId: userId)
+        _ = try? await stepsManager.readAllRemoteStepsEntries(userId: userId, userCreationDate: user?.creationDate)
+        _ = try? await bodyMeasurementsManager.readAllRemoteWeightEntries(userId: userId)
+        
+        NotificationCenter.default.post(name: Constants.remoteDataSyncDidComplete, object: nil)
+    }
+
 
 }
 

@@ -160,10 +160,6 @@ class ProfilePresenter {
         router.dismissScreen()
     }
     
-    func updateAppState(showTabBarView: Bool) {
-        interactor.updateAppState(showTabBarView: showTabBarView)
-    }
-
     func formatHeight(_ heightCm: Double, unit: LengthUnitPreference) -> String {
         switch unit {
         case .centimeters:

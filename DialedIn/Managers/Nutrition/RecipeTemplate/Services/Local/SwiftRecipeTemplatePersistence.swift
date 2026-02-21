@@ -12,7 +12,6 @@ import SwiftUI
 struct SwiftRecipeTemplatePersistence: LocalRecipeTemplatePersistence {
     private let container: ModelContainer
     
-    @MainActor
     private var mainContext: ModelContext {
         container.mainContext
     }
@@ -22,14 +21,12 @@ struct SwiftRecipeTemplatePersistence: LocalRecipeTemplatePersistence {
         self.container = try! ModelContainer(for: RecipeTemplateEntity.self)
     }
     
-    @MainActor
     func addLocalRecipeTemplate(recipe: RecipeTemplateModel) throws {
         let entity = RecipeTemplateEntity(from: recipe)
         mainContext.insert(entity)
         try mainContext.save()
     }
     
-    @MainActor
     func getLocalRecipeTemplate(id: String) throws -> RecipeTemplateModel {
         let predicate = #Predicate<RecipeTemplateEntity> { $0.recipeTemplateId == id }
         let descriptor = FetchDescriptor<RecipeTemplateEntity>(predicate: predicate)
@@ -39,8 +36,7 @@ struct SwiftRecipeTemplatePersistence: LocalRecipeTemplatePersistence {
         }
         return entity.toModel()
     }
-    
-    @MainActor
+
     func getLocalRecipeTemplates(ids: [String]) throws -> [RecipeTemplateModel] {
         let predicate = #Predicate<RecipeTemplateEntity> { ids.contains($0.recipeTemplateId) }
         let descriptor = FetchDescriptor<RecipeTemplateEntity>(predicate: predicate, sortBy: [SortDescriptor(\.dateCreated, order: .reverse)])
@@ -48,7 +44,6 @@ struct SwiftRecipeTemplatePersistence: LocalRecipeTemplatePersistence {
         return entities.map { $0.toModel() }
     }
     
-    @MainActor
     func getAllLocalRecipeTemplates() throws -> [RecipeTemplateModel] {
         let descriptor = FetchDescriptor<RecipeTemplateEntity>(sortBy: [SortDescriptor(\.name, order: .forward)])
         
@@ -56,7 +51,6 @@ struct SwiftRecipeTemplatePersistence: LocalRecipeTemplatePersistence {
         return entities.map { $0.toModel() }
     }
     
-    @MainActor
     func bookmarkRecipeTemplate(id: String, isBookmarked: Bool) throws {
         let predicate = #Predicate<RecipeTemplateEntity> { $0.recipeTemplateId == id }
         let descriptor = FetchDescriptor<RecipeTemplateEntity>(predicate: predicate)
@@ -68,7 +62,6 @@ struct SwiftRecipeTemplatePersistence: LocalRecipeTemplatePersistence {
         try mainContext.save()
     }
     
-    @MainActor
     func favouriteRecipeTemplate(id: String, isFavourited: Bool) throws {
         let predicate = #Predicate<RecipeTemplateEntity> { $0.recipeTemplateId == id }
         let descriptor = FetchDescriptor<RecipeTemplateEntity>(predicate: predicate)

@@ -73,7 +73,9 @@ extension CoreRouter {
 
 #Preview {
     @Previewable @State var pickedExercises: [WorkoutTemplateExercise] = []
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = ExercisesPickerDelegate(addedExercises: $pickedExercises)
     
     RouterView { router in

@@ -5,10 +5,9 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
-protocol OnboardingWelcomeInteractor {
+protocol OnboardingWelcomeInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     var onboardingStep: OnboardingStep { get }
-    func trackEvent(event: LoggableEvent)
 }
 
-extension OnbInteractor: OnboardingWelcomeInteractor { }
+extension CoreInteractor: OnboardingWelcomeInteractor { }

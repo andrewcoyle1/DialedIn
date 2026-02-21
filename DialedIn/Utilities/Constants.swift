@@ -13,6 +13,9 @@ struct Constants {
     static let termsofServiceURL = "https://www.apple.com"
     static let privacyPolicyURL = "https://www.apple.com"
     
+    static let onboardingModuleId = "onboarding"
+    static let tabBarModuleId = "tabbar"
+
     static var mixpanelDistinctId: String? {
         #if MOCK
         return nil
@@ -26,6 +29,15 @@ struct Constants {
         return nil
         #else
         return FirebaseAnalyticsService.appInstanceID
+        #endif
+    }
+    
+    @MainActor
+    static var firebaseAppClientId: String? {
+        #if MOCK
+        return nil
+        #else
+        return FirebaseAuthService.clientId
         #endif
     }
 

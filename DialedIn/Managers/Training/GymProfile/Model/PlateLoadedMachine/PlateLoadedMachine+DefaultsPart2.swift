@@ -9,14 +9,14 @@ import Foundation
 
 extension PlateLoadedMachine {
 
-    static var defaultPlateLoadedMachinesPart2: [PlateLoadedMachine] = [
+    static let defaultPlateLoadedMachinesPart2: [PlateLoadedMachine] = [
     ]
     
     static var mock: PlateLoadedMachine {
         mocks[0]
     }
     
-    static var mocks: [PlateLoadedMachine] = [
+    static let mocks: [PlateLoadedMachine] = [
         PlateLoadedMachine(
             id: "ab_coaster_machine",
             name: "Ab Coaster Machine",

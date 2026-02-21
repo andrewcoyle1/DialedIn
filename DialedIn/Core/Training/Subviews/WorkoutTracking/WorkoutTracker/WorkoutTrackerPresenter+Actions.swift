@@ -28,10 +28,8 @@ extension WorkoutTrackerPresenter {
 
     func stopWidgetSyncTimer() {
         guard widgetSyncTimer != nil else {
-            print("⏱️ stopWidgetSyncTimer() skipped; no timer running")
             return
         }
-        print("⏱️ WorkoutTrackerPresenter.stopWidgetSyncTimer() invalidating timer")
         widgetSyncTimer?.invalidate()
         widgetSyncTimer = nil
     }
@@ -260,12 +258,12 @@ extension WorkoutTrackerPresenter {
         if let endTime = interactor.restEndTime {
             Task {
                 do {
-                    try await interactor.schedulePushNotification(
-                        identifier: restTimerNotificationId,
-                        title: "Rest Complete",
-                        body: "Time to get back to your workout!",
-                        date: endTime
-                    )
+//                    try await interactor.schedulePushNotification(
+//                        identifier: restTimerNotificationId,
+//                        title: "Rest Complete",
+//                        body: "Time to get back to your workout!",
+//                        date: endTime
+//                    )
                 } catch {
                     // Silently fail - notification is nice to have but not critical
                     print("Failed to schedule rest timer notification: \(error)")
@@ -388,6 +386,33 @@ extension WorkoutTrackerPresenter {
             elapsedTime: elapsedTime
         ))
         #endif
+    }
+
+    func onExerciseEquipmentPressed(_ exercise: WorkoutExerciseModel) {
+        let delegate = WorkoutExerciseEquipmentSheetDelegate(exercise: exercise) { [weak self] resistance, support in
+            guard let self else { return }
+            guard let idx = workoutSession.exercises.firstIndex(where: { $0.id == exercise.id }) else { return }
+            var updated = workoutSession.exercises
+            let updatedExercise = WorkoutExerciseModel(
+                id: exercise.id,
+                authorId: exercise.authorId,
+                templateId: exercise.templateId,
+                name: exercise.name,
+                trackingMode: exercise.trackingMode,
+                index: exercise.index,
+                notes: exercise.notes,
+                imageName: exercise.imageName,
+                sets: exercise.sets,
+                setTargets: exercise.setTargets,
+                chosenResistanceEquipment: resistance,
+                chosenSupportEquipment: support
+            )
+            updated[idx] = updatedExercise
+            workoutSession.updateExercises(updated)
+            try? interactor.setActiveLocalWorkoutSession(workoutSession)
+            saveWorkoutProgress()
+        }
+        router.showWorkoutExerciseEquipmentSheetView(delegate: delegate)
     }
 
     func reorderExercises(from sourceIndex: Int, to targetIndex: Int) {

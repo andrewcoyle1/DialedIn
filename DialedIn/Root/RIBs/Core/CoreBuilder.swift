@@ -45,24 +45,15 @@ private struct WorkoutStartMiddleContent: View {
 
 @MainActor
 struct CoreBuilder: Builder {
-
+    
     let interactor: CoreInteractor
     
-    init(interactor: CoreInteractor) {
-        self.interactor = interactor
-    }
-    
-    init(container: DependencyContainer) {
-        self.interactor = CoreInteractor(container: container)
-    }
-    
     func build() -> AnyView {
-        RouterView(id: "tabbar", addNavigationStack: false, addModuleSupport: true) { router in
-            adaptiveMainView(router: router)
-        }
-        .any()
+        appView() .any()
     }
-    
+}
+
+extension CoreBuilder {
     func workoutStartModal(delegate: WorkoutStartDelegate) -> some View {
         CustomModalView(
             title: delegate.template.name,
@@ -93,5 +84,4 @@ struct CoreBuilder: Builder {
             }
         )
     }
-
 }

@@ -79,7 +79,9 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = WorkoutPickerDelegate(
         onSelect: { template in
             print(template.name)

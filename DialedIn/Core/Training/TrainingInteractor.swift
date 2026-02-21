@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
+@MainActor
 protocol TrainingInteractor {
     var currentUser: UserModel? { get }
     var userImageUrl: String? { get }
@@ -21,6 +22,9 @@ protocol TrainingInteractor {
     func readLocalGymProfile(profileId: String) throws -> GymProfileModel
     func readRemoteGymProfile(profileId: String) async throws -> GymProfileModel
     func deleteTrainingProgram(program: TrainingProgram) async throws
+    func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel?
+    func getLocalWorkoutSessionsForAuthor(authorId: String, limitTo: Int) throws -> [WorkoutSessionModel]
+    func getPreference(templateId: String) -> ExerciseUnitPreference
 }
 
 extension CoreInteractor: TrainingInteractor { }

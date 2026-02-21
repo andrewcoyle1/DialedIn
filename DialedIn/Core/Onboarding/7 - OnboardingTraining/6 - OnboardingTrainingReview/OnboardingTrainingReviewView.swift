@@ -11,48 +11,45 @@ import SwiftfulRouting
 struct OnboardingTrainingReviewView: View {
 
     @State var presenter: OnboardingTrainingReviewPresenter
-
     var delegate: OnboardingTrainingReviewDelegate
 
     var body: some View {
         List {
-            if let recommendedTemplate = presenter.recommendedTemplate {
-                Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Recommended Program")
-                            .font(.headline)
-                        Text(recommendedTemplate.name)
-                            .font(.title2)
-                            .bold()
-                        Text(recommendedTemplate.description)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .padding(.top, 4)
-                    }
-                    .removeListRowFormatting()
-                    .padding(.horizontal)
-                } header: {
-                    Text("Your Program")
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Recommended Program")
+                        .font(.headline)
+//                    Text(delegate.trainingProgram.name)
+//                        .font(.title2)
+//                        .bold()
+//                    Text("\(delegate.trainingProgram.numMicrocycles)")
+//                        .font(.subheadline)
+//                        .foregroundStyle(.secondary)
+//                        .padding(.top, 4)
                 }
+                .removeListRowFormatting()
+                .padding(.horizontal)
+            } header: {
+                Text("Your Program")
             }
             
-            Section {
-                summaryRow(title: "Experience Level", value: delegate.trainingProgramBuilder.experienceLevel?.description ?? "Not set")
-                if let days = delegate.trainingProgramBuilder.targetDaysPerWeek {
-                    summaryRow(title: "Training Days", value: "\(days) per week")
-                }
-                summaryRow(title: "Split Type", value: delegate.trainingProgramBuilder.splitType?.description ?? "Not set")
-                if !delegate.trainingProgramBuilder.weeklySchedule.isEmpty {
-                    let days = delegate.trainingProgramBuilder.weeklySchedule.sorted().map { weekdayName($0) }.joined(separator: ", ")
-                    summaryRow(title: "Schedule", value: days)
-                }
-                if !delegate.trainingProgramBuilder.availableEquipment.isEmpty {
-                    let equipment = delegate.trainingProgramBuilder.availableEquipment.map { $0.description }.joined(separator: ", ")
-                    summaryRow(title: "Equipment", value: equipment)
-                }
-            } header: {
-                Text("Summary")
-            }
+//            Section {
+//                summaryRow(title: "Experience Level", value: delegate.trainingProgramBuilder.experienceLevel?.description ?? "Not set")
+//                if let days = delegate.trainingProgramBuilder.targetDaysPerWeek {
+//                    summaryRow(title: "Training Days", value: "\(days) per week")
+//                }
+//                summaryRow(title: "Split Type", value: delegate.trainingProgramBuilder.splitType?.description ?? "Not set")
+//                if !delegate.trainingProgramBuilder.weeklySchedule.isEmpty {
+//                    let days = delegate.trainingProgramBuilder.weeklySchedule.sorted().map { weekdayName($0) }.joined(separator: ", ")
+//                    summaryRow(title: "Schedule", value: days)
+//                }
+//                if !delegate.trainingProgramBuilder.availableEquipment.isEmpty {
+//                    let equipment = delegate.trainingProgramBuilder.availableEquipment.map { $0.description }.joined(separator: ", ")
+//                    summaryRow(title: "Equipment", value: equipment)
+//                }
+//            } header: {
+//                Text("Summary")
+//            }
         }
         .navigationTitle("Review Program")
         .toolbar {
@@ -60,7 +57,7 @@ struct OnboardingTrainingReviewView: View {
         }
         .screenAppearAnalytics(name: "TrainingReview")
         .onFirstAppear {
-            presenter.loadRecommendation(builder: delegate.trainingProgramBuilder)
+//            presenter.loadRecommendation(builder: delegate.trainingProgramBuilder)
         }
     }
     
@@ -101,26 +98,25 @@ struct OnboardingTrainingReviewView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                presenter.createPlanAndContinue(builder: delegate.trainingProgramBuilder)
+//                presenter.createPlanAndContinue(builder: delegate.trainingProgramBuilder)
             } label: {
                 Text("Create Program")
             }
             .buttonStyle(.glassProminent)
-            .disabled(presenter.recommendedTemplate == nil)
         }
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingTrainingReviewView(router: AnyRouter, delegate: OnboardingTrainingReviewDelegate) -> some View {
         OnboardingTrainingReviewView(
-            presenter: OnboardingTrainingReviewPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingTrainingReviewPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingTrainingReviewView(delegate: OnboardingTrainingReviewDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingReviewView(router: router, delegate: delegate)
@@ -129,19 +125,11 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingTrainingReviewView(
             router: router,
-            delegate: OnboardingTrainingReviewDelegate(
-                trainingProgramBuilder: TrainingProgramBuilder(
-                    experienceLevel: .intermediate,
-                    targetDaysPerWeek: 4,
-                    splitType: .upperLower,
-                    weeklySchedule: [2, 4, 6, 7],
-                    availableEquipment: [.barbell, .dumbbell]
-                )
-            )
+            delegate: OnboardingTrainingReviewDelegate.mock
         )
     }
     .previewEnvironment()

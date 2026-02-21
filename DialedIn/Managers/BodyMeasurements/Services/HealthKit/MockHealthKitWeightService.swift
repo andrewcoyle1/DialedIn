@@ -1,7 +1,8 @@
 #if canImport(HealthKit)
 import Foundation
 
-final class MockHealthKitWeightService: HealthKitWeightService {
+@MainActor
+class MockHealthKitWeightService: HealthKitWeightService {
     private(set) var samples: [HealthKitWeightSample]
     private(set) var bodyFatSamples: [HealthKitBodyFatSample]
 

@@ -153,28 +153,26 @@ extension WeightGoal {
         )
     }
     
-    static var mocks: [WeightGoal] {
-        [
-            mock(objective: .loseWeight, startingWeightKg: 75.0, targetWeightKg: 68.0),
-            WeightGoal(
-                userId: "mockUser",
-                objective: .gainWeight,
-                startingWeightKg: 65.0,
-                targetWeightKg: 70.0,
-                weeklyChangeKg: 0.3,
-                createdAt: Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date(),
-                status: .completed,
-                completedAt: Calendar.current.date(byAdding: .day, value: -5, to: Date())
-            ),
-            WeightGoal(
-                userId: "mockUser",
-                objective: .maintain,
-                startingWeightKg: 70.0,
-                targetWeightKg: 70.0,
-                weeklyChangeKg: 0.0,
-                createdAt: Calendar.current.date(byAdding: .month, value: -6, to: Date()) ?? Date(),
-                status: .abandoned
-            )
-        ]
-    }
+    static let mocks: [WeightGoal] = [
+        mock(objective: .loseWeight, startingWeightKg: 75.0, targetWeightKg: 68.0),
+        WeightGoal(
+            userId: "mockUser",
+            objective: .gainWeight,
+            startingWeightKg: 65.0,
+            targetWeightKg: 70.0,
+            weeklyChangeKg: 0.3,
+            createdAt: Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date(),
+            status: .completed,
+            completedAt: Calendar.current.date(byAdding: .day, value: -5, to: Date())
+        ),
+        WeightGoal(
+            userId: "mockUser",
+            objective: .maintain,
+            startingWeightKg: 70.0,
+            targetWeightKg: 70.0,
+            weeklyChangeKg: 0.0,
+            createdAt: Calendar.current.date(byAdding: .month, value: -6, to: Date()) ?? Date(),
+            status: .abandoned
+        )
+    ]
 }

@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+@MainActor
 struct SwiftLocalBodyMeasurementService: LocalBodyMeasurementService {
 
     private let container: ModelContainer

@@ -8,7 +8,6 @@
 struct WorkoutStartDelegate {
 
     let template: WorkoutTemplateModel
-    var scheduledWorkout: ScheduledWorkout?
     var programId: String?
     var dayPlanId: String?
     var onStartWorkoutPressed: (() -> Void)?

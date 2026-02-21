@@ -12,4 +12,4 @@ protocol OnboardingCalorieFloorRouter {
     func showOnboardingTrainingTypeView(delegate: OnboardingTrainingTypeDelegate)
 }
 
-extension OnbRouter: OnboardingCalorieFloorRouter { }
+extension CoreRouter: OnboardingCalorieFloorRouter { }

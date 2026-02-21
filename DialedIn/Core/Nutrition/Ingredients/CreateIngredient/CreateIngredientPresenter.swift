@@ -152,11 +152,6 @@ class CreateIngredientPresenter {
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
             try await interactor.createIngredientTemplate(ingredient: newIngredient, image: nsImage)
 #endif
-            // Track created template on the user document
-            try await interactor.addCreatedIngredientTemplate(ingredientId: newIngredient.id)
-            // Auto-bookmark authored templates
-            try await interactor.addBookmarkedIngredientTemplate(ingredientId: newIngredient.id)
-            try await interactor.bookmarkIngredientTemplate(id: newIngredient.id, isBookmarked: true)
         } catch {
             
         }

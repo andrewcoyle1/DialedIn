@@ -5,10 +5,10 @@
 //  Created by Andrew Coyle on 29/01/2026.
 //
 
-@_exported import SwiftfulLogging
-@_exported import SwiftfulLoggingMixpanel
-@_exported import SwiftfulLoggingFirebaseAnalytics
-@_exported import SwiftfulLoggingFirebaseCrashlytics
+import SwiftfulLogging
+import SwiftfulLoggingMixpanel
+import SwiftfulLoggingFirebaseAnalytics
+import SwiftfulLoggingFirebaseCrashlytics
 
 typealias LogManager = SwiftfulLogging.LogManager
 typealias LoggableEvent = SwiftfulLogging.LoggableEvent

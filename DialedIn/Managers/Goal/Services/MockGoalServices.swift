@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 29/10/2025.
 //
 
+@MainActor
 struct MockGoalServices: GoalServices {
     let remote: RemoteGoalService
     let local: LocalGoalService

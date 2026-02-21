@@ -113,17 +113,15 @@ final class NeckMeasurementPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension NeckMeasurementEntry {
-    static var mocks: [NeckMeasurementEntry] {
-        [
-            NeckMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), neckCircumference: 15.6),
-            NeckMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), neckCircumference: 15.4),
-            NeckMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), neckCircumference: 15.2),
-            NeckMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), neckCircumference: 15.1),
-            NeckMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), neckCircumference: 15.0),
-            NeckMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), neckCircumference: 14.9),
-            NeckMeasurementEntry(date: Date.now, neckCircumference: 14.8)
-        ]
-    }
+    static let mocks: [NeckMeasurementEntry] = [
+        NeckMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), neckCircumference: 15.6),
+        NeckMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), neckCircumference: 15.4),
+        NeckMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), neckCircumference: 15.2),
+        NeckMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), neckCircumference: 15.1),
+        NeckMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), neckCircumference: 15.0),
+        NeckMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), neckCircumference: 14.9),
+        NeckMeasurementEntry(date: Date.now, neckCircumference: 14.8)
+    ]
 }
 
 extension CoreRouter {

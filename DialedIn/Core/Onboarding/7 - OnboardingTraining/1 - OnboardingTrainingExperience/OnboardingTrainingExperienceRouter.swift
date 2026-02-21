@@ -11,4 +11,4 @@ protocol OnboardingTrainingExperienceRouter {
     func showOnboardingTrainingDaysPerWeekView(delegate: OnboardingTrainingDaysPerWeekDelegate)
 }
 
-extension OnbRouter: OnboardingTrainingExperienceRouter { }
+extension CoreRouter: OnboardingTrainingExperienceRouter { }

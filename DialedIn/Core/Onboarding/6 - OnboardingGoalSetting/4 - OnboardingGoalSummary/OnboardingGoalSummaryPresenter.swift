@@ -41,7 +41,7 @@ class OnboardingGoalSummaryPresenter {
 
         Task {
             guard let user = interactor.currentUser,
-                  let startingWeight = user.weightKilograms else {
+                  let startingWeight = user.submittedWeightKilograms else {
                 router.showSimpleAlert(
                     title: "Unable to save your Goal",
                     subtitle: "Current weight not available."
@@ -89,11 +89,11 @@ class OnboardingGoalSummaryPresenter {
     // MARK: - Computed Properties
     
     var currentWeight: Double? {
-        interactor.currentUser?.weightKilograms
+        interactor.currentUser?.submittedWeightKilograms
     }
     
     var weightUnit: WeightUnitPreference {
-        interactor.currentUser?.weightUnitPreference ?? .kilograms
+        interactor.currentUser?.submittedWeightUnitPreference ?? .kilograms
     }
     
     func weightDifference(targetWeight: Double?) -> Double {

@@ -112,17 +112,15 @@ final class ShouldersMeasurementPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension ShouldersMeasurementEntry {
-    static var mocks: [ShouldersMeasurementEntry] {
-        [
-            ShouldersMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), shoulderCircumference: 45.6),
-            ShouldersMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), shoulderCircumference: 45.4),
-            ShouldersMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), shoulderCircumference: 45.2),
-            ShouldersMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), shoulderCircumference: 45.1),
-            ShouldersMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), shoulderCircumference: 45.0),
-            ShouldersMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), shoulderCircumference: 44.9),
-            ShouldersMeasurementEntry(date: Date.now, shoulderCircumference: 44.8)
-        ]
-    }
+    static let mocks: [ShouldersMeasurementEntry] = [
+        ShouldersMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), shoulderCircumference: 45.6),
+        ShouldersMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), shoulderCircumference: 45.4),
+        ShouldersMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), shoulderCircumference: 45.2),
+        ShouldersMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), shoulderCircumference: 45.1),
+        ShouldersMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), shoulderCircumference: 45.0),
+        ShouldersMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), shoulderCircumference: 44.9),
+        ShouldersMeasurementEntry(date: Date.now, shoulderCircumference: 44.8)
+    ]
 }
 
 extension CoreRouter {

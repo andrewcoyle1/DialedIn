@@ -304,12 +304,12 @@ class WorkoutSessionDetailPresenter {
         defer { isDeleting = false }
         
         do {
-            
-            // Delete from local first for instant feedback
+            // Delete from local first for instant feedback (soft delete)
             try interactor.deleteLocalWorkoutSession(id: session.id)
-            
-            // Delete from remote in background
+
+            // Delete from remote in background (soft delete)
             try await interactor.deleteWorkoutSession(id: session.id)
+
         } catch {
             router.showAlert(
                 title: "Delete Failed",

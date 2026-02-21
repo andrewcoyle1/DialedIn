@@ -8,6 +8,7 @@
 import SwiftUI
 
 @Observable
+@MainActor
 class ExerciseHistoryManager {
     
     private let local: LocalExerciseHistoryPersistence

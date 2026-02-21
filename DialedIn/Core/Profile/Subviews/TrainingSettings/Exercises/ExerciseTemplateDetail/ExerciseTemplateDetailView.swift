@@ -38,8 +38,6 @@ struct ExerciseTemplateDetailView: View {
         .onChange(of: presenter.currentUser) { _, _ in
             let user = presenter.currentUser
             let isAuthor = user?.userId == delegate.exerciseTemplate.authorId
-            presenter.isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false)
-            presenter.isFavourited = user?.favouritedExerciseTemplateIds?.contains(delegate.exerciseTemplate.id) ?? false
         }
     }
     
@@ -138,27 +136,6 @@ struct ExerciseTemplateDetailView: View {
             }
         }
         #endif
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                Task {
-                    await presenter.onFavoritePressed(exerciseTemplate: delegate.exerciseTemplate)
-                }
-            } label: {
-                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
-            }
-        }
-        // Hide bookmark button when the current user is the author
-        if presenter.currentUser?.userId != nil && presenter.currentUser?.userId != delegate.exerciseTemplate.authorId {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task {
-                        await presenter.onBookmarkPressed(exerciseTemplate: delegate.exerciseTemplate)
-                    }
-                } label: {
-                    Image(systemName: presenter.isBookmarked ? "book.closed.fill" : "book.closed")
-                }
-            }
-        }
     }
 }
 
@@ -629,7 +606,9 @@ extension CoreRouter {
 }
 
 #Preview("About Section") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.exerciseTemplateDetailView(
             router: router,

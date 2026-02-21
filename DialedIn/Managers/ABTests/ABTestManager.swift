@@ -8,6 +8,7 @@
 import Foundation
 
 @Observable
+@MainActor
 class ABTestManager {
     private let service: ABTestService
     private let logger: LogManager?

@@ -38,7 +38,7 @@ class OnboardingTargetWeightPresenter {
 
     // MARK: - Ranges
     func kilogramRange(weightGoalBuilder: WeightGoalBuilder) -> ClosedRange<Int> {
-        let base = Int((interactor.currentUser?.weightKilograms ?? 0).rounded())
+        let base = Int((interactor.currentUser?.submittedWeightKilograms ?? 0).rounded())
         // Provide sensible global bounds
         let minKg = 30
         let maxKg = 200
@@ -61,7 +61,7 @@ class OnboardingTargetWeightPresenter {
         // Convert kg range to lb bounds for parity
         let minLb = 66
         let maxLb = 440
-        let baseLb = Int(((interactor.currentUser?.weightKilograms ?? 0) * 2.20462).rounded())
+        let baseLb = Int(((interactor.currentUser?.submittedWeightKilograms ?? 0) * 2.20462).rounded())
         switch weightGoalBuilder.objective {
         case .gainWeight:
             let lower = max(minLb, baseLb > 0 ? baseLb : minLb)
@@ -83,10 +83,10 @@ class OnboardingTargetWeightPresenter {
         // Initialise user weight and correct unit
         let user = interactor.currentUser
         let fallbackKg = 70
-        let currentKg = max(1, Int(user?.weightKilograms ?? 0))
+        let currentKg = max(1, Int(user?.submittedWeightKilograms ?? 0))
 
-        currentWeight = user?.weightKilograms ?? Double(fallbackKg)
-        weightUnit = user?.weightUnitPreference ?? .kilograms
+        currentWeight = user?.submittedWeightKilograms ?? Double(fallbackKg)
+        weightUnit = user?.submittedWeightUnitPreference ?? .kilograms
 
         // Initialize ranges and selections respecting objective
         switch weightUnit {
@@ -95,7 +95,7 @@ class OnboardingTargetWeightPresenter {
             selectedKilograms = clamp(initial: initial, within: kilogramRange(weightGoalBuilder: weightGoalBuilder))
             updateFromKilograms()
         case .pounds:
-            let currentLb = max(1, Int((user?.weightKilograms ?? 0) * 2.20462))
+            let currentLb = max(1, Int((user?.submittedWeightKilograms ?? 0) * 2.20462))
             let fallbackLb = Int((Double(fallbackKg) * 2.20462).rounded())
             let initial = currentLb > 0 ? currentLb : fallbackLb
             selectedPounds = clamp(initial: initial, within: poundRange(weightGoalBuilder: weightGoalBuilder))

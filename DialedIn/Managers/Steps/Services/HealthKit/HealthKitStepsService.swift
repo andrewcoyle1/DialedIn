@@ -17,7 +17,7 @@ enum HealthKitStepsServiceError: Error {
     case healthDataUnavailable
 }
 
-protocol HealthKitStepsService {
+protocol HealthKitStepsService: Sendable {
     /// - Parameters:
     ///   - since: Last sync date; when nil, fetch from earliestDate or default range.
     ///   - earliestDate: Do not import steps before this date (e.g. user creation date).

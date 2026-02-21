@@ -8,6 +8,7 @@
 import Foundation
 
 @Observable
+@MainActor
 class GymProfileManager {
     
     private let local: LocalGymProfilePersistence

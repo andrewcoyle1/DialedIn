@@ -22,13 +22,13 @@ struct LiveActivityUpdateParams {
 /// Interactor protocol for handling all interactions between the Workout Tracker view model
 /// and data/services, supporting HealthKit session handling, local persistence, notifications,
 /// user event tracking, rest timing, preferences, and history management.
+@MainActor
 protocol WorkoutTrackerInteractor {
 
     // MARK: - User and Session Properties
 
     /// The current logged-in user, or nil if not available.
     var currentUser: UserModel? { get }
-    
     /// The favourite gym profile of the user, or nil if not available
     var favouriteGymProfile: GymProfileModel? { get }
     
@@ -84,6 +84,14 @@ protocol WorkoutTrackerInteractor {
     /// Set a local session as the current active one, passing nil to clear.
     func setActiveLocalWorkoutSession(_ session: WorkoutSessionModel?) throws
 
+    /// Fetch the exercise template by id (for equipment sheet).
+    func getExerciseTemplate(id: String) async throws -> ExerciseModel
+
+    func setWeightUnit(_ unit: ExerciseWeightUnit, for templateId: String)
+    
+    /// Set the distance unit preference for a specific exercise template
+    func setDistanceUnit(_ unit: ExerciseDistanceUnit, for templateId: String)
+    
     // MARK: - Live Activity & Status Updates
 
     /// Ensure the associated live activity for a workout is continued or started.
@@ -131,17 +139,6 @@ protocol WorkoutTrackerInteractor {
 
     /// Cancel any running rest timer.
     func cancelRest()
-
-    /// Schedule a push notification at a future date.
-    func schedulePushNotification(
-        identifier: String,
-        title: String,
-        body: String,
-        date: Date
-    ) async throws
-
-    /// Remove any pending notifications matching given identifiers.
-    func removePendingNotifications(withIdentifiers identifiers: [String]) async
 
     // MARK: - Analytics & Event Logging
 

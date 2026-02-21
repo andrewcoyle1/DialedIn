@@ -113,17 +113,15 @@ final class VisualBodyFatPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension VisualBodyFatEntry {
-    static var mocks: [VisualBodyFatEntry] {
-        [
-            VisualBodyFatEntry(date: Date.now.addingTimeInterval(-86400 * 6), bodyFatPercent: 15.6),
-            VisualBodyFatEntry(date: Date.now.addingTimeInterval(-86400 * 5), bodyFatPercent: 15.4),
-            VisualBodyFatEntry(date: Date.now.addingTimeInterval(-86400 * 4), bodyFatPercent: 15.2),
-            VisualBodyFatEntry(date: Date.now.addingTimeInterval(-86400 * 3), bodyFatPercent: 15.1),
-            VisualBodyFatEntry(date: Date.now.addingTimeInterval(-86400 * 2), bodyFatPercent: 15.0),
-            VisualBodyFatEntry(date: Date.now.addingTimeInterval(-86400 * 1), bodyFatPercent: 14.9),
-            VisualBodyFatEntry(date: Date.now, bodyFatPercent: 14.8)
-        ]
-    }
+    static let mocks: [VisualBodyFatEntry] = [
+        VisualBodyFatEntry(date: Date.now.addingTimeInterval(-86400 * 6), bodyFatPercent: 15.6),
+        VisualBodyFatEntry(date: Date.now.addingTimeInterval(-86400 * 5), bodyFatPercent: 15.4),
+        VisualBodyFatEntry(date: Date.now.addingTimeInterval(-86400 * 4), bodyFatPercent: 15.2),
+        VisualBodyFatEntry(date: Date.now.addingTimeInterval(-86400 * 3), bodyFatPercent: 15.1),
+        VisualBodyFatEntry(date: Date.now.addingTimeInterval(-86400 * 2), bodyFatPercent: 15.0),
+        VisualBodyFatEntry(date: Date.now.addingTimeInterval(-86400 * 1), bodyFatPercent: 14.9),
+        VisualBodyFatEntry(date: Date.now, bodyFatPercent: 14.8)
+    ]
 }
 
 extension CoreRouter {

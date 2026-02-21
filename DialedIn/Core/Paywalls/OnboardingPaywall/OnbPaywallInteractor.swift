@@ -10,4 +10,4 @@ protocol OnbPaywallInteractor {
     func purchaseProduct(productId: String) async throws -> [PurchasedEntitlement]
 }
 
-extension OnbInteractor: OnbPaywallInteractor { }
+extension CoreInteractor: OnbPaywallInteractor { }

@@ -190,7 +190,6 @@ class WorkoutListPresenterBuilder {
         await loadSystemWorkouts()
         await loadMyWorkoutsIfNeeded()
         await loadTopWorkoutsIfNeeded()
-        await syncSavedWorkoutsFromUser()
     }
 
     func loadSystemWorkouts() async {
@@ -236,43 +235,6 @@ class WorkoutListPresenterBuilder {
             router.showSimpleAlert(
                 title: "Unable to Load Trending Templates",
                 subtitle: "We couldn't load top workout templates. Please try again later."
-            )
-        }
-    }
-
-    func syncSavedWorkoutsFromUser() async {
-        interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserStart)
-        guard let user = interactor.currentUser else {
-            interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserNoUid)
-            favouriteWorkouts = []
-            bookmarkedWorkouts = []
-            return
-        }
-        let bookmarkedIds = user.bookmarkedWorkoutTemplateIds ?? []
-        let favouritedIds = user.favouritedWorkoutTemplateIds ?? []
-        if bookmarkedIds.isEmpty && favouritedIds.isEmpty {
-            favouriteWorkouts = []
-            bookmarkedWorkouts = []
-            interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserSuccess(favouriteCount: 0, bookmarkedCount: 0))
-            return
-        }
-        do {
-            var favs: [WorkoutTemplateModel] = []
-            var bookmarks: [WorkoutTemplateModel] = []
-            if !favouritedIds.isEmpty {
-                favs = try await interactor.getWorkoutTemplates(ids: favouritedIds, limitTo: favouritedIds.count)
-            }
-            if !bookmarkedIds.isEmpty {
-                bookmarks = try await interactor.getWorkoutTemplates(ids: bookmarkedIds, limitTo: bookmarkedIds.count)
-            }
-            favouriteWorkouts = favs
-            bookmarkedWorkouts = bookmarks
-            interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserSuccess(favouriteCount: favs.count, bookmarkedCount: bookmarks.count))
-        } catch {
-            interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserFail(error: error))
-            router.showSimpleAlert(
-                title: "Unable to Load Saved Workouts",
-                subtitle: "We couldn't retrieve your saved workouts. Please try again later."
             )
         }
     }

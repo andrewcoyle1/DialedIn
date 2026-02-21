@@ -112,17 +112,15 @@ final class LeftWristMeasurementPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension LeftWristMeasurementEntry {
-    static var mocks: [LeftWristMeasurementEntry] {
-        [
-            LeftWristMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), leftWristCircumference: 7.0),
-            LeftWristMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), leftWristCircumference: 6.9),
-            LeftWristMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), leftWristCircumference: 6.8),
-            LeftWristMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), leftWristCircumference: 6.7),
-            LeftWristMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), leftWristCircumference: 6.6),
-            LeftWristMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), leftWristCircumference: 6.5),
-            LeftWristMeasurementEntry(date: Date.now, leftWristCircumference: 6.4)
-        ]
-    }
+    static let mocks: [LeftWristMeasurementEntry] = [
+        LeftWristMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), leftWristCircumference: 7.0),
+        LeftWristMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), leftWristCircumference: 6.9),
+        LeftWristMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), leftWristCircumference: 6.8),
+        LeftWristMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), leftWristCircumference: 6.7),
+        LeftWristMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), leftWristCircumference: 6.6),
+        LeftWristMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), leftWristCircumference: 6.5),
+        LeftWristMeasurementEntry(date: Date.now, leftWristCircumference: 6.4)
+    ]
 }
 
 extension CoreRouter {

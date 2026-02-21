@@ -34,7 +34,7 @@ struct LoadableAccessoryEquipment: Identifiable, Codable {
         self.isActive = isActive
     }
     
-    static var defaultLoadableAccessoryEquipment: [LoadableAccessoryEquipment] = [
+    static let defaultLoadableAccessoryEquipment: [LoadableAccessoryEquipment] = [
         LoadableAccessoryEquipment(
             id: "fat_grip_attachments",
             name: "Fat Grip Attachments",
@@ -73,7 +73,7 @@ struct LoadableAccessoryEquipment: Identifiable, Codable {
         mocks[0]
     }
     
-    static var mocks: [LoadableAccessoryEquipment] = [
+    static let mocks: [LoadableAccessoryEquipment] = [
         LoadableAccessoryEquipment(
             id: "fat_grip_attachments",
             name: "Fat Grip Attachments",

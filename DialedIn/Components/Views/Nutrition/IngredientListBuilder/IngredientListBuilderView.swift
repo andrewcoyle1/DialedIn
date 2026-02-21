@@ -42,11 +42,6 @@ struct IngredientListBuilderView: View {
         .refreshable {
             await presenter.loadAllIngredients()
         }
-        .onChange(of: presenter.currentUser) {
-            Task {
-                await presenter.syncSavedIngredientsFromUser()
-            }
-        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {

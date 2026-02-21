@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
+@MainActor
 protocol OnboardingHealthDataInteractor {
     func canRequestHealthDataAuthorisation() async -> Bool
     func requestHealthKitAuthorisation() async throws
@@ -12,4 +13,4 @@ protocol OnboardingHealthDataInteractor {
     func trackEvent(event: LoggableEvent)
 }
 
-extension OnbInteractor: OnboardingHealthDataInteractor { }
+extension CoreInteractor: OnboardingHealthDataInteractor { }

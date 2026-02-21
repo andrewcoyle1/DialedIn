@@ -10,7 +10,6 @@ protocol AccountInteractor: GlobalInteractor {
     func deleteAccount() async throws
     func saveUser(user: UserModel, image: PlatformImage?) async throws
     func reauthenticateApple() async throws
-    func updateAppState(showTabBarView: Bool)
 }
 
 extension CoreInteractor: AccountInteractor { }

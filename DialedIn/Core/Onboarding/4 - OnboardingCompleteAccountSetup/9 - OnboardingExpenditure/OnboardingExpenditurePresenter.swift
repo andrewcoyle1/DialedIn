@@ -162,7 +162,7 @@ class OnboardingExpenditurePresenter {
 
     func checkCanRequestPermissions() async {
         self.canRequestHealthData = interactor.canRequestHealthDataAuthorisation()
-        self.canRequestNotifications = await interactor.canRequestNotificationAuthorisation()
+        self.canRequestNotifications = await interactor.canRequestNotificationAuthorization()
     }
 
     private func navigateForward(targetStep: OnboardingStep) async {

@@ -41,6 +41,16 @@ struct UnitConversion {
         }
     }
     
+    /// Convert weight from one unit to another
+    static func convertWeight(_ value: Double, from: ExerciseWeightUnit, into: ExerciseWeightUnit) -> Double {
+        if from == into {
+            return value
+        }
+        // Convert to kg first, then to target unit
+        let kilograms = convertWeightToKg(value, from: from)
+        return convertWeight(kilograms, to: into)
+    }
+    
     /// Format weight for display with appropriate decimal places
     static func formatWeight(_ kilograms: Double, unit: ExerciseWeightUnit) -> String {
         let converted = convertWeight(kilograms, to: unit)
@@ -82,6 +92,16 @@ struct UnitConversion {
         case .miles:
             return milesToMeters(value)
         }
+    }
+    
+    /// Convert distance from one unit to another
+    static func convertDistance(_ value: Double, from: ExerciseDistanceUnit, into: ExerciseDistanceUnit) -> Double {
+        if from == into {
+            return value
+        }
+        // Convert to meters first, then to target unit
+        let meters = convertDistanceToMeters(value, from: from)
+        return convertDistance(meters, to: into)
     }
     
     /// Format distance for display with appropriate decimal places

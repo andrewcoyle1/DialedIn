@@ -8,6 +8,8 @@
 import Foundation
 
 struct PinLoadedMachine: Identifiable, Codable {
+    /// Equipment identifier used in exercise models (e.g. PrebuiltExercises.json resistance_equipment / support_equipment).
+    /// Must match the "id" in EquipmentRef so exercises can reference this machine.
     var id: String
     var name: String
     var imageName: String?

@@ -13,7 +13,7 @@ class ProgramDesignPresenter {
     
     var program: TrainingProgram
     
-    static var defaultDayPlans: [DayPlan] = [
+    static let defaultDayPlans: [DayPlan] = [
         
     ]
     

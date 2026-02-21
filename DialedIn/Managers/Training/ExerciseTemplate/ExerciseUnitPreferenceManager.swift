@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 @Observable
+@MainActor
 class ExerciseUnitPreferenceManager {
     
     private let userDefaults: UserDefaults
@@ -99,14 +100,14 @@ class ExerciseUnitPreferenceManager {
         let user = userManager.currentUser
         
         let defaultWeightUnit: ExerciseWeightUnit
-        if let userWeightPref = user?.weightUnitPreference {
+        if let userWeightPref = user?.submittedWeightUnitPreference {
             defaultWeightUnit = userWeightPref == .kilograms ? .kilograms : .pounds
         } else {
             defaultWeightUnit = .kilograms
         }
         
         let defaultDistanceUnit: ExerciseDistanceUnit
-        if let userLengthPref = user?.lengthUnitPreference {
+        if let userLengthPref = user?.submittedLengthUnitPreference {
             // Map length preference to distance (centimeters -> meters, inches -> miles)
             defaultDistanceUnit = userLengthPref == .centimeters ? .meters : .miles
         } else {

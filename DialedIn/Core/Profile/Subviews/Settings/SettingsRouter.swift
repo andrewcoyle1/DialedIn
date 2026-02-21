@@ -8,11 +8,9 @@
 import SwiftUI
 
 @MainActor
-protocol SettingsRouter {
-    func showAlert(error: Error)
-    func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
+protocol SettingsRouter: GlobalRouter {
     func showCorePaywall()
-    func dismissScreen()
+    func switchToOnboardingModule()
 }
 
 extension CoreRouter: SettingsRouter { }

@@ -56,7 +56,6 @@ class RecipeListBuilderPresenter {
     func loadAllRecipes() async {
         await loadMyRecipesIfNeeded()
         await loadTopRecipesIfNeeded()
-        await syncSavedRecipesFromUser()
     }
     
     func favouritesSectionViewed() {
@@ -215,42 +214,6 @@ class RecipeListBuilderPresenter {
             router.showSimpleAlert(
                 title: "Unable to Load Trending Templates",
                 subtitle: "We couldn't load top recipe templates. Please try again later."
-            )
-        }
-    }
-
-    func syncSavedRecipesFromUser() async {
-        interactor.trackEvent(event: Event.syncRecipesFromCurrentUserStart)
-        guard let user = interactor.currentUser else {
-            interactor.trackEvent(event: Event.syncRecipesFromCurrentUserNoUid)
-            favouriteRecipes = []
-            bookmarkedRecipes = []
-            return
-        }
-        let bookmarkedIds = user.bookmarkedRecipeTemplateIds ?? []
-        let favouritedIds = user.favouritedRecipeTemplateIds ?? []
-        if bookmarkedIds.isEmpty && favouritedIds.isEmpty {
-            favouriteRecipes = []
-            bookmarkedRecipes = []
-            return
-        }
-        do {
-            var favs: [RecipeTemplateModel] = []
-            var bookmarks: [RecipeTemplateModel] = []
-            if !favouritedIds.isEmpty {
-                favs = try await interactor.getRecipeTemplates(ids: favouritedIds, limitTo: favouritedIds.count)
-            }
-            if !bookmarkedIds.isEmpty {
-                bookmarks = try await interactor.getRecipeTemplates(ids: bookmarkedIds, limitTo: bookmarkedIds.count)
-            }
-            favouriteRecipes = favs
-            bookmarkedRecipes = bookmarks
-            interactor.trackEvent(event: Event.syncRecipesFromCurrentUserSuccess(favouriteCount: favs.count, bookmarkedCount: bookmarks.count))
-        } catch {
-            interactor.trackEvent(event: Event.syncRecipesFromCurrentUserFail(error: error))
-            router.showSimpleAlert(
-                title: "Unable to Load Saved Recipes",
-                subtitle: "We couldn't retrieve your saved recipes. Please try again later."
             )
         }
     }

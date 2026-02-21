@@ -98,15 +98,15 @@ struct OnboardingSubscriptionView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingSubscriptionView(router: AnyRouter) -> some View {
         OnboardingSubscriptionView(
-            presenter: OnboardingSubscriptionPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+            presenter: OnboardingSubscriptionPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showSubscriptionView() {
         router.showScreen(.push) { router in
             builder.onboardingSubscriptionView(router: router)
@@ -115,7 +115,7 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingSubscriptionView(router: router)
     }

@@ -112,17 +112,15 @@ final class WaistMeasurementPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension WaistMeasurementEntry {
-    static var mocks: [WaistMeasurementEntry] {
-        [
-            WaistMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), waistCircumference: 32.6),
-            WaistMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), waistCircumference: 32.4),
-            WaistMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), waistCircumference: 32.2),
-            WaistMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), waistCircumference: 32.1),
-            WaistMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), waistCircumference: 32.0),
-            WaistMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), waistCircumference: 31.9),
-            WaistMeasurementEntry(date: Date.now, waistCircumference: 31.8)
-        ]
-    }
+    static let mocks: [WaistMeasurementEntry] = [
+        WaistMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), waistCircumference: 32.6),
+        WaistMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), waistCircumference: 32.4),
+        WaistMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), waistCircumference: 32.2),
+        WaistMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), waistCircumference: 32.1),
+        WaistMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), waistCircumference: 32.0),
+        WaistMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), waistCircumference: 31.9),
+        WaistMeasurementEntry(date: Date.now, waistCircumference: 31.8)
+    ]
 }
 
 extension CoreRouter {

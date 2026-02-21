@@ -172,16 +172,14 @@ class DevSettingsPresenter {
     func onForceFreshAnonUser() {
         defer {
             router.dismissScreen()
-            Task {
-                try? await Task.sleep(for: .seconds(1))
-                interactor.updateAppState(showTabBarView: false)
-            }
         }
         interactor.trackEvent(event: Event.forceSignOutStart)
         Task {
             do {
                 try await interactor.signOut()
                 interactor.trackEvent(event: Event.forceSignOutSuccess)
+                try await Task.sleep(for: .seconds(1))
+                router.switchToOnboardingModule()
 
             } catch {
                 interactor.trackEvent(event: Event.forceSignOutFail(error: error))

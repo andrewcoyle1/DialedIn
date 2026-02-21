@@ -12,4 +12,4 @@ protocol OnboardingOverarchingObjectiveRouter {
     func showOnboardingGoalSummaryView(delegate: OnboardingGoalSummaryDelegate)
 }
 
-extension OnbRouter: OnboardingOverarchingObjectiveRouter { }
+extension CoreRouter: OnboardingOverarchingObjectiveRouter { }

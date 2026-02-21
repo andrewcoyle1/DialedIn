@@ -56,16 +56,15 @@ struct StepsModel: Identifiable, Codable {
         mocks[0]
     }
     
-    static var mocks: [StepsModel] {
-        [
-            StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -7)),
-            StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -6)),
-            StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -5)),
-            StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -4)),
-            StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -3)),
-            StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -2)),
-            StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -1)),
-            StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now)
-        ]
-    }
+    static let mocks: [StepsModel] =
+    [
+        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -7)),
+        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -6)),
+        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -5)),
+        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -4)),
+        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -3)),
+        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -2)),
+        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -1)),
+        StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now)
+    ]
 }

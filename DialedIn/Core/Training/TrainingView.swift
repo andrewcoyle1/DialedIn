@@ -54,7 +54,7 @@ struct TrainingView<CalendarHeaderView: View>: View {
                 Task { await presenter.loadData() }
             }
         }
-        .onChange(of: presenter.currentUser?.activeTrainingProgramId) { _, _ in
+        .onChange(of: presenter.currentUser?.submittedActiveTrainingProgramId) { _, _ in
             Task { await presenter.loadData() }
         }
         .onNotificationReceived(name: Constants.remoteDataSyncDidComplete) { _ in
@@ -67,7 +67,8 @@ struct TrainingView<CalendarHeaderView: View>: View {
                         presenter.onDatePressed(date: date)
                     },
                     getForDate: { date in
-                        presenter.getLoggedWorkoutCountForDate(date, calendar: presenter.calendar)
+                        return 0
+//                        presenter.getLoggedWorkoutCountForDate(date, calendar: presenter.calendar)
                     }
                 )
             )
@@ -264,7 +265,9 @@ extension CoreBuilder {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.trainingView(router: router)
     }

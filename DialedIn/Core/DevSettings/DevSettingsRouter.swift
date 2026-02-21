@@ -6,10 +6,9 @@
 //
 
 @MainActor
-protocol DevSettingsRouter: GlobalRouter { }
+protocol DevSettingsRouter: GlobalRouter {
+    func switchToOnboardingModule()
+}
 
 extension CoreRouter: DevSettingsRouter { }
 
-extension OnbRouter: DevSettingsRouter { }
-
-extension RootRouter: DevSettingsRouter { }

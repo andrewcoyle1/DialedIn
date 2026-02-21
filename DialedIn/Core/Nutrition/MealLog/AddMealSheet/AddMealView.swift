@@ -130,7 +130,9 @@ extension CoreRouter {
 }
 
 #Preview("Breakfast") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = AddMealDelegate(
         selectedDate: Date(),
         mealType: .breakfast,
@@ -145,7 +147,9 @@ extension CoreRouter {
 }
 
 #Preview("Lunch") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = AddMealDelegate(
         selectedDate: Date(),
         mealType: .lunch,
@@ -160,7 +164,9 @@ extension CoreRouter {
 }
 
 #Preview("Dinner") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = AddMealDelegate(
         selectedDate: Date(),
         mealType: .dinner,
@@ -175,7 +181,9 @@ extension CoreRouter {
 }
 
 #Preview("Snack") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = AddMealDelegate(
         selectedDate: Date(),
         mealType: .snack,

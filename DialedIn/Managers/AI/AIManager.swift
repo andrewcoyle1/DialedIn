@@ -7,6 +7,7 @@
 import SwiftUI
 
 @Observable
+@MainActor
 class AIManager {
     
     private let service: AIService

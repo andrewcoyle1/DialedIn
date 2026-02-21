@@ -162,7 +162,9 @@ extension CoreRouter {
 }
 
 #Preview("Functioning") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
@@ -173,7 +175,7 @@ extension CoreRouter {
 #Preview("Slow Loading") {
     let container = DevPreview.shared.container()
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
-    let builder = CoreBuilder(container: container)
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     return RouterView { router in
         builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
@@ -184,7 +186,7 @@ extension CoreRouter {
 #Preview("No Data") {
     let container = DevPreview.shared.container()
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(sessions: [])))
-    let builder = CoreBuilder(container: container)
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     return RouterView { router in
         builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
@@ -195,7 +197,7 @@ extension CoreRouter {
 #Preview("Remote Loading Failure") {
     let container = DevPreview.shared.container()
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 1, showErrorRemote: true)))
-    let builder = CoreBuilder(container: container)
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
 
     return RouterView { router in
         builder.workoutHistoryView(router: router)
@@ -208,7 +210,7 @@ extension CoreRouter {
     let container = DevPreview.shared.container()
     container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(
         services: MockWorkoutSessionServices(delay: 3, showErrorLocal: true)))
-    let builder = CoreBuilder(container: container)
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
 
     return RouterView { router in
         builder.workoutHistoryView(router: router)

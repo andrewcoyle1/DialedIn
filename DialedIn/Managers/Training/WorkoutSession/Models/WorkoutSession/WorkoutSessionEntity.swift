@@ -22,6 +22,7 @@ class WorkoutSessionEntity {
     var dateModified: Date
     var endedAt: Date?
     var notes: String?
+    var deletedAt: Date?
     @Relationship(deleteRule: .cascade, inverse: \WorkoutExerciseEntity.session) var exercises: [WorkoutExerciseEntity]
 
     init(from model: WorkoutSessionModel) {
@@ -37,6 +38,7 @@ class WorkoutSessionEntity {
         self.dateModified = model.dateModified
         self.endedAt = model.endedAt
         self.notes = model.notes
+        self.deletedAt = model.deletedAt
         // Persist exercises in index order
         self.exercises = model.exercises
             .sorted { ($0.index) < ($1.index) }
@@ -66,7 +68,8 @@ class WorkoutSessionEntity {
                     // Ensure sets are in index order
                     model.sets = model.sets.sorted(by: { $0.index < $1.index })
                     return model
-                }
+                },
+            deletedAt: deletedAt
         )
     }
 }
@@ -82,6 +85,8 @@ class WorkoutExerciseEntity {
     var index: Int
     var notes: String?
     var imageName: String?
+    var chosenResistanceEquipment: Data = Data()
+    var chosenSupportEquipment: Data = Data()
     @Relationship(deleteRule: .cascade, inverse: \WorkoutSetEntity.exercise) var sets: [WorkoutSetEntity]
     @Relationship var session: WorkoutSessionEntity?
 
@@ -94,8 +99,18 @@ class WorkoutExerciseEntity {
         self.index = model.index
         self.notes = model.notes
         self.imageName = model.imageName
+        self.chosenResistanceEquipment = Self.encode(model.chosenResistanceEquipment)
+        self.chosenSupportEquipment = Self.encode(model.chosenSupportEquipment)
         // Persist sets in index order
         self.sets = model.sets.sorted(by: { $0.index < $1.index }).map { WorkoutSetEntity(from: $0) }
+    }
+
+    private static func encode<T: Encodable>(_ value: T) -> Data {
+        (try? JSONEncoder().encode(value)) ?? Data()
+    }
+
+    private static func decode<T: Decodable>(_ data: Data, fallback: T) -> T {
+        (try? JSONDecoder().decode(T.self, from: data)) ?? fallback
     }
 
     @MainActor
@@ -109,7 +124,9 @@ class WorkoutExerciseEntity {
             index: index,
             notes: notes,
             imageName: imageName,
-            sets: sets.map { $0.toModel() }
+            sets: sets.map { $0.toModel() },
+            chosenResistanceEquipment: Self.decode(chosenResistanceEquipment, fallback: [EquipmentRef]()),
+            chosenSupportEquipment: Self.decode(chosenSupportEquipment, fallback: [EquipmentRef]())
         )
     }
 }

@@ -12,4 +12,4 @@ protocol OnboardingNamePhotoRouter: GlobalRouter {
     func showSimpleAlert(title: String, subtitle: String?)
 }
 
-extension OnbRouter: OnboardingNamePhotoRouter { }
+extension CoreRouter: OnboardingNamePhotoRouter { }

@@ -134,7 +134,10 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" }
+        { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" },
+        { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_single_cable_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_dual_cable_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 5,
@@ -160,7 +163,10 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" }
+        { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" },
+        { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_single_cable_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_dual_cable_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 4,
@@ -186,7 +192,8 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "pinLoadedMachine", "id": "pin-loaded_leg_press_machine" }
+        { "kind": "pinLoadedMachine", "id": "pin-loaded_leg_press_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_leg_press_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 3,
@@ -390,7 +397,9 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "cableMachine", "id": "cable_lat_pulldown_machine" }
+        { "kind": "cableMachine", "id": "cable_lat_pulldown_machine" },
+        { "kind": "pinLoadedMachine", "id": "pin-loaded_pulldown_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_pulldown_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 5,
@@ -416,7 +425,10 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" }
+        { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" },
+        { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_single_cable_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_dual_cable_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 4,
@@ -442,7 +454,9 @@
         "upperBack": true
       },
       "is_bodyweight": false,
-      "resistance_equipment": [],
+      "resistance_equipment": [
+          { "kind": "pinLoadedMachine", "id": "pec_deck" }
+      ],
       "support_equipment": [],
       "range_of_motion": 4,
       "stability": 5,
@@ -467,7 +481,8 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "pinLoadedMachine", "id": "pin-loaded_leg_extension_machine" }
+        { "kind": "pinLoadedMachine", "id": "pin-loaded_leg_extension_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_leg_extension_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 4,
@@ -494,7 +509,10 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" }
+        { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" },
+        { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_single_cable_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_dual_cable_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 5,
@@ -581,7 +599,9 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "pinLoadedMachine", "id": "lying_pin-loaded_leg_curl_machine" }
+        { "kind": "pinLoadedMachine", "id": "lying_pin-loaded_leg_curl_machine" },
+        { "kind": "pinLoadedMachine", "id": "seated_pin-loaded_leg_curl_machine" },
+        { "kind": "plateLoadedMachine", "id": "lying_plate-loaded_leg_curl_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 4,
@@ -610,7 +630,9 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "cableMachine", "id": "seated_cable_row_machine" }
+        { "kind": "cableMachine", "id": "seated_cable_row_machine" },
+        { "kind": "pinLoadedMachine", "id": "chest-supported_pin-loaded_row_machine" },
+        { "kind": "plateLoadedMachine", "id": "chest-supported_plate-loaded_row_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 4,
@@ -670,7 +692,8 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "loadableBar", "id": "barbell" }
+        { "kind": "loadableBar", "id": "barbell" },
+        { "kind": "plateLoadedMachine", "id": "chest-supported_t-bar_row_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 4,
@@ -699,7 +722,9 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "cableMachine", "id": "cable_lat_pulldown_machine" }
+        { "kind": "cableMachine", "id": "cable_lat_pulldown_machine" },
+        { "kind": "pinLoadedMachine", "id": "pin-loaded_pulldown_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_pulldown_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 5,
@@ -725,7 +750,10 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" }
+          { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" },
+          { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" },
+          { "kind": "plateLoadedMachine", "id": "plate-loaded_single_cable_machine" },
+          { "kind": "plateLoadedMachine", "id": "plate-loaded_dual_cable_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 4,
@@ -753,7 +781,10 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" }
+          { "kind": "cableMachine", "id": "pin-loaded_single_cable_machine" },
+        { "kind": "cableMachine", "id": "pin-loaded_dual_cable_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_single_cable_machine" },
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_dual_cable_machine" }
       ],
       "support_equipment": [],
       "range_of_motion": 5,
@@ -781,7 +812,7 @@
       },
       "is_bodyweight": false,
       "resistance_equipment": [
-        { "kind": "plateLoadedMachine", "id": "hip_thrust_machine" }
+        { "kind": "plateLoadedMachine", "id": "plate-loaded_hip_thrust_machine_starting_from_the_top" }
       ],
       "support_equipment": [],
       "range_of_motion": 4,
@@ -894,7 +925,8 @@
       "is_bodyweight": true,
       "resistance_equipment": [],
       "support_equipment": [
-        { "kind": "supportEquipment", "id": "parallel_bars" }
+        { "kind": "supportEquipment", "id": "parallel_bars" },
+        { "kind": "supportEquipment", "id": "multi-grip_pull-up_bar" }
       ],
       "range_of_motion": 4,
       "stability": 4,

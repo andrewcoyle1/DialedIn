@@ -21,7 +21,9 @@ struct WeightTrendView: View {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = WeightTrendDelegate()
 
     return RouterView { router in

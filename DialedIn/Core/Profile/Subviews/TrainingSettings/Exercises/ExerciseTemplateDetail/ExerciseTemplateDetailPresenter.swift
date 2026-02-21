@@ -46,8 +46,6 @@ class ExerciseTemplateDetailPresenter {
         let user = interactor.currentUser
         // Always treat authored templates as bookmarked
         let isAuthor = user?.userId == exerciseTemplate.authorId
-        isBookmarked = isAuthor || (user?.bookmarkedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false) || (user?.createdExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false)
-        isFavourited = user?.favouritedExerciseTemplateIds?.contains(exerciseTemplate.id) ?? false
         // Load unit preferences for this exercise
         unitPreference = interactor.getPreference(templateId: exerciseTemplate.id)
         await loadHistory(exerciseTemplate: exerciseTemplate)
@@ -108,50 +106,7 @@ class ExerciseTemplateDetailPresenter {
         }
         return tuples
     }
-    
-    func onBookmarkPressed(exerciseTemplate: ExerciseModel) async {
-        let newState = !isBookmarked
-        do {
-            // If unbookmarking and currently favourited, unfavourite first to enforce rule
-            if !newState && isFavourited {
-                try await interactor.favouriteExerciseTemplate(id: exerciseTemplate.id, isFavourited: false)
-                isFavourited = false
-                // Remove from user's favourited list
-                try await interactor.removeFavouritedExerciseTemplate(exerciseId: exerciseTemplate.id)
-            }
-            try await interactor.bookmarkExerciseTemplate(id: exerciseTemplate.id, isBookmarked: newState)
-            if newState {
-                try await interactor.addBookmarkedExerciseTemplate(exerciseId: exerciseTemplate.id)
-            } else {
-                try await interactor.removeBookmarkedExerciseTemplate(exerciseId: exerciseTemplate.id)
-            }
-            isBookmarked = newState
-        } catch {
-            router.showSimpleAlert(title: "Failed to update bookmark status", subtitle: "Please try again later")
-        }
-    }
-    
-    func onFavoritePressed(exerciseTemplate: ExerciseModel) async {
-        let newState = !isFavourited
-        do {
-            // If favouriting and not bookmarked, bookmark first to enforce rule
-            if newState && !isBookmarked {
-                try await interactor.bookmarkExerciseTemplate(id: exerciseTemplate.id, isBookmarked: true)
-                try await interactor.addBookmarkedExerciseTemplate(exerciseId: exerciseTemplate.id)
-                isBookmarked = true
-            }
-            try await interactor.favouriteExerciseTemplate(id: exerciseTemplate.id, isFavourited: newState)
-            if newState {
-                try await interactor.addFavouritedExerciseTemplate(exerciseId: exerciseTemplate.id)
-            } else {
-                try await interactor.removeFavouritedExerciseTemplate(exerciseId: exerciseTemplate.id)
-            }
-            isFavourited = newState
-        } catch {
-            router.showSimpleAlert(title: "Failed to update favourite status", subtitle: "Please try again later")
-        }
-    }
-    
+        
     func onDismissPressed() {
         router.dismissScreen()
     }

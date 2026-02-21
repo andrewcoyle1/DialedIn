@@ -50,11 +50,6 @@ struct ExerciseListBuilderView: View {
         .onFirstTask {
             await presenter.loadExercises()
         }
-        .onChange(of: presenter.currentUser) {
-            Task {
-                await presenter.syncSavedExercisesFromUser()
-            }
-        }
         .safeAreaInset(edge: .top) {
             filterSection
         }

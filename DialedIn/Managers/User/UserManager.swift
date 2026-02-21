@@ -24,6 +24,7 @@ struct CompleteAccountSetupProfileInput {
 }
 
 @Observable
+@MainActor
 class UserManager {
     
     let remote: RemoteUserService
@@ -31,8 +32,8 @@ class UserManager {
     private let logManager: LogManager?
     
     private(set) var currentUser: UserModel?
-    private var currentUserListener: ListenerRegistration?
-    
+    private var currentUserListenerTask: Task<Void, Error>?
+
     init(services: UserServices, logManager: LogManager? = nil) {
         self.remote = services.remote
         self.local = services.local
@@ -65,7 +66,7 @@ class UserManager {
     
     private func cacheProfileImageIfNeeded() async {
         guard let user = currentUser,
-              let urlString = user.profileImageUrl,
+              let urlString = user.submittedProfileImage,
               !urlString.isEmpty else {
             return
         }
@@ -90,7 +91,7 @@ class UserManager {
     /// Force refresh the cached profile image from Firebase
     func refreshProfileImage() async throws {
         guard let user = currentUser,
-              let urlString = user.profileImageUrl,
+              let urlString = user.submittedProfileImage,
               !urlString.isEmpty else {
             return
         }
@@ -116,6 +117,13 @@ class UserManager {
         currentUser = nil
     }
     
+    // User FCM Token
+    
+    func saveUserFCMToken(token: String) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserFCMToken(userId: uid, token: token)
+    }
+
     // MARK: - Remote operations
     // MARK: - User
     
@@ -127,42 +135,12 @@ class UserManager {
             var user = UserModel(auth: auth, creationVersion: creationVersion)
             user = UserModel(
                 userId: user.userId,
-                email: user.email,
-                isAnonymous: user.isAnonymous,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                dateOfBirth: user.dateOfBirth,
-                gender: user.gender,
-                heightCentimeters: user.heightCentimeters,
-                weightKilograms: user.weightKilograms,
-                exerciseFrequency: user.exerciseFrequency,
-                dailyActivityLevel: user.dailyActivityLevel,
-                cardioFitnessLevel: user.cardioFitnessLevel,
-                lengthUnitPreference: user.lengthUnitPreference,
-                weightUnitPreference: user.weightUnitPreference,
-                profileImageUrl: user.profileImageUrl,
-                creationDate: user.creationDate,
-                creationVersion: user.creationVersion,
-                lastSignInDate: user.lastSignInDate,
                 didCompleteOnboarding: false,
-                onboardingStep: .subscription,
-                createdExerciseTemplateIds: user.createdExerciseTemplateIds,
-                bookmarkedExerciseTemplateIds: user.bookmarkedExerciseTemplateIds,
-                favouritedExerciseTemplateIds: user.favouritedExerciseTemplateIds,
-                createdWorkoutTemplateIds: user.createdWorkoutTemplateIds,
-                bookmarkedWorkoutTemplateIds: user.bookmarkedWorkoutTemplateIds,
-                favouritedWorkoutTemplateIds: user.favouritedWorkoutTemplateIds,
-                createdIngredientTemplateIds: user.createdIngredientTemplateIds,
-                bookmarkedIngredientTemplateIds: user.bookmarkedIngredientTemplateIds,
-                favouritedIngredientTemplateIds: user.favouritedIngredientTemplateIds,
-                createdRecipeTemplateIds: user.createdRecipeTemplateIds,
-                bookmarkedRecipeTemplateIds: user.bookmarkedRecipeTemplateIds,
-                favouritedRecipeTemplateIds: user.favouritedRecipeTemplateIds,
-                blockedUserIds: user.blockedUserIds
+                onboardingStep: .subscription
             )
 
             logManager?.trackEvent(event: Event.logInStart(user: user))
-            try await remote.saveUser(user: user, image: image)
+            try await remote.saveUser(user: user)
             logManager?.trackEvent(event: Event.logInSuccess(user: user))
 
             // Optimistically set current user immediately; stream will keep it updated
@@ -179,7 +157,7 @@ class UserManager {
     }
     
     func saveUser(user: UserModel, image: PlatformImage?) async throws {
-        try await remote.saveUser(user: user, image: image)
+        try await remote.saveUser(user: user)
 
         // Cache the image locally if provided
         if let image = image {
@@ -204,77 +182,53 @@ class UserManager {
             isAnonymous: existing.isAnonymous,
             firstName: existing.firstName,
             lastName: existing.lastName,
-            dateOfBirth: input.dateOfBirth,
-            gender: input.gender,
-            heightCentimeters: input.heightCentimeters,
-            weightKilograms: input.weightKilograms,
-            exerciseFrequency: input.exerciseFrequency,
-            dailyActivityLevel: input.dailyActivityLevel,
-            cardioFitnessLevel: input.cardioFitnessLevel,
-            lengthUnitPreference: input.lengthUnitPreference,
-            weightUnitPreference: input.weightUnitPreference,
-            profileImageUrl: existing.profileImageUrl,
             creationDate: existing.creationDate,
             creationVersion: existing.creationVersion,
             lastSignInDate: existing.lastSignInDate,
+            submittedProfileImage: existing.submittedProfileImage,
+            submittedDateOfBirth: input.dateOfBirth,
+            submittedGender: input.gender,
+            submittedHeightCentimeters: input.heightCentimeters,
+            submittedWeightKilograms: input.weightKilograms,
+            submittedExerciseFrequency: input.exerciseFrequency,
+            submittedDailyActivityLevel: input.dailyActivityLevel,
+            submittedCardioFitnessLevel: input.cardioFitnessLevel,
+            submittedLengthUnitPreference: input.lengthUnitPreference,
+            submittedWeightUnitPreference: input.weightUnitPreference,
+            blockedUserIds: existing.blockedUserIds,
             didCompleteOnboarding: existing.didCompleteOnboarding,
-            onboardingStep: input.onboardingStep,
-            createdExerciseTemplateIds: existing.createdExerciseTemplateIds,
-            bookmarkedExerciseTemplateIds: existing.bookmarkedExerciseTemplateIds,
-            favouritedExerciseTemplateIds: existing.favouritedExerciseTemplateIds,
-            createdWorkoutTemplateIds: existing.createdWorkoutTemplateIds,
-            bookmarkedWorkoutTemplateIds: existing.bookmarkedWorkoutTemplateIds,
-            favouritedWorkoutTemplateIds: existing.favouritedWorkoutTemplateIds,
-            createdIngredientTemplateIds: existing.createdIngredientTemplateIds,
-            bookmarkedIngredientTemplateIds: existing.bookmarkedIngredientTemplateIds,
-            favouritedIngredientTemplateIds: existing.favouritedIngredientTemplateIds,
-            createdRecipeTemplateIds: existing.createdRecipeTemplateIds,
-            bookmarkedRecipeTemplateIds: existing.bookmarkedRecipeTemplateIds,
-            favouritedRecipeTemplateIds: existing.favouritedRecipeTemplateIds,
-            blockedUserIds: existing.blockedUserIds
+            onboardingStep: input.onboardingStep
         )
-        try await remote.saveUser(user: updated, image: nil)
+        try await remote.saveUser(user: updated)
         return updated
     }
     
     func signOut() {
-        currentUserListener?.remove()
-        currentUserListener = nil
+        currentUserListenerTask?.cancel()
+        currentUserListenerTask = nil
         currentUser = nil
         logManager?.trackEvent(event: Event.signOut)
     }
 
-    // MARK: - Anonymity/Email
-    
-    func markUnanonymous(email: String? = nil) async throws {
-        let uid = try currentUserId()
-        try await remote.markUnanonymous(userId: uid, email: email)
-    }
-    
     // MARK: - Personal Info
     
-    func updateFirstName(firstName: String) async throws {
+    func updateUserName(firstName: String? = nil, lastName: String? = nil) async throws {
         let uid = try currentUserId()
-        try await remote.updateFirstName(userId: uid, firstName: firstName)
-    }
-    
-    func updateLastName(lastName: String) async throws {
-        let uid = try currentUserId()
-        try await remote.updateLastName(userId: uid, lastName: lastName)
-    }
-    
-    func updateDateOfBirth(dob: Date) async throws {
-        let uid = try currentUserId()
-        try await remote.updateDateOfBirth(userId: uid, dateOfBirth: dob)
+        try await remote.updateUserName(userId: uid, firstName: firstName, lastName: lastName)
     }
     
     func updateGender(gender: Gender) async throws {
         let uid = try currentUserId()
-        try await remote.updateGender(userId: uid, gender: gender)
+        try await remote.saveUserGender(userId: uid, gender: gender)
     }
-    
+
+    func updateDateOfBirth(dob: Date) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserDateOfBirth(userId: uid, dateOfBirth: dob)
+    }
+
     func updateWeight(userId: String, weightKg: Double) async throws {
-        try await remote.updateWeight(userId: userId, weightKg: weightKg)
+        try await remote.saveUserWeightKilograms(userId: userId, weightKg: weightKg)
         
         // Update local cache
         if var user = currentUser, user.userId == userId {
@@ -284,35 +238,23 @@ class UserManager {
                 isAnonymous: user.isAnonymous,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                dateOfBirth: user.dateOfBirth,
-                gender: user.gender,
-                heightCentimeters: user.heightCentimeters,
-                weightKilograms: weightKg,
-                exerciseFrequency: user.exerciseFrequency,
-                dailyActivityLevel: user.dailyActivityLevel,
-                cardioFitnessLevel: user.cardioFitnessLevel,
-                lengthUnitPreference: user.lengthUnitPreference,
-                weightUnitPreference: user.weightUnitPreference,
-                currentGoalId: user.currentGoalId,
-                profileImageUrl: user.profileImageUrl,
                 creationDate: user.creationDate,
                 creationVersion: user.creationVersion,
                 lastSignInDate: user.lastSignInDate,
+                submittedProfileImage: user.submittedProfileImage,
+                submittedDateOfBirth: user.submittedDateOfBirth,
+                submittedGender: user.submittedGender,
+                submittedHeightCentimeters: user.submittedHeightCentimeters,
+                submittedWeightKilograms: weightKg,
+                submittedExerciseFrequency: user.submittedExerciseFrequency,
+                submittedDailyActivityLevel: user.submittedDailyActivityLevel,
+                submittedCardioFitnessLevel: user.submittedCardioFitnessLevel,
+                submittedLengthUnitPreference: user.submittedLengthUnitPreference,
+                submittedWeightUnitPreference: user.submittedWeightUnitPreference,
+                submittedCurrentGoalId: user.submittedCurrentGoalId,
+                blockedUserIds: user.blockedUserIds,
                 didCompleteOnboarding: user.didCompleteOnboarding,
                 onboardingStep: user.onboardingStep,
-                createdExerciseTemplateIds: user.createdExerciseTemplateIds,
-                bookmarkedExerciseTemplateIds: user.bookmarkedExerciseTemplateIds,
-                favouritedExerciseTemplateIds: user.favouritedExerciseTemplateIds,
-                createdWorkoutTemplateIds: user.createdWorkoutTemplateIds,
-                bookmarkedWorkoutTemplateIds: user.bookmarkedWorkoutTemplateIds,
-                favouritedWorkoutTemplateIds: user.favouritedWorkoutTemplateIds,
-                createdIngredientTemplateIds: user.createdIngredientTemplateIds,
-                bookmarkedIngredientTemplateIds: user.bookmarkedIngredientTemplateIds,
-                favouritedIngredientTemplateIds: user.favouritedIngredientTemplateIds,
-                createdRecipeTemplateIds: user.createdRecipeTemplateIds,
-                bookmarkedRecipeTemplateIds: user.bookmarkedRecipeTemplateIds,
-                favouritedRecipeTemplateIds: user.favouritedRecipeTemplateIds,
-                blockedUserIds: user.blockedUserIds
             )
             currentUser = user
             saveCurrentUserLocally()
@@ -321,30 +263,32 @@ class UserManager {
     
     // MARK: - Image URL
     
-    func updateProfileImageUrl(url: String?) async throws {
+    func updateProfileImage(image: PlatformImage) async throws {
         let uid = try currentUserId()
-        try await remote.updateProfileImageUrl(userId: uid, url: url)
+        try await remote.saveUserProfileImage(userId: uid, image: image)
     }
     
     // MARK: Update Active Training Program
     
     func updateActiveTrainingProgramId(programId: String?) async throws {
         let uid = try currentUserId()
-        try await remote.updateActiveTrainingProgramId(userId: uid, programId: programId)
+        guard let activeProgramId = programId else { return }
+        try await remote.saveUserActiveTrainingProgramId(userId: uid, activeTrainingProgramId: activeProgramId)
     }
 
     // MARK: Update Favourite Gym Profile
     
     func updateFavouriteGymProfileId(profileId: String?) async throws {
         let uid = try currentUserId()
-        try await remote.updateFavouriteGymProfileId(userId: uid, profileId: profileId)
+        guard let favouriteGymProfileId = profileId else { return }
+        try await remote.saveUserFavouriteGymProfileId(userId: uid, favouriteGymProfileId: favouriteGymProfileId)
     }
     
     // MARK: - Update Metadata
     
     func updateLastSignInDate() async throws {
         let uid = try currentUserId()
-        try await remote.updateLastSignInDate(userId: uid)
+        try await remote.saveUserLastSignInDate(userId: uid)
     }
     
     func updateOnboardingStep(step: OnboardingStep) async throws {
@@ -353,7 +297,7 @@ class UserManager {
         if let current = currentUser?.onboardingStep, current.orderIndex >= step.orderIndex {
             return
         }
-        try await remote.updateOnboardingStep(userId: uid, step: step)
+        try await remote.updateOnboardingStep(userId: uid, onboardingStep: step)
         logManager?.trackEvent(event: Event.updateOnboardingStep(step: step))
         // Optimistically update local cache so routing on app relaunch restores to the latest step
         if let existing = currentUser {
@@ -363,34 +307,22 @@ class UserManager {
                 isAnonymous: existing.isAnonymous,
                 firstName: existing.firstName,
                 lastName: existing.lastName,
-                dateOfBirth: existing.dateOfBirth,
-                gender: existing.gender,
-                heightCentimeters: existing.heightCentimeters,
-                weightKilograms: existing.weightKilograms,
-                exerciseFrequency: existing.exerciseFrequency,
-                dailyActivityLevel: existing.dailyActivityLevel,
-                cardioFitnessLevel: existing.cardioFitnessLevel,
-                lengthUnitPreference: existing.lengthUnitPreference,
-                weightUnitPreference: existing.weightUnitPreference,
-                profileImageUrl: existing.profileImageUrl,
                 creationDate: existing.creationDate,
                 creationVersion: existing.creationVersion,
                 lastSignInDate: existing.lastSignInDate,
+                submittedProfileImage: existing.submittedProfileImage,
+                submittedDateOfBirth: existing.submittedDateOfBirth,
+                submittedGender: existing.submittedGender,
+                submittedHeightCentimeters: existing.submittedHeightCentimeters,
+                submittedWeightKilograms: existing.submittedWeightKilograms,
+                submittedExerciseFrequency: existing.submittedExerciseFrequency,
+                submittedDailyActivityLevel: existing.submittedDailyActivityLevel,
+                submittedCardioFitnessLevel: existing.submittedCardioFitnessLevel,
+                submittedLengthUnitPreference: existing.submittedLengthUnitPreference,
+                submittedWeightUnitPreference: existing.submittedWeightUnitPreference,
+                blockedUserIds: existing.blockedUserIds,
                 didCompleteOnboarding: step == .complete ? true : existing.didCompleteOnboarding,
                 onboardingStep: step,
-                createdExerciseTemplateIds: existing.createdExerciseTemplateIds,
-                bookmarkedExerciseTemplateIds: existing.bookmarkedExerciseTemplateIds,
-                favouritedExerciseTemplateIds: existing.favouritedExerciseTemplateIds,
-                createdWorkoutTemplateIds: existing.createdWorkoutTemplateIds,
-                bookmarkedWorkoutTemplateIds: existing.bookmarkedWorkoutTemplateIds,
-                favouritedWorkoutTemplateIds: existing.favouritedWorkoutTemplateIds,
-                createdIngredientTemplateIds: existing.createdIngredientTemplateIds,
-                bookmarkedIngredientTemplateIds: existing.bookmarkedIngredientTemplateIds,
-                favouritedIngredientTemplateIds: existing.favouritedIngredientTemplateIds,
-                createdRecipeTemplateIds: existing.createdRecipeTemplateIds,
-                bookmarkedRecipeTemplateIds: existing.bookmarkedRecipeTemplateIds,
-                favouritedRecipeTemplateIds: existing.favouritedRecipeTemplateIds,
-                blockedUserIds: existing.blockedUserIds
             )
             self.currentUser = updated
             self.saveCurrentUserLocally()
@@ -400,7 +332,8 @@ class UserManager {
     // MARK: - Goal Settings
     func updateCurrentGoalId(goalId: String?) async throws {
         let uid = try currentUserId()
-        try await remote.updateCurrentGoalId(userId: uid, goalId: goalId)
+        guard let currentGoalId = goalId else { return }
+        try await remote.saveUserCurrentGoalId(userId: uid, currentGoalId: currentGoalId)
     }
     
     // MARK: - Consents
@@ -445,10 +378,10 @@ class UserManager {
     // MARK: - User Streaming
     
     private func addCurrentUserListener(userId: String) {
-        currentUserListener?.remove()
         logManager?.trackEvent(event: Event.remoteListenerStart)
 
-        Task {
+        currentUserListenerTask?.cancel()
+        currentUserListenerTask = Task {
             do {
                 for try await value in remote.streamUser(userId: userId) {
                     self.currentUser = value
@@ -473,7 +406,9 @@ class UserManager {
             }
         }
     }
-    
+}
+
+extension UserManager {
     enum Event: LoggableEvent {
         case logInStart(user: UserModel?)
         case logInSuccess(user: UserModel?)
@@ -532,4 +467,5 @@ class UserManager {
             }
         }
     }
+
 }

@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 protocol LiveActivityUpdating: AnyObject {
     func startLiveActivity(
         session: WorkoutSessionModel,

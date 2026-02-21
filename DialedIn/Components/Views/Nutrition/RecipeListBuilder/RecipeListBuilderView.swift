@@ -38,11 +38,6 @@ struct RecipeListBuilderView: View {
         .refreshable {
             await presenter.loadAllRecipes()
         }
-        .onChange(of: presenter.currentUser) {
-            Task {
-                await presenter.syncSavedRecipesFromUser()
-            }
-        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {

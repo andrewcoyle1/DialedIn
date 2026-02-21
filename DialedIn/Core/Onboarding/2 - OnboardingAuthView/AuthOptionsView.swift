@@ -70,15 +70,15 @@ struct OnboardingAuthView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingOnboardingAuthView(router: AnyRouter) -> some View {
         OnboardingAuthView(
-            presenter: OnboardingAuthPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+            presenter: OnboardingAuthPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingAuthView() {
         router.showScreen(.push) { router in
             builder.onboardingOnboardingAuthView(router: router)
@@ -87,7 +87,7 @@ extension OnbRouter {
 }
 
 #Preview("Functioning Auth") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
 
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
@@ -96,7 +96,7 @@ extension OnbRouter {
 }
 
 #Preview("Slow Auth") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
 
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
@@ -105,7 +105,7 @@ extension OnbRouter {
 }
 
 #Preview("Failing Auth") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
 
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
@@ -114,7 +114,7 @@ extension OnbRouter {
 }
 
 #Preview("Slow Login") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
 
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
@@ -123,7 +123,7 @@ extension OnbRouter {
 }
 
 #Preview("Failing Login") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
 
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)

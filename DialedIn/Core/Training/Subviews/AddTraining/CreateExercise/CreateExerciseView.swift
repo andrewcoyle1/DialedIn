@@ -173,7 +173,9 @@ extension CoreRouter {
 }
 
 #Preview("As sheet") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.createExerciseView(router: router)
     }
@@ -182,7 +184,9 @@ extension CoreRouter {
 
 #Preview("Is saving") {
     @Previewable @State var isPresented: Bool = true
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.createExerciseView(router: router)
     }
@@ -191,7 +195,9 @@ extension CoreRouter {
 
 #Preview("As fullscreen cover") {
     @Previewable @State var isPresented: Bool = true
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.createExerciseView(router: router)
     }

@@ -18,7 +18,7 @@ class OnboardingOverarchingObjectivePresenter {
     var selectedObjective: OverarchingObjective?
         
     var userWeight: Double? {
-        interactor.currentUser?.weightKilograms
+        interactor.currentUser?.submittedWeightKilograms
     }
     
     var canContinue: Bool { selectedObjective != nil && userWeight != nil }

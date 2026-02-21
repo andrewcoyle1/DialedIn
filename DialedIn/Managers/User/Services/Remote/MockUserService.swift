@@ -7,9 +7,10 @@
 
 import SwiftUI
 
-struct MockUserService: RemoteUserService {
+@MainActor
+class MockUserService: RemoteUserService {
     
-    let currentUser: UserModel?
+    @Published var currentUser: UserModel?
     let delay: Double
     let showError: Bool
     
@@ -25,223 +26,116 @@ struct MockUserService: RemoteUserService {
         }
     }
     
-    func saveUser(user: UserModel, image: PlatformImage? = nil) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-    
-    func markUnanonymous(userId: String, email: String? = nil) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
+    func getUser(userId: String) async throws -> UserModel {
+        guard let user = UserModel.mocks.first(where: { $0.userId == userId }) else {
+            throw URLError(.badURL)
+        }
         
-    func updateFirstName(userId: String, firstName: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+        return user
     }
     
-    func updateLastName(userId: String, lastName: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUser(user: UserModel) async throws {
+        currentUser = user
     }
     
-    func updateDateOfBirth(userId: String, dateOfBirth: Date) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func updateUserName(userId: String, firstName: String?, lastName: String?) async throws {
+        
     }
     
-    func updateGender(userId: String, gender: Gender) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserEmail(userId: String, email: String) async throws {
+        
     }
     
-    func updateWeight(userId: String, weightKg: Double) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserProfileImage(userId: String, image: PlatformImage) async throws {
+        
     }
     
-    func updateProfileImageUrl(userId: String, url: String?) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserLastSignInDate(userId: String) async throws {
+        
     }
     
-    func updateActiveTrainingProgramId(userId: String, programId: String?) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func updateFavouriteGymProfileId(userId: String, profileId: String?) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func updateLastSignInDate(userId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserGender(userId: String, gender: Gender) async throws {
+        
     }
     
-    func updateOnboardingStep(userId: String, step: OnboardingStep) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserDateOfBirth(userId: String, dateOfBirth: Date) async throws {
+        
     }
     
-    func addCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserWeightKilograms(userId: String, weightKg: Double) async throws {
+        
     }
     
-    func removeCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserExerciseFrequency(userId: String, exerciseFrequency: ProfileExerciseFrequency) async throws {
+        
     }
     
-    func addBookmarkedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserDailyActivityLevel(userId: String, dailyActivityLevel: ProfileDailyActivityLevel) async throws {
+        
     }
     
-    func removeBookmarkedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserCardioFitnessLevel(userId: String, cardioFitnessLevel: ProfileCardioFitnessLevel) async throws {
+        
     }
     
-    func addFavouritedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserLengthUnitPreference(userId: String, lengthUnitPreference: LengthUnitPreference) async throws {
+        
     }
     
-    func removeFavouritedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserWeightUnitPreference(userId: String, weightUnitPreference: WeightUnitPreference) async throws {
+        
     }
     
-    func addCreatedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserCurrentGoalId(userId: String, currentGoalId: String) async throws {
+        
     }
     
-    func removeCreatedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserActiveTrainingProgramId(userId: String, activeTrainingProgramId: String) async throws {
+        
     }
     
-    func addBookmarkedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserFavouriteGymProfileId(userId: String, favouriteGymProfileId: String) async throws {
+        
     }
     
-    func removeBookmarkedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+    func saveUserFCMToken(userId: String, token: String) async throws {
+        
     }
     
-    func addFavouritedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-    
-    func removeFavouritedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-    
-    func addCreatedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func removeCreatedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func addBookmarkedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func removeBookmarkedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func addFavouritedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func removeFavouritedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func addCreatedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func removeCreatedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func addBookmarkedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func removeBookmarkedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func addFavouritedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
-    func removeFavouritedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-
     func blockUser(currentUserId: String, blockedUserId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+        
     }
     
     func unblockUser(currentUserId: String, blockedUserId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+        
+    }
+    
+    func updateOnboardingStep(userId: String, onboardingStep: OnboardingStep) async throws {
+        
     }
     
     func deleteUser(userId: String) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+        
     }
     
-    func streamUser(userId: String) -> AsyncThrowingStream<UserModel, Error> {
-        return AsyncThrowingStream { continuation in
+    func streamUser(userId: String) -> AsyncThrowingStream<UserModel, any Error> {
+        AsyncThrowingStream { continuation in
             if let currentUser {
                 continuation.yield(currentUser)
-                // Finish the stream after yielding once for testing purposes
-                // In production, the stream would continue indefinitely
-                continuation.finish()
-            } else {
-                // If no user, finish immediately (no error, just empty stream)
-                continuation.finish()
+            }
+            
+            Task {
+                for await value in $currentUser.values {
+                    if let value {
+                        continuation.yield(value)
+                    }
+                }
             }
         }
     }
     
-    func updateCurrentGoalId(userId: String, goalId: String?) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
-    }
-    
-    // MARK: - Consents
     func updateHealthConsents(userId: String, step: OnboardingStep, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
-        try await Task.sleep(for: .seconds(delay))
-        try tryShowError()
+        
     }
+
 }

@@ -8,6 +8,7 @@
 import SwiftUI
 
 @Observable
+@MainActor
 class WorkoutSessionManager {
     
     private let local: LocalWorkoutSessionPersistence
@@ -19,10 +20,7 @@ class WorkoutSessionManager {
 
     // Rest timer state for active session
     var restEndTime: Date?
-    
-    // Optional reference to TrainingPlanManager for auto-completion
-    weak var trainingPlanManager: TrainingPlanManager?
-    
+        
     // Tracks when sessions are modified (for UI refresh triggers)
     var sessionsLastModified: Date = Date()
     
@@ -39,29 +37,6 @@ class WorkoutSessionManager {
     }
 
     func endActiveSession(markScheduledComplete: Bool = true) async {
-        // Mark scheduled workout as complete if linked to training plan AND not discarding
-        if markScheduledComplete,
-           let session = activeSession,
-           let trainingPlanManager = trainingPlanManager {
-            if let scheduledWorkoutId = session.scheduledWorkoutId {
-                // Direct link - mark the specific scheduled workout complete
-                try? await trainingPlanManager.completeWorkout(
-                    scheduledWorkoutId: scheduledWorkoutId,
-                    session: session
-                )
-            } else if let templateId = session.workoutTemplateId {
-                // Fallback: if no explicit link, try to find a scheduled workout for today
-                // matching this template that is not yet completed
-                let todays = trainingPlanManager.getTodaysWorkouts()
-                if let match = todays.first(where: { !$0.isCompleted && $0.workoutTemplateId == templateId }) {
-                    try? await trainingPlanManager.completeWorkout(
-                        scheduledWorkoutId: match.id,
-                        session: session
-                    )
-                }
-            }
-        }
-        
         // Save completed session locally for offline history
         if let session = activeSession, session.endedAt != nil {
             try? local.updateLocalWorkoutSession(session: session)
@@ -164,12 +139,60 @@ class WorkoutSessionManager {
         try await remote.getWorkoutSessionsByTemplateAndAuthor(templateId: templateId, authorId: authorId, limitTo: limitTo)
     }
     
-    func getWorkoutSessionsForAuthor(authorId: String, limitTo: Int = 20) async throws -> [WorkoutSessionModel] {
-        try await remote.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limitTo)
+    func getWorkoutSessionsForAuthor(authorId: String, limitTo: Int = 20, includeDeleted: Bool = false) async throws -> [WorkoutSessionModel] {
+        try await remote.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limitTo, includeDeleted: includeDeleted)
     }
     
     func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
-        try await remote.getLastCompletedSessionForTemplate(templateId: templateId, authorId: authorId)
+        print("🔍 [getLastCompletedSessionForTemplate] Searching for template: \(templateId), authorId: \(authorId)")
+        
+        // Try local storage first
+        do {
+            print("   📱 Checking local storage...")
+            let localSessions = try local.getLocalWorkoutSessionsForAuthor(authorId: authorId, limitTo: 0)
+            print("   📱 Found \(localSessions.count) total local sessions")
+            
+            // Debug: Log details about all local sessions
+            for (index, session) in localSessions.enumerated() {
+                let hasEndedAt = session.endedAt != nil
+                let templateMatch = session.workoutTemplateId == templateId
+                print("   📱 Session \(index + 1): id=\(session.id), templateId=\(session.workoutTemplateId ?? "nil"), endedAt=\(hasEndedAt ? "\(session.endedAt!)" : "nil"), match=\(templateMatch ? "✅" : "❌")")
+            }
+            
+            // First try exact template ID match
+            let matchingSessions = localSessions
+                .filter { session in
+                    session.workoutTemplateId == templateId && session.endedAt != nil
+                }
+                .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
+            
+            print("   📱 Found \(matchingSessions.count) matching completed sessions by exact template ID")
+            
+            if let mostRecent = matchingSessions.first {
+                print("   ✅ [getLastCompletedSessionForTemplate] Found local session: \(mostRecent.id), templateId: \(mostRecent.workoutTemplateId ?? "nil"), endedAt: \(mostRecent.endedAt?.description ?? "nil")")
+                return mostRecent
+            } else {
+                print("   ⚠️ [getLastCompletedSessionForTemplate] No exact template ID match found - returning nil for exercise-based matching")
+            }
+        } catch {
+            // Log error but continue to remote fallback
+            print("   ⚠️ [getLastCompletedSessionForTemplate] Error querying local storage: \(error)")
+        }
+        
+        // Fall back to remote query
+        print("   🌐 Falling back to remote query...")
+        do {
+            let remoteSession = try await remote.getLastCompletedSessionForTemplate(templateId: templateId, authorId: authorId)
+            if let session = remoteSession {
+                print("   ✅ [getLastCompletedSessionForTemplate] Found remote session: \(session.id)")
+            } else {
+                print("   ⚠️ [getLastCompletedSessionForTemplate] No remote session found")
+            }
+            return remoteSession
+        } catch {
+            print("   ❌ [getLastCompletedSessionForTemplate] Error querying remote: \(error)")
+            throw error
+        }
     }
     
     // Update
@@ -199,7 +222,7 @@ class WorkoutSessionManager {
     /// Syncs workout sessions from remote Firebase to local storage
     /// Fetches recent sessions and upserts them into local store
     func syncWorkoutSessionsFromRemote(authorId: String, limitTo: Int = 100) async throws {
-        let remoteSessions = try await remote.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limitTo)
+        let remoteSessions = try await remote.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limitTo, includeDeleted: true)
         var failedSessions: [(id: String, error: Error)] = []
         
         for session in remoteSessions {
@@ -210,13 +233,6 @@ class WorkoutSessionManager {
                 // Log individual failures but continue syncing other sessions
                 failedSessions.append((id: session.id, error: error))
             }
-        }
-        
-        // Sync scheduled workouts with completed sessions
-        if let trainingPlanManager = trainingPlanManager {
-            try? await trainingPlanManager.syncScheduledWorkoutsWithCompletedSessions(
-                completedSessions: remoteSessions
-            )
         }
         
         // If any sessions failed to sync, throw aggregate error

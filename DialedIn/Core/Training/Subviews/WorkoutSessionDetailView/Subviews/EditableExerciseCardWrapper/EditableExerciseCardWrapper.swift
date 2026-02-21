@@ -77,7 +77,9 @@ extension CoreBuilder {
     }
 }
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     List {
         builder.editableExerciseCardWrapper(
             delegate: EditableExerciseCardWrapperDelegate(

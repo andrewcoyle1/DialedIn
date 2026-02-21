@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 07/02/2026.
 //
 
+@MainActor
 struct MockStepsServices: StepsServices {
     let local: LocalStepsPersistence
     let remote: RemoteStepsService

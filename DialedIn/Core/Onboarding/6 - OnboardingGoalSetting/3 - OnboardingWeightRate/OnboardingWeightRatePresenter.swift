@@ -63,8 +63,8 @@ class OnboardingWeightRatePresenter {
 
     func onAppear(weightGoalBuilder: WeightGoalBuilder) {
         let user = interactor.currentUser
-        currentWeight = user?.weightKilograms ?? 70
-        weightUnit = user?.weightUnitPreference ?? .kilograms
+        currentWeight = user?.submittedWeightKilograms ?? 70
+        weightUnit = user?.submittedWeightUnitPreference ?? .kilograms
 
         let objective = weightGoalBuilder.objective
         // Set default rate based on objective

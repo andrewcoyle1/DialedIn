@@ -5,4 +5,4 @@ protocol OnbPaywallRouter: GlobalRouter {
     func showOnboardingCompleteAccountSetupView()
 }
 
-extension OnbRouter: OnbPaywallRouter { }
+extension CoreRouter: OnbPaywallRouter { }

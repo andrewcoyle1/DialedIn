@@ -13,8 +13,6 @@ class OnboardingTrainingReviewPresenter {
     private let interactor: OnboardingTrainingReviewInteractor
     private let router: OnboardingTrainingReviewRouter
 
-    var recommendedTemplate: ProgramTemplateModel?
-
     init(
         interactor: OnboardingTrainingReviewInteractor,
         router: OnboardingTrainingReviewRouter
@@ -22,72 +20,9 @@ class OnboardingTrainingReviewPresenter {
         self.interactor = interactor
         self.router = router
     }
-    
-    func loadRecommendation(builder: TrainingProgramBuilder) {
-        guard builder.isValid else { return }
         
-        let availableTemplates = interactor.getBuiltInTemplates()
-        let preference = builder.programPreference
-        
-        recommendedTemplate = TrainingProgramRecommender.recommendTemplate(
-            preference: preference,
-            availableTemplates: availableTemplates
-        )
-        
-        interactor.trackEvent(event: Event.recommendationLoaded(
-            templateId: recommendedTemplate?.id,
-            preference: preference
-        ))
-    }
-    
-    func createPlanAndContinue(builder: TrainingProgramBuilder) {
-        guard let template = recommendedTemplate else {
-            router.showSimpleAlert(
-                title: "Unable to create program",
-                subtitle: "Please try again"
-            )
-            return
-        }
-        
-        guard let userId = interactor.currentUser?.userId else {
-            router.showSimpleAlert(
-                title: "User not found",
-                subtitle: "Please sign in and try again"
-            )
-            return
-        }
-        
-        router.showLoadingModal()
-        
-        Task {
-            interactor.trackEvent(event: Event.createPlanStart)
-            
-            do {
-                let plan = try await interactor.createPlanFromTemplate(
-                    template,
-                    startDate: builder.startDate,
-                    endDate: nil,
-                    userId: userId,
-                    planName: nil
-                )
-                
-                interactor.setActivePlan(plan)
-                interactor.trackEvent(event: Event.createPlanSuccess(planId: plan.planId))
-                
-                // Navigate to diet flow
-                interactor.trackEvent(event: Event.navigate)
-                router.showOnboardingCustomisingProgramView()
+    func createPlanAndContinue() {
 
-            } catch {
-                router.showSimpleAlert(
-                    title: "Unable to create program",
-                    subtitle: "Please check your internet connection and try again"
-                )
-                interactor.trackEvent(event: Event.createPlanFail(error: error))
-            }
-            
-            router.dismissModal()
-        }
     }
 
     func onDevSettingsPressed() {
@@ -95,7 +30,7 @@ class OnboardingTrainingReviewPresenter {
     }
 
     enum Event: LoggableEvent {
-        case recommendationLoaded(templateId: String?, preference: ProgramPreference)
+        case recommendationLoaded(templateId: String?)
         case createPlanStart
         case createPlanSuccess(planId: String)
         case createPlanFail(error: Error)
@@ -113,12 +48,9 @@ class OnboardingTrainingReviewPresenter {
         
         var parameters: [String: Any]? {
             switch self {
-            case .recommendationLoaded(templateId: let templateId, preference: let preference):
+            case .recommendationLoaded(templateId: let templateId):
                 return [
-                    "templateId": templateId as Any,
-                    "experienceLevel": preference.experienceLevel.rawValue,
-                    "targetDaysPerWeek": preference.targetDaysPerWeek,
-                    "splitType": preference.splitType.rawValue
+                    "templateId": templateId as Any
                 ]
             case .createPlanSuccess(planId: let planId):
                 return ["planId": planId]

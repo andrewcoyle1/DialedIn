@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 28/11/2025.
 //
 
+@MainActor
 protocol WorkoutHistoryInteractor {
     var auth: UserAuthInfo? { get }
     func getLocalWorkoutSessionsForAuthor(authorId: String, limitTo: Int) throws -> [WorkoutSessionModel]

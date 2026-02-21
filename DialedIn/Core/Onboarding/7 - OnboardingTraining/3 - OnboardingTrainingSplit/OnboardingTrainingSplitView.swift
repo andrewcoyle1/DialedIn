@@ -16,7 +16,7 @@ struct OnboardingTrainingSplitView: View {
 
     var body: some View {
         List {
-            ForEach(TrainingSplitType.allCases) { split in
+            ForEach(TrainingSplitType.allCases, id: \.self) { split in
                 Section {
                     HStack(alignment: .center, spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
@@ -60,7 +60,7 @@ struct OnboardingTrainingSplitView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                presenter.navigateToSchedule(builder: delegate.trainingProgramBuilder)
+                presenter.navigateToSchedule(delegate: delegate)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -70,16 +70,16 @@ struct OnboardingTrainingSplitView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingTrainingSplitView(router: AnyRouter, delegate: OnboardingTrainingSplitDelegate) -> some View {
         OnboardingTrainingSplitView(
-            presenter: OnboardingTrainingSplitPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingTrainingSplitPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingTrainingSplitView(delegate: OnboardingTrainingSplitDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingSplitView(router: router, delegate: delegate)
@@ -89,14 +89,50 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingTrainingSplitView(
             router: router,
-            delegate: OnboardingTrainingSplitDelegate(
-                trainingProgramBuilder: TrainingProgramBuilder()
-            )
+            delegate: OnboardingTrainingSplitDelegate.mock
         )
     }
     .previewEnvironment()
+}
+
+enum TrainingSplitType: CaseIterable {
+    case ppl
+    case bodyparts
+    case upperLower
+    case fullBody
+    
+    var description: String {
+        switch self {
+        case .ppl: return "Push/Pull/Legs"
+        case .bodyparts: return "Bodyparts"
+        case .upperLower: return "Upper/Lower"
+        case .fullBody: return "Full Body"
+        }
+    }
+    
+    var detailedDescription: String {
+        switch self {
+        case .ppl:
+            return "Push pull legs split"
+        case .bodyparts:
+            return "Bodyparts split"
+        case .upperLower:
+            return "Upper lower split"
+        case .fullBody:
+            return "Full Body split"
+        }
+    }
+    
+    var typicalDaysPerWeek: Int {
+        switch self {
+        case .ppl: return 6
+        case .bodyparts: return 5
+        case .upperLower: return 4
+        case .fullBody: return 3
+        }
+    }
 }

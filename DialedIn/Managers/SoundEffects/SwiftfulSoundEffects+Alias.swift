@@ -5,7 +5,7 @@
 //  Created by Nick Sarno on 1/12/25.
 //
 
-@_exported import SwiftfulSoundEffects
+import SwiftfulSoundEffects
 
 typealias SoundEffectManager = SwiftfulSoundEffects.SoundEffectManager
 

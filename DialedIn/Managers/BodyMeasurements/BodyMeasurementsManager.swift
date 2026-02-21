@@ -8,6 +8,7 @@
 import Foundation
 
 @Observable
+@MainActor
 class BodyMeasurementsManager {
     private let remote: RemoteBodyMeasurementService
     private let local: LocalBodyMeasurementService

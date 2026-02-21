@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 07/02/2026.
 //
 
+@MainActor
 protocol LocalStepsPersistence {
     
     // MARK: CREATE

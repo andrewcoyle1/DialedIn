@@ -11,6 +11,7 @@ import ActivityKit
 // Models used to populate attributes live within the same target
 
 @Observable
+@MainActor
 class LiveActivityManager: LiveActivityUpdating {
     
     // Track active state internally instead of setting it on HKWorkoutManager

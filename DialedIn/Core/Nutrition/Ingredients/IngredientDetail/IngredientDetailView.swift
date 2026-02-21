@@ -45,8 +45,6 @@ struct IngredientDetailView: View {
         .onChange(of: presenter.currentUser) { _, _ in
             let user = presenter.currentUser
             let isAuthor = user?.userId == delegate.ingredientTemplate.authorId
-            presenter.isBookmarked = isAuthor || (user?.bookmarkedIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false) || (user?.createdIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false)
-            presenter.isFavourited = user?.favouritedIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false
         }
     }
 
@@ -198,27 +196,6 @@ struct IngredientDetailView: View {
             }
         }
         #endif
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                Task {
-                    await presenter.onFavoritePressed(ingredientTemplate: delegate.ingredientTemplate)
-                }
-            } label: {
-                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
-            }
-        }
-        // Hide bookmark button when the current user is the author
-        if presenter.currentUser?.userId != nil && presenter.currentUser?.userId != delegate.ingredientTemplate.authorId {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task {
-                        await presenter.onBookmarkPressed(ingredientTemplate: delegate.ingredientTemplate)
-                    }
-                } label: {
-                    Image(systemName: presenter.isBookmarked ? "book.closed.fill" : "book.closed")
-                }
-            }
-        }
     }
 }
 
@@ -240,7 +217,9 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.ingredientDetailView(
             router: router,

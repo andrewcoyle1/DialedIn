@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 21/01/2026.
 //
 
+@MainActor
 protocol LocalGymProfilePersistence {
     
     // MARK: CREATE

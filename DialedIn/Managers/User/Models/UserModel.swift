@@ -9,151 +9,125 @@ import SwiftUI
 
 struct UserModel: Codable, Equatable, Sendable {
     
-    // User
-    let userId: String
+    var id: String {
+        userId
+    }
     
-    // Auth
+    // These values come from the user's Auth info
+    let userId: String
     let email: String?
     let isAnonymous: Bool?
-    
-    // Profile
-    private(set) var firstName: String?
-    private(set) var lastName: String?
-    
-    // Profile
-    private(set) var dateOfBirth: Date?
-    private(set) var gender: Gender?
-    
-    // Mandatory onboarding profile metrics
-    private(set) var heightCentimeters: Double?
-    private(set) var weightKilograms: Double?
-    private(set) var exerciseFrequency: ProfileExerciseFrequency?
-    private(set) var dailyActivityLevel: ProfileDailyActivityLevel?
-    private(set) var cardioFitnessLevel: ProfileCardioFitnessLevel?
-    
-    // Preferences
-    private(set) var lengthUnitPreference: LengthUnitPreference?
-    private(set) var weightUnitPreference: WeightUnitPreference?
-    
-    // Goals
-    private(set) var currentGoalId: String?
-    
-    // Training Program
-    private(set) var activeTrainingProgramId: String?
-    
-    // Profile
-    private(set) var profileImageUrl: String?
-    
-    private(set) var favouriteGymProfileId: String?
-    
-    // Creation
+    let authProviders: [String]?
+    let displayName: String?
+    let firstName: String?
+    let lastName: String?
+    let phoneNumber: String?
+    let photoUrl: String?
     let creationDate: Date?
     let creationVersion: String?
-    
-    // Sign In
     let lastSignInDate: Date?
     
-    // Onboarding
-    let didCompleteOnboarding: Bool?
-    let onboardingStep: OnboardingStep
-    
-    // Exercise Templates
-    let createdExerciseTemplateIds: [String]?
-    let bookmarkedExerciseTemplateIds: [String]?
-    let favouritedExerciseTemplateIds: [String]?
-    
-    // Workout Templates
-    let createdWorkoutTemplateIds: [String]?
-    let bookmarkedWorkoutTemplateIds: [String]?
-    let favouritedWorkoutTemplateIds: [String]?
-    
-    // Ingredient Templates
-    let createdIngredientTemplateIds: [String]?
-    let bookmarkedIngredientTemplateIds: [String]?
-    let favouritedIngredientTemplateIds: [String]?
-    
-    // Recipe Templates
-    let createdRecipeTemplateIds: [String]?
-    let bookmarkedRecipeTemplateIds: [String]?
-    let favouritedRecipeTemplateIds: [String]?
-    
-    // Blocked Users
+    // These values are submitted by the user
+    let submittedEmail: String?
+    let submittedFirstName: String?
+    let submittedLastName: String?
+    let submittedProfileImage: String?
+    let submittedDateOfBirth: Date?
+    let submittedGender: Gender?
+    let submittedHeightCentimeters: Double?
+    let submittedWeightKilograms: Double?
+    let submittedExerciseFrequency: ProfileExerciseFrequency?
+    let submittedDailyActivityLevel: ProfileDailyActivityLevel?
+    let submittedCardioFitnessLevel: ProfileCardioFitnessLevel?
+    let submittedLengthUnitPreference: LengthUnitPreference?
+    let submittedWeightUnitPreference: WeightUnitPreference?
+    let submittedCurrentGoalId: String?
+    let submittedActiveTrainingProgramId: String?
+    let submittedFavouriteGymProfileId: String?
+    let fcmToken: String?
     let blockedUserIds: [String]?
-    
+    let onboardingStep: OnboardingStep
+    private(set) var didCompleteOnboarding: Bool?
+    let acceptedHealthDisclaimerVersion: String?
+    let acceptedHealthDisclaimerDate: Date?
+    let acceptedHealthPrivacyPolicyVersion: String?
+    let acceptedHealthPrivacyPolicyDate: Date?
+
     init(
         userId: String,
         email: String? = nil,
         isAnonymous: Bool? = nil,
+        authProviders: [String]? = nil,
+        displayName: String? = nil,
         firstName: String? = nil,
         lastName: String? = nil,
-        dateOfBirth: Date? = nil,
-        gender: Gender? = nil,
-        heightCentimeters: Double? = nil,
-        weightKilograms: Double? = nil,
-        exerciseFrequency: ProfileExerciseFrequency? = nil,
-        dailyActivityLevel: ProfileDailyActivityLevel? = nil,
-        cardioFitnessLevel: ProfileCardioFitnessLevel? = nil,
-        lengthUnitPreference: LengthUnitPreference? = nil,
-        weightUnitPreference: WeightUnitPreference? = nil,
-        currentGoalId: String? = nil,
-        activeTrainingProgramId: String? = nil,
-        favouriteGymProfileId: String? = nil,
-        profileImageUrl: String? = nil,
+        phoneNumber: String? = nil,
+        photoUrl: String? = nil,
         creationDate: Date? = nil,
         creationVersion: String? = nil,
         lastSignInDate: Date? = nil,
+        submittedEmail: String? = nil,
+        submittedFirstName: String? = nil,
+        submittedLastName: String? = nil,
+        submittedProfileImage: String? = nil,
+        submittedDateOfBirth: Date? = nil,
+        submittedGender: Gender? = nil,
+        submittedHeightCentimeters: Double? = nil,
+        submittedWeightKilograms: Double? = nil,
+        submittedExerciseFrequency: ProfileExerciseFrequency? = nil,
+        submittedDailyActivityLevel: ProfileDailyActivityLevel? = nil,
+        submittedCardioFitnessLevel: ProfileCardioFitnessLevel? = nil,
+        submittedLengthUnitPreference: LengthUnitPreference? = nil,
+        submittedWeightUnitPreference: WeightUnitPreference? = nil,
+        submittedCurrentGoalId: String? = nil,
+        submittedActiveTrainingProgramId: String? = nil,
+        submittedFavouriteGymProfileId: String? = nil,
+        blockedUserIds: [String]? = nil,
+        fcmToken: String? = nil,
         didCompleteOnboarding: Bool? = nil,
         onboardingStep: OnboardingStep = .auth,
-        createdExerciseTemplateIds: [String]? = nil,
-        bookmarkedExerciseTemplateIds: [String]? = nil,
-        favouritedExerciseTemplateIds: [String]? = nil,
-        createdWorkoutTemplateIds: [String]? = nil,
-        bookmarkedWorkoutTemplateIds: [String]? = nil,
-        favouritedWorkoutTemplateIds: [String]? = nil,
-        createdIngredientTemplateIds: [String]? = nil,
-        bookmarkedIngredientTemplateIds: [String]? = nil,
-        favouritedIngredientTemplateIds: [String]? = nil,
-        createdRecipeTemplateIds: [String]? = nil,
-        bookmarkedRecipeTemplateIds: [String]? = nil,
-        favouritedRecipeTemplateIds: [String]? = nil,
-        blockedUserIds: [String]? = nil
+        acceptedHealthDisclaimerVersion: String? = nil,
+        acceptedHealthDisclaimerDate: Date? = nil,
+        acceptedHealthPrivacyPolicyVersion: String? = nil,
+        acceptedHealthPrivacyPolicyDate: Date? = nil
+
     ) {
         self.userId = userId
         self.email = email
         self.isAnonymous = isAnonymous
+        self.authProviders = authProviders
+        self.displayName = displayName
         self.firstName = firstName
         self.lastName = lastName
-        self.dateOfBirth = dateOfBirth
-        self.gender = gender
-        self.heightCentimeters = heightCentimeters
-        self.weightKilograms = weightKilograms
-        self.exerciseFrequency = exerciseFrequency
-        self.dailyActivityLevel = dailyActivityLevel
-        self.cardioFitnessLevel = cardioFitnessLevel
-        self.lengthUnitPreference = lengthUnitPreference
-        self.weightUnitPreference = weightUnitPreference
-        self.currentGoalId = currentGoalId
-        self.activeTrainingProgramId = activeTrainingProgramId
-        self.favouriteGymProfileId = favouriteGymProfileId
-        self.profileImageUrl = profileImageUrl
+        self.phoneNumber = phoneNumber
+        self.photoUrl = photoUrl
         self.creationDate = creationDate
         self.creationVersion = creationVersion
         self.lastSignInDate = lastSignInDate
-        self.didCompleteOnboarding = didCompleteOnboarding
-        self.onboardingStep = onboardingStep
-        self.createdExerciseTemplateIds = createdExerciseTemplateIds
-        self.bookmarkedExerciseTemplateIds = bookmarkedExerciseTemplateIds
-        self.favouritedExerciseTemplateIds = favouritedExerciseTemplateIds
-        self.createdWorkoutTemplateIds = createdWorkoutTemplateIds
-        self.bookmarkedWorkoutTemplateIds = bookmarkedWorkoutTemplateIds
-        self.favouritedWorkoutTemplateIds = favouritedWorkoutTemplateIds
-        self.createdIngredientTemplateIds = createdIngredientTemplateIds
-        self.bookmarkedIngredientTemplateIds = bookmarkedIngredientTemplateIds
-        self.favouritedIngredientTemplateIds = favouritedIngredientTemplateIds
-        self.createdRecipeTemplateIds = createdRecipeTemplateIds
-        self.bookmarkedRecipeTemplateIds = bookmarkedRecipeTemplateIds
-        self.favouritedRecipeTemplateIds = favouritedRecipeTemplateIds
+        self.submittedFirstName = submittedFirstName
+        self.submittedLastName = submittedLastName
+        self.submittedEmail = submittedEmail
+        self.submittedProfileImage = submittedProfileImage
+        self.submittedDateOfBirth = submittedDateOfBirth
+        self.submittedGender = submittedGender
+        self.submittedHeightCentimeters = submittedHeightCentimeters
+        self.submittedWeightKilograms = submittedWeightKilograms
+        self.submittedExerciseFrequency = submittedExerciseFrequency
+        self.submittedDailyActivityLevel = submittedDailyActivityLevel
+        self.submittedCardioFitnessLevel = submittedCardioFitnessLevel
+        self.submittedLengthUnitPreference = submittedLengthUnitPreference
+        self.submittedWeightUnitPreference = submittedWeightUnitPreference
+        self.submittedCurrentGoalId = submittedCurrentGoalId
+        self.submittedActiveTrainingProgramId = submittedActiveTrainingProgramId
+        self.submittedFavouriteGymProfileId = submittedFavouriteGymProfileId
         self.blockedUserIds = blockedUserIds
+        self.fcmToken = fcmToken
+        self.onboardingStep = onboardingStep
+        self.didCompleteOnboarding = didCompleteOnboarding
+        self.acceptedHealthDisclaimerVersion = acceptedHealthDisclaimerVersion
+        self.acceptedHealthDisclaimerDate = acceptedHealthDisclaimerDate
+        self.acceptedHealthPrivacyPolicyVersion = acceptedHealthPrivacyPolicyVersion
+        self.acceptedHealthPrivacyPolicyDate = acceptedHealthPrivacyPolicyDate
     }
     
     init(auth: UserAuthInfo, creationVersion: String?) {
@@ -161,140 +135,178 @@ struct UserModel: Codable, Equatable, Sendable {
             userId: auth.uid,
             email: auth.email,
             isAnonymous: auth.isAnonymous,
+            authProviders: auth.authProviders.map({ $0.rawValue }),
+            displayName: auth.displayName,
+            firstName: auth.firstName,
+            lastName: auth.lastName,
+            phoneNumber: auth.phoneNumber,
+            photoUrl: auth.photoURL?.absoluteString,
             creationDate: auth.creationDate,
             creationVersion: creationVersion,
             lastSignInDate: auth.lastSignInDate
         )
     }
-    
-    mutating func updateNameAndImageURL(firstName: String, lastName: String?, imageUrl: String?) {
-        self.firstName = firstName
-        self.lastName = lastName
-        self.profileImageUrl = imageUrl
+    /// First name, per user's Auth info
+    var firstNameCalculated: String? {
+        if let submittedFirstName,
+        !submittedFirstName.isEmpty {
+            return submittedFirstName
+        } else if let firstName,
+        !firstName.isEmpty {
+            return firstName
+        } else {
+            return nil
+        }
     }
     
-    mutating func updateDateOfBirth(_ dateOfBirth: Date) {
-        self.dateOfBirth = dateOfBirth
+    /// Last name, per user's Auth info
+    var lastNameCalculated: String? {
+        if let submittedLastName,
+        !submittedLastName.isEmpty {
+            return submittedLastName
+        } else if let lastName,
+        !lastName.isEmpty {
+            return lastName
+        } else {
+            return nil
+        }
     }
     
-    mutating func updateGender(_ gender: Gender) {
-        self.gender = gender
+    /// Display name, per user's Auth info
+    var displayNameCalculated: String? {
+        guard let displayName, !displayName.isEmpty else { return nil }
+        return displayName
     }
     
-    mutating func updateHeight(_ height: Double, lengthUnitPreference: LengthUnitPreference) {
-        self.heightCentimeters = height
-        self.lengthUnitPreference = lengthUnitPreference
+    /// Full name, per user's Auth info
+    var fullNameCalculated: String? {
+        if let firstNameCalculated, let lastNameCalculated {
+            return firstNameCalculated + " " + lastNameCalculated
+        } else if let firstNameCalculated {
+            return firstNameCalculated
+        } else if let lastNameCalculated {
+            return lastNameCalculated
+        }
+        return nil
     }
     
-    mutating func updateWeight(_ weight: Double, weightUnitPreference: WeightUnitPreference) {
-        self.weightKilograms = weight
-        self.weightUnitPreference = weightUnitPreference
+    
+    /// Try to get the "best" common name for the user (ie. their preferred first name). Use this most of the time.
+    var commonNameCalculated: String? {
+        if let displayNameCalculated {
+            return displayNameCalculated
+        } else if let firstNameCalculated {
+            return firstNameCalculated
+        }
+        return nil
     }
     
-    mutating func updateExerciseFrequency(_ exerciseFrequency: ProfileExerciseFrequency) {
-        self.exerciseFrequency = exerciseFrequency
+    /// Try to get submitted profile image, otherwise user image from user's auth (if available).
+    var profileImageNameCalculated: String? {
+        if let submittedProfileImage {
+            return submittedProfileImage
+        } else if let photoUrl {
+            return photoUrl
+        }
+        return nil
     }
     
-    mutating func updateActivityLevel(_ activityLevel: ProfileDailyActivityLevel) {
-        self.dailyActivityLevel = activityLevel
+    /// Try to get submitted email, otherwise user email from user's auth (if available).
+    var emailCalculated: String? {
+        if let submittedEmail {
+            return submittedEmail
+        } else if let email {
+            return email
+        }
+        return nil
     }
-    
-    mutating func updateCardioFitness(_ level: ProfileCardioFitnessLevel) {
-        self.cardioFitnessLevel = level
-    }
-    
-    mutating func updateImageURL(imageUrl: String) {
-        self.profileImageUrl = imageUrl
-    }
-    
-    mutating func updateActiveTrainingProgramId(programId: String?) {
-        self.activeTrainingProgramId = programId
-    }
-    
-    mutating func updateGymProfile(gymProfileId: String?) {
-        self.favouriteGymProfileId = gymProfileId
-    }
-    
+
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
         case email
         case isAnonymous = "is_anonymous"
+        case authProviders = "auth_providers"
+        case displayName = "display_name"
         case firstName = "first_name"
         case lastName = "last_name"
-        case dateOfBirth = "date_of_birth"
-        case gender
-        case heightCentimeters = "height_cm"
-        case weightKilograms = "weight_kg"
-        case exerciseFrequency = "exercise_frequency"
-        case dailyActivityLevel = "daily_activity_level"
-        case cardioFitnessLevel = "cardio_fitness_level"
-        case lengthUnitPreference = "length_unit_preference"
-        case weightUnitPreference = "weight_unit_preference"
-        case currentGoalId = "current_goal_id"
-        case profileImageUrl = "profile_image_url"
-        case activeTrainingProgramId = "active_training_program_id"
-        case favouriteGymProfileId = "favourite_gym_profile_id"
+        case phoneNumber = "phone_number"
+        case photoUrl = "photo_url"
         case creationDate = "creation_date"
         case creationVersion = "creation_version"
         case lastSignInDate = "last_sign_in_date"
+        case submittedFirstName = "submitted_first_name"
+        case submittedLastName = "submitted_last_name"
+        case submittedEmail = "submitted_email"
+        case submittedProfileImage = "submitted_profile_image"
+        case submittedDateOfBirth = "date_of_birth"
+        case submittedGender = "submitted_gender"
+        case submittedHeightCentimeters = "height_cm"
+        case submittedWeightKilograms = "weight_kg"
+        case submittedExerciseFrequency = "exercise_frequency"
+        case submittedDailyActivityLevel = "daily_activity_level"
+        case submittedCardioFitnessLevel = "cardio_fitness_level"
+        case submittedLengthUnitPreference = "length_unit_preference"
+        case submittedWeightUnitPreference = "weight_unit_preference"
+        case submittedCurrentGoalId = "current_goal_id"
+        case submittedActiveTrainingProgramId = "active_training_program_id"
+        case submittedFavouriteGymProfileId = "favourite_gym_profile_id"
         case didCompleteOnboarding = "did_complete_onboarding"
         case onboardingStep = "onboarding_step"
-        case createdExerciseTemplateIds = "created_exercise_template_ids"
-        case bookmarkedExerciseTemplateIds = "bookmarked_exercise_template_ids"
-        case favouritedExerciseTemplateIds = "favourited_exercise_template_ids"
-        case createdWorkoutTemplateIds = "created_workout_template_ids"
-        case bookmarkedWorkoutTemplateIds = "bookmarked_workout_template_ids"
-        case favouritedWorkoutTemplateIds = "favourited_workout_template_ids"
-        case createdIngredientTemplateIds = "created_ingredient_template_ids"
-        case bookmarkedIngredientTemplateIds = "bookmarked_ingredient_template_ids"
-        case favouritedIngredientTemplateIds = "favourited_ingredient_template_ids"
-        case createdRecipeTemplateIds = "created_recipe_template_ids"
-        case bookmarkedRecipeTemplateIds = "bookmarked_recipe_template_ids"
-        case favouritedRecipeTemplateIds = "favourited_recipe_template_ids"
         case blockedUserIds = "blocked_user_ids"
+        case fcmToken = "fcm_token"
+        case acceptedHealthDisclaimerVersion = "accepted_health_disclaimer_version"
+        case acceptedHealthDisclaimerDate = "accepted_health_disclaimer_date"
+        case acceptedHealthPrivacyPolicyVersion = "accepted_health_privacy_policy_version"
+        case acceptedHealthPrivacyPolicyDate = "accepted_health_privacy_policy_date"
     }
     
     var eventParameters: [String: Any] {
         let dict: [String: Any?] = [
             "user_\(CodingKeys.userId.rawValue)": userId,
             "user_\(CodingKeys.email.rawValue)": email,
-            "user_\(CodingKeys.firstName.rawValue)": firstName,
-            "user_\(CodingKeys.lastName.rawValue)": lastName,
-            "user_\(CodingKeys.dateOfBirth.rawValue)": dateOfBirth,
-            "user_\(CodingKeys.gender.rawValue)": gender?.description,
-            "user_\(CodingKeys.heightCentimeters.rawValue)": heightCentimeters,
-            "user_\(CodingKeys.weightKilograms.rawValue)": weightKilograms,
-            "user_\(CodingKeys.exerciseFrequency.rawValue)": exerciseFrequency?.rawValue,
-            "user_\(CodingKeys.dailyActivityLevel.rawValue)": dailyActivityLevel?.rawValue,
-            "user_\(CodingKeys.cardioFitnessLevel.rawValue)": cardioFitnessLevel?.rawValue,
-            "user_\(CodingKeys.lengthUnitPreference.rawValue)": lengthUnitPreference?.rawValue,
-            "user_\(CodingKeys.weightUnitPreference.rawValue)": weightUnitPreference?.rawValue,
-            "user_\(CodingKeys.currentGoalId.rawValue)": currentGoalId,
             "user_\(CodingKeys.isAnonymous.rawValue)": isAnonymous,
+            "user_\(CodingKeys.authProviders.rawValue)": authProviders?.sorted().joined(separator: ", "),
+            "user_\(CodingKeys.displayName.rawValue)": displayNameCalculated,
+            "user_\(CodingKeys.firstName.rawValue)": firstNameCalculated,
+            "user_\(CodingKeys.lastName.rawValue)": lastNameCalculated,
+            "user_common_name_calc": commonNameCalculated,
+            "user_full_name_calc": fullNameCalculated,
+            "user_\(CodingKeys.phoneNumber.rawValue)": phoneNumber,
+            "user_\(CodingKeys.photoUrl.rawValue)": photoUrl,
             "user_\(CodingKeys.creationDate.rawValue)": creationDate,
             "user_\(CodingKeys.creationVersion.rawValue)": creationVersion,
             "user_\(CodingKeys.lastSignInDate.rawValue)": lastSignInDate,
+            "user_\(CodingKeys.submittedFirstName.rawValue)": submittedFirstName,
+            "user_\(CodingKeys.submittedLastName.rawValue)": submittedLastName,
+            "user_\(CodingKeys.submittedEmail.rawValue)": submittedEmail,
+            "user_\(CodingKeys.submittedProfileImage.rawValue)": submittedProfileImage,
+            "user_\(CodingKeys.submittedDateOfBirth.rawValue)": submittedDateOfBirth,
+            "user_\(CodingKeys.submittedGender.rawValue)": submittedGender?.description,
+            "user_\(CodingKeys.submittedHeightCentimeters.rawValue)": submittedHeightCentimeters,
+            "user_\(CodingKeys.submittedWeightKilograms.rawValue)": submittedWeightKilograms,
+            "user_\(CodingKeys.submittedExerciseFrequency.rawValue)": submittedExerciseFrequency?.rawValue,
+            "user_\(CodingKeys.submittedDailyActivityLevel.rawValue)": submittedDailyActivityLevel?.rawValue,
+            "user_\(CodingKeys.submittedCardioFitnessLevel.rawValue)": submittedCardioFitnessLevel?.rawValue,
+            "user_\(CodingKeys.submittedLengthUnitPreference.rawValue)": submittedLengthUnitPreference?.rawValue,
+            "user_\(CodingKeys.submittedWeightUnitPreference.rawValue)": submittedWeightUnitPreference?.rawValue,
+            "user_\(CodingKeys.submittedCurrentGoalId.rawValue)": submittedCurrentGoalId,
+            "user_\(CodingKeys.submittedProfileImage.rawValue)": submittedProfileImage,
+            "user_\(CodingKeys.submittedActiveTrainingProgramId.rawValue)": submittedActiveTrainingProgramId,
+            "user_\(CodingKeys.submittedFavouriteGymProfileId.rawValue)": submittedFavouriteGymProfileId,
+            "user_\(CodingKeys.blockedUserIds.rawValue)": blockedUserIds,
+            "user_has_\(CodingKeys.fcmToken.rawValue)": (fcmToken?.count ?? 0) > 0,
             "user_\(CodingKeys.didCompleteOnboarding.rawValue)": didCompleteOnboarding,
             "user_\(CodingKeys.onboardingStep.rawValue)": onboardingStep.rawValue,
-            "user_\(CodingKeys.profileImageUrl.rawValue)": profileImageUrl,
-            "user_\(CodingKeys.activeTrainingProgramId.rawValue)": activeTrainingProgramId,
-            "user_\(CodingKeys.favouriteGymProfileId.rawValue)": favouriteGymProfileId,
-            "user_\(CodingKeys.createdExerciseTemplateIds.rawValue)": createdExerciseTemplateIds,
-            "user_\(CodingKeys.bookmarkedExerciseTemplateIds.rawValue)": bookmarkedExerciseTemplateIds,
-            "user_\(CodingKeys.favouritedExerciseTemplateIds.rawValue)": favouritedExerciseTemplateIds,
-            "user_\(CodingKeys.createdWorkoutTemplateIds.rawValue)": createdWorkoutTemplateIds,
-            "user_\(CodingKeys.bookmarkedWorkoutTemplateIds.rawValue)": bookmarkedWorkoutTemplateIds,
-            "user_\(CodingKeys.favouritedWorkoutTemplateIds.rawValue)": favouritedWorkoutTemplateIds,
-            "user_\(CodingKeys.createdIngredientTemplateIds.rawValue)": createdIngredientTemplateIds,
-            "user_\(CodingKeys.bookmarkedIngredientTemplateIds.rawValue)": bookmarkedIngredientTemplateIds,
-            "user_\(CodingKeys.favouritedIngredientTemplateIds.rawValue)": favouritedIngredientTemplateIds,
-            "user_\(CodingKeys.createdRecipeTemplateIds.rawValue)": createdRecipeTemplateIds,
-            "user_\(CodingKeys.bookmarkedRecipeTemplateIds.rawValue)": bookmarkedRecipeTemplateIds,
-            "user_\(CodingKeys.favouritedRecipeTemplateIds.rawValue)": favouritedRecipeTemplateIds,
-            "user_\(CodingKeys.blockedUserIds.rawValue)": blockedUserIds
+            "user_\(CodingKeys.acceptedHealthDisclaimerVersion.rawValue)" : acceptedHealthDisclaimerVersion,
+            "user_\(CodingKeys.acceptedHealthDisclaimerDate.rawValue)" : acceptedHealthDisclaimerDate,
+            "user_\(CodingKeys.acceptedHealthPrivacyPolicyVersion.rawValue)" : acceptedHealthPrivacyPolicyVersion,
+            "user_\(CodingKeys.acceptedHealthPrivacyPolicyDate.rawValue)" : acceptedHealthPrivacyPolicyDate,
         ]
         return dict.compactMapValues({ $0 })
     }
+}
+
+extension UserModel {
     
     static var mock: Self {
         mocks[0]
@@ -308,16 +320,16 @@ struct UserModel: Codable, Equatable, Sendable {
             isAnonymous: false,
             firstName: "Mock",
             lastName: "User",
-            dateOfBirth: Calendar.current.date(from: DateComponents(year: 1990, month: 1, day: 1)),
-            gender: .male,
-            heightCentimeters: 175.0,
-            weightKilograms: 70.0,
-            exerciseFrequency: .fiveToSix,
-            dailyActivityLevel: .active,
-            cardioFitnessLevel: .intermediate,
             creationDate: now,
             creationVersion: "1.0.0",
             lastSignInDate: now,
+            submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 1990, month: 1, day: 1)),
+            submittedGender: .male,
+            submittedHeightCentimeters: 175.0,
+            submittedWeightKilograms: 70.0,
+            submittedExerciseFrequency: .fiveToSix,
+            submittedDailyActivityLevel: .active,
+            submittedCardioFitnessLevel: .intermediate,
             didCompleteOnboarding: step == .complete,
             onboardingStep: step
         )
@@ -332,32 +344,20 @@ struct UserModel: Codable, Equatable, Sendable {
                 isAnonymous: false,
                 firstName: "Alice",
                 lastName: "Cooper",
-                dateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
-                gender: .male,
-                heightCentimeters: 175.0,
-                weightKilograms: 70.0,
-                exerciseFrequency: .daily,
-                dailyActivityLevel: .active,
-                cardioFitnessLevel: .intermediate,
-                profileImageUrl: Constants.randomImage,
                 creationDate: now,
                 creationVersion: "1.0.0",
                 lastSignInDate: now,
+                submittedProfileImage: Constants.randomImage,
+                submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
+                submittedGender: .male,
+                submittedHeightCentimeters: 175.0,
+                submittedWeightKilograms: 70.0,
+                submittedExerciseFrequency: .daily,
+                submittedDailyActivityLevel: .active,
+                submittedCardioFitnessLevel: .intermediate,
+                blockedUserIds: ["user2", "user3"],
                 didCompleteOnboarding: true,
-                onboardingStep: .complete,
-                createdExerciseTemplateIds: ["exercise1", "exercise2"],
-                bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
-                favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
-                createdWorkoutTemplateIds: ["workout1", "workout2"],
-                bookmarkedWorkoutTemplateIds: ["workout3", "workout4"],
-                favouritedWorkoutTemplateIds: ["workout5", "workout6"],
-                createdIngredientTemplateIds: ["ingredient1", "ingredient2"],
-                bookmarkedIngredientTemplateIds: ["ingredient3", "ingredient4"],
-                favouritedIngredientTemplateIds: ["ingredient5", "ingredient6"],
-                createdRecipeTemplateIds: ["recipe1", "recipe2"],
-                bookmarkedRecipeTemplateIds: ["recipe3", "recipe4"],
-                favouritedRecipeTemplateIds: ["recipe5", "recipe6"],
-                blockedUserIds: ["user2", "user3"]
+                onboardingStep: .complete
             ),
             UserModel(
                 userId: "user2",
@@ -367,21 +367,9 @@ struct UserModel: Codable, Equatable, Sendable {
                 creationDate: now.addingTimeInterval(-86400),
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-3600),
+                blockedUserIds: ["user1", "user3"],
                 didCompleteOnboarding: false,
-                onboardingStep: .subscription,
-                createdExerciseTemplateIds: ["exercise1", "exercise2"],
-                bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
-                favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
-                createdWorkoutTemplateIds: ["workout1", "workout2"],
-                bookmarkedWorkoutTemplateIds: ["workout3", "workout4"],
-                favouritedWorkoutTemplateIds: ["workout5", "workout6"],
-                createdIngredientTemplateIds: ["ingredient1", "ingredient2"],
-                bookmarkedIngredientTemplateIds: ["ingredient3", "ingredient4"],
-                favouritedIngredientTemplateIds: ["ingredient5", "ingredient6"],
-                createdRecipeTemplateIds: ["recipe1", "recipe2"],
-                bookmarkedRecipeTemplateIds: ["recipe3", "recipe4"],
-                favouritedRecipeTemplateIds: ["recipe5", "recipe6"],
-                blockedUserIds: ["user1", "user3"]
+                onboardingStep: .subscription
             ),
             UserModel(
                 userId: "user3",
@@ -391,21 +379,9 @@ struct UserModel: Codable, Equatable, Sendable {
                 creationDate: now.addingTimeInterval(-3 * 86400 - 2 * 3600),
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-2 * 3600),
+                blockedUserIds: ["user1", "user2"],
                 didCompleteOnboarding: true,
-                onboardingStep: .completeAccountSetup,
-                createdExerciseTemplateIds: ["exercise1", "exercise2"],
-                bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
-                favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
-                createdWorkoutTemplateIds: ["workout1", "workout2"],
-                bookmarkedWorkoutTemplateIds: ["workout3", "workout4"],
-                favouritedWorkoutTemplateIds: ["workout5", "workout6"],
-                createdIngredientTemplateIds: ["ingredient1", "ingredient2"],
-                bookmarkedIngredientTemplateIds: ["ingredient3", "ingredient4"],
-                favouritedIngredientTemplateIds: ["ingredient5", "ingredient6"],
-                createdRecipeTemplateIds: ["recipe1", "recipe2"],
-                bookmarkedRecipeTemplateIds: ["recipe3", "recipe4"],
-                favouritedRecipeTemplateIds: ["recipe5", "recipe6"],
-                blockedUserIds: ["user1", "user2"]
+                onboardingStep: .completeAccountSetup
             ),
             UserModel(
                 userId: "user5",
@@ -415,21 +391,9 @@ struct UserModel: Codable, Equatable, Sendable {
                 creationDate: now.addingTimeInterval(-5 * 86400 - 4 * 3600),
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-4 * 3600),
+                blockedUserIds: ["user1", "user2"],
                 didCompleteOnboarding: nil,
-                onboardingStep: .goalSetting,
-                createdExerciseTemplateIds: ["exercise1", "exercise2"],
-                bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
-                favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
-                createdWorkoutTemplateIds: ["workout1", "workout2"],
-                bookmarkedWorkoutTemplateIds: ["workout3", "workout4"],
-                favouritedWorkoutTemplateIds: ["workout5", "workout6"],
-                createdIngredientTemplateIds: ["ingredient1", "ingredient2"],
-                bookmarkedIngredientTemplateIds: ["ingredient3", "ingredient4"],
-                favouritedIngredientTemplateIds: ["ingredient5", "ingredient6"],
-                createdRecipeTemplateIds: ["recipe1", "recipe2"],
-                bookmarkedRecipeTemplateIds: ["recipe3", "recipe4"],
-                favouritedRecipeTemplateIds: ["recipe5", "recipe6"],
-                blockedUserIds: ["user1", "user2"]
+                onboardingStep: .goalSetting
             ),
             UserModel(
                 userId: "user6",
@@ -439,24 +403,13 @@ struct UserModel: Codable, Equatable, Sendable {
                 creationDate: now.addingTimeInterval(-5 * 86400 - 4 * 3600),
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-4 * 3600),
+                blockedUserIds: ["user1", "user2"],
                 didCompleteOnboarding: nil,
-                onboardingStep: .customiseProgram,
-                createdExerciseTemplateIds: ["exercise1", "exercise2"],
-                bookmarkedExerciseTemplateIds: ["exercise3", "exercise4"],
-                favouritedExerciseTemplateIds: ["exercise5", "exercise6"],
-                createdWorkoutTemplateIds: ["workout1", "workout2"],
-                bookmarkedWorkoutTemplateIds: ["workout3", "workout4"],
-                favouritedWorkoutTemplateIds: ["workout5", "workout6"],
-                createdIngredientTemplateIds: ["ingredient1", "ingredient2"],
-                bookmarkedIngredientTemplateIds: ["ingredient3", "ingredient4"],
-                favouritedIngredientTemplateIds: ["ingredient5", "ingredient6"],
-                createdRecipeTemplateIds: ["recipe1", "recipe2"],
-                bookmarkedRecipeTemplateIds: ["recipe3", "recipe4"],
-                favouritedRecipeTemplateIds: ["recipe5", "recipe6"],
-                blockedUserIds: ["user1", "user2"]
+                onboardingStep: .customiseProgram
             )
         ]
     }
+
 }
 
 enum Gender: String, Codable, Sendable {

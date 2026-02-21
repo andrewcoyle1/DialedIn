@@ -9,7 +9,7 @@ import Foundation
 
 extension PinLoadedMachine {
 
-    static var defaultPinLoadedMachinesMocksPart2: [PinLoadedMachine] = [
+    static let defaultPinLoadedMachinesMocksPart2: [PinLoadedMachine] = [
         PinLoadedMachine(
             id: "pin-loaded_preacher_curl_machine",
             name: "Pin-Loaded Preacher Curl Machine",

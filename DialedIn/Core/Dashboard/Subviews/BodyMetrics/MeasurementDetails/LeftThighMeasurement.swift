@@ -112,17 +112,15 @@ final class LeftThighMeasurementPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension LeftThighMeasurementEntry {
-    static var mocks: [LeftThighMeasurementEntry] {
-        [
-            LeftThighMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), leftThighCircumference: 24.6),
-            LeftThighMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), leftThighCircumference: 24.4),
-            LeftThighMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), leftThighCircumference: 24.2),
-            LeftThighMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), leftThighCircumference: 24.1),
-            LeftThighMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), leftThighCircumference: 24.0),
-            LeftThighMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), leftThighCircumference: 23.9),
-            LeftThighMeasurementEntry(date: Date.now, leftThighCircumference: 23.8)
-        ]
-    }
+    static let mocks: [LeftThighMeasurementEntry] = [
+        LeftThighMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), leftThighCircumference: 24.6),
+        LeftThighMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), leftThighCircumference: 24.4),
+        LeftThighMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), leftThighCircumference: 24.2),
+        LeftThighMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), leftThighCircumference: 24.1),
+        LeftThighMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), leftThighCircumference: 24.0),
+        LeftThighMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), leftThighCircumference: 23.9),
+        LeftThighMeasurementEntry(date: Date.now, leftThighCircumference: 23.8)
+    ]
 }
 
 extension CoreRouter {

@@ -11,4 +11,4 @@ protocol OnboardingHeightRouter {
     func showOnboardingWeightView(delegate: OnboardingWeightDelegate)
 }
 
-extension OnbRouter: OnboardingHeightRouter { }
+extension CoreRouter: OnboardingHeightRouter { }

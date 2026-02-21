@@ -8,11 +8,13 @@
 import SwiftUI
 import Firebase
 
-@_exported import SwiftfulAuthenticating
-@_exported import SwiftfulAuthenticatingFirebase
+import SwiftfulAuthenticating
+import SwiftfulAuthenticatingFirebase
 typealias UserAuthInfo = SwiftfulAuthenticating.UserAuthInfo
 typealias AuthManager = SwiftfulAuthenticating.AuthManager
 typealias MockAuthService = SwiftfulAuthenticating.MockAuthService
+typealias FirebaseAuthService = SwiftfulAuthenticatingFirebase.FirebaseAuthService
+typealias SignInOption = SwiftfulAuthenticating.SignInOption
 
 extension AuthLogType {
 

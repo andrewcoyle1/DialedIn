@@ -33,7 +33,7 @@ class OnboardingNotificationsPresenter {
         interactor.trackEvent(event: Event.enableNotificationsStart)
         Task {
             do {
-                let isAuthorised = try await interactor.requestPushAuthorisation()
+                let isAuthorised = try await interactor.requestPushAuthorization()
 
                 interactor.trackEvent(event: Event.enableNotificationsSuccess(isAuthorised: isAuthorised))
                 await handleNavigation()

@@ -11,4 +11,4 @@ protocol OnboardingTrainingSplitRouter {
     func showOnboardingTrainingScheduleView(delegate: OnboardingTrainingScheduleDelegate)
 }
 
-extension OnbRouter: OnboardingTrainingSplitRouter { }
+extension CoreRouter: OnboardingTrainingSplitRouter { }

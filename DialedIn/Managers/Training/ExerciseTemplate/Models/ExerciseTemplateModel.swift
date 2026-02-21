@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ExerciseTemplateModel: @MainActor TemplateModel {
+struct ExerciseTemplateModel: TemplateModel {
     var id: String {
         exerciseId
     }

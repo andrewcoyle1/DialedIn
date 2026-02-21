@@ -13,7 +13,11 @@ class OnboardingTrainingEquipmentPresenter {
     private let interactor: OnboardingTrainingEquipmentInteractor
     private let router: OnboardingTrainingEquipmentRouter
 
-    var selectedEquipment: Set<EquipmentType> = []
+    var currentUser: UserModel? {
+        interactor.currentUser
+    }
+    
+    var gymProfile: GymProfileModel = GymProfileModel(authorId: "")
     
     init(
         interactor: OnboardingTrainingEquipmentInteractor,
@@ -21,15 +25,13 @@ class OnboardingTrainingEquipmentPresenter {
     ) {
         self.interactor = interactor
         self.router = router
+        
+        self.gymProfile.authorId = currentUser?.userId ?? ""
     }
     
-    func navigateToReview(builder: TrainingProgramBuilder) {
-        guard !selectedEquipment.isEmpty else { return }
-        
-        var updatedBuilder = builder
-        updatedBuilder.setAvailableEquipment(selectedEquipment)
+    func navigateToReview(delegate: OnboardingTrainingEquipmentDelegate) {
         interactor.trackEvent(event: Event.navigate)
-        router.showOnboardingTrainingReviewView(delegate: OnboardingTrainingReviewDelegate(trainingProgramBuilder: updatedBuilder))
+        router.showOnboardingTrainingReviewView(delegate: OnboardingTrainingReviewDelegate(delegate: delegate, gymProfile: gymProfile))
     }
 
     func onDevSettingsPressed() {

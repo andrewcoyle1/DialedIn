@@ -14,7 +14,6 @@ class OnboardingWelcomePresenter {
     private let router: OnboardingWelcomeRouter
 
     var imageName: String = Constants.randomImage
-    var showSignInView: Bool = false
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -28,6 +27,18 @@ class OnboardingWelcomePresenter {
         self.router = router
     }
     
+    func onViewAppear(delegate: OnboardingWelcomeDelegate) {
+        interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
+    }
+    
+    func onViewDisappear(delegate: OnboardingWelcomeDelegate) {
+        interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
+    }
+
+    func onContinuePressed() {
+        
+    }
+
     func navToAppropriateView() {
         if let step = currentUser?.onboardingStep {
             navigate(step: step)
@@ -72,17 +83,27 @@ class OnboardingWelcomePresenter {
         router.showDevSettingsView()
     }
 
+}
+
+extension OnboardingWelcomePresenter {
+    
     enum Event: LoggableEvent {
+        case onAppear(delegate: OnboardingWelcomeDelegate)
+        case onDisappear(delegate: OnboardingWelcomeDelegate)
         case navigate
 
         var eventName: String {
             switch self {
-            case .navigate: return "WelcomeView_Navigate"
+            case .onAppear:     return "WelcomeView_Appear"
+            case .onDisappear:  return "WelcomeView_Disappear"
+            case .navigate:     return "WelcomeView_Navigate"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
+            case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
+                return delegate.eventParameters
             case .navigate:
                 return nil
             }
@@ -91,7 +112,7 @@ class OnboardingWelcomePresenter {
         var type: LogType {
             switch self {
             default:
-                return .info
+                return .analytic
             }
         }
     }

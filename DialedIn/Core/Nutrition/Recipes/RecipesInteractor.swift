@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
+@MainActor
 protocol RecipesInteractor {
     var currentUser: UserModel? { get }
     func getRecipeTemplates(ids: [String], limitTo: Int) async throws -> [RecipeTemplateModel]

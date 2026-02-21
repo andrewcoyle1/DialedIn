@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 class MockABTestService: ABTestService {
     var activeTests: ActiveABTests
     

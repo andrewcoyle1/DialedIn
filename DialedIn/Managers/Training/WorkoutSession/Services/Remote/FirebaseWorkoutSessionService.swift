@@ -55,7 +55,9 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
                 index: exercise.index,
                 notes: exercise.notes,
                 imageName: exercise.imageName,
-                order: exerciseOrder
+                order: exerciseOrder,
+                chosenResistanceEquipment: exercise.chosenResistanceEquipment,
+                chosenSupportEquipment: exercise.chosenSupportEquipment
             )
             let exerciseData = try Firestore.Encoder().encode(exerciseRecord)
             batch.setData(exerciseData, forDocument: exercisesCollection.document(exercise.id), merge: true)
@@ -117,7 +119,8 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
             dateModified: storage.dateModified,
             endedAt: storage.endedAt,
             notes: storage.notes,
-            exercises: []
+            exercises: [],
+            deletedAt: storage.deletedAt
         )
         
         return model
@@ -169,7 +172,9 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
             index: record.index,
             notes: record.notes,
             imageName: record.imageName,
-            sets: sets
+            sets: sets,
+            chosenResistanceEquipment: record.chosenResistanceEquipment ?? [],
+            chosenSupportEquipment: record.chosenSupportEquipment ?? []
         )
     }
 
@@ -204,11 +209,13 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
         return Array(sessions.shuffled().prefix(limitTo))
     }
     
-    /// Retrieves workout sessions for a specific author and template
+    /// Retrieves workout sessions for a specific author and template (excludes soft-deleted)
     func getWorkoutSessionsByTemplateAndAuthor(templateId: String, authorId: String, limitTo: Int) async throws -> [WorkoutSessionModel] {
-        let query = collection
+        var query = collection
             .whereField(WorkoutSessionModel.CodingKeys.authorId.rawValue, isEqualTo: authorId)
             .whereField(WorkoutSessionModel.CodingKeys.workoutTemplateId.rawValue, isEqualTo: templateId)
+            .whereField(WorkoutSessionForFirebase.CodingKeys.deletedAt.rawValue, isEqualTo: NSNull())
+        query = query
             .order(by: WorkoutSessionModel.CodingKeys.dateCreated.rawValue, descending: true)
             .limit(to: limitTo)
         
@@ -223,13 +230,17 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
         return sessions
     }
     
-    /// Retrieves workout sessions for a specific author
-    func getWorkoutSessionsForAuthor(authorId: String, limitTo: Int) async throws -> [WorkoutSessionModel] {
-        let query = collection
+    /// Retrieves workout sessions for a specific author (optionally includes soft-deleted for sync)
+    func getWorkoutSessionsForAuthor(authorId: String, limitTo: Int, includeDeleted: Bool = false) async throws -> [WorkoutSessionModel] {
+        var query: Query = collection
             .whereField(WorkoutSessionModel.CodingKeys.authorId.rawValue, isEqualTo: authorId)
+        if !includeDeleted {
+            query = query.whereField(WorkoutSessionForFirebase.CodingKeys.deletedAt.rawValue, isEqualTo: NSNull())
+        }
+        query = query
             .order(by: WorkoutSessionModel.CodingKeys.dateCreated.rawValue, descending: true)
             .limit(to: limitTo)
-        
+
         let snapshot = try await query.getDocuments()
         var sessions: [WorkoutSessionModel] = []
         
@@ -241,11 +252,12 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
         return sessions
     }
     
-    /// Retrieves the most recent completed workout session for a specific template
+    /// Retrieves the most recent completed workout session for a specific template (excludes soft-deleted)
     func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
         let query = collection
             .whereField(WorkoutSessionModel.CodingKeys.authorId.rawValue, isEqualTo: authorId)
             .whereField(WorkoutSessionModel.CodingKeys.workoutTemplateId.rawValue, isEqualTo: templateId)
+            .whereField(WorkoutSessionForFirebase.CodingKeys.deletedAt.rawValue, isEqualTo: NSNull())
             .whereField(WorkoutSessionModel.CodingKeys.endedAt.rawValue, isNotEqualTo: NSNull())
             .order(by: WorkoutSessionModel.CodingKeys.endedAt.rawValue, descending: true)
             .limit(to: 1)
@@ -399,44 +411,21 @@ struct FirebaseWorkoutSessionService: RemoteWorkoutSessionService {
     }
     
     // MARK: - Delete Operations
-    
-    /// Deletes a workout session and all related top-level records (flattened schema)
+
+    /// Soft-deletes a workout session by setting deleted_at (keeps data for conflict resolution).
     func deleteWorkoutSession(id: String) async throws {
-        let database = Firestore.firestore()
-        
-        // 1) Delete all workout_sets for this session
-        do {
-            let setsQuery = Firestore.firestore()
-                .collection("workout_sets")
-                .whereField(WorkoutSetRecord.CodingKeys.sessionId.rawValue, isEqualTo: id)
-            let setsSnapshot = try await setsQuery.getDocuments()
-            let batch = database.batch()
-            for doc in setsSnapshot.documents { batch.deleteDocument(doc.reference) }
-            if !setsSnapshot.isEmpty { try await batch.commit() }
-        }
-        
-        // 2) Delete all workout_exercises for this session
-        do {
-            let exercisesQuery = Firestore.firestore()
-                .collection("workout_exercises")
-                .whereField(WorkoutExerciseRecord.CodingKeys.sessionId.rawValue, isEqualTo: id)
-            let exercisesSnapshot = try await exercisesQuery.getDocuments()
-            let batch = database.batch()
-            for doc in exercisesSnapshot.documents { batch.deleteDocument(doc.reference) }
-            if !exercisesSnapshot.isEmpty { try await batch.commit() }
-        }
-        
-        // 3) Delete the workout_sessions document
-        try await collection.document(id).delete()
+        try await collection.document(id).updateData([
+            WorkoutSessionForFirebase.CodingKeys.deletedAt.rawValue: FieldValue.serverTimestamp(),
+            WorkoutSessionForFirebase.CodingKeys.dateModified.rawValue: FieldValue.serverTimestamp()
+        ])
     }
-    
-    /// Deletes all workout sessions for an author
+
+    /// Soft-deletes all workout sessions for an author
     func deleteAllWorkoutSessionsForAuthor(authorId: String) async throws {
-        // Fetch by document snapshot to avoid decoding into full model (storage uses simplified fields)
         let snapshot = try await collection
             .whereField(WorkoutSessionModel.CodingKeys.authorId.rawValue, isEqualTo: authorId)
             .getDocuments()
-        
+
         for document in snapshot.documents {
             try await deleteWorkoutSession(id: document.documentID)
         }
@@ -460,7 +449,8 @@ extension WorkoutSessionModel {
             dateCreated: dateCreated,
             dateModified: dateModified,
             endedAt: endedAt,
-            notes: notes
+            notes: notes,
+            deletedAt: deletedAt
         )
     }
     
@@ -479,7 +469,8 @@ extension WorkoutSessionModel {
             dateModified: dateModified,
             endedAt: endedAt,
             notes: notes,
-            exercises: exercises
+            exercises: exercises,
+            deletedAt: deletedAt
         )
     }
 }
@@ -495,7 +486,9 @@ extension WorkoutExerciseModel {
             trackingMode: trackingMode,
             index: index,
             notes: notes,
-            imageName: imageName
+            imageName: imageName,
+            chosenResistanceEquipment: chosenResistanceEquipment,
+            chosenSupportEquipment: chosenSupportEquipment
         )
     }
     
@@ -510,7 +503,9 @@ extension WorkoutExerciseModel {
             index: index,
             notes: notes,
             imageName: imageName,
-            sets: sets
+            sets: sets,
+            chosenResistanceEquipment: chosenResistanceEquipment,
+            chosenSupportEquipment: chosenSupportEquipment
         )
     }
 }
@@ -531,7 +526,8 @@ struct WorkoutSessionForFirebase: Codable {
     let dateModified: Date
     let endedAt: Date?
     let notes: String?
-    
+    let deletedAt: Date?
+
     enum CodingKeys: String, CodingKey {
         case id
         case authorId = "author_id"
@@ -545,6 +541,29 @@ struct WorkoutSessionForFirebase: Codable {
         case dateModified = "date_modified"
         case endedAt = "ended_at"
         case notes
+        case deletedAt = "deleted_at"
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(authorId, forKey: .authorId)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(workoutTemplateId, forKey: .workoutTemplateId)
+        try container.encodeIfPresent(scheduledWorkoutId, forKey: .scheduledWorkoutId)
+        try container.encodeIfPresent(trainingPlanId, forKey: .trainingPlanId)
+        try container.encodeIfPresent(programId, forKey: .programId)
+        try container.encodeIfPresent(dayPlanId, forKey: .dayPlanId)
+        try container.encode(dateCreated, forKey: .dateCreated)
+        try container.encode(dateModified, forKey: .dateModified)
+        try container.encodeIfPresent(endedAt, forKey: .endedAt)
+        try container.encodeIfPresent(notes, forKey: .notes)
+        // Always encode deleted_at (null when not deleted) so Firestore can query by it
+        if let deletedAt = deletedAt {
+            try container.encode(deletedAt, forKey: .deletedAt)
+        } else {
+            try container.encodeNil(forKey: .deletedAt)
+        }
     }
 }
 
@@ -558,6 +577,8 @@ struct WorkoutExerciseForFirebase: Codable {
     let index: Int
     let notes: String?
     let imageName: String?
+    let chosenResistanceEquipment: [EquipmentRef]
+    let chosenSupportEquipment: [EquipmentRef]
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -568,5 +589,7 @@ struct WorkoutExerciseForFirebase: Codable {
         case index
         case notes
         case imageName = "image_name"
+        case chosenResistanceEquipment = "chosen_resistance_equipment"
+        case chosenSupportEquipment = "chosen_support_equipment"
     }
 }

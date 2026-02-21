@@ -11,4 +11,4 @@ protocol OnboardingSubscriptionRouter {
     func showOnbPaywall()
 }
 
-extension OnbRouter: OnboardingSubscriptionRouter { }
+extension CoreRouter: OnboardingSubscriptionRouter { }

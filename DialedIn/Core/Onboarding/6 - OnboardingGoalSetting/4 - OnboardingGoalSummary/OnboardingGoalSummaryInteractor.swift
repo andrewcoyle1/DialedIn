@@ -5,7 +5,8 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
-protocol OnboardingGoalSummaryInteractor {
+@MainActor
+protocol OnboardingGoalSummaryInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     func createGoal(
         userId: String,
@@ -16,7 +17,6 @@ protocol OnboardingGoalSummaryInteractor {
     ) async throws -> WeightGoal
     func updateOnboardingStep(step: OnboardingStep) async throws
     func updateCurrentGoalId(goalId: String?) async throws
-    func trackEvent(event: LoggableEvent)
 }
 
-extension OnbInteractor: OnboardingGoalSummaryInteractor { }
+extension CoreInteractor: OnboardingGoalSummaryInteractor { }

@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 26/09/2025.
 //
 
+@MainActor
 protocol RecipeTemplateServices {
     var remote: RemoteRecipeTemplateService { get }
     var local: LocalRecipeTemplatePersistence { get }

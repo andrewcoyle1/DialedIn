@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 27/01/2026.
 //
 
+@MainActor
 protocol SearchInteractor {
     var userImageUrl: String? { get }
     var currentUser: UserModel? { get }
@@ -16,6 +17,7 @@ protocol SearchInteractor {
     func clearRecentSearches()
     func addLocalWorkoutSession(session: WorkoutSessionModel) throws
     func startActiveSession(_ session: WorkoutSessionModel)
+    func getPreference(templateId: String) -> ExerciseUnitPreference
 }
 
 extension CoreInteractor: SearchInteractor {

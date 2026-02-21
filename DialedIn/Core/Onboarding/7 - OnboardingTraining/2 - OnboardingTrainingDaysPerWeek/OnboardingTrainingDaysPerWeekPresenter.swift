@@ -23,13 +23,12 @@ class OnboardingTrainingDaysPerWeekPresenter {
         self.router = router
     }
     
-    func navigateToSplit(builder: TrainingProgramBuilder) {
+    func navigateToSplit(delegate: OnboardingTrainingDaysPerWeekDelegate) {
         guard let days = selectedDays else { return }
         
-        var updatedBuilder = builder
-        updatedBuilder.setTargetDaysPerWeek(days)
+        let delegate = OnboardingTrainingSplitDelegate(delegate: delegate, selectedDays: days)
         interactor.trackEvent(event: Event.navigate)
-        router.showOnboardingTrainingSplitView(delegate: OnboardingTrainingSplitDelegate(trainingProgramBuilder: updatedBuilder))
+        router.showOnboardingTrainingSplitView(delegate: delegate)
     }
 
     func onDevSettingsPressed() {

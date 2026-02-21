@@ -17,6 +17,7 @@ extension CalorieFloor {
 }
 
 @Observable
+@MainActor
 class NutritionManager {
     
     private let local: LocalNutritionPersistence
@@ -110,7 +111,7 @@ class NutritionManager {
     }
     
     private func calculateProteinGrams(user: UserModel?, proteinIntake: ProteinIntake) -> Double {
-        let userKg = max(user?.weightKilograms ?? 70, 30)
+        let userKg = max(user?.submittedWeightKilograms ?? 70, 30)
         let proteinPerKg: Double
         switch proteinIntake {
         case .low: proteinPerKg = 1.6
@@ -187,17 +188,17 @@ class NutritionManager {
 
     // MARK: - Estimation
     func estimateTDEE(user: UserModel?) -> Double {
-        let gender = user?.gender ?? .male
-        let weightKg = max(user?.weightKilograms ?? 70, 30)
-        let heightCm = max(user?.heightCentimeters ?? 175, 120)
-        let ageYears = calculateAge(from: user?.dateOfBirth)
+        let gender = user?.submittedGender ?? .male
+        let weightKg = max(user?.submittedWeightKilograms ?? 70, 30)
+        let heightCm = max(user?.submittedHeightCentimeters ?? 175, 120)
+        let ageYears = calculateAge(from: user?.submittedDateOfBirth)
         
         let mifflinGenderCoefficient: Double = (gender == .male) ? 5 : -161
         let bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * Double(ageYears)) + mifflinGenderCoefficient
         
         let activityMultiplier = calculateActivityMultiplier(
-            dailyActivity: user?.dailyActivityLevel ?? .moderate,
-            exerciseFrequency: user?.exerciseFrequency ?? .threeToFour
+            dailyActivity: user?.submittedDailyActivityLevel ?? .moderate,
+            exerciseFrequency: user?.submittedExerciseFrequency ?? .threeToFour
         )
         
         let tdee = bmr * activityMultiplier

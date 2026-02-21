@@ -29,7 +29,7 @@ struct SupportEquipment: Identifiable, Codable {
         self.isActive = isActive
     }
     
-    static var defaultSupportEquipment: [SupportEquipment] = [
+    static let defaultSupportEquipment: [SupportEquipment] = [
         SupportEquipment(
             id: "adjustable_bench",
             name: "Adjustable Bench",
@@ -151,7 +151,7 @@ struct SupportEquipment: Identifiable, Codable {
         mocks[0]
     }
     
-    static var mocks: [SupportEquipment] = [
+    static let mocks: [SupportEquipment] = [
         SupportEquipment(
             id: "adjustable_bench",
             name: "Adjustable Bench",

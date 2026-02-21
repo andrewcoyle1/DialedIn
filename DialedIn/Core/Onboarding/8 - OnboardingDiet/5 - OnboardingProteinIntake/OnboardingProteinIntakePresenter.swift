@@ -14,9 +14,7 @@ class OnboardingProteinIntakePresenter {
     private let router: OnboardingProteinIntakeRouter
 
     var selectedProteinIntake: ProteinIntake?
-    var navigateToNextStep: Bool = false
-    var showModal: Bool = false
-    var trainingDifficulty: DifficultyLevel?
+    var trainingDifficulty: TrainingExperience?
     var hasTrainingPlan: Bool = false
 
     init(
@@ -29,19 +27,10 @@ class OnboardingProteinIntakePresenter {
     }
     
     private func loadTrainingContext() {
-        if let plan = interactor.currentTrainingPlan {
-            hasTrainingPlan = true
-            // Get template difficulty if available
-            if let templateId = plan.programTemplateId,
-               let template = interactor.get(id: templateId) {
-                trainingDifficulty = template.difficulty
-                prefillProteinIntake(difficulty: template.difficulty)
-            }
-            interactor.trackEvent(event: Event.trainingContextLoaded(difficulty: trainingDifficulty))
-        }
+
     }
     
-    private func prefillProteinIntake(difficulty: DifficultyLevel) {
+    private func prefillProteinIntake(difficulty: TrainingExperience) {
         // Heuristic: beginner -> moderate, intermediate -> high, advanced -> veryHigh
         if selectedProteinIntake == nil {
             switch difficulty {
@@ -54,7 +43,7 @@ class OnboardingProteinIntakePresenter {
             }
             interactor.trackEvent(event: Event.proteinIntakePrefilled(
                 intake: selectedProteinIntake ?? .moderate,
-                reason: "training_difficulty_\(difficulty.rawValue)"
+                reason: "training_difficulty_\(difficulty)"
             ))
         }
     }
@@ -73,7 +62,7 @@ class OnboardingProteinIntakePresenter {
     }
 
     enum Event: LoggableEvent {
-        case trainingContextLoaded(difficulty: DifficultyLevel?)
+        case trainingContextLoaded(difficulty: TrainingExperience?)
         case proteinIntakePrefilled(intake: ProteinIntake, reason: String)
         case navigate
 
@@ -88,7 +77,7 @@ class OnboardingProteinIntakePresenter {
         var parameters: [String: Any]? {
             switch self {
             case .trainingContextLoaded(difficulty: let difficulty):
-                return ["difficulty": difficulty?.rawValue as Any]
+                return ["difficulty": difficulty as Any]
             case .proteinIntakePrefilled(intake: let intake, reason: let reason):
                 return ["intake": intake.rawValue, "reason": reason]
             case .navigate:

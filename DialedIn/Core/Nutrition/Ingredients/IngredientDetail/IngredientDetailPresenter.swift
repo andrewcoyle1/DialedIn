@@ -32,59 +32,8 @@ class IngredientDetailPresenter {
         let user = interactor.currentUser
         // Always treat authored templates as bookmarked
         let isAuthor = user?.userId == ingredientTemplate.authorId
-        isBookmarked = isAuthor || (user?.bookmarkedIngredientTemplateIds?.contains(ingredientTemplate.id) ?? false) || (user?.createdIngredientTemplateIds?.contains(ingredientTemplate.id) ?? false)
-        isFavourited = user?.favouritedIngredientTemplateIds?.contains(ingredientTemplate.id) ?? false
     }
     
-    func onBookmarkPressed(ingredientTemplate: IngredientTemplateModel) async {
-        interactor.trackEvent(event: Event.bookmarkIngredientStart)
-        let newState = !isBookmarked
-        do {
-            // If unbookmarking and currently favourited, unfavourite first to enforce rule
-            if !newState && isFavourited {
-                try await interactor.favouriteIngredientTemplate(id: ingredientTemplate.id, isFavourited: false)
-                isFavourited = false
-                // Remove from user's favourited list
-                try await interactor.removeFavouritedIngredientTemplate(ingredientId: ingredientTemplate.id)
-            }
-            try await interactor.bookmarkIngredientTemplate(id: ingredientTemplate.id, isBookmarked: newState)
-            if newState {
-                try await interactor.addBookmarkedIngredientTemplate(ingredientId: ingredientTemplate.id)
-            } else {
-                try await interactor.removeBookmarkedIngredientTemplate(ingredientId: ingredientTemplate.id)
-            }
-            isBookmarked = newState
-            interactor.trackEvent(event: Event.bookmarkIngredientSuccess)
-        } catch {
-            interactor.trackEvent(event: Event.bookmarkIngredientFail(error: error))
-            router.showSimpleAlert(title: "Failed to update bookmark status", subtitle: "Please try again later")
-        }
-    }
-    
-    func onFavoritePressed(ingredientTemplate: IngredientTemplateModel) async {
-        interactor.trackEvent(event: Event.favouriteIngredientSuccess)
-        let newState = !isFavourited
-        do {
-            // If favouriting and not bookmarked, bookmark first to enforce rule
-            if newState && !isBookmarked {
-                try await interactor.bookmarkIngredientTemplate(id: ingredientTemplate.id, isBookmarked: true)
-                try await interactor.addBookmarkedIngredientTemplate(ingredientId: ingredientTemplate.id)
-                isBookmarked = true
-            }
-            try await interactor.favouriteIngredientTemplate(id: ingredientTemplate.id, isFavourited: newState)
-            if newState {
-                try await interactor.addFavouritedIngredientTemplate(ingredientId: ingredientTemplate.id)
-            } else {
-                try await interactor.removeFavouritedIngredientTemplate(ingredientId: ingredientTemplate.id)
-            }
-            isFavourited = newState
-            interactor.trackEvent(event: Event.favouriteIngredientSuccess)
-        } catch {
-            interactor.trackEvent(event: Event.favouriteIngredientFail(error: error))
-            router.showSimpleAlert(title: "Failed to update favourite status", subtitle: "Please try again later")
-        }
-    }
-
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }

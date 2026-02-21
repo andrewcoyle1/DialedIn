@@ -17,29 +17,29 @@ struct OnboardingTrainingEquipmentView: View {
     var body: some View {
         List {
             Section {
-                ForEach(EquipmentType.allCases) { equipment in
-                    HStack(alignment: .center, spacing: 12) {
-                        Image(systemName: equipment.systemImage)
-                            .foregroundStyle(.accent)
-                            .frame(width: 24)
-                        Text(equipment.description)
-                            .font(.headline)
-                        Spacer()
-                        Toggle(
-                            "",
-                            isOn: Binding(
-                                get: { presenter.selectedEquipment.contains(equipment) },
-                                set: { isOn in
-                                    if isOn {
-                                        presenter.selectedEquipment.insert(equipment)
-                                    } else {
-                                        presenter.selectedEquipment.remove(equipment)
-                                    }
-                                }
-                            )
-                        )
-                    }
-                }
+//                ForEach(EquipmentType.allCases) { equipment in
+//                    HStack(alignment: .center, spacing: 12) {
+//                        Image(systemName: equipment.systemImage)
+//                            .foregroundStyle(.accent)
+//                            .frame(width: 24)
+//                        Text(equipment.description)
+//                            .font(.headline)
+//                        Spacer()
+//                        Toggle(
+//                            "",
+//                            isOn: Binding(
+//                                get: { presenter.selectedEquipment.contains(equipment) },
+//                                set: { isOn in
+//                                    if isOn {
+//                                        presenter.selectedEquipment.insert(equipment)
+//                                    } else {
+//                                        presenter.selectedEquipment.remove(equipment)
+//                                    }
+//                                }
+//                            )
+//                        )
+//                    }
+//                }
             } header: {
                 Text("Select all equipment you have access to.")
             } footer: {
@@ -68,26 +68,25 @@ struct OnboardingTrainingEquipmentView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                presenter.navigateToReview(builder: delegate.trainingProgramBuilder)
+                presenter.navigateToReview(delegate: delegate)
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
-            .disabled(presenter.selectedEquipment.isEmpty)
         }
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingTrainingEquipmentView(router: AnyRouter, delegate: OnboardingTrainingEquipmentDelegate) -> some View {
         OnboardingTrainingEquipmentView(
-            presenter: OnboardingTrainingEquipmentPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingTrainingEquipmentPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingTrainingEquipmentView(delegate: OnboardingTrainingEquipmentDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingEquipmentView(router: router, delegate: delegate)
@@ -96,13 +95,11 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingTrainingEquipmentView(
             router: router, 
-            delegate: OnboardingTrainingEquipmentDelegate(
-                trainingProgramBuilder: TrainingProgramBuilder()
-            )
+            delegate: OnboardingTrainingEquipmentDelegate.mock
         )
     }
     .previewEnvironment()

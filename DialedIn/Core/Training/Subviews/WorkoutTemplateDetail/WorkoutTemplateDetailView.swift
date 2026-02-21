@@ -40,8 +40,6 @@ struct WorkoutTemplateDetailView: View {
         .onChange(of: presenter.currentUser) {_, _ in
             let user = presenter.currentUser
             let isAuthor = user?.userId == delegate.workoutTemplate.authorId
-            presenter.isBookmarked = isAuthor || (presenter.currentUser?.bookmarkedWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false) || (user?.createdWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false)
-            presenter.isFavourited = user?.favouritedWorkoutTemplateIds?.contains(delegate.workoutTemplate.id) ?? false
         }
     }
 
@@ -91,29 +89,6 @@ struct WorkoutTemplateDetailView: View {
             }
         }
         #endif
-
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                Task {
-                    await presenter.onFavoritePressed(template: delegate.workoutTemplate)
-                }
-            } label: {
-                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
-            }
-            .disabled(presenter.activeSession != nil)
-        }
-        // Hide bookmark button when the current user is the author
-        if presenter.currentUser?.userId != nil && presenter.currentUser?.userId != delegate.workoutTemplate.authorId {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task {
-                        await presenter.onBookmarkPressed(template: delegate.workoutTemplate)
-                    }
-                } label: {
-                    Image(systemName: presenter.isBookmarked ? "book.closed.fill" : "book.closed")
-                }
-            }
-        }
 
         // Hide start button in edit mode
         ToolbarItem(placement: .topBarTrailing) {
@@ -171,7 +146,9 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.workoutTemplateDetailView(router: router, delegate: WorkoutTemplateDetailDelegate(workoutTemplate: WorkoutTemplateModel.mock))
     }

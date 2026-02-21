@@ -8,7 +8,8 @@
 import SwiftUI
 
 @Observable
-class MealLogManager: LocalMealLogPersistence, RemoteMealLogService {
+@MainActor
+class MealLogManager {
     
     private let local: LocalMealLogPersistence
     private let remote: RemoteMealLogService

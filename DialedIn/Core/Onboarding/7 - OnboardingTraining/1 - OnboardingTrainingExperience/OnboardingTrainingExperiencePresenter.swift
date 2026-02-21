@@ -13,7 +13,7 @@ class OnboardingTrainingExperiencePresenter {
     private let interactor: OnboardingTrainingExperienceInteractor
     private let router: OnboardingTrainingExperienceRouter
 
-    var selectedLevel: DifficultyLevel?
+    var selectedLevel: TrainingExperience?
         
     init(
         interactor: OnboardingTrainingExperienceInteractor,
@@ -23,13 +23,13 @@ class OnboardingTrainingExperiencePresenter {
         self.router = router
     }
     
-    func navigateToDaysPerWeek(builder: TrainingProgramBuilder) {
+    func navigateToDaysPerWeek(delegate: OnboardingTrainingExperienceDelegate) {
         guard let level = selectedLevel else { return }
         
-        var updatedBuilder = builder
-        updatedBuilder.setExperienceLevel(level)
+        let delegate = OnboardingTrainingDaysPerWeekDelegate(delegate: delegate, trainingExperience: level)
+        
         interactor.trackEvent(event: Event.navigate)
-        router.showOnboardingTrainingDaysPerWeekView(delegate: OnboardingTrainingDaysPerWeekDelegate(trainingProgramBuilder: updatedBuilder))
+        router.showOnboardingTrainingDaysPerWeekView(delegate: delegate)
     }
 
     func onDevSettingsPressed() {
@@ -57,6 +57,28 @@ class OnboardingTrainingExperiencePresenter {
             case .navigate:
                 return .info
             }
+        }
+    }
+}
+
+enum TrainingExperience: CaseIterable {
+    case beginner
+    case intermediate
+    case advanced
+    
+    var name: String {
+        switch self {
+        case .beginner: return "Beginner"
+        case .intermediate: return "Intermediate"
+        case .advanced: return "Advanced"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .beginner: return "Less than 1 year of training consistently."
+        case .intermediate: return "1-3 years of training consistently."
+        case .advanced: return "3+ years of training consistently."
         }
     }
 }

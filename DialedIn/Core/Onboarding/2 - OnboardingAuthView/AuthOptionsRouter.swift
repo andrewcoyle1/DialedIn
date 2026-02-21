@@ -20,6 +20,7 @@ protocol OnboardingAuthRouter: GlobalRouter {
     
     func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
     func showOnbPaywall()
+    func switchToCoreModule()
 }
 
-extension OnbRouter: OnboardingAuthRouter { }
+extension CoreRouter: OnboardingAuthRouter { }

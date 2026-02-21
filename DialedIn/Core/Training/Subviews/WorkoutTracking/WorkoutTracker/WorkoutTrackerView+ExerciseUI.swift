@@ -34,64 +34,9 @@ extension WorkoutTrackerView {
                     .foregroundColor(exercise.completedSetsCount == exercise.sets.count ? .green : .secondary)
             }
             Spacer()
-
-            unitPreferenceMenu(exercise)
         }
         .tappableBackground()
         .listRowInsets(.vertical, .zero)
-    }
-
-    @ViewBuilder
-    func setsContent(_ exercise: WorkoutExerciseModel) -> some View {
-        ForEach(exercise.sets) { set in
-            VStack {
-                HStack {
-                    setNumber(exercise: exercise, set: set)
-                    Spacer()
-                    previousValues(exercise: exercise, set: set)
-                    Spacer()
-                    inputFields(exercise: exercise, set: set)
-                    Spacer()
-                    completeButton(exercise: exercise, set: set)
-                }
-                .frame(maxWidth: .infinity)
-
-                restSelector(exercise: exercise, set: set)
-            }
-            .padding(.vertical, 4)
-            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                Button(role: .destructive) {
-                    presenter.deleteSet(setId: set.id, exerciseId: exercise.id)
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                }
-            }
-            .moveDisabled(true)
-        }
-        .listRowSeparator(.hidden)
-        .listRowInsets(.vertical, 0)
-        .listRowInsets(.leading, 0)
-
-        Button {
-            presenter.addSet(exerciseId: exercise.id)
-        } label: {
-            HStack {
-                Image(systemName: "plus.circle.fill")
-                Text("Add Set")
-            }
-            .font(.footnote.bold())
-            .foregroundColor(.accent)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            .background(
-                Capsule()
-                    .fill(Color.accent.opacity(0.1))
-            )
-        }
-        .buttonStyle(PlainButtonStyle())
-        .listRowSeparator(.hidden)
-        .listRowInsets(.vertical, 0)
-        .listRowInsets(.leading, 0)
     }
 
     func setNumber(exercise: WorkoutExerciseModel, set: WorkoutSetModel) -> some View {
@@ -256,57 +201,6 @@ extension WorkoutTrackerView {
         }
     }
 
-    func weightRepsFields(exercise: WorkoutExerciseModel, set: WorkoutSetModel) -> some View {
-        let unitPreference = presenter.getUnitPreference(for: exercise.templateId)
-        return HStack(spacing: 8) {
-            VStack(alignment: .leading) {
-                if set.index == 1 {
-                    Text("Weight (\(unitPreference.weightUnit.abbreviation))")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-                TextField("0", value: Binding(
-                    get: {
-                        guard let kilograms = set.weightKg else { return nil }
-                        return UnitConversion.convertWeight(kilograms, to: unitPreference.weightUnit)
-                    },
-                    set: { newValue in
-                        updateSetValue(set, in: exercise.id) { updated in
-                            guard let value = newValue else {
-                                updated.weightKg = nil
-                                return
-                            }
-                            let kilos = UnitConversion.convertWeightToKg(value, from: unitPreference.weightUnit)
-                            updated.weightKg = kilos
-                        }
-                    }
-                ), format: .number)
-                .textFieldStyle(.roundedBorder)
-                .keyboardType(.decimalPad)
-                .frame(height: 35)
-            }
-            .frame(width: 70)
-
-            VStack(alignment: .leading) {
-                if set.index == 1 {
-                    Text("Reps")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-                TextField("0", value: Binding(
-                    get: { set.reps },
-                    set: { newValue in
-                        updateSetValue(set, in: exercise.id) { $0.reps = newValue }
-                    }
-                ), format: .number)
-                .textFieldStyle(.roundedBorder)
-                .keyboardType(.numberPad)
-                .frame(height: 35)
-            }
-            .frame(width: 50)
-        }
-    }
-
     func repsOnlyFields(exercise: WorkoutExerciseModel, set: WorkoutSetModel) -> some View {
         VStack(alignment: .leading) {
             if set.index == 1 {
@@ -379,16 +273,29 @@ extension WorkoutTrackerView {
         }
     }
 
-    func distanceTimeDistanceField(
-        exercise: WorkoutExerciseModel,
-        set: WorkoutSetModel,
-        unitPreference: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+    func distanceTimeDistanceField(exercise: WorkoutExerciseModel, set: WorkoutSetModel, unitPreference: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)) -> some View {
+        VStack(alignment: .center, spacing: 2) {
             if set.index == 1 {
-                Text("Distance (\(unitPreference.distanceUnit.abbreviation))")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                Menu {
+                    ForEach(ExerciseDistanceUnit.allCases, id: \.self) { unit in
+                        Button {
+                            presenter.promptDistanceUnitChange(unit, for: exercise)
+                        } label: {
+                            HStack {
+                                Text(unit.displayName)
+                                if unit == unitPreference.distanceUnit {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    Text(unitPreference.distanceUnit.abbreviation)
+                        .autocapitalization(.words)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
             TextField("0", value: Binding(
                 get: {
@@ -511,15 +418,20 @@ extension WorkoutTrackerView {
 
     @ViewBuilder
     func unitPreferenceMenu(_ exercise: WorkoutExerciseModel) -> some View {
+        let unitPreference = presenter.getUnitPreference(for: exercise.templateId)
+        
         Menu {
             if exercise.trackingMode == .weightReps {
                 Menu {
                     ForEach(ExerciseWeightUnit.allCases, id: \.self) { unit in
                         Button {
+                            presenter.promptWeightUnitChange(unit, for: exercise)
                         } label: {
                             HStack {
                                 Text(unit.displayName)
-                                Image(systemName: "checkmark")
+                                if unit == unitPreference.weightUnit {
+                                    Image(systemName: "checkmark")
+                                }
                             }
                         }
                     }
@@ -532,10 +444,13 @@ extension WorkoutTrackerView {
                 Menu {
                     ForEach(ExerciseDistanceUnit.allCases, id: \.self) { unit in
                         Button {
+                            presenter.promptDistanceUnitChange(unit, for: exercise)
                         } label: {
                             HStack {
                                 Text(unit.displayName)
-                                Image(systemName: "checkmark")
+                                if unit == unitPreference.distanceUnit {
+                                    Image(systemName: "checkmark")
+                                }
                             }
                         }
                     }

@@ -1,7 +1,8 @@
 #if canImport(HealthKit)
 import Foundation
 
-final class MockHealthKitStepsService: HealthKitStepsService {
+@MainActor
+class MockHealthKitStepsService: HealthKitStepsService {
     private(set) var samples: [HealthKitStepsSample]
 
     init(samples: [HealthKitStepsSample] = []) {

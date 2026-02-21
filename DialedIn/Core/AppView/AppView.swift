@@ -6,14 +6,13 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
+import SwiftfulUI
 
-struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
+struct AppView<Content: View>: View {
 
     @State var presenter: AppPresenter
 
-    var adaptiveMainView: () -> AdaptiveMainView
-    var onboardingWelcomeView: () -> OnboardingView
+    @ViewBuilder var content: () -> Content
 
     var body: some View {
         RootView(
@@ -22,7 +21,6 @@ struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
                 onApplicationWillEnterForeground: { _ in
                     Task {
                         await presenter.checkUserStatus()
-                        await presenter.syncRemoteDataIfLoggedIn()
                     }
                 },
                 onApplicationDidBecomeActive: nil,
@@ -31,80 +29,104 @@ struct AppView<AdaptiveMainView: View, OnboardingView: View>: View {
                 onApplicationWillTerminate: nil
             ),
             content: {
-                AppViewBuilder(
-                    showTabBar:
-                        presenter.showTabBar,
-                    tabBarView: {
-                        adaptiveMainView()
-                    },
-                    onboardingView: {
-                        onboardingWelcomeView()
+                content()
+                    .onFirstAppear {
+                        presenter.schedulePushNotifications()
                     }
-                )
-                .onFirstAppear {
-                    presenter.schedulePushNotifications()
-                }
-                .task {
-                    await presenter.checkUserStatus()
-                    await presenter.syncRemoteDataIfLoggedIn()
-                    try? await Task.sleep(for: .seconds(2))
-                    await presenter.showATTPromptIfNeeded()
-                }
+                    .task {
+                        await presenter.checkUserStatus()
+                    }
+                    .task {
+                        try? await Task.sleep(for: .seconds(2))
+                        await presenter.showATTPromptIfNeeded()
+                    }
+                    .onChange(of: presenter.auth?.uid) { _, newValue in
+                        if newValue == nil || newValue?.isEmpty == true {
+                            Task {
+                                await presenter.checkUserStatus()
+                            }
+                        }
+                    }
             }
         )
-    }
-}
-
-extension RootBuilder {
-    func appView() -> some View {
-        AppView(
-            presenter: AppPresenter(interactor: interactor),
-            adaptiveMainView: {
-                loggedInRIB().build()
-            },
-            onboardingWelcomeView: {
-                loggedOutRIB().build()
-            }
-        )
-    }
-}
-
-// MARK: - Completed Onboarding Previews
-
-#Preview("✅ Completed - Tab Bar") {
-    let container = DevPreview.shared.container()
-    container.register(AppState.self, service: AppState(showTabBar: true))
-
-    let builder = RootBuilder(
-        interactor: RootInteractor(container: container),
-        loggedInRIB: {
-            CoreBuilder(interactor: CoreInteractor(container: container))
-        },
-        loggedOutRIB: {
-            OnbBuilder(interactor: OnbInteractor(container: container))
+        .onNotificationReceived(name: .fcmToken) { notification in
+            presenter.onFCMTokenRecieved(notification: notification)
         }
-    )
-    return builder.build()
-    .previewEnvironment()
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
+
+    }
 }
 
-// MARK: - Onboarding Step Previews
+#Preview("AppView - Tabbar") {
+    let container = DevPreview.shared.container()
+    container.register(AppState.self, service: AppState(startingModuleId: Constants.tabBarModuleId))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
+    
+    return builder.appView()
+        .previewEnvironment()
+}
 
-#Preview("1️⃣ Not Authenticated") {
+#Preview("AppView - Onboarding") {
     let container = DevPreview.shared.container()
     container.register(UserManager.self, service: UserManager(services: MockUserServices(user: nil)))
     container.register(AuthManager.self, service: AuthManager(service: MockAuthService(user: nil)))
-    container.register(AppState.self, service: AppState(showTabBar: false))
+    container.register(AppState.self, service: AppState(startingModuleId: Constants.onboardingModuleId))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
 
-    let builder = RootBuilder(
-        interactor: RootInteractor(container: container),
-        loggedInRIB: {
-            CoreBuilder(interactor: CoreInteractor(container: container))
-        },
-        loggedOutRIB: {
-            OnbBuilder(interactor: OnbInteractor(container: container))
+    return builder.appView()
+        .previewEnvironment()
+}
+
+extension CoreBuilder {
+    func appView() -> some View {
+        AppView(
+            presenter: AppPresenter(
+                interactor: interactor
+            ),
+            content: {
+                switch interactor.startingModuleId {
+                case Constants.tabBarModuleId:
+                    RouterView(id: Constants.tabBarModuleId, addNavigationStack: false, addModuleSupport: true) { _ in
+                        coreModuleEntryView()
+                    }
+                default:
+                    RouterView(id: Constants.onboardingModuleId, addNavigationStack: false, addModuleSupport: true) { _ in
+                        onboardingModuleEntryView()
+                    }
+                }
+            }
+        )
+    }
+    
+    func onboardingModuleEntryView() -> some View {
+        onboardingFlow()
+    }
+    
+    func coreModuleEntryView() -> some View {
+        adaptiveMainView()
+    }
+}
+
+extension CoreRouter {
+    
+    func switchToCoreModule() {
+        router.showModule(.trailing, id: Constants.tabBarModuleId, onDismiss: nil) { _ in
+            self.builder.coreModuleEntryView()
         }
-    )
-    return builder.build()
-    .previewEnvironment()
+    }
+    
+}
+
+extension CoreRouter {
+    
+    func switchToOnboardingModule() {
+        router.showModule(.leading, id: Constants.onboardingModuleId, onDismiss: nil) { _ in
+            self.builder.onboardingModuleEntryView()
+        }
+    }
 }

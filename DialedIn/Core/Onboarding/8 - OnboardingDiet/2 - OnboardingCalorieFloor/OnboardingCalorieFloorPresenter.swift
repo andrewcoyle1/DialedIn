@@ -27,16 +27,6 @@ class OnboardingCalorieFloorPresenter {
     }
     
     private func loadTrainingContext() {
-        if let plan = interactor.currentTrainingPlan {
-            hasTrainingPlan = true
-            // Calculate days per week from first week's scheduled workouts
-            if let firstWeek = plan.weeks.first {
-                trainingDaysPerWeek = firstWeek.scheduledWorkouts.count
-                // Prefill based on training frequency
-                prefillCalorieFloor(daysPerWeek: trainingDaysPerWeek ?? 0)
-            }
-            interactor.trackEvent(event: Event.trainingContextLoaded(daysPerWeek: trainingDaysPerWeek))
-        }
     }
     
     private func prefillCalorieFloor(daysPerWeek: Int) {

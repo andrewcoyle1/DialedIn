@@ -206,7 +206,6 @@ class ExerciseListBuilderPresenter {
         await loadMyExercisesIfNeeded()
         await loadOfficialExercises()
         await loadTopExercisesIfNeeded()
-        await syncSavedExercisesFromUser()
     }
     
     private func loadMyExercisesIfNeeded() async {
@@ -252,42 +251,6 @@ class ExerciseListBuilderPresenter {
             router.showSimpleAlert(
                 title: "Unable to Load Trending Templates",
                 subtitle: "We couldn't load top exercise templates. Please try again later."
-            )
-        }
-    }
-
-    func syncSavedExercisesFromUser() async {
-        interactor.trackEvent(event: ExercisesViewEvents.syncExercisesFromCurrentUserStart)
-        guard let user = interactor.currentUser else {
-            interactor.trackEvent(event: ExercisesViewEvents.syncExercisesFromCurrentUserNoUid)
-            favouriteExercises = []
-            bookmarkedExercises = []
-            return
-        }
-        let bookmarkedIds = user.bookmarkedExerciseTemplateIds ?? []
-        let favouritedIds = user.favouritedExerciseTemplateIds ?? []
-        if bookmarkedIds.isEmpty && favouritedIds.isEmpty {
-            favouriteExercises = []
-            bookmarkedExercises = []
-            return
-        }
-        do {
-            var favs: [ExerciseModel] = []
-            var bookmarks: [ExerciseModel] = []
-            if !favouritedIds.isEmpty {
-                favs = try await interactor.getExerciseTemplates(ids: favouritedIds, limitTo: favouritedIds.count)
-            }
-            if !bookmarkedIds.isEmpty {
-                bookmarks = try await interactor.getExerciseTemplates(ids: bookmarkedIds, limitTo: bookmarkedIds.count)
-            }
-            favouriteExercises = favs
-            bookmarkedExercises = bookmarks
-            interactor.trackEvent(event: ExercisesViewEvents.syncExercisesFromCurrentUserSuccess(favouriteCount: favs.count, bookmarkedCount: bookmarks.count))
-        } catch {
-            interactor.trackEvent(event: ExercisesViewEvents.syncExercisesFromCurrentUserFail(error: error))
-            router.showSimpleAlert(
-                title: "Unable to Load Saved Exercises",
-                subtitle: "We couldn't retrieve your saved exercises. Please try again later."
             )
         }
     }

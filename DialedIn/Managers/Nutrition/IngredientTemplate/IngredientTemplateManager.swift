@@ -8,34 +8,97 @@
 import SwiftUI
 
 @Observable
-class IngredientTemplateManager: BaseTemplateManager<IngredientTemplateModel> {
+@MainActor
+class IngredientTemplateManager {
     
+    private let remote: RemoteIngredientTemplateService
+    private let local: LocalIngredientTemplatePersistence
     private let logManager: LogManager?
     
     init(services: IngredientTemplateServices, logManager: LogManager? = nil) {
+        self.remote = services.remote
+        self.local = services.local
         self.logManager = logManager
-        super.init(
-            addLocal: { try services.local.addLocalIngredientTemplate(ingredient: $0) },
-            getLocal: { try services.local.getLocalIngredientTemplate(id: $0) },
-            getLocalMany: { try services.local.getLocalIngredientTemplates(ids: $0) },
-            getAllLocal: { try services.local.getAllLocalIngredientTemplates() },
-            deleteLocal: nil,
-            createRemote: { try await services.remote.createIngredientTemplate(ingredient: $0, image: $1) },
-            updateRemote: nil,
-            deleteRemote: nil,
-            getRemote: { try await services.remote.getIngredientTemplate(id: $0) },
-            getRemoteMany: { try await services.remote.getIngredientTemplates(ids: $0, limitTo: $1) },
-            getByNameRemote: { try await services.remote.getIngredientTemplatesByName(name: $0) },
-            getForAuthorRemote: { try await services.remote.getIngredientTemplatesForAuthor(authorId: $0) },
-            getTopByClicksRemote: { try await services.remote.getTopIngredientTemplatesByClicks(limitTo: $0) },
-            incrementRemote: { try await services.remote.incrementIngredientTemplateInteraction(id: $0) },
-            removeAuthorIdRemote: { try await services.remote.removeAuthorIdFromIngredientTemplate(id: $0) },
-            removeAuthorIdFromAllRemote: { try await services.remote.removeAuthorIdFromAllIngredientTemplates(id: $0) },
-            bookmarkRemote: { try await services.remote.bookmarkIngredientTemplate(id: $0, isBookmarked: $1) },
-            favouriteRemote: { try await services.remote.favouriteIngredientTemplate(id: $0, isFavourited: $1) }
-        )
+    }
+
+    // MARK: - Method Aliases for Backward Compatibility
+    
+    func addLocalIngredientTemplate(ingredient: IngredientTemplateModel) throws {
+        logManager?.trackEvent(event: Event.addLocalStart(id: ingredient.id))
+        do {
+            try local.addLocalIngredientTemplate(ingredient: ingredient)
+            logManager?.trackEvent(event: Event.addLocalSuccess(id: ingredient.id))
+        } catch {
+            logManager?.trackEvent(event: Event.addLocalFail(id: ingredient.id, error: error))
+            throw error
+        }
     }
     
+    func getLocalIngredientTemplate(id: String) throws -> IngredientTemplateModel {
+        try local.getLocalIngredientTemplate(id: id)
+    }
+    
+    func getLocalIngredientTemplates(ids: [String]) throws -> [IngredientTemplateModel] {
+        try local.getLocalIngredientTemplates(ids: ids)
+    }
+    
+    func getAllLocalIngredientTemplates() throws -> [IngredientTemplateModel] {
+        try local.getAllLocalIngredientTemplates()
+    }
+    
+    func createIngredientTemplate(ingredient: IngredientTemplateModel, image: PlatformImage?) async throws {
+        logManager?.trackEvent(event: Event.createStart(id: ingredient.id, hasImage: image != nil))
+        do {
+            try await remote.createIngredientTemplate(ingredient: ingredient, image: image)
+            logManager?.trackEvent(event: Event.createSuccess(id: ingredient.id))
+        } catch {
+            logManager?.trackEvent(event: Event.createFail(id: ingredient.id, error: error))
+            throw error
+        }
+    }
+    
+    func getIngredientTemplate(id: String) async throws -> IngredientTemplateModel {
+        try await remote.getIngredientTemplate(id: id)
+    }
+    
+    func getIngredientTemplates(ids: [String], limitTo: Int = 20) async throws -> [IngredientTemplateModel] {
+        try await remote.getIngredientTemplates(ids: ids, limitTo: limitTo)
+    }
+    
+    func getIngredientTemplatesByName(name: String) async throws -> [IngredientTemplateModel] {
+        try await remote.getIngredientTemplatesByName(name: name)
+    }
+    
+    func getIngredientTemplatesForAuthor(authorId: String) async throws -> [IngredientTemplateModel] {
+        try await remote.getIngredientTemplatesForAuthor(authorId: authorId)
+    }
+    
+    func getTopIngredientTemplatesByClicks(limitTo: Int = 10) async throws -> [IngredientTemplateModel] {
+        try await remote.getTopIngredientTemplatesByClicks(limitTo: limitTo)
+    }
+    
+    func incrementIngredientTemplateInteraction(id: String) async throws {
+        try await remote.incrementIngredientTemplateInteraction(id: id)
+    }
+    
+    func removeAuthorIdFromIngredientTemplate(id: String) async throws {
+        try await remote.removeAuthorIdFromIngredientTemplate(id: id)
+    }
+    
+    func removeAuthorIdFromAllIngredientTemplates(id: String) async throws {
+        try await remote.removeAuthorIdFromAllIngredientTemplates(id: id)
+    }
+    
+    func bookmarkIngredientTemplate(id: String, isBookmarked: Bool) async throws {
+        try await remote.bookmarkIngredientTemplate(id: id, isBookmarked: isBookmarked)
+    }
+    
+    func favouriteIngredientTemplate(id: String, isFavourited: Bool) async throws {
+        try await remote.favouriteIngredientTemplate(id: id, isFavourited: isFavourited)
+    }
+}
+ 
+extension IngredientTemplateManager {
     // MARK: - Events
     enum Event: LoggableEvent {
         case createStart(id: String, hasImage: Bool)
@@ -82,81 +145,5 @@ class IngredientTemplateManager: BaseTemplateManager<IngredientTemplateModel> {
             }
         }
     }
-    
-    // MARK: - Method Aliases for Backward Compatibility
-    
-    func addLocalIngredientTemplate(ingredient: IngredientTemplateModel) async throws {
-        logManager?.trackEvent(event: Event.addLocalStart(id: ingredient.id))
-        do {
-            try await addLocalTemplate(ingredient)
-            logManager?.trackEvent(event: Event.addLocalSuccess(id: ingredient.id))
-        } catch {
-            logManager?.trackEvent(event: Event.addLocalFail(id: ingredient.id, error: error))
-            throw error
-        }
-    }
-    
-    func getLocalIngredientTemplate(id: String) throws -> IngredientTemplateModel {
-        try getLocalTemplate(id: id)
-    }
-    
-    func getLocalIngredientTemplates(ids: [String]) throws -> [IngredientTemplateModel] {
-        try getLocalTemplates(ids: ids)
-    }
-    
-    func getAllLocalIngredientTemplates() throws -> [IngredientTemplateModel] {
-        try getAllLocalTemplates()
-    }
-    
-    func createIngredientTemplate(ingredient: IngredientTemplateModel, image: PlatformImage?) async throws {
-        logManager?.trackEvent(event: Event.createStart(id: ingredient.id, hasImage: image != nil))
-        do {
-            try await createTemplate(ingredient, image: image)
-            logManager?.trackEvent(event: Event.createSuccess(id: ingredient.id))
-        } catch {
-            logManager?.trackEvent(event: Event.createFail(id: ingredient.id, error: error))
-            throw error
-        }
-    }
-    
-    func getIngredientTemplate(id: String) async throws -> IngredientTemplateModel {
-        try await getTemplate(id: id)
-    }
-    
-    func getIngredientTemplates(ids: [String], limitTo: Int = 20) async throws -> [IngredientTemplateModel] {
-        try await getTemplates(ids: ids, limitTo: limitTo)
-    }
-    
-    func getIngredientTemplatesByName(name: String) async throws -> [IngredientTemplateModel] {
-        try await getTemplatesByName(name: name)
-    }
-    
-    func getIngredientTemplatesForAuthor(authorId: String) async throws -> [IngredientTemplateModel] {
-        try await getTemplatesForAuthor(authorId: authorId)
-    }
-    
-    func getTopIngredientTemplatesByClicks(limitTo: Int = 10) async throws -> [IngredientTemplateModel] {
-        try await getTopTemplatesByClicks(limitTo: limitTo)
-    }
-    
-    func incrementIngredientTemplateInteraction(id: String) async throws {
-        try await incrementTemplateInteraction(id: id)
-    }
-    
-    func removeAuthorIdFromIngredientTemplate(id: String) async throws {
-        try await removeAuthorIdFromTemplate(id: id)
-    }
-    
-    func removeAuthorIdFromAllIngredientTemplates(id: String) async throws {
-        try await removeAuthorIdFromAllTemplates(id: id)
-    }
-    
-    func bookmarkIngredientTemplate(id: String, isBookmarked: Bool) async throws {
-        try await bookmarkTemplate(id: id, isBookmarked: isBookmarked)
-    }
-    
-    func favouriteIngredientTemplate(id: String, isFavourited: Bool) async throws {
-        try await favouriteTemplate(id: id, isFavourited: isFavourited)
-    }
+
 }
- 

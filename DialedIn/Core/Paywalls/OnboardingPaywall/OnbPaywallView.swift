@@ -77,18 +77,18 @@ struct OnbPaywallView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onbPaywallView(router: AnyRouter) -> some View {
         OnbPaywallView(
             presenter: OnbPaywallPresenter(
                 interactor: interactor,
-                router: OnbRouter(router: router, builder: self)
+                router: CoreRouter(router: router, builder: self)
             )
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnbPaywall() {
         router.showScreen(.push) { router in
             builder.onbPaywallView(router: router)
@@ -99,7 +99,7 @@ extension OnbRouter {
 #Preview("Custom") {
     let container = DevPreview.shared.container()
     container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(paywallTest: .custom)))
-    let builder = OnbBuilder(interactor: OnbInteractor(container: container))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
 
     return RouterView { router in
         builder.onbPaywallView(router: router)
@@ -109,7 +109,7 @@ extension OnbRouter {
 #Preview("StoreKit") {
     let container = DevPreview.shared.container()
     container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(paywallTest: .storeKit)))
-    let builder = OnbBuilder(interactor: OnbInteractor(container: container))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
 
     return RouterView { router in
         builder.onbPaywallView(router: router)
@@ -119,7 +119,7 @@ extension OnbRouter {
 #Preview("RevenueCat") {
     let container = DevPreview.shared.container()
     container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(paywallTest: .revenueCat)))
-    let builder = OnbBuilder(interactor: OnbInteractor(container: container))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
 
     return RouterView { router in
         builder.onbPaywallView(router: router)

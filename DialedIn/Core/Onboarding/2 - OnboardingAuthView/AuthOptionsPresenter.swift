@@ -138,18 +138,16 @@ class OnboardingAuthPresenter {
                 interactor.trackEvent(event: Event.userLoginSuccess)
                 
                 guard let user = currentUser else { return }
-                
-                if interactor.isPremium == false {
+                if !isNewUser {
+                    router.switchToCoreModule()
+                } else if interactor.isPremium == false {
                     // Non‑premium: go straight to paywall from auth
                     interactor.trackEvent(event: Event.paywallShownAfterLogin)
                     router.showOnbPaywall()
                 } else if user.onboardingStep != .complete {
                     // Premium but still onboarding: continue onboarding
                     handleNavigation()
-                } else {
-                    // Premium and onboarding complete: go to main app
-                    interactor.updateAppState(showTabBarView: true)
-                }
+                } 
             } catch {
                 router.showAlert(
                     title: "Error Logging In",

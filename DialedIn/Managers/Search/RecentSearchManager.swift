@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 enum RecentSearchManager {
     private static let maxQueries = 10
     private static let userDefaultsKey = "search_recent_queries"

@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol OnboardingWelcomeRouter {
+protocol OnboardingWelcomeRouter: GlobalRouter {
     func showDevSettingsView()
     func showOnboardingIntroView()
     func showOnboardingAuthView()
@@ -20,4 +20,4 @@ protocol OnboardingWelcomeRouter {
     func showOnboardingCompletedView()
 }
 
-extension OnbRouter: OnboardingWelcomeRouter { }
+extension CoreRouter: OnboardingWelcomeRouter { }

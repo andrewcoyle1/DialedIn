@@ -23,13 +23,12 @@ class OnboardingTrainingSplitPresenter {
         self.router = router
     }
     
-    func navigateToSchedule(builder: TrainingProgramBuilder) {
+    func navigateToSchedule(delegate: OnboardingTrainingSplitDelegate) {
         guard let split = selectedSplit else { return }
         
-        var updatedBuilder = builder
-        updatedBuilder.setSplitType(split)
+        let delegate = OnboardingTrainingScheduleDelegate(delegate: delegate, trainingSplitType: split)
         interactor.trackEvent(event: Event.navigate)
-        router.showOnboardingTrainingScheduleView(delegate: OnboardingTrainingScheduleDelegate(trainingProgramBuilder: updatedBuilder))
+        router.showOnboardingTrainingScheduleView(delegate: delegate)
     }
 
     func onDevSettingsPressed() {

@@ -44,10 +44,6 @@ class TrainingPresenter {
     
     var today: Date = Date()
     
-    private(set) var scheduledWorkouts: [ScheduledWorkout] = []
-    private(set) var workoutsForMenu: [ScheduledWorkout] = []
-    private(set) var weekProgress: WeekProgress?
-
     init(
         interactor: TrainingInteractor,
         router: TrainingRouter
@@ -195,7 +191,6 @@ class TrainingPresenter {
             // Notify parent to show WorkoutStartView
             handleWorkoutStartRequest(
                 template: template,
-                scheduledWorkout: nil,
                 programId: activeTrainingProgram?.id,
                 dayPlanId: dayPlan.id
             )
@@ -205,56 +200,6 @@ class TrainingPresenter {
             interactor.trackEvent(event: Event.startWorkoutRequestedFail(error: error))
             self.router.showAlert(error: error)
         }
-    }
-    
-    private func handleWorkoutStartRequest(
-        template: WorkoutTemplateModel,
-        scheduledWorkout: ScheduledWorkout?,
-        programId: String? = nil,
-        dayPlanId: String? = nil
-    ) {
-        guard let userId = currentUser?.userId else { return }
-        router.showWorkoutStartModal(
-            delegate: WorkoutStartDelegate(
-                template: template,
-                scheduledWorkout: scheduledWorkout,
-                programId: programId,
-                dayPlanId: dayPlanId,
-                onStartWorkoutPressed: {
-                    
-                    do {
-                        
-                        // Create workout session from template
-                        let session = WorkoutSessionModel(
-                            authorId: userId,
-                            template: template,
-                            notes: nil,
-                            scheduledWorkoutId: scheduledWorkout?.id,
-                            trainingPlanId: nil,
-                            programId: programId,
-                            dayPlanId: dayPlanId
-                        )
-                        
-                        // Save locally first (MainActor-isolated)
-                        try self.interactor.addLocalWorkoutSession(session: session)
-                        
-                        self.interactor.startActiveSession(session)
-                        defer {
-                            Task {
-                                try? await Task.sleep(for: .seconds(0.5))
-                                self.router.dismissModal()
-                            }
-                        }
-                        self.router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
-                    } catch {
-                        self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
-                    }
-                },
-                onCancelPressed: {
-                    self.router.dismissModal()
-                }
-            )
-        )
     }
     
     func openCompletedSession(sessionId: String) {
@@ -272,85 +217,8 @@ class TrainingPresenter {
     func onDatePressed(date: Date) {
         self.selectedDate = date.startOfDay
         
-        let workouts = workoutsForDate(date)
-        
-        if workouts.isEmpty {
-            return
-        } else if workouts.count == 1 {
-            // Single workout - handle directly
-            Task {
-                await handleWorkoutSelection(workouts[0])
-            }
-        } else {
-            // Multiple workouts - show menu
-            workoutsForMenu = workouts
-            self.showWorkoutMenu(workoutsForMenu)
-        }
     }
-    
-    private func showWorkoutMenu(_ workouts: [ScheduledWorkout]) {
-        router.showConfirmationDialog(
-            title: "Select a Workout",
-            subtitle: nil, buttons: {
-                AnyView(
-                    VStack {
-                        ForEach(workouts) { workout in
-                            Button {
-                                Task {
-                                    await self.handleWorkoutSelection(workout)
-                                }
-                            } label: {
-                                if let name = workout.workoutName {
-                                    Text("\(name) \(workout.isCompleted ? "✓" : "")")
-                                } else {
-                                    Text("Workout \(workout.isCompleted ? "✓" : "")")
-                                }
-                            }
-                        }
-                        Button("Cancel", role: .cancel) { }
-                    }
-                )
-            }
-        )
-    }
-    
-    private func workoutsForDate(_ date: Date) -> [ScheduledWorkout] {
-        let calendar = Calendar.current
-        return scheduledWorkouts.filter { workout in
-            guard let scheduledDate = workout.scheduledDate else { return false }
-            return calendar.isDate(scheduledDate, inSameDayAs: date)
-        }
-    }
-    
-    func handleWorkoutSelection(_ workout: ScheduledWorkout) async {
-        if workout.isCompleted {
-            openCompletedSession(for: workout)
-        } else {
-            await startWorkout(workout)
-        }
-    }
-                
-    func getWorkoutsForDay(_ day: Date, calendar: Calendar) -> [ScheduledWorkout] {
-        scheduledWorkouts
-            .filter { workout in
-                guard let scheduled = workout.scheduledDate else { return false }
-                return calendar.isDate(scheduled, inSameDayAs: day)
-            }
-            .sorted { ($0.scheduledDate ?? .distantFuture) < ($1.scheduledDate ?? .distantFuture) }
-    }
-
-    func getLoggedWorkoutCountForDate(_ day: Date, calendar: Calendar) -> Int {
-        scheduledWorkouts
-            .filter { workout in
-                guard
-                    let scheduled = workout.scheduledDate,
-                    calendar.isDate(scheduled, inSameDayAs: day)
-                else { return false }
-                return workout.completedSessionId != nil
-            }
-            .count
-    }
-    
+            
     func adherenceColor(_ rate: Double) -> Color {
         if rate >= 0.8 { return .green }
         if rate >= 0.6 { return .orange }
@@ -383,45 +251,7 @@ class TrainingPresenter {
             return "\(days) days left"
         }
     }
-    
-    func startWorkout(_ scheduledWorkout: ScheduledWorkout) async {
-        let shouldProceed = checkForActiveWorkout(
-            onResumeWorkout: { [weak self] in
-                Task {
-                    await self?.resumeActiveWorkout()
-                }
-            },
-            onStartNewWorkout: { [weak self] in
-                Task {
-                    await self?.performStartWorkout(scheduledWorkout)
-                }
-            }
-        )
-        
-        if shouldProceed {
-            await performStartWorkout(scheduledWorkout)
-        }
-    }
-    
-    private func performStartWorkout(_ scheduledWorkout: ScheduledWorkout) async {
-        interactor.trackEvent(event: Event.startWorkoutRequestedStart)
-        do {
-            let template = try await interactor.getWorkoutTemplate(id: scheduledWorkout.workoutTemplateId)
             
-            // Delay to ensure calendar zoom transition dismiss animation completes
-            // before presenting the workout start sheet
-            try? await Task.sleep(for: .seconds(0.4))
-            
-            // Notify parent to show WorkoutStartView
-            handleWorkoutStartRequest(template: template, scheduledWorkout: scheduledWorkout)
-            interactor.trackEvent(event: Event.startWorkoutRequestedSuccess)
-
-        } catch {
-            interactor.trackEvent(event: Event.startWorkoutRequestedFail(error: error))
-            self.router.showAlert(error: error)
-        }
-    }
-    
     func onStartEmptyWorkoutPressed() {
         let shouldProceed = checkForActiveWorkout(
             onResumeWorkout: { [weak self] in
@@ -468,19 +298,6 @@ class TrainingPresenter {
         
         router.dismissScreen()
     }
-
-    func openCompletedSession(for scheduledWorkout: ScheduledWorkout) {
-        guard let sessionId = scheduledWorkout.completedSessionId else { return }
-        interactor.trackEvent(event: Event.openCompletedSessionStart)
-        do {
-            let session = try interactor.getLocalWorkoutSession(id: sessionId)
-            interactor.trackEvent(event: Event.openCompletedSessionSuccess)
-            router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
-        } catch {
-            router.showAlert(error: error)
-            interactor.trackEvent(event: Event.openCompletedSessionFail(error: error))
-        }
-    }
     
     // MARK: - Data Loading
     
@@ -495,7 +312,7 @@ class TrainingPresenter {
     }
 
     func refreshFavouriteGymProfileImage() async {
-        guard let favouriteId = currentUser?.favouriteGymProfileId else {
+        guard let favouriteId = currentUser?.submittedFavouriteGymProfileId else {
             favouriteGymProfileImageUrl = nil
             return
         }

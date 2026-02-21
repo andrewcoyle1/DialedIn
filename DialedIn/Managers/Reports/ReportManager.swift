@@ -52,6 +52,7 @@ struct ReportSubmission: Codable {
 }
 
 @Observable
+@MainActor
 class ReportManager {
     private let remote: RemoteReportService
     private let userManager: UserManager

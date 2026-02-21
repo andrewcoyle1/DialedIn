@@ -8,6 +8,7 @@
 import Foundation
 
 @Observable
+@MainActor
 class StepsManager {
     private let local: LocalStepsPersistence
     private let remote: RemoteStepsService

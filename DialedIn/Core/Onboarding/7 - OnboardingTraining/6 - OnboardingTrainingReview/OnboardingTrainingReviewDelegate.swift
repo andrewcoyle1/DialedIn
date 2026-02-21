@@ -6,5 +6,22 @@
 //
 
 struct OnboardingTrainingReviewDelegate {
-    var trainingProgramBuilder: TrainingProgramBuilder
+    
+    let trainingExperience: TrainingExperience
+    let selectedDays: Int
+    let trainingSplitType: TrainingSplitType
+    let scheduledDays: Set<Int>
+    let gymProfile: GymProfileModel
+    
+    init(delegate: OnboardingTrainingEquipmentDelegate, gymProfile: GymProfileModel) {
+        self.trainingExperience = delegate.trainingExperience
+        self.selectedDays = delegate.selectedDays
+        self.trainingSplitType = delegate.trainingSplitType
+        self.scheduledDays = delegate.scheduledDays
+        self.gymProfile = gymProfile
+    }
+    
+    static var mock: Self {
+        Self(delegate: .mock, gymProfile: GymProfileModel.mock)
+    }
 }

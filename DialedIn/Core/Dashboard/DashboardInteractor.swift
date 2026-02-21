@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
+@MainActor
 protocol DashboardInteractor {
     var userImageUrl: String? { get }
     var activeTests: ActiveABTests { get }

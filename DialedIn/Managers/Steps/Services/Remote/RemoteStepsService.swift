@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 07/02/2026.
 //
 
-protocol RemoteStepsService {
+protocol RemoteStepsService: Sendable {
     
     // MARK: CREATE
     func createStepsEntry(steps: StepsModel) async throws

@@ -8,6 +8,7 @@
 import Foundation
 
 @Observable
+@MainActor
 class ImageUploadManager {
     private let service: ImageUploadService
     

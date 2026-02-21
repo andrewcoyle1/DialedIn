@@ -5,11 +5,12 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
+@MainActor
 protocol OnboardingNotificationsInteractor {
-    func requestPushAuthorisation() async throws -> Bool
+    func requestPushAuthorization() async throws -> Bool
     func canRequestHealthDataAuthorisation() -> Bool
     func updateOnboardingStep(step: OnboardingStep) async throws
     func trackEvent(event: LoggableEvent)
 }
 
-extension OnbInteractor: OnboardingNotificationsInteractor { }
+extension CoreInteractor: OnboardingNotificationsInteractor { }

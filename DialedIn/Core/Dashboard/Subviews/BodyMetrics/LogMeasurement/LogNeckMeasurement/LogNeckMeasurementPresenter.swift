@@ -40,7 +40,7 @@ class LogNeckMeasurementPresenter {
         guard let user = interactor.currentUser else { return }
 
         // Set initial unit based on user preference
-        if let preference = user.lengthUnitPreference {
+        if let preference = user.submittedLengthUnitPreference {
             unit = preference == .centimeters ? .centimeters : .inches
         }
 

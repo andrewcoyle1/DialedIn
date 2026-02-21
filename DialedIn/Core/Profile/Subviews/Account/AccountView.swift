@@ -70,7 +70,7 @@ struct AccountView: View {
                             .scaledToFill()
                     }
 #endif
-                } else if let profileImageUrl = presenter.currentUser?.profileImageUrl {
+                } else if let profileImageUrl = presenter.currentUser?.submittedProfileImage {
                     // Use cached image
                     ImageLoaderView(urlString: profileImageUrl)
                 } else {
@@ -96,19 +96,19 @@ struct AccountView: View {
                 Text("Gender")
                     .fontWeight(.semibold)
             }
-            if let height = presenter.currentUser?.heightCentimeters {
+            if let height = presenter.currentUser?.submittedHeightCentimeters {
                 rowItem(title: "Height", subtitle: "\(height)", action: {
                     print("Edit height pressed")
                 })
             }
 
-            if let cardioExperience = presenter.currentUser?.cardioFitnessLevel {
+            if let cardioExperience = presenter.currentUser?.submittedCardioFitnessLevel {
                 rowItem(title: "Cardio Experience", subtitle: "\(cardioExperience)", action: {
                     print("Edit cardio experience pressed")
                 })
             }
 
-            if let liftingExperience = presenter.currentUser?.exerciseFrequency {
+            if let liftingExperience = presenter.currentUser?.submittedExerciseFrequency {
                 rowItem(title: "Lifting Experience", subtitle: "\(liftingExperience)", action: {
                     print("Edit lifting experience pressed")
                 })
@@ -188,7 +188,7 @@ struct AccountView: View {
             Button {
                 presenter.presentImagePicker()
             } label: {
-                Image(systemName: presenter.currentUser?.profileImageUrl == nil ? "photo.badge.plus" : "photo.badge.checkmark")
+                Image(systemName: presenter.currentUser?.submittedProfileImage == nil ? "photo.badge.plus" : "photo.badge.checkmark")
             }
         }
     }

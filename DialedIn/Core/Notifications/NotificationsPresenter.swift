@@ -29,13 +29,13 @@ class NotificationsPresenter {
     func loadNotifications() async {
         isLoading = true
         
-        // Get authorization status
-        authorizationStatus = await interactor.getNotificationAuthorisationStatus()
-        
-        // Load notifications if authorized
-        if authorizationStatus == .authorized {
-            notifications = await interactor.getDeliveredNotifications()
-        }
+//        // Get authorization status
+//        authorizationStatus = await interactor.getNotificationAuthorisationStatus()
+//        
+//        // Load notifications if authorized
+//        if authorizationStatus == .authorized {
+//            notifications = await interactor.getDeliveredNotifications()
+//        }
         
         isLoading = false
     }
@@ -44,7 +44,7 @@ class NotificationsPresenter {
         Task {
             for index in offsets {
                 let notification = notifications[index]
-                await interactor.removeDeliveredNotification(identifier: notification.request.identifier)
+//                await interactor.removeDeliveredNotification(identifier: notification.request.identifier)
             }
             notifications.remove(atOffsets: offsets)
         }
@@ -53,7 +53,7 @@ class NotificationsPresenter {
     func onRequestNotificationsPressed() {
         Task {
             do {
-                _ = try await interactor.requestPushAuthorisation()
+                _ = try await interactor.requestPushAuthorization()
                 await loadNotifications()
             } catch {
                 // Handle error silently or show alert
