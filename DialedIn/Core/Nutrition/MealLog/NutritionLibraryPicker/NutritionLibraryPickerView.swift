@@ -142,7 +142,9 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = NutritionLibraryPickerDelegate(
         onPick: { item in
             print(item.displayName)
@@ -151,5 +153,5 @@ extension CoreRouter {
     RouterView { router in
         builder.nutritionLibraryPickerView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

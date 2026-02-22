@@ -265,10 +265,12 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = WorkoutSessionDetailDelegate(workoutSession: .mock)
     RouterView { router in
         builder.workoutSessionDetailView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

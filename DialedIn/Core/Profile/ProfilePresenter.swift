@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulUtilities
 
 @Observable
 @MainActor
@@ -78,7 +77,7 @@ class ProfilePresenter {
     }
     
     func onSubscriptionPressed() {
-        router.showCorePaywall()
+        router.showPaywall()
     }
 
     func onExerciseLibraryPressed() {
@@ -160,10 +159,6 @@ class ProfilePresenter {
         router.dismissScreen()
     }
     
-    func updateAppState(showTabBarView: Bool) {
-        interactor.updateAppState(showTabBarView: showTabBarView)
-    }
-
     func formatHeight(_ heightCm: Double, unit: LengthUnitPreference) -> String {
         switch unit {
         case .centimeters:

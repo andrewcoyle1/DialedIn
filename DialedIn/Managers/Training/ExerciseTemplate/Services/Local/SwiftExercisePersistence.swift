@@ -5,18 +5,17 @@
 //  Created by Andrew Coyle on 30/01/2026.
 //
 
+import Foundation
 import SwiftData
 
 @MainActor
 struct SwiftExercisePersistence: LocalExercisePersistence {
     private let container: ModelContainer
 
-    @MainActor
     private var mainContext: ModelContext {
         container.mainContext
     }
 
-    @MainActor
     var modelContext: ModelContext {
         mainContext
     }
@@ -41,14 +40,12 @@ struct SwiftExercisePersistence: LocalExercisePersistence {
         self.container = try! ModelContainer(for: ExerciseEntity.self, configurations: configuration)
     }
 
-    @MainActor
     func addLocalExercise(exercise: ExerciseModel) throws {
         let entity = ExerciseEntity(from: exercise)
         mainContext.insert(entity)
         try mainContext.save()
     }
 
-    @MainActor
     func getLocalExercise(id: String) throws -> ExerciseModel {
         let predicate = #Predicate<ExerciseEntity> { $0.exerciseId == id }
         let descriptor = FetchDescriptor<ExerciseEntity>(predicate: predicate)
@@ -59,7 +56,6 @@ struct SwiftExercisePersistence: LocalExercisePersistence {
         return entity.toModel()
     }
 
-    @MainActor
     func getLocalExercises(ids: [String]) throws -> [ExerciseModel] {
         let predicate = #Predicate<ExerciseEntity> { ids.contains($0.exerciseId) }
         let descriptor = FetchDescriptor<ExerciseEntity>(predicate: predicate, sortBy: [SortDescriptor(\.dateCreated, order: .reverse)])
@@ -67,14 +63,12 @@ struct SwiftExercisePersistence: LocalExercisePersistence {
         return entities.map { $0.toModel() }
     }
 
-    @MainActor
     func getAllLocalExercises() throws -> [ExerciseModel] {
         let descriptor = FetchDescriptor<ExerciseEntity>(sortBy: [SortDescriptor(\.name, order: .forward)])
         let entities = try mainContext.fetch(descriptor)
         return entities.map { $0.toModel() }
     }
 
-    @MainActor
     func getSystemExercises() throws -> [ExerciseModel] {
         let predicate = #Predicate<ExerciseEntity> { $0.isSystemExercise == true }
         let descriptor = FetchDescriptor<ExerciseEntity>(predicate: predicate, sortBy: [SortDescriptor(\.name, order: .forward)])
@@ -82,7 +76,6 @@ struct SwiftExercisePersistence: LocalExercisePersistence {
         return entities.map { $0.toModel() }
     }
 
-    @MainActor
     func bookmarkExercise(id: String, isBookmarked: Bool) throws {
         let predicate = #Predicate<ExerciseEntity> { $0.exerciseId == id }
         let descriptor = FetchDescriptor<ExerciseEntity>(predicate: predicate)
@@ -94,7 +87,6 @@ struct SwiftExercisePersistence: LocalExercisePersistence {
         try mainContext.save()
     }
 
-    @MainActor
     func favouriteExercise(id: String, isFavourited: Bool) throws {
         let predicate = #Predicate<ExerciseEntity> { $0.exerciseId == id }
         let descriptor = FetchDescriptor<ExerciseEntity>(predicate: predicate)

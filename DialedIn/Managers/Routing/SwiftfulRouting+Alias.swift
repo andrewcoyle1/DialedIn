@@ -6,11 +6,14 @@
 //
 
 import SwiftUI
+import SwiftfulRouting
 
-@_exported import SwiftfulRouting
 typealias RouterView = SwiftfulRouting.RouterView
-typealias Router = SwiftfulRouting.AnyRouter
+typealias AnyDestination = SwiftfulRouting.AnyDestination
+typealias AnyRouter = SwiftfulRouting.AnyRouter
 typealias AlertStyle = SwiftfulRouting.AlertStyle
+typealias ResizableSheetConfig = SwiftfulRouting.ResizableSheetConfig
+typealias PresentationDetentTransformable = SwiftfulRouting.PresentationDetentTransformable
 
 extension RoutingLogType {
 

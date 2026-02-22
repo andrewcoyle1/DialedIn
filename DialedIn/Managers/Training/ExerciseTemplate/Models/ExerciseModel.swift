@@ -173,7 +173,7 @@ enum SetTargetSetType: String, Codable {
     }
 }
 
-struct ExerciseModel: @MainActor TemplateModel {
+struct ExerciseModel: TemplateModel {
     var id: String
     var authorId: String
     var name: String

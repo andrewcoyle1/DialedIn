@@ -26,7 +26,12 @@ struct NameProgramView: View {
         .padding(.horizontal)
         .navigationTitle("Create Program")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "NameProgramView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -49,7 +54,7 @@ struct NameProgramView: View {
 
 extension CoreBuilder {
     
-    func nameProgramView(router: Router, delegate: NameProgramDelegate) -> some View {
+    func nameProgramView(router: AnyRouter, delegate: NameProgramDelegate) -> some View {
         NameProgramView(
             presenter: NameProgramPresenter(
                 interactor: interactor,
@@ -79,5 +84,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.nameProgramView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

@@ -19,18 +19,20 @@ struct WeighInConsistencyView: View {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = WeighInConsistencyDelegate()
 
     return RouterView { router in
         builder.weighInConsistencyView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func weighInConsistencyView(router: Router, delegate: WeighInConsistencyDelegate, themeColor: Color? = nil) -> some View {
+    func weighInConsistencyView(router: AnyRouter, delegate: WeighInConsistencyDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: WeighInConsistencyPresenter(
                 interactor: interactor,

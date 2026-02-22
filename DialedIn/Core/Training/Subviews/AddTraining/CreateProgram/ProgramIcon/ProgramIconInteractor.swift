@@ -1,9 +1,8 @@
 import SwiftUI
 
 @MainActor
-protocol ProgramIconInteractor {
+protocol ProgramIconInteractor: GlobalInteractor {
     var userId: String? { get }
-    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: ProgramIconInteractor { }

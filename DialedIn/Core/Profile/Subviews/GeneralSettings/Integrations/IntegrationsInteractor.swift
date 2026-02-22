@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol IntegrationsInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol IntegrationsInteractor: GlobalInteractor { }
 
 extension CoreInteractor: IntegrationsInteractor { }

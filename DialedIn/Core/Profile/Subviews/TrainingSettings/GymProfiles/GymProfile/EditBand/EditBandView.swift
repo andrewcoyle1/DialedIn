@@ -11,7 +11,12 @@ struct EditBandView: View {
         }
         .navigationTitle(presenter.band.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "EditBandView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
@@ -88,7 +93,7 @@ struct EditBandView: View {
 
 extension CoreBuilder {
     
-    func editBandView(router: Router, band: Binding<Bands>) -> some View {
+    func editBandView(router: AnyRouter, band: Binding<Bands>) -> some View {
         EditBandView(
             presenter: EditBandPresenter(
                 interactor: interactor,
@@ -115,5 +120,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.editBandView(router: router, band: Binding.constant(band))
     }
-    .previewEnvironment()
+    
 }

@@ -84,12 +84,6 @@ class CreateRecipePresenter {
             try await interactor.createRecipeTemplate(recipe: newRecipe, image: nsImage)
             #endif
             
-            // Track created template on the user document
-            try await interactor.addCreatedRecipeTemplate(recipeId: newRecipe.id)
-            // Auto-bookmark authored templates
-            try await interactor.addBookmarkedRecipeTemplate(recipeId: newRecipe.id)
-            try await interactor.bookmarkRecipeTemplate(id: newRecipe.id, isBookmarked: true)
-            
         } catch {
             
             isSaving = false

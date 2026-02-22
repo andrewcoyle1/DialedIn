@@ -8,10 +8,6 @@
 import SwiftUI
 import Firebase
 
-struct GoogleSignInConfig {
-    let clientID: String
-}
-
 @MainActor
 struct Dependencies {
     let container: DependencyContainer
@@ -34,8 +30,6 @@ struct Dependencies {
         let workoutTemplateManager: WorkoutTemplateManager
         let workoutSessionManager: WorkoutSessionManager
         let exerciseHistoryManager: ExerciseHistoryManager
-        let trainingPlanManager: TrainingPlanManager
-        let programTemplateManager: ProgramTemplateManager
         let trainingProgramManager: TrainingProgramManager
         let gymProfileManager: GymProfileManager
         let ingredientTemplateManager: IngredientTemplateManager
@@ -47,11 +41,9 @@ struct Dependencies {
         
         let reportManager: ReportManager
         let healthKitManager: HealthKitManager
-        let healthKitStepService: HealthKitStepService
         let bodyMeasurementsManager: BodyMeasurementsManager
         let stepsManager: StepsManager
         let goalManager: GoalManager
-        let googleSignInConfig: GoogleSignInConfig
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         let hkWorkoutManager: HKWorkoutManager
         let liveActivityManager: LiveActivityManager
@@ -72,12 +64,8 @@ struct Dependencies {
             workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())
-            trainingPlanManager = TrainingPlanManager(services: MockTrainingPlanServices())
-            programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: MockProgramTemplateService()))
             trainingProgramManager = TrainingProgramManager(services: MockTrainingProgramServices())
             gymProfileManager = GymProfileManager(services: MockGymProfileServices())
-            // Link managers for auto-completion
-            workoutSessionManager.trainingPlanManager = trainingPlanManager
             
             ingredientTemplateManager = IngredientTemplateManager(services: MockIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: MockRecipeTemplateServices())
@@ -93,12 +81,10 @@ struct Dependencies {
             liveActivityManager = LiveActivityManager()
             hkWorkoutManager.liveActivityUpdater = liveActivityManager
             #endif
-            appState = AppState(showTabBar: isSignedIn)
+            appState = AppState(startingModuleId: isSignedIn ? Constants.tabBarModuleId : Constants.onboardingModuleId)
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
-            pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
+            pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
-            healthKitStepService = MockHealthKitStepService()
-            googleSignInConfig = GoogleSignInConfig(clientID: "mock-client-id")
 
         case .dev:
             logManager = LogManager(services: [
@@ -117,13 +103,8 @@ struct Dependencies {
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices(logManager: logManager))
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
-            trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices(), workoutTemplateResolver: workoutTemplateManager)
-            programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: SwiftProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()), workoutTemplateResolver: workoutTemplateManager)
             trainingProgramManager = TrainingProgramManager(services: ProductionTrainingProgramServices())
             gymProfileManager = GymProfileManager(services: ProductionGymProfileServices())
-
-            // Link managers for auto-completion
-            workoutSessionManager.trainingPlanManager = trainingPlanManager
             
             ingredientTemplateManager = IngredientTemplateManager(services: ProductionIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: ProductionRecipeTemplateServices())
@@ -141,17 +122,8 @@ struct Dependencies {
             #endif
             appState = AppState()
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
-            pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
+            pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
-            #if canImport(HealthKit)
-            healthKitStepService = ProductionHealthKitStepService(healthStore: healthKitManager.getHealthStore())
-            #else
-            healthKitStepService = MockHealthKitStepService()
-            #endif
-            guard let clientId = FirebaseApp.app()?.options.clientID else {
-                fatalError("No Google client ID found in Firebase options")
-            }
-            googleSignInConfig = GoogleSignInConfig(clientID: clientId)
 
         case .prod:
             logManager = LogManager(services: [
@@ -169,13 +141,8 @@ struct Dependencies {
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices(logManager: logManager))
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
-            trainingPlanManager = TrainingPlanManager(services: ProductionTrainingPlanServices(), workoutTemplateResolver: workoutTemplateManager)
-            programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: SwiftProgramTemplatePersistence(), remote: FirebaseProgramTemplateService()), workoutTemplateResolver: workoutTemplateManager)
             trainingProgramManager = TrainingProgramManager(services: ProductionTrainingProgramServices())
             gymProfileManager = GymProfileManager(services: ProductionGymProfileServices())
-
-            // Link managers for auto-completion
-            workoutSessionManager.trainingPlanManager = trainingPlanManager
             
             ingredientTemplateManager = IngredientTemplateManager(services: ProductionIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: ProductionRecipeTemplateServices())
@@ -193,17 +160,8 @@ struct Dependencies {
             #endif
             appState = AppState()
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
-            pushManager = PushManager(services: ProductionPushServices(), logManager: logManager)
+            pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
-            #if canImport(HealthKit)
-            healthKitStepService = ProductionHealthKitStepService(healthStore: healthKitManager.getHealthStore())
-            #else
-            healthKitStepService = MockHealthKitStepService()
-            #endif
-            guard let clientId = FirebaseApp.app()?.options.clientID else {
-                fatalError("No Google client ID found in Firebase options")
-            }
-            googleSignInConfig = GoogleSignInConfig(clientID: clientId)
         }
         hapticManager = HapticManager(logger: logManager)
         soundEffectManager = SoundEffectManager(logger: logManager)
@@ -219,8 +177,6 @@ struct Dependencies {
         container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
         container.register(WorkoutSessionManager.self, service: workoutSessionManager)
         container.register(ExerciseHistoryManager.self, service: exerciseHistoryManager)
-        container.register(TrainingPlanManager.self, service: trainingPlanManager)
-        container.register(ProgramTemplateManager.self, service: programTemplateManager)
         container.register(TrainingProgramManager.self, service: trainingProgramManager)
         container.register(GymProfileManager.self, service: gymProfileManager)
         container.register(IngredientTemplateManager.self, service: ingredientTemplateManager)
@@ -231,11 +187,9 @@ struct Dependencies {
         container.register(AIManager.self, service: aiManager)
         container.register(ReportManager.self, service: reportManager)
         container.register(HealthKitManager.self, service: healthKitManager)
-        container.register(HealthKitStepService.self, service: healthKitStepService)
         container.register(BodyMeasurementsManager.self, service: bodyMeasurementsManager)
         container.register(StepsManager.self, service: stepsManager)
         container.register(GoalManager.self, service: goalManager)
-        container.register(GoogleSignInConfig.self, service: googleSignInConfig)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         container.register(HKWorkoutManager.self, service: hkWorkoutManager)
         container.register(LiveActivityManager.self, service: liveActivityManager)
@@ -247,13 +201,6 @@ struct Dependencies {
 
         self.logManager = logManager
         self.container = container
-    }
-}
-
-extension View {
-    func previewEnvironment(isSignedIn: Bool = true) -> some View {
-        self
-            .environment(LogManager(services: [ConsoleService(printParameters: false)]))
     }
 }
 
@@ -272,8 +219,6 @@ class DevPreview {
         container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
         container.register(WorkoutSessionManager.self, service: workoutSessionManager)
         container.register(ExerciseHistoryManager.self, service: exerciseHistoryManager)
-        container.register(TrainingPlanManager.self, service: trainingPlanManager)
-        container.register(ProgramTemplateManager.self, service: programTemplateManager)
         container.register(TrainingProgramManager.self, service: trainingProgramManager)
         container.register(GymProfileManager.self, service: gymProfileManager)
         container.register(IngredientTemplateManager.self, service: ingredientTemplateManager)
@@ -285,11 +230,9 @@ class DevPreview {
         container.register(LogManager.self, service: logManager)
         container.register(ReportManager.self, service: reportManager)
         container.register(HealthKitManager.self, service: healthKitManager)
-        container.register(HealthKitStepService.self, service: healthKitStepService)
         container.register(BodyMeasurementsManager.self, service: bodyMeasurementsManager)
         container.register(StepsManager.self, service: stepsManager)
         container.register(GoalManager.self, service: goalManager)
-        container.register(GoogleSignInConfig.self, service: googleSignInConfig)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         container.register(HKWorkoutManager.self, service: hkWorkoutManager)
         container.register(LiveActivityManager.self, service: liveActivityManager)
@@ -311,8 +254,6 @@ class DevPreview {
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
     let exerciseHistoryManager: ExerciseHistoryManager
-    let trainingPlanManager: TrainingPlanManager
-    let programTemplateManager: ProgramTemplateManager
     let trainingProgramManager: TrainingProgramManager
     let gymProfileManager: GymProfileManager
     let ingredientTemplateManager: IngredientTemplateManager
@@ -324,11 +265,9 @@ class DevPreview {
     let logManager: LogManager
     let reportManager: ReportManager
     let healthKitManager: HealthKitManager
-    let healthKitStepService: HealthKitStepService
     let bodyMeasurementsManager: BodyMeasurementsManager
     let stepsManager: StepsManager
     let goalManager: GoalManager
-    let googleSignInConfig: GoogleSignInConfig
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     let hkWorkoutManager: HKWorkoutManager
     let liveActivityManager: LiveActivityManager
@@ -356,8 +295,6 @@ class DevPreview {
         self.workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: ExerciseTemplateManager(services: MockExerciseTemplateServices()))
         self.workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
         self.exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())
-        self.trainingPlanManager = TrainingPlanManager(services: MockTrainingPlanServices())
-        self.programTemplateManager = ProgramTemplateManager(services: ProgramTemplateServices(local: MockProgramTemplatePersistence(), remote: MockProgramTemplateService()))
         self.trainingProgramManager = TrainingProgramManager(services: MockTrainingProgramServices())
         self.gymProfileManager = GymProfileManager(services: MockGymProfileServices())
         
@@ -366,21 +303,19 @@ class DevPreview {
         self.nutritionManager = NutritionManager(services: MockNutritionServices())
         self.mealLogManager = MealLogManager(services: MockMealLogServices(mealsByDay: MealLogModel.previewWeekMealsByDay))
         self.aiManager = AIManager(service: MockAIService())
-        self.pushManager = PushManager(services: MockPushServices(), logManager: logManager)
+        self.pushManager = PushManager(logManager: logManager)
         self.logManager = logManager
         self.reportManager = ReportManager(service: MockReportService(), userManager: userManager)
         self.healthKitManager = HealthKitManager(service: MockHealthService())
-        self.healthKitStepService = MockHealthKitStepService()
         self.bodyMeasurementsManager = BodyMeasurementsManager(services: MockBodyMeasurementServices())
         self.stepsManager = StepsManager(services: MockStepsServices())
         self.goalManager = GoalManager(services: MockGoalServices())
-        self.googleSignInConfig = GoogleSignInConfig(clientID: "mock-client-id")
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         self.hkWorkoutManager = hkWorkoutManager
         self.liveActivityManager = LiveActivityManager()
         self.hkWorkoutManager.liveActivityUpdater = liveActivityManager
         #endif
-        self.appState = AppState(showTabBar: isSignedIn)
+        self.appState = AppState(startingModuleId: isSignedIn ? Constants.tabBarModuleId : Constants.onboardingModuleId)
         self.imageUploadManager = ImageUploadManager(service: MockImageUploadService())
         self.hapticManager = HapticManager()
         self.soundEffectManager = SoundEffectManager()

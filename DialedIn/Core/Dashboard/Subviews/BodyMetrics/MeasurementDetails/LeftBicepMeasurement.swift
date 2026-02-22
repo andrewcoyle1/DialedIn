@@ -112,17 +112,15 @@ final class LeftBicepMeasurementPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension LeftBicepMeasurementEntry {
-    static var mocks: [LeftBicepMeasurementEntry] {
-        [
-            LeftBicepMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), leftBicepCircumference: 14.6),
-            LeftBicepMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), leftBicepCircumference: 14.4),
-            LeftBicepMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), leftBicepCircumference: 14.2),
-            LeftBicepMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), leftBicepCircumference: 14.1),
-            LeftBicepMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), leftBicepCircumference: 14.0),
-            LeftBicepMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), leftBicepCircumference: 13.9),
-            LeftBicepMeasurementEntry(date: Date.now, leftBicepCircumference: 13.8)
-        ]
-    }
+    static let mocks: [LeftBicepMeasurementEntry] = [
+        LeftBicepMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), leftBicepCircumference: 14.6),
+        LeftBicepMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), leftBicepCircumference: 14.4),
+        LeftBicepMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), leftBicepCircumference: 14.2),
+        LeftBicepMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), leftBicepCircumference: 14.1),
+        LeftBicepMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), leftBicepCircumference: 14.0),
+        LeftBicepMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), leftBicepCircumference: 13.9),
+        LeftBicepMeasurementEntry(date: Date.now, leftBicepCircumference: 13.8)
+    ]
 }
 
 extension CoreRouter {
@@ -134,7 +132,7 @@ extension CoreRouter {
 }
 
 extension CoreBuilder {
-    func leftBicepMeasurementView(router: Router, delegate: LeftBicepMeasurementDelegate, themeColor: Color? = nil) -> some View {
+    func leftBicepMeasurementView(router: AnyRouter, delegate: LeftBicepMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: LeftBicepMeasurementPresenter(
                 interactor: interactor,

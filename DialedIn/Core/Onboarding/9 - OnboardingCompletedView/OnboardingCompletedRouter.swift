@@ -6,10 +6,10 @@
 //
 
 @MainActor
-protocol OnboardingCompletedRouter {
+protocol OnboardingCompletedRouter: GlobalRouter {
     func showDevSettingsView()
 
-    func showAlert(error: Error)
+    func switchToCoreModule()
 }
 
-extension OnbRouter: OnboardingCompletedRouter { }
+extension CoreRouter: OnboardingCompletedRouter { }

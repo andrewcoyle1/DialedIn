@@ -24,7 +24,12 @@ struct CreateProgramView: View {
             .frame(maxWidth: .infinity)
             Spacer()
         }
-        .screenAppearAnalytics(name: "CreateProgramView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -53,7 +58,7 @@ struct CreateProgramView: View {
 
 extension CoreBuilder {
     
-    func createProgramView(router: Router, delegate: CreateProgramDelegate) -> some View {
+    func createProgramView(router: AnyRouter, delegate: CreateProgramDelegate) -> some View {
         CreateProgramView(
             presenter: CreateProgramPresenter(
                 interactor: interactor,
@@ -81,5 +86,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.createProgramView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

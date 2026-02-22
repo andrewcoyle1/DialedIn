@@ -22,6 +22,14 @@ class EditCableMachinePresenter {
         self.cableMachine = cableMachineBinding.wrappedValue
         self.selectedUnit = cableMachineBinding.wrappedValue.defaultRange?.unit ?? .kilograms
     }
+    
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
 
     func filteredWeightIDs(for unit: ExerciseWeightUnit) -> [String] {
         cableMachine.ranges
@@ -94,5 +102,33 @@ class EditCableMachinePresenter {
             )
         )
     }
+    
+}
 
+extension EditCableMachinePresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "EditCableMachineView_Appear"
+            case .onDisappear: return "EditCableMachineView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
+    }
 }

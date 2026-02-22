@@ -24,13 +24,18 @@ struct LicencesView: View {
                 }
             }
         }
-        .screenAppearAnalytics(name: "LicencesView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
 }
 
 extension CoreBuilder {
     
-    func licencesView(router: Router, delegate: LicencesDelegate) -> some View {
+    func licencesView(router: AnyRouter, delegate: LicencesDelegate) -> some View {
         LicencesView(
             presenter: LicencesPresenter(
                 interactor: interactor,
@@ -60,5 +65,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.licencesView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

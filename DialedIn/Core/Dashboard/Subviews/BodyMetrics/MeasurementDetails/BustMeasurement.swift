@@ -112,17 +112,15 @@ final class BustMeasurementPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension BustMeasurementEntry {
-    static var mocks: [BustMeasurementEntry] {
-        [
-            BustMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), bustCircumference: 38.6),
-            BustMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), bustCircumference: 38.4),
-            BustMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), bustCircumference: 38.2),
-            BustMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), bustCircumference: 38.1),
-            BustMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), bustCircumference: 38.0),
-            BustMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), bustCircumference: 37.9),
-            BustMeasurementEntry(date: Date.now, bustCircumference: 37.8)
-        ]
-    }
+    static let mocks: [BustMeasurementEntry] = [
+        BustMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), bustCircumference: 38.6),
+        BustMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), bustCircumference: 38.4),
+        BustMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), bustCircumference: 38.2),
+        BustMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), bustCircumference: 38.1),
+        BustMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), bustCircumference: 38.0),
+        BustMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), bustCircumference: 37.9),
+        BustMeasurementEntry(date: Date.now, bustCircumference: 37.8)
+    ]
 }
 
 extension CoreRouter {
@@ -134,7 +132,7 @@ extension CoreRouter {
 }
 
 extension CoreBuilder {
-    func bustMeasurementView(router: Router, delegate: BustMeasurementDelegate, themeColor: Color? = nil) -> some View {
+    func bustMeasurementView(router: AnyRouter, delegate: BustMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: BustMeasurementPresenter(
                 interactor: interactor,

@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 @Observable
+@MainActor
 class ExerciseUnitPreferenceManager {
     
     private let userDefaults: UserDefaults
@@ -99,14 +100,14 @@ class ExerciseUnitPreferenceManager {
         let user = userManager.currentUser
         
         let defaultWeightUnit: ExerciseWeightUnit
-        if let userWeightPref = user?.weightUnitPreference {
+        if let userWeightPref = user?.submittedWeightUnitPreference {
             defaultWeightUnit = userWeightPref == .kilograms ? .kilograms : .pounds
         } else {
             defaultWeightUnit = .kilograms
         }
         
         let defaultDistanceUnit: ExerciseDistanceUnit
-        if let userLengthPref = user?.lengthUnitPreference {
+        if let userLengthPref = user?.submittedLengthUnitPreference {
             // Map length preference to distance (centimeters -> meters, inches -> miles)
             defaultDistanceUnit = userLengthPref == .centimeters ? .meters : .miles
         } else {
@@ -119,4 +120,33 @@ class ExerciseUnitPreferenceManager {
             distanceUnit: defaultDistanceUnit
         )
     }
+}
+
+extension CoreInteractor {
+    // MARK: ExerciseUnitPreferenceManager
+    
+    func getPreference(templateId: String) -> ExerciseUnitPreference {
+        exerciseUnitPreferenceManager.getPreference(for: templateId)
+    }
+    
+    /// Set the weight unit preference for a specific exercise template
+    func setWeightUnit(_ unit: ExerciseWeightUnit, for templateId: String) {
+        exerciseUnitPreferenceManager.setWeightUnit(unit, for: templateId)
+    }
+    
+    /// Set the distance unit preference for a specific exercise template
+    func setDistanceUnit(_ unit: ExerciseDistanceUnit, for templateId: String) {
+        exerciseUnitPreferenceManager.setDistanceUnit(unit, for: templateId)
+    }
+    
+    /// Set both unit preferences for a specific exercise template
+    func setPreference(weightUnit: ExerciseWeightUnit? = nil, distanceUnit: ExerciseDistanceUnit? = nil, for templateId: String) {
+        exerciseUnitPreferenceManager.setPreference(weightUnit: weightUnit, distanceUnit: distanceUnit, for: templateId)
+    }
+    
+    /// Clear all cached preferences (useful when user signs out)
+    func clearCache() {
+        exerciseUnitPreferenceManager.clearCache()
+    }
+
 }

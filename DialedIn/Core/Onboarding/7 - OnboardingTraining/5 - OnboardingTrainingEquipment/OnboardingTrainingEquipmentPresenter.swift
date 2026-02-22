@@ -13,7 +13,11 @@ class OnboardingTrainingEquipmentPresenter {
     private let interactor: OnboardingTrainingEquipmentInteractor
     private let router: OnboardingTrainingEquipmentRouter
 
-    var selectedEquipment: Set<EquipmentType> = []
+    var currentUser: UserModel? {
+        interactor.currentUser
+    }
+    
+    var gymProfile: GymProfileModel = GymProfileModel(authorId: "")
     
     init(
         interactor: OnboardingTrainingEquipmentInteractor,
@@ -21,15 +25,21 @@ class OnboardingTrainingEquipmentPresenter {
     ) {
         self.interactor = interactor
         self.router = router
+        
+        self.gymProfile.authorId = currentUser?.userId ?? ""
     }
     
-    func navigateToReview(builder: TrainingProgramBuilder) {
-        guard !selectedEquipment.isEmpty else { return }
-        
-        var updatedBuilder = builder
-        updatedBuilder.setAvailableEquipment(selectedEquipment)
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
+    func navigateToReview(delegate: OnboardingTrainingEquipmentDelegate) {
         interactor.trackEvent(event: Event.navigate)
-        router.showOnboardingTrainingReviewView(delegate: OnboardingTrainingReviewDelegate(trainingProgramBuilder: updatedBuilder))
+        router.showOnboardingTrainingReviewView(delegate: OnboardingTrainingReviewDelegate(delegate: delegate, gymProfile: gymProfile))
     }
 
     func onDevSettingsPressed() {
@@ -37,17 +47,21 @@ class OnboardingTrainingEquipmentPresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case navigate
 
         var eventName: String {
             switch self {
-            case .navigate: return "Onboarding_TrainingEquipment_Navigate"
+            case .onAppear:     return "OnboardingTrainingEquipmentView_Appear"
+            case .onDisappear:  return "OnboardingTrainingEquipmentView_Disappear"
+            case .navigate:     return "OnboardingTrainingEquipmentView_Navigate"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
-            case .navigate:
+            default:
                 return nil
             }
         }
@@ -56,6 +70,8 @@ class OnboardingTrainingEquipmentPresenter {
             switch self {
             case .navigate:
                 return .info
+            default:
+                return .analytic
             }
         }
     }

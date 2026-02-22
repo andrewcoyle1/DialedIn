@@ -11,4 +11,4 @@ protocol OnboardingExerciseFrequencyRouter {
     func showOnboardingActivityView(delegate: OnboardingActivityDelegate)
 }
 
-extension OnbRouter: OnboardingExerciseFrequencyRouter { }
+extension CoreRouter: OnboardingExerciseFrequencyRouter { }

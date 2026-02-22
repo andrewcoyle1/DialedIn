@@ -38,7 +38,7 @@ struct CableMachine: Identifiable, Codable {
         self.isActive = isActive
     }
 
-    static var defaultCableMachines: [CableMachine] = [
+    static let defaultCableMachines: [CableMachine] = [
         CableMachine(
             id: "cable_lat_pulldown_machine",
             name: "Cable Lat Pulldown Machine",
@@ -149,7 +149,7 @@ struct CableMachine: Identifiable, Codable {
         mocks[0]
     }
     
-    static var mocks: [CableMachine] = [
+    static let mocks: [CableMachine] = [
         CableMachine(
             id: "cable_lat_pulldown_machine",
             name: "Cable Lat Pulldown Machine",

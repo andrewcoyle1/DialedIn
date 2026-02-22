@@ -56,15 +56,15 @@ struct OnboardingGoalSettingView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingGoalSettingView(router: AnyRouter) -> some View {
         OnboardingGoalSettingView(
-            presenter: OnboardingGoalSettingPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+            presenter: OnboardingGoalSettingPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingGoalSettingView() {
         router.showScreen(.push) { router in
             builder.onboardingGoalSettingView(router: router)
@@ -73,9 +73,9 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingGoalSettingView(router: router)
     }
-    .previewEnvironment()
+    
 }

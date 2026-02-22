@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 27/09/2025.
 //
 
-protocol RemoteExerciseHistoryService {
+protocol RemoteExerciseHistoryService: Sendable {
     func createExerciseHistory(entry: ExerciseHistoryEntryModel) async throws
     func updateExerciseHistory(entry: ExerciseHistoryEntryModel) async throws
     func getExerciseHistory(id: String) async throws -> ExerciseHistoryEntryModel

@@ -5,8 +5,7 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
-protocol OnboardingTrainingScheduleInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+@MainActor
+protocol OnboardingTrainingScheduleInteractor: GlobalInteractor { }
 
-extension OnbInteractor: OnboardingTrainingScheduleInteractor { }
+extension CoreInteractor: OnboardingTrainingScheduleInteractor { }

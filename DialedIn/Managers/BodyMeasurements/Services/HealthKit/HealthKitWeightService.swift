@@ -23,7 +23,7 @@ enum HealthKitWeightServiceError: Error {
     case healthDataUnavailable
 }
 
-protocol HealthKitWeightService {
+protocol HealthKitWeightService: Sendable {
     func readWeightSamples(since: Date?) async throws -> [HealthKitWeightSample]
     func readBodyFatSamples(since: Date?) async throws -> [HealthKitBodyFatSample]
     func saveWeightSample(weightKg: Double, date: Date) async throws -> UUID

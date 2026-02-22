@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 protocol LogWeightInteractor {
     var currentUser: UserModel? { get }
     var measurementHistory: [BodyMeasurementEntry] { get }

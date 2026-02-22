@@ -102,16 +102,16 @@ struct OnboardingWeightView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingWeightView(router: AnyRouter, delegate: OnboardingWeightDelegate) -> some View {
         OnboardingWeightView(
-            presenter: OnboardingWeightPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingWeightPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingWeightView(delegate: OnboardingWeightDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingWeightView(router: router, delegate: delegate)
@@ -121,12 +121,12 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingWeightView(
             router: router,
             delegate: OnboardingWeightDelegate(userModelBuilder: UserModelBuilder.weightMock)
         )
     }
-    .previewEnvironment()
+    
 }

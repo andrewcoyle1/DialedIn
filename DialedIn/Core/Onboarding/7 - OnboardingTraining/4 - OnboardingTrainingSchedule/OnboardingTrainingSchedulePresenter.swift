@@ -18,22 +18,25 @@ class OnboardingTrainingSchedulePresenter {
     init(
         interactor: OnboardingTrainingScheduleInteractor,
         router: OnboardingTrainingScheduleRouter,
-        builder: TrainingProgramBuilder? = nil
     ) {
         self.interactor = interactor
         self.router = router
-        if let builder = builder, !builder.weeklySchedule.isEmpty {
-            selectedDays = builder.weeklySchedule
-        }
     }
     
-    func navigateToEquipment(builder: TrainingProgramBuilder) {
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+    
+    func navigateToEquipment(delegate: OnboardingTrainingScheduleDelegate) {
         guard !selectedDays.isEmpty else { return }
         
-        var updatedBuilder = builder
-        updatedBuilder.setWeeklySchedule(selectedDays)
+        let delegate = OnboardingTrainingEquipmentDelegate(delegate: delegate, scheduledDays: selectedDays)
         interactor.trackEvent(event: Event.navigate)
-        router.showOnboardingTrainingEquipmentView(delegate: OnboardingTrainingEquipmentDelegate(trainingProgramBuilder: updatedBuilder))
+        router.showOnboardingTrainingEquipmentView(delegate: delegate)
     }
 
     func onDevSettingsPressed() {
@@ -41,17 +44,23 @@ class OnboardingTrainingSchedulePresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case navigate
 
         var eventName: String {
             switch self {
-            case .navigate: return "Onboarding_TrainingSchedule_Navigate"
+            case .onAppear:     return "OnboardingTrainingScheduleView_Appear"
+            case .onDisappear:  return "OnboardingTrainingScheduleView_Disappear"
+            case .navigate:     return "OnboardingTrainingScheduleView_Navigate"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
             case .navigate:
+                return nil
+            default:
                 return nil
             }
         }
@@ -60,6 +69,8 @@ class OnboardingTrainingSchedulePresenter {
             switch self {
             case .navigate:
                 return .info
+            default:
+                return .analytic
             }
         }
     }

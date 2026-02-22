@@ -48,12 +48,12 @@ struct DashboardView<NutritionChart: View>: View {
         }
         .navigationTitle("Dashboard")
         .navigationSubtitle(presenter.selectedDate.formattedDate)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarRole(.browser)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }
-        .toolbarRole(.browser)
         .onFirstTask {
             await presenter.onFirstTask()
         }
@@ -596,19 +596,21 @@ extension CoreBuilder {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.dashboardView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("w/ Notifications Test") {
     let container = DevPreview.shared.container()
     container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(notificationsTest: true), logger: LogManager()))
-    let builder = CoreBuilder(container: container)
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     return RouterView { router in
         builder.dashboardView(router: router)
     }
-    .previewEnvironment()
+    
 }

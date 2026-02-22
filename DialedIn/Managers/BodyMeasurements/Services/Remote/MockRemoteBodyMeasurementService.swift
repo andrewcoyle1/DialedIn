@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 class MockRemoteBodyMeasurementService: RemoteBodyMeasurementService {
 
     let delay: Double
@@ -59,6 +60,11 @@ class MockRemoteBodyMeasurementService: RemoteBodyMeasurementService {
 
     // MARK: DELETE
     func deleteWeightEntry(userId: String, entryId: String) async throws {
+        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        try tryShowError()
+    }
+
+    func deleteAllWeightEntriesForUser(userId: String) async throws {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
     }

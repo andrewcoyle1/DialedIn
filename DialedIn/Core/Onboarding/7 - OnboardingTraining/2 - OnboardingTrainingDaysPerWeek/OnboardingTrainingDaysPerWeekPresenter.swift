@@ -23,13 +23,20 @@ class OnboardingTrainingDaysPerWeekPresenter {
         self.router = router
     }
     
-    func navigateToSplit(builder: TrainingProgramBuilder) {
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+    
+    func navigateToSplit(delegate: OnboardingTrainingDaysPerWeekDelegate) {
         guard let days = selectedDays else { return }
         
-        var updatedBuilder = builder
-        updatedBuilder.setTargetDaysPerWeek(days)
+        let delegate = OnboardingTrainingSplitDelegate(delegate: delegate, selectedDays: days)
         interactor.trackEvent(event: Event.navigate)
-        router.showOnboardingTrainingSplitView(delegate: OnboardingTrainingSplitDelegate(trainingProgramBuilder: updatedBuilder))
+        router.showOnboardingTrainingSplitView(delegate: delegate)
     }
 
     func onDevSettingsPressed() {
@@ -37,17 +44,21 @@ class OnboardingTrainingDaysPerWeekPresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case navigate
 
         var eventName: String {
             switch self {
-            case .navigate: return "Onboarding_TrainingDaysPerWeek_Navigate"
+            case .onAppear:     return "OnboardingTrainingDaysPerWeekView_Appear"
+            case .onDisappear:  return "OnboardingTrainingDaysPerWeekView_Disappear"
+            case .navigate:     return "Onboarding_TrainingDaysPerWeek_Navigate"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
-            case .navigate:
+            default:
                 return nil
             }
         }
@@ -56,6 +67,8 @@ class OnboardingTrainingDaysPerWeekPresenter {
             switch self {
             case .navigate:
                 return .info
+            default:
+                return .analytic
             }
         }
     }

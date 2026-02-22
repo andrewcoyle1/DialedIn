@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 04/10/2025.
 //
 
+@MainActor
 protocol LocalNutritionPersistence {
     func getCurrentDietPlan() -> DietPlan?
     func saveDietPlan(plan: DietPlan) throws

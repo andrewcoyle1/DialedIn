@@ -35,7 +35,12 @@ struct ProgramDesignView<DefineWorkout: View>: View {
         workoutDefinitionSection(dayPlan: presenter.selectedDayPlan)
             .navigationTitle("Create Program")
             .navigationBarTitleDisplayMode(.inline)
-            .screenAppearAnalytics(name: "ProgramDesignView")
+            .onAppear {
+                presenter.onViewAppear()
+            }
+            .onDisappear {
+                presenter.onViewDisappear()
+            }
             .toolbar {
                 toolbarContent
             }
@@ -191,7 +196,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
 
 extension CoreBuilder {
     
-    func programDesignView(router: Router, delegate: ProgramDesignDelegate) -> some View {
+    func programDesignView(router: AnyRouter, delegate: ProgramDesignDelegate) -> some View {
         let program = TrainingProgram(
             id: delegate.id,
             authorId: delegate.authorId,
@@ -212,7 +217,7 @@ extension CoreBuilder {
         )
     }
 
-    func editTrainingProgramView(router: Router, delegate: EditTrainingProgramDelegate) -> some View {
+    func editTrainingProgramView(router: AnyRouter, delegate: EditTrainingProgramDelegate) -> some View {
         ProgramDesignView(
             presenter: ProgramDesignPresenter(
                 interactor: interactor,
@@ -261,7 +266,7 @@ extension CoreRouter {
     return RouterView { router in
         builder.programDesignView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 struct OptionCell: View {

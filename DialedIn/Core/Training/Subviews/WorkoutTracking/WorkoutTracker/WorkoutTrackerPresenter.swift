@@ -79,8 +79,10 @@ class WorkoutTrackerPresenter {
         
         if let session = interactor.activeSession {
             self.workoutSession = session
+            loadUnitPreferences()
         } else {
             self.workoutSession = WorkoutSessionModel(authorId: UUID().uuidString, template: .mock)
+            loadUnitPreferences()
         }
     }
     
@@ -101,8 +103,21 @@ class WorkoutTrackerPresenter {
         }
         self.workoutNotes = workoutSession.notes ?? ""
         self.startTime = workoutSession.dateCreated
+        // Load unit preferences for all exercises
+        loadUnitPreferences()
         // Refresh from local storage to ensure latest persisted changes are loaded
         buildView()
+    }
+    
+    func loadUnitPreferences() {
+        exerciseUnitPreferences.removeAll(keepingCapacity: true)
+        for exercise in workoutSession.exercises {
+            let preference = interactor.getPreference(templateId: exercise.templateId)
+            exerciseUnitPreferences[exercise.templateId] = (
+                weightUnit: preference.weightUnit,
+                distanceUnit: preference.distanceUnit
+            )
+        }
     }
     
     // MARK: - Computed Properties
@@ -271,6 +286,84 @@ class WorkoutTrackerPresenter {
         return result
     }
     
+    func updateWeightUnit(_ unit: ExerciseWeightUnit, for templateId: String) {
+        var current = getUnitPreference(for: templateId)
+        current.weightUnit = unit
+        exerciseUnitPreferences[templateId] = current
+        interactor.setWeightUnit(unit, for: templateId)
+    }
+    
+    func updateDistanceUnit(_ unit: ExerciseDistanceUnit, for templateId: String) {
+        var current = getUnitPreference(for: templateId)
+        current.distanceUnit = unit
+        exerciseUnitPreferences[templateId] = current
+        interactor.setDistanceUnit(unit, for: templateId)
+    }
+    
+    /// Shows a prompt asking whether to just change display unit or convert values
+    func promptWeightUnitChange(_ newUnit: ExerciseWeightUnit, for exercise: WorkoutExerciseModel) {
+        let currentUnit = getUnitPreference(for: exercise.templateId).weightUnit
+        
+        // If same unit, no need to prompt
+        guard newUnit != currentUnit else {
+            return
+        }
+        
+        router.showAlert(
+            title: "Change Weight Unit",
+            subtitle: "How would you like to change the unit for '\(exercise.name)'?",
+            buttons: {
+                AnyView(
+                    VStack(spacing: 8) {
+                        Button("Display Only") {
+                            // Just update the preference, don't convert values
+                            self.updateWeightUnit(newUnit, for: exercise.templateId)
+                        }
+                        
+                        Button("Convert Values") {
+                            // Convert weights to new unit, round to equipment increments, and update session
+                            self.convertAndRoundWeights(to: newUnit, for: exercise)
+                        }
+                        
+                        Button("Cancel", role: .cancel) { }
+                    }
+                )
+            }
+        )
+    }
+    
+    /// Shows a prompt asking whether to just change display unit or convert values
+    func promptDistanceUnitChange(_ newUnit: ExerciseDistanceUnit, for exercise: WorkoutExerciseModel) {
+        let currentUnit = getUnitPreference(for: exercise.templateId).distanceUnit
+        
+        // If same unit, no need to prompt
+        guard newUnit != currentUnit else {
+            return
+        }
+        
+        router.showAlert(
+            title: "Change Distance Unit",
+            subtitle: "How would you like to change the unit for '\(exercise.name)'?",
+            buttons: {
+                AnyView(
+                    VStack(spacing: 8) {
+                        Button("Display Only") {
+                            // Just update the preference, don't convert values
+                            self.updateDistanceUnit(newUnit, for: exercise.templateId)
+                        }
+                        
+                        Button("Convert Values") {
+                            // Convert distances to new unit and update session
+                            self.convertAndRoundDistances(to: newUnit, for: exercise)
+                        }
+                        
+                        Button("Cancel", role: .cancel) { }
+                    }
+                )
+            }
+        )
+    }
+    
     func buildPreviousLookup(for exercise: WorkoutExerciseModel) -> [Int: WorkoutSetModel] {
         guard let prevSession = previousWorkoutSession else { return [:] }
         
@@ -296,7 +389,7 @@ class WorkoutTrackerPresenter {
                 #endif
 
                 // Cancel any pending rest timer notifications
-                await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
+//                await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
 
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 // End live activity with immediate dismissal for discarded workouts
@@ -338,59 +431,6 @@ class WorkoutTrackerPresenter {
         }
     }
 
-    func finishWorkout() {
-        stopWidgetSyncTimer()
-        Task {
-            do {
-                interactor.trackEvent(
-                    eventName: "finish_workout_debug",
-                    parameters: [
-                        "session_id": workoutSession.id,
-                        "template_id": workoutSession.workoutTemplateId ?? "nil",
-                        "scheduled_id": workoutSession.scheduledWorkoutId ?? "nil",
-                        "plan_id": workoutSession.trainingPlanId ?? "nil"
-                    ],
-                    type: .info
-                )
-                
-                #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-                // End HK session first
-                interactor.endWorkout()
-                #endif
-                
-                let endTime = Date()
-                
-                // Cancel any pending rest timer notifications
-                await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
-                
-                // Update session end time
-                workoutSession.endSession(at: endTime)
-                self.workoutSession = workoutSession
-                try interactor.endLocalWorkoutSession(id: workoutSession.id, at: endTime)
-                
-                // Save to remote
-                try await interactor.createWorkoutSession(session: workoutSession)
-                try await interactor.endWorkoutSession(id: workoutSession.id, at: endTime)
-                
-                // Create exercise history entries (remote + local)
-                try await createExerciseHistoryEntries(performedAt: endTime)
-                
-                #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-                interactor.endLiveActivity(session: workoutSession, isCompleted: true, statusMessage: "Workout ended & saved.")
-                #endif
-                SharedWorkoutStorage.clearHKStartedSessionId()
-                await interactor.endActiveSession(markScheduledComplete: true)
-                await MainActor.run {
-                    self.router.dismissScreen()
-                }
-            } catch {
-                await MainActor.run {
-                    self.router.showSimpleAlert(title: "Failed to finish workout", subtitle: error.localizedDescription)
-                }
-            }
-        }
-    }
-            
     func minimizeSession() {
         stopWidgetSyncTimer()
         router.dismissScreen()
@@ -405,9 +445,9 @@ class WorkoutTrackerPresenter {
         #endif
         
         // Cancel the pending rest timer notification
-        Task {
-            await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
-        }
+//        Task {
+//            await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
+//        }
     }
             
     // MARK: - Persistence
@@ -423,32 +463,6 @@ class WorkoutTrackerPresenter {
                     self.router.showSimpleAlert(title: "Failed to save progress", subtitle: error.localizedDescription)
                 }
             }
-        }
-    }
-    
-    private func createExerciseHistoryEntries(performedAt: Date) async throws {
-        guard let userId = interactor.currentUser?.userId else {
-            throw NSError(domain: "WorkoutTrackerPresenter", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
-        }
-        
-        // Create exercise history entries for each exercise in the session
-        for workoutExercise in workoutSession.exercises {
-            let historyEntry = ExerciseHistoryEntryModel.newEntry(params: ExerciseHistoryEntryModel.NewEntryParams(
-                authorId: userId,
-                templateId: workoutExercise.templateId,
-                templateName: workoutExercise.name,
-                workoutSessionId: workoutSession.id,
-                workoutExerciseId: workoutExercise.id,
-                performedAt: performedAt,
-                notes: workoutExercise.notes,
-                sets: workoutExercise.sets
-            ))
-            
-            // Save to local storage
-            try interactor.addLocalExerciseHistory(entry: historyEntry)
-            
-            // Save to remote storage
-            try await interactor.createExerciseHistory(entry: historyEntry)
         }
     }
     

@@ -44,6 +44,14 @@ class AddFreeWeightPresenter {
         self.selectedColour = delegate.freeWeight.wrappedValue.needsColour ? Self.defaultColours.first : .accentColor
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+    
     func onColourPressed(colour: Color) {
         selectedColour = colour
         freeWeightAvailable.plateColour = selectedColourHex
@@ -62,5 +70,34 @@ class AddFreeWeightPresenter {
         }
         self.freeWeight.wrappedValue.range.append(self.freeWeightAvailable)
         router.dismissScreen()
+    }
+    
+}
+
+extension AddFreeWeightPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "AddFreeWeightView_Appear"
+            case .onDisappear: return "AddFreeWeightView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

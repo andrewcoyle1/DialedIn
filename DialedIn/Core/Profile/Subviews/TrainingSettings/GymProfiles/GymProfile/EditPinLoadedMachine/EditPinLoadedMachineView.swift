@@ -11,7 +11,12 @@ struct EditPinLoadedMachineView: View {
         }
         .navigationTitle(presenter.pinLoadedMachine.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "EditPinLoadedMachineView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -90,7 +95,7 @@ struct EditPinLoadedMachineView: View {
 
 extension CoreBuilder {
     
-    func editPinLoadedMachineView(router: Router, pinLoadedMachine: Binding<PinLoadedMachine>) -> some View {
+    func editPinLoadedMachineView(router: AnyRouter, pinLoadedMachine: Binding<PinLoadedMachine>) -> some View {
         EditPinLoadedMachineView(
             presenter: EditPinLoadedMachinePresenter(
                 interactor: interactor,
@@ -117,5 +122,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.editPinLoadedMachineView(router: router, pinLoadedMachine: Binding.constant(pinLoadedMachine))
     }
-    .previewEnvironment()
+    
 }

@@ -5,11 +5,10 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
-protocol OnboardingHealthDataInteractor {
+@MainActor
+protocol OnboardingHealthDataInteractor: GlobalInteractor {
     func canRequestHealthDataAuthorisation() async -> Bool
     func requestHealthKitAuthorisation() async throws
-    func updateOnboardingStep(step: OnboardingStep) async throws
-    func trackEvent(event: LoggableEvent)
 }
 
-extension OnbInteractor: OnboardingHealthDataInteractor { }
+extension CoreInteractor: OnboardingHealthDataInteractor { }

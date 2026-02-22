@@ -39,7 +39,7 @@ struct LoadableBars: Identifiable, Codable {
 
     }
     
-    static var defaultLoadableBars: [LoadableBars] = [
+    static let defaultLoadableBars: [LoadableBars] = [
         LoadableBars(
             id: "axle_bar",
             name: "Axle Bar",
@@ -236,7 +236,7 @@ struct LoadableBars: Identifiable, Codable {
         mocks[0]
     }
     
-    static var mocks: [LoadableBars] = [
+    static let mocks: [LoadableBars] = [
         LoadableBars(
             id: "axle_bar",
             name: "Axle Bar",

@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol AddFixedWeightBarInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol AddFixedWeightBarInteractor: GlobalInteractor { }
 
 extension CoreInteractor: AddFixedWeightBarInteractor { }

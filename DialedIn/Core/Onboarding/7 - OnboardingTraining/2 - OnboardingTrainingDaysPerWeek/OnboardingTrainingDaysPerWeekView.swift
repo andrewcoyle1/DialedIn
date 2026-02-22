@@ -40,7 +40,12 @@ struct OnboardingTrainingDaysPerWeekView: View {
         .toolbar {
             toolbarContent
         }
-        .screenAppearAnalytics(name: "TrainingDaysPerWeek")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
     
     private func daysDescription(for days: Int) -> String {
@@ -74,7 +79,7 @@ struct OnboardingTrainingDaysPerWeekView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                presenter.navigateToSplit(builder: delegate.trainingProgramBuilder)
+                presenter.navigateToSplit(delegate: delegate)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -84,16 +89,16 @@ struct OnboardingTrainingDaysPerWeekView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingTrainingDaysPerWeekView(router: AnyRouter, delegate: OnboardingTrainingDaysPerWeekDelegate) -> some View {
         OnboardingTrainingDaysPerWeekView(
-            presenter: OnboardingTrainingDaysPerWeekPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingTrainingDaysPerWeekPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingTrainingDaysPerWeekView(delegate: OnboardingTrainingDaysPerWeekDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingDaysPerWeekView(router: router, delegate: delegate)
@@ -103,14 +108,12 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingTrainingExperienceView(
             router: router,
-            delegate: OnboardingTrainingExperienceDelegate(
-                trainingProgramBuilder: TrainingProgramBuilder()
-            )
+            delegate: OnboardingTrainingExperienceDelegate()
         )
     }
-    .previewEnvironment()
+    
 }

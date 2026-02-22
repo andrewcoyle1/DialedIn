@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 protocol TabViewAccessoryInteractor {
     var activeSession: WorkoutSessionModel? { get }
     var restEndTime: Date? { get }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct NutritionMetricEntry: @MainActor MetricEntry {
+struct NutritionMetricEntry: MetricEntry {
     let id: String
     let date: Date
     let value: Double

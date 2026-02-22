@@ -79,6 +79,14 @@ class DefineWorkoutPresenter {
         self.exercises = exercises.wrappedValue
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+    
     func onExercisePressed(exercise: Binding<WorkoutTemplateExercise>) {
         router.showSetTargetView(delegate: SetTargetDelegate(exercise: exercise))
     }
@@ -100,5 +108,34 @@ class DefineWorkoutPresenter {
                 })
             )
         )
+    }
+    
+}
+
+extension DefineWorkoutPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "DefineWorkoutView_Appear"
+            case .onDisappear: return "DefineWorkoutView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

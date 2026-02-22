@@ -11,7 +11,12 @@ struct EditBodyWeightView: View {
         }
         .navigationTitle(presenter.bodyWeight.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "EditBodyWeightView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -84,7 +89,7 @@ struct EditBodyWeightView: View {
 
 extension CoreBuilder {
     
-    func editBodyWeightView(router: Router, bodyWeight: Binding<BodyWeights>) -> some View {
+    func editBodyWeightView(router: AnyRouter, bodyWeight: Binding<BodyWeights>) -> some View {
         EditBodyWeightView(
             presenter: EditBodyWeightPresenter(
                 interactor: interactor,
@@ -114,5 +119,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.editBodyWeightView(router: router, bodyWeight: $bodyWeight)
     }
-    .previewEnvironment()
+    
 }

@@ -5,8 +5,7 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
-protocol OnboardingGenderInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+@MainActor
+protocol OnboardingGenderInteractor: GlobalInteractor { }
 
-extension OnbInteractor: OnboardingGenderInteractor { }
+extension CoreInteractor: OnboardingGenderInteractor { }

@@ -21,18 +21,20 @@ struct WeightTrendView: View {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = WeightTrendDelegate()
 
     return RouterView { router in
         builder.weightTrendView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func weightTrendView(router: Router, delegate: WeightTrendDelegate, themeColor: Color? = nil) -> some View {
+    func weightTrendView(router: AnyRouter, delegate: WeightTrendDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: WeightTrendPresenter(
                 interactor: interactor,

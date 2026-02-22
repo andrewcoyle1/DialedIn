@@ -5,8 +5,9 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
+@MainActor
 protocol OnboardingSubscriptionInteractor {
     func trackEvent(event: LoggableEvent) 
 }
 
-extension OnbInteractor: OnboardingSubscriptionInteractor { }
+extension CoreInteractor: OnboardingSubscriptionInteractor { }

@@ -65,16 +65,14 @@ struct RowCellView: View {
         Color.gray.ignoresSafeArea()
         
         List {
-            RowCellView()
-                .removeListRowFormatting()
-            RowCellView(hasNewReview: false)
-                .removeListRowFormatting()
-            RowCellView(imageName: nil)
-                .removeListRowFormatting()
-            RowCellView(headline: nil, hasNewReview: false)
-                .removeListRowFormatting()
-            RowCellView(subheadline: nil, hasNewReview: false)
-                .removeListRowFormatting()
+            Group {
+                RowCellView()
+                RowCellView(hasNewReview: false)
+                RowCellView(imageName: nil)
+                RowCellView(headline: nil, hasNewReview: false)
+                RowCellView(subheadline: nil, hasNewReview: false)
+            }
+            .removeListRowFormatting()
         }
     }
 }

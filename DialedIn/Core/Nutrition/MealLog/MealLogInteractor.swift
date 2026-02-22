@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 protocol MealLogInteractor {
     var currentUser: UserModel? { get }
     func getMeals(for dayKey: String) throws -> [MealLogModel]

@@ -112,17 +112,15 @@ final class RightAnkleMeasurementPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension RightAnkleMeasurementEntry {
-    static var mocks: [RightAnkleMeasurementEntry] {
-        [
-            RightAnkleMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), rightAnkleCircumference: 9.0),
-            RightAnkleMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), rightAnkleCircumference: 8.9),
-            RightAnkleMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), rightAnkleCircumference: 8.8),
-            RightAnkleMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), rightAnkleCircumference: 8.7),
-            RightAnkleMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), rightAnkleCircumference: 8.6),
-            RightAnkleMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), rightAnkleCircumference: 8.5),
-            RightAnkleMeasurementEntry(date: Date.now, rightAnkleCircumference: 8.4)
-        ]
-    }
+    static let mocks: [RightAnkleMeasurementEntry] = [
+        RightAnkleMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), rightAnkleCircumference: 9.0),
+        RightAnkleMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), rightAnkleCircumference: 8.9),
+        RightAnkleMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), rightAnkleCircumference: 8.8),
+        RightAnkleMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), rightAnkleCircumference: 8.7),
+        RightAnkleMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), rightAnkleCircumference: 8.6),
+        RightAnkleMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), rightAnkleCircumference: 8.5),
+        RightAnkleMeasurementEntry(date: Date.now, rightAnkleCircumference: 8.4)
+    ]
 }
 
 extension CoreRouter {
@@ -134,7 +132,7 @@ extension CoreRouter {
 }
 
 extension CoreBuilder {
-    func rightAnkleMeasurementView(router: Router, delegate: RightAnkleMeasurementDelegate, themeColor: Color? = nil) -> some View {
+    func rightAnkleMeasurementView(router: AnyRouter, delegate: RightAnkleMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: RightAnkleMeasurementPresenter(
                 interactor: interactor,

@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 24/09/2025.
 //
 
+@MainActor
 protocol LocalExerciseTemplatePersistence {
     func addLocalExerciseTemplate(exercise: ExerciseTemplateModel) throws
     func getLocalExerciseTemplate(id: String) throws -> ExerciseTemplateModel

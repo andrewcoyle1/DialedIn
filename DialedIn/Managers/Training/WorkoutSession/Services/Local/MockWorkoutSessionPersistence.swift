@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 struct MockWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     
     var workoutSessions: [WorkoutSessionModel]
@@ -53,28 +54,29 @@ struct MockWorkoutSessionPersistence: LocalWorkoutSessionPersistence {
     func getLocalWorkoutSessions(ids: [String]) throws -> [WorkoutSessionModel] {
         try tryShowError()
 
-        return workoutSessions.filter { ids.contains($0.id) }
+        return workoutSessions.filter { ids.contains($0.id) && $0.deletedAt == nil }
     }
-    
+
     func getLocalWorkoutSessionsForAuthor(authorId: String, limitTo: Int) throws -> [WorkoutSessionModel] {
         try tryShowError()
-        let filtered = workoutSessions.filter { $0.authorId == authorId }
+        let filtered = workoutSessions.filter { $0.authorId == authorId && $0.deletedAt == nil }
         if limitTo == 0 {
-            return filtered  // No limit
+            return filtered
         }
         return Array(filtered.prefix(limitTo))
     }
-    
+
     func getAllLocalWorkoutSessions() throws -> [WorkoutSessionModel] {
         try tryShowError()
 
-        return workoutSessions
+        return workoutSessions.filter { $0.deletedAt == nil }
     }
-    
+
     func deleteLocalWorkoutSession(id: String) throws {
         try tryShowError()
+        // Mock: soft delete not persisted (protocol is non-mutating); list methods still filter by deletedAt == nil
     }
-    
+
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws {
         try tryShowError()
     }

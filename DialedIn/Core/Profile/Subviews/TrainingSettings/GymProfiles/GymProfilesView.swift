@@ -10,7 +10,12 @@ struct GymProfilesView: View {
         }
         .navigationTitle("Gym Profiles")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "GymProfilesView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -77,7 +82,7 @@ struct GymProfilesView: View {
 
 extension CoreBuilder {
     
-    func gymProfilesView(router: Router) -> some View {
+    func gymProfilesView(router: AnyRouter) -> some View {
         GymProfilesView(
             presenter: GymProfilesPresenter(
                 interactor: interactor,
@@ -105,5 +110,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.gymProfilesView(router: router)
     }
-    .previewEnvironment()
+    
 }

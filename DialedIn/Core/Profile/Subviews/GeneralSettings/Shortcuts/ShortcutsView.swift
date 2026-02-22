@@ -19,7 +19,12 @@ struct ShortcutsView: View {
         }
         .navigationTitle("Shortcuts")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "ShortcutsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(role: .confirm) {
@@ -32,7 +37,7 @@ struct ShortcutsView: View {
 
 extension CoreBuilder {
     
-    func shortcutsView(router: Router, delegate: ShortcutsDelegate) -> some View {
+    func shortcutsView(router: AnyRouter, delegate: ShortcutsDelegate) -> some View {
         ShortcutsView(
             presenter: ShortcutsPresenter(
                 interactor: interactor,
@@ -62,5 +67,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.shortcutsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

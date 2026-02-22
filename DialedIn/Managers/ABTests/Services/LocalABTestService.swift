@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 05/12/2025.
 //
 
+@MainActor
 class LocalABTestService: ABTestService {
     @UserDefault(key: ActiveABTests.CodingKeys.notificationsTest.rawValue, startingValue: .random())
     private var notificationsTest: Bool

@@ -28,7 +28,12 @@ struct CreateIngredientView: View {
         .navigationSubtitle("Define ingredient details and nutrition")
         .navigationBarTitleDisplayMode(.large)
         .scrollIndicators(.hidden)
-        .screenAppearAnalytics(name: "CreateIngredientView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -272,9 +277,11 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.createIngredientView(router: router)
     }
-    .previewEnvironment()
+    
 }

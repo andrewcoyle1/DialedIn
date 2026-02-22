@@ -8,6 +8,7 @@
 import Foundation
 
 @Observable
+@MainActor
 class BodyMeasurementsManager {
     private let remote: RemoteBodyMeasurementService
     private let local: LocalBodyMeasurementService
@@ -98,6 +99,10 @@ class BodyMeasurementsManager {
     func deleteWeightEntry(userId: String, entryId: String) async throws {
         try local.deleteWeightEntry(id: entryId)
         try await remote.deleteWeightEntry(userId: userId, entryId: entryId)
+    }
+
+    func deleteAllWeightEntriesForUser(userId: String) async throws {
+        try await remote.deleteAllWeightEntriesForUser(userId: userId)
     }
 
     // MARK: Maintenance
@@ -427,4 +432,54 @@ class BodyMeasurementsManager {
         UserDefaults.standard.set(date, forKey: healthKitBodyFatLastSyncKey)
     }
 #endif
+}
+
+extension CoreInteractor {
+    // BodyMeasurementsManager
+
+    var measurementHistory: [BodyMeasurementEntry] {
+        bodyMeasurementsManager.measurementHistory
+    }
+
+    /// CREATE
+    func createWeightEntry(weightEntry: BodyMeasurementEntry) async throws {
+        try await bodyMeasurementsManager.createWeightEntry(weightEntry: weightEntry)
+    }
+
+    /// READ
+    func readLocalWeightEntry(id: String) throws -> BodyMeasurementEntry {
+        try bodyMeasurementsManager.readLocalWeightEntry(id: id)
+    }
+
+    func readRemoteWeightEntry(userId: String, entryId: String) async throws -> BodyMeasurementEntry {
+        try await bodyMeasurementsManager.readRemoteWeightEntry(userId: userId, entryId: entryId)
+    }
+
+    func readAllLocalWeightEntries() throws -> [BodyMeasurementEntry] {
+        try bodyMeasurementsManager.readAllLocalWeightEntries()
+    }
+
+    func readAllRemoteWeightEntries(userId: String) async throws -> [BodyMeasurementEntry] {
+        try await bodyMeasurementsManager.readAllRemoteWeightEntries(userId: userId)
+    }
+
+    /// UPDATE
+    func updateWeightEntry(entry: BodyMeasurementEntry) async throws {
+        try await bodyMeasurementsManager.updateWeightEntry(entry: entry)
+    }
+
+    /// DELETE
+    func deleteWeightEntry(userId: String, entryId: String) async throws {
+        try await bodyMeasurementsManager.deleteWeightEntry(userId: userId, entryId: entryId)
+    }
+
+    func dedupeWeightEntriesByDay(userId: String) async throws {
+        try await bodyMeasurementsManager.dedupeWeightEntriesByDay(userId: userId)
+    }
+
+    func backfillBodyFatFromHealthKit() async {
+        guard let userId else { return }
+        await bodyMeasurementsManager.backfillBodyFatFromHealthKit(userId: userId)
+    }
+
 }

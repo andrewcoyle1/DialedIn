@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 20/10/2025.
 //
 
+@MainActor
 protocol LocalBodyMeasurementService {
     // MARK: CREATE
     func createWeightEntry(weightEntry: BodyMeasurementEntry) throws

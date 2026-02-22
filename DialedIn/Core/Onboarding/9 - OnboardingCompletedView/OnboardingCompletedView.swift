@@ -78,15 +78,15 @@ struct OnboardingCompletedView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingCompletedView(router: AnyRouter) -> some View {
         OnboardingCompletedView(
-            presenter: OnboardingCompletedPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+            presenter: OnboardingCompletedPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingCompletedView() {
         router.showScreen(.push) { router in
             builder.onboardingCompletedView(router: router)
@@ -95,9 +95,9 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingCompletedView(router: router)
     }
-    .previewEnvironment()
+    
 }

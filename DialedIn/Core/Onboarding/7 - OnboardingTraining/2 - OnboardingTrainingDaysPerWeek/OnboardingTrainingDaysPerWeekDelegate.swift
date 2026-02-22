@@ -6,5 +6,15 @@
 //
 
 struct OnboardingTrainingDaysPerWeekDelegate {
-    var trainingProgramBuilder: TrainingProgramBuilder
+    
+    let trainingExperience: TrainingExperience
+    
+    init(delegate: OnboardingTrainingExperienceDelegate, trainingExperience: TrainingExperience) {
+        self.trainingExperience = trainingExperience
+        
+    }
+    
+    static var mock: Self {
+        Self(delegate: .mock, trainingExperience: .beginner)
+    }
 }

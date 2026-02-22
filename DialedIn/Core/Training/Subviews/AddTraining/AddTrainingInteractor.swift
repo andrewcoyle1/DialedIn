@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol AddTrainingInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol AddTrainingInteractor: GlobalInteractor { }
 
 extension CoreInteractor: AddTrainingInteractor { }

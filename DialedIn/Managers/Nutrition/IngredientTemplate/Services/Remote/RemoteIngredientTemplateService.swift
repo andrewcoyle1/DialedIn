@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-protocol RemoteIngredientTemplateService {
+protocol RemoteIngredientTemplateService: Sendable {
     func createIngredientTemplate(ingredient: IngredientTemplateModel, image: PlatformImage?) async throws
     func getIngredientTemplate(id: String) async throws -> IngredientTemplateModel
     func getIngredientTemplates(ids: [String], limitTo: Int) async throws -> [IngredientTemplateModel]

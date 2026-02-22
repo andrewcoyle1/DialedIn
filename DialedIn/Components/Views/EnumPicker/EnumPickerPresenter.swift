@@ -12,6 +12,14 @@ class EnumPickerPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func onSelect<Item: PickableItem>(item: Item, binding: Binding<Item?>) {
         binding.wrappedValue = item
         router.dismissScreen()
@@ -26,4 +34,32 @@ class EnumPickerPresenter {
         router.dismissScreen()
     }
 
+}
+
+extension EnumPickerPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear:     return "EnumPickerView_Appear"
+            case .onDisappear:  return "EnumPickerView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
+    }
 }

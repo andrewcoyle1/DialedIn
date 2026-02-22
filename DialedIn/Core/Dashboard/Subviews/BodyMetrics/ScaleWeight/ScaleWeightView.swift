@@ -15,18 +15,20 @@ struct ScaleWeightView: View {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = ScaleWeightDelegate()
     
     return RouterView { router in
         builder.scaleWeightView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func scaleWeightView(router: Router, delegate: ScaleWeightDelegate, themeColor: Color? = nil) -> some View {
+    func scaleWeightView(router: AnyRouter, delegate: ScaleWeightDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: ScaleWeightPresenter(
                 interactor: interactor,

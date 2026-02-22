@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
+@MainActor
 protocol WorkoutsInteractor {
     func trackEvent(event: LoggableEvent)
     func incrementWorkoutTemplateInteraction(id: String) async throws

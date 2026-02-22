@@ -8,34 +8,17 @@
 import Foundation
 
 @Observable
+@MainActor
 class AppState {
-    private(set) var showTabBar: Bool {
-        didSet {
-            UserDefaults.showTabBarView = showTabBar
-        }
-    }
+    let startingModuleId: String
     
-    init(showTabBar: Bool = UserDefaults.showTabBarView) {
-        self.showTabBar = showTabBar
-    }
-    
-    func updateViewState(showTabBarView: Bool) {
-        self.showTabBar = showTabBarView
+    init(startingModuleId: String = UserDefaults.lastModuleId) {
+        self.startingModuleId = startingModuleId
     }
 }
 
-extension UserDefaults {
-    
-    private struct Keys {
-        static let showTabBarView = "showTabBarView"
-    }
-    
-    static var showTabBarView: Bool {
-        get {
-            standard.bool(forKey: Keys.showTabBarView)
-        }
-        set {
-            standard.set(newValue, forKey: Keys.showTabBarView)
-        }
+extension CoreInteractor {
+    var startingModuleId: String {
+        appState.startingModuleId
     }
 }

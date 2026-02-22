@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol EditLoadableAccessoryInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol EditLoadableAccessoryInteractor: GlobalInteractor { }
 
 extension CoreInteractor: EditLoadableAccessoryInteractor { }

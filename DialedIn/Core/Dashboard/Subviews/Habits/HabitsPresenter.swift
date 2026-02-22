@@ -29,6 +29,14 @@ class HabitsPresenter {
         router.dismissScreen()
     }
 
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func onWeighInPressed(themeColor: Color?) {
         router.showWeighInConsistencyView(delegate: WeighInConsistencyDelegate(), themeColor: themeColor)
     }
@@ -241,6 +249,35 @@ class HabitsPresenter {
         } catch {
             self.foodLoggingContributionData = Array(repeating: 0.0, count: 30)
             self.foodLoggingCountThisWeek = 0
+        }
+    }
+}
+
+extension HabitsPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+
+        var eventName: String {
+            switch self {
+            case .onAppear:     return "HabitsView_Appear"
+            case .onDisappear:  return "HabitsView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+                
+            }
         }
     }
 }

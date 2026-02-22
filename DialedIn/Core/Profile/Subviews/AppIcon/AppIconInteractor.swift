@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol AppIconInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol AppIconInteractor: GlobalInteractor { }
 
 extension CoreInteractor: AppIconInteractor { }

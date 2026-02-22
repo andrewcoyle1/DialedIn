@@ -7,18 +7,8 @@
 
 import SwiftUI
 
-protocol OnboardingTrainingReviewInteractor {
+protocol OnboardingTrainingReviewInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func getBuiltInTemplates() -> [ProgramTemplateModel]
-    func createPlanFromTemplate(
-        _ template: ProgramTemplateModel,
-        startDate: Date,
-        endDate: Date?,
-        userId: String,
-        planName: String?
-    ) async throws -> TrainingPlan
-    func setActivePlan(_ plan: TrainingPlan)
-    func trackEvent(event: LoggableEvent)
 }
 
-extension OnbInteractor: OnboardingTrainingReviewInteractor { }
+extension CoreInteractor: OnboardingTrainingReviewInteractor { }

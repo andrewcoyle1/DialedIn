@@ -19,7 +19,10 @@ protocol OnboardingAuthRouter: GlobalRouter {
     func showOnboardingCompletedView()
     
     func showAlert(title: String, subtitle: String?, buttons: (@Sendable () -> AnyView)?)
-    func showOnbPaywall()
+    func showPaywall()
+    func showPaywall(onPurchaseSuccess: @escaping @MainActor () -> Void)
+    func showSubscriptionView()
+    func switchToCoreModule()
 }
 
-extension OnbRouter: OnboardingAuthRouter { }
+extension CoreRouter: OnboardingAuthRouter { }

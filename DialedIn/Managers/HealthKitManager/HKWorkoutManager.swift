@@ -10,6 +10,7 @@ import Foundation
 import HealthKit
 
 @Observable
+@MainActor
 class HKWorkoutManager: NSObject {
     struct SessionStateChange {
         let newState: HKWorkoutSessionState
@@ -495,6 +496,120 @@ extension HKWorkoutManager {
         Task { @MainActor [weak self] in
             self?.restTimer = timer
         }
+    }
+}
+
+extension CoreInteractor {
+    // MARK: HKWorkoutManager
+    
+    var workoutSessionState: HKWorkoutSessionState? {
+        hkWorkoutManager.state
+    }
+    
+    var hkWorkoutRestEndTime: Date? {
+        hkWorkoutManager.restEndTime
+    }
+    
+    var hkWorkoutMetrics: MetricsModel {
+        hkWorkoutManager.metrics
+    }
+    
+    func setWorkoutConfiguration(activityType: HKWorkoutActivityType, location: HKWorkoutSessionLocationType) {
+        hkWorkoutManager.setWorkoutConfiguration(activityType: activityType, location: location)
+    }
+    
+    func prepareWorkout() async throws {
+        try await hkWorkoutManager.prepareWorkout()
+    }
+    
+    func startWorkout(workout: WorkoutSessionModel) {
+        hkWorkoutManager.startWorkout(workout: workout)
+    }
+    
+    // Recover the workout for the session.
+    func recoverWorkout(workout: WorkoutSessionModel, recoveredSession: HKWorkoutSession) {
+        hkWorkoutManager.recoverWorkout(workout: workout, recoveredSession: recoveredSession)
+    }
+    
+    // State Control
+    
+    func pause() {
+        hkWorkoutManager.pause()
+    }
+    
+    func resume() {
+        hkWorkoutManager.resume()
+    }
+    
+    func togglePause() {
+        hkWorkoutManager.togglePause()
+    }
+    
+    func endWorkout() {
+        hkWorkoutManager.endWorkout()
+    }
+    
+    func updateForStatistics(_ statistics: HKStatistics?) {
+        hkWorkoutManager.updateForStatistics(statistics)
+    }
+    
+    func resetWorkout() {
+        hkWorkoutManager.resetWorkout()
+    }
+    
+    func startWorkoutTimer() {
+        hkWorkoutManager.startWorkoutTimer()
+    }
+    
+    func stopTimer() {
+        hkWorkoutManager.stopTimer()
+    }
+    
+    func workoutSession(_ workoutSession: HKWorkoutSession,
+                        didChangeTo toState: HKWorkoutSessionState,
+                        from fromState: HKWorkoutSessionState,
+                        date: Date) {
+        hkWorkoutManager.workoutSession(workoutSession, didChangeTo: toState, from: fromState, date: date)
+    }
+    
+    func workoutSession(_ workoutSession: HKWorkoutSession, didFailWithError error: Error) {
+        hkWorkoutManager.workoutSession(workoutSession, didFailWithError: error)
+    }
+    
+    func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {
+        hkWorkoutManager.workoutBuilderDidCollectEvent(workoutBuilder)
+    }
+    
+    func workoutBuilder(_ workoutBuilder: HKLiveWorkoutBuilder, didCollectDataOf collectedTypes: Set<HKSampleType>) {
+        hkWorkoutManager.workoutBuilder(workoutBuilder, didCollectDataOf: collectedTypes)
+    }
+    
+    func workoutBuilder(_ workoutBuilder: HKLiveWorkoutBuilder, didEnd workoutActivity: HKWorkoutActivity) {
+        hkWorkoutManager.workoutBuilder(workoutBuilder, didEnd: workoutActivity)
+    }
+    
+    // Rest Timer Management
+    @MainActor
+    func syncRestEndTimeFromSharedStorage() {
+        hkWorkoutManager.syncRestEndTimeFromSharedStorage()
+    }
+    
+    /// Begin a rest period and schedule a background-safe update at rest end.
+    @MainActor
+    func startRest(durationSeconds: Int, session: WorkoutSessionModel, currentExerciseIndex: Int = 0) {
+        hkWorkoutManager.startRest(durationSeconds: durationSeconds, session: session, currentExerciseIndex: currentExerciseIndex)
+    }
+    
+    /// Cancel any pending rest and clear countdown from Live Activity.
+    @MainActor
+    func cancelRest() {
+        hkWorkoutManager.cancelRest()
+    }
+    
+    /// Called automatically when the scheduled rest end time is reached.
+    @MainActor
+    func endRest() {
+        hkWorkoutManager.endRest()
     }
 }
 #endif

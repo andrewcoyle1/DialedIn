@@ -94,7 +94,12 @@ struct SetTargetView: View {
         .navigationTitle("Targets")
         .navigationSubtitle(workingExercise.exercise.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "SetTargetView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -154,7 +159,7 @@ struct SetTargetView: View {
 
 extension CoreBuilder {
     
-    func setTargetView(router: Router, delegate: SetTargetDelegate) -> some View {
+    func setTargetView(router: AnyRouter, delegate: SetTargetDelegate) -> some View {
         SetTargetView(
             presenter: SetTargetPresenter(
                 interactor: interactor,
@@ -185,5 +190,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.setTargetView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

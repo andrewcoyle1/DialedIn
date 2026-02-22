@@ -37,17 +37,17 @@ struct IngredientDetailView: View {
         .navigationTitle(delegate.ingredientTemplate.name)
         .navigationSubtitle(delegate.ingredientTemplate.description ?? "")
         .navigationBarTitleDisplayMode(.large)
-        .screenAppearAnalytics(name: "IngredientDetailView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
+        #if DEBUG || MOCK
         .toolbar {
             toolbarContent
         }
-        .task { await presenter.loadInitialState(ingredientTemplate: delegate.ingredientTemplate) }
-        .onChange(of: presenter.currentUser) { _, _ in
-            let user = presenter.currentUser
-            let isAuthor = user?.userId == delegate.ingredientTemplate.authorId
-            presenter.isBookmarked = isAuthor || (user?.bookmarkedIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false) || (user?.createdIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false)
-            presenter.isFavourited = user?.favouritedIngredientTemplateIds?.contains(delegate.ingredientTemplate.id) ?? false
-        }
+        #endif
     }
 
     private func imageSection(url: String) -> some View {
@@ -187,9 +187,9 @@ struct IngredientDetailView: View {
         }
     }
 
+#if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -197,29 +197,8 @@ struct IngredientDetailView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                Task {
-                    await presenter.onFavoritePressed(ingredientTemplate: delegate.ingredientTemplate)
-                }
-            } label: {
-                Image(systemName: presenter.isFavourited ? "heart.fill" : "heart")
-            }
-        }
-        // Hide bookmark button when the current user is the author
-        if presenter.currentUser?.userId != nil && presenter.currentUser?.userId != delegate.ingredientTemplate.authorId {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task {
-                        await presenter.onBookmarkPressed(ingredientTemplate: delegate.ingredientTemplate)
-                    }
-                } label: {
-                    Image(systemName: presenter.isBookmarked ? "book.closed.fill" : "book.closed")
-                }
-            }
-        }
     }
+#endif
 }
 
 extension CoreBuilder {
@@ -240,7 +219,9 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.ingredientDetailView(
             router: router,
@@ -249,5 +230,5 @@ extension CoreRouter {
             )
         )
     }
-    .previewEnvironment()
+    
 }

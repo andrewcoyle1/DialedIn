@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		D00C3F572EE9D413000BA387 /* SwiftfulAuthenticating in Frameworks */ = {isa = PBXBuildFile; productRef = D00C3F562EE9D413000BA387 /* SwiftfulAuthenticating */; };
 		D00C3F592EE9D413000BA387 /* SwiftfulAuthUI in Frameworks */ = {isa = PBXBuildFile; productRef = D00C3F582EE9D413000BA387 /* SwiftfulAuthUI */; };
+		D0136D522F48EE9100729550 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = D0136D512F48EE9100729550 /* FirebaseMessaging */; };
 		D02A76D72EB2464700D080ED /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76D62EB2464700D080ED /* Mixpanel */; };
 		D02A76D92EB2464B00D080ED /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76D82EB2464B00D080ED /* OpenAI */; };
 		D02A76F12EB2469300D080ED /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76F02EB2469300D080ED /* SwiftfulUtilities */; };
@@ -19,6 +20,7 @@
 		D04B80152EB23FE600644F75 /* MetricsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C922EA1901800682653 /* MetricsModel.swift */; };
 		D04B80162EB23FED00644F75 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
 		D04B80172EB23FF200644F75 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
+		D04CF16D2F492A0F002876A8 /* SwiftfulUI in Frameworks */ = {isa = PBXBuildFile; productRef = D04CF16C2F492A0F002876A8 /* SwiftfulUI */; };
 		D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0B9D2E8EA0F00027C662 /* Mixpanel */; };
 		D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA02E8EA1050027C662 /* OpenAI */; };
 		D05D0BAA2E8EA15E0027C662 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA92E8EA15E0027C662 /* FirebaseAnalytics */; };
@@ -81,7 +83,7 @@
 			remoteGlobalIDString = D0A2993C2E54AEA700DA64F7;
 			remoteInfo = DialedIn;
 		};
-		D012F07B2EAD20760014C602 /* PBXContainerItemProxy */ = {
+		D0136D5F2F48F7A700729550 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D0A299352E54AEA700DA64F7 /* Project object */;
 			proxyType = 1;
@@ -144,16 +146,10 @@
 				Components/Views/EnumPicker/EnumPickerPresenter.swift,
 				Components/Views/EnumPicker/EnumPickerRouter.swift,
 				Components/Views/EnumPicker/EnumPickerView.swift,
-				Components/Views/GenericTemplateList/GenericTemplateListPresenter.swift,
-				Components/Views/GenericTemplateList/TemplateListConfiguration.swift,
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryDelegate.swift,
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryInteractor.swift,
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryPresenter.swift,
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryRouter.swift,
-				Components/Views/Training/WorkoutScheduleRow/WorkoutScheduleRowDelegate.swift,
-				Components/Views/Training/WorkoutScheduleRow/WorkoutScheduleRowInteractor.swift,
-				Components/Views/Training/WorkoutScheduleRow/WorkoutScheduleRowPresenter.swift,
-				Components/Views/Training/WorkoutScheduleRow/WorkoutScheduleRowRouter.swift,
 				Core/Dashboard/DashboardPresenter.swift,
 				Core/Dashboard/Subviews/BodyMetrics/LogMeasurement/LogWeightView/LogWeightInteractor.swift,
 				Core/Dashboard/Subviews/BodyMetrics/LogMeasurement/LogWeightView/LogWeightPresenter.swift,
@@ -173,9 +169,6 @@
 				Core/Nutrition/Ingredients/IngredientsInteractor.swift,
 				Core/Nutrition/Ingredients/IngredientsPresenter.swift,
 				Core/Nutrition/Ingredients/IngredientsRouter.swift,
-				Core/Nutrition/Ingredients/IngredientTemplateList/IngredientTemplateListInteractor.swift,
-				Core/Nutrition/Ingredients/IngredientTemplateList/IngredientTemplateListPresenter.swift,
-				Core/Nutrition/Ingredients/IngredientTemplateList/IngredientTemplateListRouter.swift,
 				Core/Nutrition/MealLog/AddMealSheet/AddMealInteractor.swift,
 				Core/Nutrition/MealLog/AddMealSheet/AddMealPresenter.swift,
 				Core/Nutrition/MealLog/AddMealSheet/AddMealRouter.swift,
@@ -211,10 +204,6 @@
 				Core/Nutrition/Recipes/RecipesInteractor.swift,
 				Core/Nutrition/Recipes/RecipesPresenter.swift,
 				Core/Nutrition/Recipes/RecipesRouter.swift,
-				Core/Nutrition/Recipes/RecipeTemplateList/RecipeTemplateListDelegate.swift,
-				Core/Nutrition/Recipes/RecipeTemplateList/RecipeTemplateListInteractor.swift,
-				Core/Nutrition/Recipes/RecipeTemplateList/RecipeTemplateListPresenter.swift,
-				Core/Nutrition/Recipes/RecipeTemplateList/RecipeTemplateListRouter.swift,
 				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomeInteractor.swift",
 				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomePresenter.swift",
 				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomeRouter.swift",
@@ -597,10 +586,6 @@
 				Managers/Nutrition/RecipeTemplate/Services/Remote/MockRecipeTemplateService.swift,
 				Managers/Nutrition/RecipeTemplate/Services/Remote/RemoteRecipeTemplateService.swift,
 				Managers/Push/PushManager.swift,
-				Managers/Push/Services/Local/LocalPushService.swift,
-				Managers/Push/Services/Local/MockLocalPushService.swift,
-				Managers/Push/Services/MockPushServices.swift,
-				Managers/Push/Services/PushServices.swift,
 				Managers/Reports/Remote/MockReportService.swift,
 				Managers/Reports/Remote/RemoteReportService.swift,
 				Managers/Reports/ReportManager.swift,
@@ -640,30 +625,6 @@
 				Managers/Training/ExerciseTemplate/Services/Remote/RemoteExerciseTemplateService.swift,
 				Managers/Training/GymProfile/Model/GymProfile/GymProfileEntity.swift,
 				Managers/Training/GymProfile/Model/GymProfile/GymProfileModel.swift,
-				Managers/Training/ProgramTemplate/Models/ProgramTemplateModel.swift,
-				Managers/Training/ProgramTemplate/ProgramTemplateManager.swift,
-				Managers/Training/ProgramTemplate/Services/Local/LocalProgramTemplatePersistence.swift,
-				Managers/Training/ProgramTemplate/Services/Local/MockProgramTemplatePersistence.swift,
-				Managers/Training/ProgramTemplate/Services/ProgramTemplateServices.swift,
-				Managers/Training/ProgramTemplate/Services/Remote/MockProgramTemplateService.swift,
-				Managers/Training/ProgramTemplate/Services/Remote/RemoteProgramTemplateService.swift,
-				Managers/Training/ProgramTemplate/TrainingProgramRecommender.swift,
-				Managers/Training/TrainingPlan/Models/GoalType.swift,
-				Managers/Training/TrainingPlan/Models/ScheduledWorkout.swift,
-				Managers/Training/TrainingPlan/Models/TrainingGoal.swift,
-				Managers/Training/TrainingPlan/Models/TrainingPlan.swift,
-				Managers/Training/TrainingPlan/Models/TrainingPlanEntity.swift,
-				Managers/Training/TrainingPlan/Models/TrainingProgramBuilder.swift,
-				Managers/Training/TrainingPlan/Models/TrainingWeek.swift,
-				Managers/Training/TrainingPlan/Models/WeekProgress.swift,
-				Managers/Training/TrainingPlan/Services/Local/LocalTrainingPlanPersistence.swift,
-				Managers/Training/TrainingPlan/Services/Local/MockTrainingPlanPersistence.swift,
-				Managers/Training/TrainingPlan/Services/MockTrainingPlanServices.swift,
-				Managers/Training/TrainingPlan/Services/Remote/MockTrainingPlanService.swift,
-				Managers/Training/TrainingPlan/Services/Remote/RemoteTrainingPlanService.swift,
-				Managers/Training/TrainingPlan/Services/TrainingPlanServices.swift,
-				Managers/Training/TrainingPlan/TrainingPlanManager.swift,
-				"Managers/Training/TrainingPlan/TrainingPlanManager+WorkoutManagement.swift",
 				Managers/Training/WorkoutRestTimerIntents.swift,
 				Managers/Training/WorkoutSession/Models/Records/WorkoutSessionRecord.swift,
 				Managers/Training/WorkoutSession/Models/Records/WorkoutSetRecord.swift,
@@ -700,17 +661,16 @@
 				Managers/User/Services/Remote/RemoteUserService.swift,
 				Managers/User/Services/UserServices.swift,
 				Managers/User/UserManager.swift,
-				"Managers/User/UserManager+TemplateManagement.swift",
 				Root/Dependencies/DependencyContainer.swift,
 				Root/RIBs/Core/CoreInteractor.swift,
 				Root/RIBs/Core/CoreRouter.swift,
-				Root/RIBs/Onboarding/OnbRouter.swift,
 				Utilities/AppCheckProviderFactory.swift,
 				Utilities/AppCheckTokenCache.swift,
 				"Utilities/Concurrency+EXT.swift",
 				Utilities/Constants.swift,
 				Utilities/Keys.swift,
 				Utilities/ProfileImageCache.swift,
+				"Utilities/SwiftfulUtilities+Alias.swift",
 				Utilities/TextValidationHelper.swift,
 				Utilities/UnitConversion.swift,
 				Utilities/Utilities.swift,
@@ -751,8 +711,6 @@
 				Components/Modals/CustomModalView.swift,
 				Components/Modals/ModalSupportView.swift,
 				Components/Modals/ProfileModalView.swift,
-				Components/ViewModifiers/AnyNotificationListenerViewModifier.swift,
-				Components/ViewModifiers/AppearAnalyticsViewModifier.swift,
 				Components/ViewModifiers/AutoYScaleModifier.swift,
 				Components/ViewModifiers/ButtonViewModifiers.swift,
 				Components/ViewModifiers/ChartScrollZoomModifier.swift,
@@ -788,10 +746,6 @@
 				Components/Views/EnumPicker/EnumPickerPresenter.swift,
 				Components/Views/EnumPicker/EnumPickerRouter.swift,
 				Components/Views/EnumPicker/EnumPickerView.swift,
-				Components/Views/GenericTemplateList/GenericTemplateListPresenter.swift,
-				Components/Views/GenericTemplateList/GenericTemplateListView.swift,
-				Components/Views/GenericTemplateList/TemplateListConfiguration.swift,
-				Components/Views/Goals/GoalProgressRow.swift,
 				Components/Views/HeroCellView.swift,
 				Components/Views/MetricRow.swift,
 				Components/Views/MetricView.swift,
@@ -814,11 +768,6 @@
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryPresenter.swift,
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryRouter.swift,
 				Components/Views/Training/TabViewAccessory/TabViewAccessoryView.swift,
-				Components/Views/Training/WorkoutScheduleRow/WorkoutScheduleRowDelegate.swift,
-				Components/Views/Training/WorkoutScheduleRow/WorkoutScheduleRowInteractor.swift,
-				Components/Views/Training/WorkoutScheduleRow/WorkoutScheduleRowPresenter.swift,
-				Components/Views/Training/WorkoutScheduleRow/WorkoutScheduleRowRouter.swift,
-				Components/Views/Training/WorkoutScheduleRow/WorkoutScheduleRowView.swift,
 				Components/Views/WeeklyMacroChart.swift,
 				Core/AdaptiveMain/AdaptiveMainInteractor.swift,
 				Core/AdaptiveMain/AdaptiveMainPresenter.swift,
@@ -854,10 +803,6 @@
 				Core/Nutrition/Ingredients/IngredientsPresenter.swift,
 				Core/Nutrition/Ingredients/IngredientsRouter.swift,
 				Core/Nutrition/Ingredients/IngredientsView.swift,
-				Core/Nutrition/Ingredients/IngredientTemplateList/IngredientTemplateListInteractor.swift,
-				Core/Nutrition/Ingredients/IngredientTemplateList/IngredientTemplateListPresenter.swift,
-				Core/Nutrition/Ingredients/IngredientTemplateList/IngredientTemplateListRouter.swift,
-				Core/Nutrition/Ingredients/IngredientTemplateList/IngredientTemplateListView.swift,
 				Core/Nutrition/MealLog/AddMealSheet/AddMealInteractor.swift,
 				Core/Nutrition/MealLog/AddMealSheet/AddMealPresenter.swift,
 				Core/Nutrition/MealLog/AddMealSheet/AddMealRouter.swift,
@@ -912,11 +857,6 @@
 				Core/Nutrition/Recipes/RecipeStart/RecipeStartRouter.swift,
 				Core/Nutrition/Recipes/RecipeStart/RecipeStartView.swift,
 				Core/Nutrition/Recipes/RecipesView.swift,
-				Core/Nutrition/Recipes/RecipeTemplateList/RecipeTemplateListDelegate.swift,
-				Core/Nutrition/Recipes/RecipeTemplateList/RecipeTemplateListInteractor.swift,
-				Core/Nutrition/Recipes/RecipeTemplateList/RecipeTemplateListPresenter.swift,
-				Core/Nutrition/Recipes/RecipeTemplateList/RecipeTemplateListRouter.swift,
-				Core/Nutrition/Recipes/RecipeTemplateList/RecipeTemplateListView.swift,
 				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomeInteractor.swift",
 				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomePresenter.swift",
 				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomeRouter.swift",
@@ -1448,12 +1388,6 @@
 				Managers/Nutrition/RecipeTemplate/Services/Remote/MockRecipeTemplateService.swift,
 				Managers/Nutrition/RecipeTemplate/Services/Remote/RemoteRecipeTemplateService.swift,
 				Managers/Push/PushManager.swift,
-				Managers/Push/Services/Local/LocalPushService.swift,
-				Managers/Push/Services/Local/MockLocalPushService.swift,
-				Managers/Push/Services/Local/ProductionLocalPushService.swift,
-				Managers/Push/Services/MockPushServices.swift,
-				Managers/Push/Services/ProductionPushServices.swift,
-				Managers/Push/Services/PushServices.swift,
 				Managers/Reports/Remote/FirebaseReportService.swift,
 				Managers/Reports/Remote/MockReportService.swift,
 				Managers/Reports/Remote/RemoteReportService.swift,
@@ -1500,34 +1434,6 @@
 				Managers/Training/ExerciseTemplate/Services/Remote/RemoteExerciseTemplateService.swift,
 				Managers/Training/GymProfile/Model/GymProfile/GymProfileEntity.swift,
 				Managers/Training/GymProfile/Model/GymProfile/GymProfileModel.swift,
-				Managers/Training/ProgramTemplate/Models/ProgramTemplateModel.swift,
-				Managers/Training/ProgramTemplate/ProgramTemplateManager.swift,
-				Managers/Training/ProgramTemplate/Services/Local/LocalProgramTemplatePersistence.swift,
-				Managers/Training/ProgramTemplate/Services/Local/MockProgramTemplatePersistence.swift,
-				Managers/Training/ProgramTemplate/Services/ProgramTemplateServices.swift,
-				Managers/Training/ProgramTemplate/Services/Remote/FirebaseProgramTemplateService.swift,
-				Managers/Training/ProgramTemplate/Services/Remote/MockProgramTemplateService.swift,
-				Managers/Training/ProgramTemplate/Services/Remote/RemoteProgramTemplateService.swift,
-				Managers/Training/ProgramTemplate/TrainingProgramRecommender.swift,
-				Managers/Training/TrainingPlan/Models/GoalType.swift,
-				Managers/Training/TrainingPlan/Models/ScheduledWorkout.swift,
-				Managers/Training/TrainingPlan/Models/TrainingGoal.swift,
-				Managers/Training/TrainingPlan/Models/TrainingPlan.swift,
-				Managers/Training/TrainingPlan/Models/TrainingPlanEntity.swift,
-				Managers/Training/TrainingPlan/Models/TrainingProgramBuilder.swift,
-				Managers/Training/TrainingPlan/Models/TrainingWeek.swift,
-				Managers/Training/TrainingPlan/Models/WeekProgress.swift,
-				Managers/Training/TrainingPlan/Services/Local/LocalTrainingPlanPersistence.swift,
-				Managers/Training/TrainingPlan/Services/Local/MockTrainingPlanPersistence.swift,
-				Managers/Training/TrainingPlan/Services/Local/SwiftTrainingPlanPersistence.swift,
-				Managers/Training/TrainingPlan/Services/MockTrainingPlanServices.swift,
-				Managers/Training/TrainingPlan/Services/ProductionTrainingPlanServices.swift,
-				Managers/Training/TrainingPlan/Services/Remote/FirebaseTrainingPlanService.swift,
-				Managers/Training/TrainingPlan/Services/Remote/MockTrainingPlanService.swift,
-				Managers/Training/TrainingPlan/Services/Remote/RemoteTrainingPlanService.swift,
-				Managers/Training/TrainingPlan/Services/TrainingPlanServices.swift,
-				Managers/Training/TrainingPlan/TrainingPlanManager.swift,
-				"Managers/Training/TrainingPlan/TrainingPlanManager+WorkoutManagement.swift",
 				Managers/Training/WorkoutRestTimerIntents.swift,
 				Managers/Training/WorkoutSession/Models/Records/WorkoutSessionRecord.swift,
 				Managers/Training/WorkoutSession/Models/Records/WorkoutSetRecord.swift,
@@ -1573,7 +1479,6 @@
 				Managers/User/Services/Remote/RemoteUserService.swift,
 				Managers/User/Services/UserServices.swift,
 				Managers/User/UserManager.swift,
-				"Managers/User/UserManager+TemplateManagement.swift",
 				Root/AppDelegate.swift,
 				Root/Dependencies/Dependencies.swift,
 				Root/Dependencies/DependencyContainer.swift,
@@ -1592,6 +1497,7 @@
 				Utilities/Constants.swift,
 				Utilities/Keys.swift,
 				Utilities/ProfileImageCache.swift,
+				"Utilities/SwiftfulUtilities+Alias.swift",
 				Utilities/TextValidationHelper.swift,
 				Utilities/UnitConversion.swift,
 				Utilities/Utilities.swift,
@@ -1677,6 +1583,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D04CF16D2F492A0F002876A8 /* SwiftfulUI in Frameworks */,
 				D0E7A89F2EE2D87800BEE79F /* SwiftfulAuthUI in Frameworks */,
 				D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */,
 				D0E7AA692EE2DB6100BEE79F /* SwiftfulLogging in Frameworks */,
@@ -1689,6 +1596,7 @@
 				D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */,
 				D05D0BAA2E8EA15E0027C662 /* FirebaseAnalytics in Frameworks */,
 				D0EC89962F2BACF000845CB6 /* SwiftfulHaptics in Frameworks */,
+				D0136D522F48EE9100729550 /* FirebaseMessaging in Frameworks */,
 				D05D0BAC2E8EA15E0027C662 /* FirebaseAppCheck in Frameworks */,
 				D0E7D5EF2EE372A600BEE79F /* SwiftfulFirestore in Frameworks */,
 				D05D0BB22E8EA15E0027C662 /* FirebaseFirestore in Frameworks */,
@@ -1798,7 +1706,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				D012F07C2EAD20760014C602 /* PBXTargetDependency */,
+				D0136D602F48F7A700729550 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				D012F0762EAD20760014C602 /* DialedInUITests */,
@@ -1896,6 +1804,8 @@
 				D06E0A8C2F282F8400746BD6 /* SwiftfulRouting */,
 				D0EC89952F2BACF000845CB6 /* SwiftfulHaptics */,
 				D0EC899D2F2BAD7000845CB6 /* SwiftfulSoundEffects */,
+				D0136D512F48EE9100729550 /* FirebaseMessaging */,
+				D04CF16C2F492A0F002876A8 /* SwiftfulUI */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -1955,6 +1865,7 @@
 				D06E0A8B2F282F8400746BD6 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */,
 				D0EC89942F2BACF000845CB6 /* XCRemoteSwiftPackageReference "SwiftfulHaptics" */,
 				D0EC899C2F2BAD7000845CB6 /* XCRemoteSwiftPackageReference "SwiftfulSoundEffects" */,
+				D04CF16B2F492A0F002876A8 /* XCRemoteSwiftPackageReference "SwiftfulUI" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
@@ -2092,10 +2003,10 @@
 			target = D0A2993C2E54AEA700DA64F7 /* DialedIn */;
 			targetProxy = D012F01E2EACD46C0014C602 /* PBXContainerItemProxy */;
 		};
-		D012F07C2EAD20760014C602 /* PBXTargetDependency */ = {
+		D0136D602F48F7A700729550 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D0A2993C2E54AEA700DA64F7 /* DialedIn */;
-			targetProxy = D012F07B2EAD20760014C602 /* PBXContainerItemProxy */;
+			targetProxy = D0136D5F2F48F7A700729550 /* PBXContainerItemProxy */;
 		};
 		D08F58562E8BF61D001D3980 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2211,7 +2122,9 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_UPCOMING_FEATURE_INFER_ISOLATED_CONFORMANCES = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = NO;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = DialedIn;
@@ -2238,7 +2151,9 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_UPCOMING_FEATURE_INFER_ISOLATED_CONFORMANCES = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = NO;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = DialedIn;
@@ -2266,7 +2181,9 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_UPCOMING_FEATURE_INFER_ISOLATED_CONFORMANCES = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = NO;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = DialedIn;
@@ -2348,6 +2265,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_ASSET_PATHS = "DialedIn/PreviewContent/Preview\\ Assets.xcassets";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2372,14 +2290,16 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = "-ObjC";
+				OTHER_SWIFT_FLAGS = "-DMOCK";
 				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.Dialed.mock;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -2387,10 +2307,13 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = MOCK;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_UPCOMING_FEATURE_INFER_ISOLATED_CONFORMANCES = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = NO;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = NO;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 26.0;
@@ -2644,6 +2567,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_ASSET_PATHS = "DialedIn/PreviewContent/Preview\\ Assets.xcassets";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2668,14 +2592,16 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = "-ObjC";
+				OTHER_SWIFT_FLAGS = "-DDEV";
 				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.Dialed.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -2683,10 +2609,13 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_UPCOMING_FEATURE_INFER_ISOLATED_CONFORMANCES = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = NO;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = NO;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 26.0;
@@ -2703,6 +2632,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_ASSET_PATHS = "DialedIn/PreviewContent/Preview\\ Assets.xcassets";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2727,8 +2657,9 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
@@ -2743,9 +2674,11 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_UPCOMING_FEATURE_INFER_ISOLATED_CONFORMANCES = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = NO;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = NO;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 26.0;
@@ -2808,6 +2741,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		D04CF16B2F492A0F002876A8 /* XCRemoteSwiftPackageReference "SwiftfulUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulUI.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.4;
+			};
+		};
 		D05D0B9C2E8EA0F00027C662 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mixpanel/mixpanel-swift.git";
@@ -2965,6 +2906,11 @@
 			package = D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */;
 			productName = SwiftfulAuthUI;
 		};
+		D0136D512F48EE9100729550 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
 		D02A76D62EB2464700D080ED /* Mixpanel */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0B9C2E8EA0F00027C662 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
@@ -2979,6 +2925,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
 			productName = SwiftfulUtilities;
+		};
+		D04CF16C2F492A0F002876A8 /* SwiftfulUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D04CF16B2F492A0F002876A8 /* XCRemoteSwiftPackageReference "SwiftfulUI" */;
+			productName = SwiftfulUI;
 		};
 		D05D0B9D2E8EA0F00027C662 /* Mixpanel */ = {
 			isa = XCSwiftPackageProductDependency;

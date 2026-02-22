@@ -14,6 +14,14 @@ class MuscleGroupPickerPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     var upperMuscles: [Muscles] {
         Muscles.allCases.filter { $0.bodyRegion == .upperBody }
     }
@@ -61,5 +69,34 @@ class MuscleGroupPickerPresenter {
     
     func onResetPressed() {
         selectedMuscleGroups = [:]
+    }
+    
+}
+
+extension MuscleGroupPickerPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "MuscleGroupPickerView_Appear"
+            case .onDisappear: return "MuscleGroupPickerView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

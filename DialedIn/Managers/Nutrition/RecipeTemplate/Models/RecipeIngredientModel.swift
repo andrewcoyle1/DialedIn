@@ -13,7 +13,7 @@ enum IngredientAmountUnit: String, Codable, CaseIterable, Sendable {
     case units
 }
 
-struct RecipeIngredientModel: @MainActor TemplateModel {
+struct RecipeIngredientModel: TemplateModel {
     var id: String { ingredient.ingredientId }
     var name: String { ingredient.name }
     var description: String? { ingredient.description }
@@ -39,7 +39,5 @@ struct RecipeIngredientModel: @MainActor TemplateModel {
     static var mock: RecipeIngredientModel {
         mocks[0]
     }
-    static var mocks: [RecipeIngredientModel] {
-        Array(IngredientTemplateModel.mocks.prefix(10)).map { RecipeIngredientModel(ingredient: $0, amount: 1) }
-    }
+    static let mocks: [RecipeIngredientModel] = Array(IngredientTemplateModel.mocks.prefix(10)).map { RecipeIngredientModel(ingredient: $0, amount: 1) }
 }

@@ -29,10 +29,10 @@ class OnboardingCompletedPresenter {
 
         Task {
             do {
-                try await interactor.updateOnboardingStep(step: .complete)
+                try await interactor.updateDidCompleteOnboarding()
                 interactor.trackEvent(event: Event.finishSuccess)
                 isCompletingProfileSetup = false
-                interactor.updateAppState(showTabBarView: true)
+                router.switchToCoreModule()
             } catch {
                 router.showAlert(error: error)
                 interactor.trackEvent(event: Event.finishFail(error: error))

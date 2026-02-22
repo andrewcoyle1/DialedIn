@@ -115,7 +115,7 @@ struct CalendarView: View {
 
 extension CoreBuilder {
 
-    func calendarView(router: Router, delegate: CalendarDelegate) -> some View {
+    func calendarView(router: AnyRouter, delegate: CalendarDelegate) -> some View {
         CalendarView(
             presenter: CalendarPresenter(
                 interactor: interactor,
@@ -147,7 +147,9 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = CalendarDelegate { date, _ in
         print("Date selected: \(date)")
     }
@@ -158,5 +160,4 @@ extension CoreRouter {
             }
             .presentationDetents([.fraction(0.45)])
         }
-        .previewEnvironment()
 }

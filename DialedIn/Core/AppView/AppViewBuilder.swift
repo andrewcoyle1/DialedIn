@@ -9,13 +9,13 @@ import SwiftUI
 
 struct AppViewBuilder<TabBarView: View, OnboardingView: View>: View {
     
-    var showTabBar: Bool = false
+    var activeModuleId: String = Constants.onboardingModuleId
     var tabBarView: () -> TabBarView
     var onboardingView: () -> OnboardingView
 
     var body: some View {
         ZStack {
-            if showTabBar {
+            if activeModuleId == Constants.tabBarModuleId {
                 tabBarView()
                     .transition(.move(edge: .trailing))
             } else {
@@ -23,14 +23,23 @@ struct AppViewBuilder<TabBarView: View, OnboardingView: View>: View {
                     .transition(.move(edge: .leading))
             } 
         }
-        .animation(.default, value: showTabBar)
+        .animation(.default, value: activeModuleId)
+    }
+}
+
+private func onTabBarTapped(_ activeTab: Binding<String>) {
+    if activeTab.wrappedValue == Constants.onboardingModuleId {
+        activeTab.wrappedValue = Constants.tabBarModuleId
+    } else {
+        activeTab.wrappedValue = Constants.onboardingModuleId
     }
 }
 
 #Preview {
-    @Previewable @State var showTabBar: Bool = false
+    @Previewable @State var activeTab: String = Constants.onboardingModuleId
+    
     AppViewBuilder(
-        showTabBar: showTabBar,
+        activeModuleId: activeTab,
         tabBarView: {
             ZStack {
                 Color.red.ignoresSafeArea()
@@ -45,6 +54,6 @@ struct AppViewBuilder<TabBarView: View, OnboardingView: View>: View {
         }
     )
     .onTapGesture {
-        showTabBar.toggle()
+        onTabBarTapped($activeTab)
     }
 }

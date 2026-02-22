@@ -19,7 +19,12 @@ struct AddBodyWeightView: View {
         .navigationTitle("Add")
         .navigationSubtitle(presenter.bodyWeight.wrappedValue.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "AddBodyWeightView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -62,7 +67,7 @@ struct AddBodyWeightView: View {
 
 extension CoreBuilder {
     
-    func addBodyWeightView(router: Router, delegate: AddBodyWeightDelegate) -> some View {
+    func addBodyWeightView(router: AnyRouter, delegate: AddBodyWeightDelegate) -> some View {
         AddBodyWeightView(
             presenter: AddBodyWeightPresenter(
                 interactor: interactor,
@@ -94,5 +99,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.addBodyWeightView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

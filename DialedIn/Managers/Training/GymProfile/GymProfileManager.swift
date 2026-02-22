@@ -8,6 +8,7 @@
 import Foundation
 
 @Observable
+@MainActor
 class GymProfileManager {
     
     private let local: LocalGymProfilePersistence
@@ -122,6 +123,63 @@ class GymProfileManager {
         deletedProfile.dateModified = .now
         try local.deleteGymProfile(profile: deletedProfile)
         try await remote.deleteGymProfile(profile: deletedProfile)
+    }
+
+}
+
+extension CoreInteractor {
+    
+    // MARK: GymProfileManager
+    
+    var favouriteGymProfile: GymProfileModel? {
+        guard let favouriteGymProfileId = currentUser?.submittedFavouriteGymProfileId else { return nil }
+        return try? readLocalGymProfile(profileId: favouriteGymProfileId)
+    }
+
+    // CREATE
+    func createGymProfile(profile: GymProfileModel) async throws {
+        try await gymProfileManager.createGymProfile(profile: profile)
+    }
+
+    // READ
+    
+    func readFavouriteGymProfile() async throws -> GymProfileModel {
+        guard let user = currentUser,
+              let favourite = user.submittedFavouriteGymProfileId else { throw CoreError.noCurrentUser }
+        do {
+            return try gymProfileManager.readLocalGymProfile(profileId: favourite)
+        } catch {
+            return try await gymProfileManager.readRemoteGymProfile(profileId: favourite)
+        }
+    }
+    
+    func readLocalGymProfile(profileId: String) throws -> GymProfileModel {
+        try gymProfileManager.readLocalGymProfile(profileId: profileId)
+    }
+    
+    func readAllLocalGymProfiles() throws -> [GymProfileModel] {
+        try gymProfileManager.readAllLocalGymProfiles()
+    }
+    
+    func readRemoteGymProfile(profileId: String) async throws -> GymProfileModel {
+        try await gymProfileManager.readRemoteGymProfile(profileId: profileId)
+    }
+    
+    func readAllRemoteGymProfilesForAuthor(userId: String) async throws -> [GymProfileModel] {
+        try await gymProfileManager.readAllRemoteGymProfilesForAuthor(userId: userId)
+    }
+
+    // UPDATE
+    
+    @discardableResult
+    func updateGymProfile(profile: GymProfileModel, image: PlatformImage? = nil) async throws -> GymProfileModel {
+        try await gymProfileManager.updateGymProfile(profile: profile, image: image)
+    }
+
+    // DELETE
+        
+    func deleteGymProfile(profile: GymProfileModel) async throws {
+        try await gymProfileManager.deleteGymProfile(profile: profile)
     }
 
 }

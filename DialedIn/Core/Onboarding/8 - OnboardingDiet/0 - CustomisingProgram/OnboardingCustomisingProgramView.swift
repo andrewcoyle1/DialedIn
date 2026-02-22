@@ -60,15 +60,15 @@ struct OnboardingCustomisingProgramView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingCustomisingProgramView(router: AnyRouter) -> some View {
         OnboardingCustomisingProgramView(
-            presenter: OnboardingCustomisingProgramPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+            presenter: OnboardingCustomisingProgramPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingCustomisingProgramView() {
         router.showScreen(.push) { router in
             builder.onboardingCustomisingProgramView(router: router)
@@ -77,9 +77,9 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingCustomisingProgramView(router: router)
     }
-    .previewEnvironment()
+    
 }

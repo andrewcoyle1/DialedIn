@@ -28,7 +28,12 @@ struct DefineWorkoutView: View {
             topSection
             exercisesSection
         }
-        .screenAppearAnalytics(name: "DefineWorkoutView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .navigationBarTitleDisplayMode(.inline)
 //        .toolbar {
 //            ToolbarItem(placement: .topBarTrailing) {
@@ -198,7 +203,7 @@ struct DefineWorkoutView: View {
 
 extension CoreBuilder {
     
-    func defineWorkoutView(router: Router, delegate: DefineWorkoutDelegate) -> some View {
+    func defineWorkoutView(router: AnyRouter, delegate: DefineWorkoutDelegate) -> some View {
         DefineWorkoutView(
             presenter: DefineWorkoutPresenter(
                 interactor: interactor,
@@ -235,5 +240,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.defineWorkoutView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

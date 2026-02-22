@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Generic protocol for remote template services
 /// Provides a common interface for working with remote storage of templates
-protocol RemoteTemplateService {
+protocol RemoteTemplateService: Sendable {
     associatedtype Model: TemplateModel
     
     func createTemplate(_ template: Model, image: PlatformImage?) async throws

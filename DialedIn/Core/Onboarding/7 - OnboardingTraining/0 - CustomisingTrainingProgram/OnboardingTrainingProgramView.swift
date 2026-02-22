@@ -61,18 +61,18 @@ struct OnboardingTrainingProgramView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingTrainingProgramView(router: AnyRouter) -> some View {
         OnboardingTrainingProgramView(
             presenter: OnboardingTrainingProgramPresenter(
                 interactor: interactor,
-                router: OnbRouter(router: router, builder: self)
+                router: CoreRouter(router: router, builder: self)
             )
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingTrainingProgramView() {
         router.showScreen(.push) { router in
             builder.onboardingTrainingProgramView(router: router)
@@ -81,9 +81,9 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingTrainingProgramView(router: router)
     }
-    .previewEnvironment()
+    
 }

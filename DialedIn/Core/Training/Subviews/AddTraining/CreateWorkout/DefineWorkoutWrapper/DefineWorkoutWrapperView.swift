@@ -24,7 +24,12 @@ struct DefineWorkoutWrapperView<DefineWorkout: View>: View {
         )
         defineWorkoutView(delegate)
             .navigationTitle("Define Workout")
-            .screenAppearAnalytics(name: "DefineWorkoutWrapperView")
+            .onAppear {
+                presenter.onViewAppear()
+            }
+            .onDisappear {
+                presenter.onViewDisappear()
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Save", role: .confirm) {
@@ -38,7 +43,7 @@ struct DefineWorkoutWrapperView<DefineWorkout: View>: View {
 
 extension CoreBuilder {
     
-    func defineWorkoutWrapperView(router: Router, delegate: DefineWorkoutWrapperDelegate) -> some View {
+    func defineWorkoutWrapperView(router: AnyRouter, delegate: DefineWorkoutWrapperDelegate) -> some View {
         DefineWorkoutWrapperView(
             presenter: DefineWorkoutWrapperPresenter(
                 interactor: interactor,
@@ -71,5 +76,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.defineWorkoutWrapperView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

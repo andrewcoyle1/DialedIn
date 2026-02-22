@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RecipeTemplateModel: @MainActor TemplateModel {
+struct RecipeTemplateModel: TemplateModel {
     var id: String {
         recipeId
     }

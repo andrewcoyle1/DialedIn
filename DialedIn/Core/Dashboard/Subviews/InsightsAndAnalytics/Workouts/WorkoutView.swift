@@ -21,18 +21,20 @@ struct WorkoutView: View {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = WorkoutDelegate()
 
     return RouterView { router in
         builder.workoutView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func workoutView(router: Router, delegate: WorkoutDelegate, themeColor: Color? = nil) -> some View {
+    func workoutView(router: AnyRouter, delegate: WorkoutDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: WorkoutPresenter(
                 interactor: interactor,

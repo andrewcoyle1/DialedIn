@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol EquipmentPickerInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol EquipmentPickerInteractor: GlobalInteractor { }
 
 extension CoreInteractor: EquipmentPickerInteractor { }

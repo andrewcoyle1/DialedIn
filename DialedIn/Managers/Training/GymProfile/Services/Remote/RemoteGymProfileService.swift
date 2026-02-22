@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 21/01/2026.
 //
 
-protocol RemoteGymProfileService {
+protocol RemoteGymProfileService: Sendable {
     // MARK: CREATE
     func createGymProfile(profile: GymProfileModel) async throws
     

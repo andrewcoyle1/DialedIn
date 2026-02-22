@@ -21,18 +21,20 @@ struct ExpenditureView: View {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = ExpenditureDelegate()
 
     return RouterView { router in
         builder.expenditureView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func expenditureView(router: Router, delegate: ExpenditureDelegate, themeColor: Color? = nil) -> some View {
+    func expenditureView(router: AnyRouter, delegate: ExpenditureDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: ExpenditurePresenter(
                 interactor: interactor,

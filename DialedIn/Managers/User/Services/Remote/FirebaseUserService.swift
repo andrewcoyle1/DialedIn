@@ -5,7 +5,8 @@
 //  Created by Andrew Coyle on 10/15/24.
 //
 
-@_exported @preconcurrency import FirebaseFirestore
+import FirebaseFirestore
+import SwiftfulFirestore
 
 typealias ListenerRegistration = FirebaseFirestore.ListenerRegistration
 
@@ -19,262 +20,114 @@ struct FirebaseUserService: RemoteUserService {
         Firestore.firestore().collection("users")
     }
     
-    func saveUser(user: UserModel, image: PlatformImage? = nil) async throws {
-        if let image {
-            // Upload the image
-            let path = "users/\(user.userId)/profile.jpg"
-            let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
-            
-            // Update user image name
-            var user = user
-            user.updateImageURL(imageUrl: url.absoluteString)
+    func getUser(userId: String) async throws -> UserModel {
+        try await collection.getDocument(id: userId)
+    }
 
-            // Upload the user
-            try collection.document(user.userId).setData(from: user, merge: true)
-
-            return
-        }
-        // Upload the user
+    func saveUser(user: UserModel) async throws {
         try collection.document(user.userId).setData(from: user, merge: true)
     }
     
-    func markUnanonymous(userId: String, email: String? = nil) async throws {
-        var data: [String: Any] = [
-            UserModel.CodingKeys.isAnonymous.rawValue: false
-        ]
-        if let email {
-            data[UserModel.CodingKeys.email.rawValue] = email
-        } 
-
-        try await collection.document(userId).updateData(data)
-    }
-    
-    func updateFirstName(userId: String, firstName: String) async throws {
+    func updateUserName(userId: String, firstName: String? = nil, lastName: String? = nil) async throws {
         try await collection.document(userId).updateData([
-            UserModel.CodingKeys.firstName.rawValue: firstName
+            UserModel.CodingKeys.firstName.rawValue: firstName as Any,
+            UserModel.CodingKeys.lastName.rawValue: lastName as Any
         ])
     }
     
-    func updateLastName(userId: String, lastName: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.lastName.rawValue: lastName
-        ])
-    }
-    
-    func updateDateOfBirth(userId: String, dateOfBirth: Date) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.dateOfBirth.rawValue: dateOfBirth
-        ])
-    }
-    
-    func updateGender(userId: String, gender: Gender) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.gender.rawValue: gender.rawValue
-        ])
-    }
-    
-    func updateWeight(userId: String, weightKg: Double) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.weightKilograms.rawValue: weightKg
-        ])
-    }
-    
-    func updateProfileImageUrl(userId: String, url: String?) async throws {
-        var data: [String: Any] = [:]
-        if let url {
-            data[UserModel.CodingKeys.profileImageUrl.rawValue] = url
-        } else {
-            data[UserModel.CodingKeys.profileImageUrl.rawValue] = FieldValue.delete()
-        }
-        try await collection.document(userId).updateData(data)
-    }
-    
-    func updateActiveTrainingProgramId(userId: String, programId: String?) async throws {
-        var data: [String: Any] = [:]
-        if let programId {
-            data[UserModel.CodingKeys.activeTrainingProgramId.rawValue] = programId
-        } else {
-            data[UserModel.CodingKeys.activeTrainingProgramId.rawValue] = FieldValue.delete()
-        }
-        try await collection.document(userId).updateData(data)
-    }
-
-    func updateFavouriteGymProfileId(userId: String, profileId: String?) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.favouriteGymProfileId.rawValue: profileId as Any
+    func saveUserEmail(userId: String, email: String) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedEmail.rawValue: email
         ])
     }
 
-    func updateLastSignInDate(userId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.lastSignInDate.rawValue: Date()
-        ])
-    }
-    
-    // MARK: - Onboarding Step
+    func saveUserProfileImage(userId: String, image: PlatformImage) async throws {
+        // Upload the image
+        let path = "users/\(userId)/profile"
+        let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
         
-    func updateOnboardingStep(userId: String, step: OnboardingStep) async throws {
-        try await collection.document(userId).updateData([
-            "onboarding_step": step.rawValue
+        // Update user document with image url string
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedProfileImage.rawValue: url.absoluteString
         ])
     }
     
-    // MARK: - Goal Settings
-    func updateCurrentGoalId(userId: String, goalId: String?) async throws {
-        var data: [String: Any] = [:]
-        if let goalId = goalId {
-            data[UserModel.CodingKeys.currentGoalId.rawValue] = goalId
-        } else {
-            data[UserModel.CodingKeys.currentGoalId.rawValue] = FieldValue.delete()
-        }
-        try await collection.document(userId).updateData(data)
-    }
-    
-    // MARK: - Created/Bookmarked/Favourited Exercise Templates
-    
-    func addCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.createdExerciseTemplateIds.rawValue: FieldValue.arrayUnion([exerciseTemplateId])
-        ])
-    }
-    
-    func removeCreatedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.createdExerciseTemplateIds.rawValue: FieldValue.arrayRemove([exerciseTemplateId])
-        ])
-    }
-    
-    func addBookmarkedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.bookmarkedExerciseTemplateIds.rawValue: FieldValue.arrayUnion([exerciseTemplateId])
-        ])
-    }
-    
-    func removeBookmarkedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.bookmarkedExerciseTemplateIds.rawValue: FieldValue.arrayRemove([exerciseTemplateId])
-        ])
-    }
-    
-    func addFavouritedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.favouritedExerciseTemplateIds.rawValue: FieldValue.arrayUnion([exerciseTemplateId])
-        ])
-    }
-    
-    func removeFavouritedExerciseTemplate(userId: String, exerciseTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.favouritedExerciseTemplateIds.rawValue: FieldValue.arrayRemove([exerciseTemplateId])
-        ])
-    }
-    
-    func addCreatedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.createdWorkoutTemplateIds.rawValue: FieldValue.arrayUnion([workoutTemplateId])
-        ])
-    }
-    
-    func removeCreatedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.createdWorkoutTemplateIds.rawValue: FieldValue.arrayRemove([workoutTemplateId])
-        ])
-    }
-    
-    func addBookmarkedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.bookmarkedWorkoutTemplateIds.rawValue: FieldValue.arrayUnion([workoutTemplateId])
-        ])
-    }
-    
-    func removeBookmarkedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.bookmarkedWorkoutTemplateIds.rawValue: FieldValue.arrayRemove([workoutTemplateId])
-        ])
-    }
-    
-    func addFavouritedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.favouritedWorkoutTemplateIds.rawValue: FieldValue.arrayUnion([workoutTemplateId])
-        ])
-    }
-    
-    func removeFavouritedWorkoutTemplate(userId: String, workoutTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.favouritedWorkoutTemplateIds.rawValue: FieldValue.arrayRemove([workoutTemplateId])
-        ])
-    }
-    
-    // MARK: - Created/Bookmarked/Favourited Ingredient Templates
-
-    func addCreatedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.createdIngredientTemplateIds.rawValue: FieldValue.arrayUnion([ingredientTemplateId])
+    func saveUserLastSignInDate(userId: String) async throws {
+        let lastSignInDate = Date()
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.lastSignInDate.rawValue: lastSignInDate
         ])
     }
 
-    func removeCreatedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.createdIngredientTemplateIds.rawValue: FieldValue.arrayRemove([ingredientTemplateId])
+    func saveUserGender(userId: String, gender: Gender) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedGender.rawValue: gender
         ])
     }
 
-    func addBookmarkedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.bookmarkedIngredientTemplateIds.rawValue: FieldValue.arrayUnion([ingredientTemplateId])
+    func saveUserDateOfBirth(userId: String, dateOfBirth: Date) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedDateOfBirth.rawValue: dateOfBirth
+        ])
+    }
+    
+    func saveUserWeightKilograms(userId: String, weightKg: Double) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedWeightKilograms.rawValue: weightKg
         ])
     }
 
-    func removeBookmarkedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.bookmarkedIngredientTemplateIds.rawValue: FieldValue.arrayRemove([ingredientTemplateId])
+    func saveUserExerciseFrequency(userId: String, exerciseFrequency: ProfileExerciseFrequency) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedExerciseFrequency.rawValue: exerciseFrequency.rawValue
         ])
     }
 
-    func addFavouritedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.favouritedIngredientTemplateIds.rawValue: FieldValue.arrayUnion([ingredientTemplateId])
+    func saveUserDailyActivityLevel(userId: String, dailyActivityLevel: ProfileDailyActivityLevel) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedDailyActivityLevel.rawValue: dailyActivityLevel.rawValue
         ])
     }
 
-    func removeFavouritedIngredientTemplate(userId: String, ingredientTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.favouritedIngredientTemplateIds.rawValue: FieldValue.arrayRemove([ingredientTemplateId])
+    func saveUserCardioFitnessLevel(userId: String, cardioFitnessLevel: ProfileCardioFitnessLevel) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedCardioFitnessLevel.rawValue: cardioFitnessLevel.rawValue
         ])
     }
 
-    func addCreatedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.createdRecipeTemplateIds.rawValue: FieldValue.arrayUnion([recipeTemplateId])
+    func saveUserLengthUnitPreference(userId: String, lengthUnitPreference: LengthUnitPreference) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedLengthUnitPreference.rawValue: lengthUnitPreference.rawValue
         ])
     }
 
-    func removeCreatedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.createdRecipeTemplateIds.rawValue: FieldValue.arrayRemove([recipeTemplateId])
+    func saveUserWeightUnitPreference(userId: String, weightUnitPreference: WeightUnitPreference) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedWeightUnitPreference.rawValue: weightUnitPreference.rawValue
         ])
     }
 
-    func addBookmarkedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.bookmarkedRecipeTemplateIds.rawValue: FieldValue.arrayUnion([recipeTemplateId])
+    func saveUserCurrentGoalId(userId: String, currentGoalId: String) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedCurrentGoalId.rawValue: currentGoalId
         ])
     }
 
-    func removeBookmarkedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.bookmarkedRecipeTemplateIds.rawValue: FieldValue.arrayRemove([recipeTemplateId])
+    func saveUserActiveTrainingProgramId(userId: String, activeTrainingProgramId: String) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedActiveTrainingProgramId.rawValue: activeTrainingProgramId
         ])
     }
 
-    func addFavouritedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.favouritedRecipeTemplateIds.rawValue: FieldValue.arrayUnion([recipeTemplateId])
+    func saveUserFavouriteGymProfileId(userId: String, favouriteGymProfileId: String) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedFavouriteGymProfileId.rawValue: favouriteGymProfileId
         ])
     }
 
-    func removeFavouritedRecipeTemplate(userId: String, recipeTemplateId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.favouritedRecipeTemplateIds.rawValue: FieldValue.arrayRemove([recipeTemplateId])
+    func saveUserFCMToken(userId: String, token: String) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.fcmToken.rawValue: token
         ])
     }
 
@@ -291,49 +144,41 @@ struct FirebaseUserService: RemoteUserService {
         ])
     }
     
+    func updateDidCompleteOnboarding(userId: String) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.didCompleteOnboarding.rawValue: true
+        ])
+    }
+
+    // swiftlint:disable:next function_parameter_count
+    func updateUserAuthState(userId: String, isAnonymous: Bool, authProviders: [String], email: String?, displayName: String?, firstName: String?, lastName: String?, phoneNumber: String?, photoUrl: String?, lastSignInDate: Date?) async throws {
+        var data: [String: Any] = [
+            UserModel.CodingKeys.isAnonymous.rawValue: isAnonymous,
+            UserModel.CodingKeys.authProviders.rawValue: authProviders
+        ]
+        if let email { data[UserModel.CodingKeys.email.rawValue] = email }
+        if let displayName { data[UserModel.CodingKeys.displayName.rawValue] = displayName }
+        if let firstName { data[UserModel.CodingKeys.firstName.rawValue] = firstName }
+        if let lastName { data[UserModel.CodingKeys.lastName.rawValue] = lastName }
+        if let phoneNumber { data[UserModel.CodingKeys.phoneNumber.rawValue] = phoneNumber }
+        if let photoUrl { data[UserModel.CodingKeys.photoUrl.rawValue] = photoUrl }
+        if let lastSignInDate { data[UserModel.CodingKeys.lastSignInDate.rawValue] = lastSignInDate }
+        try await collection.document(userId).updateData(data)
+    }
+
     // MARK: - User deletion
     func deleteUser(userId: String) async throws {
         try await collection.document(userId).delete()
     }
     
     // MARK: - User Streaming
-    
     func streamUser(userId: String) -> AsyncThrowingStream<UserModel, Error> {
-        AsyncThrowingStream { continuation in
-            
-            let listener = collection.document(userId).addSnapshotListener { snapshot, error in
-                if let error = error {
-                    continuation.finish(throwing: error)
-                    return
-                }
-                
-                guard let snapshot = snapshot, snapshot.exists else {
-                    continuation.finish(throwing: NSError(
-                        domain: "FirestoreExtension",
-                        code: 404,
-                        userInfo: [NSLocalizedDescriptionKey: "Document not found"]
-                    ))
-                    return
-                }
-                
-                do {
-                    let value = try snapshot.data(as: UserModel.self)
-                    continuation.yield(value)
-                } catch {
-                    continuation.finish(throwing: error)
-                }
-            }
-            
-            continuation.onTermination = { _ in
-                listener.remove()
-            }
-        }
+        collection.streamDocument(id: userId)
     }
-    
+
     // MARK: - Consents
-    func updateHealthConsents(userId: String, step: OnboardingStep, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
+    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
         let data: [String: Any] = [
-            "onboarding_step": step.rawValue,
             "accepted_health_disclaimer_version": disclaimerVersion,
             "accepted_health_disclaimer_at": acceptedAt,
             "accepted_health_privacy_version": privacyVersion,

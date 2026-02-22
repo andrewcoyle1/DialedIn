@@ -14,7 +14,7 @@ class GymProfilesPresenter {
     }
     
     var favouriteGymProfileId: String? {
-        interactor.currentUser?.favouriteGymProfileId
+        interactor.currentUser?.submittedFavouriteGymProfileId
     }
     
     init(interactor: GymProfilesInteractor, router: GymProfilesRouter) {
@@ -23,6 +23,14 @@ class GymProfilesPresenter {
         self.loadLocalGymProfiles()
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func loadLocalGymProfiles() {
         interactor.trackEvent(event: Event.loadLocalGymProfileStart)
         do {
@@ -82,6 +90,8 @@ class GymProfilesPresenter {
     }
     
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case deleteProfileStart
         case deleteProfileSuccess
         case deleteProfileFail(error: Error)
@@ -97,6 +107,8 @@ class GymProfilesPresenter {
 
         var eventName: String {
             switch self {
+            case .onAppear:                     return "GymProfilesView_OnAppear"
+            case .onDisappear:                  return "GymProfilesView_OnDisappear"
             case .deleteProfileStart:           return "GymProfilesView_DeleteProfile_Start"
             case .deleteProfileSuccess:         return "GymProfilesView_DeleteProfile_Success"
             case .deleteProfileFail:            return "GymProfilesView_DeleteProfile_Fail"

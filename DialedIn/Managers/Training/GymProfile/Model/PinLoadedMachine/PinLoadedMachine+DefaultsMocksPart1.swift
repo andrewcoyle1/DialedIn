@@ -9,7 +9,7 @@ import Foundation
 
 extension PinLoadedMachine {
 
-    static var defaultPinLoadedMachinesMocksPart1: [PinLoadedMachine] = [
+    static let defaultPinLoadedMachinesMocksPart1: [PinLoadedMachine] = [
         PinLoadedMachine(
             id: "biceps_curl_machine_with_arms_at_side",
             name: "Biceps Curl Machine With Arms At Side",
@@ -113,7 +113,7 @@ extension PinLoadedMachine {
             isActive: true
         ),
         PinLoadedMachine(
-            id: "pin-loaded_row_machine_without_chest_support",
+            id: "multi_hip_machine",
             name: "Multi-Hip Machine",
             description: nil,
             ranges: [
@@ -130,7 +130,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: "pin-loaded_shoulder_press_machine",
+            id: "pec_deck",
             name: "Pec Deck",
             description: nil,
             ranges: [
@@ -147,7 +147,7 @@ extension PinLoadedMachine {
             isActive: true
         ),
         PinLoadedMachine(
-            id: "pin-loaded_tricep_extension_machine",
+            id: "pin-loaded_abdominal_crunch_machine_with_chest_pad",
             name: "Pin-Loaded Abdominal Crunch Machine (With Chest Pad)",
             description: nil,
             ranges: [

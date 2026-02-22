@@ -17,17 +17,19 @@ struct FoodLoggingConsistencyView: View {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = FoodLoggingConsistencyDelegate()
 
-    return RouterView { router in
+     RouterView { router in
         builder.foodLoggingConsistencyView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
-    func foodLoggingConsistencyView(router: Router, delegate: FoodLoggingConsistencyDelegate, themeColor: Color? = nil) -> some View {
+    func foodLoggingConsistencyView(router: AnyRouter, delegate: FoodLoggingConsistencyDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: FoodLoggingConsistencyPresenter(
                 interactor: interactor,

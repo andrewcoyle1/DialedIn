@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 20/10/2025.
 //
 
-protocol RemoteBodyMeasurementService {
+protocol RemoteBodyMeasurementService: Sendable {
     // MARK: CREATE
     func createWeightEntry(entry: BodyMeasurementEntry) async throws
 
@@ -18,4 +18,5 @@ protocol RemoteBodyMeasurementService {
 
     // MARK: DELETE
     func deleteWeightEntry(userId: String, entryId: String) async throws
+    func deleteAllWeightEntriesForUser(userId: String) async throws
 }

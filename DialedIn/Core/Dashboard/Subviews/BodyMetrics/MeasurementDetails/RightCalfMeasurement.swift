@@ -112,17 +112,15 @@ final class RightCalfMeasurementPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension RightCalfMeasurementEntry {
-    static var mocks: [RightCalfMeasurementEntry] {
-        [
-            RightCalfMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), rightCalfCircumference: 15.6),
-            RightCalfMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), rightCalfCircumference: 15.4),
-            RightCalfMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), rightCalfCircumference: 15.2),
-            RightCalfMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), rightCalfCircumference: 15.1),
-            RightCalfMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), rightCalfCircumference: 15.0),
-            RightCalfMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), rightCalfCircumference: 14.9),
-            RightCalfMeasurementEntry(date: Date.now, rightCalfCircumference: 14.8)
-        ]
-    }
+    static let mocks: [RightCalfMeasurementEntry] = [
+        RightCalfMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), rightCalfCircumference: 15.6),
+        RightCalfMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), rightCalfCircumference: 15.4),
+        RightCalfMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), rightCalfCircumference: 15.2),
+        RightCalfMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), rightCalfCircumference: 15.1),
+        RightCalfMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), rightCalfCircumference: 15.0),
+        RightCalfMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), rightCalfCircumference: 14.9),
+        RightCalfMeasurementEntry(date: Date.now, rightCalfCircumference: 14.8)
+    ]
 }
 
 extension CoreRouter {
@@ -134,7 +132,7 @@ extension CoreRouter {
 }
 
 extension CoreBuilder {
-    func rightCalfMeasurementView(router: Router, delegate: RightCalfMeasurementDelegate, themeColor: Color? = nil) -> some View {
+    func rightCalfMeasurementView(router: AnyRouter, delegate: RightCalfMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: RightCalfMeasurementPresenter(
                 interactor: interactor,

@@ -26,7 +26,12 @@ struct OnboardingIntroView: View {
         #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
         #endif
-        .screenAppearAnalytics(name: "OnboardingIntro")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
     
     private var trainingSection: some View {
@@ -118,16 +123,16 @@ struct OnboardingIntroView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingIntroView(router: AnyRouter) -> some View {
         OnboardingIntroView(
-            presenter: OnboardingIntroPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+            presenter: OnboardingIntroPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
         
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingIntroView() {
         router.showScreen(.push) { router in
             builder.onboardingIntroView(router: router)
@@ -136,9 +141,9 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingIntroView(router: router)
     }
-    .previewEnvironment()
+    
 }

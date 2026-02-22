@@ -52,6 +52,7 @@ struct ReportSubmission: Codable {
 }
 
 @Observable
+@MainActor
 class ReportManager {
     private let remote: RemoteReportService
     private let userManager: UserManager
@@ -85,4 +86,13 @@ class ReportManager {
     }
     
     enum ReportError: LocalizedError { case noCurrentUser }
+}
+
+extension CoreInteractor {
+    // ReportManager
+    
+    func report(contentType: ReportContentType, contentId: String, authorUserId: String?, reason: ReportReason, notes: String?) async throws {
+        try await reportManager.report(contentType: contentType, contentId: contentId, authorUserId: authorUserId, reason: reason, notes: notes)
+    }
+
 }

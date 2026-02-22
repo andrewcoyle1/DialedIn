@@ -21,18 +21,20 @@ struct EnergyBalanceView: View {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = EnergyBalanceDelegate()
 
     return RouterView { router in
         builder.energyBalanceView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func energyBalanceView(router: Router, delegate: EnergyBalanceDelegate, themeColor: Color? = nil) -> some View {
+    func energyBalanceView(router: AnyRouter, delegate: EnergyBalanceDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: EnergyBalancePresenter(
                 interactor: interactor,

@@ -160,6 +160,14 @@ class SearchPresenter {
 
     private func showWorkoutStartModal(for template: WorkoutTemplateModel) {
         guard let userId = interactor.currentUser?.userId else { return }
+        
+        // Load unit preferences for all exercises in template
+        var unitPreferences: [String: ExerciseUnitPreference] = [:]
+        for exerciseTemplate in template.exercises {
+            let preference = interactor.getPreference(templateId: exerciseTemplate.exercise.id)
+            unitPreferences[exerciseTemplate.exercise.id] = preference
+        }
+        
         let session = WorkoutSessionModel(
             authorId: userId,
             template: template,
@@ -167,12 +175,12 @@ class SearchPresenter {
             scheduledWorkoutId: nil,
             trainingPlanId: nil,
             programId: nil,
-            dayPlanId: nil
+            dayPlanId: nil,
+            unitPreferences: unitPreferences
         )
         router.showWorkoutStartModal(
             delegate: WorkoutStartDelegate(
                 template: template,
-                scheduledWorkout: nil,
                 programId: nil,
                 dayPlanId: nil,
                 onStartWorkoutPressed: { [weak self] in

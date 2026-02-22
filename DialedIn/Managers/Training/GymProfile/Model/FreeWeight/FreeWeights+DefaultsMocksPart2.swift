@@ -9,7 +9,7 @@ import SwiftUI
 
 extension FreeWeights {
 
-    static var defaultFreeWeightsMocksPart2: [FreeWeights] = [
+    static let defaultFreeWeightsMocksPart2: [FreeWeights] = [
         FreeWeights(
             id: "kettlebells",
             name: "Kettlebells",

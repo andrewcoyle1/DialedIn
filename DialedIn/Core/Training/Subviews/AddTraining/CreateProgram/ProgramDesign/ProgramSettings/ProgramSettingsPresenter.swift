@@ -12,6 +12,14 @@ class ProgramSettingsPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func onDismissPressed() {
         router.dismissScreen()
     }
@@ -24,6 +32,35 @@ class ProgramSettingsPresenter {
                 router.dismissScreen()
             } catch {
                 router.showAlert(error: error)
+            }
+        }
+    }
+    
+}
+
+extension ProgramSettingsPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "ProgramSettingsView_Appear"
+            case .onDisappear: return "ProgramSettingsView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
             }
         }
     }

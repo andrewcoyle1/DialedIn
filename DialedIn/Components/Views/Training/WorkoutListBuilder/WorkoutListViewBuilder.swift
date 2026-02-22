@@ -46,7 +46,12 @@ struct WorkoutListViewBuilder: View {
                 workoutTemplateSection
             }
         }
-        .screenAppearAnalytics(name: "WorkoutsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .navigationTitle("Workouts")
         .navigationSubtitle("\(presenter.workoutsCount) workouts")
         .navigationBarTitleDisplayMode(.inline)
@@ -56,11 +61,6 @@ struct WorkoutListViewBuilder: View {
         }
         .refreshable {
             await presenter.loadAllWorkouts()
-        }
-        .onChange(of: presenter.currentUser) {
-            Task {
-                await presenter.syncSavedWorkoutsFromUser()
-            }
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -206,7 +206,7 @@ extension CoreBuilder {
                 interactor: CoreInteractor(container: container),
                 router: CoreRouter(
                     router: router,
-                    builder: CoreBuilder(container: container)
+                    builder: CoreBuilder(interactor: CoreInteractor(container: container))
                 )
             ),
             delegate: WorkoutListDelegateBuilder(
@@ -218,5 +218,4 @@ extension CoreBuilder {
             )
         )
     }
-    .previewEnvironment()
 }

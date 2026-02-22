@@ -31,13 +31,18 @@ struct ExpenditureSettingsView: View {
         }
         .navigationTitle("Expenditure")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "ExpenditureSettingsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
 }
 
 extension CoreBuilder {
     
-    func expenditureSettingsView(router: Router, delegate: ExpenditureSettingsDelegate) -> some View {
+    func expenditureSettingsView(router: AnyRouter, delegate: ExpenditureSettingsDelegate) -> some View {
         ExpenditureSettingsView(
             presenter: ExpenditureSettingsPresenter(
                 interactor: interactor,
@@ -67,5 +72,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.expenditureSettingsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

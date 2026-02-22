@@ -14,7 +14,7 @@ class ChooseGymProfilePresenter {
     }
     
     var favouriteGymProfileId: String? {
-        interactor.currentUser?.favouriteGymProfileId
+        interactor.currentUser?.submittedFavouriteGymProfileId
     }
 
     init(interactor: ChooseGymProfileInteractor, router: ChooseGymProfileRouter) {
@@ -23,6 +23,14 @@ class ChooseGymProfilePresenter {
         self.loadLocalGymProfiles()
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func onGymProfilePressed(name: String, profile: GymProfileModel) {
         router.showDefineWorkoutWrapperView(delegate: DefineWorkoutWrapperDelegate(name: name, gymProfile: profile))
     }
@@ -50,6 +58,8 @@ class ChooseGymProfilePresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case deleteProfileStart
         case deleteProfileSuccess
         case deleteProfileFail(error: Error)
@@ -65,6 +75,8 @@ class ChooseGymProfilePresenter {
 
         var eventName: String {
             switch self {
+            case .onAppear:                     return "GymProfilesView_Appear"
+            case .onDisappear:                  return "GymProfilesView_Disappear"
             case .deleteProfileStart:           return "GymProfilesView_DeleteProfile_Start"
             case .deleteProfileSuccess:         return "GymProfilesView_DeleteProfile_Success"
             case .deleteProfileFail:            return "GymProfilesView_DeleteProfile_Fail"

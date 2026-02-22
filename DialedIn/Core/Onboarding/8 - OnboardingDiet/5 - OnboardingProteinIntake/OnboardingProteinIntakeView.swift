@@ -34,10 +34,6 @@ struct OnboardingProteinIntakeView: View {
         .toolbar {
             toolbarContent
         }
-        .showModal(showModal: $presenter.showModal) {
-            ProgressView()
-                .tint(Color.white)
-        }
     }
     
     private var pickerSection: some View {
@@ -86,16 +82,16 @@ struct OnboardingProteinIntakeView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingProteinIntakeView(router: AnyRouter, delegate: OnboardingProteinIntakeDelegate) -> some View {
         OnboardingProteinIntakeView(
-            presenter: OnboardingProteinIntakePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingProteinIntakePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingProteinIntakeView(delegate: OnboardingProteinIntakeDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingProteinIntakeView(router: router, delegate: delegate)
@@ -104,7 +100,7 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingProteinIntakeView(
             router: router,
@@ -113,5 +109,5 @@ extension OnbRouter {
             )
         )
     }
-    .previewEnvironment()
+    
 }

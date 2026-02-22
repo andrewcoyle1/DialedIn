@@ -233,19 +233,23 @@ extension CoreRouter {
 }
 
 #Preview("With Ingredients") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
 
     RouterView { router in
         builder.createRecipeView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Without Ingredients") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
 
     RouterView { router in
         builder.createRecipeView(router: router)
     }
-    .previewEnvironment()
+    
 }

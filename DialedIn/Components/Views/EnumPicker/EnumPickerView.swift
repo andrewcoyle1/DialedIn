@@ -23,7 +23,12 @@ struct EnumPickerView<Item: PickableItem>: View {
         }
         .navigationTitle(delegate.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "EnumPickerView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar { toolbarContent }
         .scrollIndicators(.hidden)
     }
@@ -83,7 +88,7 @@ struct EnumPickerView<Item: PickableItem>: View {
 
 extension CoreBuilder {
     
-    func enumPickerView<Item: PickableItem>(router: Router, delegate: EnumPickerDelegate<Item>) -> some View {
+    func enumPickerView<Item: PickableItem>(router: AnyRouter, delegate: EnumPickerDelegate<Item>) -> some View {
         EnumPickerView<Item>(
             presenter: EnumPickerPresenter(
                 interactor: interactor,
@@ -125,5 +130,4 @@ extension CoreRouter {
     return RouterView { router in
         builder.enumPickerView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
 }

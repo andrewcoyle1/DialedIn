@@ -15,7 +15,7 @@ class ExerciseSeedingManager {
     private let userDefaults = UserDefaults.standard
     private static let hasSeededKey = "hasSeededPrebuiltExercisesV2"
     private static let seedingVersionKey = "prebuiltExercisesSeedingVersionV2"
-    private static let currentSeedingVersion = 3
+    private static let currentSeedingVersion = 7
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext

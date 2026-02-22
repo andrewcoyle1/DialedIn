@@ -59,10 +59,10 @@ class AccountPresenter {
         guard let user = currentUser else { return }
         firstName = user.firstName ?? ""
         lastName = user.lastName ?? ""
-        if let dob = user.dateOfBirth {
+        if let dob = user.submittedDateOfBirth {
             dateOfBirth = dob
         }
-        selectedGender = user.gender
+        selectedGender = user.submittedGender
     }
 
     func saveProfile() async {
@@ -85,8 +85,8 @@ class AccountPresenter {
                 isAnonymous: currentUser?.isAnonymous,
                 firstName: trimmedFirst,
                 lastName: trimmedLast.isEmpty ? nil : trimmedLast,
-                dateOfBirth: dateOfBirth,
-                gender: selectedGender
+                submittedDateOfBirth: dateOfBirth,
+                submittedGender: selectedGender
             )
 
             #if canImport(UIKit)
@@ -116,7 +116,9 @@ class AccountPresenter {
             do {
                 try await interactor.signOut()
                 interactor.trackEvent(event: Event.signOutSuccess)
-                await dismissScreen()
+                dismissEnvironment()
+                try await Task.sleep(for: .seconds(1))
+                router.switchToOnboardingModule()
             } catch {
                 router.showAlert(error: error)
                 interactor.trackEvent(event: Event.signOutFail(error: error))
@@ -124,10 +126,8 @@ class AccountPresenter {
         }
     }
 
-    private func dismissScreen() async {
-        router.dismissScreen()
-        try? await Task.sleep(for: .seconds(1))
-        interactor.updateAppState(showTabBarView: false)
+    private func dismissEnvironment() {
+        router.dismissEnvironment()
     }
 
     func onDeleteAccountPressed() {
@@ -153,7 +153,10 @@ class AccountPresenter {
             do {
                 try await interactor.deleteAccount()
                 interactor.trackEvent(event: Event.deleteAccountSuccess)
-                await dismissScreen()
+                dismissEnvironment()
+                try await Task.sleep(for: .seconds(1))
+                router.switchToOnboardingModule()
+
             } catch {
                 router.showAlert(error: error)
                 interactor.trackEvent(event: Event.deleteAccountFail(error: error))

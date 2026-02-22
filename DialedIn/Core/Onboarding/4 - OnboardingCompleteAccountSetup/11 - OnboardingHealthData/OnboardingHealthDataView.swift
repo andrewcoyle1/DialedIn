@@ -19,7 +19,12 @@ struct OnboardingHealthDataView: View {
             yourControlSection
         }
         .navigationTitle("Health Data")
-        .screenAppearAnalytics(name: "OnboardingHealthData")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .navigationBarTitleDisplayMode(.large)
         #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
@@ -111,15 +116,15 @@ struct OnboardingHealthDataView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingHealthDataView(router: AnyRouter) -> some View {
         OnboardingHealthDataView(
-            presenter: OnboardingHealthDataPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+            presenter: OnboardingHealthDataPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingHealthDataView() {
         router.showScreen(.push) { router in
             builder.onboardingHealthDataView(router: router)
@@ -128,9 +133,9 @@ extension OnbRouter {
 }
 
 #Preview("Proceed to Notifications") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingHealthDataView(router: router)
     }
-    .previewEnvironment()
+    
 }

@@ -45,12 +45,12 @@ class LogWeightPresenter {
         guard let user = interactor.currentUser else { return }
 
         // Set initial unit based on user preference
-        if let preference = user.weightUnitPreference {
+        if let preference = user.submittedWeightUnitPreference {
             unit = preference == .kilograms ? .kilograms : .pounds
         }
 
         // Set initial weight to current weight if available
-        if let currentWeight = user.weightKilograms {
+        if let currentWeight = user.submittedWeightKilograms {
             selectedKilograms = Int(currentWeight)
             selectedPounds = Int(currentWeight * 2.20462)
         }

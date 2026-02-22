@@ -72,6 +72,14 @@ class WorkoutListPresenterBuilder {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+    
     func onAddWorkoutPressed() {
         interactor.trackEvent(event: Event.onAddWorkoutPressed)
         router.showCreateWorkoutView(delegate: CreateWorkoutDelegate(workoutTemplate: nil))
@@ -190,7 +198,6 @@ class WorkoutListPresenterBuilder {
         await loadSystemWorkouts()
         await loadMyWorkoutsIfNeeded()
         await loadTopWorkoutsIfNeeded()
-        await syncSavedWorkoutsFromUser()
     }
 
     func loadSystemWorkouts() async {
@@ -239,43 +246,6 @@ class WorkoutListPresenterBuilder {
             )
         }
     }
-
-    func syncSavedWorkoutsFromUser() async {
-        interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserStart)
-        guard let user = interactor.currentUser else {
-            interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserNoUid)
-            favouriteWorkouts = []
-            bookmarkedWorkouts = []
-            return
-        }
-        let bookmarkedIds = user.bookmarkedWorkoutTemplateIds ?? []
-        let favouritedIds = user.favouritedWorkoutTemplateIds ?? []
-        if bookmarkedIds.isEmpty && favouritedIds.isEmpty {
-            favouriteWorkouts = []
-            bookmarkedWorkouts = []
-            interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserSuccess(favouriteCount: 0, bookmarkedCount: 0))
-            return
-        }
-        do {
-            var favs: [WorkoutTemplateModel] = []
-            var bookmarks: [WorkoutTemplateModel] = []
-            if !favouritedIds.isEmpty {
-                favs = try await interactor.getWorkoutTemplates(ids: favouritedIds, limitTo: favouritedIds.count)
-            }
-            if !bookmarkedIds.isEmpty {
-                bookmarks = try await interactor.getWorkoutTemplates(ids: bookmarkedIds, limitTo: bookmarkedIds.count)
-            }
-            favouriteWorkouts = favs
-            bookmarkedWorkouts = bookmarks
-            interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserSuccess(favouriteCount: favs.count, bookmarkedCount: bookmarks.count))
-        } catch {
-            interactor.trackEvent(event: Event.syncWorkoutsFromCurrentUserFail(error: error))
-            router.showSimpleAlert(
-                title: "Unable to Load Saved Workouts",
-                subtitle: "We couldn't retrieve your saved workouts. Please try again later."
-            )
-        }
-    }
     
     func favouritesSectionViewed() {
         interactor.trackEvent(event: Event.favouritesSectionViewed(count: favouriteWorkouts.count))
@@ -304,8 +274,12 @@ class WorkoutListPresenterBuilder {
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }
+}
 
+extension WorkoutListPresenterBuilder {
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case performWorkoutSearchStart
         case performWorkoutSearchSuccess(query: String, resultCount: Int)
         case performWorkoutSearchFail(error: Error)
@@ -341,38 +315,40 @@ class WorkoutListPresenterBuilder {
 
         var eventName: String {
             switch self {
-            case .performWorkoutSearchStart:          return "WorkoutsView_Search_Start"
-            case .performWorkoutSearchSuccess:        return "WorkoutsView_Search_Success"
-            case .performWorkoutSearchFail:           return "WorkoutsView_Search_Fail"
-            case .performWorkoutSearchEmptyResults:   return "WorkoutsView_Search_EmptyResults"
-            case .searchCleared:                      return "WorkoutsView_Search_Cleared"
-            case .loadSystemWorkoutsSuccess:          return "WorkoutsView_LoadSystemWorkouts_Success"
-            case .loadSystemWorkoutsFail:             return "WorkoutsView_LoadSystemWorkouts_Fail"
-            case .loadMyWorkoutsStart:                return "WorkoutsView_LoadMyWorkouts_Start"
-            case .loadMyWorkoutsSuccess:              return "WorkoutsView_LoadMyWorkouts_Success"
-            case .loadMyWorkoutsFail:                 return "WorkoutsView_LoadMyWorkouts_Fail"
-            case .loadTopWorkoutsStart:               return "WorkoutsView_LoadTopWorkouts_Start"
-            case .loadTopWorkoutsSuccess:             return "WorkoutsView_LoadTopWorkouts_Success"
-            case .loadTopWorkoutsFail:                return "WorkoutsView_LoadTopWorkouts_Fail"
-            case .incrementWorkoutStart:              return "WorkoutsView_IncrementWorkout_Start"
-            case .incrementWorkoutSuccess:            return "WorkoutsView_IncrementWorkout_Success"
-            case .incrementWorkoutFail:               return "WorkoutsView_IncrementWorkout_Fail"
-            case .syncWorkoutsFromCurrentUserStart:   return "WorkoutsView_UserSync_Start"
-            case .syncWorkoutsFromCurrentUserNoUid:   return "WorkoutsView_UserSync_NoUID"
-            case .syncWorkoutsFromCurrentUserSuccess: return "WorkoutsView_UserSync_Success"
-            case .syncWorkoutsFromCurrentUserFail:    return "WorkoutsView_UserSync_Fail"
-            case .onAddWorkoutPressed:                return "WorkoutsView_AddWorkoutPressed"
-            case .favouritesSectionViewed:            return "WorkoutsView_Favourites_SectionViewed"
-            case .bookmarkedSectionViewed:            return "WorkoutsView_Bookmarked_SectionViewed"
-            case .systemTemplatesSectionViewed:       return "WorkoutsView_SystemTemplates_SectionViewed"
-            case .trendingSectionViewed:              return "WorkoutsView_Trending_SectionViewed"
-            case .myTemplatesSectionViewed:           return "WorkoutsView_MyTemplates_SectionViewed"
-            case .emptyStateShown:                    return "WorkoutsView_EmptyState_Shown"
-            case .onWorkoutPressedFromFavourites:     return "WorkoutsView_WorkoutPressed_Favourites"
-            case .onWorkoutPressedFromBookmarked:     return "WorkoutsView_WorkoutPressed_Bookmarked"
-            case .onWorkoutPressedFromTrending:       return "WorkoutsView_WorkoutPressed_Trending"
-            case .onWorkoutPressedFromMyTemplates:    return "WorkoutsView_WorkoutPressed_MyTemplates"
-            case .onWorkoutPressedFromSystem:         return "WorkoutsView_WorkoutPressed_System"
+            case .onAppear:                             return "WorkoutsView_Appear"
+            case .onDisappear:                          return "WorkoutsView_Disappear"
+            case .performWorkoutSearchStart:            return "WorkoutsView_Search_Start"
+            case .performWorkoutSearchSuccess:          return "WorkoutsView_Search_Success"
+            case .performWorkoutSearchFail:             return "WorkoutsView_Search_Fail"
+            case .performWorkoutSearchEmptyResults:     return "WorkoutsView_Search_EmptyResults"
+            case .searchCleared:                        return "WorkoutsView_Search_Cleared"
+            case .loadSystemWorkoutsSuccess:            return "WorkoutsView_LoadSystemWorkouts_Success"
+            case .loadSystemWorkoutsFail:               return "WorkoutsView_LoadSystemWorkouts_Fail"
+            case .loadMyWorkoutsStart:                  return "WorkoutsView_LoadMyWorkouts_Start"
+            case .loadMyWorkoutsSuccess:                return "WorkoutsView_LoadMyWorkouts_Success"
+            case .loadMyWorkoutsFail:                   return "WorkoutsView_LoadMyWorkouts_Fail"
+            case .loadTopWorkoutsStart:                 return "WorkoutsView_LoadTopWorkouts_Start"
+            case .loadTopWorkoutsSuccess:               return "WorkoutsView_LoadTopWorkouts_Success"
+            case .loadTopWorkoutsFail:                  return "WorkoutsView_LoadTopWorkouts_Fail"
+            case .incrementWorkoutStart:                return "WorkoutsView_IncrementWorkout_Start"
+            case .incrementWorkoutSuccess:              return "WorkoutsView_IncrementWorkout_Success"
+            case .incrementWorkoutFail:                 return "WorkoutsView_IncrementWorkout_Fail"
+            case .syncWorkoutsFromCurrentUserStart:     return "WorkoutsView_UserSync_Start"
+            case .syncWorkoutsFromCurrentUserNoUid:     return "WorkoutsView_UserSync_NoUID"
+            case .syncWorkoutsFromCurrentUserSuccess:   return "WorkoutsView_UserSync_Success"
+            case .syncWorkoutsFromCurrentUserFail:      return "WorkoutsView_UserSync_Fail"
+            case .onAddWorkoutPressed:                  return "WorkoutsView_AddWorkoutPressed"
+            case .favouritesSectionViewed:              return "WorkoutsView_Favourites_SectionViewed"
+            case .bookmarkedSectionViewed:              return "WorkoutsView_Bookmarked_SectionViewed"
+            case .systemTemplatesSectionViewed:         return "WorkoutsView_SystemTemplates_SectionViewed"
+            case .trendingSectionViewed:                return "WorkoutsView_Trending_SectionViewed"
+            case .myTemplatesSectionViewed:             return "WorkoutsView_MyTemplates_SectionViewed"
+            case .emptyStateShown:                      return "WorkoutsView_EmptyState_Shown"
+            case .onWorkoutPressedFromFavourites:       return "WorkoutsView_WorkoutPressed_Favourites"
+            case .onWorkoutPressedFromBookmarked:       return "WorkoutsView_WorkoutPressed_Bookmarked"
+            case .onWorkoutPressedFromTrending:         return "WorkoutsView_WorkoutPressed_Trending"
+            case .onWorkoutPressedFromMyTemplates:      return "WorkoutsView_WorkoutPressed_MyTemplates"
+            case .onWorkoutPressedFromSystem:           return "WorkoutsView_WorkoutPressed_System"
             }
         }
 
@@ -419,4 +395,5 @@ class WorkoutListPresenterBuilder {
             }
         }
     }
+
 }

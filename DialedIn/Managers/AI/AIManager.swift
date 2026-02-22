@@ -7,6 +7,7 @@
 import SwiftUI
 
 @Observable
+@MainActor
 class AIManager {
     
     private let service: AIService
@@ -22,4 +23,17 @@ class AIManager {
     func generateText(chats: [AIChatModel]) async throws -> AIChatModel {
         try await service.generateText(chats: chats)
     }
+}
+
+extension CoreInteractor {
+    // MARK: AIManager
+    
+    func generateImage(input: String) async throws -> UIImage {
+        try await aiManager.generateImage(input: input)
+    }
+    
+    func generateText(chats: [AIChatModel]) async throws -> AIChatModel {
+        try await aiManager.generateText(chats: chats)
+    }
+
 }

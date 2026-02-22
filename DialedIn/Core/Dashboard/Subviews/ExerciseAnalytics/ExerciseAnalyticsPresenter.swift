@@ -15,6 +15,14 @@ class ExerciseAnalyticsPresenter {
         self.router = router
     }
 
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func loadData() async {
         guard let userId = interactor.auth?.uid else {
             exerciseCards = []
@@ -61,5 +69,34 @@ class ExerciseAnalyticsPresenter {
 
     func onDismissPressed() {
         router.dismissScreen()
+    }
+}
+
+extension ExerciseAnalyticsPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+
+        var eventName: String {
+            switch self {
+            case .onAppear:             return "ExerciseAnalyticsView_Appear"
+            case .onDisappear:          return "ExerciseAnalyticsView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+                
+            }
+        }
     }
 }

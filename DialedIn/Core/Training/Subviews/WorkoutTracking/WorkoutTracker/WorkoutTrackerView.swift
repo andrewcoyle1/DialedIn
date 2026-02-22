@@ -14,6 +14,29 @@ struct WorkoutTrackerDelegate {
     let workoutSessionId: String
 }
 
+// MARK: - Host view (creates presenter once per presentation to avoid fullScreenCover re-run loop)
+struct WorkoutTrackerHostView: View {
+    let delegate: WorkoutTrackerDelegate
+    let interactor: WorkoutTrackerInteractor
+    let router: WorkoutTrackerRouter
+    @State private var presenter: WorkoutTrackerPresenter?
+
+    var body: some View {
+        Group {
+            if let presenter {
+                WorkoutTrackerView(presenter: presenter, delegate: delegate)
+            } else {
+                ProgressView("Loading workout...")
+            }
+        }
+        .task(id: delegate.workoutSessionId) {
+            if presenter == nil {
+                presenter = WorkoutTrackerPresenter(interactor: interactor, router: router)
+            }
+        }
+    }
+}
+
 struct WorkoutTrackerView: View {
 
     @Environment(\.scenePhase) private var scenePhase
@@ -114,30 +137,6 @@ struct WorkoutTrackerView: View {
                 .removeListRowFormatting()
             } else {
                 ForEach(Array(presenter.workoutSession.exercises.enumerated()), id: \.element.id) { _, exercise in
-//                    let delegate = ExerciseTrackerCardDelegate(
-//                        exercise: exercise,
-//                        exerciseIndex: index,
-//                        isCurrentExercise: presenter.currentExerciseIndex == index,
-//                        isExpanded: isExpanded,
-//                        restBeforeSetIdToSec: presenter.restBeforeSetIdToSec,
-//                        onNotesChanged: { notes, exerciseId in
-//                            presenter.updateExerciseNotes(notes, exerciseId: exerciseId)
-//                        },
-//                        onAddSet: { exerciseId in
-//                            presenter.addSet(exerciseId: exerciseId)
-//                        },
-//                        onDeleteSet: { setId, exerciseId in
-//                            presenter.deleteSet(setId: setId, exerciseId: exerciseId)
-//                        },
-//                        onUpdateSet: { updatedSet, exerciseId in
-//                            presenter.updateSet(updatedSet, in: exerciseId)
-//                        },
-//                        onRestBeforeChange: { setId, seconds in
-//                            presenter.updateRestBefore(setId: setId, seconds: seconds)
-//                        }
-//                    )
-//                    
-//                    exerciseTrackerCardView(delegate)
                     exerciseTracker(exercise)
                 }
                 .onMove { source, destination in
@@ -210,13 +209,13 @@ struct WorkoutTrackerView: View {
                 Button {
                     presenter.onWorkoutSettingsPressed()
                 } label: {
-                    Label("Workout Settings", systemImage: "gear")
+                    Label("Workout Settings", systemImage: "dumbbell")
                 }
 
                 Button {
                     presenter.onGymProfilePressed()
                 } label: {
-                    Label("Gym Settings", systemImage: "gear")
+                    Label("Gym Settings", systemImage: "building")
                 }
 
                 Button(role: .destructive) {
@@ -233,10 +232,12 @@ struct WorkoutTrackerView: View {
 
 extension CoreBuilder {
     func workoutTrackerView(router: AnyRouter, delegate: WorkoutTrackerDelegate) -> some View {
-        WorkoutTrackerView(
-            presenter: WorkoutTrackerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            delegate: delegate
+        WorkoutTrackerHostView(
+            delegate: delegate,
+            interactor: interactor,
+            router: CoreRouter(router: router, builder: self)
         )
+        .id(delegate.workoutSessionId)
     }
 }
 
@@ -249,9 +250,11 @@ extension CoreRouter {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.workoutTrackerView(router: router, delegate: WorkoutTrackerDelegate(workoutSessionId: WorkoutSessionModel.mock.id))
     }
-    .previewEnvironment()
+    
 }

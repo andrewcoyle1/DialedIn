@@ -11,4 +11,4 @@ protocol OnboardingCalorieDistributionRouter {
     func showOnboardingProteinIntakeView(delegate: OnboardingProteinIntakeDelegate)
 }
 
-extension OnbRouter: OnboardingCalorieDistributionRouter { }
+extension CoreRouter: OnboardingCalorieDistributionRouter { }

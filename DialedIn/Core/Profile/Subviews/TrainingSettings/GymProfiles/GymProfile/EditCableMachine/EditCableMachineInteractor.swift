@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol EditCableMachineInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol EditCableMachineInteractor: GlobalInteractor { }
 
 extension CoreInteractor: EditCableMachineInteractor { }

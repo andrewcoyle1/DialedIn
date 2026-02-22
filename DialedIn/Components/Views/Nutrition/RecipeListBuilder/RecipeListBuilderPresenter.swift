@@ -53,10 +53,17 @@ class RecipeListBuilderPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func loadAllRecipes() async {
         await loadMyRecipesIfNeeded()
         await loadTopRecipesIfNeeded()
-        await syncSavedRecipesFromUser()
     }
     
     func favouritesSectionViewed() {
@@ -219,43 +226,9 @@ class RecipeListBuilderPresenter {
         }
     }
 
-    func syncSavedRecipesFromUser() async {
-        interactor.trackEvent(event: Event.syncRecipesFromCurrentUserStart)
-        guard let user = interactor.currentUser else {
-            interactor.trackEvent(event: Event.syncRecipesFromCurrentUserNoUid)
-            favouriteRecipes = []
-            bookmarkedRecipes = []
-            return
-        }
-        let bookmarkedIds = user.bookmarkedRecipeTemplateIds ?? []
-        let favouritedIds = user.favouritedRecipeTemplateIds ?? []
-        if bookmarkedIds.isEmpty && favouritedIds.isEmpty {
-            favouriteRecipes = []
-            bookmarkedRecipes = []
-            return
-        }
-        do {
-            var favs: [RecipeTemplateModel] = []
-            var bookmarks: [RecipeTemplateModel] = []
-            if !favouritedIds.isEmpty {
-                favs = try await interactor.getRecipeTemplates(ids: favouritedIds, limitTo: favouritedIds.count)
-            }
-            if !bookmarkedIds.isEmpty {
-                bookmarks = try await interactor.getRecipeTemplates(ids: bookmarkedIds, limitTo: bookmarkedIds.count)
-            }
-            favouriteRecipes = favs
-            bookmarkedRecipes = bookmarks
-            interactor.trackEvent(event: Event.syncRecipesFromCurrentUserSuccess(favouriteCount: favs.count, bookmarkedCount: bookmarks.count))
-        } catch {
-            interactor.trackEvent(event: Event.syncRecipesFromCurrentUserFail(error: error))
-            router.showSimpleAlert(
-                title: "Unable to Load Saved Recipes",
-                subtitle: "We couldn't retrieve your saved recipes. Please try again later."
-            )
-        }
-    }
-
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case performRecipeSearchStart
         case performRecipeSearchSuccess(query: String, resultCount: Int)
         case performRecipeSearchFail(error: Error)
@@ -287,34 +260,36 @@ class RecipeListBuilderPresenter {
 
         var eventName: String {
             switch self {
-            case .performRecipeSearchStart:          return "RecipesView_Search_Start"
-            case .performRecipeSearchSuccess:        return "RecipesView_Search_Success"
-            case .performRecipeSearchFail:           return "RecipesView_Search_Fail"
-            case .performRecipeSearchEmptyResults:   return "RecipesView_Search_EmptyResults"
-            case .searchCleared:                         return "RecipesView_Search_Cleared"
-            case .loadMyRecipesStart:                return "RecipesView_LoadMyRecipes_Start"
-            case .loadMyRecipesSuccess:              return "RecipesView_LoadMyRecipes_Success"
-            case .loadMyRecipesFail:                 return "RecipesView_LoadMyRecipes_Fail"
-            case .loadTopRecipesStart:               return "RecipesView_LoadTopRecipes_Start"
-            case .loadTopRecipesSuccess:             return "RecipesView_LoadTopRecipes_Success"
-            case .loadTopRecipesFail:                return "RecipesView_LoadTopRecipes_Fail"
-            case .incrementRecipeStart:              return "RecipesView_IncrementRecipe_Start"
-            case .incrementRecipeSuccess:            return "RecipesView_IncrementRecipe_Success"
-            case .incrementRecipeFail:               return "RecipesView_IncrementRecipe_Fail"
-            case .syncRecipesFromCurrentUserStart:   return "RecipesView_UserSync_Start"
-            case .syncRecipesFromCurrentUserNoUid:   return "RecipesView_UserSync_NoUID"
-            case .syncRecipesFromCurrentUserSuccess: return "RecipesView_UserSync_Success"
-            case .syncRecipesFromCurrentUserFail:    return "RecipesView_UserSync_Fail"
-            case .onAddRecipePressed:                return "RecipesView_AddRecipePressed"
-            case .favouritesSectionViewed:               return "RecipesView_Favourites_SectionViewed"
-            case .bookmarkedSectionViewed:               return "RecipesView_Bookmarked_SectionViewed"
-            case .trendingSectionViewed:                 return "RecipesView_Trending_SectionViewed"
-            case .myTemplatesSectionViewed:              return "RecipesView_MyTemplates_SectionViewed"
-            case .emptyStateShown:                       return "RecipesView_EmptyState_Shown"
-            case .onRecipePressedFromFavourites:     return "RecipesView_RecipePressed_Favourites"
-            case .onRecipePressedFromBookmarked:     return "RecipesView_RecipePressed_Bookmarked"
-            case .onRecipePressedFromTrending:       return "RecipesView_RecipePressed_Trending"
-            case .onRecipePressedFromMyTemplates:    return "RecipesView_RecipePressed_MyTemplates"
+            case .onAppear:                             return "RecipesView_Appear"
+            case .onDisappear:                          return "RecipesView_Disappear"
+            case .performRecipeSearchStart:             return "RecipesView_Search_Start"
+            case .performRecipeSearchSuccess:           return "RecipesView_Search_Success"
+            case .performRecipeSearchFail:              return "RecipesView_Search_Fail"
+            case .performRecipeSearchEmptyResults:      return "RecipesView_Search_EmptyResults"
+            case .searchCleared:                        return "RecipesView_Search_Cleared"
+            case .loadMyRecipesStart:                   return "RecipesView_LoadMyRecipes_Start"
+            case .loadMyRecipesSuccess:                 return "RecipesView_LoadMyRecipes_Success"
+            case .loadMyRecipesFail:                    return "RecipesView_LoadMyRecipes_Fail"
+            case .loadTopRecipesStart:                  return "RecipesView_LoadTopRecipes_Start"
+            case .loadTopRecipesSuccess:                return "RecipesView_LoadTopRecipes_Success"
+            case .loadTopRecipesFail:                   return "RecipesView_LoadTopRecipes_Fail"
+            case .incrementRecipeStart:                 return "RecipesView_IncrementRecipe_Start"
+            case .incrementRecipeSuccess:               return "RecipesView_IncrementRecipe_Success"
+            case .incrementRecipeFail:                  return "RecipesView_IncrementRecipe_Fail"
+            case .syncRecipesFromCurrentUserStart:      return "RecipesView_UserSync_Start"
+            case .syncRecipesFromCurrentUserNoUid:      return "RecipesView_UserSync_NoUID"
+            case .syncRecipesFromCurrentUserSuccess:    return "RecipesView_UserSync_Success"
+            case .syncRecipesFromCurrentUserFail:       return "RecipesView_UserSync_Fail"
+            case .onAddRecipePressed:                   return "RecipesView_AddRecipePressed"
+            case .favouritesSectionViewed:              return "RecipesView_Favourites_SectionViewed"
+            case .bookmarkedSectionViewed:              return "RecipesView_Bookmarked_SectionViewed"
+            case .trendingSectionViewed:                return "RecipesView_Trending_SectionViewed"
+            case .myTemplatesSectionViewed:             return "RecipesView_MyTemplates_SectionViewed"
+            case .emptyStateShown:                      return "RecipesView_EmptyState_Shown"
+            case .onRecipePressedFromFavourites:        return "RecipesView_RecipePressed_Favourites"
+            case .onRecipePressedFromBookmarked:        return "RecipesView_RecipePressed_Bookmarked"
+            case .onRecipePressedFromTrending:          return "RecipesView_RecipePressed_Trending"
+            case .onRecipePressedFromMyTemplates:       return "RecipesView_RecipePressed_MyTemplates"
             }
         }
 

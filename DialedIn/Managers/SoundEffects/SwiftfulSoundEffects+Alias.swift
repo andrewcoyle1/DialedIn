@@ -5,7 +5,7 @@
 //  Created by Nick Sarno on 1/12/25.
 //
 
-@_exported import SwiftfulSoundEffects
+import SwiftfulSoundEffects
 
 typealias SoundEffectManager = SwiftfulSoundEffects.SoundEffectManager
 
@@ -31,4 +31,27 @@ extension LogManager: @retroactive SoundEffectLogger {
         trackEvent(eventName: event.eventName, parameters: event.parameters, type: event.type.type)
     }
     
+}
+
+extension CoreInteractor {
+    // MARK: Sound Effects
+
+    func prepareSoundEffect(sound: SoundEffectFile, simultaneousPlayers: Int = 1) {
+        Task {
+            await soundEffectManager.prepare(url: sound.url, simultaneousPlayers: simultaneousPlayers, volume: 1)
+        }
+    }
+
+    func tearDownSoundEffect(sound: SoundEffectFile) {
+        Task {
+            await soundEffectManager.tearDown(url: sound.url)
+        }
+    }
+
+    func playSoundEffect(sound: SoundEffectFile) {
+        Task {
+            await soundEffectManager.play(url: sound.url)
+        }
+    }
+
 }

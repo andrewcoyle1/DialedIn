@@ -26,6 +26,14 @@ class WorkoutHistoryPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func onWorkoutSessionPressed(session: WorkoutSessionModel, layoutMode: LayoutMode) {
         selectedSession = session
         router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
@@ -89,8 +97,12 @@ class WorkoutHistoryPresenter {
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }
+}
 
+extension WorkoutHistoryPresenter {
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case syncSessionsStart
         case syncSessionsSuccess
         case syncSessionsFail(error: Error)
@@ -100,12 +112,14 @@ class WorkoutHistoryPresenter {
         
         var eventName: String {
             switch self {
-            case .syncSessionsStart:            return "WorkoutHistory_SyncSessions_Start"
-            case .syncSessionsSuccess:          return "WorkoutHistory_SyncSessions_Success"
-            case .syncSessionsFail:             return "WorkoutHistory_SyncSessions_Fail"
-            case .loadInitialSessionsStart:     return "WorkoutHistory_LoadInitialSessions_Start"
-            case .loadInitialSessionsSuccess:   return "WorkoutHistory_LoadInitialSessions_Success"
-            case .loadInitialSessionsFail:      return "WorkoutHistory_LoadInitialSessions_Fail"
+            case .onAppear:                     return "WorkoutHistoryView_Appear"
+            case .onDisappear:                  return "WorkoutHistoryView_Disappear"
+            case .syncSessionsStart:            return "WorkoutHistoryView_SyncSessions_Start"
+            case .syncSessionsSuccess:          return "WorkoutHistoryView_SyncSessions_Success"
+            case .syncSessionsFail:             return "WorkoutHistoryView_SyncSessions_Fail"
+            case .loadInitialSessionsStart:     return "WorkoutHistoryView_LoadInitialSessions_Start"
+            case .loadInitialSessionsSuccess:   return "WorkoutHistoryView_LoadInitialSessions_Success"
+            case .loadInitialSessionsFail:      return "WorkoutHistoryView_LoadInitialSessions_Fail"
             }
         }
         

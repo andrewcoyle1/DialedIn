@@ -27,6 +27,14 @@ class AddCableMachineRangePresenter {
         )
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func onDismissPressed() {
         router.dismissScreen()
     }
@@ -68,5 +76,34 @@ class AddCableMachineRangePresenter {
         }
         cableMachine.wrappedValue = updatedMachine
         router.dismissScreen()
+    }
+    
+}
+
+extension AddCableMachineRangePresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "AddCableMachineRangeView_Appear"
+            case .onDisappear: return "AddCableMachineRangeView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

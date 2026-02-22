@@ -5,9 +5,9 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
-protocol OnboardingCustomisingProgramInteractor {
+@MainActor
+protocol OnboardingCustomisingProgramInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func trackEvent(event: LoggableEvent)
 }
 
-extension OnbInteractor: OnboardingCustomisingProgramInteractor { }
+extension CoreInteractor: OnboardingCustomisingProgramInteractor { }

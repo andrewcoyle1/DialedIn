@@ -39,7 +39,7 @@ struct FixedWeightBars: Identifiable, Codable {
 
     }
     
-    static var defaultFixedWeightBars: [FixedWeightBars] = [
+    static let defaultFixedWeightBars: [FixedWeightBars] = [
         FixedWeightBars(
             id: "fixed_weight_ez_bar",
             name: "Fixed Weight Ez Bar",
@@ -170,7 +170,7 @@ struct FixedWeightBars: Identifiable, Codable {
         mocks[0]
     }
     
-    static var mocks: [FixedWeightBars] = [
+    static let mocks: [FixedWeightBars] = [
         FixedWeightBars(
             id: "fixed_weight_ez_bar",
             name: "Fixed Weight Ez Bar",

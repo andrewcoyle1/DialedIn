@@ -18,7 +18,12 @@ struct UnitsView: View {
         }
         .navigationTitle("Units")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "UnitsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
     
     private var weightSection: some View {
@@ -81,7 +86,7 @@ struct UnitsView: View {
 
 extension CoreBuilder {
     
-    func unitsView(router: Router, delegate: UnitsDelegate) -> some View {
+    func unitsView(router: AnyRouter, delegate: UnitsDelegate) -> some View {
         UnitsView(
             presenter: UnitsPresenter(
                 interactor: interactor,
@@ -111,5 +116,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.unitsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

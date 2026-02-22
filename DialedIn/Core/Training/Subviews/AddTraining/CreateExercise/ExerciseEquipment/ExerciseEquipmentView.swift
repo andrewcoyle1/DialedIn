@@ -48,7 +48,12 @@ struct ExerciseEquipmentView: View {
         }
         .navigationTitle("Select Equipment")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "ExerciseEquipmentView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .safeAreaInset(edge: .bottom) {
             Text("Next")
                 .callToActionButton(isPrimaryAction: true)
@@ -94,7 +99,7 @@ struct ActionRow<ActionArea: View>: View {
 
 extension CoreBuilder {
     
-    func exerciseEquipmentView(router: Router, delegate: ExerciseEquipmentDelegate) -> some View {
+    func exerciseEquipmentView(router: AnyRouter, delegate: ExerciseEquipmentDelegate) -> some View {
         ExerciseEquipmentView(
             presenter: ExerciseEquipmentPresenter(
                 interactor: interactor,
@@ -131,5 +136,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.exerciseEquipmentView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

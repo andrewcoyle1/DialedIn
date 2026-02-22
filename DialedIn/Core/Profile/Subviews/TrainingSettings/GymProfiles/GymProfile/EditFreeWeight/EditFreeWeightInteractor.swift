@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol EditFreeWeightInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol EditFreeWeightInteractor: GlobalInteractor { }
 
 extension CoreInteractor: EditFreeWeightInteractor { }

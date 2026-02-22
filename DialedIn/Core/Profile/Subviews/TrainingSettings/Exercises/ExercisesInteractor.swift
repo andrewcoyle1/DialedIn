@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 28/11/2025.
 //
 
+@MainActor
 protocol ExercisesInteractor {
     var currentUser: UserModel? { get }
     func incrementExerciseTemplateInteraction(id: String) async throws

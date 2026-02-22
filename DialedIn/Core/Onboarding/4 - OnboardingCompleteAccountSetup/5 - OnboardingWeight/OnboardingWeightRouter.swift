@@ -11,4 +11,4 @@ protocol OnboardingWeightRouter {
     func showOnboardingExerciseFrequencyView(delegate: OnboardingExerciseFrequencyDelegate)
 }
 
-extension OnbRouter: OnboardingWeightRouter { }
+extension CoreRouter: OnboardingWeightRouter { }

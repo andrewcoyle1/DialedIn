@@ -9,9 +9,9 @@ import Foundation
 
 extension PinLoadedMachine {
 
-    static var defaultPinLoadedMachinesPart2: [PinLoadedMachine] = [
+    static let defaultPinLoadedMachinesPart2: [PinLoadedMachine] = [
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_pullover_machine",
             name: "Pin-Loaded Pullover Machine",
             description: nil,
             ranges: [
@@ -28,7 +28,7 @@ extension PinLoadedMachine {
             isActive: false
         ),
         PinLoadedMachine(
-            id: UUID().uuidString,
+            id: "pin-loaded_reverse_hyperextension_machine",
             name: "Pin-Loaded Reverse Hyperextension Machine",
             description: nil,
             ranges: [

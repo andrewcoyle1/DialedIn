@@ -43,7 +43,12 @@ struct AddTrainingView: View {
         .toolbar {
             toolbarContent
         }
-            .screenAppearAnalytics(name: "AddTrainingView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
     
     @ToolbarContentBuilder
@@ -60,7 +65,7 @@ struct AddTrainingView: View {
 
 extension CoreBuilder {
     
-    func addTrainingView(router: Router, delegate: AddTrainingDelegate) -> some View {
+    func addTrainingView(router: AnyRouter, delegate: AddTrainingDelegate) -> some View {
         AddTrainingView(
             presenter: AddTrainingPresenter(
                 interactor: interactor,
@@ -100,5 +105,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.addTrainingView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

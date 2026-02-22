@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
+@MainActor
 protocol ExercisePickerInteractor {
     func getSystemExerciseTemplates() throws -> [ExerciseModel]
     func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseModel]

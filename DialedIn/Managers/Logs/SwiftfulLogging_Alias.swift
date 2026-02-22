@@ -5,10 +5,10 @@
 //  Created by Andrew Coyle on 29/01/2026.
 //
 
-@_exported import SwiftfulLogging
-@_exported import SwiftfulLoggingMixpanel
-@_exported import SwiftfulLoggingFirebaseAnalytics
-@_exported import SwiftfulLoggingFirebaseCrashlytics
+import SwiftfulLogging
+import SwiftfulLoggingMixpanel
+import SwiftfulLoggingFirebaseAnalytics
+import SwiftfulLoggingFirebaseCrashlytics
 
 typealias LogManager = SwiftfulLogging.LogManager
 typealias LoggableEvent = SwiftfulLogging.LoggableEvent
@@ -19,3 +19,36 @@ typealias ConsoleService = SwiftfulLogging.ConsoleService
 typealias MixpanelService = SwiftfulLoggingMixpanel.MixpanelService
 typealias FirebaseAnalyticsService = SwiftfulLoggingFirebaseAnalytics.FirebaseAnalyticsService
 typealias FirebaseCrashlyticsService = SwiftfulLoggingFirebaseCrashlytics.FirebaseCrashlyticsService
+
+extension CoreInteractor {
+    // MARK: LogManager
+    
+    func identifyUser(userId: String, name: String?, email: String?) {
+        logManager.identifyUser(userId: userId, name: name, email: email)
+    }
+    
+    func addUserProperties(dict: [String: Any], isHighPriority: Bool) {
+        logManager.addUserProperties(dict: dict, isHighPriority: isHighPriority)
+    }
+    
+    func deleteUserProfile() {
+        logManager.deleteUserProfile()
+    }
+    
+    func trackEvent(eventName: String, parameters: [String: Any]? = nil, type: LogType = .analytic) {
+        logManager.trackEvent(eventName: eventName, parameters: parameters, type: type)
+    }
+    
+    func trackEvent(event: AnyLoggableEvent) {
+        logManager.trackEvent(event: event)
+    }
+    
+    func trackEvent(event: LoggableEvent) {
+        logManager.trackEvent(event: event)
+    }
+    
+    func trackScreenEvent(event: LoggableEvent) {
+        logManager.trackScreenView(event: event)
+    }
+
+}

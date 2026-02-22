@@ -79,16 +79,16 @@ struct OnboardingCalorieFloorView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingCalorieFloorView(router: AnyRouter, delegate: OnboardingCalorieFloorDelegate) -> some View {
         OnboardingCalorieFloorView(
-            presenter: OnboardingCalorieFloorPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingCalorieFloorPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingCalorieFloorView(delegate: OnboardingCalorieFloorDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingCalorieFloorView(router: router, delegate: delegate)
@@ -98,7 +98,7 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingCalorieFloorView(
             router: router,
@@ -107,5 +107,5 @@ extension OnbRouter {
             )
         )
     }
-    .previewEnvironment()
+    
 }

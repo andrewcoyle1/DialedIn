@@ -7,6 +7,7 @@
 
 import FirebaseRemoteConfigInternal
 
+@MainActor
 class FirebaseABTestService: ABTestService {
     var activeTests: ActiveABTests {
         ActiveABTests(config: RemoteConfig.remoteConfig())

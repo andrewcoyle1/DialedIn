@@ -13,7 +13,7 @@ class ProgramDesignPresenter {
     
     var program: TrainingProgram
     
-    static var defaultDayPlans: [DayPlan] = [
+    static let defaultDayPlans: [DayPlan] = [
         
     ]
     
@@ -64,6 +64,14 @@ class ProgramDesignPresenter {
         Task {
             await loadFavouriteGymProfile()
         }
+    }
+
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
     }
 
     func loadFavouriteGymProfile() async {
@@ -190,5 +198,34 @@ class ProgramDesignPresenter {
             return String(alphabet[index])
         }
         return "\(String(alphabet[index % alphabet.count]))\(index / alphabet.count)"
+    }
+    
+}
+
+extension ProgramDesignPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "ProgramDesignView_Appear"
+            case .onDisappear: return "ProgramDesignView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

@@ -351,7 +351,7 @@ struct UserManagerTests {
         try await manager.updateWeight(userId: mockUser.userId, weightKg: newWeight)
         
         // Verify local cache was updated
-        #expect(manager.currentUser?.weightKilograms == newWeight)
+        #expect(manager.currentUser?.submittedWeightKilograms == newWeight)
     }
     
     @Test("Test Update Weight Does Not Update Cache For Different User")
@@ -368,7 +368,7 @@ struct UserManagerTests {
         try await manager.updateWeight(userId: differentUserId, weightKg: 75.0)
         
         // Verify local cache was NOT updated
-        #expect(manager.currentUser?.weightKilograms == 70.0)
+        #expect(manager.currentUser?.submittedWeightKilograms == 70.0)
     }
     
     // MARK: - Update Profile Image URL Tests

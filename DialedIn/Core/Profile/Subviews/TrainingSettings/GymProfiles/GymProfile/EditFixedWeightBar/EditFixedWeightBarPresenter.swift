@@ -23,6 +23,14 @@ class EditFixedWeightBarPresenter {
         self.selectedUnit = fixedWeightBarBinding.wrappedValue.defaultBaseWeight?.unit ?? .kilograms
     }
 
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func filteredWeightIDs(for unit: ExerciseWeightUnit) -> [String] {
         fixedWeightBar.baseWeights
             .filter { $0.unit == unit }
@@ -77,5 +85,34 @@ class EditFixedWeightBarPresenter {
         )
 
         router.showAddFixedWeightBarView(delegate: AddFixedWeightBarDelegate(fixedWeightBar: fixedWeightBarBinding, unit: selectedUnit))
+    }
+    
+}
+
+extension EditFixedWeightBarPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "EditFixedWeightBarView_Appear"
+            case .onDisappear: return "EditFixedWeightBarView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

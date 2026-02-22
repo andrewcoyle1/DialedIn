@@ -18,6 +18,36 @@ struct WorkoutExerciseRecord: Codable {
     let notes: String?
     let imageName: String?
     let order: Int
+    let chosenResistanceEquipment: [EquipmentRef]?
+    let chosenSupportEquipment: [EquipmentRef]?
+
+    init(
+        id: String,
+        sessionId: String,
+        authorId: String,
+        templateId: String,
+        name: String,
+        trackingMode: TrackingMode,
+        index: Int,
+        notes: String?,
+        imageName: String?,
+        order: Int,
+        chosenResistanceEquipment: [EquipmentRef]? = nil,
+        chosenSupportEquipment: [EquipmentRef]? = nil
+    ) {
+        self.id = id
+        self.sessionId = sessionId
+        self.authorId = authorId
+        self.templateId = templateId
+        self.name = name
+        self.trackingMode = trackingMode
+        self.index = index
+        self.notes = notes
+        self.imageName = imageName
+        self.order = order
+        self.chosenResistanceEquipment = chosenResistanceEquipment
+        self.chosenSupportEquipment = chosenSupportEquipment
+    }
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -30,5 +60,7 @@ struct WorkoutExerciseRecord: Codable {
         case notes
         case imageName = "image_name"
         case order
+        case chosenResistanceEquipment = "chosen_resistance_equipment"
+        case chosenSupportEquipment = "chosen_support_equipment"
     }
 }

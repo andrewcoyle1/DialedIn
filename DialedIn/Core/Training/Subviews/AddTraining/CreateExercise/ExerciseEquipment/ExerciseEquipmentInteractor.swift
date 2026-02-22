@@ -1,8 +1,7 @@
 import SwiftUI
 
 @MainActor
-protocol ExerciseEquipmentInteractor {
-    func trackEvent(event: LoggableEvent)
+protocol ExerciseEquipmentInteractor: GlobalInteractor {
     func readFavouriteGymProfile() async throws -> GymProfileModel
 }
 

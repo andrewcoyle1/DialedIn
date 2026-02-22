@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-protocol RemoteWorkoutTemplateService {
+protocol RemoteWorkoutTemplateService: Sendable {
     func createWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws
     func updateWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws
     func deleteWorkoutTemplate(id: String) async throws

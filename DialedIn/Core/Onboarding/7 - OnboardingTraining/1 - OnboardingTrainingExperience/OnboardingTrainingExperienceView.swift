@@ -11,7 +11,6 @@ import SwiftfulRouting
 struct OnboardingTrainingExperienceView: View {
 
     @State var presenter: OnboardingTrainingExperiencePresenter
-
     var delegate: OnboardingTrainingExperienceDelegate
 
     var body: some View {
@@ -22,38 +21,35 @@ struct OnboardingTrainingExperienceView: View {
         .toolbar {
             toolbarContent
         }
-        .screenAppearAnalytics(name: "TrainingExperience")
-    }
-    
-    private func experienceDescription(for level: DifficultyLevel) -> String {
-        switch level {
-        case .beginner:
-            return "New to structured training or returning after a long break"
-        case .intermediate:
-            return "Regular training experience, comfortable with basic movements"
-        case .advanced:
-            return "Years of training experience, ready for complex programs"
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
         }
     }
-
+    
     private var listContent: some View {
-        ForEach(DifficultyLevel.allCases) { level in
-            Section {
-                HStack(alignment: .center, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(level.description)
-                            .font(.headline)
-                        Text(experienceDescription(for: level))
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+        Group {
+            Text("Add content here")
+            ForEach(TrainingExperience.allCases, id: \.self) { level in
+                Section {
+                    HStack(alignment: .center, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(level.description)
+                                .font(.headline)
+                            Text(experienceDescription(for: level))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer(minLength: 8)
+                        Image(systemName: presenter.selectedLevel == level ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(presenter.selectedLevel == level ? .accent : .secondary)
                     }
-                    Spacer(minLength: 8)
-                    Image(systemName: presenter.selectedLevel == level ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(presenter.selectedLevel == level ? .accent : .secondary)
+                    .contentShape(Rectangle())
+                    .onTapGesture { presenter.selectedLevel = level }
+                    .padding(.vertical)
                 }
-                .contentShape(Rectangle())
-                .onTapGesture { presenter.selectedLevel = level }
-                .padding(.vertical)
             }
         }
     }
@@ -72,7 +68,7 @@ struct OnboardingTrainingExperienceView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                presenter.navigateToDaysPerWeek(builder: delegate.trainingProgramBuilder)
+                presenter.navigateToDaysPerWeek(delegate: delegate)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -80,18 +76,29 @@ struct OnboardingTrainingExperienceView: View {
             .disabled(presenter.selectedLevel == nil)
         }
     }
+    
+    private func experienceDescription(for level: TrainingExperience) -> String {
+        switch level {
+        case .beginner:
+            return "New to structured training or returning after a long break"
+        case .intermediate:
+            return "Regular training experience, comfortable with basic movements"
+        case .advanced:
+            return "Years of training experience, ready for complex programs"
+        }
+    }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingTrainingExperienceView(router: AnyRouter, delegate: OnboardingTrainingExperienceDelegate) -> some View {
         OnboardingTrainingExperienceView(
-            presenter: OnboardingTrainingExperiencePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingTrainingExperiencePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingTrainingExperienceView(delegate: OnboardingTrainingExperienceDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingExperienceView(router: router, delegate: delegate)
@@ -101,14 +108,12 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingTrainingExperienceView(
             router: router,
-            delegate: OnboardingTrainingExperienceDelegate(
-                trainingProgramBuilder: TrainingProgramBuilder()
-            )
+            delegate: OnboardingTrainingExperienceDelegate()
         )
     }
-    .previewEnvironment()
+    
 }

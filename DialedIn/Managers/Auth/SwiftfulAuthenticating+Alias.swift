@@ -8,11 +8,13 @@
 import SwiftUI
 import Firebase
 
-@_exported import SwiftfulAuthenticating
-@_exported import SwiftfulAuthenticatingFirebase
+import SwiftfulAuthenticating
+import SwiftfulAuthenticatingFirebase
 typealias UserAuthInfo = SwiftfulAuthenticating.UserAuthInfo
 typealias AuthManager = SwiftfulAuthenticating.AuthManager
 typealias MockAuthService = SwiftfulAuthenticating.MockAuthService
+typealias FirebaseAuthService = SwiftfulAuthenticatingFirebase.FirebaseAuthService
+typealias SignInOption = SwiftfulAuthenticating.SignInOption
 
 extension AuthLogType {
 
@@ -34,4 +36,32 @@ extension LogManager: @retroactive AuthLogger {
     public func trackEvent(event: any AuthLogEvent) {
         trackEvent(eventName: event.eventName, parameters: event.parameters, type: event.type.type)
     }
+}
+
+extension CoreInteractor {
+    // MARK: AuthManager
+    
+    var auth: UserAuthInfo? {
+        authManager.auth
+    }
+    
+    func getAuthId() throws -> String {
+        try authManager.getAuthId()
+    }
+    
+    func signInAnonymously() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        try await authManager.signInAnonymously()
+    }
+               
+    func signInApple() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        try await authManager.signInApple()
+    }
+    
+    func signInGoogle() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        guard let clientId = Constants.firebaseAppClientId else {
+            throw AppError("Firebase not configured or clientID missing")
+        }
+        return try await authManager.signInGoogle(GIDClientID: clientId)
+    }
+    
 }

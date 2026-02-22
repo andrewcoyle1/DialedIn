@@ -8,7 +8,7 @@
 import SwiftUI
 
 extension BodyWeights {
-    static var defaultBodyWeights: [BodyWeights] = [
+    static let defaultBodyWeights: [BodyWeights] = [
         BodyWeights(
             id: "ankle_weights",
             name: "Ankle Weights",
@@ -379,7 +379,7 @@ extension BodyWeights {
         mocks[0]
     }
     
-    static var mocks: [BodyWeights] = [
+    static let mocks: [BodyWeights] = [
         BodyWeights(
             id: "ankle_weights",
             name: "Ankle Weights",

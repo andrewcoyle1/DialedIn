@@ -9,7 +9,7 @@ import Foundation
 
 extension PlateLoadedMachine {
 
-    static var defaultPlateLoadedMachinesPart1: [PlateLoadedMachine] = [
+    static let defaultPlateLoadedMachinesPart1: [PlateLoadedMachine] = [
         PlateLoadedMachine(
             id: "ab_coaster_machine",
             name: "Ab Coaster Machine",

@@ -91,16 +91,16 @@ struct OnboardingActivityView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingActivityView(router: AnyRouter, delegate: OnboardingActivityDelegate) -> some View {
         OnboardingActivityView(
-            presenter: OnboardingActivityPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingActivityPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingActivityView(delegate: OnboardingActivityDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingActivityView(router: router, delegate: delegate)
@@ -110,12 +110,12 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingActivityView(
             router: router,
             delegate: OnboardingActivityDelegate(userModelBuilder: UserModelBuilder.activityLevelMock)
         )
     }
-    .previewEnvironment()
+    
 }

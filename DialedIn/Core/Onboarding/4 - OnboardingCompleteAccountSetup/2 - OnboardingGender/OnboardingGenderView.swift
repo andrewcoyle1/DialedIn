@@ -26,7 +26,12 @@ struct OnboardingGenderView: View {
             }
         }
         .navigationTitle("About You")
-        .screenAppearAnalytics(name: "OnboardingSelectGender")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -77,15 +82,15 @@ struct OnboardingGenderView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingGenderView(router: AnyRouter) -> some View {
         OnboardingGenderView(
-            presenter: OnboardingGenderPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+            presenter: OnboardingGenderPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingGenderView() {
         router.showScreen(.push) { router in
             builder.onboardingGenderView(router: router)
@@ -94,9 +99,9 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingGenderView(router: router)
     }
-    .previewEnvironment()
+    
 }

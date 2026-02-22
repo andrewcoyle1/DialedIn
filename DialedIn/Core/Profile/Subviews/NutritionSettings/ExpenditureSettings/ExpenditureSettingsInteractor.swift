@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol ExpenditureSettingsInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol ExpenditureSettingsInteractor: GlobalInteractor { }
 
 extension CoreInteractor: ExpenditureSettingsInteractor { }

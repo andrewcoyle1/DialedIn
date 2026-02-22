@@ -1,5 +1,5 @@
 //
-//  TestingApp.swift
+//  AppViewForUnitTesting.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 30/10/2025.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct TestingApp: App {
+struct AppViewForUnitTesting: App {
     
     @State var isLoading = false
     

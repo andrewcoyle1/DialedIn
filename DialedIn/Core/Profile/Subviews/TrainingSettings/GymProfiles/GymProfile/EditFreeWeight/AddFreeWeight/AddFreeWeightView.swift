@@ -22,7 +22,12 @@ struct AddFreeWeightView: View {
         .navigationTitle("Add")
         .navigationSubtitle(presenter.freeWeight.wrappedValue.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "AddFreeWeightView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -89,7 +94,7 @@ struct AddFreeWeightView: View {
 
 extension CoreBuilder {
     
-    func addFreeWeightView(router: Router, delegate: AddFreeWeightDelegate) -> some View {
+    func addFreeWeightView(router: AnyRouter, delegate: AddFreeWeightDelegate) -> some View {
         AddFreeWeightView(
             presenter: AddFreeWeightPresenter(
                 interactor: interactor,
@@ -121,5 +126,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.addFreeWeightView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

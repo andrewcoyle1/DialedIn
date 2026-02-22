@@ -47,6 +47,14 @@ class AddBandPresenter {
         self.unit = delegate.unit
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+    
     func onColourPressed(colour: Color) {
         selectedColour = colour
         bandAvailable.bandColour = selectedColourHex ?? Color.accentColor.asHex()
@@ -69,5 +77,33 @@ class AddBandPresenter {
         }
         self.band.wrappedValue.range.append(self.bandAvailable)
         router.dismissScreen()
+    }
+}
+
+extension AddBandPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "AddBandView_Appear"
+            case .onDisappear: return "AddBandView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

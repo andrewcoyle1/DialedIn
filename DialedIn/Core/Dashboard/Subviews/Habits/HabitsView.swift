@@ -21,7 +21,12 @@ struct HabitsView: View {
         }
         .navigationTitle("Habits")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "HabitsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .onFirstTask {
             await presenter.onFirstTask()
         }
@@ -145,7 +150,7 @@ struct HabitsView: View {
 
 extension CoreBuilder {
     
-    func habitsView(router: Router, delegate: HabitsDelegate) -> some View {
+    func habitsView(router: AnyRouter, delegate: HabitsDelegate) -> some View {
         HabitsView(
             presenter: HabitsPresenter(
                 interactor: interactor,
@@ -175,5 +180,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.habitsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

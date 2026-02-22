@@ -25,6 +25,14 @@ class GymProfilePresenter {
         self.router = router
         self.gymProfile = gymProfile
     }
+    
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
 
     var filteredFreeWeights: [Binding<FreeWeights>] {
         filteredBindings(for: \.freeWeights)
@@ -192,6 +200,8 @@ class GymProfilePresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case saveGymProfileStart
         case saveGymProfileSuccess
         case saveGymProfileFail(error: Error)
@@ -202,13 +212,15 @@ class GymProfilePresenter {
 
         var eventName: String {
             switch self {
+            case .onAppear:                 return "GymProfileView_OnAppear"
+            case .onDisappear:              return "GymProfileView_OnDisappear"
             case .saveGymProfileStart:      return "GymProfileView_Save_Start"
             case .saveGymProfileSuccess:    return "GymProfileView_Save_Success"
             case .saveGymProfileFail:       return "GymProfileView_Save_Fail"
             case .imageSelectorStart:       return "GymProfileView_ImageSelected_Start"
             case .imageSelectorSuccess:     return "GymProfileView_ImageSelected_Success"
             case .imageSelectorFail:        return "GymProfileView_ImageSelected_Fail"
-            case .imageSelectorCancel:       return "GymProfileView_ImageSelected_Cancel"
+            case .imageSelectorCancel:      return "GymProfileView_ImageSelected_Cancel"
             }
         }
         

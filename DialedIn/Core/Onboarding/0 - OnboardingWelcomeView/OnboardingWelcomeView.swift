@@ -8,14 +8,22 @@
 import SwiftUI
 import SwiftfulRouting
 
+struct OnboardingWelcomeDelegate {
+    var eventParameters: [String: Any]? {
+        nil
+    }
+}
+
 struct OnboardingWelcomeView: View {
     
     @State var presenter: OnboardingWelcomePresenter
-
+    let delegate: OnboardingWelcomeDelegate
+    
     var body: some View {
         VStack(spacing: 8) {
             ImageLoaderView(urlString: presenter.imageName)
                 .ignoresSafeArea()
+            
             titleSection
                 .padding(.top, 8)
 
@@ -23,11 +31,16 @@ struct OnboardingWelcomeView: View {
 
             policyLinks
         }
+        .onAppear {
+            presenter.onViewAppear(delegate: delegate)
+        }
+        .onDisappear {
+            presenter.onViewDisappear(delegate: delegate)
+        }
         .padding(.bottom)
         .toolbar {
             toolbarContent
         }
-        .screenAppearAnalytics(name: "Welcome")
     }
     
     @ToolbarContentBuilder
@@ -44,11 +57,12 @@ struct OnboardingWelcomeView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                presenter.navToAppropriateView()
+                presenter.onContinuePressed()
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
+            .disabled(presenter.currentUser == nil)
         }
     }
     
@@ -85,18 +99,27 @@ struct OnboardingWelcomeView: View {
     }
 }
 
-extension OnbBuilder {
-    func onboardingWelcomeView(router: AnyRouter) -> some View {
-        OnboardingWelcomeView(
-            presenter: OnboardingWelcomePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
-        )
-    }
+#Preview {
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
+
+    builder.onboardingFlow()
 }
 
-#Preview("Functioning") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
-    RouterView { router in
-        builder.onboardingWelcomeView(router: router)
+extension CoreBuilder {
+    
+    func onboardingFlow() -> some View {
+        RouterView { router in
+            self.onboardingWelcomeView(router: router)
+        }
     }
-        .previewEnvironment()
+    
+    private func onboardingWelcomeView(router: AnyRouter, delegate: OnboardingWelcomeDelegate = OnboardingWelcomeDelegate()) -> some View {
+        OnboardingWelcomeView(
+            presenter: OnboardingWelcomePresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
+        )
+    }
 }

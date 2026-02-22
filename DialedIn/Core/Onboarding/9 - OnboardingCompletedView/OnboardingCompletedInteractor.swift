@@ -5,10 +5,9 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
-protocol OnboardingCompletedInteractor {
-    func updateOnboardingStep(step: OnboardingStep) async throws
-    func updateAppState(showTabBarView: Bool)
-    func trackEvent(event: LoggableEvent)
+@MainActor
+protocol OnboardingCompletedInteractor: GlobalInteractor {
+    func updateDidCompleteOnboarding() async throws
 }
 
-extension OnbInteractor: OnboardingCompletedInteractor { }
+extension CoreInteractor: OnboardingCompletedInteractor { }

@@ -5,8 +5,7 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
-protocol OnboardingPreferredDietInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+@MainActor
+protocol OnboardingPreferredDietInteractor: GlobalInteractor { }
 
-extension OnbInteractor: OnboardingPreferredDietInteractor { }
+extension CoreInteractor: OnboardingPreferredDietInteractor { }

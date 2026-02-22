@@ -61,7 +61,12 @@ struct EditWeightRangeView<Range: WeightRange>: View {
         .navigationTitle("Edit Range")
         .navigationSubtitle(delegate.equipmentName)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "EditWeightRangeView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -81,7 +86,7 @@ struct EditWeightRangeView<Range: WeightRange>: View {
 
 extension CoreBuilder {
     
-    func editWeightRangeView<Range: WeightRange>(router: Router, delegate: EditWeightRangeDelegate<Range>) -> some View {
+    func editWeightRangeView<Range: WeightRange>(router: AnyRouter, delegate: EditWeightRangeDelegate<Range>) -> some View {
         EditWeightRangeView<Range>(
             presenter: EditWeightRangePresenter(
                 interactor: interactor,
@@ -119,5 +124,5 @@ extension CoreRouter {
     RouterView { router in
         builder.editWeightRangeView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

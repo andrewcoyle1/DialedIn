@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-@_exported import SwiftfulPurchasing
-@_exported import SwiftfulPurchasingRevenueCat
+import SwiftfulPurchasing
+import SwiftfulPurchasingRevenueCat
 typealias PurchaseManager = SwiftfulPurchasing.PurchaseManager
 typealias PurchaseProfileAttributes = SwiftfulPurchasing.PurchaseProfileAttributes
 typealias PurchasedEntitlement = SwiftfulPurchasing.PurchasedEntitlement
@@ -37,6 +37,35 @@ extension LogManager: @retroactive PurchaseLogger {
 
     public func trackEvent(event: any PurchaseLogEvent) {
         trackEvent(eventName: event.eventName, parameters: event.parameters, type: event.type.type)
+    }
+
+}
+
+extension CoreInteractor {
+    // MARK: PurchaseManager
+        
+    var entitlements: [PurchasedEntitlement] {
+        purchaseManager.entitlements
+    }
+    
+    var isPremium: Bool {
+        entitlements.hasActiveEntitlement
+    }
+    
+    func getProducts(productIds: [String]) async throws -> [AnyProduct] {
+        try await purchaseManager.getProducts(productIds: productIds)
+    }
+    
+    func restorePurchase() async throws -> [PurchasedEntitlement] {
+        try await purchaseManager.restorePurchase()
+    }
+    
+    func purchaseProduct(productId: String) async throws -> [PurchasedEntitlement] {
+        try await purchaseManager.purchaseProduct(productId: productId)
+    }
+    
+    func updateProfileAttributes(attributes: PurchaseProfileAttributes) async throws {
+        try await purchaseManager.updateProfileAttributes(attributes: attributes)
     }
 
 }

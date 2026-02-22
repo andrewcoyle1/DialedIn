@@ -23,7 +23,12 @@ struct AddCableMachineRangeView: View {
         .navigationSubtitle(presenter.cableMachine.wrappedValue.name)
         .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
-        .screenAppearAnalytics(name: "AddCableMachineRangeView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -106,7 +111,7 @@ struct AddCableMachineRangeView: View {
 
 extension CoreBuilder {
     
-    func addCableMachineRangeView(router: Router, delegate: AddCableMachineRangeDelegate) -> some View {
+    func addCableMachineRangeView(router: AnyRouter, delegate: AddCableMachineRangeDelegate) -> some View {
         AddCableMachineRangeView(
             presenter: AddCableMachineRangePresenter(
                 interactor: interactor,
@@ -138,5 +143,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.addCableMachineRangeView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

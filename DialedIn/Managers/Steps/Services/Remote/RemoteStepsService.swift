@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 07/02/2026.
 //
 
-protocol RemoteStepsService {
+protocol RemoteStepsService: Sendable {
     
     // MARK: CREATE
     func createStepsEntry(steps: StepsModel) async throws
@@ -19,5 +19,6 @@ protocol RemoteStepsService {
     
     // MARK: DELETE
     func deleteStepsEntry(userId: String, stepsId: String) async throws
+    func deleteAllStepsEntriesForUser(userId: String) async throws
 
 }

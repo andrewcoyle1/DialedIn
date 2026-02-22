@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol EnumPickerInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol EnumPickerInteractor: GlobalInteractor { }
 
 extension CoreInteractor: EnumPickerInteractor { }

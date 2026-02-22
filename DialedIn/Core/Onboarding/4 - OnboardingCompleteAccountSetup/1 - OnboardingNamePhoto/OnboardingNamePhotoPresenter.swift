@@ -72,8 +72,7 @@ class OnboardingNamePhotoPresenter {
                 email: interactor.currentUser?.email,
                 isAnonymous: interactor.currentUser?.isAnonymous,
                 firstName: trimmedFirst,
-                lastName: trimmedLast.isEmpty ? nil : trimmedLast,
-                onboardingStep: .completeAccountSetup
+                lastName: trimmedLast.isEmpty ? nil : trimmedLast
             )
             
             #if canImport(UIKit)

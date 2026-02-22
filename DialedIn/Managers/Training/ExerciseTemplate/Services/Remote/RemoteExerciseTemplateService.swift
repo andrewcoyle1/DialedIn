@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-protocol RemoteExerciseTemplateService {
+protocol RemoteExerciseTemplateService: Sendable {
     func createExerciseTemplate(exercise: ExerciseModel, image: PlatformImage?) async throws
     func getExerciseTemplate(id: String) async throws -> ExerciseModel
     func getExerciseTemplates(ids: [String], limitTo: Int) async throws -> [ExerciseModel]

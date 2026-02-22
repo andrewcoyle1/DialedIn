@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct BodyMeasurementEntry: Codable, Identifiable, Equatable {
+struct BodyMeasurementEntry: Sendable, Codable, Identifiable, Equatable {
     let id: String
     let authorId: String
     let weightKg: Double?
@@ -360,7 +360,7 @@ extension BodyMeasurementEntry {
         mocks[0]
     }
 
-    static var mocks: [BodyMeasurementEntry] {
+    static let mocks: [BodyMeasurementEntry] =
         (0..<500).map { datapoint in
             let baseWeight: Double = 72.0
             let amplitude: Double = 2.5
@@ -379,7 +379,6 @@ extension BodyMeasurementEntry {
                 date: date
             )
         }
-    }
 }
 
 extension BodyMeasurementEntry: @MainActor MetricEntry {

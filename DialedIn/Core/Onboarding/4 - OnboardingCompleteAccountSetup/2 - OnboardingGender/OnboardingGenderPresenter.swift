@@ -27,6 +27,14 @@ class OnboardingGenderPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func navigateToDateOfBirth() {
         if let gender = selectedGender {
             let userBuilder = UserModelBuilder(gender: gender)
@@ -40,17 +48,21 @@ class OnboardingGenderPresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case navigate
 
         var eventName: String {
             switch self {
+            case .onAppear:             return "AppView_Appear"
+            case .onDisappear:          return "AppView_Disappear"
             case .navigate: return "OnboardingGenderView_Navigate"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
-            case .navigate:
+            default:
                 return nil
             }
         }
@@ -59,6 +71,8 @@ class OnboardingGenderPresenter {
             switch self {
             case .navigate:
                 return .info
+            default:
+                return .analytic
             }
         }
     }

@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol EditPlateLoadedMachineInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol EditPlateLoadedMachineInteractor: GlobalInteractor { }
 
 extension CoreInteractor: EditPlateLoadedMachineInteractor { }

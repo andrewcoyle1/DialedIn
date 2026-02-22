@@ -31,11 +31,6 @@ struct OnboardingTrainingScheduleView: View {
                     Text("Select the days you want to train each week.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                    if let targetDays = delegate.trainingProgramBuilder.targetDaysPerWeek {
-                        Text("You selected \(targetDays) day\(targetDays == 1 ? "" : "s") per week.")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                    }
                 }
                 .removeListRowFormatting()
                 .padding(.horizontal)
@@ -66,7 +61,12 @@ struct OnboardingTrainingScheduleView: View {
         .toolbar {
             toolbarContent
         }
-        .screenAppearAnalytics(name: "TrainingSchedule")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
     
     @ToolbarContentBuilder
@@ -83,7 +83,7 @@ struct OnboardingTrainingScheduleView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                presenter.navigateToEquipment(builder: delegate.trainingProgramBuilder)
+                presenter.navigateToEquipment(delegate: delegate)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -93,16 +93,16 @@ struct OnboardingTrainingScheduleView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingTrainingScheduleView(router: AnyRouter, delegate: OnboardingTrainingScheduleDelegate) -> some View {
         OnboardingTrainingScheduleView(
-            presenter: OnboardingTrainingSchedulePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingTrainingSchedulePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingTrainingScheduleView(delegate: OnboardingTrainingScheduleDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingTrainingScheduleView(router: router, delegate: delegate)
@@ -111,14 +111,12 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingTrainingScheduleView(
             router: router, 
-            delegate: OnboardingTrainingScheduleDelegate(
-                trainingProgramBuilder: TrainingProgramBuilder(targetDaysPerWeek: 3)
-            )
+            delegate: OnboardingTrainingScheduleDelegate.mock
         )
     }
-    .previewEnvironment()
+    
 }

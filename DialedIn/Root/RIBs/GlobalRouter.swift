@@ -14,7 +14,7 @@ protocol GlobalRouter {
 }
 
 extension GlobalRouter {
-    
+        
     /// Dismiss this screen and all screens in front of it.
     func dismissScreen() {
         router.dismissScreen()

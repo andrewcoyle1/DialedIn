@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 30/01/2026.
 //
 
+@MainActor
 protocol LocalExercisePersistence {
     func addLocalExercise(exercise: ExerciseModel) throws
     func getLocalExercise(id: String) throws -> ExerciseModel

@@ -112,17 +112,15 @@ final class HipsMeasurementPresenter: @MainActor MetricDetailPresenter {
 }
 
 extension HipsMeasurementEntry {
-    static var mocks: [HipsMeasurementEntry] {
-        [
-            HipsMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), hipCircumference: 38.6),
-            HipsMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), hipCircumference: 38.4),
-            HipsMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), hipCircumference: 38.2),
-            HipsMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), hipCircumference: 38.1),
-            HipsMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), hipCircumference: 38.0),
-            HipsMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), hipCircumference: 37.9),
-            HipsMeasurementEntry(date: Date.now, hipCircumference: 37.8)
-        ]
-    }
+    static let mocks: [HipsMeasurementEntry] = [
+        HipsMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 6), hipCircumference: 38.6),
+        HipsMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 5), hipCircumference: 38.4),
+        HipsMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 4), hipCircumference: 38.2),
+        HipsMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 3), hipCircumference: 38.1),
+        HipsMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 2), hipCircumference: 38.0),
+        HipsMeasurementEntry(date: Date.now.addingTimeInterval(-86400 * 1), hipCircumference: 37.9),
+        HipsMeasurementEntry(date: Date.now, hipCircumference: 37.8)
+    ]
 }
 
 extension CoreRouter {
@@ -134,7 +132,7 @@ extension CoreRouter {
 }
 
 extension CoreBuilder {
-    func hipsMeasurementView(router: Router, delegate: HipsMeasurementDelegate, themeColor: Color? = nil) -> some View {
+    func hipsMeasurementView(router: AnyRouter, delegate: HipsMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: HipsMeasurementPresenter(
                 interactor: interactor,

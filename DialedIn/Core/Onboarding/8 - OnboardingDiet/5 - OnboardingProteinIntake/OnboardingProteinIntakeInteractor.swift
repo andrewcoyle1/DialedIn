@@ -5,11 +5,9 @@
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
-protocol OnboardingProteinIntakeInteractor {
+@MainActor
+protocol OnboardingProteinIntakeInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    var currentTrainingPlan: TrainingPlan? { get }
-    func get(id: String) -> ProgramTemplateModel?
-    func trackEvent(event: LoggableEvent)
 }
 
-extension OnbInteractor: OnboardingProteinIntakeInteractor { }
+extension CoreInteractor: OnboardingProteinIntakeInteractor { }

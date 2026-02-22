@@ -47,7 +47,7 @@ struct ProfileView: View {
                     // Profile Image
                     CachedProfileImageView(
                         userId: user.userId,
-                        imageUrl: user.profileImageUrl,
+                        imageUrl: user.submittedProfileImage,
                         size: 60
                     )
                     
@@ -254,15 +254,6 @@ struct ProfileView: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.onNotificationsPressed()
-            } label: {
-                Image(systemName: "bell")
-            }
-            .badge(3)
-        }
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDismissPressed()
@@ -301,20 +292,22 @@ extension CoreRouter {
 
 // MARK: - Previews
 #Preview("User Has Profile") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
         builder.profileView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("User No Profile") {
     let container = DevPreview.shared.container()
     
     container.register(UserManager.self, service: UserManager(services: MockUserServices(user: nil)))
-    let builder = CoreBuilder(container: container)
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     return RouterView { router in
         builder.profileView(router: router)
     }
-    .previewEnvironment()
+    
 }

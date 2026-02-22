@@ -26,7 +26,12 @@ struct OnboardingNotificationsView: View {
         .toolbar {
             toolbarContent
         }
-        .screenAppearAnalytics(name: "OnboardingNotifications")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .showModal(showModal: $presenter.showEnablePushNotificationsModal) {
             pushNotificationModal
         }
@@ -139,15 +144,15 @@ struct OnboardingNotificationsView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingNotificationsView(router: AnyRouter) -> some View {
         OnboardingNotificationsView(
-            presenter: OnboardingNotificationsPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+            presenter: OnboardingNotificationsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingNotificationsView() {
         router.showScreen(.push) { router in
             builder.onboardingNotificationsView(router: router)
@@ -156,9 +161,9 @@ extension OnbRouter {
 }
 
 #Preview {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingNotificationsView(router: router)
     }
-    .previewEnvironment()
+    
 }

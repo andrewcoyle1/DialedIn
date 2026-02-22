@@ -5,7 +5,7 @@
 //  Created by Andrew Coyle on 13/10/2025.
 //
 
-protocol RemoteMealLogService {
+protocol RemoteMealLogService: Sendable {
     func createMeal(_ meal: MealLogModel) async throws
     func updateMeal(_ meal: MealLogModel) async throws
     func deleteMeal(id: String, dayKey: String, authorId: String) async throws

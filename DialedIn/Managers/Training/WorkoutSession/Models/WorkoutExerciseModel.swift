@@ -18,7 +18,9 @@ struct WorkoutExerciseModel: Identifiable, Codable, Hashable {
     var imageName: String?
     var sets: [WorkoutSetModel]
     var setTargets: [SetTarget]
-    
+    var chosenResistanceEquipment: [EquipmentRef]
+    var chosenSupportEquipment: [EquipmentRef]
+
     init(
         id: String,
         authorId: String,
@@ -29,7 +31,9 @@ struct WorkoutExerciseModel: Identifiable, Codable, Hashable {
         notes: String? = nil,
         imageName: String? = nil,
         sets: [WorkoutSetModel],
-        setTargets: [SetTarget] = []
+        setTargets: [SetTarget] = [],
+        chosenResistanceEquipment: [EquipmentRef] = [],
+        chosenSupportEquipment: [EquipmentRef] = []
     ) {
         self.id = id
         self.authorId = authorId
@@ -41,6 +45,8 @@ struct WorkoutExerciseModel: Identifiable, Codable, Hashable {
         self.imageName = imageName
         self.sets = sets
         self.setTargets = setTargets
+        self.chosenResistanceEquipment = chosenResistanceEquipment
+        self.chosenSupportEquipment = chosenSupportEquipment
     }
 
     enum CodingKeys: String, CodingKey {
@@ -54,8 +60,26 @@ struct WorkoutExerciseModel: Identifiable, Codable, Hashable {
         case imageName = "image_name"
         case sets
         case setTargets = "set_targets"
+        case chosenResistanceEquipment = "chosen_resistance_equipment"
+        case chosenSupportEquipment = "chosen_support_equipment"
     }
-    
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        authorId = try container.decode(String.self, forKey: .authorId)
+        templateId = try container.decode(String.self, forKey: .templateId)
+        name = try container.decode(String.self, forKey: .name)
+        trackingMode = try container.decode(TrackingMode.self, forKey: .trackingMode)
+        index = try container.decode(Int.self, forKey: .index)
+        notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        imageName = try container.decodeIfPresent(String.self, forKey: .imageName)
+        sets = try container.decode([WorkoutSetModel].self, forKey: .sets)
+        setTargets = try container.decodeIfPresent([SetTarget].self, forKey: .setTargets) ?? []
+        chosenResistanceEquipment = try container.decodeIfPresent([EquipmentRef].self, forKey: .chosenResistanceEquipment) ?? []
+        chosenSupportEquipment = try container.decodeIfPresent([EquipmentRef].self, forKey: .chosenSupportEquipment) ?? []
+    }
+
     var completedSetsCount: Int {
         return sets.filter { set in
             return set.completedAt != nil

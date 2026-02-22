@@ -26,7 +26,12 @@ struct BodyMetricsView: View {
         }
         .navigationTitle("Body Metrics")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "BodyMetricsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .scrollIndicators(.hidden)
         .onFirstTask {
             await presenter.onFirstTask()
@@ -97,7 +102,7 @@ struct BodyMetricsView: View {
 
 extension CoreBuilder {
 
-    func bodyMetricsView(router: Router, delegate: BodyMetricsDelegate) -> some View {
+    func bodyMetricsView(router: AnyRouter, delegate: BodyMetricsDelegate) -> some View {
         BodyMetricsView(
             presenter: BodyMetricsPresenter(
                 interactor: interactor,
@@ -126,5 +131,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.bodyMetricsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

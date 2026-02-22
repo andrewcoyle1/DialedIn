@@ -7,7 +7,8 @@
 
 import Foundation
 
-final class MockGymProfileService: RemoteGymProfileService {
+@MainActor
+class MockGymProfileService: RemoteGymProfileService {
     
     let delay: Double
     let showError: Bool

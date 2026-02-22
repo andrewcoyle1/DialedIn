@@ -6,7 +6,8 @@
 //
 import Foundation
 
-protocol RemoteWorkoutSessionService {
+@MainActor
+protocol RemoteWorkoutSessionService: Sendable {
     // Create / Update
     func createWorkoutSession(session: WorkoutSessionModel) async throws
     func updateWorkoutSession(session: WorkoutSessionModel) async throws
@@ -16,7 +17,7 @@ protocol RemoteWorkoutSessionService {
     func getWorkoutSession(id: String) async throws -> WorkoutSessionModel
     func getWorkoutSessions(ids: [String], limitTo: Int) async throws -> [WorkoutSessionModel]
     func getWorkoutSessionsByTemplateAndAuthor(templateId: String, authorId: String, limitTo: Int) async throws -> [WorkoutSessionModel]
-    func getWorkoutSessionsForAuthor(authorId: String, limitTo: Int) async throws -> [WorkoutSessionModel]
+    func getWorkoutSessionsForAuthor(authorId: String, limitTo: Int, includeDeleted: Bool) async throws -> [WorkoutSessionModel]
     func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel?
 
     // Delete

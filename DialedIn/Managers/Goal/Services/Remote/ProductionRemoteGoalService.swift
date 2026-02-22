@@ -66,4 +66,16 @@ struct ProductionRemoteGoalService: RemoteGoalService {
     func deleteGoal(goalId: String, userId: String) async throws {
         try await goalsCollection(userId: userId).document(goalId).delete()
     }
+
+    func deleteAllGoalsForUser(userId: String) async throws {
+        let goals = try await getAllGoals(userId: userId)
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for goal in goals {
+                group.addTask {
+                    try await deleteGoal(goalId: goal.goalId, userId: userId)
+                }
+            }
+            try await group.waitForAll()
+        }
+    }
 }

@@ -21,18 +21,20 @@ struct StepsView: View {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = StepsDelegate()
 
     return RouterView { router in
         builder.stepsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func stepsView(router: Router, delegate: StepsDelegate, themeColor: Color? = nil) -> some View {
+    func stepsView(router: AnyRouter, delegate: StepsDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: StepsPresenter(
                 interactor: interactor,

@@ -153,16 +153,16 @@ struct OnboardingWeightRateView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingWeightRateView(router: AnyRouter, delegate: OnboardingWeightRateDelegate) -> some View {
         OnboardingWeightRateView(
-            presenter: OnboardingWeightRatePresenter(interactor: interactor, router: OnbRouter(router: router, builder: self)),
+            presenter: OnboardingWeightRatePresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingWeightRateView(delegate: OnboardingWeightRateDelegate) {
         router.showScreen(.push) { router in
             builder.onboardingWeightRateView(router: router, delegate: delegate)
@@ -171,23 +171,23 @@ extension OnbRouter {
 }
 
 #Preview("Gain Weight") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingWeightRateView(
             router: router,
             delegate: OnboardingWeightRateDelegate(weightGoalBuilder: .weightRateMock)
         )
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Lose Weight") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingWeightRateView(
             router: router,
             delegate: OnboardingWeightRateDelegate(weightGoalBuilder: .weightRateMock)
         )
     }
-    .previewEnvironment()
+    
 }

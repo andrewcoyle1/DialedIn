@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-protocol RemoteRecipeTemplateService {
+protocol RemoteRecipeTemplateService: Sendable {
     func createRecipeTemplate(recipe: RecipeTemplateModel, image: PlatformImage?) async throws
     func getRecipeTemplate(id: String) async throws -> RecipeTemplateModel
     func getRecipeTemplates(ids: [String], limitTo: Int) async throws -> [RecipeTemplateModel]

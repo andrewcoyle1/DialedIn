@@ -37,7 +37,12 @@ struct ProgramSettingsView: View {
         .navigationSubtitle(program.name)
         .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
-        .screenAppearAnalytics(name: "ProgramSettingsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -195,7 +200,7 @@ struct ProgramSettingsView: View {
 
 extension CoreBuilder {
     
-    func programSettingsView(router: Router, program: Binding<TrainingProgram>) -> some View {
+    func programSettingsView(router: AnyRouter, program: Binding<TrainingProgram>) -> some View {
         ProgramSettingsView(
             presenter: ProgramSettingsPresenter(
                 interactor: interactor,
@@ -227,5 +232,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.programSettingsView(router: router, program: program)
     }
-    .previewEnvironment()
+    
 }

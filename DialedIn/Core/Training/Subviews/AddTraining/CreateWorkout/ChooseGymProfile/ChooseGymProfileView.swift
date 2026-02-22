@@ -29,7 +29,12 @@ struct ChooseGymProfileView: View {
         }
         .navigationTitle("Choose Gym Profile")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "ChooseGymProfileView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
     
     private func equipmentSubtitle(for profile: GymProfileModel) -> String {
@@ -42,7 +47,7 @@ struct ChooseGymProfileView: View {
 
 extension CoreBuilder {
     
-    func chooseGymProfileView(router: Router, delegate: ChooseGymProfileDelegate) -> some View {
+    func chooseGymProfileView(router: AnyRouter, delegate: ChooseGymProfileDelegate) -> some View {
         ChooseGymProfileView(
             presenter: ChooseGymProfilePresenter(
                 interactor: interactor,
@@ -72,5 +77,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.chooseGymProfileView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

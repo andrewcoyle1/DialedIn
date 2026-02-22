@@ -17,6 +17,14 @@ class InsightsAndAnalyticsPresenter {
         self.router = router
     }
 
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func onFirstTask() async {
         loadLocalScaleWeightEntries()
         loadMacrosData()
@@ -219,6 +227,34 @@ class InsightsAndAnalyticsPresenter {
             scaleWeightEntries = try interactor.readAllLocalWeightEntries()
         } catch {
             scaleWeightEntries = interactor.measurementHistory
+        }
+    }
+}
+
+extension InsightsAndAnalyticsPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+
+        var eventName: String {
+            switch self {
+            case .onAppear:    return "InsightsAndAnalyticsView_Appear"
+            case .onDisappear: return "InsightsAndAnalyticsView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
         }
     }
 }

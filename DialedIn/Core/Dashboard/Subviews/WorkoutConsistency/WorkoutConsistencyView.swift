@@ -19,18 +19,20 @@ struct WorkoutConsistencyView: View {
 }
 
 #Preview {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = WorkoutConsistencyDelegate()
 
     return RouterView { router in
         builder.workoutConsistencyView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func workoutConsistencyView(router: Router, delegate: WorkoutConsistencyDelegate, themeColor: Color? = nil) -> some View {
+    func workoutConsistencyView(router: AnyRouter, delegate: WorkoutConsistencyDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: WorkoutConsistencyPresenter(
                 interactor: interactor,

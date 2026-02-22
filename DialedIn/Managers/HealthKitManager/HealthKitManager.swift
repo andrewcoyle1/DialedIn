@@ -12,7 +12,8 @@ import os
 import HealthKit
 
 @Observable
-class HealthKitManager: NSObject {
+@MainActor
+class HealthKitManager {
     
     private let service: HealthService
     let healthStore: HKHealthStore
@@ -43,5 +44,29 @@ class HealthKitManager: NSObject {
     func getHealthStore() -> HKHealthStore {
         service.getHealthStore()
     }
+}
+
+extension CoreInteractor {
+    // HealthKitManager
+    var healthKitIsAuthorized: Bool {
+        healthKitManager.isAuthorized
+    }
+    
+    func canRequestHealthDataAuthorisation() -> Bool {
+        healthKitManager.canRequestAuthorisation()
+    }
+    
+    func requestHealthKitAuthorisation() async throws {
+        try await healthKitManager.requestAuthorisation()
+    }
+    
+    func needsAuthorisationForRequiredTypes() -> Bool {
+        healthKitManager.needsAuthorisationForRequiredTypes()
+    }
+    
+    func getHealthStore() -> HKHealthStore {
+        healthKitManager.getHealthStore()
+    }
+
 }
 #endif

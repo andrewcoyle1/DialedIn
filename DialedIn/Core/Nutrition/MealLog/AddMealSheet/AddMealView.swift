@@ -130,7 +130,9 @@ extension CoreRouter {
 }
 
 #Preview("Breakfast") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = AddMealDelegate(
         selectedDate: Date(),
         mealType: .breakfast,
@@ -141,11 +143,13 @@ extension CoreRouter {
     RouterView { router in
         builder.addMealView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Lunch") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = AddMealDelegate(
         selectedDate: Date(),
         mealType: .lunch,
@@ -156,11 +160,13 @@ extension CoreRouter {
     RouterView { router in
         builder.addMealView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Dinner") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = AddMealDelegate(
         selectedDate: Date(),
         mealType: .dinner,
@@ -171,11 +177,13 @@ extension CoreRouter {
     RouterView { router in
         builder.addMealView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Snack") {
-    let builder = CoreBuilder(container: DevPreview.shared.container())
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
     let delegate = AddMealDelegate(
         selectedDate: Date(),
         mealType: .snack,
@@ -186,5 +194,5 @@ extension CoreRouter {
     RouterView { router in
         builder.addMealView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

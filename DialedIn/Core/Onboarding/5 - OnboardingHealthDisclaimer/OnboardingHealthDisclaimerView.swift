@@ -94,15 +94,15 @@ struct OnboardingHealthDisclaimerView: View {
     }
 }
 
-extension OnbBuilder {
+extension CoreBuilder {
     func onboardingHealthDisclaimerView(router: AnyRouter) -> some View {
         OnboardingHealthDisclaimerView(
-            presenter: OnboardingHealthDisclaimerPresenter(interactor: interactor, router: OnbRouter(router: router, builder: self))
+            presenter: OnboardingHealthDisclaimerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
         )
     }
 }
 
-extension OnbRouter {
+extension CoreRouter {
     func showOnboardingHealthDisclaimerView() {
         router.showScreen(.push) { router in
             builder.onboardingHealthDisclaimerView(router: router)
@@ -112,9 +112,9 @@ extension OnbRouter {
 }
 
 #Preview("Health Disclaimer") {
-    let builder = OnbBuilder(interactor: OnbInteractor(container: DevPreview.shared.container()))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: DevPreview.shared.container()))
     RouterView { router in
         builder.onboardingHealthDisclaimerView(router: router)
     }
-    .previewEnvironment()
+    
 }

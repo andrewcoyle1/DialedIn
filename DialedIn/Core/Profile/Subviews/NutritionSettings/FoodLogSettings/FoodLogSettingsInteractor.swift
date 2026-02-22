@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol FoodLogSettingsInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol FoodLogSettingsInteractor: GlobalInteractor { }
 
 extension CoreInteractor: FoodLogSettingsInteractor { }

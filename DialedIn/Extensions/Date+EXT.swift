@@ -14,8 +14,10 @@ extension Date {
         return self.addingTimeInterval(dayInterval + hourInterval + minuteInterval)
     }
     
+    @MainActor
     static var firstDayOfWeek = Calendar.current.firstWeekday
     
+    @MainActor
     static var capitalizedFirstLettersOfWeekdays: [String] {
         let calendar = Calendar.current
         // Adjusted for the different weekday starts
@@ -44,6 +46,7 @@ extension Date {
         Calendar.current.component(.day, from: endOfMonth)
     }
     
+    @MainActor
     var firstWeekDayBeforeStart: Date {
         let startOfMonthWeekday = Calendar.current.component(.weekday, from: startOfMonth)
         var numberFromPreviousMonth = startOfMonthWeekday - Self.firstDayOfWeek
@@ -53,6 +56,44 @@ extension Date {
         return Calendar.current.date(byAdding: .day, value: -numberFromPreviousMonth, to: startOfMonth)!
     }
     
+    var dayKey: String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: Calendar.current.startOfDay(for: self))
+    }
+    
+    func addingDays(_ days: Int) -> Date {
+        Calendar.current.date(byAdding: .day, value: days, to: self) ?? self
+    }
+    
+    /// Parses a dayKey string (yyyy-MM-dd) to a Date at start of day.
+    init?(dayKey: String) {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone.current
+        guard let date = formatter.date(from: dayKey) else { return nil }
+        self = date
+    }
+    
+    /// Returns all day keys from startDate through endDate (inclusive).
+    static func dayKeys(from startDate: Date, to endDate: Date) -> [String] {
+        let calendar = Calendar.current
+        var keys: [String] = []
+        var current = calendar.startOfDay(for: startDate)
+        let end = calendar.startOfDay(for: endDate)
+        while current <= end {
+            keys.append(current.dayKey)
+            guard let next = calendar.date(byAdding: .day, value: 1, to: current) else { break }
+            current = next
+        }
+        return keys
+    }
+
+    @MainActor
     var calendarDisplayDays: [Date] {
         var days: [Date] = []
         // Start with days from the previous month to fill the grid

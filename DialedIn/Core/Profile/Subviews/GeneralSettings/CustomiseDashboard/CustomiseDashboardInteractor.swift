@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol CustomiseDashboardInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol CustomiseDashboardInteractor: GlobalInteractor { }
 
 extension CoreInteractor: CustomiseDashboardInteractor { }

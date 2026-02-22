@@ -8,6 +8,7 @@
 import Foundation
 
 @Observable
+@MainActor
 class StepsManager {
     private let local: LocalStepsPersistence
     private let remote: RemoteStepsService
@@ -98,6 +99,10 @@ class StepsManager {
     func deleteStepsEntry(userId: String, stepsId: String) async throws {
         try local.deleteStepsEntry(id: stepsId)
         try await remote.deleteStepsEntry(userId: userId, stepsId: stepsId)
+    }
+
+    func deleteAllStepsEntriesForUser(userId: String) async throws {
+        try await remote.deleteAllStepsEntriesForUser(userId: userId)
     }
 
     /// Clears all local Steps data. Does not delete remote data.
@@ -295,4 +300,58 @@ class StepsManager {
     }
 
 #endif
+}
+
+extension CoreInteractor {
+    // StepsManager
+
+    var stepsHistory: [StepsModel] {
+        stepsManager.stepsHistory
+    }
+
+    /// CREATE
+    func createStepsEntry(steps: StepsModel) async throws {
+        try await stepsManager.createStepsEntry(steps: steps)
+    }
+
+    /// READ
+    func readLocalStepsEntry(id: String) throws -> StepsModel {
+        try stepsManager.readLocalStepsEntry(id: id)
+    }
+
+    func readRemoteStepsEntry(userId: String, stepsId: String) async throws -> StepsModel {
+        try await stepsManager.readRemoteStepsEntry(userId: userId, stepsId: stepsId)
+    }
+
+    func readAllLocalStepsEntries() throws -> [StepsModel] {
+        try stepsManager.readAllLocalStepsEntries()
+    }
+
+    func readAllRemoteStepsEntries(userId: String) async throws -> [StepsModel] {
+        try await stepsManager.readAllRemoteStepsEntries(userId: userId, userCreationDate: currentUser?.creationDate)
+    }
+
+    /// UPDATE
+    func updateStepsEntry(steps: StepsModel) async throws {
+        try await stepsManager.updateStepsEntry(steps: steps)
+    }
+
+    /// DELETE
+    func deleteWeightEntry(userId: String, stepsId: String) async throws {
+        try await stepsManager.deleteStepsEntry(userId: userId, stepsId: stepsId)
+    }
+
+    func dedupeStepsEntriesByDay(userId: String) async throws {
+        try await stepsManager.dedupeStepsEntriesByDay(userId: userId)
+    }
+
+    func backfillStepsFromHealthKit() async {
+        guard let userId else { return }
+        await stepsManager.backfillStepsFromHealthKit(userId: userId, userCreationDate: currentUser?.creationDate)
+    }
+
+    func clearAllLocalStepsData() throws {
+        try stepsManager.clearAllLocalStepsData()
+    }
+
 }

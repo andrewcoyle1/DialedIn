@@ -83,6 +83,14 @@ class CreateIngredientPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func onImageSelectorPressed() {
         // Show the image picker sheet for selecting a profile image
         interactor.trackEvent(event: Event.imageSelectorStart)
@@ -152,11 +160,6 @@ class CreateIngredientPresenter {
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
             try await interactor.createIngredientTemplate(ingredient: newIngredient, image: nsImage)
 #endif
-            // Track created template on the user document
-            try await interactor.addCreatedIngredientTemplate(ingredientId: newIngredient.id)
-            // Auto-bookmark authored templates
-            try await interactor.addBookmarkedIngredientTemplate(ingredientId: newIngredient.id)
-            try await interactor.bookmarkIngredientTemplate(id: newIngredient.id, isBookmarked: true)
         } catch {
             
         }
@@ -203,6 +206,8 @@ class CreateIngredientPresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case createIngredientStart
         case createIngredientSuccess
         case createIngredientFail(error: Error)
@@ -216,16 +221,18 @@ class CreateIngredientPresenter {
 
         var eventName: String {
             switch self {
-            case .createIngredientStart:          return "CreateIngredient_Start"
-            case .createIngredientSuccess:        return "CreateIngredient_Success"
-            case .createIngredientFail:           return "CreateIngredient_Fail"
-            case .ingredientGenerateImageStart:   return "IngredientGenerateImage_Start"
-            case .ingredientGenerateImageSuccess: return "IngredientGenerateImage_Success"
-            case .ingredientGenerateImageFail:    return "IngredientGenerateImage_Fail"
-            case .imageSelectorStart:           return "IngredientImageSelector_Start"
-            case .imageSelectorSuccess:         return "IngredientImageSelector_Success"
-            case .imageSelectorCancel:          return "IngredientImageSelector_Cancel"
-            case .imageSelectorFail:            return "IngredientImageSelector_Fail"
+            case .onAppear:                         return "CreateIngredientView_Appear"
+            case .onDisappear:                      return "CreateIngredientView_Disappear"
+            case .createIngredientStart:            return "CreateIngredient_Start"
+            case .createIngredientSuccess:          return "CreateIngredient_Success"
+            case .createIngredientFail:             return "CreateIngredient_Fail"
+            case .ingredientGenerateImageStart:     return "IngredientGenerateImage_Start"
+            case .ingredientGenerateImageSuccess:   return "IngredientGenerateImage_Success"
+            case .ingredientGenerateImageFail:      return "IngredientGenerateImage_Fail"
+            case .imageSelectorStart:               return "IngredientImageSelector_Start"
+            case .imageSelectorSuccess:             return "IngredientImageSelector_Success"
+            case .imageSelectorCancel:              return "IngredientImageSelector_Cancel"
+            case .imageSelectorFail:                return "IngredientImageSelector_Fail"
             }
         }
 

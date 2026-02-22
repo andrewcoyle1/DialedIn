@@ -1,9 +1,8 @@
 import SwiftUI
 
 @MainActor
-protocol InsightsAndAnalyticsInteractor {
+protocol InsightsAndAnalyticsInteractor: GlobalInteractor {
     var auth: UserAuthInfo? { get }
-    func trackEvent(event: LoggableEvent)
     func readAllLocalWeightEntries() throws -> [BodyMeasurementEntry]
     var measurementHistory: [BodyMeasurementEntry] { get }
     var currentUser: UserModel? { get }

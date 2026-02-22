@@ -39,7 +39,7 @@ class LogRightBicepMeasurementPresenter {
     func loadInitialData() async {
         guard let user = interactor.currentUser else { return }
 
-        if let preference = user.lengthUnitPreference {
+        if let preference = user.submittedLengthUnitPreference {
             unit = preference == .centimeters ? .centimeters : .inches
         }
 

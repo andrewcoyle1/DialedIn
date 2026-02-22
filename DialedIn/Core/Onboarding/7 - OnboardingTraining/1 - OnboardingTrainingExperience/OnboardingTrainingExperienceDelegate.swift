@@ -6,5 +6,8 @@
 //
 
 struct OnboardingTrainingExperienceDelegate {
-    var trainingProgramBuilder: TrainingProgramBuilder
+    
+    static var mock: Self {
+        Self()
+    }
 }

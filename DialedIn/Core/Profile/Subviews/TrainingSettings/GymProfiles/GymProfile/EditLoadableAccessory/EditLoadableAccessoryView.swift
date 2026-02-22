@@ -10,7 +10,12 @@ struct EditLoadableAccessoryView: View {
         }
         .navigationTitle(presenter.loadableAccessory.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "EditLoadableAccessoryView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -52,7 +57,7 @@ struct EditLoadableAccessoryView: View {
 
 extension CoreBuilder {
     
-    func editLoadableAccessoryView(router: Router, loadableAccessory: Binding<LoadableAccessoryEquipment>) -> some View {
+    func editLoadableAccessoryView(router: AnyRouter, loadableAccessory: Binding<LoadableAccessoryEquipment>) -> some View {
         EditLoadableAccessoryView(
             presenter: EditLoadableAccessoryPresenter(
                 interactor: interactor,
@@ -79,5 +84,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.editLoadableAccessoryView(router: router, loadableAccessory: Binding.constant(loadableAccessory))
     }
-    .previewEnvironment()
+    
 }

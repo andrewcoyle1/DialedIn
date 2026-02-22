@@ -10,7 +10,12 @@ struct EditPlateLoadedMachineView: View {
         }
         .navigationTitle(presenter.plateLoadedMachine.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "EditPlateLoadedMachineView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -53,7 +58,7 @@ struct EditPlateLoadedMachineView: View {
 
 extension CoreBuilder {
     
-    func editPlateLoadedMachineView(router: Router, plateLoadedMachine: Binding<PlateLoadedMachine>) -> some View {
+    func editPlateLoadedMachineView(router: AnyRouter, plateLoadedMachine: Binding<PlateLoadedMachine>) -> some View {
         EditPlateLoadedMachineView(
             presenter: EditPlateLoadedMachinePresenter(
                 interactor: interactor,
@@ -80,5 +85,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.editPlateLoadedMachineView(router: router, plateLoadedMachine: Binding.constant(plateLoadedMachine))
     }
-    .previewEnvironment()
+    
 }

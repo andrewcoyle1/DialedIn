@@ -42,13 +42,18 @@ struct LegalView: View {
         }
         .navigationTitle("Legal")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "LegalView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
 }
 
 extension CoreBuilder {
     
-    func legalView(router: Router, delegate: LegalDelegate) -> some View {
+    func legalView(router: AnyRouter, delegate: LegalDelegate) -> some View {
         LegalView(
             presenter: LegalPresenter(
                 interactor: interactor,
@@ -78,5 +83,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.legalView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

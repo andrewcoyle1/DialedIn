@@ -19,13 +19,18 @@ struct IntegrationsView: View {
         }
         .navigationTitle("Integrations")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "IntegrationsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
 }
 
 extension CoreBuilder {
     
-    func integrationsView(router: Router, delegate: IntegrationsDelegate) -> some View {
+    func integrationsView(router: AnyRouter, delegate: IntegrationsDelegate) -> some View {
         IntegrationsView(
             presenter: IntegrationsPresenter(
                 interactor: interactor,
@@ -55,5 +60,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.integrationsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

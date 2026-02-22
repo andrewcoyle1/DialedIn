@@ -26,7 +26,12 @@ struct NutritionAnalyticsView: View {
         }
         .navigationTitle("Nutrition")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "NutritionAnalyticsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .scrollIndicators(.hidden)
         .task {
             await presenter.loadData()
@@ -299,7 +304,7 @@ struct NutritionAnalyticsView: View {
 
 extension CoreBuilder {
     
-    func nutritionAnalyticsView(router: Router, delegate: NutritionAnalyticsDelegate) -> some View {
+    func nutritionAnalyticsView(router: AnyRouter, delegate: NutritionAnalyticsDelegate) -> some View {
         NutritionAnalyticsView(
             presenter: NutritionAnalyticsPresenter(
                 interactor: interactor,
@@ -329,5 +334,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.nutritionAnalyticsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

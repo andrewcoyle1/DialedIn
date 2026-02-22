@@ -24,6 +24,7 @@ enum BodyMetricType: Hashable {
     case rightAnkle
 }
 
+@MainActor
 extension BodyMetricType {
 
     func value(from entry: BodyMeasurementEntry) -> Double? {

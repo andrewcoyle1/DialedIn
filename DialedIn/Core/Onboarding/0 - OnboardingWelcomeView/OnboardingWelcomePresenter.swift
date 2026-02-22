@@ -14,7 +14,6 @@ class OnboardingWelcomePresenter {
     private let router: OnboardingWelcomeRouter
 
     var imageName: String = Constants.randomImage
-    var showSignInView: Bool = false
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -28,13 +27,38 @@ class OnboardingWelcomePresenter {
         self.router = router
     }
     
-    func navToAppropriateView() {
-        if let step = currentUser?.onboardingStep {
-            navigate(step: step)
-        } else {
-            interactor.trackEvent(event: Event.navigate)
+    func onViewAppear(delegate: OnboardingWelcomeDelegate) {
+        interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
+    }
+    
+    func onViewDisappear(delegate: OnboardingWelcomeDelegate) {
+        interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
+    }
+
+    func onContinuePressed() {
+        guard let user = currentUser else {
             router.showOnboardingIntroView()
+            return
         }
+
+        // isAnonymous is Bool? — treat nil (unset) the same as true
+        if user.isAnonymous != false {
+            router.showOnboardingIntroView()
+            return
+        }
+
+        if user.didCompleteOnboarding {
+            if interactor.isPremium {
+                router.switchToCoreModule()
+            } else {
+                router.showPaywall(onPurchaseSuccess: { [weak self] in
+                    self?.router.switchToCoreModule()
+                })
+            }
+            return
+        }
+
+        navigate(step: user.inferredOnboardingStep)
     }
 
     func navigate(step: OnboardingStep) {
@@ -72,17 +96,27 @@ class OnboardingWelcomePresenter {
         router.showDevSettingsView()
     }
 
+}
+
+extension OnboardingWelcomePresenter {
+    
     enum Event: LoggableEvent {
+        case onAppear(delegate: OnboardingWelcomeDelegate)
+        case onDisappear(delegate: OnboardingWelcomeDelegate)
         case navigate
 
         var eventName: String {
             switch self {
-            case .navigate: return "WelcomeView_Navigate"
+            case .onAppear:     return "WelcomeView_Appear"
+            case .onDisappear:  return "WelcomeView_Disappear"
+            case .navigate:     return "WelcomeView_Navigate"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
+            case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
+                return delegate.eventParameters
             case .navigate:
                 return nil
             }
@@ -91,7 +125,7 @@ class OnboardingWelcomePresenter {
         var type: LogType {
             switch self {
             default:
-                return .info
+                return .analytic
             }
         }
     }

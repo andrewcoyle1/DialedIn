@@ -8,6 +8,7 @@
 import Foundation
 
 @Observable
+@MainActor
 class ImageUploadManager {
     private let service: ImageUploadService
     
@@ -22,4 +23,17 @@ class ImageUploadManager {
     func deleteImage(path: String) async throws {
         try await service.deleteImage(path: path)
     }
+}
+
+extension CoreInteractor {
+    // MARK: ImageUploadManager
+    
+    func uploadImage(image: PlatformImage, path: String) async throws -> URL {
+        try await imageUploadManager.uploadImage(image: image, path: path)
+    }
+    
+    func deleteImage(path: String) async throws {
+        try await imageUploadManager.deleteImage(path: path)
+    }
+
 }

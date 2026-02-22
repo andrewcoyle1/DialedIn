@@ -1,8 +1,7 @@
 import SwiftUI
 
 @MainActor
-protocol BodyMetricsInteractor {
-    func trackEvent(event: LoggableEvent)
+protocol BodyMetricsInteractor: GlobalInteractor {
     func backfillBodyFatFromHealthKit() async
     var measurementHistory: [BodyMeasurementEntry] { get }
     func readAllLocalWeightEntries() throws -> [BodyMeasurementEntry]
