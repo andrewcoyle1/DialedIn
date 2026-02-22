@@ -711,7 +711,6 @@
 				Components/Modals/CustomModalView.swift,
 				Components/Modals/ModalSupportView.swift,
 				Components/Modals/ProfileModalView.swift,
-				Components/ViewModifiers/AppearAnalyticsViewModifier.swift,
 				Components/ViewModifiers/AutoYScaleModifier.swift,
 				Components/ViewModifiers/ButtonViewModifiers.swift,
 				Components/ViewModifiers/ChartScrollZoomModifier.swift,
