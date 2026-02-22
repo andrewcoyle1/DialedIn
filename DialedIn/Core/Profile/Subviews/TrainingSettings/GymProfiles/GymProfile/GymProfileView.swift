@@ -78,7 +78,12 @@ struct GymProfileView: View {
         .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
-        .screenAppearAnalytics(name: "GymProfileView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .searchable(text: $presenter.searchQuery, prompt: "Filter equipment by name")
         .toolbar {
             toolbarContent
@@ -611,7 +616,7 @@ private struct GymProfileMachineSectionsView: View {
 
 extension CoreBuilder {
     
-    func gymProfileView(router: Router, gymProfile: GymProfileModel) -> some View {
+    func gymProfileView(router: AnyRouter, gymProfile: GymProfileModel) -> some View {
         GymProfileView(
             presenter: GymProfilePresenter(
                 interactor: interactor,
@@ -640,5 +645,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.gymProfileView(router: router, gymProfile: GymProfileModel.mock)
     }
-    .previewEnvironment()
+    
 }

@@ -62,7 +62,12 @@ struct ProgramIconView: View {
         }
         .navigationTitle("Create Program")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "ProgramIconView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -83,7 +88,7 @@ struct ProgramIconView: View {
 }
 
 extension CoreBuilder {
-    func programIconView(router: Router, delegate: ProgramIconDelegate) -> some View {
+    func programIconView(router: AnyRouter, delegate: ProgramIconDelegate) -> some View {
         ProgramIconView(
             presenter: ProgramIconPresenter(
                 interactor: interactor,
@@ -111,5 +116,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.programIconView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

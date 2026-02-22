@@ -54,6 +54,14 @@ class IngredientListBuilderPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func loadAllIngredients() async {
         await loadMyIngredientsIfNeeded()
         await loadTopIngredientsIfNeeded()
@@ -211,6 +219,8 @@ class IngredientListBuilderPresenter {
     // MARK: Analytics Events
     
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case performIngredientSearchStart
         case performIngredientSearchSuccess(query: String, resultCount: Int)
         case performIngredientSearchFail(error: Error)
@@ -242,34 +252,36 @@ class IngredientListBuilderPresenter {
 
         var eventName: String {
             switch self {
-            case .performIngredientSearchStart:          return "IngredientsView_Search_Start"
-            case .performIngredientSearchSuccess:        return "IngredientsView_Search_Success"
-            case .performIngredientSearchFail:           return "IngredientsView_Search_Fail"
-            case .performIngredientSearchEmptyResults:   return "IngredientsView_Search_EmptyResults"
-            case .searchCleared:                         return "IngredientsView_Search_Cleared"
-            case .loadMyIngredientsStart:                return "IngredientsView_LoadMyIngredients_Start"
-            case .loadMyIngredientsSuccess:              return "IngredientsView_LoadMyIngredients_Success"
-            case .loadMyIngredientsFail:                 return "IngredientsView_LoadMyIngredients_Fail"
-            case .loadTopIngredientsStart:               return "IngredientsView_LoadTopIngredients_Start"
-            case .loadTopIngredientsSuccess:             return "IngredientsView_LoadTopIngredients_Success"
-            case .loadTopIngredientsFail:                return "IngredientsView_LoadTopIngredients_Fail"
-            case .incrementIngredientStart:              return "IngredientsView_IncrementIngredient_Start"
-            case .incrementIngredientSuccess:            return "IngredientsView_IncrementIngredient_Success"
-            case .incrementIngredientFail:               return "IngredientsView_IncrementIngredient_Fail"
-            case .syncIngredientsFromCurrentUserStart:   return "IngredientsView_UserSync_Start"
-            case .syncIngredientsFromCurrentUserNoUid:   return "IngredientsView_UserSync_NoUID"
-            case .syncIngredientsFromCurrentUserSuccess: return "IngredientsView_UserSync_Success"
-            case .syncIngredientsFromCurrentUserFail:    return "IngredientsView_UserSync_Fail"
-            case .onAddIngredientPressed:                return "IngredientsView_AddIngredientPressed"
-            case .favouritesSectionViewed:               return "IngredientsView_Favourites_SectionViewed"
-            case .bookmarkedSectionViewed:               return "IngredientsView_Bookmarked_SectionViewed"
-            case .trendingSectionViewed:                 return "IngredientsView_Trending_SectionViewed"
-            case .myTemplatesSectionViewed:              return "IngredientsView_MyTemplates_SectionViewed"
-            case .emptyStateShown:                       return "IngredientsView_EmptyState_Shown"
-            case .onIngredientPressedFromFavourites:     return "IngredientsView_IngredientPressed_Favourites"
-            case .onIngredientPressedFromBookmarked:     return "IngredientsView_IngredientPressed_Bookmarked"
-            case .onIngredientPressedFromTrending:       return "IngredientsView_IngredientPressed_Trending"
-            case .onIngredientPressedFromMyTemplates:    return "IngredientsView_IngredientPressed_MyTemplates"
+            case .onAppear:                                 return "IngredientsView_Appear"
+            case .onDisappear:                              return "IngredientsView_Disappear"
+            case .performIngredientSearchStart:             return "IngredientsView_Search_Start"
+            case .performIngredientSearchSuccess:           return "IngredientsView_Search_Success"
+            case .performIngredientSearchFail:              return "IngredientsView_Search_Fail"
+            case .performIngredientSearchEmptyResults:      return "IngredientsView_Search_EmptyResults"
+            case .searchCleared:                            return "IngredientsView_Search_Cleared"
+            case .loadMyIngredientsStart:                   return "IngredientsView_LoadMyIngredients_Start"
+            case .loadMyIngredientsSuccess:                 return "IngredientsView_LoadMyIngredients_Success"
+            case .loadMyIngredientsFail:                    return "IngredientsView_LoadMyIngredients_Fail"
+            case .loadTopIngredientsStart:                  return "IngredientsView_LoadTopIngredients_Start"
+            case .loadTopIngredientsSuccess:                return "IngredientsView_LoadTopIngredients_Success"
+            case .loadTopIngredientsFail:                   return "IngredientsView_LoadTopIngredients_Fail"
+            case .incrementIngredientStart:                 return "IngredientsView_IncrementIngredient_Start"
+            case .incrementIngredientSuccess:               return "IngredientsView_IncrementIngredient_Success"
+            case .incrementIngredientFail:                  return "IngredientsView_IncrementIngredient_Fail"
+            case .syncIngredientsFromCurrentUserStart:      return "IngredientsView_UserSync_Start"
+            case .syncIngredientsFromCurrentUserNoUid:      return "IngredientsView_UserSync_NoUID"
+            case .syncIngredientsFromCurrentUserSuccess:    return "IngredientsView_UserSync_Success"
+            case .syncIngredientsFromCurrentUserFail:       return "IngredientsView_UserSync_Fail"
+            case .onAddIngredientPressed:                   return "IngredientsView_AddIngredientPressed"
+            case .favouritesSectionViewed:                  return "IngredientsView_Favourites_SectionViewed"
+            case .bookmarkedSectionViewed:                  return "IngredientsView_Bookmarked_SectionViewed"
+            case .trendingSectionViewed:                    return "IngredientsView_Trending_SectionViewed"
+            case .myTemplatesSectionViewed:                 return "IngredientsView_MyTemplates_SectionViewed"
+            case .emptyStateShown:                          return "IngredientsView_EmptyState_Shown"
+            case .onIngredientPressedFromFavourites:        return "IngredientsView_IngredientPressed_Favourites"
+            case .onIngredientPressedFromBookmarked:        return "IngredientsView_IngredientPressed_Bookmarked"
+            case .onIngredientPressedFromTrending:          return "IngredientsView_IngredientPressed_Trending"
+            case .onIngredientPressedFromMyTemplates:       return "IngredientsView_IngredientPressed_MyTemplates"
             }
         }
 
@@ -308,7 +320,6 @@ class IngredientListBuilderPresenter {
                 return .warning
             default:
                 return .analytic
-
             }
         }
     }

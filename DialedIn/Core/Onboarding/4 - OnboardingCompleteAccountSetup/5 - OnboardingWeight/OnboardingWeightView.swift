@@ -128,5 +128,5 @@ extension CoreRouter {
             delegate: OnboardingWeightDelegate(userModelBuilder: UserModelBuilder.weightMock)
         )
     }
-    .previewEnvironment()
+    
 }

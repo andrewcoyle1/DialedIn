@@ -51,5 +51,5 @@ extension CoreRouter {
             builder.recipesView(router: router)
         }
     }
-    .previewEnvironment()
+    
 }

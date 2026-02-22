@@ -7,9 +7,8 @@
 
 @MainActor
 protocol OnboardingExpenditureInteractor {
-    func saveCompleteAccountSetupProfile(userBuilder: UserModelBuilder, onboardingStep: OnboardingStep) async throws -> UserModel
+    func saveCompleteAccountSetupProfile(userBuilder: UserModelBuilder) async throws -> UserModel
     func estimateTDEE(user: UserModel?) -> Double
-    func updateOnboardingStep(step: OnboardingStep) async throws
     func canRequestNotificationAuthorization() async -> Bool
     func canRequestHealthDataAuthorisation() -> Bool
     func trackEvent(event: LoggableEvent)

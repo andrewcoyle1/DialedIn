@@ -133,5 +133,5 @@ extension CoreRouter {
     RouterView { router in
         builder.logWeightView(router: router)
     }
-    .previewEnvironment()
+    
 }

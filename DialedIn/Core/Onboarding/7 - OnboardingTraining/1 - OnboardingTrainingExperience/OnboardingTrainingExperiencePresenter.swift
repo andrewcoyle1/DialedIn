@@ -23,6 +23,14 @@ class OnboardingTrainingExperiencePresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+    
     func navigateToDaysPerWeek(delegate: OnboardingTrainingExperienceDelegate) {
         guard let level = selectedLevel else { return }
         
@@ -37,17 +45,21 @@ class OnboardingTrainingExperiencePresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case navigate
 
         var eventName: String {
             switch self {
-            case .navigate: return "Onboarding_TrainingExperience_Navigate"
+            case .onAppear:     return "OnboardingTrainingExperienceView_Appear"
+            case .onDisappear:  return "OnboardingTrainingExperienceView_Disappear"
+            case .navigate:     return "Onboarding_TrainingExperience_Navigate"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
-            case .navigate:
+            default:
                 return nil
             }
         }
@@ -56,6 +68,8 @@ class OnboardingTrainingExperiencePresenter {
             switch self {
             case .navigate:
                 return .info
+            default:
+                return .analytic
             }
         }
     }

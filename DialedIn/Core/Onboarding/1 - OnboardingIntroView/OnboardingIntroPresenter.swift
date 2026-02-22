@@ -21,6 +21,14 @@ class OnboardingIntroPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+    
     func navigateToOnboardingAuth() {
         interactor.trackEvent(event: Event.navigate)
         router.showOnboardingAuthView()
@@ -31,16 +39,22 @@ class OnboardingIntroPresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case navigate
 
         var eventName: String {
             switch self {
-            case .navigate:    return "IntroView_Navigate"
+            case .onAppear:     return "IntroView_Appear"
+            case .onDisappear:  return "IntroView_Disappear"
+            case .navigate:     return "IntroView_Navigate"
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
+            case .onAppear, .onDisappear:
+                return nil
             case .navigate:
                 return nil
             }
@@ -48,6 +62,8 @@ class OnboardingIntroPresenter {
 
         var type: LogType {
             switch self {
+            case .onAppear, .onDisappear:
+                return .analytic
             case .navigate:
                 return .info
             }

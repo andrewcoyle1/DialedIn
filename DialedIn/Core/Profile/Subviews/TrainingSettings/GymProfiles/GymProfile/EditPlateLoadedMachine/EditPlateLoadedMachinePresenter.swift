@@ -16,6 +16,14 @@ class EditPlateLoadedMachinePresenter {
         self.plateLoadedMachineBinding = plateLoadedMachineBinding
         self.selectedUnit = plateLoadedMachineBinding.wrappedValue.unit
     }
+    
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
 
     var plateLoadedMachine: PlateLoadedMachine {
         get { plateLoadedMachineBinding.wrappedValue }
@@ -24,5 +32,33 @@ class EditPlateLoadedMachinePresenter {
     
     func onDismissPressed() {
         router.dismissScreen()
+    }
+}
+
+extension EditPlateLoadedMachinePresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "EditPlateLoadedMachineView_Appear"
+            case .onDisappear: return "EditPlateLoadedMachineView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

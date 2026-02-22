@@ -131,5 +131,5 @@ extension CoreRouter {
     RouterView { router in
         builder.logLeftWristMeasurementView(router: router)
     }
-    .previewEnvironment()
+    
 }

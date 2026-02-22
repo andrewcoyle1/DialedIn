@@ -19,7 +19,12 @@ struct AddLoadableBarView: View {
         .navigationTitle("Add")
         .navigationSubtitle(presenter.loadableBar.wrappedValue.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "AddLoadableBarView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -62,7 +67,7 @@ struct AddLoadableBarView: View {
 
 extension CoreBuilder {
     
-    func addLoadableBarView(router: Router, delegate: AddLoadableBarDelegate) -> some View {
+    func addLoadableBarView(router: AnyRouter, delegate: AddLoadableBarDelegate) -> some View {
         AddLoadableBarView(
             presenter: AddLoadableBarPresenter(
                 interactor: interactor,
@@ -94,5 +99,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.addLoadableBarView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

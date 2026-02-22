@@ -77,5 +77,5 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingGoalSettingView(router: router)
     }
-    .previewEnvironment()
+    
 }

@@ -10,7 +10,6 @@ protocol OnboardingDietPlanInteractor {
     var currentUser: UserModel? { get }
     func computeDietPlan(user: UserModel?, builder: DietPlanBuilder) -> DietPlan
     func saveDietPlan(plan: DietPlan) async throws
-    func updateOnboardingStep(step: OnboardingStep) async throws
     func trackEvent(event: LoggableEvent)
 }
 

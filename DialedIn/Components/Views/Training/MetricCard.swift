@@ -38,5 +38,4 @@ struct MetricCard: View {
 #Preview {
     MetricCard(title: "Title", value: "Value", icon: "dumbbell", color: .red)
         .frame(maxWidth: 100)
-        .previewEnvironment()
 }

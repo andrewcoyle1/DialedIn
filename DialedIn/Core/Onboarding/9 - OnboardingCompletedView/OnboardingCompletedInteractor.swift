@@ -6,9 +6,8 @@
 //
 
 @MainActor
-protocol OnboardingCompletedInteractor {
-    func updateOnboardingStep(step: OnboardingStep) async throws
-    func trackEvent(event: LoggableEvent)
+protocol OnboardingCompletedInteractor: GlobalInteractor {
+    func updateDidCompleteOnboarding() async throws
 }
 
 extension CoreInteractor: OnboardingCompletedInteractor { }

@@ -11,7 +11,12 @@ struct EditFixedWeightBarView: View {
         }
         .navigationTitle(presenter.fixedWeightBar.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "EditFixedWeightBarView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -80,7 +85,7 @@ struct EditFixedWeightBarView: View {
 
 extension CoreBuilder {
     
-    func editFixedWeightBarView(router: Router, fixedWeightBar: Binding<FixedWeightBars>) -> some View {
+    func editFixedWeightBarView(router: AnyRouter, fixedWeightBar: Binding<FixedWeightBars>) -> some View {
         EditFixedWeightBarView(
             presenter: EditFixedWeightBarPresenter(
                 interactor: interactor,
@@ -107,5 +112,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.editFixedWeightBarView(router: router, fixedWeightBar: Binding.constant(fixedWeightBar))
     }
-    .previewEnvironment()
+    
 }

@@ -288,5 +288,5 @@ extension CoreBuilder {
     RouterView { router in
         builder.nutritionView(router: router)
     }
-    .previewEnvironment()
+    
 }

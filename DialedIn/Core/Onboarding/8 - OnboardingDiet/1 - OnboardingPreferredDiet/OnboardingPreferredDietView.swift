@@ -87,5 +87,5 @@ extension CoreRouter {
             router: router
         )
     }
-    .previewEnvironment()
+    
 }

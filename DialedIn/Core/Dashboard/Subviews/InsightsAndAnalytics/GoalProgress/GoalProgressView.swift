@@ -28,12 +28,12 @@ struct GoalProgressView: View {
     return RouterView { router in
         builder.goalProgressView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func goalProgressView(router: Router, delegate: GoalProgressDelegate, themeColor: Color? = nil) -> some View {
+    func goalProgressView(router: AnyRouter, delegate: GoalProgressDelegate, themeColor: Color? = nil) -> some View {
         GoalProgressView(
             presenter: GoalProgressPresenter(
                 interactor: interactor,

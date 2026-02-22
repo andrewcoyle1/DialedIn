@@ -30,7 +30,6 @@ class OnboardingGoalSummaryPresenter {
     }
     
     private func navigateToCustomisingProgram() async {
-        try? await interactor.updateOnboardingStep(step: .customiseProgram)
         interactor.trackEvent(event: Event.navigate)
         router.showOnboardingTrainingProgramView()
     }

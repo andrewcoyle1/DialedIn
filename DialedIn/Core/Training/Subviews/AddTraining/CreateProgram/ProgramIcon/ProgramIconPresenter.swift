@@ -45,6 +45,14 @@ class ProgramIconPresenter {
         self.selectedIcon = Self.defaultIcons.first ?? "flag.pattern.checkered"
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func onColourPressed(colour: Color) {
         selectedColour = colour
     }
@@ -64,5 +72,34 @@ class ProgramIconPresenter {
                 icon: selectedIcon
             )
         )
+    }
+    
+}
+
+extension ProgramIconPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "ProgramIconView_Appear"
+            case .onDisappear: return "ProgramIconView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

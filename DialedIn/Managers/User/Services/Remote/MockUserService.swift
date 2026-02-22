@@ -110,10 +110,15 @@ class MockUserService: RemoteUserService {
         
     }
     
-    func updateOnboardingStep(userId: String, onboardingStep: OnboardingStep) async throws {
-        
+    func updateDidCompleteOnboarding(userId: String) async throws {
+
     }
-    
+
+    // swiftlint:disable:next function_parameter_count
+    func updateUserAuthState(userId: String, isAnonymous: Bool, authProviders: [String], email: String?, displayName: String?, firstName: String?, lastName: String?, phoneNumber: String?, photoUrl: String?, lastSignInDate: Date?) async throws {
+
+    }
+
     func deleteUser(userId: String) async throws {
         
     }
@@ -134,8 +139,8 @@ class MockUserService: RemoteUserService {
         }
     }
     
-    func updateHealthConsents(userId: String, step: OnboardingStep, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
-        
+    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
+
     }
 
 }

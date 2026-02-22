@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulUtilities
 
 @Observable
 @MainActor
@@ -78,7 +77,7 @@ class ProfilePresenter {
     }
     
     func onSubscriptionPressed() {
-        router.showCorePaywall()
+        router.showPaywall()
     }
 
     func onExerciseLibraryPressed() {

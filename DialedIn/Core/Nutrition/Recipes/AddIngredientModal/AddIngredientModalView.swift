@@ -117,5 +117,5 @@ extension CoreRouter {
     RouterView { router in
         builder.addIngredientModalView(router: router, delegate: AddIngredientModalDelegate(selectedIngredients: $selectedIngredients))
     }
-    .previewEnvironment()
+    
 }

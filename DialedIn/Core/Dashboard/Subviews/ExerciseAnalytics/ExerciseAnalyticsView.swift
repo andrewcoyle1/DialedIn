@@ -52,7 +52,12 @@ struct ExerciseAnalyticsView: View {
         }
         .navigationTitle("Exercises")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "ExerciseAnalyticsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .scrollIndicators(.hidden)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -66,7 +71,7 @@ struct ExerciseAnalyticsView: View {
 
 extension CoreBuilder {
     
-    func exerciseAnalyticsView(router: Router, delegate: ExerciseAnalyticsDelegate) -> some View {
+    func exerciseAnalyticsView(router: AnyRouter, delegate: ExerciseAnalyticsDelegate) -> some View {
         ExerciseAnalyticsView(
             presenter: ExerciseAnalyticsPresenter(
                 interactor: interactor,
@@ -96,5 +101,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.exerciseAnalyticsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

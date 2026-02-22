@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol LicencesInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol LicencesInteractor: GlobalInteractor { }
 
 extension CoreInteractor: LicencesInteractor { }

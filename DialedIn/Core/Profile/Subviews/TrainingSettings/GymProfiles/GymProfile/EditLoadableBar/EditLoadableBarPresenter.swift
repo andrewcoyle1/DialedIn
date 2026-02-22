@@ -23,6 +23,14 @@ class EditLoadableBarPresenter {
         self.selectedUnit = loadableBarBinding.wrappedValue.defaultBaseWeight?.unit ?? .kilograms
     }
 
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func filteredWeightIDs(for unit: ExerciseWeightUnit) -> [String] {
         loadableBar.baseWeights
             .filter { $0.unit == unit }
@@ -78,5 +86,33 @@ class EditLoadableBarPresenter {
             set: { self.loadableBar = $0 }
         )
         router.showAddLoadableBarView(delegate: AddLoadableBarDelegate(loadableBar: loadableBarBinding, unit: selectedUnit))
+    }
+}
+
+extension EditLoadableBarPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "EditLoadableBarView_Appear"
+            case .onDisappear: return "EditLoadableBarView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

@@ -6,9 +6,8 @@
 //
 
 @MainActor
-protocol IngredientDetailInteractor {
+protocol IngredientDetailInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: IngredientDetailInteractor { }

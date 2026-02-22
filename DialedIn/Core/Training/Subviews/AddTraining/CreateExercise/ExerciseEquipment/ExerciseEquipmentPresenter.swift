@@ -12,6 +12,14 @@ class ExerciseEquipmentPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     var bodyweightExercise: Bool = false
      
     var chosenResistanceEquipment: [EquipmentRef] = []
@@ -125,5 +133,34 @@ class ExerciseEquipmentPresenter {
     
     private func name(for equipmentRef: EquipmentRef) -> String {
         equipmentIndex[equipmentRef]?.name ?? equipmentRef.equipmentId
+    }
+    
+}
+
+extension ExerciseEquipmentPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "ExerciseEquipmentView_Appear"
+            case .onDisappear: return "ExerciseEquipmentView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

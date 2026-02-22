@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol ShortcutsInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol ShortcutsInteractor: GlobalInteractor { }
 
 extension CoreInteractor: ShortcutsInteractor { }

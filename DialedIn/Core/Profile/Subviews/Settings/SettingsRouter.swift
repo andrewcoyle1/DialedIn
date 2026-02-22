@@ -9,7 +9,7 @@ import SwiftUI
 
 @MainActor
 protocol SettingsRouter: GlobalRouter {
-    func showCorePaywall()
+    func showPaywall()
     func switchToOnboardingModule()
 }
 

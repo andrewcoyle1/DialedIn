@@ -240,7 +240,7 @@ extension CoreRouter {
     RouterView { router in
         builder.createRecipeView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Without Ingredients") {
@@ -251,5 +251,5 @@ extension CoreRouter {
     RouterView { router in
         builder.createRecipeView(router: router)
     }
-    .previewEnvironment()
+    
 }

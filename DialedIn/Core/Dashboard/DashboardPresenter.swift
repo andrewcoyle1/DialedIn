@@ -112,7 +112,7 @@ class DashboardPresenter {
     }
     
     func onSubscribePressed() {
-        router.showCorePaywall()
+        router.showPaywall()
     }
 
     func onProfilePressed() {

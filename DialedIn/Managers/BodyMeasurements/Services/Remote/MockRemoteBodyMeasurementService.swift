@@ -63,4 +63,9 @@ class MockRemoteBodyMeasurementService: RemoteBodyMeasurementService {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
     }
+
+    func deleteAllWeightEntriesForUser(userId: String) async throws {
+        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        try tryShowError()
+    }
 }

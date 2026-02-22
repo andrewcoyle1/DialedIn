@@ -29,12 +29,12 @@ struct MuscleGroupDetailView: View {
     return RouterView { router in
         builder.muscleGroupDetailView(router: router, delegate: delegate, muscle: .upperBack)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func muscleGroupDetailView(router: Router, delegate: MuscleGroupDetailDelegate, muscle: Muscles, themeColor: Color? = nil) -> some View {
+    func muscleGroupDetailView(router: AnyRouter, delegate: MuscleGroupDetailDelegate, muscle: Muscles, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: MuscleGroupDetailPresenter(
                 interactor: interactor,

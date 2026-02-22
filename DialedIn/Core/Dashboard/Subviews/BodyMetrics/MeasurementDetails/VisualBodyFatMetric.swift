@@ -133,7 +133,7 @@ extension CoreRouter {
 }
 
 extension CoreBuilder {
-    func visualBodyFatView(router: Router, delegate: VisualBodyFatDelegate, themeColor: Color? = nil) -> some View {
+    func visualBodyFatView(router: AnyRouter, delegate: VisualBodyFatDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: VisualBodyFatPresenter(
                 interactor: interactor,

@@ -26,6 +26,14 @@ class NotificationsPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func loadNotifications() async {
         isLoading = true
         
@@ -69,5 +77,34 @@ class NotificationsPresenter {
 
     func onDismissPressed() {
         router.dismissScreen()
+    }
+}
+
+extension NotificationsPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+
+        var eventName: String {
+            switch self {
+            case .onAppear:     return "NotificationsView_Appear"
+            case .onDisappear:  return "NotificationsView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+                
+            }
+        }
     }
 }

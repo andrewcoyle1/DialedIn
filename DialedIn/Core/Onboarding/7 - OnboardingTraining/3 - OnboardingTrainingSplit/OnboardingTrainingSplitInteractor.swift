@@ -6,8 +6,6 @@
 //
 
 @MainActor
-protocol OnboardingTrainingSplitInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol OnboardingTrainingSplitInteractor: GlobalInteractor { }
 
 extension CoreInteractor: OnboardingTrainingSplitInteractor { }

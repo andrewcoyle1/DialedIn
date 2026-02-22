@@ -266,5 +266,5 @@ extension CoreRouter {
             delegate: OnboardingExpenditureDelegate(userBuilder: .mock)
         )
     }
-    .previewEnvironment()
+    
 }

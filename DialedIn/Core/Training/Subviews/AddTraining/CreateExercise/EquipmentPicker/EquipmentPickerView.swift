@@ -36,7 +36,12 @@ struct EquipmentPickerView: View {
         .navigationTitle(delegate.headerTitle)
         .navigationSubtitle("Choose One")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "EquipmentPickerView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .searchable(text: $searchQuery, prompt: "Filter equipment by name")
         .toolbar {
             toolbarContent
@@ -137,7 +142,7 @@ private extension EquipmentPickerView {
 
 extension CoreBuilder {
     
-    func equipmentPickerView(router: Router, delegate: EquipmentPickerDelegate) -> some View {
+    func equipmentPickerView(router: AnyRouter, delegate: EquipmentPickerDelegate) -> some View {
         EquipmentPickerView(
             presenter: EquipmentPickerPresenter(
                 interactor: interactor,
@@ -171,5 +176,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.equipmentPickerView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

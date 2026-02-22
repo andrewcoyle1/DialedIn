@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol MuscleGroupPickerInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol MuscleGroupPickerInteractor: GlobalInteractor { }
 
 extension CoreInteractor: MuscleGroupPickerInteractor { }

@@ -8,10 +8,6 @@
 import SwiftUI
 import Firebase
 
-struct GoogleSignInConfig {
-    let clientID: String
-}
-
 @MainActor
 struct Dependencies {
     let container: DependencyContainer
@@ -48,7 +44,6 @@ struct Dependencies {
         let bodyMeasurementsManager: BodyMeasurementsManager
         let stepsManager: StepsManager
         let goalManager: GoalManager
-        let googleSignInConfig: GoogleSignInConfig
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         let hkWorkoutManager: HKWorkoutManager
         let liveActivityManager: LiveActivityManager
@@ -90,7 +85,6 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
             pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
-            googleSignInConfig = GoogleSignInConfig(clientID: "mock-client-id")
 
         case .dev:
             logManager = LogManager(services: [
@@ -130,10 +124,6 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
             pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
-            guard let clientId = FirebaseApp.app()?.options.clientID else {
-                fatalError("No Google client ID found in Firebase options")
-            }
-            googleSignInConfig = GoogleSignInConfig(clientID: clientId)
 
         case .prod:
             logManager = LogManager(services: [
@@ -172,10 +162,6 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
             pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
-            guard let clientId = FirebaseApp.app()?.options.clientID else {
-                fatalError("No Google client ID found in Firebase options")
-            }
-            googleSignInConfig = GoogleSignInConfig(clientID: clientId)
         }
         hapticManager = HapticManager(logger: logManager)
         soundEffectManager = SoundEffectManager(logger: logManager)
@@ -204,7 +190,6 @@ struct Dependencies {
         container.register(BodyMeasurementsManager.self, service: bodyMeasurementsManager)
         container.register(StepsManager.self, service: stepsManager)
         container.register(GoalManager.self, service: goalManager)
-        container.register(GoogleSignInConfig.self, service: googleSignInConfig)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         container.register(HKWorkoutManager.self, service: hkWorkoutManager)
         container.register(LiveActivityManager.self, service: liveActivityManager)
@@ -216,13 +201,6 @@ struct Dependencies {
 
         self.logManager = logManager
         self.container = container
-    }
-}
-
-extension View {
-    func previewEnvironment(isSignedIn: Bool = true) -> some View {
-        self
-            .environment(LogManager(services: [ConsoleService(printParameters: false)]))
     }
 }
 
@@ -255,7 +233,6 @@ class DevPreview {
         container.register(BodyMeasurementsManager.self, service: bodyMeasurementsManager)
         container.register(StepsManager.self, service: stepsManager)
         container.register(GoalManager.self, service: goalManager)
-        container.register(GoogleSignInConfig.self, service: googleSignInConfig)
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         container.register(HKWorkoutManager.self, service: hkWorkoutManager)
         container.register(LiveActivityManager.self, service: liveActivityManager)
@@ -291,7 +268,6 @@ class DevPreview {
     let bodyMeasurementsManager: BodyMeasurementsManager
     let stepsManager: StepsManager
     let goalManager: GoalManager
-    let googleSignInConfig: GoogleSignInConfig
     #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
     let hkWorkoutManager: HKWorkoutManager
     let liveActivityManager: LiveActivityManager
@@ -334,7 +310,6 @@ class DevPreview {
         self.bodyMeasurementsManager = BodyMeasurementsManager(services: MockBodyMeasurementServices())
         self.stepsManager = StepsManager(services: MockStepsServices())
         self.goalManager = GoalManager(services: MockGoalServices())
-        self.googleSignInConfig = GoogleSignInConfig(clientID: "mock-client-id")
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         self.hkWorkoutManager = hkWorkoutManager
         self.liveActivityManager = LiveActivityManager()

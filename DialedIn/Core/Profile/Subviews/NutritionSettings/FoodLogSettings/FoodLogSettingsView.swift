@@ -43,13 +43,18 @@ struct FoodLogSettingsView: View {
         }
         .navigationTitle("Food Log")
         .navigationBarTitleDisplayMode(.inline)
-            .screenAppearAnalytics(name: "FoodLogSettingsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
 }
 
 extension CoreBuilder {
     
-    func foodLogSettingsView(router: Router, delegate: FoodLogSettingsDelegate) -> some View {
+    func foodLogSettingsView(router: AnyRouter, delegate: FoodLogSettingsDelegate) -> some View {
         FoodLogSettingsView(
             presenter: FoodLogSettingsPresenter(
                 interactor: interactor,
@@ -79,5 +84,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.foodLogSettingsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

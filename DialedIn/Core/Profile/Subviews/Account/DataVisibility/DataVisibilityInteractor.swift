@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol DataVisibilityInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol DataVisibilityInteractor: GlobalInteractor { }
 
 extension CoreInteractor: DataVisibilityInteractor { }

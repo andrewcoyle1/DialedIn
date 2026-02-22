@@ -8,6 +8,8 @@
 @MainActor
 protocol OnboardingWelcomeRouter: GlobalRouter {
     func showDevSettingsView()
+    func showPaywall()
+    func showPaywall(onPurchaseSuccess: @escaping @MainActor () -> Void)
     func showOnboardingIntroView()
     func showOnboardingAuthView()
     func showSubscriptionView()
@@ -18,6 +20,7 @@ protocol OnboardingWelcomeRouter: GlobalRouter {
     func showOnboardingGoalSettingView()
     func showOnboardingCustomisingProgramView()
     func showOnboardingCompletedView()
+    func switchToCoreModule()
 }
 
 extension CoreRouter: OnboardingWelcomeRouter { }

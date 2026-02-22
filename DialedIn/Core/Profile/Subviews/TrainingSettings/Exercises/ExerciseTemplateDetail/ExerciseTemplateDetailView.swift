@@ -34,11 +34,6 @@ struct ExerciseTemplateDetailView: View {
         .toolbar {
             toolbarContent
         }
-        .task { await presenter.loadInitialState(exerciseTemplate: delegate.exerciseTemplate) }
-        .onChange(of: presenter.currentUser) { _, _ in
-            let user = presenter.currentUser
-            let isAuthor = user?.userId == delegate.exerciseTemplate.authorId
-        }
     }
     
     private var aboutSection: some View {
@@ -617,5 +612,5 @@ extension CoreRouter {
             )
         )
     }
-    .previewEnvironment()
+    
 }

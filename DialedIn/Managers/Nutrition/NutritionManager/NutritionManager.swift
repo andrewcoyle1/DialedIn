@@ -236,3 +236,34 @@ class NutritionManager {
         return baseMultiplier + exerciseAdj
     }
 }
+
+extension CoreInteractor {
+    // MARK: NutritionManager
+    
+    var currentDietPlan: DietPlan? {
+        nutritionManager.currentDietPlan
+    }
+
+    func computeDietPlan(user: UserModel?, builder: DietPlanBuilder) -> DietPlan {
+        nutritionManager.computeDietPlan(user: user, builder: builder)
+    }
+
+    func saveDietPlan(plan: DietPlan) async throws {
+        try await nutritionManager.saveDietPlan(plan: plan)
+    }
+
+    func createAndSaveDietPlan(user: UserModel?, builder: DietPlanBuilder) async throws {
+        try await nutritionManager.createAndSaveDietPlan(user: user, builder: builder)
+    }
+    
+    // Get daily macro target for a specific date from the current diet plan
+    func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget? {
+        try await nutritionManager.getDailyTarget(for: date, userId: userId)
+    }
+    
+    // Estimation
+    func estimateTDEE(user: UserModel?) -> Double {
+        nutritionManager.estimateTDEE(user: user)
+    }
+
+}

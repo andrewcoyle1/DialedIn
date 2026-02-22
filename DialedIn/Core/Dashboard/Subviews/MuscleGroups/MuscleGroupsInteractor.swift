@@ -1,7 +1,7 @@
 import SwiftUI
 
 @MainActor
-protocol MuscleGroupsInteractor {
+protocol MuscleGroupsInteractor: GlobalInteractor {
     func trackEvent(event: LoggableEvent)
     var auth: UserAuthInfo? { get }
     func getLocalWorkoutSessionsForAuthor(authorId: String, limitTo: Int) throws -> [WorkoutSessionModel]

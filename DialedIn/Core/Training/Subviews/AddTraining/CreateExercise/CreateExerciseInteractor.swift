@@ -8,11 +8,10 @@
 import SwiftUI
 
 @MainActor
-protocol CreateExerciseInteractor {
+protocol CreateExerciseInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     func createExerciseTemplate(exercise: ExerciseModel, image: PlatformImage?) async throws
     func generateImage(input: String) async throws -> UIImage
-    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: CreateExerciseInteractor { }

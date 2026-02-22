@@ -18,6 +18,14 @@ class DefineWorkoutWrapperPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+    
     func onConfirmPressed(delegate: DefineWorkoutWrapperDelegate) {
         guard let uid = currentUser?.userId else { return }
         let workout = WorkoutTemplateModel(
@@ -43,6 +51,35 @@ class DefineWorkoutWrapperPresenter {
                 try await interactor.createWorkoutTemplate(workout: workout, image: nil)
             } catch {
                 router.showSimpleAlert(title: "Unable to Create Workout", subtitle: "Please try again.")
+            }
+        }
+    }
+    
+}
+
+extension DefineWorkoutWrapperPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "DefineWorkoutWrapperView_Appear"
+            case .onDisappear: return "DefineWorkoutWrapperView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
             }
         }
     }

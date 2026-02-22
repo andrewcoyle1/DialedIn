@@ -51,5 +51,5 @@ extension CoreRouter {
     RouterView { router in
         builder.exercisesView(router: router)
     }
-    .previewEnvironment()
+    
 }

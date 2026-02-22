@@ -27,12 +27,12 @@ struct WorkoutConsistencyView: View {
     return RouterView { router in
         builder.workoutConsistencyView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func workoutConsistencyView(router: Router, delegate: WorkoutConsistencyDelegate, themeColor: Color? = nil) -> some View {
+    func workoutConsistencyView(router: AnyRouter, delegate: WorkoutConsistencyDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: WorkoutConsistencyPresenter(
                 interactor: interactor,

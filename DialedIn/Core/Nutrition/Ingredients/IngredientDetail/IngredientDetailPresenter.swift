@@ -27,18 +27,22 @@ class IngredientDetailPresenter {
         self.interactor = interactor
         self.router = router
     }
-    
-    func loadInitialState(ingredientTemplate: IngredientTemplateModel) async {
-        let user = interactor.currentUser
-        // Always treat authored templates as bookmarked
-        let isAuthor = user?.userId == ingredientTemplate.authorId
+        
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
     }
     
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case favouriteIngredientStart
         case favouriteIngredientSuccess
         case favouriteIngredientFail(error: Error)
@@ -48,12 +52,14 @@ class IngredientDetailPresenter {
 
         var eventName: String {
             switch self {
-            case .favouriteIngredientStart:    return "IngredientDetailView_Favourite_Start"
-            case .favouriteIngredientSuccess:  return "IngredientDetailView_Favourite_Success"
-            case .favouriteIngredientFail:     return "IngredientDetailView_Favourite_Fail"
-            case .bookmarkIngredientStart:    return "IngredientDetailView_Bookmark_Start"
-            case .bookmarkIngredientSuccess:  return "IngredientDetailView_Bookmark_Success"
-            case .bookmarkIngredientFail:     return "IngredientDetailView_Bookmark_Fail"
+            case .onAppear:                     return "IngredientDetailView_Appear"
+            case .onDisappear:                  return "IngredientDetailView_Disappear"
+            case .favouriteIngredientStart:     return "IngredientDetailView_Favourite_Start"
+            case .favouriteIngredientSuccess:   return "IngredientDetailView_Favourite_Success"
+            case .favouriteIngredientFail:      return "IngredientDetailView_Favourite_Fail"
+            case .bookmarkIngredientStart:      return "IngredientDetailView_Bookmark_Start"
+            case .bookmarkIngredientSuccess:    return "IngredientDetailView_Bookmark_Success"
+            case .bookmarkIngredientFail:       return "IngredientDetailView_Bookmark_Fail"
             }
         }
 

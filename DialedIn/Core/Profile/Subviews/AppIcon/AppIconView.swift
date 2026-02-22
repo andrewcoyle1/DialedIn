@@ -20,13 +20,18 @@ struct AppIconView: View {
         }
         .navigationTitle("App Icon")
         .navigationBarTitleDisplayMode(.inline)
-            .screenAppearAnalytics(name: "AppIconView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
 }
 
 extension CoreBuilder {
     
-    func appIconView(router: Router, delegate: AppIconDelegate) -> some View {
+    func appIconView(router: AnyRouter, delegate: AppIconDelegate) -> some View {
         AppIconView(
             presenter: AppIconPresenter(
                 interactor: interactor,
@@ -56,5 +61,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.appIconView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

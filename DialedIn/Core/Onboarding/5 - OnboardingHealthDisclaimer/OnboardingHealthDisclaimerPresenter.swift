@@ -52,7 +52,7 @@ class OnboardingHealthDisclaimerPresenter {
         interactor.trackEvent(event: Event.consentHealthConfirmStart(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion))
         Task {
             do {
-                try await interactor.updateHealthConsents(disclaimerVersion: disclaimerVersion, step: .goalSetting, privacyVersion: privacyVersion, acceptedAt: now)
+                try await interactor.updateHealthConsents(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: now)
                 interactor.trackEvent(event: Event.consentHealthConfirmSuccess(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: now))
                 
                 router.dismissModal()

@@ -105,3 +105,79 @@ class WorkoutTemplateManager {
     }
 }
  
+extension CoreInteractor {
+    // MARK: WorkoutTemplateManager
+    
+    func addLocalWorkoutTemplate(workout: WorkoutTemplateModel) async throws {
+        try await workoutTemplateManager.incrementWorkoutTemplateInteraction(id: workout.id)
+    }
+    
+    func getLocalWorkoutTemplate(id: String) throws -> WorkoutTemplateModel {
+        try workoutTemplateManager.getLocalWorkoutTemplate(id: id)
+    }
+    
+    func getLocalWorkoutTemplates(ids: [String]) throws -> [WorkoutTemplateModel] {
+        try workoutTemplateManager.getLocalWorkoutTemplates(ids: ids)
+    }
+    
+    func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel] {
+        try workoutTemplateManager.getAllLocalWorkoutTemplates()
+    }
+    
+    func createWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws {
+        try await workoutTemplateManager.createWorkoutTemplate(workout: workout, image: image)
+    }
+    
+    func updateWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws {
+        try await workoutTemplateManager.updateWorkoutTemplate(workout: workout, image: image)
+    }
+    
+    func deleteWorkoutTemplate(id: String) async throws {
+        try await workoutTemplateManager.deleteWorkoutTemplate(id: id)
+    }
+    
+    func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel {
+        try await workoutTemplateManager.getWorkoutTemplate(id: id)
+    }
+    
+    func get(id: String) async -> WorkoutTemplateModel? {
+        return try? await workoutTemplateManager.getWorkoutTemplate(id: id)
+    }
+    
+    func getWorkoutTemplates(ids: [String], limitTo: Int = 20) async throws -> [WorkoutTemplateModel] {
+        try await workoutTemplateManager.getWorkoutTemplates(ids: ids, limitTo: limitTo)
+    }
+    
+    func getWorkoutTemplatesByName(name: String) async throws -> [WorkoutTemplateModel] {
+        try await workoutTemplateManager.getWorkoutTemplatesByName(name: name)
+    }
+    
+    func getWorkoutTemplatesForAuthor(authorId: String) async throws -> [WorkoutTemplateModel] {
+        try await workoutTemplateManager.getWorkoutTemplatesForAuthor(authorId: authorId)
+    }
+    
+    func getTopWorkoutTemplatesByClicks(limitTo: Int = 10) async throws -> [WorkoutTemplateModel] {
+        try await workoutTemplateManager.getTopWorkoutTemplatesByClicks(limitTo: limitTo)
+    }
+    
+    func incrementWorkoutTemplateInteraction(id: String) async throws {
+        try await workoutTemplateManager.incrementWorkoutTemplateInteraction(id: id)
+    }
+    
+    func removeAuthorIdFromWorkoutTemplate(id: String) async throws {
+        try await workoutTemplateManager.removeAuthorIdFromWorkoutTemplate(id: id)
+    }
+    
+    func removeAuthorIdFromAllWorkoutTemplates(id: String) async throws {
+        try await workoutTemplateManager.removeAuthorIdFromAllWorkoutTemplates(id: id)
+    }
+    
+    func bookmarkWorkoutTemplate(id: String, isBookmarked: Bool) async throws {
+        try await workoutTemplateManager.bookmarkWorkoutTemplate(id: id, isBookmarked: isBookmarked)
+    }
+    
+    func favouriteWorkoutTemplate(id: String, isFavourited: Bool) async throws {
+        try await workoutTemplateManager.favouriteWorkoutTemplate(id: id, isFavourited: isFavourited)
+    }
+
+}

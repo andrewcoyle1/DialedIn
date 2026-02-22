@@ -23,6 +23,14 @@ class MuscleGroupsPresenter {
         self.router = router
     }
 
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func loadData() async {
         guard let userId = interactor.auth?.uid else {
             muscleSetsData = [:]
@@ -67,5 +75,34 @@ class MuscleGroupsPresenter {
 
     func onDismissPressed() {
         router.dismissScreen()
+    }
+}
+
+extension MuscleGroupsPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+
+        var eventName: String {
+            switch self {
+            case .onAppear:    return "MuscleGroupsView_Appear"
+            case .onDisappear: return "MuscleGroupsView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+                
+            }
+        }
     }
 }

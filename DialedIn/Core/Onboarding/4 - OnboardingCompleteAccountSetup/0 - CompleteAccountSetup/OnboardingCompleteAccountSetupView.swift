@@ -71,5 +71,5 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingCompleteAccountSetupView(router: router)
     }
-    .previewEnvironment()
+    
 }

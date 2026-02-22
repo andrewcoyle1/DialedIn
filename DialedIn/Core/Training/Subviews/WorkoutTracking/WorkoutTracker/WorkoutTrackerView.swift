@@ -256,5 +256,5 @@ extension CoreRouter {
     RouterView { router in
         builder.workoutTrackerView(router: router, delegate: WorkoutTrackerDelegate(workoutSessionId: WorkoutSessionModel.mock.id))
     }
-    .previewEnvironment()
+    
 }

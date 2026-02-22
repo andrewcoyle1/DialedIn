@@ -21,6 +21,14 @@ class OnboardingHealthDataPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func onAllowAccessPressed() {
         Task {
             interactor.trackEvent(event: Event.enableHealthKitStart)
@@ -36,11 +44,8 @@ class OnboardingHealthDataPresenter {
     }
     
     func handleNavigation() {
-        Task {
-            try? await interactor.updateOnboardingStep(step: .healthDisclaimer)
-            interactor.trackEvent(event: Event.navigate)
-            router.showOnboardingHealthDisclaimerView()
-        }
+        interactor.trackEvent(event: Event.navigate)
+        router.showOnboardingHealthDisclaimerView()
     }
 
     func onDevSettingsPressed() {
@@ -48,6 +53,8 @@ class OnboardingHealthDataPresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case enableHealthKitStart
         case enableHealthKitSuccess
         case enableHealthKitFail(error: Error)
@@ -55,6 +62,8 @@ class OnboardingHealthDataPresenter {
 
         var eventName: String {
             switch self {
+            case .onAppear:                 return "OnboardingHealthDataView_Appear"
+            case .onDisappear:              return "OnboardingHealthDataView_Disappear"
             case .enableHealthKitStart:     return "Onboarding_EnableHealthKit_Start"
             case .enableHealthKitSuccess:   return "Onboarding_EnableHealthKit_Success"
             case .enableHealthKitFail:      return "Onboarding_EnableHealthKit_Fail"

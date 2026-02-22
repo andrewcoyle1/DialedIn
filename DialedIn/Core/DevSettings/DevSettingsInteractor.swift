@@ -6,7 +6,7 @@
 //
 
 @MainActor
-protocol DevSettingsInteractor {
+protocol DevSettingsInteractor: GlobalInteractor {
     var auth: UserAuthInfo? { get }
     var currentUser: UserModel? { get }
     var activeTests: ActiveABTests { get }
@@ -16,7 +16,6 @@ protocol DevSettingsInteractor {
     func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel]
     func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
     func getAllLocalWorkoutSessions() throws -> [WorkoutSessionModel]
-    func trackEvent(event: LoggableEvent)
     func getWorkoutSession(id: String) async throws -> WorkoutSessionModel
     func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws
     func clearAllLocalStepsData() throws
@@ -24,4 +23,3 @@ protocol DevSettingsInteractor {
 }
 
 extension CoreInteractor: DevSettingsInteractor { }
-

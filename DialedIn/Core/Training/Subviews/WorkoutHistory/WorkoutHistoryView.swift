@@ -30,7 +30,12 @@ struct WorkoutHistoryView: View {
         }
         .navigationTitle("Workout Sessions")
         .toolbarTitleDisplayMode(.inlineLarge)
-        .screenAppearAnalytics(name: "WorkoutHistoryView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .scrollIndicators(.hidden)
         .onAppear {
             presenter.loadInitialSessions()
@@ -169,7 +174,7 @@ extension CoreRouter {
         builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Slow Loading") {
@@ -180,7 +185,7 @@ extension CoreRouter {
         builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("No Data") {
@@ -191,7 +196,7 @@ extension CoreRouter {
         builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Remote Loading Failure") {
@@ -203,7 +208,7 @@ extension CoreRouter {
         builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Local Loading Failure") {
@@ -216,5 +221,5 @@ extension CoreRouter {
         builder.workoutHistoryView(router: router)
         .navigationTitle("Workout History")
     }
-    .previewEnvironment()
+    
 }

@@ -81,3 +81,69 @@ class ExerciseHistoryManager {
         try await remote.deleteAllExerciseHistoryForAuthor(authorId: authorId)
     }
 }
+
+extension CoreInteractor {
+    // MARK: ExerciseHistoryManager
+    
+    func addLocalExerciseHistory(entry: ExerciseHistoryEntryModel) throws {
+        try exerciseHistoryManager.addLocalExerciseHistory(entry: entry)
+    }
+    
+    func updateLocalExerciseHistory(entry: ExerciseHistoryEntryModel) throws {
+        try exerciseHistoryManager.updateLocalExerciseHistory(entry: entry)
+    }
+    
+    func getLocalExerciseHistory(id: String) throws -> ExerciseHistoryEntryModel {
+        try exerciseHistoryManager.getLocalExerciseHistory(id: id)
+    }
+    
+    func getLocalExerciseHistoryForTemplate(templateId: String, limitTo: Int = 50) throws -> [ExerciseHistoryEntryModel] {
+        try exerciseHistoryManager.getLocalExerciseHistoryForTemplate(templateId: templateId, limitTo: limitTo)
+    }
+    
+    func getLocalExerciseHistoryForAuthor(authorId: String, limitTo: Int = 50) throws -> [ExerciseHistoryEntryModel] {
+        try exerciseHistoryManager.getLocalExerciseHistoryForAuthor(authorId: authorId, limitTo: limitTo)
+    }
+    
+    func getAllLocalExerciseHistory() throws -> [ExerciseHistoryEntryModel] {
+        try exerciseHistoryManager.getAllLocalExerciseHistory()
+    }
+    
+    func deleteLocalExerciseHistory(id: String) throws {
+        try exerciseHistoryManager.deleteLocalExerciseHistory(id: id)
+    }
+    
+    func deleteAllLocalExerciseHistoryForAuthor(authorId: String) throws {
+        try exerciseHistoryManager.deleteAllLocalExerciseHistoryForAuthor(authorId: authorId)
+    }
+    
+    // Remote
+    func createExerciseHistory(entry: ExerciseHistoryEntryModel) async throws {
+        try await exerciseHistoryManager.createExerciseHistory(entry: entry)
+    }
+    
+    func updateExerciseHistory(entry: ExerciseHistoryEntryModel) async throws {
+        try await exerciseHistoryManager.updateExerciseHistory(entry: entry)
+    }
+    
+    func getExerciseHistory(id: String) async throws -> ExerciseHistoryEntryModel {
+        try await exerciseHistoryManager.getExerciseHistory(id: id)
+    }
+    
+    func getExerciseHistoryForTemplate(templateId: String, limitTo: Int = 50) async throws -> [ExerciseHistoryEntryModel] {
+        try await exerciseHistoryManager.getExerciseHistoryForTemplate(templateId: templateId, limitTo: limitTo)
+    }
+    
+    func getExerciseHistoryForAuthor(authorId: String, limitTo: Int = 50) async throws -> [ExerciseHistoryEntryModel] {
+        try await exerciseHistoryManager.getExerciseHistoryForAuthor(authorId: authorId, limitTo: limitTo)
+    }
+    
+    func deleteExerciseHistory(id: String) async throws {
+        try await exerciseHistoryManager.deleteExerciseHistory(id: id)
+    }
+    
+    func deleteAllExerciseHistoryForAuthor(authorId: String) async throws {
+        try await exerciseHistoryManager.deleteAllExerciseHistoryForAuthor(authorId: authorId)
+    }
+
+}

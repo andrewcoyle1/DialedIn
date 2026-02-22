@@ -11,7 +11,7 @@ import SwiftUI
 protocol DashboardRouter: GlobalRouter {
     func showNotificationsView()
     func showDevSettingsView()
-    func showCorePaywall()
+    func showPaywall()
     func showProfileView()
     func showScaleWeightView(delegate: ScaleWeightDelegate, themeColor: Color?)
     func showWeighInConsistencyView(delegate: WeighInConsistencyDelegate, themeColor: Color?)

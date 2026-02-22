@@ -81,5 +81,5 @@ extension CoreRouter {
     RouterView { router in
         builder.exercisesPickerView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

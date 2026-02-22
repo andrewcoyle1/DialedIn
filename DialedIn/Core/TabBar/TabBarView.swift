@@ -131,7 +131,7 @@ extension CoreBuilder {
     RouterView { router in
         builder.tabBarView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Has Active Session") {
@@ -141,5 +141,5 @@ extension CoreBuilder {
     RouterView { router in
         builder.tabBarView(router: router)
     }
-    .previewEnvironment()
+    
 }

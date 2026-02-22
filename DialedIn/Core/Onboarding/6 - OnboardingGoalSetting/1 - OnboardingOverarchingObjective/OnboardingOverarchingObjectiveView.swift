@@ -105,5 +105,5 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingOverarchingObjectiveView(router: router)
     }
-    .previewEnvironment()
+    
 }

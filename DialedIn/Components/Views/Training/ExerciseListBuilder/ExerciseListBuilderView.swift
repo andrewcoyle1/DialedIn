@@ -46,7 +46,12 @@ struct ExerciseListBuilderView: View {
         }
         .scrollIndicators(.hidden)
         .toolbarVisibility(.hidden)
-        .screenAppearAnalytics(name: "ExerciseListBuilderView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .onFirstTask {
             await presenter.loadExercises()
         }
@@ -329,7 +334,7 @@ struct ExerciseListBuilderView: View {
 
 extension CoreBuilder {
     
-    func exerciseListBuilderView(router: Router, delegate: ExerciseListBuilderDelegate) -> some View {
+    func exerciseListBuilderView(router: AnyRouter, delegate: ExerciseListBuilderDelegate) -> some View {
         ExerciseListBuilderView(
             presenter: ExerciseListBuilderPresenter(
                 interactor: interactor,
@@ -359,5 +364,4 @@ extension CoreRouter {
     return RouterView { router in
         builder.exerciseListBuilderView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
 }

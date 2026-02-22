@@ -133,7 +133,7 @@ extension CoreRouter {
 }
 
 extension CoreBuilder {
-    func neckMeasurementView(router: Router, delegate: NeckMeasurementDelegate, themeColor: Color? = nil) -> some View {
+    func neckMeasurementView(router: AnyRouter, delegate: NeckMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: NeckMeasurementPresenter(
                 interactor: interactor,

@@ -8,7 +8,9 @@
 @MainActor
 protocol OnboardingSubscriptionRouter {
     func showDevSettingsView()
-    func showOnbPaywall()
+    func showPaywall()
+    func showPaywall(onPurchaseSuccess: @escaping @MainActor () -> Void)
+    func showOnboardingCompleteAccountSetupView()
 }
 
 extension CoreRouter: OnboardingSubscriptionRouter { }

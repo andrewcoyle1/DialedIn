@@ -153,5 +153,5 @@ extension CoreRouter {
     RouterView { router in
         builder.nutritionLibraryPickerView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

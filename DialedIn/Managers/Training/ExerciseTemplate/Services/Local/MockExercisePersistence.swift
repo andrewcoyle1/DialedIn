@@ -5,6 +5,8 @@
 //  Created by Andrew Coyle on 30/01/2026.
 //
 
+import Foundation
+
 struct MockExercisePersistence: LocalExercisePersistence {
 
     var exercises: [ExerciseModel]

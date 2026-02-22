@@ -27,12 +27,12 @@ struct WeighInConsistencyView: View {
     return RouterView { router in
         builder.weighInConsistencyView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func weighInConsistencyView(router: Router, delegate: WeighInConsistencyDelegate, themeColor: Color? = nil) -> some View {
+    func weighInConsistencyView(router: AnyRouter, delegate: WeighInConsistencyDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: WeighInConsistencyPresenter(
                 interactor: interactor,

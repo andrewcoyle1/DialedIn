@@ -6,9 +6,8 @@
 //
 
 @MainActor
-protocol WorkoutListInteractorBuilder {
+protocol WorkoutListInteractorBuilder: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func trackEvent(event: LoggableEvent)
     func incrementWorkoutTemplateInteraction(id: String) async throws
     func getWorkoutTemplatesByName(name: String) async throws -> [WorkoutTemplateModel]
     func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel]

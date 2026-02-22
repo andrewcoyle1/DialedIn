@@ -21,7 +21,12 @@ struct OnboardingTrainingExperienceView: View {
         .toolbar {
             toolbarContent
         }
-        .screenAppearAnalytics(name: "TrainingExperience")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
     
     private var listContent: some View {
@@ -110,5 +115,5 @@ extension CoreRouter {
             delegate: OnboardingTrainingExperienceDelegate()
         )
     }
-    .previewEnvironment()
+    
 }

@@ -74,5 +74,5 @@ extension CoreBuilder {
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
     builder.nutritionTargetChartView()
-        .previewEnvironment()
+        
 }

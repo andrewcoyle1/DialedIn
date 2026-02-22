@@ -29,12 +29,12 @@ struct EnergyBalanceView: View {
     return RouterView { router in
         builder.energyBalanceView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func energyBalanceView(router: Router, delegate: EnergyBalanceDelegate, themeColor: Color? = nil) -> some View {
+    func energyBalanceView(router: AnyRouter, delegate: EnergyBalanceDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: EnergyBalancePresenter(
                 interactor: interactor,

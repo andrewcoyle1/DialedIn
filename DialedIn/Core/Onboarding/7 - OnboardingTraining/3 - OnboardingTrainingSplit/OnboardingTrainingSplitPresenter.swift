@@ -23,6 +23,14 @@ class OnboardingTrainingSplitPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func navigateToSchedule(delegate: OnboardingTrainingSplitDelegate) {
         guard let split = selectedSplit else { return }
         
@@ -36,17 +44,21 @@ class OnboardingTrainingSplitPresenter {
     }
     
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case navigate
 
         var eventName: String {
             switch self {
-            case .navigate: return "Onboarding_TrainingSplit_Navigate"
+            case .onAppear:     return "OnboardingTrainingSplitView_Appear"
+            case .onDisappear:  return "OnboardingTrainingSplitView_Disappear"
+            case .navigate:     return "Onboarding_TrainingSplit_Navigate"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
-            case .navigate:
+            default:
                 return nil
             }
         }
@@ -55,6 +67,8 @@ class OnboardingTrainingSplitPresenter {
             switch self {
             case .navigate:
                 return .info
+            default:
+                return .analytic
             }
         }
     }

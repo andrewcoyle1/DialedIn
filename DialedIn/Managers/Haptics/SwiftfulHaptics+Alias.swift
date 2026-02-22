@@ -4,7 +4,8 @@
 //
 //  Created by Nick Sarno on 1/12/25.
 //
-@_exported import SwiftfulHaptics
+
+import SwiftfulHaptics
 
 typealias HapticManager = SwiftfulHaptics.HapticManager
 typealias HapticOption = SwiftfulHaptics.HapticOption
@@ -31,4 +32,21 @@ extension LogManager: @retroactive HapticLogger {
         trackEvent(eventName: event.eventName, parameters: event.parameters, type: event.type.type)
     }
     
+}
+
+extension CoreInteractor {
+    // MARK: Haptics
+
+    func prepareHaptic(option: HapticOption) {
+        hapticManager.prepare(option: option)
+    }
+
+    func playHaptic(option: HapticOption) {
+        hapticManager.play(option: option)
+    }
+
+    func tearDownHaptic(option: HapticOption) {
+        hapticManager.tearDown(option: option)
+    }
+
 }

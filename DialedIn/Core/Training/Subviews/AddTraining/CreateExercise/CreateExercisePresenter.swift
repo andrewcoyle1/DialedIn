@@ -53,6 +53,14 @@ class CreateExercisePresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func trackableMetricPressed(navigationTitle: String, metric: Binding<TrackableExerciseMetric?>) {
         pickItem(navigationTitle: navigationTitle, item: metric, canDelete: true, detents: nil)
     }
@@ -106,6 +114,8 @@ class CreateExercisePresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case createExerciseStart
         case createExerciseSuccess
         case createExerciseFail(error: Error)
@@ -119,6 +129,8 @@ class CreateExercisePresenter {
 
         var eventName: String {
             switch self {
+            case .onAppear:                     return "CreateExerciseView_Appear"
+            case .onDisappear:                  return "CreateExerciseView_Disappear"
             case .createExerciseStart:          return "CreateExercise_Start"
             case .createExerciseSuccess:        return "CreateExercise_Success"
             case .createExerciseFail:           return "CreateExercise_Fail"

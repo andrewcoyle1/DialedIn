@@ -80,6 +80,14 @@ class ExerciseListBuilderPresenter {
         self.router = router
     }
 
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     private func filterBySearchText(_ exercises: [ExerciseModel]) -> [ExerciseModel] {
         guard !normalizedSearchText.isEmpty else { return exercises }
         return exercises.filter { matchesSearchText($0, normalizedQuery: normalizedSearchText) }
@@ -93,7 +101,7 @@ class ExerciseListBuilderPresenter {
     }
     
     func onAddExercisePressed() {
-        interactor.trackEvent(event: ExercisesViewEvents.onAddExercisePressed)
+        interactor.trackEvent(event: Event.onAddExercisePressed)
         router.showCreateExerciseView()
     }
 
@@ -102,12 +110,12 @@ class ExerciseListBuilderPresenter {
         // System exercises (IDs starting with "system-") are read-only
         if !exercise.id.hasPrefix("system-") {
             Task {
-                interactor.trackEvent(event: ExercisesViewEvents.incrementExerciseStart)
+                interactor.trackEvent(event: Event.incrementExerciseStart)
                 do {
                     try await interactor.incrementExerciseTemplateInteraction(id: exercise.id)
-                    interactor.trackEvent(event: ExercisesViewEvents.incrementExerciseSuccess)
+                    interactor.trackEvent(event: Event.incrementExerciseSuccess)
                 } catch {
-                    interactor.trackEvent(event: ExercisesViewEvents.incrementExerciseFail(error: error))
+                    interactor.trackEvent(event: Event.incrementExerciseFail(error: error))
                 }
             }
         }
@@ -116,22 +124,22 @@ class ExerciseListBuilderPresenter {
     }
 
     func onExercisePressedFromFavourites(exercise: ExerciseModel) {
-        interactor.trackEvent(event: ExercisesViewEvents.onExercisePressedFromFavourites)
+        interactor.trackEvent(event: Event.onExercisePressedFromFavourites)
         onExercisePressed(exercise: exercise)
     }
 
     func onExercisePressedFromBookmarked(exercise: ExerciseModel) {
-        interactor.trackEvent(event: ExercisesViewEvents.onExercisePressedFromBookmarked)
+        interactor.trackEvent(event: Event.onExercisePressedFromBookmarked)
         onExercisePressed(exercise: exercise)
     }
 
     func onExercisePressedFromTrending(exercise: ExerciseModel) {
-        interactor.trackEvent(event: ExercisesViewEvents.onExercisePressedFromTrending)
+        interactor.trackEvent(event: Event.onExercisePressedFromTrending)
         onExercisePressed(exercise: exercise)
     }
 
     func onExercisePressedFromMyTemplates(exercise: ExerciseModel) {
-        interactor.trackEvent(event: ExercisesViewEvents.onExercisePressedFromMyTemplates)
+        interactor.trackEvent(event: Event.onExercisePressedFromMyTemplates)
         onExercisePressed(exercise: exercise)
     }
 
@@ -150,13 +158,13 @@ class ExerciseListBuilderPresenter {
     }
 
     func handleSearchCleared() {
-        interactor.trackEvent(event: ExercisesViewEvents.searchCleared)
+        interactor.trackEvent(event: Event.searchCleared)
         Task { await loadTopExercisesIfNeeded() }
     }
 
     func startFreshSearch(for query: String) {
         isLoading = true
-        interactor.trackEvent(event: ExercisesViewEvents.performExerciseSearchStart)
+        interactor.trackEvent(event: Event.performExerciseSearchStart)
 
         searchExerciseTask = Task {
             do {
@@ -185,14 +193,14 @@ class ExerciseListBuilderPresenter {
         isLoading = false
 
         if results.isEmpty {
-            interactor.trackEvent(event: ExercisesViewEvents.performExerciseSearchEmptyResults(query: query))
+            interactor.trackEvent(event: Event.performExerciseSearchEmptyResults(query: query))
         } else {
-            interactor.trackEvent(event: ExercisesViewEvents.performExerciseSearchSuccess(query: query, resultCount: results.count))
+            interactor.trackEvent(event: Event.performExerciseSearchSuccess(query: query, resultCount: results.count))
         }
     }
 
     func handleSearchError(_ error: Error) {
-        interactor.trackEvent(event: ExercisesViewEvents.performExerciseSearchFail(error: error))
+        interactor.trackEvent(event: Event.performExerciseSearchFail(error: error))
         isLoading = false
         exercises = []
 
@@ -210,13 +218,13 @@ class ExerciseListBuilderPresenter {
     
     private func loadMyExercisesIfNeeded() async {
         guard let userId = interactor.currentUser?.userId else { return }
-        interactor.trackEvent(event: ExercisesViewEvents.loadMyExercisesStart)
+        interactor.trackEvent(event: Event.loadMyExercisesStart)
         do {
             let mine = try await interactor.getExerciseTemplatesForAuthor(authorId: userId)
             myExercises = mine
-            interactor.trackEvent(event: ExercisesViewEvents.loadMyExercisesSuccess(count: mine.count))
+            interactor.trackEvent(event: Event.loadMyExercisesSuccess(count: mine.count))
         } catch {
-            interactor.trackEvent(event: ExercisesViewEvents.loadMyExercisesFail(error: error))
+            interactor.trackEvent(event: Event.loadMyExercisesFail(error: error))
             router.showSimpleAlert(
                 title: "Unable to Load Your Exercises",
                 subtitle: "We couldn't retrieve your custom exercise templates. Please check your connection or try again later."
@@ -225,13 +233,13 @@ class ExerciseListBuilderPresenter {
     }
     
     private func loadOfficialExercises() async {
-        interactor.trackEvent(event: ExercisesViewEvents.loadOfficialExercisesStart)
+        interactor.trackEvent(event: Event.loadOfficialExercisesStart)
         do {
             let official = try interactor.getSystemExerciseTemplates()
             officialExercises = official
-            interactor.trackEvent(event: ExercisesViewEvents.loadOfficialExercisesSuccess(count: official.count))
+            interactor.trackEvent(event: Event.loadOfficialExercisesSuccess(count: official.count))
         } catch {
-            interactor.trackEvent(event: ExercisesViewEvents.loadOfficialExercisesFail(error: error))
+            interactor.trackEvent(event: Event.loadOfficialExercisesFail(error: error))
             // Don't show alert for official exercises - it's not critical
         }
     }
@@ -239,15 +247,15 @@ class ExerciseListBuilderPresenter {
     private func loadTopExercisesIfNeeded() async {
         guard searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         isLoading = true
-        interactor.trackEvent(event: ExercisesViewEvents.loadTopExercisesStart)
+        interactor.trackEvent(event: Event.loadTopExercisesStart)
         do {
             let top = try await interactor.getTopExerciseTemplatesByClicks(limitTo: 10)
             exercises = top
             isLoading = false
-            interactor.trackEvent(event: ExercisesViewEvents.loadTopExercisesSuccess(count: top.count))
+            interactor.trackEvent(event: Event.loadTopExercisesSuccess(count: top.count))
         } catch {
             isLoading = false
-            interactor.trackEvent(event: ExercisesViewEvents.loadTopExercisesFail(error: error))
+            interactor.trackEvent(event: Event.loadTopExercisesFail(error: error))
             router.showSimpleAlert(
                 title: "Unable to Load Trending Templates",
                 subtitle: "We couldn't load top exercise templates. Please try again later."
@@ -256,30 +264,32 @@ class ExerciseListBuilderPresenter {
     }
     
     func favouritesSectionViewed() {
-        interactor.trackEvent(event: ExercisesViewEvents.favouritesSectionViewed(count: favouriteExercisesVisible.count))
+        interactor.trackEvent(event: Event.favouritesSectionViewed(count: favouriteExercisesVisible.count))
     }
     
     func bookmarkedSectionViewed() {
-        interactor.trackEvent(event: ExercisesViewEvents.bookmarkedSectionViewed(count: bookmarkedOnlyExercises.count))
+        interactor.trackEvent(event: Event.bookmarkedSectionViewed(count: bookmarkedOnlyExercises.count))
     }
     
     func trendingSectionViewed() {
-        interactor.trackEvent(event: ExercisesViewEvents.trendingSectionViewed(count: visibleExerciseTemplates.count))
+        interactor.trackEvent(event: Event.trendingSectionViewed(count: visibleExerciseTemplates.count))
     }
     
     func myTemplatesViewed() {
-        interactor.trackEvent(event: ExercisesViewEvents.myTemplatesSectionViewed(count: myExercisesVisible.count))
+        interactor.trackEvent(event: Event.myTemplatesSectionViewed(count: myExercisesVisible.count))
     }
     
     func officialSectionViewed() {
-        interactor.trackEvent(event: ExercisesViewEvents.officialSectionViewed(count: officialExercisesVisible.count))
+        interactor.trackEvent(event: Event.officialSectionViewed(count: officialExercisesVisible.count))
     }
     
     func emptyStateShown() {
-        interactor.trackEvent(event: ExercisesViewEvents.emptyStateShown)
+        interactor.trackEvent(event: Event.emptyStateShown)
     }
 
-    enum ExercisesViewEvents: LoggableEvent {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case performExerciseSearchStart
         case performExerciseSearchSuccess(query: String, resultCount: Int)
         case performExerciseSearchFail(error: Error)
@@ -315,38 +325,40 @@ class ExerciseListBuilderPresenter {
 
         var eventName: String {
             switch self {
-            case .performExerciseSearchStart:          return "ExercisesView_Search_Start"
-            case .performExerciseSearchSuccess:        return "ExercisesView_Search_Success"
-            case .performExerciseSearchFail:           return "ExercisesView_Search_Fail"
-            case .performExerciseSearchEmptyResults:   return "ExercisesView_Search_EmptyResults"
-            case .searchCleared:                         return "ExercisesView_Search_Cleared"
-            case .loadMyExercisesStart:                return "ExercisesView_LoadMyExercises_Start"
-            case .loadMyExercisesSuccess:              return "ExercisesView_LoadMyExercises_Success"
-            case .loadMyExercisesFail:                 return "ExercisesView_LoadMyExercises_Fail"
-            case .loadOfficialExercisesStart:          return "ExercisesView_LoadOfficialExercises_Start"
-            case .loadOfficialExercisesSuccess:        return "ExercisesView_LoadOfficialExercises_Success"
-            case .loadOfficialExercisesFail:           return "ExercisesView_LoadOfficialExercises_Fail"
-            case .loadTopExercisesStart:               return "ExercisesView_LoadTopExercises_Start"
-            case .loadTopExercisesSuccess:             return "ExercisesView_LoadTopExercises_Success"
-            case .loadTopExercisesFail:                return "ExercisesView_LoadTopExercises_Fail"
-            case .incrementExerciseStart:              return "ExercisesView_IncrementExercise_Start"
-            case .incrementExerciseSuccess:            return "ExercisesView_IncrementExercise_Success"
-            case .incrementExerciseFail:               return "ExercisesView_IncrementExercise_Fail"
-            case .syncExercisesFromCurrentUserStart:   return "ExercisesView_UserSync_Start"
-            case .syncExercisesFromCurrentUserNoUid:   return "ExercisesView_UserSync_NoUID"
-            case .syncExercisesFromCurrentUserSuccess: return "ExercisesView_UserSync_Success"
-            case .syncExercisesFromCurrentUserFail:    return "ExercisesView_UserSync_Fail"
-            case .onAddExercisePressed:                return "ExercisesView_AddExercisePressed"
-            case .favouritesSectionViewed:               return "ExercisesView_Favourites_SectionViewed"
-            case .bookmarkedSectionViewed:               return "ExercisesView_Bookmarked_SectionViewed"
-            case .officialSectionViewed:                 return "ExercisesView_Official_SectionViewed"
-            case .trendingSectionViewed:                 return "ExercisesView_Trending_SectionViewed"
-            case .myTemplatesSectionViewed:              return "ExercisesView_MyTemplates_SectionViewed"
-            case .emptyStateShown:                       return "ExercisesView_EmptyState_Shown"
-            case .onExercisePressedFromFavourites:     return "ExercisesView_ExercisePressed_Favourites"
-            case .onExercisePressedFromBookmarked:     return "ExercisesView_ExercisePressed_Bookmarked"
-            case .onExercisePressedFromTrending:       return "ExercisesView_ExercisePressed_Trending"
-            case .onExercisePressedFromMyTemplates:    return "ExercisesView_ExercisePressed_MyTemplates"
+            case .onAppear:                             return "ExercisesView_Appear"
+            case .onDisappear:                          return "ExercisesView_Disappear"
+            case .performExerciseSearchStart:           return "ExercisesView_Search_Start"
+            case .performExerciseSearchSuccess:         return "ExercisesView_Search_Success"
+            case .performExerciseSearchFail:            return "ExercisesView_Search_Fail"
+            case .performExerciseSearchEmptyResults:    return "ExercisesView_Search_EmptyResults"
+            case .searchCleared:                        return "ExercisesView_Search_Cleared"
+            case .loadMyExercisesStart:                 return "ExercisesView_LoadMyExercises_Start"
+            case .loadMyExercisesSuccess:               return "ExercisesView_LoadMyExercises_Success"
+            case .loadMyExercisesFail:                  return "ExercisesView_LoadMyExercises_Fail"
+            case .loadOfficialExercisesStart:           return "ExercisesView_LoadOfficialExercises_Start"
+            case .loadOfficialExercisesSuccess:         return "ExercisesView_LoadOfficialExercises_Success"
+            case .loadOfficialExercisesFail:            return "ExercisesView_LoadOfficialExercises_Fail"
+            case .loadTopExercisesStart:                return "ExercisesView_LoadTopExercises_Start"
+            case .loadTopExercisesSuccess:              return "ExercisesView_LoadTopExercises_Success"
+            case .loadTopExercisesFail:                 return "ExercisesView_LoadTopExercises_Fail"
+            case .incrementExerciseStart:               return "ExercisesView_IncrementExercise_Start"
+            case .incrementExerciseSuccess:             return "ExercisesView_IncrementExercise_Success"
+            case .incrementExerciseFail:                return "ExercisesView_IncrementExercise_Fail"
+            case .syncExercisesFromCurrentUserStart:    return "ExercisesView_UserSync_Start"
+            case .syncExercisesFromCurrentUserNoUid:    return "ExercisesView_UserSync_NoUID"
+            case .syncExercisesFromCurrentUserSuccess:  return "ExercisesView_UserSync_Success"
+            case .syncExercisesFromCurrentUserFail:     return "ExercisesView_UserSync_Fail"
+            case .onAddExercisePressed:                 return "ExercisesView_AddExercisePressed"
+            case .favouritesSectionViewed:              return "ExercisesView_Favourites_SectionViewed"
+            case .bookmarkedSectionViewed:              return "ExercisesView_Bookmarked_SectionViewed"
+            case .officialSectionViewed:                return "ExercisesView_Official_SectionViewed"
+            case .trendingSectionViewed:                return "ExercisesView_Trending_SectionViewed"
+            case .myTemplatesSectionViewed:             return "ExercisesView_MyTemplates_SectionViewed"
+            case .emptyStateShown:                      return "ExercisesView_EmptyState_Shown"
+            case .onExercisePressedFromFavourites:      return "ExercisesView_ExercisePressed_Favourites"
+            case .onExercisePressedFromBookmarked:      return "ExercisesView_ExercisePressed_Bookmarked"
+            case .onExercisePressedFromTrending:        return "ExercisesView_ExercisePressed_Trending"
+            case .onExercisePressedFromMyTemplates:     return "ExercisesView_ExercisePressed_MyTemplates"
             }
         }
 

@@ -16,3 +16,9 @@ class AppState {
         self.startingModuleId = startingModuleId
     }
 }
+
+extension CoreInteractor {
+    var startingModuleId: String {
+        appState.startingModuleId
+    }
+}

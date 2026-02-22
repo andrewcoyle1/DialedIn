@@ -147,3 +147,68 @@ extension IngredientTemplateManager {
     }
 
 }
+
+extension CoreInteractor {
+    // MARK: IngredientTemplateManager
+    
+    func addLocalIngredientTemplate(ingredient: IngredientTemplateModel) throws {
+        try ingredientTemplateManager.addLocalIngredientTemplate(ingredient: ingredient)
+    }
+    
+    func getLocalIngredientTemplate(id: String) throws -> IngredientTemplateModel {
+        try ingredientTemplateManager.getLocalIngredientTemplate(id: id)
+    }
+    
+    func getLocalIngredientTemplates(ids: [String]) throws -> [IngredientTemplateModel] {
+        try ingredientTemplateManager.getLocalIngredientTemplates(ids: ids)
+    }
+    
+    func getAllLocalIngredientTemplates() throws -> [IngredientTemplateModel] {
+        try ingredientTemplateManager.getAllLocalIngredientTemplates()
+    }
+    
+    func createIngredientTemplate(ingredient: IngredientTemplateModel, image: PlatformImage?) async throws {
+        try await ingredientTemplateManager.createIngredientTemplate(ingredient: ingredient, image: image)
+    }
+    
+    func getIngredientTemplate(id: String) async throws -> IngredientTemplateModel {
+        try await ingredientTemplateManager.getIngredientTemplate(id: id)
+    }
+    
+    func getIngredientTemplates(ids: [String], limitTo: Int = 20) async throws -> [IngredientTemplateModel] {
+        try await ingredientTemplateManager.getIngredientTemplates(ids: ids, limitTo: limitTo)
+    }
+    
+    func getIngredientTemplatesByName(name: String) async throws -> [IngredientTemplateModel] {
+        try await ingredientTemplateManager.getIngredientTemplatesByName(name: name)
+    }
+    
+    func getIngredientTemplatesForAuthor(authorId: String) async throws -> [IngredientTemplateModel] {
+        try await ingredientTemplateManager.getIngredientTemplatesForAuthor(authorId: authorId)
+    }
+    
+    func getTopIngredientTemplatesByClicks(limitTo: Int = 10) async throws -> [IngredientTemplateModel] {
+        try await ingredientTemplateManager.getTopIngredientTemplatesByClicks(limitTo: limitTo)
+    }
+    
+    func incrementIngredientTemplateInteraction(id: String) async throws {
+        try await ingredientTemplateManager.incrementIngredientTemplateInteraction(id: id)
+    }
+    
+    func removeAuthorIdFromIngredientTemplate(id: String) async throws {
+        try await ingredientTemplateManager.removeAuthorIdFromIngredientTemplate(id: id)
+    }
+    
+    func removeAuthorIdFromAllIngredientTemplates(id: String) async throws {
+        try await ingredientTemplateManager.removeAuthorIdFromAllIngredientTemplates(id: id)
+    }
+    
+    func bookmarkIngredientTemplate(id: String, isBookmarked: Bool) async throws {
+        try await ingredientTemplateManager.bookmarkIngredientTemplate(id: id, isBookmarked: isBookmarked)
+    }
+    
+    func favouriteIngredientTemplate(id: String, isFavourited: Bool) async throws {
+        try await ingredientTemplateManager.favouriteIngredientTemplate(id: id, isFavourited: isFavourited)
+    }
+
+}

@@ -19,7 +19,12 @@ struct AddFixedWeightBarView: View {
         .navigationTitle("Add")
         .navigationSubtitle(presenter.fixedWeightBar.wrappedValue.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "AddFixedWeightBarView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -62,7 +67,7 @@ struct AddFixedWeightBarView: View {
 
 extension CoreBuilder {
     
-    func addFixedWeightBarView(router: Router, delegate: AddFixedWeightBarDelegate) -> some View {
+    func addFixedWeightBarView(router: AnyRouter, delegate: AddFixedWeightBarDelegate) -> some View {
         AddFixedWeightBarView(
             presenter: AddFixedWeightBarPresenter(
                 interactor: interactor,
@@ -94,5 +99,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.addFixedWeightBarView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

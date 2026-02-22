@@ -142,5 +142,5 @@ extension CoreRouter {
     RouterView { router in
         builder.programManagementView(router: router)
     }
-    .previewEnvironment()
+    
 }

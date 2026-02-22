@@ -263,7 +263,7 @@ class OnboardingExpenditurePresenter {
                 let canHealth = self.canRequestHealthData ?? false
                 let targetStep: OnboardingStep = canNotifs ? .notifications : (canHealth ? .healthData : .healthDisclaimer)
 
-                _ = try await interactor.saveCompleteAccountSetupProfile(userBuilder: userModelBuilder, onboardingStep: targetStep)
+                _ = try await interactor.saveCompleteAccountSetupProfile(userBuilder: userModelBuilder)
                 interactor.trackEvent(event: Event.profileSaveSuccess)
                 
                 router.dismissModal()

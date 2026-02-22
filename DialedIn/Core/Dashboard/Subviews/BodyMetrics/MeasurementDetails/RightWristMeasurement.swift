@@ -132,7 +132,7 @@ extension CoreRouter {
 }
 
 extension CoreBuilder {
-    func rightWristMeasurementView(router: Router, delegate: RightWristMeasurementDelegate, themeColor: Color? = nil) -> some View {
+    func rightWristMeasurementView(router: AnyRouter, delegate: RightWristMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: RightWristMeasurementPresenter(
                 interactor: interactor,

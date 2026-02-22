@@ -121,5 +121,4 @@ extension CoreBuilder {
             )
         }
     }
-    .previewEnvironment()
 }

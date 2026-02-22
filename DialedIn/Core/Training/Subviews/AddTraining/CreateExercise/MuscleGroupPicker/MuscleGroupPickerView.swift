@@ -23,7 +23,12 @@ struct MuscleGroupPickerView: View {
         .navigationTitle("Select Muscles")
         .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
-        .screenAppearAnalytics(name: "MuscleGroupPickerView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .safeAreaInset(edge: .bottom) {
             VStack(alignment: .leading) {
                 HStack(alignment: .firstTextBaseline) {
@@ -118,7 +123,7 @@ struct MuscleGroupPickerView: View {
 
 extension CoreBuilder {
     
-    func muscleGroupPickerView(router: Router, delegate: MuscleGroupPickerDelegate) -> some View {
+    func muscleGroupPickerView(router: AnyRouter, delegate: MuscleGroupPickerDelegate) -> some View {
         MuscleGroupPickerView(
             presenter: MuscleGroupPickerPresenter(
                 interactor: interactor,
@@ -154,5 +159,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.muscleGroupPickerView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

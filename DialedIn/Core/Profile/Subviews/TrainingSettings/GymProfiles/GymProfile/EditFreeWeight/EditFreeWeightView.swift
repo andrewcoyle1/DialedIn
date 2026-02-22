@@ -11,7 +11,12 @@ struct EditFreeWeightView: View {
         }
         .navigationTitle(presenter.freeWeight.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "EditFreeWeightView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -84,7 +89,7 @@ struct EditFreeWeightView: View {
 
 extension CoreBuilder {
     
-    func editFreeWeightView(router: Router, freeWeight: Binding<FreeWeights>) -> some View {
+    func editFreeWeightView(router: AnyRouter, freeWeight: Binding<FreeWeights>) -> some View {
         EditFreeWeightView(
             presenter: EditFreeWeightPresenter(
                 interactor: interactor,
@@ -113,5 +118,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.editFreeWeightView(router: router, freeWeight: Binding.constant(freeWeight))
     }
-    .previewEnvironment()
+    
 }

@@ -15,17 +15,17 @@ struct UserModel: Codable, Equatable, Sendable {
     
     // These values come from the user's Auth info
     let userId: String
-    let email: String?
-    let isAnonymous: Bool?
-    let authProviders: [String]?
-    let displayName: String?
-    let firstName: String?
-    let lastName: String?
-    let phoneNumber: String?
-    let photoUrl: String?
+    var email: String?
+    var isAnonymous: Bool?
+    var authProviders: [String]?
+    var displayName: String?
+    var firstName: String?
+    var lastName: String?
+    var phoneNumber: String?
+    var photoUrl: String?
     let creationDate: Date?
     let creationVersion: String?
-    let lastSignInDate: Date?
+    var lastSignInDate: Date?
     
     // These values are submitted by the user
     let submittedEmail: String?
@@ -46,8 +46,7 @@ struct UserModel: Codable, Equatable, Sendable {
     let submittedFavouriteGymProfileId: String?
     let fcmToken: String?
     let blockedUserIds: [String]?
-    let onboardingStep: OnboardingStep
-    private(set) var didCompleteOnboarding: Bool?
+    var didCompleteOnboarding: Bool
     let acceptedHealthDisclaimerVersion: String?
     let acceptedHealthDisclaimerDate: Date?
     let acceptedHealthPrivacyPolicyVersion: String?
@@ -84,8 +83,7 @@ struct UserModel: Codable, Equatable, Sendable {
         submittedFavouriteGymProfileId: String? = nil,
         blockedUserIds: [String]? = nil,
         fcmToken: String? = nil,
-        didCompleteOnboarding: Bool? = nil,
-        onboardingStep: OnboardingStep = .auth,
+        didCompleteOnboarding: Bool = false,
         acceptedHealthDisclaimerVersion: String? = nil,
         acceptedHealthDisclaimerDate: Date? = nil,
         acceptedHealthPrivacyPolicyVersion: String? = nil,
@@ -122,7 +120,6 @@ struct UserModel: Codable, Equatable, Sendable {
         self.submittedFavouriteGymProfileId = submittedFavouriteGymProfileId
         self.blockedUserIds = blockedUserIds
         self.fcmToken = fcmToken
-        self.onboardingStep = onboardingStep
         self.didCompleteOnboarding = didCompleteOnboarding
         self.acceptedHealthDisclaimerVersion = acceptedHealthDisclaimerVersion
         self.acceptedHealthDisclaimerDate = acceptedHealthDisclaimerDate
@@ -190,7 +187,6 @@ struct UserModel: Codable, Equatable, Sendable {
         return nil
     }
     
-    
     /// Try to get the "best" common name for the user (ie. their preferred first name). Use this most of the time.
     var commonNameCalculated: String? {
         if let displayNameCalculated {
@@ -219,6 +215,23 @@ struct UserModel: Codable, Equatable, Sendable {
             return email
         }
         return nil
+    }
+
+    /// Infer the user's current onboarding step from which fields have been filled.
+    var inferredOnboardingStep: OnboardingStep {
+        guard submittedDateOfBirth != nil,
+              submittedGender != nil,
+              submittedHeightCentimeters != nil,
+              submittedWeightKilograms != nil,
+              submittedExerciseFrequency != nil,
+              submittedDailyActivityLevel != nil,
+              submittedCardioFitnessLevel != nil else {
+            return .completeAccountSetup
+        }
+        guard acceptedHealthDisclaimerVersion != nil else { return .healthDisclaimer }
+        guard submittedCurrentGoalId != nil else { return .goalSetting }
+        guard didCompleteOnboarding else { return .customiseProgram }
+        return .complete
     }
 
     enum CodingKeys: String, CodingKey {
@@ -251,7 +264,6 @@ struct UserModel: Codable, Equatable, Sendable {
         case submittedActiveTrainingProgramId = "active_training_program_id"
         case submittedFavouriteGymProfileId = "favourite_gym_profile_id"
         case didCompleteOnboarding = "did_complete_onboarding"
-        case onboardingStep = "onboarding_step"
         case blockedUserIds = "blocked_user_ids"
         case fcmToken = "fcm_token"
         case acceptedHealthDisclaimerVersion = "accepted_health_disclaimer_version"
@@ -290,17 +302,15 @@ struct UserModel: Codable, Equatable, Sendable {
             "user_\(CodingKeys.submittedLengthUnitPreference.rawValue)": submittedLengthUnitPreference?.rawValue,
             "user_\(CodingKeys.submittedWeightUnitPreference.rawValue)": submittedWeightUnitPreference?.rawValue,
             "user_\(CodingKeys.submittedCurrentGoalId.rawValue)": submittedCurrentGoalId,
-            "user_\(CodingKeys.submittedProfileImage.rawValue)": submittedProfileImage,
             "user_\(CodingKeys.submittedActiveTrainingProgramId.rawValue)": submittedActiveTrainingProgramId,
             "user_\(CodingKeys.submittedFavouriteGymProfileId.rawValue)": submittedFavouriteGymProfileId,
             "user_\(CodingKeys.blockedUserIds.rawValue)": blockedUserIds,
             "user_has_\(CodingKeys.fcmToken.rawValue)": (fcmToken?.count ?? 0) > 0,
             "user_\(CodingKeys.didCompleteOnboarding.rawValue)": didCompleteOnboarding,
-            "user_\(CodingKeys.onboardingStep.rawValue)": onboardingStep.rawValue,
-            "user_\(CodingKeys.acceptedHealthDisclaimerVersion.rawValue)" : acceptedHealthDisclaimerVersion,
-            "user_\(CodingKeys.acceptedHealthDisclaimerDate.rawValue)" : acceptedHealthDisclaimerDate,
-            "user_\(CodingKeys.acceptedHealthPrivacyPolicyVersion.rawValue)" : acceptedHealthPrivacyPolicyVersion,
-            "user_\(CodingKeys.acceptedHealthPrivacyPolicyDate.rawValue)" : acceptedHealthPrivacyPolicyDate,
+            "user_\(CodingKeys.acceptedHealthDisclaimerVersion.rawValue)": acceptedHealthDisclaimerVersion,
+            "user_\(CodingKeys.acceptedHealthDisclaimerDate.rawValue)": acceptedHealthDisclaimerDate,
+            "user_\(CodingKeys.acceptedHealthPrivacyPolicyVersion.rawValue)": acceptedHealthPrivacyPolicyVersion,
+            "user_\(CodingKeys.acceptedHealthPrivacyPolicyDate.rawValue)": acceptedHealthPrivacyPolicyDate
         ]
         return dict.compactMapValues({ $0 })
     }
@@ -314,6 +324,9 @@ extension UserModel {
     
     static func mockWithStep(_ step: OnboardingStep) -> Self {
         let now = Date()
+        let hasProfile = step.orderIndex >= OnboardingStep.completeAccountSetup.orderIndex
+        let hasDisclaimer = step.orderIndex >= OnboardingStep.healthDisclaimer.orderIndex
+        let hasGoal = step.orderIndex >= OnboardingStep.goalSetting.orderIndex
         return UserModel(
             userId: "mockUser",
             email: "mock@example.com",
@@ -323,15 +336,16 @@ extension UserModel {
             creationDate: now,
             creationVersion: "1.0.0",
             lastSignInDate: now,
-            submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 1990, month: 1, day: 1)),
-            submittedGender: .male,
-            submittedHeightCentimeters: 175.0,
-            submittedWeightKilograms: 70.0,
-            submittedExerciseFrequency: .fiveToSix,
-            submittedDailyActivityLevel: .active,
-            submittedCardioFitnessLevel: .intermediate,
+            submittedDateOfBirth: hasProfile ? Calendar.current.date(from: DateComponents(year: 1990, month: 1, day: 1)) : nil,
+            submittedGender: hasProfile ? .male : nil,
+            submittedHeightCentimeters: hasProfile ? 175.0 : nil,
+            submittedWeightKilograms: hasProfile ? 70.0 : nil,
+            submittedExerciseFrequency: hasProfile ? .fiveToSix : nil,
+            submittedDailyActivityLevel: hasProfile ? .active : nil,
+            submittedCardioFitnessLevel: hasProfile ? .intermediate : nil,
+            submittedCurrentGoalId: hasGoal ? "mock_goal_id" : nil,
             didCompleteOnboarding: step == .complete,
-            onboardingStep: step
+            acceptedHealthDisclaimerVersion: hasDisclaimer ? "2025.10.05" : nil
         )
     }
 
@@ -347,7 +361,7 @@ extension UserModel {
                 creationDate: now,
                 creationVersion: "1.0.0",
                 lastSignInDate: now,
-                submittedProfileImage: Constants.randomImage,
+                submittedProfileImage: "https://picsum.photos/200",
                 submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
                 submittedGender: .male,
                 submittedHeightCentimeters: 175.0,
@@ -355,9 +369,10 @@ extension UserModel {
                 submittedExerciseFrequency: .daily,
                 submittedDailyActivityLevel: .active,
                 submittedCardioFitnessLevel: .intermediate,
+                submittedCurrentGoalId: "goal1",
                 blockedUserIds: ["user2", "user3"],
                 didCompleteOnboarding: true,
-                onboardingStep: .complete
+                acceptedHealthDisclaimerVersion: "2025.10.05"
             ),
             UserModel(
                 userId: "user2",
@@ -368,8 +383,7 @@ extension UserModel {
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-3600),
                 blockedUserIds: ["user1", "user3"],
-                didCompleteOnboarding: false,
-                onboardingStep: .subscription
+                didCompleteOnboarding: false
             ),
             UserModel(
                 userId: "user3",
@@ -379,9 +393,17 @@ extension UserModel {
                 creationDate: now.addingTimeInterval(-3 * 86400 - 2 * 3600),
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-2 * 3600),
+                submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 1985, month: 6, day: 15)),
+                submittedGender: .female,
+                submittedHeightCentimeters: 165.0,
+                submittedWeightKilograms: 60.0,
+                submittedExerciseFrequency: .threeToFour,
+                submittedDailyActivityLevel: .moderate,
+                submittedCardioFitnessLevel: .novice,
+                submittedCurrentGoalId: "goal3",
                 blockedUserIds: ["user1", "user2"],
                 didCompleteOnboarding: true,
-                onboardingStep: .completeAccountSetup
+                acceptedHealthDisclaimerVersion: "2025.10.05"
             ),
             UserModel(
                 userId: "user5",
@@ -391,9 +413,16 @@ extension UserModel {
                 creationDate: now.addingTimeInterval(-5 * 86400 - 4 * 3600),
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-4 * 3600),
+                submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 1995, month: 3, day: 22)),
+                submittedGender: .male,
+                submittedHeightCentimeters: 180.0,
+                submittedWeightKilograms: 80.0,
+                submittedExerciseFrequency: .fiveToSix,
+                submittedDailyActivityLevel: .active,
+                submittedCardioFitnessLevel: .intermediate,
                 blockedUserIds: ["user1", "user2"],
-                didCompleteOnboarding: nil,
-                onboardingStep: .goalSetting
+                didCompleteOnboarding: false,
+                acceptedHealthDisclaimerVersion: "2025.10.05"
             ),
             UserModel(
                 userId: "user6",
@@ -403,9 +432,17 @@ extension UserModel {
                 creationDate: now.addingTimeInterval(-5 * 86400 - 4 * 3600),
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-4 * 3600),
+                submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 1992, month: 9, day: 8)),
+                submittedGender: .male,
+                submittedHeightCentimeters: 178.0,
+                submittedWeightKilograms: 75.0,
+                submittedExerciseFrequency: .threeToFour,
+                submittedDailyActivityLevel: .light,
+                submittedCardioFitnessLevel: .beginner,
+                submittedCurrentGoalId: "goal6",
                 blockedUserIds: ["user1", "user2"],
-                didCompleteOnboarding: nil,
-                onboardingStep: .customiseProgram
+                didCompleteOnboarding: false,
+                acceptedHealthDisclaimerVersion: "2025.10.05"
             )
         ]
     }

@@ -28,7 +28,12 @@ struct RecipeListBuilderView: View {
                 recipeTemplateSection
             }
         }
-        .screenAppearAnalytics(name: "RecipesView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .navigationTitle("Recipes")
         .navigationSubtitle("\(presenter.recipes.count) recipes")
         .scrollIndicators(.hidden)
@@ -163,7 +168,7 @@ struct RecipeListBuilderView: View {
 
 extension CoreBuilder {
     
-    func recipeListBuilderView(router: Router, delegate: RecipeListBuilderDelegate) -> some View {
+    func recipeListBuilderView(router: AnyRouter, delegate: RecipeListBuilderDelegate) -> some View {
         RecipeListBuilderView(
             presenter: RecipeListBuilderPresenter(
                 interactor: interactor,
@@ -193,5 +198,4 @@ extension CoreRouter {
     return RouterView { router in
         builder.recipeListBuilderView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
 }

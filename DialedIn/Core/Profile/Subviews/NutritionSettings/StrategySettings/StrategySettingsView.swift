@@ -25,13 +25,18 @@ struct StrategySettingsView: View {
         }
         .navigationTitle("Strategy")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "StrategySettingsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
 }
 
 extension CoreBuilder {
     
-    func strategySettingsView(router: Router, delegate: StrategySettingsDelegate) -> some View {
+    func strategySettingsView(router: AnyRouter, delegate: StrategySettingsDelegate) -> some View {
         StrategySettingsView(
             presenter: StrategySettingsPresenter(
                 interactor: interactor,
@@ -61,5 +66,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.strategySettingsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

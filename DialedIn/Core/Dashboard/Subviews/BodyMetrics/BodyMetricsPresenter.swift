@@ -16,6 +16,14 @@ class BodyMetricsPresenter {
         self.interactor = interactor
         self.router = router
     }
+    
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
 
     func onMeasurementPressed(_ type: BodyMetricType, themeColor: Color?) {
         routeToWeightOrUpperBody(type, themeColor: themeColor)
@@ -167,6 +175,34 @@ class BodyMetricsPresenter {
             router.showRightAnkleMeasurementView(delegate: RightAnkleMeasurementDelegate(), themeColor: themeColor)
         default:
             break
+        }
+    }
+}
+
+extension BodyMetricsPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+
+        var eventName: String {
+            switch self {
+            case .onAppear:             return "BodyMetricsView_Appear"
+            case .onDisappear:          return "BodyMetricsView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
         }
     }
 }

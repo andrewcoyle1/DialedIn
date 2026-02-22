@@ -32,11 +32,6 @@ struct RecipeDetailView: View {
         .toolbar {
             toolbarContent
         }
-        .onAppear { presenter.loadInitialState(recipeTemplate: delegate.recipeTemplate)}
-        .onChange(of: presenter.currentUser) {_, _ in
-            let user = presenter.currentUser
-            let isAuthor = user?.userId == delegate.recipeTemplate.authorId
-        }
     }
     
     private func imageSection(url: String) -> some View {
@@ -111,5 +106,5 @@ extension CoreRouter {
     RouterView { router in
         builder.recipeDetailView(router: router, delegate: RecipeDetailDelegate(recipeTemplate: .mock))
     }
-    .previewEnvironment()
+    
 }

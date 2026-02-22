@@ -8,7 +8,7 @@
 import UserNotifications
 
 @MainActor
-protocol NotificationsInteractor {
+protocol NotificationsInteractor: GlobalInteractor {
     func requestPushAuthorization() async throws -> Bool
 }
 

@@ -121,3 +121,32 @@ class ExerciseUnitPreferenceManager {
         )
     }
 }
+
+extension CoreInteractor {
+    // MARK: ExerciseUnitPreferenceManager
+    
+    func getPreference(templateId: String) -> ExerciseUnitPreference {
+        exerciseUnitPreferenceManager.getPreference(for: templateId)
+    }
+    
+    /// Set the weight unit preference for a specific exercise template
+    func setWeightUnit(_ unit: ExerciseWeightUnit, for templateId: String) {
+        exerciseUnitPreferenceManager.setWeightUnit(unit, for: templateId)
+    }
+    
+    /// Set the distance unit preference for a specific exercise template
+    func setDistanceUnit(_ unit: ExerciseDistanceUnit, for templateId: String) {
+        exerciseUnitPreferenceManager.setDistanceUnit(unit, for: templateId)
+    }
+    
+    /// Set both unit preferences for a specific exercise template
+    func setPreference(weightUnit: ExerciseWeightUnit? = nil, distanceUnit: ExerciseDistanceUnit? = nil, for templateId: String) {
+        exerciseUnitPreferenceManager.setPreference(weightUnit: weightUnit, distanceUnit: distanceUnit, for: templateId)
+    }
+    
+    /// Clear all cached preferences (useful when user signs out)
+    func clearCache() {
+        exerciseUnitPreferenceManager.clearCache()
+    }
+
+}

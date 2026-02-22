@@ -29,8 +29,10 @@ protocol RemoteUserService: Sendable {
     func saveUserFCMToken(userId: String, token: String) async throws
     func blockUser(currentUserId: String, blockedUserId: String) async throws
     func unblockUser(currentUserId: String, blockedUserId: String) async throws
-    func updateOnboardingStep(userId: String, onboardingStep: OnboardingStep) async throws
+    func updateDidCompleteOnboarding(userId: String) async throws
+    // swiftlint:disable:next function_parameter_count
+    func updateUserAuthState(userId: String, isAnonymous: Bool, authProviders: [String], email: String?, displayName: String?, firstName: String?, lastName: String?, phoneNumber: String?, photoUrl: String?, lastSignInDate: Date?) async throws
     func deleteUser(userId: String) async throws
     func streamUser(userId: String) -> AsyncThrowingStream<UserModel, Error>
-    func updateHealthConsents(userId: String, step: OnboardingStep, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws
+    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws
 }

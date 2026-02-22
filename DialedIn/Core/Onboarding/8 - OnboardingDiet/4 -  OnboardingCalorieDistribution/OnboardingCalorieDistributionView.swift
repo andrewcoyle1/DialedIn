@@ -109,5 +109,5 @@ extension CoreRouter {
             )
         )
     }
-    .previewEnvironment()
+    
 }

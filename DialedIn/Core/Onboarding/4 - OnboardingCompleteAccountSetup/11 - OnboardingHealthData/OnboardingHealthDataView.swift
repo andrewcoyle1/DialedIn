@@ -19,7 +19,12 @@ struct OnboardingHealthDataView: View {
             yourControlSection
         }
         .navigationTitle("Health Data")
-        .screenAppearAnalytics(name: "OnboardingHealthData")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .navigationBarTitleDisplayMode(.large)
         #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
@@ -132,5 +137,5 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingHealthDataView(router: router)
     }
-    .previewEnvironment()
+    
 }

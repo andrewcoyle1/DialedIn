@@ -43,7 +43,12 @@ struct OnboardingTrainingSplitView: View {
         .toolbar {
             toolbarContent
         }
-        .screenAppearAnalytics(name: "TrainingSplit")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
     
     @ToolbarContentBuilder
@@ -96,7 +101,7 @@ extension CoreRouter {
             delegate: OnboardingTrainingSplitDelegate.mock
         )
     }
-    .previewEnvironment()
+    
 }
 
 enum TrainingSplitType: CaseIterable {

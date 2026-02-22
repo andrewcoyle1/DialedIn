@@ -40,13 +40,18 @@ struct SiriView: View {
         }
         .navigationTitle("Siri")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "SiriView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
 }
 
 extension CoreBuilder {
     
-    func siriView(router: Router, delegate: SiriDelegate) -> some View {
+    func siriView(router: AnyRouter, delegate: SiriDelegate) -> some View {
         SiriView(
             presenter: SiriPresenter(
                 interactor: interactor,
@@ -76,5 +81,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.siriView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

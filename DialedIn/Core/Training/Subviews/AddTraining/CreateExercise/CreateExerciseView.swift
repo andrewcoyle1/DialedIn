@@ -25,7 +25,12 @@ struct CreateExerciseView: View {
         .navigationBarTitle("Create Custom Exercise")
         .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
-        .screenAppearAnalytics(name: "CreateExerciseView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -179,7 +184,7 @@ extension CoreRouter {
     RouterView { router in
         builder.createExerciseView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Is saving") {
@@ -190,7 +195,7 @@ extension CoreRouter {
     RouterView { router in
         builder.createExerciseView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("As fullscreen cover") {
@@ -201,7 +206,7 @@ extension CoreRouter {
     RouterView { router in
         builder.createExerciseView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 struct CustomPickerView: View {

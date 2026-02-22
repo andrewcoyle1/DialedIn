@@ -46,7 +46,12 @@ struct MuscleGroupsView: View {
         }
         .navigationTitle("Muscle Groups")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "MuscleGroupsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .scrollIndicators(.hidden)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -79,7 +84,7 @@ struct MuscleGroupsView: View {
 
 extension CoreBuilder {
     
-    func muscleGroupsView(router: Router, delegate: MuscleGroupsDelegate) -> some View {
+    func muscleGroupsView(router: AnyRouter, delegate: MuscleGroupsDelegate) -> some View {
         MuscleGroupsView(
             presenter: MuscleGroupsPresenter(
                 interactor: interactor,
@@ -109,5 +114,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.muscleGroupsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

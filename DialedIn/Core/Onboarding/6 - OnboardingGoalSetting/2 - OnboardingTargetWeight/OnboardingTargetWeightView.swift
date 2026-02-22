@@ -129,7 +129,7 @@ extension CoreRouter {
             delegate: OnboardingTargetWeightDelegate(weightGoalBuilder: .targetWeightMock)
         )
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Lose Weight") {
@@ -140,5 +140,5 @@ extension CoreRouter {
             delegate: OnboardingTargetWeightDelegate(weightGoalBuilder: .targetWeightMock)
         )
     }
-    .previewEnvironment()
+    
 }

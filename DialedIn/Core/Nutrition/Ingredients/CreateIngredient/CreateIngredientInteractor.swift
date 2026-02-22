@@ -8,11 +8,9 @@
 import SwiftUI
 
 @MainActor
-protocol CreateIngredientInteractor {
+protocol CreateIngredientInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     func createIngredientTemplate(ingredient: IngredientTemplateModel, image: PlatformImage?) async throws
-    func trackEvent(event: LoggableEvent)
-    func trackEvent(eventName: String, parameters: [String: Any]?, type: LogType)
     func generateImage(input: String) async throws -> UIImage
 }
 

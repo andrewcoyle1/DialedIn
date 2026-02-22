@@ -248,3 +248,141 @@ class WorkoutSessionManager {
         }
     }
 }
+
+extension CoreInteractor {
+    // MARK: WorkoutSessionManager
+    
+    var activeSession: WorkoutSessionModel? {
+        workoutSessionManager.activeSession
+    }
+
+    var restEndTime: Date? {
+        workoutSessionManager.restEndTime
+    }
+    
+    var sessionLastModified: Date? {
+        workoutSessionManager.sessionsLastModified
+    }
+    
+    func setActiveSession(_ session: WorkoutSessionModel?) {
+        workoutSessionManager.activeSession = session
+    }
+
+    func startActiveSession(_ session: WorkoutSessionModel) {
+        workoutSessionManager.startActiveSession(session)
+    }
+    
+    func endActiveSession(markScheduledComplete: Bool = true) async {
+        await workoutSessionManager.endActiveSession(markScheduledComplete: markScheduledComplete)
+    }
+    
+    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel? {
+        try workoutSessionManager.getActiveLocalWorkoutSession()
+    }
+    
+    func setActiveLocalWorkoutSession(_ session: WorkoutSessionModel?) throws {
+        try workoutSessionManager.setActiveLocalWorkoutSession(session)
+    }
+    
+    // Local Operations
+    
+    // Create
+    func addLocalWorkoutSession(session: WorkoutSessionModel) throws {
+        try workoutSessionManager.addLocalWorkoutSession(session: session)
+    }
+    
+    // Read
+    func getLocalWorkoutSession(id: String) throws -> WorkoutSessionModel {
+        try workoutSessionManager.getLocalWorkoutSession(id: id)
+    }
+    
+    func getLocalWorkoutSessions(ids: [String]) throws -> [WorkoutSessionModel] {
+        try workoutSessionManager.getLocalWorkoutSessions(ids: ids)
+    }
+    
+    func getAllLocalWorkoutSessions() throws -> [WorkoutSessionModel] {
+        try workoutSessionManager.getAllLocalWorkoutSessions()
+    }
+    
+    func getLocalWorkoutSessionsForAuthor(authorId: String, limitTo: Int) throws -> [WorkoutSessionModel] {
+        try workoutSessionManager.getLocalWorkoutSessionsForAuthor(authorId: authorId, limitTo: limitTo)
+    }
+    
+    // Update
+    func updateLocalWorkoutSession(session: WorkoutSessionModel) throws {
+        try workoutSessionManager.updateLocalWorkoutSession(session: session)
+    }
+    
+    func endLocalWorkoutSession(id: String, at endedAt: Date) throws {
+        try workoutSessionManager.endLocalWorkoutSession(id: id, at: endedAt)
+    }
+    
+    // Delete
+    func deleteLocalWorkoutSession(id: String) throws {
+        try workoutSessionManager.deleteLocalWorkoutSession(id: id)
+    }
+    
+    func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws {
+        try workoutSessionManager.deleteAllLocalWorkoutSessionsForAuthor(authorId: authorId)
+    }
+
+    // Remote Operations
+    
+    // Create
+    func createWorkoutSession(session: WorkoutSessionModel) async throws {
+        try await workoutSessionManager.createWorkoutSession(session: session)
+    }
+    
+    // Read
+    func getWorkoutSession(id: String) async throws -> WorkoutSessionModel {
+        try await workoutSessionManager.getWorkoutSession(id: id)
+    }
+    
+    /// Get workout session, trying local storage first, then falling back to remote
+    func getWorkoutSessionWithFallback(id: String) async throws -> WorkoutSessionModel {
+        try await workoutSessionManager.getWorkoutSessionWithFallback(id: id)
+    }
+    
+    func getWorkoutSessions(ids: [String], limitTo: Int = 20) async throws -> [WorkoutSessionModel] {
+        try await workoutSessionManager.getWorkoutSessions(ids: ids, limitTo: limitTo)
+    }
+    
+    func getWorkoutSessionsByTemplateAndAuthor(templateId: String, authorId: String, limitTo: Int) async throws -> [WorkoutSessionModel] {
+        try await workoutSessionManager.getWorkoutSessionsByTemplateAndAuthor(templateId: templateId, authorId: authorId, limitTo: limitTo)
+    }
+    
+    func getWorkoutSessionsForAuthor(authorId: String, limitTo: Int = 20) async throws -> [WorkoutSessionModel] {
+        try await workoutSessionManager.getWorkoutSessionsForAuthor(authorId: authorId, limitTo: limitTo)
+    }
+    
+    func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
+        try await workoutSessionManager.getLastCompletedSessionForTemplate(templateId: templateId, authorId: authorId)
+    }
+    
+    // Update
+    func updateWorkoutSession(session: WorkoutSessionModel) async throws {
+        try await workoutSessionManager.updateWorkoutSession(session: session)
+    }
+    
+    func endWorkoutSession(id: String, at endedAt: Date) async throws {
+        try await workoutSessionManager.endWorkoutSession(id: id, at: endedAt)
+    }
+    
+    // Delete
+    func deleteWorkoutSession(id: String) async throws {
+        try await workoutSessionManager.deleteWorkoutSession(id: id)
+    }
+
+    func deleteAllWorkoutSessionsForAuthor(authorId: String) async throws {
+        try await workoutSessionManager.deleteAllWorkoutSessionsForAuthor(authorId: authorId)
+    }
+    
+    // Sync Operations
+    
+    /// Syncs workout sessions from remote Firebase to local storage
+    /// Fetches recent sessions and upserts them into local store
+    func syncWorkoutSessionsFromRemote(authorId: String, limitTo: Int = 100) async throws {
+        try await workoutSessionManager.syncWorkoutSessionsFromRemote(authorId: authorId, limitTo: limitTo)
+    }
+
+}

@@ -6,14 +6,11 @@
 //
 
 @MainActor
-protocol SettingsInteractor {
+protocol SettingsInteractor: GlobalInteractor {
     var auth: UserAuthInfo? { get }
     func signOut() async throws
-    func deleteCurrentUser() async throws
     func deleteUserProfile()
     func deleteAccount() async throws
-    func reauthenticateApple() async throws
-    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: SettingsInteractor { }

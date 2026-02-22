@@ -144,12 +144,28 @@ struct FirebaseUserService: RemoteUserService {
         ])
     }
     
-    func updateOnboardingStep(userId: String, onboardingStep: OnboardingStep) async throws {
+    func updateDidCompleteOnboarding(userId: String) async throws {
         try await collection.updateDocument(id: userId, dict: [
-            UserModel.CodingKeys.onboardingStep.rawValue: onboardingStep.rawValue
+            UserModel.CodingKeys.didCompleteOnboarding.rawValue: true
         ])
     }
-    
+
+    // swiftlint:disable:next function_parameter_count
+    func updateUserAuthState(userId: String, isAnonymous: Bool, authProviders: [String], email: String?, displayName: String?, firstName: String?, lastName: String?, phoneNumber: String?, photoUrl: String?, lastSignInDate: Date?) async throws {
+        var data: [String: Any] = [
+            UserModel.CodingKeys.isAnonymous.rawValue: isAnonymous,
+            UserModel.CodingKeys.authProviders.rawValue: authProviders
+        ]
+        if let email { data[UserModel.CodingKeys.email.rawValue] = email }
+        if let displayName { data[UserModel.CodingKeys.displayName.rawValue] = displayName }
+        if let firstName { data[UserModel.CodingKeys.firstName.rawValue] = firstName }
+        if let lastName { data[UserModel.CodingKeys.lastName.rawValue] = lastName }
+        if let phoneNumber { data[UserModel.CodingKeys.phoneNumber.rawValue] = phoneNumber }
+        if let photoUrl { data[UserModel.CodingKeys.photoUrl.rawValue] = photoUrl }
+        if let lastSignInDate { data[UserModel.CodingKeys.lastSignInDate.rawValue] = lastSignInDate }
+        try await collection.document(userId).updateData(data)
+    }
+
     // MARK: - User deletion
     func deleteUser(userId: String) async throws {
         try await collection.document(userId).delete()
@@ -161,9 +177,8 @@ struct FirebaseUserService: RemoteUserService {
     }
 
     // MARK: - Consents
-    func updateHealthConsents(userId: String, step: OnboardingStep, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
+    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
         let data: [String: Any] = [
-            "onboarding_step": step.rawValue,
             "accepted_health_disclaimer_version": disclaimerVersion,
             "accepted_health_disclaimer_at": acceptedAt,
             "accepted_health_privacy_version": privacyVersion,

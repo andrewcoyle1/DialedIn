@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol AddCableMachineRangeInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol AddCableMachineRangeInteractor: GlobalInteractor { }
 
 extension CoreInteractor: AddCableMachineRangeInteractor { }

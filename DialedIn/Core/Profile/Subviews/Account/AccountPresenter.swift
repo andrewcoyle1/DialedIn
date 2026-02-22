@@ -116,7 +116,7 @@ class AccountPresenter {
             do {
                 try await interactor.signOut()
                 interactor.trackEvent(event: Event.signOutSuccess)
-                await dismissScreen()
+                dismissEnvironment()
                 try await Task.sleep(for: .seconds(1))
                 router.switchToOnboardingModule()
             } catch {
@@ -126,8 +126,8 @@ class AccountPresenter {
         }
     }
 
-    private func dismissScreen() async {
-        router.dismissScreen()
+    private func dismissEnvironment() {
+        router.dismissEnvironment()
     }
 
     func onDeleteAccountPressed() {
@@ -153,7 +153,10 @@ class AccountPresenter {
             do {
                 try await interactor.deleteAccount()
                 interactor.trackEvent(event: Event.deleteAccountSuccess)
-                await dismissScreen()
+                dismissEnvironment()
+                try await Task.sleep(for: .seconds(1))
+                router.switchToOnboardingModule()
+
             } catch {
                 router.showAlert(error: error)
                 interactor.trackEvent(event: Event.deleteAccountFail(error: error))

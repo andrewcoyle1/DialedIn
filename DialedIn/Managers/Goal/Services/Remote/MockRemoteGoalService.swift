@@ -63,6 +63,10 @@ struct MockRemoteGoalService: RemoteGoalService {
     func deleteGoal(goalId: String, userId: String) async throws {
         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         try tryShowError()
-        // In production, this would delete from Firestore
+    }
+
+    func deleteAllGoalsForUser(userId: String) async throws {
+        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        try tryShowError()
     }
 }

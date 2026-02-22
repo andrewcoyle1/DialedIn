@@ -23,7 +23,12 @@ struct AddPinLoadedMachineRangeView: View {
         .navigationSubtitle(presenter.pinLoadedMachine.wrappedValue.name)
         .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
-        .screenAppearAnalytics(name: "AddPinLoadedMachineRangeView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -106,7 +111,7 @@ struct AddPinLoadedMachineRangeView: View {
 
 extension CoreBuilder {
     
-    func addPinLoadedMachineRangeView(router: Router, delegate: AddPinLoadedMachineRangeDelegate) -> some View {
+    func addPinLoadedMachineRangeView(router: AnyRouter, delegate: AddPinLoadedMachineRangeDelegate) -> some View {
         AddPinLoadedMachineRangeView(
             presenter: AddPinLoadedMachineRangePresenter(
                 interactor: interactor,
@@ -138,5 +143,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.addPinLoadedMachineRangeView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

@@ -7,7 +7,7 @@
 
 protocol OnboardingWelcomeInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    var onboardingStep: OnboardingStep { get }
+    var isPremium: Bool { get }
 }
 
 extension CoreInteractor: OnboardingWelcomeInteractor { }

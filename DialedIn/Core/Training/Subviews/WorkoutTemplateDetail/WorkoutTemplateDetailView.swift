@@ -36,11 +36,6 @@ struct WorkoutTemplateDetailView: View {
         .toolbar {
             toolbarContent
         }
-        .onAppear { presenter.loadInitialState(template: delegate.workoutTemplate)}
-        .onChange(of: presenter.currentUser) {_, _ in
-            let user = presenter.currentUser
-            let isAuthor = user?.userId == delegate.workoutTemplate.authorId
-        }
     }
 
     private var exercisesSection: some View {
@@ -152,5 +147,5 @@ extension CoreRouter {
     RouterView { router in
         builder.workoutTemplateDetailView(router: router, delegate: WorkoutTemplateDetailDelegate(workoutTemplate: WorkoutTemplateModel.mock))
     }
-    .previewEnvironment()
+    
 }

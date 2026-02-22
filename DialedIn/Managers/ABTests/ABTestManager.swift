@@ -10,8 +10,10 @@ import Foundation
 @Observable
 @MainActor
 class ABTestManager {
+    
     private let service: ABTestService
     private let logger: LogManager?
+    
     var activeTests: ActiveABTests
     
     init(service: ABTestService, logger: LogManager? = nil) {
@@ -26,6 +28,7 @@ class ABTestManager {
             do {
                 activeTests = try await service.fetchUpdatedConfig()
                 logger?.trackEvent(event: Event.fetchRemoteConfigSuccess)
+                logger?.addUserProperties(dict: activeTests.eventParameters, isHighPriority: false)
             } catch {
                 logger?.trackEvent(event: Event.fetchRemoteConfigFail(error: error))
             }
@@ -46,7 +49,7 @@ class ABTestManager {
         var eventName: String {
             switch self {
             case .fetchRemoteConfigSuccess: return "ABMan_FetchRemote_Success"
-            case .fetchRemoteConfigFail: return "ABMan_FetchRemote_Fail"
+            case .fetchRemoteConfigFail:    return "ABMan_FetchRemote_Fail"
             }
         }
         
@@ -69,4 +72,21 @@ class ABTestManager {
             }
         }
     }
+}
+
+extension CoreInteractor {
+    // MARK: ABTestManager
+    
+    var activeTests: ActiveABTests {
+        abTestManager.activeTests
+    }
+    
+    var paywallTest: PaywallTestOption {
+        activeTests.paywallTest
+    }
+
+    func override(updatedTests: ActiveABTests) throws {
+        try abTestManager.override(updatedTests: updatedTests)
+    }
+
 }

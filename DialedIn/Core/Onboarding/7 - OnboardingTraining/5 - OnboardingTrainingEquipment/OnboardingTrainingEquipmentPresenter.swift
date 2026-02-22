@@ -29,6 +29,14 @@ class OnboardingTrainingEquipmentPresenter {
         self.gymProfile.authorId = currentUser?.userId ?? ""
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func navigateToReview(delegate: OnboardingTrainingEquipmentDelegate) {
         interactor.trackEvent(event: Event.navigate)
         router.showOnboardingTrainingReviewView(delegate: OnboardingTrainingReviewDelegate(delegate: delegate, gymProfile: gymProfile))
@@ -39,17 +47,21 @@ class OnboardingTrainingEquipmentPresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case navigate
 
         var eventName: String {
             switch self {
-            case .navigate: return "Onboarding_TrainingEquipment_Navigate"
+            case .onAppear:     return "OnboardingTrainingEquipmentView_Appear"
+            case .onDisappear:  return "OnboardingTrainingEquipmentView_Disappear"
+            case .navigate:     return "OnboardingTrainingEquipmentView_Navigate"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
-            case .navigate:
+            default:
                 return nil
             }
         }
@@ -58,6 +70,8 @@ class OnboardingTrainingEquipmentPresenter {
             switch self {
             case .navigate:
                 return .info
+            default:
+                return .analytic
             }
         }
     }

@@ -27,7 +27,12 @@ struct DevSettingsView: View {
             seedingSection
         }
         .navigationTitle("Developer Settings")
-        .screenAppearAnalytics(name: "DevSettings")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .scrollIndicators(.hidden)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -461,5 +466,5 @@ extension CoreRouter {
     RouterView { router in
         builder.devSettingsView(router: router)
     }
-    .previewEnvironment()
+    
 }

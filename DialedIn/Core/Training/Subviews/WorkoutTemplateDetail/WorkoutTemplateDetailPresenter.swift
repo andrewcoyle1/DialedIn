@@ -34,12 +34,6 @@ class WorkoutTemplateDetailPresenter {
         self.router = router
     }
     
-    func loadInitialState(template: WorkoutTemplateModel) {
-        let user = currentUser
-        // Always treat authored templates as bookmarked
-        let isAuthor = user?.userId == template.authorId
-    }
-
     func showDeleteConfirmation(workoutTemplate: WorkoutTemplateModel) {
         router.showAlert(title: "Delete Workout", subtitle: "Are you sure you want to delete '\(workoutTemplate.name)'? This action cannot be undone.", buttons: {
             AnyView(
@@ -59,7 +53,7 @@ class WorkoutTemplateDetailPresenter {
 
     func deleteWorkout(template: WorkoutTemplateModel, onDismiss: @escaping () -> Void) async {
         isDeleting = true
-        do {            
+        do {
             // Delete the workout template
             try await interactor.deleteWorkoutTemplate(id: template.id)
             

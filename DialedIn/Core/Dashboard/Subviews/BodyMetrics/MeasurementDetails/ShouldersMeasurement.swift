@@ -132,7 +132,7 @@ extension CoreRouter {
 }
 
 extension CoreBuilder {
-    func shouldersMeasurementView(router: Router, delegate: ShouldersMeasurementDelegate, themeColor: Color? = nil) -> some View {
+    func shouldersMeasurementView(router: AnyRouter, delegate: ShouldersMeasurementDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: ShouldersMeasurementPresenter(
                 interactor: interactor,

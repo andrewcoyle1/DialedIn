@@ -37,15 +37,17 @@ struct IngredientDetailView: View {
         .navigationTitle(delegate.ingredientTemplate.name)
         .navigationSubtitle(delegate.ingredientTemplate.description ?? "")
         .navigationBarTitleDisplayMode(.large)
-        .screenAppearAnalytics(name: "IngredientDetailView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
+        #if DEBUG || MOCK
         .toolbar {
             toolbarContent
         }
-        .task { await presenter.loadInitialState(ingredientTemplate: delegate.ingredientTemplate) }
-        .onChange(of: presenter.currentUser) { _, _ in
-            let user = presenter.currentUser
-            let isAuthor = user?.userId == delegate.ingredientTemplate.authorId
-        }
+        #endif
     }
 
     private func imageSection(url: String) -> some View {
@@ -185,9 +187,9 @@ struct IngredientDetailView: View {
         }
     }
 
+#if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -195,8 +197,8 @@ struct IngredientDetailView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+#endif
 }
 
 extension CoreBuilder {
@@ -228,5 +230,5 @@ extension CoreRouter {
             )
         )
     }
-    .previewEnvironment()
+    
 }

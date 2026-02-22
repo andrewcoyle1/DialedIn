@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol LegalInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol LegalInteractor: GlobalInteractor { }
 
 extension CoreInteractor: LegalInteractor { }

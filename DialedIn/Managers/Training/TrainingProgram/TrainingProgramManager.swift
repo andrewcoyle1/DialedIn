@@ -20,6 +20,11 @@ class TrainingProgramManager {
         self.local = services.local
     }
     
+    func readActiveTrainingProgram(programId: String) throws -> TrainingProgram? {
+        self.activeTrainingProgram = try local.readTrainingProgram(programId: programId)
+        return self.activeTrainingProgram
+    }
+
     // MARK: CREATE
     func createTrainingProgram(program: TrainingProgram) async throws {
         try local.createTrainingProgram(program: program)
@@ -27,11 +32,6 @@ class TrainingProgramManager {
     }
 
     // MARK: READ
-    
-    func readActiveTrainingProgram(programId: String) throws -> TrainingProgram? {
-        self.activeTrainingProgram = try local.readTrainingProgram(programId: programId)
-        return self.activeTrainingProgram
-    }
     
     func readLocalTrainingProgram(programId: String) throws -> TrainingProgram {
         try local.readTrainingProgram(programId: programId)
@@ -87,4 +87,70 @@ class TrainingProgramManager {
         try local.deleteTrainingProgram(program: program)
         try await remote.deleteTrainingProgram(programId: program.id)
     }
+}
+
+extension CoreInteractor {
+    // MARK: TrainingProgramManager
+    
+    @discardableResult
+    func getActiveTrainingProgram() throws -> TrainingProgram? {
+        guard let programId = currentUser?.submittedActiveTrainingProgramId else { return nil }
+        return try trainingProgramManager.readActiveTrainingProgram(programId: programId)
+    }
+
+    var activeTrainingProgram: TrainingProgram? {
+        trainingProgramManager.activeTrainingProgram
+    }
+
+    // CREATE
+    
+    func createTrainingProgram(program: TrainingProgram) async throws {
+        try await trainingProgramManager.createTrainingProgram(program: program)
+    }
+
+    // UPSERT
+
+    func upsertTrainingProgram(program: TrainingProgram) async throws {
+        do {
+            try await trainingProgramManager.updateTrainingProgram(program: program)
+        } catch {
+            let urlError = error as? URLError
+            if urlError?.code == .fileDoesNotExist {
+                try await trainingProgramManager.createTrainingProgram(program: program)
+            } else {
+                throw error
+            }
+        }
+    }
+    
+    // READ
+    
+    func readLocalTrainingProgram(programId: String) throws -> TrainingProgram {
+        try trainingProgramManager.readLocalTrainingProgram(programId: programId)
+    }
+    
+    func readAllLocalTrainingPrograms() throws -> [TrainingProgram] {
+        try trainingProgramManager.readAllLocalTrainingPrograms()
+    }
+    
+    func readRemoteTrainingProgram(programId: String) async throws -> TrainingProgram {
+        try await trainingProgramManager.readRemoteTrainingProgram(programId: programId)
+    }
+    
+    func readAllRemoteTrainingProgramsForAuthor(userId: String) async throws -> [TrainingProgram] {
+        try await trainingProgramManager.readAllRemoteTrainingProgramsForAuthor(userId: userId)
+    }
+    
+    // UPDATE
+    
+    func updateTrainingProgram(program: TrainingProgram) async throws {
+        try await trainingProgramManager.updateTrainingProgram(program: program)
+    }
+    
+    // DELETE
+    
+    func deleteTrainingProgram(program: TrainingProgram) async throws {
+        try await trainingProgramManager.deleteTrainingProgram(program: program)
+    }
+
 }

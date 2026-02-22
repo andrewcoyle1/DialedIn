@@ -22,7 +22,12 @@ struct AddBandView: View {
         .navigationSubtitle(presenter.band.wrappedValue.name)
         .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
-        .screenAppearAnalytics(name: "AddBandView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -101,7 +106,7 @@ struct AddBandView: View {
 
 extension CoreBuilder {
     
-    func addBandView(router: Router, delegate: AddBandDelegate) -> some View {
+    func addBandView(router: AnyRouter, delegate: AddBandDelegate) -> some View {
         AddBandView(
             presenter: AddBandPresenter(
                 interactor: interactor,
@@ -133,5 +138,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.addBandView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

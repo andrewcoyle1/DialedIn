@@ -21,6 +21,14 @@ class OnboardingTrainingReviewPresenter {
         self.router = router
     }
         
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func createPlanAndContinue() {
 
     }
@@ -30,6 +38,8 @@ class OnboardingTrainingReviewPresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case recommendationLoaded(templateId: String?)
         case createPlanStart
         case createPlanSuccess(planId: String)
@@ -38,6 +48,8 @@ class OnboardingTrainingReviewPresenter {
 
         var eventName: String {
             switch self {
+            case .onAppear:             return "OnboardingTrainingReviewView_Appear"
+            case .onDisappear:          return "OnboardingTrainingReviewView_Disappear"
             case .recommendationLoaded: return "Onboarding_TrainingReview_RecommendationLoaded"
             case .createPlanStart: return "Onboarding_TrainingReview_CreatePlan_Start"
             case .createPlanSuccess: return "Onboarding_TrainingReview_CreatePlan_Success"

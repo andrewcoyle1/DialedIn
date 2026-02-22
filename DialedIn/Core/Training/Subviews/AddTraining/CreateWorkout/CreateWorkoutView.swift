@@ -66,7 +66,7 @@ struct CreateWorkoutView: View {
         RouterView { router in
             builder.createWorkoutView(router: router, delegate: CreateWorkoutDelegate(workoutTemplate: .mock))
         }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {

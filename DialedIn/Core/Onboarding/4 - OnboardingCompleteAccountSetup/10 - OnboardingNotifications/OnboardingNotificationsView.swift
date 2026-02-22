@@ -26,7 +26,12 @@ struct OnboardingNotificationsView: View {
         .toolbar {
             toolbarContent
         }
-        .screenAppearAnalytics(name: "OnboardingNotifications")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .showModal(showModal: $presenter.showEnablePushNotificationsModal) {
             pushNotificationModal
         }
@@ -160,5 +165,5 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingNotificationsView(router: router)
     }
-    .previewEnvironment()
+    
 }

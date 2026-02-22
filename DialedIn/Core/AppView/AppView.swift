@@ -68,7 +68,6 @@ struct AppView<Content: View>: View {
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     
     return builder.appView()
-        .previewEnvironment()
 }
 
 #Preview("AppView - Onboarding") {
@@ -79,7 +78,6 @@ struct AppView<Content: View>: View {
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
 
     return builder.appView()
-        .previewEnvironment()
 }
 
 extension CoreBuilder {

@@ -1,8 +1,7 @@
 import SwiftUI
 
 @MainActor
-protocol ExerciseAnalyticsInteractor {
-    func trackEvent(event: LoggableEvent)
+protocol ExerciseAnalyticsInteractor: GlobalInteractor {
     var auth: UserAuthInfo? { get }
     func getLocalWorkoutSessionsForAuthor(authorId: String, limitTo: Int) throws -> [WorkoutSessionModel]
     func getSystemExerciseTemplates() throws -> [ExerciseModel]

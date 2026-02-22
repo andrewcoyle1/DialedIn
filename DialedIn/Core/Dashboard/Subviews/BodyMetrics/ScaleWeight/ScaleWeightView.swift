@@ -23,12 +23,12 @@ struct ScaleWeightView: View {
     return RouterView { router in
         builder.scaleWeightView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func scaleWeightView(router: Router, delegate: ScaleWeightDelegate, themeColor: Color? = nil) -> some View {
+    func scaleWeightView(router: AnyRouter, delegate: ScaleWeightDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: ScaleWeightPresenter(
                 interactor: interactor,

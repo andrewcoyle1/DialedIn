@@ -271,5 +271,5 @@ extension CoreBuilder {
     RouterView { router in
         builder.trainingView(router: router)
     }
-    .previewEnvironment()
+    
 }

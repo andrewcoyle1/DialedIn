@@ -112,7 +112,7 @@ struct CalendarHeaderView: View {
 
 extension CoreBuilder {
     
-    func calendarHeaderView(router: Router, delegate: CalendarHeaderDelegate) -> some View {
+    func calendarHeaderView(router: AnyRouter, delegate: CalendarHeaderDelegate) -> some View {
         CalendarHeaderView(
             presenter: CalendarHeaderPresenter(
                 interactor: interactor,
@@ -164,5 +164,4 @@ extension CoreRouter {
             builder.calendarHeaderView(router: router, delegate: delegate)
         }
     }
-    .previewEnvironment()
 }

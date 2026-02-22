@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftfulUtilities
 
 @Observable
 @MainActor
@@ -8,8 +7,8 @@ class AboutPresenter {
     private let interactor: AboutInteractor
     private let router: AboutRouter
 
-    let appVersion: String = SwiftfulUtilities.Utilities.appVersion ?? ""
-    let appBuild: String = SwiftfulUtilities.Utilities.buildNumber ?? ""
+    let appVersion: String = Utilities.appVersion ?? ""
+    let appBuild: String = Utilities.buildNumber ?? ""
 
     init(interactor: AboutInteractor, router: AboutRouter) {
         self.interactor = interactor

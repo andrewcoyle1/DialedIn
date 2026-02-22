@@ -24,6 +24,14 @@ class AddBodyWeightPresenter {
         )
         self.unit = delegate.unit
     }
+    
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
         
     func onDismissPressed() {
         router.dismissScreen()
@@ -38,5 +46,34 @@ class AddBodyWeightPresenter {
         }
         self.bodyWeight.wrappedValue.range.append(self.bodyWeightAvailable)
         router.dismissScreen()
+    }
+    
+}
+
+extension AddBodyWeightPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "AddBodyWeightView_Appear"
+            case .onDisappear: return "AddBodyWeightView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

@@ -42,15 +42,6 @@ class ExerciseTemplateDetailPresenter {
         return "Performed \(count) times"
     }
 
-    func loadInitialState(exerciseTemplate: ExerciseModel) async {
-        let user = interactor.currentUser
-        // Always treat authored templates as bookmarked
-        let isAuthor = user?.userId == exerciseTemplate.authorId
-        // Load unit preferences for this exercise
-        unitPreference = interactor.getPreference(templateId: exerciseTemplate.id)
-        await loadHistory(exerciseTemplate: exerciseTemplate)
-    }
-
     func loadHistory(exerciseTemplate: ExerciseModel) async {
         guard let userId = interactor.currentUser?.userId else { return }
         isLoadingHistory = true

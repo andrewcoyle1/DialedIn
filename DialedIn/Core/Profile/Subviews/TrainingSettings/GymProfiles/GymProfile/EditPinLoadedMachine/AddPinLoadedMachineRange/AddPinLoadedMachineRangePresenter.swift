@@ -27,6 +27,14 @@ class AddPinLoadedMachineRangePresenter {
         )
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func onDismissPressed() {
         router.dismissScreen()
     }
@@ -68,5 +76,34 @@ class AddPinLoadedMachineRangePresenter {
         }
         pinLoadedMachine.wrappedValue = updatedMachine
         router.dismissScreen()
+    }
+    
+}
+
+extension AddPinLoadedMachineRangePresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "AddPinLoadedMachineRangeView_Appear"
+            case .onDisappear: return "AddPinLoadedMachineRangeView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

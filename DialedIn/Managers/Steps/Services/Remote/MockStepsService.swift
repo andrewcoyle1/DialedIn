@@ -51,4 +51,9 @@ struct MockStepsService: RemoteStepsService {
         try? await Task.sleep(for: .seconds(delay))
         try tryShowError()
     }
+
+    func deleteAllStepsEntriesForUser(userId: String) async throws {
+        try? await Task.sleep(for: .seconds(delay))
+        try tryShowError()
+    }
 }

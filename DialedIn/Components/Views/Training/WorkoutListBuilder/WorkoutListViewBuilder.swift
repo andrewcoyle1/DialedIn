@@ -46,7 +46,12 @@ struct WorkoutListViewBuilder: View {
                 workoutTemplateSection
             }
         }
-        .screenAppearAnalytics(name: "WorkoutsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .navigationTitle("Workouts")
         .navigationSubtitle("\(presenter.workoutsCount) workouts")
         .navigationBarTitleDisplayMode(.inline)
@@ -213,5 +218,4 @@ extension CoreBuilder {
             )
         )
     }
-    .previewEnvironment()
 }

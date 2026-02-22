@@ -37,3 +37,31 @@ extension LogManager: @retroactive AuthLogger {
         trackEvent(eventName: event.eventName, parameters: event.parameters, type: event.type.type)
     }
 }
+
+extension CoreInteractor {
+    // MARK: AuthManager
+    
+    var auth: UserAuthInfo? {
+        authManager.auth
+    }
+    
+    func getAuthId() throws -> String {
+        try authManager.getAuthId()
+    }
+    
+    func signInAnonymously() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        try await authManager.signInAnonymously()
+    }
+               
+    func signInApple() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        try await authManager.signInApple()
+    }
+    
+    func signInGoogle() async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        guard let clientId = Constants.firebaseAppClientId else {
+            throw AppError("Firebase not configured or clientID missing")
+        }
+        return try await authManager.signInGoogle(GIDClientID: clientId)
+    }
+    
+}

@@ -78,5 +78,5 @@ extension CoreRouter {
     RouterView { router in
         builder.createWorkoutView(router: router, delegate: NameWorkoutDelegate())
     }
-    .previewEnvironment()
+    
 }

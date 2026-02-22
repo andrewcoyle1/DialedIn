@@ -115,7 +115,7 @@ struct CalendarView: View {
 
 extension CoreBuilder {
 
-    func calendarView(router: Router, delegate: CalendarDelegate) -> some View {
+    func calendarView(router: AnyRouter, delegate: CalendarDelegate) -> some View {
         CalendarView(
             presenter: CalendarPresenter(
                 interactor: interactor,
@@ -160,5 +160,4 @@ extension CoreRouter {
             }
             .presentationDetents([.fraction(0.45)])
         }
-        .previewEnvironment()
 }

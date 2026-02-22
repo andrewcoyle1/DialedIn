@@ -152,5 +152,5 @@ extension CoreRouter {
             delegate: OnboardingHeightDelegate(userModelBuilder: UserModelBuilder.heightMock)
         )
     }
-    .previewEnvironment()
+    
 }

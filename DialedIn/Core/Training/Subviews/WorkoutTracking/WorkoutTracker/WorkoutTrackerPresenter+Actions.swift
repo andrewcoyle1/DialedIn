@@ -258,12 +258,14 @@ extension WorkoutTrackerPresenter {
         if let endTime = interactor.restEndTime {
             Task {
                 do {
-//                    try await interactor.schedulePushNotification(
-//                        identifier: restTimerNotificationId,
-//                        title: "Rest Complete",
-//                        body: "Time to get back to your workout!",
-//                        date: endTime
-//                    )
+                    try await interactor.schedulePushNotification(
+                        identifier: restTimerNotificationId,
+                        title: "Rest Complete",
+                        subtitle: "Time to get back to your workout!",
+                        triggerDate: endTime,
+                        sound: true,
+                        badge: nil
+                    )
                 } catch {
                     // Silently fail - notification is nice to have but not critical
                     print("Failed to schedule rest timer notification: \(error)")

@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol SetTargetInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol SetTargetInteractor: GlobalInteractor { }
 
 extension CoreInteractor: SetTargetInteractor { }

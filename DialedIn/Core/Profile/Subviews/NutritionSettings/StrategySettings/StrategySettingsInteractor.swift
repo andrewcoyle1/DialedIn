@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol StrategySettingsInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol StrategySettingsInteractor: GlobalInteractor { }
 
 extension CoreInteractor: StrategySettingsInteractor { }

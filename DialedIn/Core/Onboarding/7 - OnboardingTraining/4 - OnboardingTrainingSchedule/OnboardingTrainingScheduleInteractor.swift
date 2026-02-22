@@ -6,8 +6,6 @@
 //
 
 @MainActor
-protocol OnboardingTrainingScheduleInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol OnboardingTrainingScheduleInteractor: GlobalInteractor { }
 
 extension CoreInteractor: OnboardingTrainingScheduleInteractor { }

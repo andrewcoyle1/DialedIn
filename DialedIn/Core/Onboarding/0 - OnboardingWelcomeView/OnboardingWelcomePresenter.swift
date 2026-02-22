@@ -36,16 +36,29 @@ class OnboardingWelcomePresenter {
     }
 
     func onContinuePressed() {
-        
-    }
-
-    func navToAppropriateView() {
-        if let step = currentUser?.onboardingStep {
-            navigate(step: step)
-        } else {
-            interactor.trackEvent(event: Event.navigate)
+        guard let user = currentUser else {
             router.showOnboardingIntroView()
+            return
         }
+
+        // isAnonymous is Bool? — treat nil (unset) the same as true
+        if user.isAnonymous != false {
+            router.showOnboardingIntroView()
+            return
+        }
+
+        if user.didCompleteOnboarding {
+            if interactor.isPremium {
+                router.switchToCoreModule()
+            } else {
+                router.showPaywall(onPurchaseSuccess: { [weak self] in
+                    self?.router.switchToCoreModule()
+                })
+            }
+            return
+        }
+
+        navigate(step: user.inferredOnboardingStep)
     }
 
     func navigate(step: OnboardingStep) {

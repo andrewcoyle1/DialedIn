@@ -152,7 +152,7 @@ extension CoreRouter {
 }
 
 extension CoreBuilder {
-    func nutritionMetricDetailView(router: Router, metric: NutritionMetric, delegate: NutritionMetricDetailDelegate, themeColor: Color? = nil) -> some View {
+    func nutritionMetricDetailView(router: AnyRouter, metric: NutritionMetric, delegate: NutritionMetricDetailDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: NutritionMetricDetailPresenter(
                 interactor: interactor,

@@ -57,11 +57,12 @@ struct OnboardingWelcomeView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-                presenter.navToAppropriateView()
+                presenter.onContinuePressed()
             } label: {
                 Image(systemName: "chevron.right")
             }
             .buttonStyle(.glassProminent)
+            .disabled(presenter.currentUser == nil)
         }
     }
     

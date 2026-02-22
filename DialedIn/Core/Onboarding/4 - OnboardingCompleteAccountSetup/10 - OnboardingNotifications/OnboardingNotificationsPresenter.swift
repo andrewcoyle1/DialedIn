@@ -23,6 +23,14 @@ class OnboardingNotificationsPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+    
     func onEnableNotificationsPressed() {
         showEnablePushNotificationsModal = true
         interactor.trackEvent(event: Event.pushNotificationsModalShow)
@@ -45,11 +53,9 @@ class OnboardingNotificationsPresenter {
 
     private func handleNavigation() async {
         if interactor.canRequestHealthDataAuthorisation() {
-            try? await interactor.updateOnboardingStep(step: .healthData)
             interactor.trackEvent(event: Event.navigate)
             router.showOnboardingHealthDataView()
         } else {
-            try? await interactor.updateOnboardingStep(step: .healthDisclaimer)
             interactor.trackEvent(event: Event.navigate)
             router.showOnboardingHealthDisclaimerView()
         }
@@ -72,6 +78,8 @@ class OnboardingNotificationsPresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case pushNotificationsModalShow
         case pushNotificationsModalDismiss
         case enableNotificationsStart
@@ -82,13 +90,15 @@ class OnboardingNotificationsPresenter {
 
         var eventName: String {
             switch self {
-            case .pushNotificationsModalShow:       return "Onboarding_PushNotifsModal_Show"
-            case .pushNotificationsModalDismiss:    return "Onboarding_PushNotifsModal_Dismiss"
-            case .enableNotificationsStart:         return "Onboarding_EnableNotifications_Start"
-            case .enableNotificationsSuccess:       return "Onboarding_EnableNotifications_Success"
-            case .enableNotficiationsFail:          return "Onboarding_EnableNotifications_Fail"
-            case .skipForNow:                       return "Onboarding_Notifications_SkipForNow"
-            case .navigate:                       return "Onboarding_Notifications_Navigate"
+            case .onAppear:                         return "OnboardingNotificiationsView_Appear"
+            case .onDisappear:                      return "OnboardingNotificiationsView_Disappear"
+            case .pushNotificationsModalShow:       return "OnboardingNotificiationsView_PushNotifsModal_Show"
+            case .pushNotificationsModalDismiss:    return "OnboardingNotificiationsView_PushNotifsModal_Dismiss"
+            case .enableNotificationsStart:         return "OnboardingNotificiationsView_EnableNotifications_Start"
+            case .enableNotificationsSuccess:       return "OnboardingNotificiationsView_EnableNotifications_Success"
+            case .enableNotficiationsFail:          return "OnboardingNotificiationsView_EnableNotifications_Fail"
+            case .skipForNow:                       return "OnboardingNotificiationsView_Notifications_SkipForNow"
+            case .navigate:                         return "OnboardingNotificiationsView_Navigate"
             }
         }
 

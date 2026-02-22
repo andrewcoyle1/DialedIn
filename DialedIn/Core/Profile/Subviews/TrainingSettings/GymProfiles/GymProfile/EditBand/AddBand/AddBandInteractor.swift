@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol AddBandInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol AddBandInteractor: GlobalInteractor { }
 
 extension CoreInteractor: AddBandInteractor { }

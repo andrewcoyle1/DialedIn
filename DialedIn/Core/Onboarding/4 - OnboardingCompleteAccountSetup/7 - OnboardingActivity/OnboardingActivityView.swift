@@ -117,5 +117,5 @@ extension CoreRouter {
             delegate: OnboardingActivityDelegate(userModelBuilder: UserModelBuilder.activityLevelMock)
         )
     }
-    .previewEnvironment()
+    
 }

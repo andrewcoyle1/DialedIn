@@ -81,5 +81,5 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingCustomisingProgramView(router: router)
     }
-    .previewEnvironment()
+    
 }

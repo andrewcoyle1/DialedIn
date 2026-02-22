@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol EditPinLoadedMachineInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol EditPinLoadedMachineInteractor: GlobalInteractor { }
 
 extension CoreInteractor: EditPinLoadedMachineInteractor { }

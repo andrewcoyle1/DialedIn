@@ -29,12 +29,12 @@ struct WeightTrendView: View {
     return RouterView { router in
         builder.weightTrendView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func weightTrendView(router: Router, delegate: WeightTrendDelegate, themeColor: Color? = nil) -> some View {
+    func weightTrendView(router: AnyRouter, delegate: WeightTrendDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: WeightTrendPresenter(
                 interactor: interactor,

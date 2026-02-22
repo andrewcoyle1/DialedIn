@@ -272,5 +272,5 @@ extension CoreRouter {
     RouterView { router in
         builder.workoutSessionDetailView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

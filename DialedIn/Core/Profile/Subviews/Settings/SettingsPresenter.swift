@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulUtilities
 
 @Observable
 @MainActor
@@ -17,8 +16,8 @@ class SettingsPresenter {
     private(set) var isAnonymousUser: Bool = false
     private(set) var isPremium: Bool = false
     
-    let appVersion: String = SwiftfulUtilities.Utilities.appVersion ?? ""
-    let appBuild: String = SwiftfulUtilities.Utilities.buildNumber ?? ""
+    let appVersion: String = Utilities.appVersion ?? ""
+    let appBuild: String = Utilities.buildNumber ?? ""
     
     var showRatingsModal: Bool = false
 
@@ -28,6 +27,14 @@ class SettingsPresenter {
     ) {
         self.interactor = interactor
         self.router = router
+    }
+    
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
     }
     
     func onRatingsButtonPressed() {
@@ -102,7 +109,7 @@ class SettingsPresenter {
 
     func navToManageSubscriptionView() {
         interactor.trackEvent(event: Event.navigate)
-        router.showCorePaywall()
+        router.showPaywall()
     }
 
     private func onDeleteAccountConfirmed() {
@@ -122,6 +129,8 @@ class SettingsPresenter {
 
     /// Logger Events
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case signOutStart
         case signOutSuccess
         case signOutFail(error: Error)
@@ -140,21 +149,23 @@ class SettingsPresenter {
 
         var eventName: String {
             switch self {
-            case .signOutStart:                 return "Settings_SignOut_Start"
-            case .signOutSuccess:               return "Settings_SignOut_Success"
-            case .signOutFail:                  return "Settings_SignOut_Fail"
-            case .deleteAccountStart:           return "Settings_DeleteAccount_Start"
-            case .deleteAccountStartConfirm:    return "Settings_DeleteAccount_StartConfirm"
-            case .deleteAccountSuccess:         return "Settings_DeleteAccount_Success"
-            case .deleteAccountFail:            return "Settings_DeleteAccount_Fail"
-            case .contactUsPressed:             return "Settings_ContactUs_Press"
-            case .ratingsPressed:               return "Settings_Ratings_Press"
-            case .ratingsYesPressed:            return "Settings_RatingsYes_Press"
-            case .ratingsNoPressed:             return "Settings_RatingsNo_Press"
-            case .navigate:                     return "Settings_Navigate"
-            case .dedupeWeightsStart:           return "Settings_DedupeWeights_Start"
-            case .dedupeWeightsSuccess:         return "Settings_DedupeWeights_Success"
-            case .dedupeWeightsFail:            return "Settings_DedupeWeights_Fail"
+            case .onAppear:                     return "SettingsView_Appear"
+            case .onDisappear:                  return "SettingsView_Disappear"
+            case .signOutStart:                 return "SettingsView_SignOut_Start"
+            case .signOutSuccess:               return "SettingsView_SignOut_Success"
+            case .signOutFail:                  return "SettingsView_SignOut_Fail"
+            case .deleteAccountStart:           return "SettingsView_DeleteAccount_Start"
+            case .deleteAccountStartConfirm:    return "SettingsView_DeleteAccount_StartConfirm"
+            case .deleteAccountSuccess:         return "SettingsView_DeleteAccount_Success"
+            case .deleteAccountFail:            return "SettingsView_DeleteAccount_Fail"
+            case .contactUsPressed:             return "SettingsView_ContactUs_Press"
+            case .ratingsPressed:               return "SettingsView_Ratings_Press"
+            case .ratingsYesPressed:            return "SettingsView_RatingsYes_Press"
+            case .ratingsNoPressed:             return "SettingsView_RatingsNo_Press"
+            case .navigate:                     return "SettingsView_Navigate"
+            case .dedupeWeightsStart:           return "SettingsView_DedupeWeights_Start"
+            case .dedupeWeightsSuccess:         return "SettingsView_DedupeWeights_Success"
+            case .dedupeWeightsFail:            return "SettingsView_DedupeWeights_Fail"
             }
         }
         

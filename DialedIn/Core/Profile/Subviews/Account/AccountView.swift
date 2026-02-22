@@ -140,23 +140,14 @@ struct AccountView: View {
 
     private var dataManagementSection: some View {
         Section {
-            Group {
-                CustomListCellView(
-                    sfSymbolName: "square.and.arrow.up",
-                    title: "Data Export"
-                )
+            Label("Data Export", systemImage: "square.and.arrow.up")
                 .anyButton(.highlight) {
-
+                    
                 }
-                CustomListCellView(
-                    sfSymbolName: "eye",
-                    title: "Data Visibility"
-                )
+            Label("Data Visibility", systemImage: "eye")
                 .anyButton(.highlight) {
                     presenter.onDataVisibilityPressed()
                 }
-            }
-            .removeListRowFormatting()
         } header: {
             Text("Data Management")
         }

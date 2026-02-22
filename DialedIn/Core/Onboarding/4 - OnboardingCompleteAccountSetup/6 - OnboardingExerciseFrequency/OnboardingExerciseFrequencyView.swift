@@ -109,5 +109,5 @@ extension CoreRouter {
             delegate: OnboardingExerciseFrequencyDelegate(userModelBuilder: UserModelBuilder.exerciseFrequencyMock)
         )
     }
-    .previewEnvironment()
+    
 }

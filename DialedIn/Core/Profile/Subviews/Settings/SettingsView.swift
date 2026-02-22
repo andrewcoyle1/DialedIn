@@ -22,7 +22,12 @@ struct SettingsView: View {
         .onAppear {
             presenter.setAnonymousAccountStatus()
         }
-        .screenAppearAnalytics(name: "Settings")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
 
     private var accountSection: some View {
@@ -171,7 +176,7 @@ extension CoreRouter {
     RouterView { router in
         builder.settingsView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Anonymous") {
@@ -181,7 +186,7 @@ extension CoreRouter {
     RouterView { router in
         builder.settingsView(router: router)
     }
-    .previewEnvironment()
+    
 }
 #Preview("Not anonymous") {
     let container = DevPreview.shared.container()
@@ -190,7 +195,7 @@ extension CoreRouter {
     RouterView { router in
         builder.settingsView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Premium") {
@@ -200,5 +205,5 @@ extension CoreRouter {
     RouterView { router in
         builder.settingsView(router: router)
     }
-    .previewEnvironment()
+    
 }

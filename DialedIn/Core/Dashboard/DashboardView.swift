@@ -48,12 +48,12 @@ struct DashboardView<NutritionChart: View>: View {
         }
         .navigationTitle("Dashboard")
         .navigationSubtitle(presenter.selectedDate.formattedDate)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarRole(.browser)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }
-        .toolbarRole(.browser)
         .onFirstTask {
             await presenter.onFirstTask()
         }
@@ -602,7 +602,7 @@ extension CoreBuilder {
     RouterView { router in
         builder.dashboardView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("w/ Notifications Test") {
@@ -612,5 +612,5 @@ extension CoreBuilder {
     return RouterView { router in
         builder.dashboardView(router: router)
     }
-    .previewEnvironment()
+    
 }

@@ -14,7 +14,12 @@ struct CustomiseDashboardView: View {
             Text("Hello, World!")
         }
         .navigationTitle("Customise Dashboard")
-        .screenAppearAnalytics(name: "CustomiseDashboardView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -28,7 +33,7 @@ struct CustomiseDashboardView: View {
 
 extension CoreBuilder {
     
-    func customiseDashboardView(router: Router, delegate: CustomiseDashboardDelegate) -> some View {
+    func customiseDashboardView(router: AnyRouter, delegate: CustomiseDashboardDelegate) -> some View {
         CustomiseDashboardView(
             presenter: CustomiseDashboardPresenter(
                 interactor: interactor,
@@ -58,5 +63,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.customiseDashboardView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

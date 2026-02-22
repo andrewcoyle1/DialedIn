@@ -9,13 +9,13 @@
 protocol AppInteractor: GlobalInteractor {
     var auth: UserAuthInfo? { get }
     var startingModuleId: String { get }
-    func schedulePushNotificationsForNextWeek()
-    func trackEvent(event: LoggableEvent)
+    
     func logIn(user: UserAuthInfo, isNewUser: Bool) async throws
-    func syncAllRemoteDataIfLoggedIn() async
     func signInAnonymously() async throws -> (user: UserAuthInfo, isNewUser: Bool)
     func saveUserFCMToken(token: String) async throws
 
+    func schedulePushNotificationsForNextWeek()
+    func syncAllRemoteDataIfLoggedIn() async
 }
 
 extension CoreInteractor: AppInteractor { }

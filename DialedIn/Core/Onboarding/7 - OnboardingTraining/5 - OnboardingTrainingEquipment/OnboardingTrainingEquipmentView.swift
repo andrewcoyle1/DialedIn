@@ -50,7 +50,12 @@ struct OnboardingTrainingEquipmentView: View {
         .toolbar {
             toolbarContent
         }
-        .screenAppearAnalytics(name: "TrainingEquipment")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
     
     @ToolbarContentBuilder
@@ -102,5 +107,5 @@ extension CoreRouter {
             delegate: OnboardingTrainingEquipmentDelegate.mock
         )
     }
-    .previewEnvironment()
+    
 }

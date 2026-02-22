@@ -92,7 +92,7 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Slow Auth") {
@@ -101,7 +101,7 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Failing Auth") {
@@ -110,7 +110,7 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Slow Login") {
@@ -119,7 +119,7 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Failing Login") {
@@ -128,5 +128,5 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingOnboardingAuthView(router: router)
     }
-    .previewEnvironment()
+    
 }

@@ -11,7 +11,7 @@ protocol OnboardingAuthInteractor {
     var isPremium: Bool { get }
     func signInApple() async throws -> (user: UserAuthInfo, isNewUser: Bool)
     func signInGoogle() async throws -> (user: UserAuthInfo, isNewUser: Bool)
-    func logIn(auth: UserAuthInfo, image: PlatformImage?, isNewUser: Bool) async throws
+    func logIn(user: UserAuthInfo, isNewUser: Bool) async throws
     func trackEvent(event: LoggableEvent)
 }
 

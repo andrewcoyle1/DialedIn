@@ -40,7 +40,12 @@ struct OnboardingTrainingDaysPerWeekView: View {
         .toolbar {
             toolbarContent
         }
-        .screenAppearAnalytics(name: "TrainingDaysPerWeek")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
     
     private func daysDescription(for days: Int) -> String {
@@ -74,7 +79,7 @@ struct OnboardingTrainingDaysPerWeekView: View {
         ToolbarSpacer(.flexible, placement: .bottomBar)
         ToolbarItem(placement: .bottomBar) {
             Button {
-//                presenter.navigateToSplit(builder: delegate.trainingProgramBuilder)
+                presenter.navigateToSplit(delegate: delegate)
             } label: {
                 Image(systemName: "chevron.right")
             }
@@ -110,5 +115,5 @@ extension CoreRouter {
             delegate: OnboardingTrainingExperienceDelegate()
         )
     }
-    .previewEnvironment()
+    
 }

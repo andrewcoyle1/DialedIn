@@ -55,9 +55,11 @@ struct OnboardingTrainingReviewView: View {
         .toolbar {
             toolbarContent
         }
-        .screenAppearAnalytics(name: "TrainingReview")
-        .onFirstAppear {
-//            presenter.loadRecommendation(builder: delegate.trainingProgramBuilder)
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
         }
     }
     
@@ -132,5 +134,5 @@ extension CoreRouter {
             delegate: OnboardingTrainingReviewDelegate.mock
         )
     }
-    .previewEnvironment()
+    
 }

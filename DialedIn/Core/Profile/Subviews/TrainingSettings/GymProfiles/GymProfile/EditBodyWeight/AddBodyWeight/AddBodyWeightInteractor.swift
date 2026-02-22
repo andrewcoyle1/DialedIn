@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol AddBodyWeightInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol AddBodyWeightInteractor: GlobalInteractor { }
 
 extension CoreInteractor: AddBodyWeightInteractor { }

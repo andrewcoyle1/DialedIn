@@ -29,12 +29,12 @@ struct ExerciseDetailView: View {
     return RouterView { router in
         builder.exerciseDetailView(router: router, delegate: delegate, templateId: "1", name: "Bench Press")
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func exerciseDetailView(router: Router, delegate: ExerciseDetailDelegate, templateId: String, name: String, themeColor: Color? = nil) -> some View {
+    func exerciseDetailView(router: AnyRouter, delegate: ExerciseDetailDelegate, templateId: String, name: String, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: ExerciseDetailPresenter(
                 interactor: interactor,

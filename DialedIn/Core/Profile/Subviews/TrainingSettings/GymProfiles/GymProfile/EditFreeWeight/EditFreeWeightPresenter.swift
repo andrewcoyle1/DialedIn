@@ -21,6 +21,14 @@ class EditFreeWeightPresenter {
         self.freeWeightBinding = freeWeight
         self.freeWeight = freeWeight.wrappedValue
     }
+    
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
 
     func filteredWeightIDs(for unit: ExerciseWeightUnit) -> [String] {
         freeWeight.range
@@ -78,5 +86,33 @@ class EditFreeWeightPresenter {
             set: { self.freeWeight = $0 }
         )
         router.showAddFreeWeightView(delegate: AddFreeWeightDelegate(freeWeight: freeWeightBinding, unit: self.selectedUnit))
+    }
+}
+
+extension EditFreeWeightPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "EditFreeWeightView_Appear"
+            case .onDisappear: return "EditFreeWeightView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

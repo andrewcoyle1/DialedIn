@@ -32,13 +32,7 @@ class RecipeDetailPresenter {
         self.interactor = interactor
         self.router = router
     }
-    
-    func loadInitialState(recipeTemplate: RecipeTemplateModel) {
-        let user = currentUser
-        // Always treat authored templates as bookmarked
-        let isAuthor = user?.userId == recipeTemplate.authorId
-    }
-    
+        
     func displayUnit(_ unit: IngredientAmountUnit) -> String {
         switch unit {
         case .grams: return "g"

@@ -6,8 +6,6 @@
 //
 
 @MainActor
-protocol OnboardingGenderInteractor {
-    func trackEvent(event: LoggableEvent)
-}
+protocol OnboardingGenderInteractor: GlobalInteractor { }
 
 extension CoreInteractor: OnboardingGenderInteractor { }

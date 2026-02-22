@@ -18,7 +18,12 @@ struct InsightsAndAnalyticsView: View {
         }
         .navigationTitle("Insights & Analytics")
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "InsightsAndAnalyticsView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .onFirstTask {
             await presenter.onFirstTask()
         }
@@ -184,7 +189,7 @@ struct InsightsAndAnalyticsView: View {
 
 extension CoreBuilder {
     
-    func insightsAndAnalyticsView(router: Router, delegate: InsightsAndAnalyticsDelegate) -> some View {
+    func insightsAndAnalyticsView(router: AnyRouter, delegate: InsightsAndAnalyticsDelegate) -> some View {
         InsightsAndAnalyticsView(
             presenter: InsightsAndAnalyticsPresenter(
                 interactor: interactor,
@@ -214,5 +219,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.insightsAndAnalyticsView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

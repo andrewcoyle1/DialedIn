@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulUtilities
 
 @Observable
 @MainActor
@@ -34,6 +33,14 @@ class DevSettingsPresenter {
         self.router = router
     }
     
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
+
     func authParams() -> [(key: String, value: Any)] {
         interactor.auth?.eventParameters.asAlphabeticalArray ?? []
     }
@@ -83,7 +90,7 @@ class DevSettingsPresenter {
     }
     
     func deviceParams() -> [(key: String, value: Any)] {
-        SwiftfulUtilities.Utilities.eventParameters.asAlphabeticalArray
+        Utilities.eventParameters.asAlphabeticalArray
     }
     
     func getLocalExercises() -> [ExerciseModel] {
@@ -201,15 +208,19 @@ class DevSettingsPresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case forceSignOutStart
         case forceSignOutSuccess
         case forceSignOutFail(error: Error)
 
         var eventName: String {
             switch self {
-            case .forceSignOutStart:            return "DevSettingsView_ForceSignOut_Start"
-            case .forceSignOutSuccess:          return "DevSettingsView_ForceSignOut_Success"
-            case .forceSignOutFail:             return "DevSettingsView_ForceSignOut_Fail"
+            case .onAppear:             return "DevSettingsView_Appear"
+            case .onDisappear:          return "DevSettingsView_Disappear"
+            case .forceSignOutStart:    return "DevSettingsView_ForceSignOut_Start"
+            case .forceSignOutSuccess:  return "DevSettingsView_ForceSignOut_Success"
+            case .forceSignOutFail:     return "DevSettingsView_ForceSignOut_Fail"
             }
         }
         

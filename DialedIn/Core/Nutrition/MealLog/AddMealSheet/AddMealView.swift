@@ -143,7 +143,7 @@ extension CoreRouter {
     RouterView { router in
         builder.addMealView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Lunch") {
@@ -160,7 +160,7 @@ extension CoreRouter {
     RouterView { router in
         builder.addMealView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Dinner") {
@@ -177,7 +177,7 @@ extension CoreRouter {
     RouterView { router in
         builder.addMealView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("Snack") {
@@ -194,5 +194,5 @@ extension CoreRouter {
     RouterView { router in
         builder.addMealView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

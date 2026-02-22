@@ -133,21 +133,25 @@ class OnboardingAuthPresenter {
             // Begin user login
             interactor.trackEvent(event: Event.userLoginStart)
             do {
-                // Log in user
-                try await interactor.logIn(auth: user, image: nil, isNewUser: isNewUser)
+                // Log in user (anonymous account migration and cleanup handled inside logIn)
+                try await interactor.logIn(user: user, isNewUser: isNewUser)
                 interactor.trackEvent(event: Event.userLoginSuccess)
                 
                 guard let user = currentUser else { return }
-                if !isNewUser {
+                if !isNewUser && user.didCompleteOnboarding {
+                    // Returning user with a full account — go straight to core
                     router.switchToCoreModule()
                 } else if interactor.isPremium == false {
-                    // Non‑premium: go straight to paywall from auth
+                    // No subscription — show the subscription info screen
                     interactor.trackEvent(event: Event.paywallShownAfterLogin)
-                    router.showOnbPaywall()
-                } else if user.onboardingStep != .complete {
-                    // Premium but still onboarding: continue onboarding
+                    router.showSubscriptionView()
+                } else if user.inferredOnboardingStep != .complete {
+                    // Premium but onboarding not finished — resume from inferred step
                     handleNavigation()
-                } 
+                } else {
+                    // Premium + onboarding complete (e.g. restored purchase on new device)
+                    router.switchToCoreModule()
+                }
             } catch {
                 router.showAlert(
                     title: "Error Logging In",
@@ -173,9 +177,9 @@ class OnboardingAuthPresenter {
     
     // MARK: Handle Navigation
     func handleNavigation() {
-        // Navigate based on user's current onboarding step
+        // Navigate based on user's inferred onboarding step
         if let currentUser = interactor.currentUser {
-            let step = currentUser.onboardingStep
+            let step = currentUser.inferredOnboardingStep
             interactor.trackEvent(event: Event.navigate)
             route(to: step)
         }

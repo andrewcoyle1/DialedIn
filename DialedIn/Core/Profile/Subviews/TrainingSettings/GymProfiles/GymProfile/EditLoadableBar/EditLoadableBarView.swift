@@ -11,7 +11,12 @@ struct EditLoadableBarView: View {
         }
         .navigationTitle(presenter.loadableBar.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "EditLoadableBarView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -79,7 +84,7 @@ struct EditLoadableBarView: View {
 
 extension CoreBuilder {
     
-    func editLoadableBarView(router: Router, loadableBar: Binding<LoadableBars>) -> some View {
+    func editLoadableBarView(router: AnyRouter, loadableBar: Binding<LoadableBars>) -> some View {
         EditLoadableBarView(
             presenter: EditLoadableBarPresenter(
                 interactor: interactor,
@@ -106,5 +111,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.editLoadableBarView(router: router, loadableBar: Binding.constant(loadableBar))
     }
-    .previewEnvironment()
+    
 }

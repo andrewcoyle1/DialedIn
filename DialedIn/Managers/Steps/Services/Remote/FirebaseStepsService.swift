@@ -45,4 +45,16 @@ struct FirebaseStepsService: RemoteStepsService {
         try await stepEntriesCollection(userId: userId)
             .document(stepsId).delete()
     }
+
+    func deleteAllStepsEntriesForUser(userId: String) async throws {
+        let entries = try await readAllStepsEntriesForAuthor(userId: userId)
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for entry in entries {
+                group.addTask {
+                    try await deleteStepsEntry(userId: userId, stepsId: entry.id)
+                }
+            }
+            try await group.waitForAll()
+        }
+    }
 }

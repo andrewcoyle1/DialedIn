@@ -10,7 +10,12 @@ struct EditCableMachineView: View {
         }
         .navigationTitle(presenter.cableMachine.name)
         .navigationBarTitleDisplayMode(.inline)
-        .screenAppearAnalytics(name: "EditCableMachineView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -88,7 +93,7 @@ struct EditCableMachineView: View {
 
 extension CoreBuilder {
     
-    func editCableMachineView(router: Router, cableMachine: Binding<CableMachine>) -> some View {
+    func editCableMachineView(router: AnyRouter, cableMachine: Binding<CableMachine>) -> some View {
         EditCableMachineView(
             presenter: EditCableMachinePresenter(
                 interactor: interactor,
@@ -115,5 +120,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.editCableMachineView(router: router, cableMachine: Binding.constant(cableMachine))
     }
-    .previewEnvironment()
+    
 }

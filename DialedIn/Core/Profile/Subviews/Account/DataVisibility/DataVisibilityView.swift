@@ -19,13 +19,18 @@ struct DataVisibilityView: View {
         }
         .navigationTitle("Data Visibility")
         .navigationBarTitleDisplayMode(.inline)
-            .screenAppearAnalytics(name: "DataVisibilityView")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
 }
 
 extension CoreBuilder {
     
-    func dataVisibilityView(router: Router, delegate: DataVisibilityDelegate) -> some View {
+    func dataVisibilityView(router: AnyRouter, delegate: DataVisibilityDelegate) -> some View {
         DataVisibilityView(
             presenter: DataVisibilityPresenter(
                 interactor: interactor,
@@ -55,5 +60,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.dataVisibilityView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }

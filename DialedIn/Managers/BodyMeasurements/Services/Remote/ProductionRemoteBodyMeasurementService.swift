@@ -50,4 +50,16 @@ struct ProductionRemoteBodyMeasurementService: RemoteBodyMeasurementService {
             .document(entryId)
             .delete()
     }
+
+    func deleteAllWeightEntriesForUser(userId: String) async throws {
+        let entries = try await readAllWeightEntriesForAuthor(userId: userId)
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for entry in entries {
+                group.addTask {
+                    try await deleteWeightEntry(userId: userId, entryId: entry.id)
+                }
+            }
+            try await group.waitForAll()
+        }
+    }
 }

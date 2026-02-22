@@ -43,7 +43,6 @@ class OnboardingDietPlanPresenter {
             do {
                 try await interactor.saveDietPlan(plan: plan)
                 interactor.trackEvent(event: Event.saveDietPlanSuccess)
-                try? await interactor.updateOnboardingStep(step: .complete)
                 interactor.trackEvent(event: Event.navigate)
                 router.showOnboardingCompletedView()
             } catch {

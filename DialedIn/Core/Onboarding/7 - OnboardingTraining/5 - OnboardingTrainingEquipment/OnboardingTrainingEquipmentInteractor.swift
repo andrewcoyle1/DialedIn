@@ -8,7 +8,6 @@
 @MainActor
 protocol OnboardingTrainingEquipmentInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingTrainingEquipmentInteractor { }

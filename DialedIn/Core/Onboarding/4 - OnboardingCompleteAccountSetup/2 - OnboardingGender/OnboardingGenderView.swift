@@ -26,7 +26,12 @@ struct OnboardingGenderView: View {
             }
         }
         .navigationTitle("About You")
-        .screenAppearAnalytics(name: "OnboardingSelectGender")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .toolbar {
             toolbarContent
         }
@@ -98,5 +103,5 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingGenderView(router: router)
     }
-    .previewEnvironment()
+    
 }

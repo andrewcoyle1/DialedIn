@@ -12,4 +12,5 @@ protocol RemoteGoalService: Sendable {
     func getAllGoals(userId: String) async throws -> [WeightGoal]
     func updateGoalStatus(goalId: String, userId: String, status: WeightGoal.GoalStatus) async throws
     func deleteGoal(goalId: String, userId: String) async throws
+    func deleteAllGoalsForUser(userId: String) async throws
 }

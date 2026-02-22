@@ -6,10 +6,9 @@
 //
 
 import SwiftUI
-import SwiftfulUtilities
 import SwiftfulAuthenticating
 
-/// Input for completing account setup: profile fields + onboarding step.
+/// Input for completing account setup: profile fields.
 struct CompleteAccountSetupProfileInput {
     let dateOfBirth: Date
     let gender: Gender
@@ -20,7 +19,6 @@ struct CompleteAccountSetupProfileInput {
     let cardioFitnessLevel: ProfileCardioFitnessLevel
     let lengthUnitPreference: LengthUnitPreference
     let weightUnitPreference: WeightUnitPreference
-    let onboardingStep: OnboardingStep
 }
 
 @Observable
@@ -130,28 +128,124 @@ class UserManager {
     func logIn(auth: UserAuthInfo, image: PlatformImage? = nil, isNewUser: Bool = false) async throws {
         let creationVersion = isNewUser ? Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String : nil
 
+        // Capture any existing anonymous session before state changes.
+        // Only considered anonymous if the UID is different (not the same account re-logging in).
+        let previousAnonUser: UserModel? = (currentUser?.isAnonymous == true && currentUser?.userId != auth.uid)
+            ? currentUser
+            : nil
+
         if isNewUser {
-            // Create initial profile for brand new users with first onboarding step
-            var user = UserModel(auth: auth, creationVersion: creationVersion)
-            user = UserModel(
-                userId: user.userId,
-                didCompleteOnboarding: false,
-                onboardingStep: .subscription
-            )
+            let user: UserModel
+
+            if let anonUser = previousAnonUser {
+                // Anonymous user signing up via SSO for the first time.
+                // Migrate all accumulated onboarding data to the new SSO account
+                // rather than starting with a blank profile.
+                logManager?.trackEvent(event: Event.migrateAnonUser(fromId: anonUser.userId, toId: auth.uid))
+                user = UserModel(
+                    userId: auth.uid,
+                    email: auth.email ?? anonUser.email,
+                    isAnonymous: auth.isAnonymous,
+                    authProviders: auth.authProviders.map { $0.rawValue },
+                    displayName: auth.displayName ?? anonUser.displayName,
+                    firstName: auth.firstName ?? anonUser.firstName,
+                    lastName: auth.lastName ?? anonUser.lastName,
+                    phoneNumber: auth.phoneNumber ?? anonUser.phoneNumber,
+                    photoUrl: auth.photoURL?.absoluteString ?? anonUser.photoUrl,
+                    creationDate: auth.creationDate,
+                    creationVersion: creationVersion,
+                    lastSignInDate: auth.lastSignInDate,
+                    submittedEmail: anonUser.submittedEmail,
+                    submittedFirstName: anonUser.submittedFirstName,
+                    submittedLastName: anonUser.submittedLastName,
+                    submittedProfileImage: anonUser.submittedProfileImage,
+                    submittedDateOfBirth: anonUser.submittedDateOfBirth,
+                    submittedGender: anonUser.submittedGender,
+                    submittedHeightCentimeters: anonUser.submittedHeightCentimeters,
+                    submittedWeightKilograms: anonUser.submittedWeightKilograms,
+                    submittedExerciseFrequency: anonUser.submittedExerciseFrequency,
+                    submittedDailyActivityLevel: anonUser.submittedDailyActivityLevel,
+                    submittedCardioFitnessLevel: anonUser.submittedCardioFitnessLevel,
+                    submittedLengthUnitPreference: anonUser.submittedLengthUnitPreference,
+                    submittedWeightUnitPreference: anonUser.submittedWeightUnitPreference,
+                    submittedCurrentGoalId: anonUser.submittedCurrentGoalId,
+                    submittedActiveTrainingProgramId: anonUser.submittedActiveTrainingProgramId,
+                    submittedFavouriteGymProfileId: anonUser.submittedFavouriteGymProfileId,
+                    blockedUserIds: anonUser.blockedUserIds,
+                    fcmToken: anonUser.fcmToken,
+                    didCompleteOnboarding: anonUser.didCompleteOnboarding,
+                    acceptedHealthDisclaimerVersion: anonUser.acceptedHealthDisclaimerVersion,
+                    acceptedHealthDisclaimerDate: anonUser.acceptedHealthDisclaimerDate,
+                    acceptedHealthPrivacyPolicyVersion: anonUser.acceptedHealthPrivacyPolicyVersion,
+                    acceptedHealthPrivacyPolicyDate: anonUser.acceptedHealthPrivacyPolicyDate
+                )
+            } else {
+                // Fresh SSO sign-up with no prior anonymous session — create a new profile.
+                user = UserModel(auth: auth, creationVersion: creationVersion)
+            }
 
             logManager?.trackEvent(event: Event.logInStart(user: user))
             try await remote.saveUser(user: user)
             logManager?.trackEvent(event: Event.logInSuccess(user: user))
 
-            // Optimistically set current user immediately; stream will keep it updated
+            // Delete the now-orphaned anonymous document after migration succeeds.
+            if let anonUser = previousAnonUser {
+                Task { try? await remote.deleteUser(userId: anonUser.userId) }
+            }
+
             self.currentUser = user
             self.saveCurrentUserLocally()
             addCurrentUserListener(userId: auth.uid)
+
         } else {
-            // Existing user: do NOT overwrite remote profile with defaults (prevents resetting onboardingStep)
+            // Existing SSO account: fetch their document directly so currentUser reflects
+            // the correct account (and userId) before logIn returns.
             logManager?.trackEvent(event: Event.logInStart(user: currentUser))
-            // Start streaming the existing remote user profile
+
+            let existingUser = try await remote.getUser(userId: auth.uid)
+            let authProviders = auth.authProviders.map { $0.rawValue }
+            let authPhotoUrl = auth.photoURL?.absoluteString
+
+            var updatedUser = existingUser
+            updatedUser.isAnonymous = auth.isAnonymous
+            updatedUser.authProviders = authProviders
+            updatedUser.email = auth.email ?? existingUser.email
+            updatedUser.displayName = auth.displayName ?? existingUser.displayName
+            updatedUser.firstName = auth.firstName ?? existingUser.firstName
+            updatedUser.lastName = auth.lastName ?? existingUser.lastName
+            updatedUser.phoneNumber = auth.phoneNumber ?? existingUser.phoneNumber
+            updatedUser.photoUrl = authPhotoUrl ?? existingUser.photoUrl
+            updatedUser.lastSignInDate = auth.lastSignInDate ?? existingUser.lastSignInDate
+
+            self.currentUser = updatedUser
+            self.saveCurrentUserLocally()
+
+            // Stream keeps currentUser up to date with any subsequent remote changes.
             addCurrentUserListener(userId: auth.uid)
+
+            // Delete the orphaned anonymous document now that we have confirmed
+            // the user is signing into a different, pre-existing account.
+            if let anonUser = previousAnonUser {
+                logManager?.trackEvent(event: Event.deleteAnonDocument(userId: anonUser.userId))
+                Task { try? await remote.deleteUser(userId: anonUser.userId) }
+            }
+
+            // Persist auth-derived field updates to Firestore.
+            Task {
+                try? await remote.updateUserAuthState(
+                    userId: auth.uid,
+                    isAnonymous: auth.isAnonymous ?? false,
+                    authProviders: authProviders,
+                    email: auth.email,
+                    displayName: auth.displayName,
+                    firstName: auth.firstName,
+                    lastName: auth.lastName,
+                    phoneNumber: auth.phoneNumber,
+                    photoUrl: authPhotoUrl,
+                    lastSignInDate: auth.lastSignInDate
+                )
+            }
+
             logManager?.trackEvent(event: Event.logInSuccess(user: currentUser))
         }
     }
@@ -196,8 +290,7 @@ class UserManager {
             submittedLengthUnitPreference: input.lengthUnitPreference,
             submittedWeightUnitPreference: input.weightUnitPreference,
             blockedUserIds: existing.blockedUserIds,
-            didCompleteOnboarding: existing.didCompleteOnboarding,
-            onboardingStep: input.onboardingStep
+            didCompleteOnboarding: existing.didCompleteOnboarding
         )
         try await remote.saveUser(user: updated)
         return updated
@@ -253,8 +346,7 @@ class UserManager {
                 submittedWeightUnitPreference: user.submittedWeightUnitPreference,
                 submittedCurrentGoalId: user.submittedCurrentGoalId,
                 blockedUserIds: user.blockedUserIds,
-                didCompleteOnboarding: user.didCompleteOnboarding,
-                onboardingStep: user.onboardingStep,
+                didCompleteOnboarding: user.didCompleteOnboarding
             )
             currentUser = user
             saveCurrentUserLocally()
@@ -291,40 +383,13 @@ class UserManager {
         try await remote.saveUserLastSignInDate(userId: uid)
     }
     
-    func updateOnboardingStep(step: OnboardingStep) async throws {
+    func updateDidCompleteOnboarding() async throws {
         let uid = try currentUserId()
-        // Monotonic guard: only advance forward
-        if let current = currentUser?.onboardingStep, current.orderIndex >= step.orderIndex {
-            return
-        }
-        try await remote.updateOnboardingStep(userId: uid, onboardingStep: step)
-        logManager?.trackEvent(event: Event.updateOnboardingStep(step: step))
-        // Optimistically update local cache so routing on app relaunch restores to the latest step
-        if let existing = currentUser {
-            let updated = UserModel(
-                userId: existing.userId,
-                email: existing.email,
-                isAnonymous: existing.isAnonymous,
-                firstName: existing.firstName,
-                lastName: existing.lastName,
-                creationDate: existing.creationDate,
-                creationVersion: existing.creationVersion,
-                lastSignInDate: existing.lastSignInDate,
-                submittedProfileImage: existing.submittedProfileImage,
-                submittedDateOfBirth: existing.submittedDateOfBirth,
-                submittedGender: existing.submittedGender,
-                submittedHeightCentimeters: existing.submittedHeightCentimeters,
-                submittedWeightKilograms: existing.submittedWeightKilograms,
-                submittedExerciseFrequency: existing.submittedExerciseFrequency,
-                submittedDailyActivityLevel: existing.submittedDailyActivityLevel,
-                submittedCardioFitnessLevel: existing.submittedCardioFitnessLevel,
-                submittedLengthUnitPreference: existing.submittedLengthUnitPreference,
-                submittedWeightUnitPreference: existing.submittedWeightUnitPreference,
-                blockedUserIds: existing.blockedUserIds,
-                didCompleteOnboarding: step == .complete ? true : existing.didCompleteOnboarding,
-                onboardingStep: step,
-            )
-            self.currentUser = updated
+        try await remote.updateDidCompleteOnboarding(userId: uid)
+        logManager?.trackEvent(event: Event.updateDidCompleteOnboarding)
+        if var existing = currentUser {
+            existing.didCompleteOnboarding = true
+            self.currentUser = existing
             self.saveCurrentUserLocally()
         }
     }
@@ -337,9 +402,9 @@ class UserManager {
     }
     
     // MARK: - Consents
-    func updateHealthConsents(disclaimerVersion: String, step: OnboardingStep, privacyVersion: String, acceptedAt: Date = Date()) async throws {
+    func updateHealthConsents(disclaimerVersion: String, privacyVersion: String, acceptedAt: Date = Date()) async throws {
         let uid = try currentUserId()
-        try await remote.updateHealthConsents(userId: uid, step: step, disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: acceptedAt)
+        try await remote.updateHealthConsents(userId: uid, disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: acceptedAt)
     }
     
     // MARK: - User Blocking
@@ -422,7 +487,9 @@ extension UserManager {
         case deleteAccountStart
         case deleteAccountSuccess
         case clearAllLocalData
-        case updateOnboardingStep(step: OnboardingStep)
+        case updateDidCompleteOnboarding
+        case migrateAnonUser(fromId: String, toId: String)
+        case deleteAnonDocument(userId: String)
 
         var eventName: String {
             switch self {
@@ -437,8 +504,10 @@ extension UserManager {
             case .signOut:                  return "UserMan_SignOut"
             case .deleteAccountStart:       return "UserMan_DeleteAccount_Start"
             case .deleteAccountSuccess:     return "UserMan_DeleteAccount_Success"
-            case .clearAllLocalData:        return "UserMan_ClearAllLocalData"
-            case .updateOnboardingStep:     return "UserMan_UpdateOnboardingStep"
+            case .clearAllLocalData:            return "UserMan_ClearAllLocalData"
+            case .updateDidCompleteOnboarding:  return "UserMan_UpdateDidCompleteOnboarding"
+            case .migrateAnonUser:              return "UserMan_MigrateAnonUser"
+            case .deleteAnonDocument:           return "UserMan_DeleteAnonDocument"
             }
         }
         
@@ -450,8 +519,12 @@ extension UserManager {
                 return user?.eventParameters
             case .remoteListenerFail(error: let error), .saveLocalFail(error: let error):
                 return error.eventParameters
-            case .updateOnboardingStep(step: let step):
-                return step.eventParameters
+            case .updateDidCompleteOnboarding:
+                return nil
+            case .migrateAnonUser(fromId: let fromId, toId: let toId):
+                return ["from_user_id": fromId, "to_user_id": toId]
+            case .deleteAnonDocument(userId: let userId):
+                return ["anon_user_id": userId]
             default:
                 return nil
             }
@@ -466,6 +539,153 @@ extension UserManager {
                 
             }
         }
+    }
+}
+
+extension CoreInteractor {
+    // MARK: UserManager
+    
+    func setActiveTrainingProgram(programId: String) async throws {
+        try await userManager.updateActiveTrainingProgramId(programId: programId)
+    }
+
+    var currentUser: UserModel? {
+        userManager.currentUser
+    }
+    
+    var userId: String? {
+        userManager.currentUser?.userId
+    }
+    
+    func currentUserId() throws -> String? {
+        try userManager.currentUserId()
+    }
+    
+    func refreshProfileImage() async throws {
+        try await userManager.refreshProfileImage()
+    }
+
+    var userImageUrl: String? {
+        currentUser?.submittedProfileImage
+    }
+
+    func clearAllLocalData() {
+        userManager.clearAllLocalData()
+    }
+    
+    func saveUser(user: UserModel, image: PlatformImage? = nil) async throws {
+        try await userManager.saveUser(user: user, image: image)
+    }
+    
+    func saveCompleteAccountSetupProfile(_ input: CompleteAccountSetupProfileInput) async throws -> UserModel {
+        try await userManager.saveCompleteAccountSetupProfile(input)
+    }
+
+    func saveCompleteAccountSetupProfile(userBuilder: UserModelBuilder) async throws -> UserModel {
+        guard let dob = userBuilder.dateOfBirth,
+              let height = userBuilder.height,
+              let weight = userBuilder.weight,
+              let exercise = userBuilder.exerciseFrequency,
+              let activity = userBuilder.activityLevel,
+              let cardio = userBuilder.cardioFitness,
+              let lengthPref = userBuilder.lengthUnitPreference,
+              let weightPref = userBuilder.weightUnitPreferene else {
+            throw CoreInteractorError.incompleteUserBuilder
+        }
+        let input = CompleteAccountSetupProfileInput(
+            dateOfBirth: dob,
+            gender: userBuilder.gender,
+            heightCentimeters: height,
+            weightKilograms: weight,
+            exerciseFrequency: mapProfileExerciseFrequency(exercise),
+            dailyActivityLevel: mapProfileActivityLevel(activity),
+            cardioFitnessLevel: mapProfileCardioFitness(cardio),
+            lengthUnitPreference: lengthPref,
+            weightUnitPreference: weightPref
+        )
+        return try await saveCompleteAccountSetupProfile(input)
+    }
+
+    private func mapProfileExerciseFrequency(_ frequency: ExerciseFrequency) -> ProfileExerciseFrequency {
+        ProfileExerciseFrequency(rawValue: frequency.rawValue) ?? .threeToFour
+    }
+
+    private func mapProfileActivityLevel(_ activityLevel: ActivityLevel) -> ProfileDailyActivityLevel {
+        ProfileDailyActivityLevel(rawValue: activityLevel.rawValue) ?? .moderate
+    }
+    
+    private func mapProfileCardioFitness(_ level: CardioFitnessLevel) -> ProfileCardioFitnessLevel {
+        ProfileCardioFitnessLevel(rawValue: level.rawValue) ?? .intermediate
+    }
+            
+    func updateFirstName(firstName: String? = nil, lastName: String? = nil) async throws {
+        try await userManager.updateUserName(firstName: firstName)
+    }
+        
+    func updateDateOfBirth(dob: Date) async throws {
+        try await userManager.updateDateOfBirth(dob: dob)
+    }
+    
+    func updateGender(gender: Gender) async throws {
+        try await userManager.updateGender(gender: gender)
+    }
+    
+    func updateWeight(userId: String, weightKg: Double) async throws {
+        try await userManager.updateWeight(userId: userId, weightKg: weightKg)
+    }
+    
+    // Image URL
+    
+    func updateProfileImageUrl(image: PlatformImage) async throws {
+        try await userManager.updateProfileImage(image: image)
+    }
+    
+    // Active Training Program
+    
+    func updateActiveTrainingProgramId(programId: String?) async throws {
+        try await userManager.updateActiveTrainingProgramId(programId: programId)
+    }
+    
+    // Favourite Gym Profile
+    
+    func updateFavouriteGymProfileId(profileId: String?) async throws {
+        try await userManager.updateFavouriteGymProfileId(profileId: profileId)
+    }
+    
+    // FCM Token
+    
+    func saveUserFCMToken(token: String) async throws {
+        try await userManager.saveUserFCMToken(token: token)
+    }
+
+    // Update Metadata
+    
+    func updateLastSignInDate() async throws {
+        try await userManager.updateLastSignInDate()
+    }
+    
+    func updateDidCompleteOnboarding() async throws {
+        try await userManager.updateDidCompleteOnboarding()
+    }
+
+    // Goal Settings
+    func updateCurrentGoalId(goalId: String?) async throws {
+        try await userManager.updateCurrentGoalId(goalId: goalId)
+    }
+    
+    // Consents
+    func updateHealthConsents(disclaimerVersion: String, privacyVersion: String, acceptedAt: Date = Date()) async throws {
+        try await userManager.updateHealthConsents(disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: acceptedAt)
+    }
+    
+    // User Blocking
+    
+    func blockUser(userId: String) async throws {
+        try await userManager.blockUser(userId: userId)
+    }
+    
+    func unblockUser(userId: String) async throws {
+        try await userManager.unblockUser(userId: userId)
     }
 
 }

@@ -25,7 +25,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         config = .prod
         #endif
         
-        if ProcessInfo.processInfo.arguments.contains("UI_TESTING") {
+        if Utilities.isUITesting {
             let isSignedIn = ProcessInfo.processInfo.arguments.contains("SIGNED_IN")
             config = .mock(isSignedIn: isSignedIn)
         }

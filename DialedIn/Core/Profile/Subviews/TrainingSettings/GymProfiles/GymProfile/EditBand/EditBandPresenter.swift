@@ -22,6 +22,14 @@ class EditBandPresenter {
         self.band = bandBinding.wrappedValue
 
     }
+    
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
+    }
 
     func filteredWeightIDs(for unit: ExerciseWeightUnit) -> [String] {
         band.range
@@ -78,5 +86,33 @@ class EditBandPresenter {
             set: { self.band = $0 }
         )
         router.showAddBandView(delegate: AddBandDelegate(band: bandBinding, unit: selectedUnit))
+    }
+}
+
+extension EditBandPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "EditBandView_Appear"
+            case .onDisappear: return "EditBandView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

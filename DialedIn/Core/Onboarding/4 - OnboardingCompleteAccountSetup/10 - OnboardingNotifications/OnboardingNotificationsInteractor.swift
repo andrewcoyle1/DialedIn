@@ -6,11 +6,9 @@
 //
 
 @MainActor
-protocol OnboardingNotificationsInteractor {
+protocol OnboardingNotificationsInteractor: GlobalInteractor {
     func requestPushAuthorization() async throws -> Bool
     func canRequestHealthDataAuthorisation() -> Bool
-    func updateOnboardingStep(step: OnboardingStep) async throws
-    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: OnboardingNotificationsInteractor { }

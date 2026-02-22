@@ -220,5 +220,5 @@ extension CoreBuilder {
             builder.mealLogView(router: router)
         }
     }
-    .previewEnvironment()
+    
 }

@@ -255,5 +255,5 @@ extension CoreRouter {
             delegate: OnboardingGoalSummaryDelegate(weightGoalBuilder: .mock)
         )
     }
-    .previewEnvironment()
+    
 }

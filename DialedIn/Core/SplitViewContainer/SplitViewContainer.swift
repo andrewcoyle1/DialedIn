@@ -108,7 +108,7 @@ extension CoreBuilder {
     RouterView { router in
         builder.splitViewContainer(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 private extension SplitViewContainer {

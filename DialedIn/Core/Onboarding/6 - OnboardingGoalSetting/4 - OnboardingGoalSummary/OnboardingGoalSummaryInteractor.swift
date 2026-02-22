@@ -15,7 +15,6 @@ protocol OnboardingGoalSummaryInteractor: GlobalInteractor {
         targetWeightKg: Double,
         weeklyChangeKg: Double
     ) async throws -> WeightGoal
-    func updateOnboardingStep(step: OnboardingStep) async throws
     func updateCurrentGoalId(goalId: String?) async throws
 }
 

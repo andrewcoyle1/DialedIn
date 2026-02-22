@@ -3,11 +3,12 @@ import StoreKit
 
 @Observable
 @MainActor
-class OnbPaywallPresenter {
+class CorePaywallPresenter {
     
-    private let interactor: OnbPaywallInteractor
-    private let router: OnbPaywallRouter
-    
+    private let interactor: CorePaywallInteractor
+    private let router: CorePaywallRouter
+    private let onPurchaseSuccess: (@MainActor () -> Void)?
+
     private(set) var products: [AnyProduct] = []
     private(set) var productIds: [String] = EntitlementOption.allProductIds
     private(set) var isLoadingProducts: Bool = false
@@ -28,9 +29,18 @@ class OnbPaywallPresenter {
         }
     }
 
-    init(interactor: OnbPaywallInteractor, router: OnbPaywallRouter) {
+    init(interactor: CorePaywallInteractor, router: CorePaywallRouter, onPurchaseSuccess: (@MainActor () -> Void)? = nil) {
         self.interactor = interactor
         self.router = router
+        self.onPurchaseSuccess = onPurchaseSuccess
+    }
+    
+    func onViewAppear() {
+        interactor.trackScreenEvent(event: Event.onAppear)
+    }
+    
+    func onViewDisappear() {
+        interactor.trackEvent(event: Event.onDisappear)
     }
     
     func onLoadProducts() async {
@@ -69,14 +79,15 @@ class OnbPaywallPresenter {
                 let entitlements = try await interactor.restorePurchase()
                 
                 if entitlements.hasActiveEntitlement {
-                    router.showOnboardingCompleteAccountSetupView()
+                    router.dismissScreen()
+                    onPurchaseSuccess?()
                 }
             } catch {
                 router.showAlert(error: error)
             }
         }
     }
-    
+
     func onPurchaseProductPressed(product: AnyProduct) {
         interactor.trackEvent(event: Event.purchaseStart(product: product))
 
@@ -86,7 +97,8 @@ class OnbPaywallPresenter {
                 interactor.trackEvent(event: Event.purchaseSuccess(product: product))
 
                 if entitlements.hasActiveEntitlement {
-                    router.showOnboardingCompleteAccountSetupView()
+                    router.dismissScreen()
+                    onPurchaseSuccess?()
                 }
             } catch {
                 interactor.trackEvent(event: Event.purchaseFail(error: error))
@@ -109,6 +121,7 @@ class OnbPaywallPresenter {
             case .success:
                 interactor.trackEvent(event: Event.purchaseSuccess(product: product))
                 router.dismissScreen()
+                onPurchaseSuccess?()
             case .pending:
                 interactor.trackEvent(event: Event.purchasePending(product: product))
             case .userCancelled:
@@ -121,11 +134,9 @@ class OnbPaywallPresenter {
         }
     }
     
-    func onSkipForNowPressed() {
-        router.showOnboardingCompleteAccountSetupView()
-    }
-    
     enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
         case purchaseStart(product: AnyProduct)
         case purchaseSuccess(product: AnyProduct)
         case purchasePending(product: AnyProduct)
@@ -140,17 +151,19 @@ class OnbPaywallPresenter {
 
         var eventName: String {
             switch self {
-            case .purchaseStart:          return "Paywall_Purchase_Start"
-            case .purchaseSuccess:        return "Paywall_Purchase_Success"
-            case .purchasePending:        return "Paywall_Purchase_Pending"
-            case .purchaseCancelled:      return "Paywall_Purchase_Cancelled"
-            case .purchaseUnknown:        return "Paywall_Purchase_Unknown"
-            case .purchaseFail:           return "Paywall_Purchase_Fail"
-            case .loadProductsStart:      return "Paywall_Load_Start"
-            case .loadProductsSuccess:    return "Paywall_Load_Success"
-            case .loadProductsFail:       return "Paywall_Load_Fail"
-            case .restorePurchaseStart:   return "Paywall_Restore_Start"
-            case .backButtonPressed:      return "Paywall_BackButton_Pressed"
+            case .onAppear:             return "PaywallView_Appear"
+            case .onDisappear:          return "PaywallView_Disappear"
+            case .purchaseStart:        return "PaywallView_Purchase_Start"
+            case .purchaseSuccess:      return "PaywallView_Purchase_Success"
+            case .purchasePending:      return "PaywallView_Purchase_Pending"
+            case .purchaseCancelled:    return "PaywallView_Purchase_Cancelled"
+            case .purchaseUnknown:      return "PaywallView_Purchase_Unknown"
+            case .purchaseFail:         return "PaywallView_Purchase_Fail"
+            case .loadProductsStart:    return "PaywallView_Load_Start"
+            case .loadProductsSuccess:  return "PaywallView_Load_Success"
+            case .loadProductsFail:     return "PaywallView_Load_Fail"
+            case .restorePurchaseStart: return "PaywallView_Restore_Start"
+            case .backButtonPressed:    return "PaywallView_BackButton_Pressed"
             }
         }
         

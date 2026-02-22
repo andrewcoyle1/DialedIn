@@ -1,9 +1,9 @@
 import SwiftUI
 import SwiftfulRouting
 
-struct OnbPaywallView: View {
+struct CorePaywallView: View {
     
-    @State var presenter: OnbPaywallPresenter
+    @State var presenter: CorePaywallPresenter
 
     var body: some View {
         ZStack {
@@ -60,38 +60,49 @@ struct OnbPaywallView: View {
                 )
             }
         }
-        .screenAppearAnalytics(name: "Paywall")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
         .task {
             await presenter.onLoadProducts()
         }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    presenter.onSkipForNowPressed()
+                    presenter.onBackButtonPressed()
                 } label: {
-                    Text("Skip")
+                    Image(systemName: "xmark")
                 }
             }
         }
-
     }
 }
 
 extension CoreBuilder {
-    func onbPaywallView(router: AnyRouter) -> some View {
-        OnbPaywallView(
-            presenter: OnbPaywallPresenter(
+    func paywallView(router: AnyRouter, onPurchaseSuccess: (@MainActor () -> Void)? = nil) -> some View {
+        CorePaywallView(
+            presenter: CorePaywallPresenter(
                 interactor: interactor,
-                router: CoreRouter(router: router, builder: self)
+                router: CoreRouter(router: router, builder: self),
+                onPurchaseSuccess: onPurchaseSuccess
             )
         )
     }
 }
 
 extension CoreRouter {
-    func showOnbPaywall() {
-        router.showScreen(.push) { router in
-            builder.onbPaywallView(router: router)
+    func showPaywall() {
+        router.showScreen(.fullScreenCover) { router in
+            builder.paywallView(router: router)
+        }
+    }
+
+    func showPaywall(onPurchaseSuccess: @escaping @MainActor () -> Void) {
+        router.showScreen(.fullScreenCover) { [self] router in
+            builder.paywallView(router: router, onPurchaseSuccess: onPurchaseSuccess)
         }
     }
 }
@@ -102,9 +113,9 @@ extension CoreRouter {
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
 
     return RouterView { router in
-        builder.onbPaywallView(router: router)
+        builder.paywallView(router: router)
     }
-    .previewEnvironment()
+    
 }
 #Preview("StoreKit") {
     let container = DevPreview.shared.container()
@@ -112,9 +123,9 @@ extension CoreRouter {
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
 
     return RouterView { router in
-        builder.onbPaywallView(router: router)
+        builder.paywallView(router: router)
     }
-    .previewEnvironment()
+    
 }
 #Preview("RevenueCat") {
     let container = DevPreview.shared.container()
@@ -122,7 +133,7 @@ extension CoreRouter {
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
 
     return RouterView { router in
-        builder.onbPaywallView(router: router)
+        builder.paywallView(router: router)
     }
-    .previewEnvironment()
+    
 }

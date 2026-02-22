@@ -596,8 +596,85 @@ class LiveActivityManager: LiveActivityUpdating {
         statusMessage: String? = nil
     ) { }
 }
+
 #endif
 
+extension CoreInteractor {
+    // MARK: LiveActivityManager
+    
+    var liveActivityViewState: LiveActivityManager.ActivityViewState? {
+        liveActivityManager.activityViewState
+    }
+    
+    func startLiveActivity(
+        session: WorkoutSessionModel,
+        isActive: Bool = true,
+        currentExerciseIndex: Int = 0,
+        restEndsAt: Date? = nil,
+        statusMessage: String? = nil
+    ) {
+        liveActivityManager.startLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage)
+    }
+
+    /// Ensure a Workout Live Activity exists for this session; if found, reuse and update it, otherwise create it
+    func ensureLiveActivity(
+        session: WorkoutSessionModel,
+        isActive: Bool = true,
+        currentExerciseIndex: Int = 0,
+        restEndsAt: Date? = nil,
+        statusMessage: String? = nil
+    ) {
+        liveActivityManager.ensureLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage)
+    }
+    
+    func updateLiveActivity(params: LiveActivityUpdateParams) {
+        liveActivityManager.updateLiveActivity(params: params)
+    }
+    
+    /// Update the Workout Live Activity with latest session progress
+    func updateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) {
+        liveActivityManager.updateLiveActivity(contentState: contentState)
+    }
+
+    /// End the Workout Live Activity
+    func endLiveActivity(
+        session: WorkoutSessionModel,
+        isCompleted: Bool = true,
+        statusMessage: String? = nil
+    ) {
+        liveActivityManager.endLiveActivity(session: session, isCompleted: isCompleted, statusMessage: statusMessage)
+    }
+    
+    func endActivity(with finalState: WorkoutActivityAttributes.ContentState, dismissalPolicy: ActivityUIDismissalPolicy) async {
+        await liveActivityManager.endActivity(with: finalState, dismissalPolicy: dismissalPolicy)
+    }
+    
+    func setup(withActivity activity: Activity<WorkoutActivityAttributes>) {
+        liveActivityManager.setup(withActivity: activity)
+    }
+    
+    func observeActivity(activity: Activity<WorkoutActivityAttributes>) {
+        liveActivityManager.observeActivity(activity: activity)
+    }
+    
+    func updateWorkoutActivity(with updatedState: WorkoutActivityAttributes.ContentState) async throws {
+        try await liveActivityManager.updateWorkoutActivity(with: updatedState)
+    }
+    
+    func cleanupDismissedActivity() {
+        liveActivityManager.cleanupDismissedActivity()
+    }
+
+    /// Update only isActive/rest/status from current content state to avoid recomputing set counts
+    func updateRestAndActive(
+        isActive: Bool,
+        restEndsAt: Date?,
+        statusMessage: String? = nil
+    ) {
+        liveActivityManager.updateRestAndActive(isActive: isActive, restEndsAt: restEndsAt, statusMessage: statusMessage)
+    }
+
+}
 private extension Data {
     var hexadecimalString: String {
         self.reduce("") {

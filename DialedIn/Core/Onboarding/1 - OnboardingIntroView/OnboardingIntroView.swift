@@ -26,7 +26,12 @@ struct OnboardingIntroView: View {
         #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
         #endif
-        .screenAppearAnalytics(name: "OnboardingIntro")
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
     }
     
     private var trainingSection: some View {
@@ -140,5 +145,5 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingIntroView(router: router)
     }
-    .previewEnvironment()
+    
 }

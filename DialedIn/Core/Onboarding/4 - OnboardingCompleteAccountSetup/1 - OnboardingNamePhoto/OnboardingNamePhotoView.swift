@@ -152,5 +152,5 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingNamePhotoView(router: router)
     }
-    .previewEnvironment()
+    
 }

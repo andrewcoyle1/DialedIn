@@ -6,8 +6,7 @@
 //
 
 @MainActor
-protocol OnboardingCompleteAccountSetupInteractor {
-    func trackEvent(event: LoggableEvent)
+protocol OnboardingCompleteAccountSetupInteractor: GlobalInteractor {
 }
 
 extension CoreInteractor: OnboardingCompleteAccountSetupInteractor { }

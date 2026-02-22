@@ -18,4 +18,5 @@ protocol RemoteBodyMeasurementService: Sendable {
 
     // MARK: DELETE
     func deleteWeightEntry(userId: String, entryId: String) async throws
+    func deleteAllWeightEntriesForUser(userId: String) async throws
 }

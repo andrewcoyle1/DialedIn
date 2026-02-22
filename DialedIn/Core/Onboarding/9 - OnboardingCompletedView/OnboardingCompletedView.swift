@@ -99,5 +99,5 @@ extension CoreRouter {
     RouterView { router in
         builder.onboardingCompletedView(router: router)
     }
-    .previewEnvironment()
+    
 }

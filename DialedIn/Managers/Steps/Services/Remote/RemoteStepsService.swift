@@ -19,5 +19,6 @@ protocol RemoteStepsService: Sendable {
     
     // MARK: DELETE
     func deleteStepsEntry(userId: String, stepsId: String) async throws
+    func deleteAllStepsEntriesForUser(userId: String) async throws
 
 }

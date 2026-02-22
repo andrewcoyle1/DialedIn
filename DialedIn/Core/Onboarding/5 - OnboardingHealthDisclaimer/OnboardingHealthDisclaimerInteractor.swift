@@ -8,10 +8,8 @@
 import SwiftUI
 
 @MainActor
-protocol OnboardingHealthDisclaimerInteractor {
-    var currentUser: UserModel? { get }
-    func updateHealthConsents(disclaimerVersion: String, step: OnboardingStep, privacyVersion: String, acceptedAt: Date) async throws
-    func trackEvent(event: LoggableEvent)
+protocol OnboardingHealthDisclaimerInteractor: GlobalInteractor {
+    func updateHealthConsents(disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws
 }
 
 extension CoreInteractor: OnboardingHealthDisclaimerInteractor { }

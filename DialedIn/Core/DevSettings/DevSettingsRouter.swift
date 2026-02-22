@@ -11,4 +11,3 @@ protocol DevSettingsRouter: GlobalRouter {
 }
 
 extension CoreRouter: DevSettingsRouter { }
-

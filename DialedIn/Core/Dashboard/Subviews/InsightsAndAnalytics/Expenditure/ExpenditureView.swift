@@ -29,12 +29,12 @@ struct ExpenditureView: View {
     return RouterView { router in
         builder.expenditureView(router: router, delegate: delegate)
     }
-    .previewEnvironment()
+    
 }
 
 extension CoreBuilder {
 
-    func expenditureView(router: Router, delegate: ExpenditureDelegate, themeColor: Color? = nil) -> some View {
+    func expenditureView(router: AnyRouter, delegate: ExpenditureDelegate, themeColor: Color? = nil) -> some View {
         MetricDetailView(
             presenter: ExpenditurePresenter(
                 interactor: interactor,

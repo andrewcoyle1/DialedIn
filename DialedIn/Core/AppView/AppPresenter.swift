@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftfulUtilities
+import FirebaseMessaging
 
 @Observable
 @MainActor
@@ -60,7 +60,7 @@ class AppPresenter {
             
             // User is not authenticated
             interactor.trackEvent(event: Event.anonAuthStart)
-            
+
             do {
                 let result = try await interactor.signInAnonymously()
                 
@@ -69,6 +69,12 @@ class AppPresenter {
                 
                 // Log in
                 try await interactor.logIn(user: result.user, isNewUser: result.isNewUser)
+                
+                // Save push token
+                if let token = try? await Messaging.messaging().token() {
+                    savePushToken(token: token)
+                }
+                
             } catch {
                 interactor.trackEvent(event: Event.anonAuthFail(error: error))
                 try? await Task.sleep(for: .seconds(5))
@@ -76,7 +82,7 @@ class AppPresenter {
             }
         }
     }
-    
+
     func onFCMTokenRecieved(notification: Notification) {
         guard let token = NotificationCenter.default.getFCMToken(notification: notification) else {
             // Token not found in notification

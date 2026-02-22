@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftfulUtilities
 
 @Observable
 @MainActor
@@ -63,6 +62,12 @@ class PushManager {
         }
     }
     
+    func schedulePushNotification(identifier: String, title: String, subtitle: String, triggerDate: Date, sound: Bool = false, badge: Int? = nil) async throws {
+        let content = AnyNotificationContent(id: identifier, title: title, body: subtitle, sound: true, badge: badge)
+        let trigger = NotificationTriggerOption.date(date: triggerDate, repeats: false)
+        try await LocalNotifications.scheduleNotification(content: content, trigger: trigger)
+    }
+    
     private func scheduleNotification(title: String, subtitle: String, triggerDate: Date) async throws {
         let content = AnyNotificationContent(title: title, body: subtitle)
         let trigger = NotificationTriggerOption.date(date: triggerDate, repeats: false)
@@ -99,4 +104,26 @@ class PushManager {
             }
         }
     }
+}
+
+extension CoreInteractor {
+    
+    // MARK: PushManager
+    
+    func schedulePushNotification(identifier: String, title: String, subtitle: String, triggerDate: Date, sound: Bool, badge: Int?) async throws {
+        try await pushManager.schedulePushNotification(identifier: identifier, title: title, subtitle: subtitle, triggerDate: triggerDate, sound: sound, badge: badge)
+    }
+
+    func requestPushAuthorization() async throws -> Bool {
+        try await pushManager.requestAuthorisation()
+    }
+    
+    func canRequestNotificationAuthorization() async -> Bool {
+        await pushManager.canRequestAuthorisation()
+    }
+    
+    func schedulePushNotificationsForNextWeek() {
+        pushManager.schedulePushNotificationsForNextWeek()
+    }
+
 }

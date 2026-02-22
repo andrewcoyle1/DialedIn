@@ -132,5 +132,5 @@ extension CoreRouter {
             delegate: OnboardingCardioFitnessDelegate(userModelBuilder: UserModelBuilder.cardioFitnessMock)
         )
     }
-    .previewEnvironment()
+    
 }

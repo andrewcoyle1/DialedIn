@@ -254,15 +254,6 @@ struct ProfileView: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.onNotificationsPressed()
-            } label: {
-                Image(systemName: "bell")
-            }
-            .badge(3)
-        }
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDismissPressed()
@@ -307,7 +298,7 @@ extension CoreRouter {
     RouterView { router in
         builder.profileView(router: router)
     }
-    .previewEnvironment()
+    
 }
 
 #Preview("User No Profile") {
@@ -318,5 +309,5 @@ extension CoreRouter {
     return RouterView { router in
         builder.profileView(router: router)
     }
-    .previewEnvironment()
+    
 }
