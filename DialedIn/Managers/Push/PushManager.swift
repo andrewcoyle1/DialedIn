@@ -61,10 +61,10 @@ class PushManager {
             }
         }
     }
-    
-    func schedulePushNotification(identifier: String, title: String, subtitle: String, triggerDate: Date, sound: Bool = false, badge: Int? = nil) async throws {
-        let content = AnyNotificationContent(id: identifier, title: title, body: subtitle, sound: true, badge: badge)
-        let trigger = NotificationTriggerOption.date(date: triggerDate, repeats: false)
+        
+    func schedulePushNotification(delegate: PushNotificationDelegate) async throws {
+        let content = AnyNotificationContent(id: delegate.identifier, title: delegate.title, body: delegate.subtitle, sound: delegate.sound, badge: delegate.badge)
+        let trigger = NotificationTriggerOption.date(date: delegate.triggerDate, repeats: delegate.repeats)
         try await LocalNotifications.scheduleNotification(content: content, trigger: trigger)
     }
     
@@ -110,8 +110,8 @@ extension CoreInteractor {
     
     // MARK: PushManager
     
-    func schedulePushNotification(identifier: String, title: String, subtitle: String, triggerDate: Date, sound: Bool, badge: Int?) async throws {
-        try await pushManager.schedulePushNotification(identifier: identifier, title: title, subtitle: subtitle, triggerDate: triggerDate, sound: sound, badge: badge)
+    func schedulePushNotification(delegate: PushNotificationDelegate) async throws {
+        try await pushManager.schedulePushNotification(delegate: delegate)
     }
 
     func requestPushAuthorization() async throws -> Bool {

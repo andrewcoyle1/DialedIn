@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D00C3F572EE9D413000BA387 /* SwiftfulAuthenticating in Frameworks */ = {isa = PBXBuildFile; productRef = D00C3F562EE9D413000BA387 /* SwiftfulAuthenticating */; };
-		D00C3F592EE9D413000BA387 /* SwiftfulAuthUI in Frameworks */ = {isa = PBXBuildFile; productRef = D00C3F582EE9D413000BA387 /* SwiftfulAuthUI */; };
 		D0136D522F48EE9100729550 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = D0136D512F48EE9100729550 /* FirebaseMessaging */; };
 		D02A76D72EB2464700D080ED /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76D62EB2464700D080ED /* Mixpanel */; };
 		D02A76D92EB2464B00D080ED /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76D82EB2464B00D080ED /* OpenAI */; };
@@ -41,6 +39,8 @@
 		D08F58632E8BF677001D3980 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08F58612E8BF65F001D3980 /* WorkoutActivityAttributes.swift */; };
 		D0AB1C992EA1907100682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
 		D0AB1C9A2EA1907200682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
+		D0BF744D2F4CADF300DE875A /* SwiftfulAuthUI in Frameworks */ = {isa = PBXBuildFile; productRef = D0BF744C2F4CADF300DE875A /* SwiftfulAuthUI */; };
+		D0BF744F2F4CADF300DE875A /* SwiftfulAuthenticating in Frameworks */ = {isa = PBXBuildFile; productRef = D0BF744E2F4CADF300DE875A /* SwiftfulAuthenticating */; };
 		D0CE89E72EB2379000EED3B5 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E62EB2379000EED3B5 /* FirebaseAnalytics */; };
 		D0CE89E92EB237A100EED3B5 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89E82EB237A100EED3B5 /* FirebaseAuth */; };
 		D0CE89EB2EB237A600EED3B5 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D0CE89EA2EB237A600EED3B5 /* FirebaseCore */; };
@@ -57,8 +57,6 @@
 		D0DB1C942EA1901D00682653 /* MetricsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C922EA1901800682653 /* MetricsModel.swift */; };
 		D0DB1C962EA1906000682653 /* ElapsedTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */; };
 		D0DB1C972EA1906000682653 /* ElapsedTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */; };
-		D0E7A89F2EE2D87800BEE79F /* SwiftfulAuthUI in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7A89E2EE2D87800BEE79F /* SwiftfulAuthUI */; };
-		D0E7A8A12EE2D87800BEE79F /* SwiftfulAuthenticating in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7A8A02EE2D87800BEE79F /* SwiftfulAuthenticating */; };
 		D0E7A8A42EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7A8A32EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase */; };
 		D0E7AA692EE2DB6100BEE79F /* SwiftfulLogging in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7AA682EE2DB6100BEE79F /* SwiftfulLogging */; };
 		D0E7AA6C2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7AA6B2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel */; };
@@ -204,106 +202,72 @@
 				Core/Nutrition/Recipes/RecipesInteractor.swift,
 				Core/Nutrition/Recipes/RecipesPresenter.swift,
 				Core/Nutrition/Recipes/RecipesRouter.swift,
-				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomeInteractor.swift",
-				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomePresenter.swift",
-				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomeRouter.swift",
-				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroInteractor.swift",
-				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroPresenter.swift",
-				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroRouter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsInteractor.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsPresenter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsRouter.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionInteractor.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionPresenter.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/1 - OnboardingNamePhoto/OnboardingNamePhotoInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/1 - OnboardingNamePhoto/OnboardingNamePhotoPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/1 - OnboardingNamePhoto/OnboardingNamePhotoRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/2 - OnboardingGender/OnboardingGenderInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/2 - OnboardingGender/OnboardingGenderPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/2 - OnboardingGender/OnboardingGenderRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/3 - OnboardingDateOfBirth/OnboardingDateOfBirthDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/3 - OnboardingDateOfBirth/OnboardingDateOfBirthInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/3 - OnboardingDateOfBirth/OnboardingDateOfBirthPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/3 - OnboardingDateOfBirth/OnboardingDateOfBirthRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/4 - OnboardingHeight/OnboardingHeightDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/4 - OnboardingHeight/OnboardingHeightInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/4 - OnboardingHeight/OnboardingHeightPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/4 - OnboardingHeight/OnboardingHeightRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/5 - OnboardingWeight/OnboardingWeightDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/5 - OnboardingWeight/OnboardingWeightInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/5 - OnboardingWeight/OnboardingWeightPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/5 - OnboardingWeight/OnboardingWeightRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/6 - OnboardingExerciseFrequency/OnboardingExerciseFrequencyDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/6 - OnboardingExerciseFrequency/OnboardingExerciseFrequencyInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/6 - OnboardingExerciseFrequency/OnboardingExerciseFrequencyPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/6 - OnboardingExerciseFrequency/OnboardingExerciseFrequencyRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/7 - OnboardingActivity/OnboardingActivityDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/7 - OnboardingActivity/OnboardingActivityInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/7 - OnboardingActivity/OnboardingActivityPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/7 - OnboardingActivity/OnboardingActivityRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/8 - OnboardingCardioFitness/OnboardingCardioFitnessDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/8 - OnboardingCardioFitness/OnboardingCardioFitnessInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/8 - OnboardingCardioFitness/OnboardingCardioFitnessPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/8 - OnboardingCardioFitness/OnboardingCardioFitnessRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/9 - OnboardingExpenditure/OnboardingExpenditureDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/9 - OnboardingExpenditure/OnboardingExpenditureInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/9 - OnboardingExpenditure/OnboardingExpenditurePresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/9 - OnboardingExpenditure/OnboardingExpenditureRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/10 - OnboardingNotifications/OnboardingNotificationsInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/10 - OnboardingNotifications/OnboardingNotificationsPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/10 - OnboardingNotifications/OnboardingNotificationsRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/11 - OnboardingHealthData/OnboardingHealthDataInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/11 - OnboardingHealthData/OnboardingHealthDataPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/11 - OnboardingHealthData/OnboardingHealthDataRouter.swift",
-				"Core/Onboarding/5 - OnboardingHealthDisclaimer/OnboardingHealthDisclaimerInteractor.swift",
-				"Core/Onboarding/5 - OnboardingHealthDisclaimer/OnboardingHealthDisclaimerPresenter.swift",
-				"Core/Onboarding/5 - OnboardingHealthDisclaimer/OnboardingHealthDisclaimerRouter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/0 - GoalSetting/OnboardingGoalSettingInteractor.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/0 - GoalSetting/OnboardingGoalSettingPresenter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/0 - GoalSetting/OnboardingGoalSettingRouter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/1 - OnboardingOverarchingObjective/OnboardingOverarchingObjectiveInteractor.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/1 - OnboardingOverarchingObjective/OnboardingOverarchingObjectivePresenter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/1 - OnboardingOverarchingObjective/OnboardingOverarchingObjectiveRouter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/2 - OnboardingTargetWeight/OnboardingTargetWeightDelegate.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/2 - OnboardingTargetWeight/OnboardingTargetWeightInteractor.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/2 - OnboardingTargetWeight/OnboardingTargetWeightPresenter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/2 - OnboardingTargetWeight/OnboardingTargetWeightRouter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/3 - OnboardingWeightRate/OnboardingWeightRateDelegate.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/3 - OnboardingWeightRate/OnboardingWeightRateInteractor.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/3 - OnboardingWeightRate/OnboardingWeightRatePresenter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/3 - OnboardingWeightRate/OnboardingWeightRateRouter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/4 - OnboardingGoalSummary/OnboardingGoalSummaryDelegate.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/4 - OnboardingGoalSummary/OnboardingGoalSummaryInteractor.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/4 - OnboardingGoalSummary/OnboardingGoalSummaryPresenter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/4 - OnboardingGoalSummary/OnboardingGoalSummaryRouter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/1 - OnboardingTrainingExperience/OnboardingTrainingExperienceDelegate.swift",
-				"Core/Onboarding/7 - OnboardingTraining/1 - OnboardingTrainingExperience/OnboardingTrainingExperienceInteractor.swift",
-				"Core/Onboarding/7 - OnboardingTraining/1 - OnboardingTrainingExperience/OnboardingTrainingExperiencePresenter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/1 - OnboardingTrainingExperience/OnboardingTrainingExperienceRouter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/2 - OnboardingTrainingDaysPerWeek/OnboardingTrainingDaysPerWeekDelegate.swift",
-				"Core/Onboarding/7 - OnboardingTraining/2 - OnboardingTrainingDaysPerWeek/OnboardingTrainingDaysPerWeekInteractor.swift",
-				"Core/Onboarding/7 - OnboardingTraining/2 - OnboardingTrainingDaysPerWeek/OnboardingTrainingDaysPerWeekPresenter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/2 - OnboardingTrainingDaysPerWeek/OnboardingTrainingDaysPerWeekRouter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/3 - OnboardingTrainingSplit/OnboardingTrainingSplitDelegate.swift",
-				"Core/Onboarding/7 - OnboardingTraining/3 - OnboardingTrainingSplit/OnboardingTrainingSplitInteractor.swift",
-				"Core/Onboarding/7 - OnboardingTraining/3 - OnboardingTrainingSplit/OnboardingTrainingSplitPresenter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/3 - OnboardingTrainingSplit/OnboardingTrainingSplitRouter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/4 - OnboardingTrainingSchedule/OnboardingTrainingScheduleDelegate.swift",
-				"Core/Onboarding/7 - OnboardingTraining/4 - OnboardingTrainingSchedule/OnboardingTrainingScheduleInteractor.swift",
-				"Core/Onboarding/7 - OnboardingTraining/4 - OnboardingTrainingSchedule/OnboardingTrainingSchedulePresenter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/4 - OnboardingTrainingSchedule/OnboardingTrainingScheduleRouter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/5 - OnboardingTrainingEquipment/OnboardingTrainingEquipmentDelegate.swift",
-				"Core/Onboarding/7 - OnboardingTraining/5 - OnboardingTrainingEquipment/OnboardingTrainingEquipmentInteractor.swift",
-				"Core/Onboarding/7 - OnboardingTraining/5 - OnboardingTrainingEquipment/OnboardingTrainingEquipmentPresenter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/5 - OnboardingTrainingEquipment/OnboardingTrainingEquipmentRouter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/6 - OnboardingTrainingReview/OnboardingTrainingReviewDelegate.swift",
-				"Core/Onboarding/7 - OnboardingTraining/6 - OnboardingTrainingReview/OnboardingTrainingReviewInteractor.swift",
-				"Core/Onboarding/7 - OnboardingTraining/6 - OnboardingTrainingReview/OnboardingTrainingReviewPresenter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/6 - OnboardingTrainingReview/OnboardingTrainingReviewRouter.swift",
+				"Core/Onboarding/0 - WelcomeView/WelcomeInteractor.swift",
+				"Core/Onboarding/0 - WelcomeView/WelcomePresenter.swift",
+				"Core/Onboarding/0 - WelcomeView/WelcomeRouter.swift",
+				"Core/Onboarding/1 - IntroView/IntroInteractor.swift",
+				"Core/Onboarding/1 - IntroView/IntroPresenter.swift",
+				"Core/Onboarding/1 - IntroView/IntroRouter.swift",
+				"Core/Onboarding/2 - AuthView/AuthInteractor.swift",
+				"Core/Onboarding/2 - AuthView/AuthPresenter.swift",
+				"Core/Onboarding/2 - AuthView/AuthRouter.swift",
+				"Core/Onboarding/3 - Subscription/SubscriptionInteractor.swift",
+				"Core/Onboarding/3 - Subscription/SubscriptionPresenter.swift",
+				"Core/Onboarding/3 - Subscription/SubscriptionRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/0 - CompleteAccountSetup/CompleteAccountSetupInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/0 - CompleteAccountSetup/CompleteAccountSetupPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/0 - CompleteAccountSetup/CompleteAccountSetupRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/1 - NamePhoto/NamePhotoInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/1 - NamePhoto/NamePhotoPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/1 - NamePhoto/NamePhotoRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/2 - Gender/GenderInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/2 - Gender/GenderPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/2 - Gender/GenderRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/3 - DateOfBirth/DateOfBirthInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/3 - DateOfBirth/DateOfBirthPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/3 - DateOfBirth/DateOfBirthRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/4 - Height/HeightInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/4 - Height/HeightPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/4 - Height/HeightRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/5 - Weight/WeightInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/5 - Weight/WeightPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/5 - Weight/WeightRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/6 - ExerciseFrequency/ExerciseFrequencyInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/6 - ExerciseFrequency/ExerciseFrequencyPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/6 - ExerciseFrequency/ExerciseFrequencyRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/7 - Activity/ActivityInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/7 - Activity/ActivityPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/7 - Activity/ActivityRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/8 - CardioFitness/CardioFitnessInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/8 - CardioFitness/CardioFitnessPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/8 - CardioFitness/CardioFitnessRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/9 - Expenditure/ExpenditureInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/9 - Expenditure/ExpenditurePresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/9 - Expenditure/ExpenditureRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/10 - NotificationsPermissions/NotificationsPermissionsInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/10 - NotificationsPermissions/NotificationsPermissionsPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/10 - NotificationsPermissions/NotificationsPermissionsRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/11 - HealthData/HealthDataInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/11 - HealthData/HealthDataPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/11 - HealthData/HealthDataRouter.swift",
+				"Core/Onboarding/5 - HealthDisclaimer/HealthDisclaimerInteractor.swift",
+				"Core/Onboarding/5 - HealthDisclaimer/HealthDisclaimerPresenter.swift",
+				"Core/Onboarding/5 - HealthDisclaimer/HealthDisclaimerRouter.swift",
+				"Core/Onboarding/6 - GoalSetting/0 - GoalSetting/GoalSettingInteractor.swift",
+				"Core/Onboarding/6 - GoalSetting/0 - GoalSetting/GoalSettingPresenter.swift",
+				"Core/Onboarding/6 - GoalSetting/0 - GoalSetting/GoalSettingRouter.swift",
+				"Core/Onboarding/6 - GoalSetting/1 - OverarchingObjective/OverarchingObjectiveInteractor.swift",
+				"Core/Onboarding/6 - GoalSetting/1 - OverarchingObjective/OverarchingObjectivePresenter.swift",
+				"Core/Onboarding/6 - GoalSetting/1 - OverarchingObjective/OverarchingObjectiveRouter.swift",
+				"Core/Onboarding/6 - GoalSetting/2 - TargetWeight/TargetWeightInteractor.swift",
+				"Core/Onboarding/6 - GoalSetting/2 - TargetWeight/TargetWeightPresenter.swift",
+				"Core/Onboarding/6 - GoalSetting/2 - TargetWeight/TargetWeightRouter.swift",
+				"Core/Onboarding/6 - GoalSetting/3 - WeightRate/WeightRateInteractor.swift",
+				"Core/Onboarding/6 - GoalSetting/3 - WeightRate/WeightRatePresenter.swift",
+				"Core/Onboarding/6 - GoalSetting/3 - WeightRate/WeightRateRouter.swift",
+				"Core/Onboarding/6 - GoalSetting/4 - GoalSummary/GoalSummaryInteractor.swift",
+				"Core/Onboarding/6 - GoalSetting/4 - GoalSummary/GoalSummaryPresenter.swift",
+				"Core/Onboarding/6 - GoalSetting/4 - GoalSummary/GoalSummaryRouter.swift",
 				"Core/Onboarding/8 - OnboardingDiet/0 - CustomisingProgram/OnboardingCustomisingProgramInteractor.swift",
 				"Core/Onboarding/8 - OnboardingDiet/0 - CustomisingProgram/OnboardingCustomisingProgramPresenter.swift",
 				"Core/Onboarding/8 - OnboardingDiet/0 - CustomisingProgram/OnboardingCustomisingProgramRouter.swift",
@@ -350,6 +314,10 @@
 				Core/Profile/Subviews/TrainingSettings/Exercises/ExerciseTemplateDetail/ExerciseTemplateDetailInteractor.swift,
 				Core/Profile/Subviews/TrainingSettings/Exercises/ExerciseTemplateDetail/ExerciseTemplateDetailPresenter.swift,
 				Core/Profile/Subviews/TrainingSettings/Exercises/ExerciseTemplateDetail/ExerciseTemplateDetailRouter.swift,
+				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/CreateGymProfile/CreateGymProfileInteractor.swift,
+				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/CreateGymProfile/CreateGymProfilePresenter.swift,
+				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/CreateGymProfile/CreateGymProfileRouter.swift,
+				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/CreateGymProfile/CreateGymProfileView.swift,
 				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/EditBand/AddBand/AddBandInteractor.swift,
 				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/EditBand/AddBand/AddBandPresenter.swift,
 				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/EditBand/AddBand/AddBandRouter.swift,
@@ -653,7 +621,6 @@
 				Managers/Training/WorkoutTemplate/WorkoutTemplateManager.swift,
 				Managers/Training/WorkoutTemplate/WorkoutTemplateResolver.swift,
 				Managers/User/Models/UserModel.swift,
-				Managers/User/Models/UserModelBuilder.swift,
 				Managers/User/Services/Local/LocalUserPersistence.swift,
 				Managers/User/Services/Local/MockUserPersistence.swift,
 				Managers/User/Services/MockUserServices.swift,
@@ -681,8 +648,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				Managers/Purchases/StoreKit/DialedInPurchaseConfiguration.storekit,
-				Managers/Purchases/StoreKit/StoreKitTestCertificate.cer,
 			);
 			target = D0A2993C2E54AEA700DA64F7 /* DialedIn */;
 		};
@@ -857,134 +822,94 @@
 				Core/Nutrition/Recipes/RecipeStart/RecipeStartRouter.swift,
 				Core/Nutrition/Recipes/RecipeStart/RecipeStartView.swift,
 				Core/Nutrition/Recipes/RecipesView.swift,
-				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomeInteractor.swift",
-				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomePresenter.swift",
-				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomeRouter.swift",
-				"Core/Onboarding/0 - OnboardingWelcomeView/OnboardingWelcomeView.swift",
-				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroInteractor.swift",
-				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroPresenter.swift",
-				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroRouter.swift",
-				"Core/Onboarding/1 - OnboardingIntroView/OnboardingIntroView.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsInteractor.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsPresenter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsRouter.swift",
-				"Core/Onboarding/2 - OnboardingAuthView/AuthOptionsView.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionInteractor.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionPresenter.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionRouter.swift",
-				"Core/Onboarding/3 - OnboardingSubscription/OnboardingSubscriptionView.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/0 - CompleteAccountSetup/OnboardingCompleteAccountSetupView.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/1 - OnboardingNamePhoto/OnboardingNamePhotoInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/1 - OnboardingNamePhoto/OnboardingNamePhotoPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/1 - OnboardingNamePhoto/OnboardingNamePhotoRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/1 - OnboardingNamePhoto/OnboardingNamePhotoView.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/2 - OnboardingGender/OnboardingGenderInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/2 - OnboardingGender/OnboardingGenderPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/2 - OnboardingGender/OnboardingGenderRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/2 - OnboardingGender/OnboardingGenderView.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/3 - OnboardingDateOfBirth/OnboardingDateOfBirthDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/3 - OnboardingDateOfBirth/OnboardingDateOfBirthInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/3 - OnboardingDateOfBirth/OnboardingDateOfBirthPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/3 - OnboardingDateOfBirth/OnboardingDateOfBirthRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/3 - OnboardingDateOfBirth/OnboardingDateOfBirthView.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/4 - OnboardingHeight/OnboardingHeightDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/4 - OnboardingHeight/OnboardingHeightInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/4 - OnboardingHeight/OnboardingHeightPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/4 - OnboardingHeight/OnboardingHeightRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/4 - OnboardingHeight/OnboardingHeightView.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/5 - OnboardingWeight/OnboardingWeightDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/5 - OnboardingWeight/OnboardingWeightInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/5 - OnboardingWeight/OnboardingWeightPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/5 - OnboardingWeight/OnboardingWeightRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/5 - OnboardingWeight/OnboardingWeightView.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/6 - OnboardingExerciseFrequency/OnboardingExerciseFrequencyDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/6 - OnboardingExerciseFrequency/OnboardingExerciseFrequencyInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/6 - OnboardingExerciseFrequency/OnboardingExerciseFrequencyPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/6 - OnboardingExerciseFrequency/OnboardingExerciseFrequencyRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/6 - OnboardingExerciseFrequency/OnboardingExerciseFrequencyView.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/7 - OnboardingActivity/OnboardingActivityDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/7 - OnboardingActivity/OnboardingActivityInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/7 - OnboardingActivity/OnboardingActivityPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/7 - OnboardingActivity/OnboardingActivityRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/7 - OnboardingActivity/OnboardingActivityView.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/8 - OnboardingCardioFitness/OnboardingCardioFitnessDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/8 - OnboardingCardioFitness/OnboardingCardioFitnessInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/8 - OnboardingCardioFitness/OnboardingCardioFitnessPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/8 - OnboardingCardioFitness/OnboardingCardioFitnessRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/8 - OnboardingCardioFitness/OnboardingCardioFitnessView.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/9 - OnboardingExpenditure/OnboardingExpenditureDelegate.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/9 - OnboardingExpenditure/OnboardingExpenditureInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/9 - OnboardingExpenditure/OnboardingExpenditurePresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/9 - OnboardingExpenditure/OnboardingExpenditureRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/9 - OnboardingExpenditure/OnboardingExpenditureView.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/10 - OnboardingNotifications/OnboardingNotificationsInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/10 - OnboardingNotifications/OnboardingNotificationsPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/10 - OnboardingNotifications/OnboardingNotificationsRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/10 - OnboardingNotifications/OnboardingNotificationsView.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/11 - OnboardingHealthData/OnboardingHealthDataInteractor.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/11 - OnboardingHealthData/OnboardingHealthDataPresenter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/11 - OnboardingHealthData/OnboardingHealthDataRouter.swift",
-				"Core/Onboarding/4 - OnboardingCompleteAccountSetup/11 - OnboardingHealthData/OnboardingHealthDataView.swift",
-				"Core/Onboarding/5 - OnboardingHealthDisclaimer/OnboardingHealthDisclaimerInteractor.swift",
-				"Core/Onboarding/5 - OnboardingHealthDisclaimer/OnboardingHealthDisclaimerPresenter.swift",
-				"Core/Onboarding/5 - OnboardingHealthDisclaimer/OnboardingHealthDisclaimerRouter.swift",
-				"Core/Onboarding/5 - OnboardingHealthDisclaimer/OnboardingHealthDisclaimerView.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/0 - GoalSetting/OnboardingGoalSettingInteractor.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/0 - GoalSetting/OnboardingGoalSettingPresenter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/0 - GoalSetting/OnboardingGoalSettingRouter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/0 - GoalSetting/OnboardingGoalSettingView.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/1 - OnboardingOverarchingObjective/OnboardingOverarchingObjectiveInteractor.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/1 - OnboardingOverarchingObjective/OnboardingOverarchingObjectivePresenter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/1 - OnboardingOverarchingObjective/OnboardingOverarchingObjectiveRouter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/1 - OnboardingOverarchingObjective/OnboardingOverarchingObjectiveView.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/2 - OnboardingTargetWeight/OnboardingTargetWeightDelegate.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/2 - OnboardingTargetWeight/OnboardingTargetWeightInteractor.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/2 - OnboardingTargetWeight/OnboardingTargetWeightPresenter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/2 - OnboardingTargetWeight/OnboardingTargetWeightRouter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/2 - OnboardingTargetWeight/OnboardingTargetWeightView.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/3 - OnboardingWeightRate/OnboardingWeightRateDelegate.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/3 - OnboardingWeightRate/OnboardingWeightRateInteractor.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/3 - OnboardingWeightRate/OnboardingWeightRatePresenter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/3 - OnboardingWeightRate/OnboardingWeightRateRouter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/3 - OnboardingWeightRate/OnboardingWeightRateView.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/4 - OnboardingGoalSummary/OnboardingGoalSummaryDelegate.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/4 - OnboardingGoalSummary/OnboardingGoalSummaryInteractor.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/4 - OnboardingGoalSummary/OnboardingGoalSummaryPresenter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/4 - OnboardingGoalSummary/OnboardingGoalSummaryRouter.swift",
-				"Core/Onboarding/6 - OnboardingGoalSetting/4 - OnboardingGoalSummary/OnboardingGoalSummaryView.swift",
-				"Core/Onboarding/7 - OnboardingTraining/1 - OnboardingTrainingExperience/OnboardingTrainingExperienceDelegate.swift",
-				"Core/Onboarding/7 - OnboardingTraining/1 - OnboardingTrainingExperience/OnboardingTrainingExperienceInteractor.swift",
-				"Core/Onboarding/7 - OnboardingTraining/1 - OnboardingTrainingExperience/OnboardingTrainingExperiencePresenter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/1 - OnboardingTrainingExperience/OnboardingTrainingExperienceRouter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/1 - OnboardingTrainingExperience/OnboardingTrainingExperienceView.swift",
-				"Core/Onboarding/7 - OnboardingTraining/2 - OnboardingTrainingDaysPerWeek/OnboardingTrainingDaysPerWeekDelegate.swift",
-				"Core/Onboarding/7 - OnboardingTraining/2 - OnboardingTrainingDaysPerWeek/OnboardingTrainingDaysPerWeekInteractor.swift",
-				"Core/Onboarding/7 - OnboardingTraining/2 - OnboardingTrainingDaysPerWeek/OnboardingTrainingDaysPerWeekPresenter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/2 - OnboardingTrainingDaysPerWeek/OnboardingTrainingDaysPerWeekRouter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/2 - OnboardingTrainingDaysPerWeek/OnboardingTrainingDaysPerWeekView.swift",
-				"Core/Onboarding/7 - OnboardingTraining/3 - OnboardingTrainingSplit/OnboardingTrainingSplitDelegate.swift",
-				"Core/Onboarding/7 - OnboardingTraining/3 - OnboardingTrainingSplit/OnboardingTrainingSplitInteractor.swift",
-				"Core/Onboarding/7 - OnboardingTraining/3 - OnboardingTrainingSplit/OnboardingTrainingSplitPresenter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/3 - OnboardingTrainingSplit/OnboardingTrainingSplitRouter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/3 - OnboardingTrainingSplit/OnboardingTrainingSplitView.swift",
-				"Core/Onboarding/7 - OnboardingTraining/4 - OnboardingTrainingSchedule/OnboardingTrainingScheduleDelegate.swift",
-				"Core/Onboarding/7 - OnboardingTraining/4 - OnboardingTrainingSchedule/OnboardingTrainingScheduleInteractor.swift",
-				"Core/Onboarding/7 - OnboardingTraining/4 - OnboardingTrainingSchedule/OnboardingTrainingSchedulePresenter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/4 - OnboardingTrainingSchedule/OnboardingTrainingScheduleRouter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/4 - OnboardingTrainingSchedule/OnboardingTrainingScheduleView.swift",
-				"Core/Onboarding/7 - OnboardingTraining/5 - OnboardingTrainingEquipment/OnboardingTrainingEquipmentDelegate.swift",
-				"Core/Onboarding/7 - OnboardingTraining/5 - OnboardingTrainingEquipment/OnboardingTrainingEquipmentInteractor.swift",
-				"Core/Onboarding/7 - OnboardingTraining/5 - OnboardingTrainingEquipment/OnboardingTrainingEquipmentPresenter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/5 - OnboardingTrainingEquipment/OnboardingTrainingEquipmentRouter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/5 - OnboardingTrainingEquipment/OnboardingTrainingEquipmentView.swift",
-				"Core/Onboarding/7 - OnboardingTraining/6 - OnboardingTrainingReview/OnboardingTrainingReviewDelegate.swift",
-				"Core/Onboarding/7 - OnboardingTraining/6 - OnboardingTrainingReview/OnboardingTrainingReviewInteractor.swift",
-				"Core/Onboarding/7 - OnboardingTraining/6 - OnboardingTrainingReview/OnboardingTrainingReviewPresenter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/6 - OnboardingTrainingReview/OnboardingTrainingReviewRouter.swift",
-				"Core/Onboarding/7 - OnboardingTraining/6 - OnboardingTrainingReview/OnboardingTrainingReviewView.swift",
+				"Core/Onboarding/0 - WelcomeView/WelcomeInteractor.swift",
+				"Core/Onboarding/0 - WelcomeView/WelcomePresenter.swift",
+				"Core/Onboarding/0 - WelcomeView/WelcomeRouter.swift",
+				"Core/Onboarding/0 - WelcomeView/WelcomeView.swift",
+				"Core/Onboarding/1 - IntroView/IntroInteractor.swift",
+				"Core/Onboarding/1 - IntroView/IntroPresenter.swift",
+				"Core/Onboarding/1 - IntroView/IntroRouter.swift",
+				"Core/Onboarding/1 - IntroView/IntroView.swift",
+				"Core/Onboarding/2 - AuthView/AuthInteractor.swift",
+				"Core/Onboarding/2 - AuthView/AuthPresenter.swift",
+				"Core/Onboarding/2 - AuthView/AuthRouter.swift",
+				"Core/Onboarding/2 - AuthView/AuthView.swift",
+				"Core/Onboarding/3 - Subscription/SubscriptionInteractor.swift",
+				"Core/Onboarding/3 - Subscription/SubscriptionPresenter.swift",
+				"Core/Onboarding/3 - Subscription/SubscriptionRouter.swift",
+				"Core/Onboarding/3 - Subscription/SubscriptionView.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/0 - CompleteAccountSetup/CompleteAccountSetupInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/0 - CompleteAccountSetup/CompleteAccountSetupPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/0 - CompleteAccountSetup/CompleteAccountSetupRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/0 - CompleteAccountSetup/CompleteAccountSetupView.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/1 - NamePhoto/NamePhotoInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/1 - NamePhoto/NamePhotoPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/1 - NamePhoto/NamePhotoRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/1 - NamePhoto/NamePhotoView.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/2 - Gender/GenderInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/2 - Gender/GenderPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/2 - Gender/GenderRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/2 - Gender/GenderView.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/3 - DateOfBirth/DateOfBirthInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/3 - DateOfBirth/DateOfBirthPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/3 - DateOfBirth/DateOfBirthRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/3 - DateOfBirth/DateOfBirthView.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/4 - Height/HeightInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/4 - Height/HeightPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/4 - Height/HeightRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/4 - Height/HeightView.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/5 - Weight/WeightInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/5 - Weight/WeightPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/5 - Weight/WeightRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/5 - Weight/WeightView.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/6 - ExerciseFrequency/ExerciseFrequencyInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/6 - ExerciseFrequency/ExerciseFrequencyPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/6 - ExerciseFrequency/ExerciseFrequencyRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/6 - ExerciseFrequency/ExerciseFrequencyView.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/7 - Activity/ActivityInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/7 - Activity/ActivityPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/7 - Activity/ActivityRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/7 - Activity/ActivityView.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/8 - CardioFitness/CardioFitnessInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/8 - CardioFitness/CardioFitnessPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/8 - CardioFitness/CardioFitnessRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/8 - CardioFitness/CardioFitnessView.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/9 - Expenditure/ExpenditureInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/9 - Expenditure/ExpenditurePresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/9 - Expenditure/ExpenditureRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/9 - Expenditure/ExpenditureView.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/10 - NotificationsPermissions/NotificationsPermissionsInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/10 - NotificationsPermissions/NotificationsPermissionsPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/10 - NotificationsPermissions/NotificationsPermissionsRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/10 - NotificationsPermissions/NotificationsPermissionsView.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/11 - HealthData/HealthDataInteractor.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/11 - HealthData/HealthDataPresenter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/11 - HealthData/HealthDataRouter.swift",
+				"Core/Onboarding/4 - CompleteAccountSetup/11 - HealthData/HealthDataView.swift",
+				"Core/Onboarding/5 - HealthDisclaimer/HealthDisclaimerInteractor.swift",
+				"Core/Onboarding/5 - HealthDisclaimer/HealthDisclaimerPresenter.swift",
+				"Core/Onboarding/5 - HealthDisclaimer/HealthDisclaimerRouter.swift",
+				"Core/Onboarding/5 - HealthDisclaimer/HealthDisclaimerView.swift",
+				"Core/Onboarding/6 - GoalSetting/0 - GoalSetting/GoalSettingInteractor.swift",
+				"Core/Onboarding/6 - GoalSetting/0 - GoalSetting/GoalSettingPresenter.swift",
+				"Core/Onboarding/6 - GoalSetting/0 - GoalSetting/GoalSettingRouter.swift",
+				"Core/Onboarding/6 - GoalSetting/0 - GoalSetting/GoalSettingView.swift",
+				"Core/Onboarding/6 - GoalSetting/1 - OverarchingObjective/OverarchingObjectiveInteractor.swift",
+				"Core/Onboarding/6 - GoalSetting/1 - OverarchingObjective/OverarchingObjectivePresenter.swift",
+				"Core/Onboarding/6 - GoalSetting/1 - OverarchingObjective/OverarchingObjectiveRouter.swift",
+				"Core/Onboarding/6 - GoalSetting/1 - OverarchingObjective/OverarchingObjectiveView.swift",
+				"Core/Onboarding/6 - GoalSetting/2 - TargetWeight/TargetWeightInteractor.swift",
+				"Core/Onboarding/6 - GoalSetting/2 - TargetWeight/TargetWeightPresenter.swift",
+				"Core/Onboarding/6 - GoalSetting/2 - TargetWeight/TargetWeightRouter.swift",
+				"Core/Onboarding/6 - GoalSetting/2 - TargetWeight/TargetWeightView.swift",
+				"Core/Onboarding/6 - GoalSetting/3 - WeightRate/WeightRateInteractor.swift",
+				"Core/Onboarding/6 - GoalSetting/3 - WeightRate/WeightRatePresenter.swift",
+				"Core/Onboarding/6 - GoalSetting/3 - WeightRate/WeightRateRouter.swift",
+				"Core/Onboarding/6 - GoalSetting/3 - WeightRate/WeightRateView.swift",
+				"Core/Onboarding/6 - GoalSetting/4 - GoalSummary/GoalSummaryInteractor.swift",
+				"Core/Onboarding/6 - GoalSetting/4 - GoalSummary/GoalSummaryPresenter.swift",
+				"Core/Onboarding/6 - GoalSetting/4 - GoalSummary/GoalSummaryRouter.swift",
+				"Core/Onboarding/6 - GoalSetting/4 - GoalSummary/GoalSummaryView.swift",
 				"Core/Onboarding/8 - OnboardingDiet/0 - CustomisingProgram/OnboardingCustomisingProgramInteractor.swift",
 				"Core/Onboarding/8 - OnboardingDiet/0 - CustomisingProgram/OnboardingCustomisingProgramPresenter.swift",
 				"Core/Onboarding/8 - OnboardingDiet/0 - CustomisingProgram/OnboardingCustomisingProgramRouter.swift",
@@ -1095,6 +1020,10 @@
 				Core/Profile/Subviews/TrainingSettings/Exercises/ExerciseTemplateDetail/ExerciseTemplateDetailPresenter.swift,
 				Core/Profile/Subviews/TrainingSettings/Exercises/ExerciseTemplateDetail/ExerciseTemplateDetailRouter.swift,
 				Core/Profile/Subviews/TrainingSettings/Exercises/ExerciseTemplateDetail/ExerciseTemplateDetailView.swift,
+				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/CreateGymProfile/CreateGymProfileInteractor.swift,
+				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/CreateGymProfile/CreateGymProfilePresenter.swift,
+				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/CreateGymProfile/CreateGymProfileRouter.swift,
+				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/CreateGymProfile/CreateGymProfileView.swift,
 				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/EditBand/AddBand/AddBandInteractor.swift,
 				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/EditBand/AddBand/AddBandPresenter.swift,
 				Core/Profile/Subviews/TrainingSettings/GymProfiles/GymProfile/EditBand/AddBand/AddBandRouter.swift,
@@ -1468,7 +1397,6 @@
 				Managers/Training/WorkoutTemplate/WorkoutTemplateManager.swift,
 				Managers/Training/WorkoutTemplate/WorkoutTemplateResolver.swift,
 				Managers/User/Models/UserModel.swift,
-				Managers/User/Models/UserModelBuilder.swift,
 				Managers/User/Services/Local/FileManagerUserPersistence.swift,
 				Managers/User/Services/Local/LocalUserPersistence.swift,
 				Managers/User/Services/Local/MockUserPersistence.swift,
@@ -1557,8 +1485,6 @@
 				D0CE89ED2EB237B100EED3B5 /* FirebaseFirestore in Frameworks */,
 				D0CE8B072EB23C0D00EED3B5 /* FirebaseStorage in Frameworks */,
 				D0CE8B052EB23C0800EED3B5 /* FirebaseFunctions in Frameworks */,
-				D00C3F592EE9D413000BA387 /* SwiftfulAuthUI in Frameworks */,
-				D00C3F572EE9D413000BA387 /* SwiftfulAuthenticating in Frameworks */,
 				D0CE8B112EB23C3300EED3B5 /* SwiftfulUtilities in Frameworks */,
 				D0CE8B012EB23B8C00EED3B5 /* FirebaseAppCheck in Frameworks */,
 				D0CE8B032EB23B9000EED3B5 /* FirebaseCrashlytics in Frameworks */,
@@ -1584,14 +1510,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				D04CF16D2F492A0F002876A8 /* SwiftfulUI in Frameworks */,
-				D0E7A89F2EE2D87800BEE79F /* SwiftfulAuthUI in Frameworks */,
 				D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */,
 				D0E7AA692EE2DB6100BEE79F /* SwiftfulLogging in Frameworks */,
 				D0E7D5A32EE3139400BEE79F /* FirebaseRemoteConfig in Frameworks */,
+				D0BF744F2F4CADF300DE875A /* SwiftfulAuthenticating in Frameworks */,
 				D06E0A8D2F282F8400746BD6 /* SwiftfulRouting in Frameworks */,
 				D0E7AA722EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics in Frameworks */,
 				D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */,
 				D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */,
+				D0BF744D2F4CADF300DE875A /* SwiftfulAuthUI in Frameworks */,
 				D0E7D5E92EE34B6B00BEE79F /* RevenueCat in Frameworks */,
 				D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */,
 				D05D0BAA2E8EA15E0027C662 /* FirebaseAnalytics in Frameworks */,
@@ -1606,7 +1533,6 @@
 				D0E7D5AA2EE31EDD00BEE79F /* SwiftfulPurchasing in Frameworks */,
 				D0EC899E2F2BAD7000845CB6 /* SwiftfulSoundEffects in Frameworks */,
 				D0E7D5AD2EE31EF800BEE79F /* SwiftfulPurchasingRevenueCat in Frameworks */,
-				D0E7A8A12EE2D87800BEE79F /* SwiftfulAuthenticating in Frameworks */,
 				D0E7AA6C2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel in Frameworks */,
 				D0E7A8A42EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase in Frameworks */,
 				D05D0BBB2E8EA1C00027C662 /* FirebaseCrashlytics in Frameworks */,
@@ -1725,8 +1651,6 @@
 				D0CE8B0A2EB23C1B00EED3B5 /* OpenAI */,
 				D0CE8B0C2EB23C2200EED3B5 /* SDWebImageSwiftUI */,
 				D0CE8B102EB23C3300EED3B5 /* SwiftfulUtilities */,
-				D00C3F562EE9D413000BA387 /* SwiftfulAuthenticating */,
-				D00C3F582EE9D413000BA387 /* SwiftfulAuthUI */,
 			);
 			productName = DialedInUITests;
 			productReference = D012F0752EAD20760014C602 /* DialedInUITests.xctest */;
@@ -1788,8 +1712,6 @@
 				D05D0BB82E8EA1710027C662 /* SDWebImageSwiftUI */,
 				D05D0BBA2E8EA1C00027C662 /* FirebaseCrashlytics */,
 				D05D0BBD2E8EA22E0027C662 /* SwiftfulUtilities */,
-				D0E7A89E2EE2D87800BEE79F /* SwiftfulAuthUI */,
-				D0E7A8A02EE2D87800BEE79F /* SwiftfulAuthenticating */,
 				D0E7A8A32EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase */,
 				D0E7AA682EE2DB6100BEE79F /* SwiftfulLogging */,
 				D0E7AA6B2EE2DB7600BEE79F /* SwiftfulLoggingMixpanel */,
@@ -1806,6 +1728,8 @@
 				D0EC899D2F2BAD7000845CB6 /* SwiftfulSoundEffects */,
 				D0136D512F48EE9100729550 /* FirebaseMessaging */,
 				D04CF16C2F492A0F002876A8 /* SwiftfulUI */,
+				D0BF744C2F4CADF300DE875A /* SwiftfulAuthUI */,
+				D0BF744E2F4CADF300DE875A /* SwiftfulAuthenticating */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -1852,7 +1776,6 @@
 				D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				D05D0BB72E8EA1710027C662 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */,
-				D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */,
 				D0E7A8A22EE2D90700BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticatingFirebase" */,
 				D0E7AA672EE2DB6100BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLogging" */,
 				D0E7AA6A2EE2DB7600BEE79F /* XCRemoteSwiftPackageReference "SwiftfulLoggingMixpanel" */,
@@ -1866,6 +1789,7 @@
 				D0EC89942F2BACF000845CB6 /* XCRemoteSwiftPackageReference "SwiftfulHaptics" */,
 				D0EC899C2F2BAD7000845CB6 /* XCRemoteSwiftPackageReference "SwiftfulSoundEffects" */,
 				D04CF16B2F492A0F002876A8 /* XCRemoteSwiftPackageReference "SwiftfulUI" */,
+				D0BF744B2F4CADF300DE875A /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
@@ -2265,7 +2189,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_ASSET_PATHS = "DialedIn/PreviewContent/Preview\\ Assets.xcassets";
+				DEVELOPMENT_ASSET_PATHS = "\"DialedIn/SupportingFiles/PreviewContent/Preview\\ Assets.xcassets\"";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2567,7 +2491,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_ASSET_PATHS = "DialedIn/PreviewContent/Preview\\ Assets.xcassets";
+				DEVELOPMENT_ASSET_PATHS = "\"DialedIn/SupportingFiles/PreviewContent/Preview\\ Assets.xcassets\"";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2632,7 +2556,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_ASSET_PATHS = "DialedIn/PreviewContent/Preview\\ Assets.xcassets";
+				DEVELOPMENT_ASSET_PATHS = "\"DialedIn/SupportingFiles/PreviewContent/Preview\\ Assets.xcassets\"";
 				DEVELOPMENT_TEAM = VRNWC32C76;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2797,12 +2721,12 @@
 				minimumVersion = 0.0.0;
 			};
 		};
-		D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */ = {
+		D0BF744B2F4CADF300DE875A /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulAuthenticating.git";
+			repositoryURL = "https://github.com/andrewcoyle1/SwiftfulAuthenticating.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.13;
+				branch = main;
+				kind = branch;
 			};
 		};
 		D0E7A8A22EE2D90700BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticatingFirebase" */ = {
@@ -2896,16 +2820,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		D00C3F562EE9D413000BA387 /* SwiftfulAuthenticating */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */;
-			productName = SwiftfulAuthenticating;
-		};
-		D00C3F582EE9D413000BA387 /* SwiftfulAuthUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */;
-			productName = SwiftfulAuthUI;
-		};
 		D0136D512F48EE9100729550 /* FirebaseMessaging */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
@@ -2996,6 +2910,16 @@
 			package = D06E0A8B2F282F8400746BD6 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */;
 			productName = SwiftfulRouting;
 		};
+		D0BF744C2F4CADF300DE875A /* SwiftfulAuthUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0BF744B2F4CADF300DE875A /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */;
+			productName = SwiftfulAuthUI;
+		};
+		D0BF744E2F4CADF300DE875A /* SwiftfulAuthenticating */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0BF744B2F4CADF300DE875A /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */;
+			productName = SwiftfulAuthenticating;
+		};
 		D0CE89E62EB2379000EED3B5 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
@@ -3055,16 +2979,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
 			productName = SwiftfulUtilities;
-		};
-		D0E7A89E2EE2D87800BEE79F /* SwiftfulAuthUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */;
-			productName = SwiftfulAuthUI;
-		};
-		D0E7A8A02EE2D87800BEE79F /* SwiftfulAuthenticating */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D0E7A89D2EE2D87800BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */;
-			productName = SwiftfulAuthenticating;
 		};
 		D0E7A8A32EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase */ = {
 			isa = XCSwiftPackageProductDependency;

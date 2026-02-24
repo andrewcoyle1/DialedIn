@@ -9,7 +9,6 @@
 protocol OnboardingCustomisingProgramRouter {
     func showDevSettingsView()
     func showOnboardingPreferredDietView()
-    func showOnboardingTrainingExperienceView(delegate: OnboardingTrainingExperienceDelegate)
 }
 
 extension CoreRouter: OnboardingCustomisingProgramRouter { }

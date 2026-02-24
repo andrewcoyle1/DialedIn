@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct OnboardingDietPlanView: View {
 
@@ -30,6 +29,17 @@ struct OnboardingDietPlanView: View {
         .navigationTitle("Your Diet Plan")
         .toolbar {
             toolbarContent
+        }
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                presenter.navigate()
+            } label: {
+                Text("Continue")
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .padding(.horizontal)
         }
         .onAppear {
             presenter.createPlan(dietPlanBuilder: delegate.dietPlanBuilder)
@@ -89,7 +99,7 @@ struct OnboardingDietPlanView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         #if DEBUG || MOCK
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
             } label: {
@@ -97,15 +107,6 @@ struct OnboardingDietPlanView: View {
             }
         }
         #endif
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        ToolbarItem(placement: .bottomBar) {
-            Button {
-                presenter.navigate()
-            } label: {
-                Image(systemName: "chevron.right")
-            }
-            .buttonStyle(.glassProminent)
-        }
     }
     
     private func labelValue(_ label: String, _ value: String) -> some View {

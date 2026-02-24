@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftfulRouting
 
 struct EnumPickerDelegate<Item: PickableItem> {
     let navigationTitle: String

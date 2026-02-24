@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 import UserNotifications
 
 struct NotificationsView: View {

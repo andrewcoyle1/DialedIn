@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct WorkoutPickerDelegate {
     /// Strongly-typed callbacks used by calling code

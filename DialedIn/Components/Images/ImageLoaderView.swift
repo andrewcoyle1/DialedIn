@@ -25,7 +25,7 @@ struct AnyShape: Shape {
 
 struct ImageLoaderView: View {
     
-    var urlString: String = Constants.randomImage
+    var urlString: String = "SplashScreen"
     var resizingMode: ContentMode = .fill
     var forceTransitionAnimation: Bool = false
     var clipShape: AnyShape = AnyShape(Rectangle())

@@ -6,16 +6,17 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct OnboardingPreferredDietView: View {
 
+    @Environment(\.colorScheme) private var colorScheme
+    
     @State var presenter: OnboardingPreferredDietPresenter
 
     var body: some View {
         List {
-            ForEach(PreferredDiet.allCases) { diet in
-                Section {
+            Section {
+                ForEach(PreferredDiet.allCases) { diet in
                     HStack(alignment: .center, spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(diet.description)
@@ -28,22 +29,37 @@ struct OnboardingPreferredDietView: View {
                         Image(systemName: presenter.selectedDiet == diet ? "checkmark.circle.fill" : "circle")
                             .foregroundStyle(presenter.selectedDiet == diet ? .accent : .secondary)
                     }
-                    .contentShape(Rectangle())
-                    .onTapGesture { presenter.selectedDiet = diet }
-                    .padding(.vertical)
+                    .padding()
+                    .background(colorScheme.backgroundPrimary)
+                    .anyButton {
+                        presenter.selectedDiet = diet
+                    }
                 }
+                .removeListRowFormatting()
             }
         }
         .navigationTitle("Choose your diet")
         .toolbar {
             toolbarContent
         }
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                presenter.navigateToCalorieFloor()
+            } label: {
+                Text("Continue")
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(presenter.selectedDiet == nil)
+            .padding(.horizontal)
+        }
     }
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         #if DEBUG || MOCK
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
             } label: {
@@ -51,16 +67,6 @@ struct OnboardingPreferredDietView: View {
             }
         }
         #endif
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        ToolbarItem(placement: .bottomBar) {
-            Button {
-                presenter.navigateToCalorieFloor()
-            } label: {
-                Image(systemName: "chevron.right")
-            }
-            .buttonStyle(.glassProminent)
-            .disabled(presenter.selectedDiet == nil)
-        }
     }
 }
 

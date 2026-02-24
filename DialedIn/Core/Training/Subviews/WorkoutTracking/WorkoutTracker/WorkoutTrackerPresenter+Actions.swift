@@ -258,7 +258,7 @@ extension WorkoutTrackerPresenter {
         if let endTime = interactor.restEndTime {
             Task {
                 do {
-                    try await interactor.schedulePushNotification(
+                    let delegate = PushNotificationDelegate(
                         identifier: restTimerNotificationId,
                         title: "Rest Complete",
                         subtitle: "Time to get back to your workout!",
@@ -266,6 +266,7 @@ extension WorkoutTrackerPresenter {
                         sound: true,
                         badge: nil
                     )
+                    try await interactor.schedulePushNotification(delegate: delegate)
                 } catch {
                     // Silently fail - notification is nice to have but not critical
                     print("Failed to schedule rest timer notification: \(error)")
@@ -293,7 +294,8 @@ extension WorkoutTrackerPresenter {
 
     func onGymProfilePressed() {
         guard let gymProfile = favouriteGymProfile else { return }
-        router.showGymProfileView(gymProfile: gymProfile)
+        let delegate = GymProfileDelegate(gymProfile: gymProfile)
+        router.showGymProfileView(delegate: delegate)
     }
 
     // MARK: - Exercise Management

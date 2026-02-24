@@ -1,0 +1,16 @@
+//
+//  SubscriptionRouter.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 27/11/2025.
+//
+
+@MainActor
+protocol SubscriptionRouter {
+    func showDevSettingsView()
+    func showPaywall()
+    func showPaywall(onPurchaseSuccess: @escaping @MainActor () -> Void)
+    func showCompleteAccountSetupView()
+}
+
+extension CoreRouter: SubscriptionRouter { }

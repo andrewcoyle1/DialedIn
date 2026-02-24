@@ -9,7 +9,6 @@ import SwiftUI
 #if os(iOS)
 import UIKit
 #endif
-import SwiftfulRouting
 
 struct TrainingView<CalendarHeaderView: View>: View {
 
@@ -31,9 +30,6 @@ struct TrainingView<CalendarHeaderView: View>: View {
             
             moreSection
         }
-//        .refreshable {
-//            await presenter.refreshData()
-//        }
         .navigationTitle("Training")
         .toolbarTitleDisplayMode(.inlineLarge)
         .scrollIndicators(.hidden)
@@ -67,8 +63,7 @@ struct TrainingView<CalendarHeaderView: View>: View {
                         presenter.onDatePressed(date: date)
                     },
                     getForDate: { date in
-                        return 0
-//                        presenter.getLoggedWorkoutCountForDate(date, calendar: presenter.calendar)
+                        presenter.getLoggedWorkoutCountForDate(date, calendar: presenter.calendar)
                     }
                 )
             )

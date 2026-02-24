@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct NutritionLibraryPickerDelegate {
     var onPick: (MealItemModel) -> Void

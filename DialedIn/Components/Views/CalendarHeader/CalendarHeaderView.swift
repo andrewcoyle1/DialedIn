@@ -56,7 +56,8 @@ struct CalendarHeaderView: View {
             Text(day.formatted(.dateTime.day()))
         }
         .monospaced()
-        .foregroundStyle(presenter.calendar.isDate(day, inSameDayAs: Date.now) ? .blue : .primary)
+        .foregroundStyle(presenter.calendar.isDate(day, inSameDayAs: Date.now) ? Color.accentColor : .primary)
+        .opacity(presenter.calendar.isDate(day, inSameDayAs: Date.now) ? 1 : 0.4)
         .fontWeight(presenter.calendar.isDate(day, inSameDayAs: Date.now) ? .semibold : .regular)
         .padding(.vertical, 8)
         .frame(width: 40)

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct WorkoutSessionDetailDelegate {
     let workoutSession: WorkoutSessionModel
@@ -147,7 +146,7 @@ struct WorkoutSessionDetailView: View {
                         Text("Add Exercise")
                     }
                     .font(.subheadline)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(Color.accentColor)
                 }
             } else {
                 ForEach(Array(session.exercises.enumerated()), id: \.element.id) { index, exercise in
@@ -228,7 +227,7 @@ struct WorkoutSessionDetailView: View {
                     .textInputAutocapitalization(.sentences)
                 }
                 .padding(8)
-                .background(.blue.opacity(0.1))
+                .background(Color.accentColor.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
         } else if let notes = activeSession.notes, !notes.isEmpty {
@@ -237,7 +236,7 @@ struct WorkoutSessionDetailView: View {
                 .foregroundStyle(.primary)
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.blue.opacity(0.1))
+                .background(Color.accentColor.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }

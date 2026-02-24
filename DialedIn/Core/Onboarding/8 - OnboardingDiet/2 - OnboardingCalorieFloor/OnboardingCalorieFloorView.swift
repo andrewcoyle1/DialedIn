@@ -6,46 +6,38 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct OnboardingCalorieFloorView: View {
 
+    @Environment(\.colorScheme) private var colorScheme
+    
     @State var presenter: OnboardingCalorieFloorPresenter
 
     var delegate: OnboardingCalorieFloorDelegate
 
     var body: some View {
         List {
-            if let daysPerWeek = presenter.trainingDaysPerWeek {
-                Section {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Based on your \(daysPerWeek)-day training program")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .removeListRowFormatting()
-                    .padding(.horizontal)
-                }
-            }
-            
-            ForEach(CalorieFloor.allCases) { type in
-                Section {
-                    HStack(alignment: .center, spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(type.description)
-                                .font(.headline)
-                            Text(type.detailedDescription)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+            Section {
+                ForEach(CalorieFloor.allCases) { type in
+                    Section {
+                        HStack(alignment: .center, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(type.description)
+                                    .font(.headline)
+                                Text(type.detailedDescription)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: 8)
+                            Image(systemName: presenter.selectedFloor == type ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(presenter.selectedFloor == type ? .accent : .secondary)
                         }
-                        Spacer(minLength: 8)
-                        Image(systemName: presenter.selectedFloor == type ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(presenter.selectedFloor == type ? .accent : .secondary)
+                        .padding()
+                        .background(colorScheme.backgroundPrimary)
+                        .onTapGesture { presenter.selectedFloor = type }
                     }
-                    .contentShape(Rectangle())
-                    .onTapGesture { presenter.selectedFloor = type }
-                    .padding(.vertical)
                 }
+                .removeListRowFormatting()
             }
         }
         .navigationTitle("Calorie floor")
@@ -53,12 +45,24 @@ struct OnboardingCalorieFloorView: View {
         .toolbar {
             toolbarContent
         }
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                presenter.navigateToTrainingType(dietPlanBuilder: delegate.dietPlanBuilder)
+            } label: {
+                Text("Continue")
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(presenter.selectedFloor == nil)
+            .padding(.horizontal)
+        }
     }
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         #if DEBUG || MOCK
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
             } label: {
@@ -66,16 +70,6 @@ struct OnboardingCalorieFloorView: View {
             }
         }
         #endif
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        ToolbarItem(placement: .bottomBar) {
-            Button {
-                presenter.navigateToTrainingType(dietPlanBuilder: delegate.dietPlanBuilder)
-            } label: {
-                Image(systemName: "chevron.right")
-            }
-            .buttonStyle(.glassProminent)
-            .disabled(presenter.selectedFloor == nil)
-        }
     }
 }
 

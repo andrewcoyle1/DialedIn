@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct TabBarScreen: Identifiable {
     var id: String {

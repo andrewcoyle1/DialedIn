@@ -20,7 +20,7 @@ extension View {
             .foregroundStyle(Color.white)
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
-            .background(Color.blue)
+            .background(Color.accentColor)
             .cornerRadius(6)
     }
         

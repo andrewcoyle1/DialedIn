@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct SplitViewContainer<TabAccessory: View>: View {
 

@@ -212,8 +212,8 @@ class NutritionManager {
     }
     
     private func calculateActivityMultiplier(
-        dailyActivity: ProfileDailyActivityLevel,
-        exerciseFrequency: ProfileExerciseFrequency
+        dailyActivity: ActivityLevel,
+        exerciseFrequency: ExerciseFrequency
     ) -> Double {
         let baseMultiplier: Double
         switch dailyActivity {

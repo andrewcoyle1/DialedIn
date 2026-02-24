@@ -6,39 +6,40 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct OnboardingCalorieDistributionView: View {
 
+    @Environment(\.colorScheme) private var colorScheme
+    
     @State var presenter: OnboardingCalorieDistributionPresenter
 
     var delegate: OnboardingCalorieDistributionDelegate
 
     var body: some View {
         List {
-            if presenter.hasTrainingPlan {
-                Section {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("We'll bias carbs toward your training days.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .removeListRowFormatting()
-                    .padding(.horizontal)
-                }
-            }
-            
             itemSection
         }
         .navigationTitle("Calorie distribution")
         .toolbar {
             toolbarContent
         }
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                presenter.navigateToProteinIntake(dietPlanBuilder: delegate.dietPlanBuilder)
+            } label: {
+                Text("Continue")
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(presenter.selectedCalorieDistribution == nil)
+            .padding(.horizontal)
+        }
     }
     
     private var itemSection: some View {
-        ForEach(CalorieDistribution.allCases) { type in
-            Section {
+        Section {
+            ForEach(CalorieDistribution.allCases) { type in
                 HStack(alignment: .center, spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(type.description)
@@ -51,17 +52,20 @@ struct OnboardingCalorieDistributionView: View {
                     Image(systemName: presenter.selectedCalorieDistribution == type ? "checkmark.circle.fill" : "circle")
                         .foregroundStyle(presenter.selectedCalorieDistribution == type ? .accent : .secondary)
                 }
-                .contentShape(Rectangle())
-                .onTapGesture { presenter.selectedCalorieDistribution = type }
-                .padding(.vertical)
+                .padding()
+                .background(colorScheme.backgroundPrimary)
+                .anyButton {
+                    presenter.selectedCalorieDistribution = type
+                }
             }
+            .removeListRowFormatting()
         }
     }
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         #if DEBUG || MOCK
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
             } label: {
@@ -69,16 +73,6 @@ struct OnboardingCalorieDistributionView: View {
             }
         }
         #endif
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        ToolbarItem(placement: .bottomBar) {
-            Button {
-                presenter.navigateToProteinIntake(dietPlanBuilder: delegate.dietPlanBuilder)
-            } label: {
-                Image(systemName: "chevron.right")
-            }
-            .buttonStyle(.glassProminent)
-            .disabled(presenter.selectedCalorieDistribution == nil)
-        }
     }
 }
 

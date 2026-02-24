@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct MealDetailDelegate {
     let meal: MealLogModel

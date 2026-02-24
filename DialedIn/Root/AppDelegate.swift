@@ -18,7 +18,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         var config: BuildConfiguration
         
         #if MOCK
-        config = .mock(isSignedIn: true)
+        config = .mock(scenario: .newAnonymous)
         #elseif DEBUG
         config = .dev
         #else
@@ -27,7 +27,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         if Utilities.isUITesting {
             let isSignedIn = ProcessInfo.processInfo.arguments.contains("SIGNED_IN")
-            config = .mock(isSignedIn: isSignedIn)
+            config = .mock(scenario: isSignedIn ? .existingSignedIn : .newAnonymous)
         }
         
         config.configure()
@@ -80,13 +80,18 @@ extension AppDelegate: MessagingDelegate {
     }
 }
 
+enum MockScenario {
+    case newAnonymous
+    case existingSignedOut
+    case existingSignedIn
+}
+
 enum BuildConfiguration {
-    case mock(isSignedIn: Bool), dev, prod
+    case mock(scenario: MockScenario), dev, prod
     
     func configure() {
         switch self {
         case .mock:
-            // Mock build does not run Firebase
             break
         case .dev:
             let plist = Bundle.main.path(forResource: "GoogleService-Info-Dev", ofType: "plist")!

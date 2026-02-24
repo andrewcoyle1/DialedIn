@@ -60,7 +60,7 @@ struct CustomModalView: View {
         }
         .multilineTextAlignment(.center)
         .padding(16)
-        .background(Color(uiColor: .systemBackground))
+        .glassEffect(.regular, in: .rect)
         .cornerRadius(24)
         .padding(40)
     }

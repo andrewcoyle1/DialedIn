@@ -73,7 +73,7 @@ struct AppView<Content: View>: View {
 #Preview("AppView - Onboarding") {
     let container = DevPreview.shared.container()
     container.register(UserManager.self, service: UserManager(services: MockUserServices(user: nil)))
-    container.register(AuthManager.self, service: AuthManager(service: MockAuthService(user: nil)))
+    container.register(AuthManager.self, service: AuthManager(service: MockAuthService(scenario: .newAnonymous)))
     container.register(AppState.self, service: AppState(startingModuleId: Constants.onboardingModuleId))
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
 

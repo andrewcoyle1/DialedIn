@@ -105,7 +105,7 @@ struct EditableExerciseCardView: View {
                     Text("Add Set")
                 }
                 .font(.subheadline)
-                .foregroundStyle(.blue)
+                .foregroundStyle(Color.accentColor)
             }
         }
     }

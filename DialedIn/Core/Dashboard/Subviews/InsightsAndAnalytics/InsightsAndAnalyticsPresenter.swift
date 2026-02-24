@@ -71,7 +71,7 @@ class InsightsAndAnalyticsPresenter {
     }
 
     func onExpenditurePressed(themeColor: Color?) {
-        router.showExpenditureView(delegate: ExpenditureDelegate(), themeColor: themeColor)
+        router.showExpenditureDetailView(delegate: ExpenditureDetailDelegate(), themeColor: themeColor)
     }
 
     var weightTrendSparklineData: [(date: Date, value: Double)] {

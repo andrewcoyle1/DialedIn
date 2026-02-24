@@ -10,6 +10,7 @@ import SwiftUI
 @MainActor
 protocol RemoteUserService: Sendable {
     func getUser(userId: String) async throws -> UserModel
+    func markOnboardingCompleted(userId: String) async throws
     func saveUser(user: UserModel) async throws
     func updateUserName(userId: String, firstName: String?, lastName: String?) async throws
     func saveUserEmail(userId: String, email: String) async throws
@@ -18,9 +19,9 @@ protocol RemoteUserService: Sendable {
     func saveUserGender(userId: String, gender: Gender) async throws
     func saveUserDateOfBirth(userId: String, dateOfBirth: Date) async throws
     func saveUserWeightKilograms(userId: String, weightKg: Double) async throws
-    func saveUserExerciseFrequency(userId: String, exerciseFrequency: ProfileExerciseFrequency) async throws
-    func saveUserDailyActivityLevel(userId: String, dailyActivityLevel: ProfileDailyActivityLevel) async throws
-    func saveUserCardioFitnessLevel(userId: String, cardioFitnessLevel: ProfileCardioFitnessLevel) async throws
+    func saveUserExerciseFrequency(userId: String, exerciseFrequency: ExerciseFrequency) async throws
+    func saveUserDailyActivityLevel(userId: String, dailyActivityLevel: ActivityLevel) async throws
+    func saveUserCardioFitnessLevel(userId: String, cardioFitnessLevel: CardioFitnessLevel) async throws
     func saveUserLengthUnitPreference(userId: String, lengthUnitPreference: LengthUnitPreference) async throws
     func saveUserWeightUnitPreference(userId: String, weightUnitPreference: WeightUnitPreference) async throws
     func saveUserCurrentGoalId(userId: String, currentGoalId: String) async throws

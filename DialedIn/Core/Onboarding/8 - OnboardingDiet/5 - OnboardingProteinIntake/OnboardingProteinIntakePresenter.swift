@@ -14,7 +14,6 @@ class OnboardingProteinIntakePresenter {
     private let router: OnboardingProteinIntakeRouter
 
     var selectedProteinIntake: ProteinIntake?
-    var trainingDifficulty: TrainingExperience?
     var hasTrainingPlan: Bool = false
 
     init(
@@ -23,31 +22,8 @@ class OnboardingProteinIntakePresenter {
     ) {
         self.interactor = interactor
         self.router = router
-        loadTrainingContext()
     }
     
-    private func loadTrainingContext() {
-
-    }
-    
-    private func prefillProteinIntake(difficulty: TrainingExperience) {
-        // Heuristic: beginner -> moderate, intermediate -> high, advanced -> veryHigh
-        if selectedProteinIntake == nil {
-            switch difficulty {
-            case .beginner:
-                selectedProteinIntake = .moderate
-            case .intermediate:
-                selectedProteinIntake = .high
-            case .advanced:
-                selectedProteinIntake = .veryHigh
-            }
-            interactor.trackEvent(event: Event.proteinIntakePrefilled(
-                intake: selectedProteinIntake ?? .moderate,
-                reason: "training_difficulty_\(difficulty)"
-            ))
-        }
-    }
-
     func navigate(dietPlanBuilder: DietPlanBuilder) {
         if let proteinIntake = selectedProteinIntake {
             var builder = dietPlanBuilder
@@ -62,13 +38,11 @@ class OnboardingProteinIntakePresenter {
     }
 
     enum Event: LoggableEvent {
-        case trainingContextLoaded(difficulty: TrainingExperience?)
         case proteinIntakePrefilled(intake: ProteinIntake, reason: String)
         case navigate
 
         var eventName: String {
             switch self {
-            case .trainingContextLoaded: return "Onboarding_ProteinIntake_TrainingContextLoaded"
             case .proteinIntakePrefilled: return "Onboarding_ProteinIntake_Prefilled"
             case .navigate: return "Onboarding_ProteinIntake_Navigate"
             }
@@ -76,8 +50,6 @@ class OnboardingProteinIntakePresenter {
         
         var parameters: [String: Any]? {
             switch self {
-            case .trainingContextLoaded(difficulty: let difficulty):
-                return ["difficulty": difficulty as Any]
             case .proteinIntakePrefilled(intake: let intake, reason: let reason):
                 return ["intake": intake.rawValue, "reason": reason]
             case .navigate:
@@ -87,7 +59,7 @@ class OnboardingProteinIntakePresenter {
         
         var type: LogType {
             switch self {
-            case .navigate, .trainingContextLoaded, .proteinIntakePrefilled:
+            case .navigate, .proteinIntakePrefilled:
                 return .info
             }
         }

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct IngredientAmountDelegate {
     var ingredient: IngredientTemplateModel

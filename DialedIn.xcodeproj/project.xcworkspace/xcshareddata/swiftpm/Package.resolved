@@ -1,5 +1,5 @@
 {
-  "originHash" : "b42b6ea2b6bbad55b3eaef7233e66b7908218700801423ae656994e2b5bef12a",
+  "originHash" : "a93573d42ff6d4708e96e778bdc32bbc4accdc81757ba3830956cde361995b0f",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -229,10 +229,10 @@
     {
       "identity" : "swiftfulauthenticating",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SwiftfulThinking/SwiftfulAuthenticating.git",
+      "location" : "https://github.com/andrewcoyle1/SwiftfulAuthenticating.git",
       "state" : {
-        "revision" : "aa0abd49faff19db01c5e7f499965a5330385db2",
-        "version" : "1.0.13"
+        "branch" : "main",
+        "revision" : "55bef97b9ad4583cabffdd6f78fc06c4094a9cd3"
       }
     },
     {

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct OnboardingCompletedView: View {
 
@@ -27,7 +26,7 @@ struct OnboardingCompletedView: View {
         .navigationBarBackButtonHidden(true)
         #else
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
+            ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     presenter.onDevSettingsPressed()
                 } label: {

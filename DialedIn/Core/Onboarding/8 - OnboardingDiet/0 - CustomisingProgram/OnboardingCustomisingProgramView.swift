@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct OnboardingCustomisingProgramView: View {
 
@@ -19,6 +18,17 @@ struct OnboardingCustomisingProgramView: View {
         .navigationTitle("Customise Program")
         .toolbar {
             toolbarContent
+        }
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                presenter.navigateToPreferredDiet()
+            } label: {
+                Text("Continue")
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .padding(.horizontal)
         }
     }
         
@@ -48,15 +58,6 @@ struct OnboardingCustomisingProgramView: View {
             }
         }
         #endif
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        ToolbarItem(placement: .bottomBar) {
-            Button {
-                presenter.navigateToPreferredDiet()
-            } label: {
-                Image(systemName: "chevron.right")
-            }
-            .buttonStyle(.glassProminent)
-        }
     }
 }
 

@@ -138,11 +138,56 @@ class ProgramDesignPresenter {
             do {
                 try await interactor.upsertTrainingProgram(program: program)
                 try await interactor.setActiveTrainingProgram(programId: program.id)
-                router.dismissEnvironment()
-
+                if delegate.onComplete != nil {
+                    handleNavigation()
+                } else {
+                    router.dismissEnvironment()
+                }
             } catch {
                 router.showAlert(error: error)
             }
+        }
+    }
+
+    // MARK: Handle Navigation
+    func handleNavigation() {
+        if let currentUser = interactor.currentUser {
+            let step = currentUser.inferredOnboardingStep
+            route(to: step)
+        }
+    }
+
+    private func route(to step: OnboardingStep) {
+        switch step {
+        case .auth, .subscription:
+            router.showCompleteAccountSetupView()
+
+        case .completeAccountSetup:
+            router.showCompleteAccountSetupView()
+
+        case .notifications:
+            router.showNotificationsPermissionsView()
+
+        case .healthData:
+            router.showOnboardingHealthDataView()
+
+        case .healthDisclaimer:
+            router.showHealthDisclaimerView()
+
+        case .goalSetting:
+            router.showGoalSettingView()
+
+        case .gymProfileSetup:
+            router.showCreateGymProfileView(delegate: CreateGymProfileDelegate(onComplete: self.handleNavigation))
+
+        case .trainingProgramSetup:
+            router.showOnboardingTrainingProgramView(delegate: CreateProgramDelegate(onComplete: self.handleNavigation))
+
+        case .customiseProgram:
+            router.showOnboardingCustomisingProgramView()
+
+        case .complete:
+            router.showOnboardingCompletedView()
         }
     }
     

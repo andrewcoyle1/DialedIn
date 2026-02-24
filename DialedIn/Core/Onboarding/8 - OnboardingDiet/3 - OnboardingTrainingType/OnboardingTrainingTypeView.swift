@@ -6,18 +6,19 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct OnboardingTrainingTypeView: View {
 
+    @Environment(\.colorScheme) private var colorScheme
+    
     @State var presenter: OnboardingTrainingTypePresenter
 
     var delegate: OnboardingTrainingTypeDelegate
 
     var body: some View {
         List {
-            ForEach(TrainingType.allCases) { type in
-                Section {
+            Section {
+                ForEach(TrainingType.allCases) { type in
                     HStack(alignment: .center, spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(type.description)
@@ -30,10 +31,13 @@ struct OnboardingTrainingTypeView: View {
                         Image(systemName: presenter.selectedTrainingType == type ? "checkmark.circle.fill" : "circle")
                             .foregroundStyle(presenter.selectedTrainingType == type ? .accent : .secondary)
                     }
-                    .contentShape(Rectangle())
-                    .onTapGesture { presenter.selectedTrainingType = type }
-                    .padding(.vertical)
+                    .padding()
+                    .background(colorScheme.backgroundPrimary)
+                    .anyButton {
+                        presenter.selectedTrainingType = type
+                    }
                 }
+                .removeListRowFormatting()
             }
         }
         .navigationTitle("Training Focus")
@@ -41,12 +45,24 @@ struct OnboardingTrainingTypeView: View {
         .toolbar {
             toolbarContent
         }
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                presenter.navigateToCalorieDistribution(dietPlanBuilder: delegate.dietPlanBuilder)
+            } label: {
+                Text("Continue")
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(presenter.selectedTrainingType == nil)
+            .padding(.horizontal)
+        }
     }
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         #if DEBUG || MOCK
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
             } label: {
@@ -54,16 +70,6 @@ struct OnboardingTrainingTypeView: View {
             }
         }
         #endif
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        ToolbarItem(placement: .bottomBar) {
-            Button {
-                presenter.navigateToCalorieDistribution(dietPlanBuilder: delegate.dietPlanBuilder)
-            } label: {
-                Image(systemName: "chevron.right")
-            }
-            .buttonStyle(.glassProminent)
-            .disabled(presenter.selectedTrainingType == nil)
-        }
     }
 }
 

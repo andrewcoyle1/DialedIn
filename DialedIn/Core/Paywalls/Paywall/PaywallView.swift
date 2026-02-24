@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftfulRouting
 
 struct CorePaywallView: View {
     

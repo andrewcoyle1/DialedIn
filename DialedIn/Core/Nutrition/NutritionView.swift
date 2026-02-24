@@ -9,7 +9,6 @@ import SwiftUI
 #if os(iOS)
 import UIKit
 #endif
-import SwiftfulRouting
 
 struct NutritionView<CalendarHeaderView: View>: View {
 

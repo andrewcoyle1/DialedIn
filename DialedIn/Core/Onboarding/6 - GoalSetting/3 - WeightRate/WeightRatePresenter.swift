@@ -1,0 +1,163 @@
+//
+//  WeightRatePresenter.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 28/10/2025.
+//
+
+import SwiftUI
+
+@Observable
+@MainActor
+class WeightRatePresenter {
+    private let interactor: WeightRateInteractor
+    private let router: WeightRateRouter
+
+    let isStandaloneMode: Bool
+    
+    var currentWeight: Double = 0
+    var weightUnit: WeightUnitPreference = .kilograms
+    var didInitialize: Bool = false
+    var weightChangeRate: Double = 0.5 // kg/week
+        
+    enum WeightRateCategory {
+        case conservative, standard, aggressive
+        
+        var title: String {
+            switch self {
+            case .conservative: return "Conservative"
+            case .standard: return "Standard (Recommended)"
+            case .aggressive: return "Aggressive"
+            }
+        }
+    }
+    
+    // MARK: - Constants
+    let minWeightChangeRate: Double = 0.25 // kg/week
+    let maxWeightChangeRate: Double = 1.5  // kg/week
+    let conservativeThreshold: Double = 0.4 // kg/week
+    let aggressiveThreshold: Double = 0.8  // kg/week
+    
+    var currentRateCategory: WeightRateCategory {
+        if weightChangeRate <= conservativeThreshold {
+            return .conservative
+        } else if weightChangeRate >= aggressiveThreshold {
+            return .aggressive
+        } else {
+            return .standard
+        }
+    }
+
+    var canContinue: Bool { weightChangeRate > 0 }
+
+    init(
+        interactor: WeightRateInteractor,
+        router: WeightRateRouter,
+        isStandaloneMode: Bool = false
+    ) {
+        self.interactor = interactor
+        self.router = router
+        self.isStandaloneMode = isStandaloneMode
+    }
+
+    func onAppear(delegate: WeightRateDelegate) {
+        let user = interactor.currentUser
+        currentWeight = user?.submittedWeightKilograms ?? 70
+        weightUnit = user?.submittedWeightUnitPreference ?? .kilograms
+
+        let objective = delegate.overarchingObjective
+        // Set default rate based on objective
+        if objective == .maintain {
+            weightChangeRate = 0
+        } else if objective == .loseWeight {
+            weightChangeRate = 0.5
+        } else if objective == .gainWeight {
+            weightChangeRate = 0.25
+        }
+
+        didInitialize = true
+    }
+
+    func onContinuePressed(delegate: WeightRateDelegate) {
+        let delegate = GoalSummaryDelegate(delegate: delegate, weightChangeRate: weightChangeRate)
+        interactor.trackEvent(event: Event.navigate)
+        router.showGoalSummaryView(delegate: delegate)
+    }
+
+    func weeklyWeightChangeText(delegate: WeightRateDelegate) -> String {
+        let weeklyChangeInKg = weightChangeRate
+        let weeklyChangeInPounds = weightUnit == .pounds ? weeklyChangeInKg * 2.20462 : weeklyChangeInKg
+        let unitText = weightUnit == .pounds ? "lbs" : "kg"
+        let sign = delegate.overarchingObjective == .loseWeight ? "-" : "+"
+        let percentBW = (weeklyChangeInKg / currentWeight) * 100
+        
+        return "\(sign)\(String(format: "%.2f", weeklyChangeInPounds)) \(unitText) (\(String(format: "%.1f", percentBW))% BW) / Week"
+    }
+    
+    func monthlyWeightChangeText(delegate: WeightRateDelegate) -> String {
+        let monthlyChangeInKg = weightChangeRate * 4 // Approximate monthly rate
+        let monthlyChangeInPounds = weightUnit == .pounds ? monthlyChangeInKg * 2.20462 : monthlyChangeInKg
+        let unitText = weightUnit == .pounds ? "lbs" : "kg"
+        let sign = delegate.overarchingObjective == .loseWeight ? "-" : "+"
+        let percentBW = (monthlyChangeInKg / currentWeight) * 100
+        
+        return "\(sign)\(String(format: "%.2f", monthlyChangeInPounds)) \(unitText) (\(String(format: "%.1f", percentBW))% BW) / Month"
+    }
+    
+    func estimatedCalorieTargetText(delegate: WeightRateDelegate) -> String {
+        let weeklyChangeInKg = weightChangeRate
+        let weeklyChangeInPounds = weightUnit == .pounds ? weeklyChangeInKg * 2.20462 : weeklyChangeInKg
+        
+        // Rough estimate: 1 lb = ~3500 calories, so weekly deficit/surplus
+        let weeklyCalorieChange = weeklyChangeInPounds * 3500
+        let dailyCalorieChange = weeklyCalorieChange / 7
+        
+        let baseCalories = 2000.0 // Rough BMR estimate
+        let targetCalories = delegate.overarchingObjective == .loseWeight ?
+            baseCalories - dailyCalorieChange :
+            baseCalories + dailyCalorieChange
+        
+        return "~ \(Int(targetCalories)) kcal estimated daily calorie target"
+    }
+    
+    func estimatedEndDateText(delegate: WeightRateDelegate) -> String {
+        let target = delegate.targetWeight
+        let totalWeightChange = abs(target - currentWeight)
+        let weeklyChangeInKg = weightChangeRate
+        let weeksToGoal = totalWeightChange / weeklyChangeInKg
+        
+        let endDate = Calendar.current.date(byAdding: .weekOfYear, value: Int(weeksToGoal), to: Date()) ?? Date()
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        
+        return "Approximate end date: \(formatter.string(from: endDate))"
+    }
+
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+
+    enum Event: LoggableEvent {
+        case navigate
+
+        var eventName: String {
+            switch self {
+            case .navigate: return "Onboarding_WeightRate_Navigate"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .navigate:
+                return nil
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .navigate:
+                return .info
+            }
+        }
+    }
+}

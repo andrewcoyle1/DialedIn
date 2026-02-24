@@ -24,6 +24,12 @@ struct FirebaseUserService: RemoteUserService {
         try await collection.getDocument(id: userId)
     }
 
+    func markOnboardingCompleted(userId: String) async throws {
+        try await collection.document(userId).updateData([
+            UserModel.CodingKeys.didCompleteOnboarding.rawValue: true
+        ])
+    }
+
     func saveUser(user: UserModel) async throws {
         try collection.document(user.userId).setData(from: user, merge: true)
     }
@@ -77,19 +83,19 @@ struct FirebaseUserService: RemoteUserService {
         ])
     }
 
-    func saveUserExerciseFrequency(userId: String, exerciseFrequency: ProfileExerciseFrequency) async throws {
+    func saveUserExerciseFrequency(userId: String, exerciseFrequency: ExerciseFrequency) async throws {
         try await collection.updateDocument(id: userId, dict: [
             UserModel.CodingKeys.submittedExerciseFrequency.rawValue: exerciseFrequency.rawValue
         ])
     }
 
-    func saveUserDailyActivityLevel(userId: String, dailyActivityLevel: ProfileDailyActivityLevel) async throws {
+    func saveUserDailyActivityLevel(userId: String, dailyActivityLevel: ActivityLevel) async throws {
         try await collection.updateDocument(id: userId, dict: [
             UserModel.CodingKeys.submittedDailyActivityLevel.rawValue: dailyActivityLevel.rawValue
         ])
     }
 
-    func saveUserCardioFitnessLevel(userId: String, cardioFitnessLevel: ProfileCardioFitnessLevel) async throws {
+    func saveUserCardioFitnessLevel(userId: String, cardioFitnessLevel: CardioFitnessLevel) async throws {
         try await collection.updateDocument(id: userId, dict: [
             UserModel.CodingKeys.submittedCardioFitnessLevel.rawValue: cardioFitnessLevel.rawValue
         ])

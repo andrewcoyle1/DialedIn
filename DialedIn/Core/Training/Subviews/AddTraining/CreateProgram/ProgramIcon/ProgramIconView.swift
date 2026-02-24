@@ -1,10 +1,18 @@
 import SwiftUI
 
 struct ProgramIconDelegate {
-    var name: String
+    let onComplete: (() -> Void)?
+    let name: String
+
+    init(onComplete: (() -> Void)? = nil, name: String) {
+        self.onComplete = onComplete
+        self.name = name
+    }
 }
 
 struct ProgramIconView: View {
+    
+    @Environment(\.colorScheme) private var colorScheme
     
     @State var presenter: ProgramIconPresenter
     let delegate: ProgramIconDelegate
@@ -60,6 +68,7 @@ struct ProgramIconView: View {
             .padding(.horizontal)
             Spacer()
         }
+        .background(colorScheme.backgroundSecondary)
         .navigationTitle("Create Program")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -68,21 +77,16 @@ struct ProgramIconView: View {
         .onDisappear {
             presenter.onViewDisappear()
         }
-        .toolbar {
-            toolbarContent
-        }
-    }
-    
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        
-        ToolbarItem(placement: .bottomBar) {
+        .safeAreaInset(edge: .bottom) {
             Button {
-                presenter.onNextPressed(name: delegate.name)
+                presenter.onNextPressed(delegate: delegate)
             } label: {
-                Image(systemName: "chevron.right")
+                Text("Continue")
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.glassProminent)
+            .padding(.horizontal)
         }
     }
 }

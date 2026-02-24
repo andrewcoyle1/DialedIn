@@ -14,9 +14,9 @@ struct CompleteAccountSetupProfileInput {
     let gender: Gender
     let heightCentimeters: Double
     let weightKilograms: Double
-    let exerciseFrequency: ProfileExerciseFrequency
-    let dailyActivityLevel: ProfileDailyActivityLevel
-    let cardioFitnessLevel: ProfileCardioFitnessLevel
+    let exerciseFrequency: ExerciseFrequency
+    let dailyActivityLevel: ActivityLevel
+    let cardioFitnessLevel: CardioFitnessLevel
     let lengthUnitPreference: LengthUnitPreference
     let weightUnitPreference: WeightUnitPreference
 }
@@ -47,6 +47,15 @@ class UserManager {
         return uid
     }
     
+    func getUser(userId: String) async throws -> UserModel {
+        try await remote.getUser(userId: userId)
+    }
+    
+    func saveOnboardingCompleteForCurrentUser() async throws {
+        let uid = try currentUserId()
+        try await remote.markOnboardingCompleted(userId: uid)
+    }
+
     private func saveCurrentUserLocally() {
         logManager?.trackEvent(event: Event.saveLocalStart(user: currentUser))
         Task {
@@ -202,7 +211,7 @@ class UserManager {
             // the correct account (and userId) before logIn returns.
             logManager?.trackEvent(event: Event.logInStart(user: currentUser))
 
-            let existingUser = try await remote.getUser(userId: auth.uid)
+            let existingUser = try await getUser(userId: auth.uid)
             let authProviders = auth.authProviders.map { $0.rawValue }
             let authPhotoUrl = auth.photoURL?.absoluteString
 
@@ -234,7 +243,7 @@ class UserManager {
             Task {
                 try? await remote.updateUserAuthState(
                     userId: auth.uid,
-                    isAnonymous: auth.isAnonymous ?? false,
+                    isAnonymous: auth.isAnonymous,
                     authProviders: authProviders,
                     email: auth.email,
                     displayName: auth.displayName,
@@ -366,14 +375,22 @@ class UserManager {
         let uid = try currentUserId()
         guard let activeProgramId = programId else { return }
         try await remote.saveUserActiveTrainingProgramId(userId: uid, activeTrainingProgramId: activeProgramId)
+        if currentUser != nil {
+            currentUser?.submittedActiveTrainingProgramId = activeProgramId
+            saveCurrentUserLocally()
+        }
     }
 
     // MARK: Update Favourite Gym Profile
-    
+
     func updateFavouriteGymProfileId(profileId: String?) async throws {
         let uid = try currentUserId()
         guard let favouriteGymProfileId = profileId else { return }
         try await remote.saveUserFavouriteGymProfileId(userId: uid, favouriteGymProfileId: favouriteGymProfileId)
+        if currentUser != nil {
+            currentUser?.submittedFavouriteGymProfileId = favouriteGymProfileId
+            saveCurrentUserLocally()
+        }
     }
     
     // MARK: - Update Metadata
@@ -399,6 +416,10 @@ class UserManager {
         let uid = try currentUserId()
         guard let currentGoalId = goalId else { return }
         try await remote.saveUserCurrentGoalId(userId: uid, currentGoalId: currentGoalId)
+        if currentUser != nil {
+            currentUser?.submittedCurrentGoalId = currentGoalId
+            saveCurrentUserLocally()
+        }
     }
     
     // MARK: - Consents
@@ -580,43 +601,6 @@ extension CoreInteractor {
     func saveCompleteAccountSetupProfile(_ input: CompleteAccountSetupProfileInput) async throws -> UserModel {
         try await userManager.saveCompleteAccountSetupProfile(input)
     }
-
-    func saveCompleteAccountSetupProfile(userBuilder: UserModelBuilder) async throws -> UserModel {
-        guard let dob = userBuilder.dateOfBirth,
-              let height = userBuilder.height,
-              let weight = userBuilder.weight,
-              let exercise = userBuilder.exerciseFrequency,
-              let activity = userBuilder.activityLevel,
-              let cardio = userBuilder.cardioFitness,
-              let lengthPref = userBuilder.lengthUnitPreference,
-              let weightPref = userBuilder.weightUnitPreferene else {
-            throw CoreInteractorError.incompleteUserBuilder
-        }
-        let input = CompleteAccountSetupProfileInput(
-            dateOfBirth: dob,
-            gender: userBuilder.gender,
-            heightCentimeters: height,
-            weightKilograms: weight,
-            exerciseFrequency: mapProfileExerciseFrequency(exercise),
-            dailyActivityLevel: mapProfileActivityLevel(activity),
-            cardioFitnessLevel: mapProfileCardioFitness(cardio),
-            lengthUnitPreference: lengthPref,
-            weightUnitPreference: weightPref
-        )
-        return try await saveCompleteAccountSetupProfile(input)
-    }
-
-    private func mapProfileExerciseFrequency(_ frequency: ExerciseFrequency) -> ProfileExerciseFrequency {
-        ProfileExerciseFrequency(rawValue: frequency.rawValue) ?? .threeToFour
-    }
-
-    private func mapProfileActivityLevel(_ activityLevel: ActivityLevel) -> ProfileDailyActivityLevel {
-        ProfileDailyActivityLevel(rawValue: activityLevel.rawValue) ?? .moderate
-    }
-    
-    private func mapProfileCardioFitness(_ level: CardioFitnessLevel) -> ProfileCardioFitnessLevel {
-        ProfileCardioFitnessLevel(rawValue: level.rawValue) ?? .intermediate
-    }
             
     func updateFirstName(firstName: String? = nil, lastName: String? = nil) async throws {
         try await userManager.updateUserName(firstName: firstName)
@@ -666,6 +650,10 @@ extension CoreInteractor {
     
     func updateDidCompleteOnboarding() async throws {
         try await userManager.updateDidCompleteOnboarding()
+    }
+    
+    func saveOnboardingComplete() async throws {
+        try await userManager.saveOnboardingCompleteForCurrentUser()
     }
 
     // Goal Settings

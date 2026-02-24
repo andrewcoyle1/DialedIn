@@ -186,7 +186,7 @@ class ProfilePresenter {
         return weightKg / (heightM * heightM)
     }
 
-    func formatExerciseFrequency(_ frequency: ProfileExerciseFrequency) -> String {
+    func formatExerciseFrequency(_ frequency: ExerciseFrequency) -> String {
         switch frequency {
         case .never: return "Never"
         case .oneToTwo: return "1-2 times/week"
@@ -196,7 +196,7 @@ class ProfilePresenter {
         }
     }
 
-    func formatActivityLevel(_ level: ProfileDailyActivityLevel) -> String {
+    func formatActivityLevel(_ level: ActivityLevel) -> String {
         switch level {
         case .sedentary: return "Sedentary"
         case .light: return "Light"
@@ -206,7 +206,7 @@ class ProfilePresenter {
         }
     }
 
-    func formatCardioFitness(_ level: ProfileCardioFitnessLevel) -> String {
+    func formatCardioFitness(_ level: CardioFitnessLevel) -> String {
         switch level {
         case .beginner: return "Beginner"
         case .novice: return "Novice"

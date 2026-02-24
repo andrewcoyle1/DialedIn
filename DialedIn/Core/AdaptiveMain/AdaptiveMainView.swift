@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct AdaptiveMainView<TabBarView: View, SplitView: View>: View {
 

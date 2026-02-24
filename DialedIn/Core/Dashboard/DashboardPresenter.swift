@@ -192,7 +192,7 @@ class DashboardPresenter {
     }
 
     func onExpenditurePressed(themeColor: Color?) {
-        router.showExpenditureView(delegate: ExpenditureDelegate(), themeColor: themeColor)
+        router.showExpenditureDetailView(delegate: ExpenditureDetailDelegate(), themeColor: themeColor)
     }
 
     func onStepsPressed(themeColor: Color?) {

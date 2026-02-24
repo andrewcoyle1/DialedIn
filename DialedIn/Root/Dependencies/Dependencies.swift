@@ -51,14 +51,28 @@ struct Dependencies {
         let imageUploadManager: ImageUploadManager
         
         switch config {
-        case .mock(isSignedIn: let isSignedIn):
+        case .mock(let scenario):
             logManager = LogManager(services: [
                 ConsoleService(printParameters: true)
             ])
-            authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil))
-            userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
+            switch scenario {
+            case .newAnonymous:
+                authManager = AuthManager(service: MockAuthService(scenario: .newAnonymous))
+                userManager = UserManager(services: MockUserServices(user: nil, delay: 1))
+                purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
+                appState = AppState(startingModuleId: Constants.onboardingModuleId)
+            case .existingSignedOut:
+                authManager = AuthManager(service: MockAuthService(scenario: .existingSignedOut))
+                userManager = UserManager(services: MockUserServices(user: .mockExisting, delay: 1))
+                purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
+                appState = AppState(startingModuleId: Constants.onboardingModuleId)
+            case .existingSignedIn:
+                authManager = AuthManager(service: MockAuthService(scenario: .existingSignedIn))
+                userManager = UserManager(services: MockUserServices(user: .mockExisting, delay: 1))
+                purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
+                appState = AppState(startingModuleId: Constants.tabBarModuleId)
+            }
             abTestManager = ABTestManager(service: MockABTestService(), logger: logManager)
-            purchaseManager = PurchaseManager(service: MockPurchaseService())
             exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: exerciseTemplateManager)
@@ -66,7 +80,7 @@ struct Dependencies {
             exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())
             trainingProgramManager = TrainingProgramManager(services: MockTrainingProgramServices())
             gymProfileManager = GymProfileManager(services: MockGymProfileServices())
-            
+
             ingredientTemplateManager = IngredientTemplateManager(services: MockIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: MockRecipeTemplateServices())
             nutritionManager = NutritionManager(services: MockNutritionServices())
@@ -81,7 +95,6 @@ struct Dependencies {
             liveActivityManager = LiveActivityManager()
             hkWorkoutManager.liveActivityUpdater = liveActivityManager
             #endif
-            appState = AppState(startingModuleId: isSignedIn ? Constants.tabBarModuleId : Constants.onboardingModuleId)
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
             pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
@@ -281,12 +294,12 @@ class DevPreview {
     
     init(isSignedIn: Bool = true) {
         let logManager = LogManager(services: [ConsoleService(printParameters: true)])
-        let userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
+        let userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mockExisting : nil))
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         let hkWorkoutManager = HKWorkoutManager()
         #endif
         
-        self.authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil), logger: logManager)
+        self.authManager = AuthManager(service: MockAuthService(scenario: isSignedIn ? .existingSignedIn : .newAnonymous), logger: logManager)
         self.userManager = userManager
         self.abTestManager = ABTestManager(service: MockABTestService(), logger: logManager)
         self.purchaseManager = PurchaseManager(service: MockPurchaseService())

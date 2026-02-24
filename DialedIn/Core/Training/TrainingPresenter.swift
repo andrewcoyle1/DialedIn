@@ -93,6 +93,11 @@ class TrainingPresenter {
     func onProfilePressed() {
         router.showProfileView()
     }
+    
+    func getLoggedWorkoutCountForDate(_ date: Date, calendar: Calendar) -> Int {
+        // TODO: Implement workout count logic here
+        return 0
+    }
 
     // MARK: - Active Workout Safeguard
     

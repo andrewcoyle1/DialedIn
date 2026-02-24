@@ -23,7 +23,6 @@ class OnboardingCustomisingProgramPresenter {
     
     func navigateToTrainingExperience() {
         interactor.trackEvent(event: Event.navigate)
-        router.showOnboardingTrainingExperienceView(delegate: OnboardingTrainingExperienceDelegate())
     }
     
     func navigateToPreferredDiet() {

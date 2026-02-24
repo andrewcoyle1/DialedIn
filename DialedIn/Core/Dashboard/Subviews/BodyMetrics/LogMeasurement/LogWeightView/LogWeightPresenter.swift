@@ -105,8 +105,3 @@ class LogWeightPresenter {
         router.dismissScreen()
     }
 }
-
-enum UnitOfWeight {
-    case kilograms
-    case pounds
-}

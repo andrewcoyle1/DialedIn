@@ -7,7 +7,6 @@
 
 import SwiftUI
 import PhotosUI
-import SwiftfulRouting
 
 struct CreateRecipeView: View {
     

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 @MainActor
 protocol WorkoutTrackerRouter: GlobalRouter {
@@ -14,7 +13,7 @@ protocol WorkoutTrackerRouter: GlobalRouter {
     func showExercisePickerView(delegate: ExercisePickerDelegate)
     func showWorkoutNotesView(delegate: WorkoutNotesDelegate)
     func showWorkoutSettingsView(delegate: WorkoutSettingsDelegate)
-    func showGymProfileView(gymProfile: GymProfileModel)
+    func showGymProfileView(delegate: GymProfileDelegate)
     func showWarmupSetInfoModal(primaryButtonAction: @escaping () -> Void)
     func showRestModal(primaryButtonAction: @escaping () -> Void, secondaryButtonAction: @escaping () -> Void, minutesSelection: Binding<Int>, secondsSelection: Binding<Int>)
     func showWorkoutExerciseEquipmentSheetView(delegate: WorkoutExerciseEquipmentSheetDelegate)
