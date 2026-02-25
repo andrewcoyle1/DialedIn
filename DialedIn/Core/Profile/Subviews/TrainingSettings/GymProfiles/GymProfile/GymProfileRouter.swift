@@ -19,7 +19,7 @@ protocol GymProfileRouter: GlobalRouter {
     func showGoalSettingView()
     func showCreateGymProfileView(delegate: CreateGymProfileDelegate)
     func showOnboardingTrainingProgramView(delegate: CreateProgramDelegate)
-    func showOnboardingCustomisingProgramView()
+    func showCustomisingDietProgramView()
     func showOnboardingCompletedView()
     
 }

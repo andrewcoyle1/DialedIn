@@ -32,26 +32,25 @@ struct GenderView: View {
         .onDisappear {
             presenter.onViewDisappear()
         }
-        .toolbar {
-            toolbarContent
-        }
+#if DEBUG || MOCK
+.toolbar {
+    toolbarContent
+}
+#endif
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onContinuePressed()
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
+            .accessibilityIdentifier("Continue")
             .disabled(!presenter.canSubmit)
-            .padding(.horizontal)
         }
     }
     
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -59,8 +58,8 @@ struct GenderView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+    #endif
     
     private func genderRow(_ gender: Gender) -> some View {
         HStack(spacing: 12) {

@@ -9,6 +9,8 @@ import SwiftUI
 
 struct CustomModalView: View {
 
+    @Environment(\.colorScheme) private var colorScheme
+    
     var title: String = "Title"
     var subtitle: String? = "This is a subtitle"
     var primaryButtonTitle: String = "Yes"
@@ -38,20 +40,21 @@ struct CustomModalView: View {
             }
 
             VStack(spacing: 8) {
-                Text(primaryButtonTitle)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(.accent)
-                    .foregroundStyle(.white)
-                    .cornerRadius(24)
-                    .anyButton(.press) {
-                        primaryButtonAction()
-                    }
+                Button {
+                    primaryButtonAction()
+                } label: {
+                    Text(primaryButtonTitle)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity)
+                        .foregroundStyle(colorScheme.foregroundSecondary)
+                }
+                .buttonStyle(.borderedProminent)
+
                 Text(secondaryButtonTitle)
                     .font(.headline)
                     .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
                     .tappableBackground()
                     .anyButton(.plain) {
                         secondaryButtonAction()

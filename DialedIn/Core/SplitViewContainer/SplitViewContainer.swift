@@ -60,15 +60,7 @@ extension CoreBuilder {
                 title: "Dashboard",
                 systemImage: "house",
                 screen: {
-                    self.dashboardView(router: router)
-                    .any()
-                }
-            ),
-            TabBarScreen(
-                title: "Nutrition",
-                systemImage: "carrot",
-                screen: {
-                    self.nutritionView(router: router)
+                    self.dashboardView(delegate: DashboardDelegate(), router: router)
                     .any()
                 }
             ),
@@ -76,15 +68,15 @@ extension CoreBuilder {
                 title: "Training",
                 systemImage: "dumbbell",
                 screen: {
-                    self.trainingView(router: router)
+                    self.trainingView(delegate: TrainingDelegate(), router: router)
                     .any()
                 }
             ),
             TabBarScreen(
-                title: "Profile",
-                systemImage: "person",
+                title: "Nutrition",
+                systemImage: "carrot",
                 screen: {
-                    self.profileView(router: router)
+                    self.nutritionView(delegate: NutritionDelegate(), router: router)
                     .any()
                 }
             )

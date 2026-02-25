@@ -58,26 +58,25 @@ struct ExpenditureView: View {
         .onFirstAppear {
             presenter.estimateExpenditure(delegate: delegate)
         }
-        .toolbar {
-            toolbarContent
-        }
+#if DEBUG || MOCK
+.toolbar {
+    toolbarContent
+}
+#endif
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
+            .accessibilityIdentifier("Continue")
             .disabled(!presenter.canContinue)
-            .padding(.horizontal)
         }
     }
     
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -85,8 +84,8 @@ struct ExpenditureView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+    #endif
     
     private var overviewSection: some View {
         Section {

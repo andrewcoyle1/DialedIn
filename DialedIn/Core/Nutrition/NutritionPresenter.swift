@@ -60,6 +60,14 @@ class NutritionPresenter {
         self.router = router
     }
 
+    func onViewAppear(delegate: NutritionDelegate) {
+        interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
+    }
+    
+    func onViewDisappear(delegate: NutritionDelegate) {
+        interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
+    }
+
     func onProfilePressed() {
         router.showProfileView()
     }
@@ -148,5 +156,35 @@ class NutritionPresenter {
 
     func getMealCountForDate(date: Date) -> Int {
         (try? interactor.getMeals(for: date.dayKey).count) ?? 0
+    }
+}
+
+extension NutritionPresenter {
+    enum Event: LoggableEvent {
+        case onAppear(delegate: NutritionDelegate)
+        case onDisappear(delegate: NutritionDelegate)
+        
+        var eventName: String {
+            switch self {
+            case .onAppear: return "NutritionView_Appear"
+            case .onDisappear: return "NutritionView_Disappear"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
+                return delegate.eventParameters
+//            default:
+//                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            default:
+                return .analytic
+            }
+        }
     }
 }

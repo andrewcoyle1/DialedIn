@@ -8,7 +8,7 @@
 import SwiftUI
 
 extension View {
-    
+        
     func callToActionButton(isPrimaryAction: Bool = false) -> some View {
         modifier(CtaButtonViewModifier(isPrimaryAction: isPrimaryAction))
     }

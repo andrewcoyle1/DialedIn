@@ -81,7 +81,7 @@ extension CoreBuilder {
                 systemImage: "house",
                 screen: {
                     RouterView { router in
-                        self.dashboardView(router: router)
+                        self.dashboardView(delegate: DashboardDelegate(), router: router)
                     }
                     .any()
                 }
@@ -91,7 +91,7 @@ extension CoreBuilder {
                 systemImage: "dumbbell",
                 screen: {
                     RouterView { router in
-                        self.trainingView(router: router)
+                        self.trainingView(delegate: TrainingDelegate(), router: router)
                     }
                     .any()
                 }
@@ -101,7 +101,7 @@ extension CoreBuilder {
                 systemImage: "carrot",
                 screen: {
                     RouterView { router in
-                        self.nutritionView(router: router)
+                        self.nutritionView(delegate: NutritionDelegate(), router: router)
                     }
                     .any()
                 }

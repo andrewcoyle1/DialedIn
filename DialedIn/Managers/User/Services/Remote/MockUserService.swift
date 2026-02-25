@@ -8,7 +8,7 @@
 import SwiftUI
 
 @MainActor
-class MockUserService: RemoteUserService {
+class MockUserService: RemoteUserService {    
     
     @Published var currentUser: UserModel?
     let delay: Double
@@ -42,10 +42,9 @@ class MockUserService: RemoteUserService {
         currentUser = user
     }
     
-    func updateUserName(userId: String, firstName: String?, lastName: String?) async throws {
+    func saveUserName(userId: String, firstName: String?, lastName: String?) async throws {
         try tryShowError()
         try? await Task.sleep(for: .seconds(delay))
-
     }
     
     func saveUserEmail(userId: String, email: String) async throws {
@@ -53,32 +52,39 @@ class MockUserService: RemoteUserService {
         try? await Task.sleep(for: .seconds(delay))
 
     }
-    
+
     func saveUserProfileImage(userId: String, image: PlatformImage) async throws {
         try tryShowError()
         try? await Task.sleep(for: .seconds(delay))
 
     }
-    
-    func saveUserLastSignInDate(userId: String) async throws {
-        try tryShowError()
-        try? await Task.sleep(for: .seconds(delay))
 
-    }
-    
     func saveUserGender(userId: String, gender: Gender) async throws {
         try tryShowError()
         try? await Task.sleep(for: .seconds(delay))
-
     }
     
     func saveUserDateOfBirth(userId: String, dateOfBirth: Date) async throws {
         try tryShowError()
         try? await Task.sleep(for: .seconds(delay))
+    }
 
+    func saveUserHeightCentimeters(userId: String, heightInCentimeters: Double, lengthUnitPreference: LengthUnitPreference) async throws {
+        try tryShowError()
+        try? await Task.sleep(for: .seconds(delay))
     }
     
-    func saveUserWeightKilograms(userId: String, weightKg: Double) async throws {
+    func saveUserLengthUnitPreference(userId: String, lengthUnitPreference: LengthUnitPreference) async throws {
+        try tryShowError()
+        try? await Task.sleep(for: .seconds(delay))
+    }
+    
+    func saveUserWeightKilograms(userId: String, weightInKilograms: Double, weightUnitPreference: WeightUnitPreference) async throws {
+        try tryShowError()
+        try? await Task.sleep(for: .seconds(delay))
+    }
+    
+    func saveUserWeightUnitPreference(userId: String, weightUnitPreference: WeightUnitPreference) async throws {
         try tryShowError()
         try? await Task.sleep(for: .seconds(delay))
 
@@ -90,7 +96,7 @@ class MockUserService: RemoteUserService {
 
     }
     
-    func saveUserDailyActivityLevel(userId: String, dailyActivityLevel: ActivityLevel) async throws {
+    func saveUserDailyActivityLevel(userId: String, activityLevel: ActivityLevel) async throws {
         try tryShowError()
         try? await Task.sleep(for: .seconds(delay))
 
@@ -101,23 +107,22 @@ class MockUserService: RemoteUserService {
         try? await Task.sleep(for: .seconds(delay))
 
     }
-    
-    func saveUserLengthUnitPreference(userId: String, lengthUnitPreference: LengthUnitPreference) async throws {
+
+    func saveUserCompleteAccountSetup(userId: String, input: CompleteAccountSetupProfileInput) async throws {
+        try tryShowError()
+        try? await Task.sleep(for: .seconds(delay))
+    }
+
+    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
         try tryShowError()
         try? await Task.sleep(for: .seconds(delay))
 
     }
-    
-    func saveUserWeightUnitPreference(userId: String, weightUnitPreference: WeightUnitPreference) async throws {
-        try tryShowError()
-        try? await Task.sleep(for: .seconds(delay))
-
-    }
-    
+                        
     func saveUserCurrentGoalId(userId: String, currentGoalId: String) async throws {
         try tryShowError()
         try? await Task.sleep(for: .seconds(delay))
-        currentUser?.submittedCurrentGoalId = currentGoalId
+
     }
     
     func saveUserActiveTrainingProgramId(userId: String, activeTrainingProgramId: String) async throws {
@@ -151,12 +156,6 @@ class MockUserService: RemoteUserService {
     }
     
     func updateDidCompleteOnboarding(userId: String) async throws {
-        try tryShowError()
-        try? await Task.sleep(for: .seconds(delay))
-
-    }
-    
-    func markOnboardingCompleted(userId: String) async throws {
         guard var currentUser else {
             throw URLError(.unknown)
         }
@@ -166,19 +165,18 @@ class MockUserService: RemoteUserService {
         currentUser.markDidCompleteOnboarding()
         self.currentUser = currentUser
     }
-
-    // swiftlint:disable:next function_parameter_count
-    func updateUserAuthState(userId: String, isAnonymous: Bool, authProviders: [String], email: String?, displayName: String?, firstName: String?, lastName: String?, phoneNumber: String?, photoUrl: String?, lastSignInDate: Date?) async throws {
-        try tryShowError()
-        try? await Task.sleep(for: .seconds(delay))
-
-    }
-
+    
     func deleteUser(userId: String) async throws {
         try tryShowError()
         try? await Task.sleep(for: .seconds(delay))
 
         currentUser = nil
+    }
+    
+    func saveUserLastSignInDate(userId: String) async throws {
+        try tryShowError()
+        try? await Task.sleep(for: .seconds(delay))
+
     }
     
     func streamUser(userId: String) -> AsyncThrowingStream<UserModel, any Error> {
@@ -197,13 +195,4 @@ class MockUserService: RemoteUserService {
         }
     }
     
-    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
-        try tryShowError()
-        try? await Task.sleep(for: .seconds(delay))
-        currentUser?.acceptedHealthDisclaimerVersion = disclaimerVersion
-        currentUser?.acceptedHealthDisclaimerDate = acceptedAt
-        currentUser?.acceptedHealthPrivacyPolicyVersion = privacyVersion
-        currentUser?.acceptedHealthPrivacyPolicyDate = acceptedAt
-    }
-
 }

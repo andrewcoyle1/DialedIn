@@ -14,7 +14,7 @@ protocol LogWeightInteractor {
     func createWeightEntry(weightEntry: BodyMeasurementEntry) async throws
     func readAllLocalWeightEntries() throws -> [BodyMeasurementEntry]
     func readAllRemoteWeightEntries(userId: String) async throws -> [BodyMeasurementEntry]
-    func updateWeight(userId: String, weightKg: Double) async throws
+    func updateWeight(userId: String, weight: Double, weightUnitPreference: WeightUnitPreference) async throws
 }
 
 extension CoreInteractor: LogWeightInteractor { }

@@ -153,6 +153,9 @@ protocol WorkoutTrackerInteractor {
 
     /// Load unit preferences for an exercise template.
     func getPreference(templateId: String) -> ExerciseUnitPreference
+
+    /// The current workout settings.
+    var workoutSettings: WorkoutSettings { get }
 }
 
 extension CoreInteractor: WorkoutTrackerInteractor { }

@@ -18,33 +18,34 @@ struct SubscriptionView: View {
         .navigationTitle("Subscription")
         .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden()
+        #if DEBUG || MOCK
         .toolbar {
             toolbarContent
         }
+        #endif
+        .safeAreaInset(edge: .bottom) {
+            CallToActionButton {
+                presenter.onContinuePressed()
+            } label: {
+                Text("Continue")
+            }
+            .accessibilityIdentifier("Continue")
+        }
     }
     
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
         }
-        #endif
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        ToolbarItem(placement: .bottomBar) {
-            Button {
-                presenter.navigateToSubscriptionPlan()
-            } label: {
-                Image(systemName: "chevron.right")
-            }
-            .buttonStyle(.glassProminent)
-        }
     }
-    
+#endif
+
     private var whySubscribeSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 14) {

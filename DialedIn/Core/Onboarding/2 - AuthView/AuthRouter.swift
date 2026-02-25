@@ -17,11 +17,10 @@ protocol AuthRouter: GlobalRouter {
     func showGoalSettingView()
     func showCreateGymProfileView(delegate: CreateGymProfileDelegate)
     func showOnboardingTrainingProgramView(delegate: CreateProgramDelegate)
-    func showOnboardingCustomisingProgramView()
+    func showCustomisingDietProgramView()
     func showOnboardingCompletedView()
     
-    func showPaywall()
-    func showPaywall(onPurchaseSuccess: @escaping @MainActor () -> Void)
+    func showPaywall(isOnboarding: Bool)
     func showSubscriptionView()
     func switchToCoreModule()
 }

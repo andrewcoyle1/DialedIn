@@ -41,19 +41,18 @@ struct WeightView: View {
             }
         }
         .navigationTitle("What's your weight?")
-        .toolbar {
-            toolbarContent
-        }
+#if DEBUG || MOCK
+.toolbar {
+    toolbarContent
+}
+#endif
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
-            .padding(.horizontal)
+            .accessibilityIdentifier("Continue")
         }
     }
     
@@ -106,9 +105,9 @@ struct WeightView: View {
         .removeListRowFormatting()
     }
     
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -116,8 +115,8 @@ struct WeightView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+    #endif
 }
 
 extension CoreBuilder {

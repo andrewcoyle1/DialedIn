@@ -28,36 +28,34 @@ struct OnboardingHealthDataView: View {
         }
         .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden(true)
-        .toolbar {
-            toolbarContent
-        }
+#if DEBUG || MOCK
+.toolbar {
+    toolbarContent
+}
+#endif
         .safeAreaInset(edge: .bottom) {
             VStack {
-                Button {
+                CallToActionButton {
                     presenter.onAllowAccessPressed()
                 } label: {
                     Text("Allow access to health data")
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glassProminent)
-                Button {
+                .accessibilityIdentifier("AllowAccessToHealthData")
+
+                CallToActionButton(isPrimaryAction: false) {
                     presenter.onSkipForNowPressed()
                 } label: {
                     Text("Skip for now")
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glass)
+                .accessibilityIdentifier("SkipForNow")
             }
-            .padding(.horizontal)
         }
     }
     
-    @ToolbarContentBuilder
+#if DEBUG || MOCK
+@ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
 
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -65,8 +63,8 @@ struct OnboardingHealthDataView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+#endif
 
     private var yourHealthYourDataSection: some View {
         Section {

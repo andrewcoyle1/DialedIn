@@ -21,34 +21,33 @@ struct CompleteAccountSetupView: View {
         }
         .navigationTitle("Complete Account")
         .navigationBarBackButtonHidden()
+        #if DEBUG || MOCK
         .toolbar {
             toolbarContent
         }
+        #endif
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.handleNavigation()
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
-            .padding(.horizontal)
+            .accessibilityIdentifier("Continue")
         }
     }
     
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
             } label: {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+    #endif
 }
 
 extension CoreBuilder {

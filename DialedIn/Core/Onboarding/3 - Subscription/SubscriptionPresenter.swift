@@ -21,11 +21,9 @@ class SubscriptionPresenter {
         self.router = router
     }
     
-    func navigateToSubscriptionPlan() {
+    func onContinuePressed() {
         interactor.trackEvent(event: Event.navigate)
-        router.showPaywall(onPurchaseSuccess: { [weak self] in
-            self?.router.showCompleteAccountSetupView()
-        })
+        router.showPaywall(isOnboarding: true)
     }
 
     func onDevSettingsPressed() {

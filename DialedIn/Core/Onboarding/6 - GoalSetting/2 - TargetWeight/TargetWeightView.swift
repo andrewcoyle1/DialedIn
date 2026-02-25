@@ -9,18 +9,18 @@ import SwiftUI
 
 struct TargetWeightDelegate {
     let overarchingObjective: OverarchingObjective
-
+    
     static func mock(overarchingObjective: OverarchingObjective) -> Self {
         Self(overarchingObjective: overarchingObjective)
     }
 }
 
 struct TargetWeightView: View {
-
+    
     @State var presenter: TargetWeightPresenter
-
+    
     var delegate: TargetWeightDelegate
-
+    
     var body: some View {
         List {
             if presenter.didInitialize && presenter.weightUnit == .kilograms {
@@ -35,26 +35,25 @@ struct TargetWeightView: View {
         .onFirstAppear {
             presenter.onAppear(delegate: delegate)
         }
+#if DEBUG || MOCK
         .toolbar {
-            toolbarSection
+            toolbarContent
         }
+#endif
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
+            .accessibilityIdentifier("Continue")
             .disabled(!presenter.canContinue)
-            .padding(.horizontal)
         }
     }
     
+#if DEBUG || MOCK
     @ToolbarContentBuilder
-    private var toolbarSection: some ToolbarContent {
-        #if DEBUG || MOCK
+    private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -62,8 +61,8 @@ struct TargetWeightView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+#endif
     
     private var kilogramsSection: some View {
         Section {

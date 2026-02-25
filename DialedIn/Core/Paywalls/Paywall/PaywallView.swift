@@ -1,8 +1,8 @@
 import SwiftUI
 
-struct CorePaywallView: View {
+struct PaywallView: View {
     
-    @State var presenter: CorePaywallPresenter
+    @State var presenter: PaywallPresenter
 
     var body: some View {
         ZStack {
@@ -69,11 +69,13 @@ struct CorePaywallView: View {
             await presenter.onLoadProducts()
         }
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    presenter.onBackButtonPressed()
-                } label: {
-                    Image(systemName: "xmark")
+            if !presenter.isOnboarding {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        presenter.onBackButtonPressed()
+                    } label: {
+                        Image(systemName: "xmark")
+                    }
                 }
             }
         }
@@ -81,27 +83,28 @@ struct CorePaywallView: View {
 }
 
 extension CoreBuilder {
-    func paywallView(router: AnyRouter, onPurchaseSuccess: (@MainActor () -> Void)? = nil) -> some View {
-        CorePaywallView(
-            presenter: CorePaywallPresenter(
+    func paywallView(router: AnyRouter, isOnboarding: Bool = false) -> some View {
+        PaywallView(
+            presenter: PaywallPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self),
-                onPurchaseSuccess: onPurchaseSuccess
+                isOnboarding: isOnboarding
             )
         )
     }
 }
 
 extension CoreRouter {
+
     func showPaywall() {
         router.showScreen(.fullScreenCover) { router in
-            builder.paywallView(router: router)
+            builder.paywallView(router: router, isOnboarding: false)
         }
     }
 
-    func showPaywall(onPurchaseSuccess: @escaping @MainActor () -> Void) {
-        router.showScreen(.fullScreenCover) { [self] router in
-            builder.paywallView(router: router, onPurchaseSuccess: onPurchaseSuccess)
+    func showPaywall(isOnboarding: Bool = false) {
+        router.showScreen(.push) { router in
+            builder.paywallView(router: router, isOnboarding: isOnboarding)
         }
     }
 }

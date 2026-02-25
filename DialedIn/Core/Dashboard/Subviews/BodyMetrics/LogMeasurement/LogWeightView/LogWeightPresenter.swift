@@ -70,7 +70,7 @@ class LogWeightPresenter {
             try await interactor.createWeightEntry(weightEntry: entry)
 
             // Update user's current weight
-            try await interactor.updateWeight(userId: user.userId, weightKg: weightKg)
+            try await interactor.updateWeight(userId: user.userId, weight: weightKg, weightUnitPreference: unit == .kilograms ? .kilograms : .pounds)
 
             // Success haptic feedback
             #if os(iOS)

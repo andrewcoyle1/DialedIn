@@ -20,9 +20,11 @@ struct NotificationsPermissionsView: View {
         .navigationTitle("Notifications")
         .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden(true)
-        .toolbar {
-            toolbarContent
-        }
+#if DEBUG || MOCK
+.toolbar {
+    toolbarContent
+}
+#endif
         .onAppear {
             presenter.onViewAppear()
         }
@@ -31,33 +33,26 @@ struct NotificationsPermissionsView: View {
         }
         .safeAreaInset(edge: .bottom) {
             VStack {
-                Button {
+                CallToActionButton {
                     presenter.onEnableNotificationsPressed()
                 } label: {
                     Text("Enable notifications")
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glassProminent)
+                .accessibilityIdentifier("EnableNotifications")
 
-                Button {
+                CallToActionButton(isPrimaryAction: false) {
                     presenter.onSkipForNowPressed()
                 } label: {
                     Text("Skip for now")
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glass)
-
+                .accessibilityIdentifier("SkipForNow")
             }
-            .padding(.horizontal)
         }
     }
     
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -65,9 +60,8 @@ struct NotificationsPermissionsView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
-        
     }
+    #endif
 
     private var justificationSection: some View {
         Section {

@@ -8,13 +8,7 @@
 import FirebaseFirestore
 import SwiftfulFirestore
 
-typealias ListenerRegistration = FirebaseFirestore.ListenerRegistration
-
-struct AnyListener: @unchecked Sendable {
-    let listener: ListenerRegistration
-}
-
-struct FirebaseUserService: RemoteUserService {
+struct FirebaseUserService: RemoteUserService {    
     
     var collection: CollectionReference {
         Firestore.firestore().collection("users")
@@ -24,17 +18,11 @@ struct FirebaseUserService: RemoteUserService {
         try await collection.getDocument(id: userId)
     }
 
-    func markOnboardingCompleted(userId: String) async throws {
-        try await collection.document(userId).updateData([
-            UserModel.CodingKeys.didCompleteOnboarding.rawValue: true
-        ])
-    }
-
     func saveUser(user: UserModel) async throws {
         try collection.document(user.userId).setData(from: user, merge: true)
     }
-    
-    func updateUserName(userId: String, firstName: String? = nil, lastName: String? = nil) async throws {
+
+    func saveUserName(userId: String, firstName: String? = nil, lastName: String? = nil) async throws {
         try await collection.document(userId).updateData([
             UserModel.CodingKeys.firstName.rawValue: firstName as Any,
             UserModel.CodingKeys.lastName.rawValue: lastName as Any
@@ -57,13 +45,6 @@ struct FirebaseUserService: RemoteUserService {
             UserModel.CodingKeys.submittedProfileImage.rawValue: url.absoluteString
         ])
     }
-    
-    func saveUserLastSignInDate(userId: String) async throws {
-        let lastSignInDate = Date()
-        try await collection.updateDocument(id: userId, dict: [
-            UserModel.CodingKeys.lastSignInDate.rawValue: lastSignInDate
-        ])
-    }
 
     func saveUserGender(userId: String, gender: Gender) async throws {
         try await collection.updateDocument(id: userId, dict: [
@@ -76,10 +57,30 @@ struct FirebaseUserService: RemoteUserService {
             UserModel.CodingKeys.submittedDateOfBirth.rawValue: dateOfBirth
         ])
     }
-    
-    func saveUserWeightKilograms(userId: String, weightKg: Double) async throws {
+
+    func saveUserHeightCentimeters(userId: String, heightInCentimeters: Double, lengthUnitPreference: LengthUnitPreference) async throws {
         try await collection.updateDocument(id: userId, dict: [
-            UserModel.CodingKeys.submittedWeightKilograms.rawValue: weightKg
+            UserModel.CodingKeys.submittedHeightCentimeters.rawValue: heightInCentimeters,
+            UserModel.CodingKeys.submittedLengthUnitPreference.rawValue: lengthUnitPreference.rawValue
+        ])
+    }
+    
+    func saveUserLengthUnitPreference(userId: String, lengthUnitPreference: LengthUnitPreference) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedLengthUnitPreference.rawValue: lengthUnitPreference.rawValue
+        ])
+    }
+
+    func saveUserWeightKilograms(userId: String, weightInKilograms: Double, weightUnitPreference: WeightUnitPreference) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedWeightKilograms.rawValue: weightInKilograms,
+            UserModel.CodingKeys.submittedWeightUnitPreference.rawValue: weightUnitPreference.rawValue
+        ])
+    }
+    
+    func saveUserWeightUnitPreference(userId: String, weightUnitPreference: WeightUnitPreference) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedWeightUnitPreference.rawValue: weightUnitPreference.rawValue
         ])
     }
 
@@ -89,9 +90,9 @@ struct FirebaseUserService: RemoteUserService {
         ])
     }
 
-    func saveUserDailyActivityLevel(userId: String, dailyActivityLevel: ActivityLevel) async throws {
+    func saveUserDailyActivityLevel(userId: String, activityLevel: ActivityLevel) async throws {
         try await collection.updateDocument(id: userId, dict: [
-            UserModel.CodingKeys.submittedDailyActivityLevel.rawValue: dailyActivityLevel.rawValue
+            UserModel.CodingKeys.submittedDailyActivityLevel.rawValue: activityLevel.rawValue
         ])
     }
 
@@ -101,27 +102,33 @@ struct FirebaseUserService: RemoteUserService {
         ])
     }
 
-    func saveUserLengthUnitPreference(userId: String, lengthUnitPreference: LengthUnitPreference) async throws {
+    func saveUserCompleteAccountSetup(userId: String, input: CompleteAccountSetupProfileInput) async throws {
         try await collection.updateDocument(id: userId, dict: [
-            UserModel.CodingKeys.submittedLengthUnitPreference.rawValue: lengthUnitPreference.rawValue
+            UserModel.CodingKeys.submittedDateOfBirth.rawValue: input.dateOfBirth,
+            UserModel.CodingKeys.submittedGender.rawValue: input.gender,
+            UserModel.CodingKeys.submittedHeightCentimeters.rawValue: input.heightCentimeters,
+            UserModel.CodingKeys.submittedLengthUnitPreference.rawValue: input.lengthUnitPreference,
+            UserModel.CodingKeys.submittedWeightKilograms.rawValue: input.weightKilograms,
+            UserModel.CodingKeys.submittedWeightUnitPreference.rawValue: input.weightUnitPreference,
+            UserModel.CodingKeys.submittedExerciseFrequency.rawValue: input.exerciseFrequency,
+            UserModel.CodingKeys.submittedDailyActivityLevel.rawValue: input.dailyActivityLevel,
+            UserModel.CodingKeys.submittedCardioFitnessLevel.rawValue: input.cardioFitnessLevel
         ])
     }
 
-    func saveUserWeightUnitPreference(userId: String, weightUnitPreference: WeightUnitPreference) async throws {
-        try await collection.updateDocument(id: userId, dict: [
-            UserModel.CodingKeys.submittedWeightUnitPreference.rawValue: weightUnitPreference.rawValue
-        ])
+    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
+        let data: [String: Any] = [
+            "accepted_health_disclaimer_version": disclaimerVersion,
+            "accepted_health_disclaimer_at": acceptedAt,
+            "accepted_health_privacy_version": privacyVersion,
+            "accepted_health_privacy_at": acceptedAt
+        ]
+        try await collection.document(userId).updateData(data)
     }
 
     func saveUserCurrentGoalId(userId: String, currentGoalId: String) async throws {
         try await collection.updateDocument(id: userId, dict: [
             UserModel.CodingKeys.submittedCurrentGoalId.rawValue: currentGoalId
-        ])
-    }
-
-    func saveUserActiveTrainingProgramId(userId: String, activeTrainingProgramId: String) async throws {
-        try await collection.updateDocument(id: userId, dict: [
-            UserModel.CodingKeys.submittedActiveTrainingProgramId.rawValue: activeTrainingProgramId
         ])
     }
 
@@ -131,6 +138,18 @@ struct FirebaseUserService: RemoteUserService {
         ])
     }
 
+    func saveUserActiveTrainingProgramId(userId: String, activeTrainingProgramId: String) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.submittedActiveTrainingProgramId.rawValue: activeTrainingProgramId
+        ])
+    }
+
+    func updateDidCompleteOnboarding(userId: String) async throws {
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.didCompleteOnboarding.rawValue: true
+        ])
+    }
+    
     func saveUserFCMToken(userId: String, token: String) async throws {
         try await collection.updateDocument(id: userId, dict: [
             UserModel.CodingKeys.fcmToken.rawValue: token
@@ -149,47 +168,22 @@ struct FirebaseUserService: RemoteUserService {
             UserModel.CodingKeys.blockedUserIds.rawValue: FieldValue.arrayRemove([blockedUserId])
         ])
     }
-    
-    func updateDidCompleteOnboarding(userId: String) async throws {
-        try await collection.updateDocument(id: userId, dict: [
-            UserModel.CodingKeys.didCompleteOnboarding.rawValue: true
-        ])
-    }
 
-    // swiftlint:disable:next function_parameter_count
-    func updateUserAuthState(userId: String, isAnonymous: Bool, authProviders: [String], email: String?, displayName: String?, firstName: String?, lastName: String?, phoneNumber: String?, photoUrl: String?, lastSignInDate: Date?) async throws {
-        var data: [String: Any] = [
-            UserModel.CodingKeys.isAnonymous.rawValue: isAnonymous,
-            UserModel.CodingKeys.authProviders.rawValue: authProviders
-        ]
-        if let email { data[UserModel.CodingKeys.email.rawValue] = email }
-        if let displayName { data[UserModel.CodingKeys.displayName.rawValue] = displayName }
-        if let firstName { data[UserModel.CodingKeys.firstName.rawValue] = firstName }
-        if let lastName { data[UserModel.CodingKeys.lastName.rawValue] = lastName }
-        if let phoneNumber { data[UserModel.CodingKeys.phoneNumber.rawValue] = phoneNumber }
-        if let photoUrl { data[UserModel.CodingKeys.photoUrl.rawValue] = photoUrl }
-        if let lastSignInDate { data[UserModel.CodingKeys.lastSignInDate.rawValue] = lastSignInDate }
-        try await collection.document(userId).updateData(data)
+    // MARK: - User Streaming
+    func streamUser(userId: String) -> AsyncThrowingStream<UserModel, Error> {
+        collection.streamDocument(id: userId)
     }
 
     // MARK: - User deletion
     func deleteUser(userId: String) async throws {
         try await collection.document(userId).delete()
     }
-    
-    // MARK: - User Streaming
-    func streamUser(userId: String) -> AsyncThrowingStream<UserModel, Error> {
-        collection.streamDocument(id: userId)
+        
+    func saveUserLastSignInDate(userId: String) async throws {
+        let lastSignInDate = Date()
+        try await collection.updateDocument(id: userId, dict: [
+            UserModel.CodingKeys.lastSignInDate.rawValue: lastSignInDate
+        ])
     }
 
-    // MARK: - Consents
-    func updateHealthConsents(userId: String, disclaimerVersion: String, privacyVersion: String, acceptedAt: Date) async throws {
-        let data: [String: Any] = [
-            "accepted_health_disclaimer_version": disclaimerVersion,
-            "accepted_health_disclaimer_at": acceptedAt,
-            "accepted_health_privacy_version": privacyVersion,
-            "accepted_health_privacy_at": acceptedAt
-        ]
-        try await collection.document(userId).updateData(data)
-    }
 }

@@ -57,6 +57,14 @@ class TrainingPresenter {
         self.selectedDate = normalizedToday
     }
     
+    func onViewAppear(delegate: TrainingDelegate) {
+        interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
+    }
+    
+    func onViewDisappear(delegate: TrainingDelegate) {
+        interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
+    }
+
     var currentUser: UserModel? {
         interactor.currentUser
     }
@@ -359,7 +367,8 @@ class TrainingPresenter {
     }
         
     enum Event: LoggableEvent {
-        case setActiveSheet(sheet: ActiveSheet)
+        case onAppear(delegate: TrainingDelegate)
+        case onDisappear(delegate: TrainingDelegate)
         case startWorkoutRequestedStart
         case startWorkoutRequestedSuccess
         case startWorkoutRequestedFail(error: Error)
@@ -376,27 +385,28 @@ class TrainingPresenter {
 
         var eventName: String {
             switch self {
-            case .setActiveSheet:                return "ProgramView_SetActiveSheet"
-            case .startWorkoutRequestedStart:    return "ProgramView_StartWorkoutRequested_Start"
-            case .startWorkoutRequestedSuccess:  return "ProgramView_StartWorkoutRequested_Success"
-            case .startWorkoutRequestedFail:     return "ProgramView_StartWorkoutRequested_Fail"
-            case .openCompletedSessionStart:     return "ProgramView_OpenCompletedSession_Start"
-            case .openCompletedSessionSuccess:   return "ProgramView_OpenCompletedSession_Success"
-            case .openCompletedSessionFail:      return "ProgramView_OpenCompletedSession_Fail"
-            case .loadDataStart:                 return "ProgramView_LoadData_Start"
-            case .loadDataSuccess:               return "ProgramView_LoadData_Success"
-            case .loadDataFail:                  return "ProgramView_LoadData_Fail"
-            case .refreshDataStart:              return "ProgramView_RefreshData_Start"
-            case .refreshDataSuccess:            return "ProgramView_RefreshData_Success"
-            case .refreshDataFail:               return "ProgramView_RefreshData_Fail"
-            case .getWeeklyProgress:             return "ProgramView_GetWeeklyProgress"
+            case .onAppear:                      return "TrainingView_Appear"
+            case .onDisappear:                   return "TrainingView_Disappear"
+            case .startWorkoutRequestedStart:    return "TrainingView_StartWorkoutRequested_Start"
+            case .startWorkoutRequestedSuccess:  return "TrainingView_StartWorkoutRequested_Success"
+            case .startWorkoutRequestedFail:     return "TrainingView_StartWorkoutRequested_Fail"
+            case .openCompletedSessionStart:     return "TrainingView_OpenCompletedSession_Start"
+            case .openCompletedSessionSuccess:   return "TrainingView_OpenCompletedSession_Success"
+            case .openCompletedSessionFail:      return "TrainingView_OpenCompletedSession_Fail"
+            case .loadDataStart:                 return "TrainingView_LoadData_Start"
+            case .loadDataSuccess:               return "TrainingView_LoadData_Success"
+            case .loadDataFail:                  return "TrainingView_LoadData_Fail"
+            case .refreshDataStart:              return "TrainingView_RefreshData_Start"
+            case .refreshDataSuccess:            return "TrainingView_RefreshData_Success"
+            case .refreshDataFail:               return "TrainingView_RefreshData_Fail"
+            case .getWeeklyProgress:             return "TrainingView_GetWeeklyProgress"
             }
         }
         
         var parameters: [String: Any]? {
             switch self {
-            case .setActiveSheet(sheet: let sheet):
-                return sheet.eventParameters
+            case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
+                return delegate.eventParameters
             case .loadDataFail(error: let error), .refreshDataFail(error: let error), .startWorkoutRequestedFail(error: let error), .openCompletedSessionFail(error: let error):
                 return error.eventParameters
             default:

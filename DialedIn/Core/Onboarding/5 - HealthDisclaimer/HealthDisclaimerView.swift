@@ -22,9 +22,11 @@ struct HealthDisclaimerView: View {
         .safeAreaInset(edge: .bottom) {
             buttonSection
         }
-        .toolbar {
-            toolbarContent
-        }
+#if DEBUG || MOCK
+.toolbar {
+    toolbarContent
+}
+#endif
     }
     
     private var disclaimerSection: some View {
@@ -37,33 +39,35 @@ struct HealthDisclaimerView: View {
     
     private var buttonSection: some View {
         VStack {
-            Toggle(isOn: $presenter.acceptedTerms) {
-                Text("I acknowledge and accept the Terms of the Health Disclaimer")
-                    .font(.callout)
+            Group {
+                Toggle(isOn: $presenter.acceptedTerms) {
+                    Text("I acknowledge and accept the Terms of the Health Disclaimer")
+                        .font(.callout)
+                }
+                .accessibilityIdentifier("HealthDisclaimerToggle")
+                
+                Toggle(isOn: $presenter.acceptedPrivacy) {
+                    Text("I acknowledge and accept the Terms of the Consumer Health Privacy Notice")
+                        .font(.callout)
+                }
+                .accessibilityIdentifier("HealthPrivacyPolicyToggle")
             }
-            Toggle(isOn: $presenter.acceptedPrivacy) {
-                Text("I acknowledge and accept the Terms of the Consumer Health Privacy Notice")
-                    .font(.callout)
-            }
-            
-            Button {
+            .padding()
+            CallToActionButton {
                 presenter.onContinuePressed()
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
+            .accessibilityIdentifier("Continue")
             .disabled(!presenter.canContinue)
 
         }
-        .padding()
         .background(.bar)
     }
     
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -71,8 +75,8 @@ struct HealthDisclaimerView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+    #endif
 }
 
 extension CoreBuilder {

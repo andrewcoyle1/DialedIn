@@ -89,6 +89,25 @@ extension WorkoutTrackerPresenter {
         var updatedExercises = workoutSession.exercises
         let previousCompletedAt = updatedExercises[exerciseIndex].sets[setIndex].completedAt
         updatedExercises[exerciseIndex].sets[setIndex] = updatedSet
+
+        // Propagate weight/reps changes to uncompleted sibling sets with matching values
+        if interactor.workoutSettings.propagateChanges {
+            let original = exerciseBefore.sets[setIndex]
+            let weightChanged = original.weightKg != updatedSet.weightKg
+            let repsChanged = original.reps != updatedSet.reps
+            if (weightChanged || repsChanged) && updatedSet.completedAt == nil {
+                for index in updatedExercises[exerciseIndex].sets.indices where index != setIndex {
+                    var sibling = updatedExercises[exerciseIndex].sets[index]
+                    guard sibling.completedAt == nil,
+                          sibling.weightKg == original.weightKg,
+                          sibling.reps == original.reps else { continue }
+                    if weightChanged { sibling.weightKg = updatedSet.weightKg }
+                    if repsChanged { sibling.reps = updatedSet.reps }
+                    updatedExercises[exerciseIndex].sets[index] = sibling
+                }
+            }
+        }
+
         let isExerciseCompleteNow = !updatedExercises[exerciseIndex].sets.isEmpty && updatedExercises[exerciseIndex].sets.allSatisfy { $0.completedAt != nil }
         workoutSession.updateExercises(updatedExercises)
         try? interactor.setActiveLocalWorkoutSession(workoutSession)
@@ -104,12 +123,12 @@ extension WorkoutTrackerPresenter {
 
         if !wasExerciseCompleteBefore && isExerciseCompleteNow {
             let nextIndex = exerciseIndex + 1
-            if nextIndex < updatedExercises.count {
+            if nextIndex < updatedExercises.count && interactor.workoutSettings.exerciseAutoNext {
                 expandedExerciseIds.removeAll()
                 expandedExerciseIds.insert(updatedExercises[nextIndex].id)
                 print("🔄 Current exercise index changed: \(currentExerciseIndex) → \(nextIndex) (reason: exercise completed)")
                 currentExerciseIndex = nextIndex
-            } else {
+            } else if nextIndex >= updatedExercises.count {
                 expandedExerciseIds.remove(updatedExercises[exerciseIndex].id)
             }
         }

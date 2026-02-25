@@ -57,7 +57,7 @@ struct WorkoutTrackerView: View {
             toolbarContent
         }
         .safeAreaInset(edge: .bottom) {
-            timerHeaderView()
+            timerHeaderView
         }
         .task(id: delegate.workoutSessionId) {
             await presenter.loadWorkoutSession(delegate.workoutSessionId)
@@ -149,39 +149,48 @@ struct WorkoutTrackerView: View {
     }
     
     // MARK: - Timer Header
-    @ViewBuilder
-    private func timerHeaderView() -> some View {
-        if presenter.isRestActive {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(presenter.isRestActive ? "Rest Timer" : "Workout Time")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-                    if let end = presenter.restEndTime {
-                        let now = Date()
-                        if now < end {
+    private var timerHeaderView: some View {
+        Group {
+            if presenter.isRestActive {
+                let now = Date()
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Rest Timer")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        if let end = presenter.restEndTime,
+                           now < end {
                             Text(timerInterval: now...end)
                                 .font(.title2.bold())
                                 .foregroundColor(.primary)
                         } else {
-                            Text("00:00")
+                            Text((presenter.workoutSession.dateCreated), style: .timer)
                                 .font(.title2.bold())
                                 .foregroundColor(.primary)
                         }
-                    } else {
-                        Text((presenter.workoutSession.dateCreated), style: .timer)
+                    }
+                    
+                    Spacer()
+                }
+            } else if presenter.showWorkoutTimer {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Workout Time")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(presenter.workoutSession.dateCreated, style: .timer)
                             .font(.title2.bold())
                             .foregroundColor(.primary)
                     }
-                    #endif
+                    
+                    Spacer()
                 }
-                
-                Spacer()
             }
-            .padding()
-            .background(.bar)
         }
+        .padding()
+        .glassEffect()
+        .padding(.horizontal)
     }
 
     @ToolbarContentBuilder

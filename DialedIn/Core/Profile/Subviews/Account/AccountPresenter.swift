@@ -90,11 +90,15 @@ class AccountPresenter {
             )
 
             #if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
-            try await interactor.saveUser(user: user, image: uiImage)
+            if let uiImage = selectedImageData.flatMap({ UIImage(data: $0) }) {
+                try await interactor.updateProfileImageUrl(image: uiImage)
+            }
+            try await interactor.saveUser(user: user)
             #elseif canImport(AppKit)
-            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            try await interactor.saveUser(user: user, image: nsImage)
+            if let nsImage = selectedImageData.flatMap({ NSImage(data: $0) }) {
+                try await interactor.updateProfileImageUrl(image: nsImage)
+            }
+            try await interactor.saveUser(user: user)
             #endif
 
             interactor.trackEvent(eventName: "profile_edit_save_success", parameters: [:], type: .analytic)

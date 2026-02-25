@@ -47,20 +47,19 @@ struct CardioFitnessView: View {
             cardioFitnessSection
         }
         .navigationTitle("Cardio Fitness")
-        .toolbar {
-            toolbarContent
-        }
+#if DEBUG || MOCK
+.toolbar {
+    toolbarContent
+}
+#endif
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
+            .accessibilityIdentifier("Continue")
             .disabled(!presenter.canSubmit)
-            .buttonStyle(.glassProminent)
-            .padding(.horizontal)
         }
     }
     
@@ -77,9 +76,9 @@ struct CardioFitnessView: View {
         }
     }
     
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -87,8 +86,8 @@ struct CardioFitnessView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+    #endif
     
     private func cardioFitnessRow(_ level: CardioFitnessLevel) -> some View {
         HStack(spacing: 12) {

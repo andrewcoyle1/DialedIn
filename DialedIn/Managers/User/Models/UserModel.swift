@@ -15,42 +15,42 @@ struct UserModel: Codable, Equatable, Sendable {
     
     // These values come from the user's Auth info
     let userId: String
-    var email: String?
-    var isAnonymous: Bool?
-    var authProviders: [String]?
-    var displayName: String?
-    var firstName: String?
-    var lastName: String?
-    var phoneNumber: String?
-    var photoUrl: String?
+    let email: String?
+    let isAnonymous: Bool?
+    let authProviders: [String]?
+    let displayName: String?
+    let firstName: String?
+    let lastName: String?
+    let phoneNumber: String?
+    let photoUrl: String?
     let creationDate: Date?
     let creationVersion: String?
-    var lastSignInDate: Date?
+    let lastSignInDate: Date?
     
     // These values are submitted by the user
     let submittedEmail: String?
     let submittedFirstName: String?
     let submittedLastName: String?
     let submittedProfileImage: String?
-    var submittedDateOfBirth: Date?
-    var submittedGender: Gender?
-    var submittedHeightCentimeters: Double?
-    var submittedWeightKilograms: Double?
-    var submittedExerciseFrequency: ExerciseFrequency?
-    var submittedDailyActivityLevel: ActivityLevel?
-    var submittedCardioFitnessLevel: CardioFitnessLevel?
-    var submittedLengthUnitPreference: LengthUnitPreference?
-    var submittedWeightUnitPreference: WeightUnitPreference?
-    var submittedCurrentGoalId: String?
-    var submittedFavouriteGymProfileId: String?
-    var submittedActiveTrainingProgramId: String?
+    let submittedDateOfBirth: Date?
+    let submittedGender: Gender?
+    let submittedHeightCentimeters: Double?
+    let submittedWeightKilograms: Double?
+    let submittedExerciseFrequency: ExerciseFrequency?
+    let submittedDailyActivityLevel: ActivityLevel?
+    let submittedCardioFitnessLevel: CardioFitnessLevel?
+    let submittedLengthUnitPreference: LengthUnitPreference?
+    let submittedWeightUnitPreference: WeightUnitPreference?
+    let submittedCurrentGoalId: String?
+    let submittedFavouriteGymProfileId: String?
+    let submittedActiveTrainingProgramId: String?
     let fcmToken: String?
     let blockedUserIds: [String]?
     var didCompleteOnboarding: Bool
-    var acceptedHealthDisclaimerVersion: String?
-    var acceptedHealthDisclaimerDate: Date?
-    var acceptedHealthPrivacyPolicyVersion: String?
-    var acceptedHealthPrivacyPolicyDate: Date?
+    let acceptedHealthDisclaimerVersion: String?
+    let acceptedHealthDisclaimerDate: Date?
+    let acceptedHealthPrivacyPolicyVersion: String?
+    let acceptedHealthPrivacyPolicyDate: Date?
 
     init(
         userId: String,
@@ -160,18 +160,18 @@ struct UserModel: Codable, Equatable, Sendable {
         case submittedLastName = "submitted_last_name"
         case submittedEmail = "submitted_email"
         case submittedProfileImage = "submitted_profile_image"
-        case submittedDateOfBirth = "date_of_birth"
+        case submittedDateOfBirth = "submitted_date_of_birth"
         case submittedGender = "submitted_gender"
-        case submittedHeightCentimeters = "height_cm"
-        case submittedWeightKilograms = "weight_kg"
-        case submittedExerciseFrequency = "exercise_frequency"
-        case submittedDailyActivityLevel = "daily_activity_level"
-        case submittedCardioFitnessLevel = "cardio_fitness_level"
-        case submittedLengthUnitPreference = "length_unit_preference"
-        case submittedWeightUnitPreference = "weight_unit_preference"
-        case submittedCurrentGoalId = "current_goal_id"
-        case submittedActiveTrainingProgramId = "active_training_program_id"
-        case submittedFavouriteGymProfileId = "favourite_gym_profile_id"
+        case submittedHeightCentimeters = "submitted_height_centimeters"
+        case submittedWeightKilograms = "submitted_weight_kilograms"
+        case submittedExerciseFrequency = "submitted_exercise_frequency"
+        case submittedDailyActivityLevel = "submitted_daily_activity_level"
+        case submittedCardioFitnessLevel = "submitted_cardio_fitness_level"
+        case submittedLengthUnitPreference = "submitted_length_unit_preference"
+        case submittedWeightUnitPreference = "submitted_weight_unit_preference"
+        case submittedCurrentGoalId = "submitted_current_goal_id"
+        case submittedActiveTrainingProgramId = "submitted_active_training_program_id"
+        case submittedFavouriteGymProfileId = "submitted_favourite_gym_profile_id"
         case didCompleteOnboarding = "did_complete_onboarding"
         case blockedUserIds = "blocked_user_ids"
         case fcmToken = "fcm_token"

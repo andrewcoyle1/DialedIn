@@ -8,8 +8,7 @@
 @MainActor
 protocol SubscriptionRouter {
     func showDevSettingsView()
-    func showPaywall()
-    func showPaywall(onPurchaseSuccess: @escaping @MainActor () -> Void)
+    func showPaywall(isOnboarding: Bool)
     func showCompleteAccountSetupView()
 }
 

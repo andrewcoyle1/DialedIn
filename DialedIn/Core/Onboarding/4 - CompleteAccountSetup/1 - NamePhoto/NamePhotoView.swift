@@ -20,9 +20,11 @@ struct NamePhotoView: View {
         .scrollIndicators(.hidden)
         .navigationTitle("Create Profile")
         .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            toolbarContent
-        }
+#if DEBUG || MOCK
+.toolbar {
+    toolbarContent
+}
+#endif
         .onAppear(perform: presenter.prefillFromCurrentUser)
         .onChange(of: presenter.selectedPhotoItem) {
             Task {
@@ -30,16 +32,13 @@ struct NamePhotoView: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.saveAndContinue()
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
+            .accessibilityIdentifier("Continue")
             .disabled(!presenter.canContinue)
-            .padding(.horizontal)
         }
     }
     
@@ -69,20 +68,10 @@ struct NamePhotoView: View {
                     .clipShape(Circle())
                     
                 } else if let user = presenter.currentUser,
-                          let cachedImage = ProfileImageCache.shared.getCachedImage(userId: user.userId) {
+                          let image = user.profileImageNameCalculated {
                     Group {
                         // Show cached image if available
-#if canImport(UIKit)
-                        Image(uiImage: cachedImage)
-                            .resizable()
-                            .scaledToFill()
-                            .aspectRatio(1, contentMode: .fit)
-#elseif canImport(AppKit)
-                        Image(nsImage: cachedImage)
-                            .resizable()
-                            .scaledToFill()
-                            .aspectRatio(1, contentMode: .fit)
-#endif
+                        ImageLoaderView(urlString: image)
                     }
                     .clipShape(Circle())
                 } else {
@@ -124,9 +113,9 @@ struct NamePhotoView: View {
         }
     }
     
+#if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-#if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -134,8 +123,8 @@ struct NamePhotoView: View {
                 Image(systemName: "info")
             }
         }
-#endif
     }
+#endif
 }
 
 extension CoreBuilder {

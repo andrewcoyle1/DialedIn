@@ -6,14 +6,13 @@
 //
 
 @MainActor
-protocol TrainingInteractor {
+protocol TrainingInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     var userImageUrl: String? { get }
     var activeTrainingProgram: TrainingProgram? { get }
     var activeSession: WorkoutSessionModel? { get }
     func getAllLocalWorkoutSessions() throws -> [WorkoutSessionModel]
     func getActiveTrainingProgram() async throws -> TrainingProgram?
-    func trackEvent(event: LoggableEvent)
     func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel
     func getLocalWorkoutSession(id: String) throws -> WorkoutSessionModel
     func getAuthId() throws -> String

@@ -37,26 +37,25 @@ struct WelcomeView: View {
             presenter.onViewDisappear(delegate: delegate)
         }
         .padding(.bottom)
+#if DEBUG || MOCK
         .toolbar {
             toolbarContent
         }
+        #endif
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onContinuePressed()
             } label: {
                 Text("Get Started")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
+            .accessibilityIdentifier("GetStartedButton")
             .disabled(presenter.currentUser == nil)
-            .padding(.horizontal)
         }
     }
     
+#if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarLeading) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -64,9 +63,9 @@ struct WelcomeView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
-    
+#endif
+
     private var titleSection: some View {
         VStack(spacing: 8) {
             Image(systemName: "gauge.with.needle.fill")

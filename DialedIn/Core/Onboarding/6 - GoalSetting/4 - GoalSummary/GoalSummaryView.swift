@@ -50,40 +50,35 @@ struct GoalSummaryView: View {
         .onAppear {
             presenter.onDismiss = dismissFlow
         }
-        .toolbar {
-            toolbarContent
-        }
+#if DEBUG || MOCK
+.toolbar {
+    toolbarContent
+}
+#endif
         .safeAreaInset(edge: .bottom) {
-            Group {
-                if presenter.isStandaloneMode {
-                    Button {
-                        presenter.onCompletePressed(delegate: delegate)
-                    } label: {
-                        Text("Complete")
-                            .padding(.vertical, 12)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.glassProminent)
-                    .disabled(presenter.isLoading || !presenter.goalCreated)
-                } else {
-                    Button {
-                        presenter.onContinuePressed(delegate: delegate)
-                    } label: {
-                        Text("Continue")
-                            .padding(.vertical, 12)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.glassProminent)
-                    .disabled(presenter.isLoading)
+            if presenter.isStandaloneMode {
+                CallToActionButton {
+                    presenter.onCompletePressed(delegate: delegate)
+                } label: {
+                    Text("Complete")
                 }
+                .accessibilityIdentifier("Complete")
+                .disabled(presenter.isLoading || !presenter.goalCreated)
+            } else {
+                CallToActionButton {
+                    presenter.onContinuePressed(delegate: delegate)
+                } label: {
+                    Text("Continue")
+                }
+                .accessibilityIdentifier("Continue")
+                .disabled(presenter.isLoading)
             }
-            .padding(.horizontal)
         }
     }
     
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -91,8 +86,8 @@ struct GoalSummaryView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+    #endif
     
     // MARK: - View Sections
     

@@ -19,9 +19,11 @@ struct IntroView: View {
         }
         .navigationTitle("Welcome to Dialed.")
         .navigationBarTitleDisplayMode(.large)
-        .toolbar {
+#if DEBUG || MOCK
+.toolbar {
             toolbarContent
         }
+        #endif
         #if !DEBUG && !MOCK
         .navigationBarBackButtonHidden(true)
         #endif
@@ -32,15 +34,12 @@ struct IntroView: View {
             presenter.onViewDisappear()
         }
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.navigateToAuth()
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
-            .padding(.horizontal)
+            .accessibilityIdentifier("Continue")
         }
     }
     
@@ -109,10 +108,10 @@ struct IntroView: View {
             Text("Weight Tracking")
         }
     }
-
+    
+#if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -120,8 +119,9 @@ struct IntroView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+#endif
+    
 }
 
 extension CoreBuilder {

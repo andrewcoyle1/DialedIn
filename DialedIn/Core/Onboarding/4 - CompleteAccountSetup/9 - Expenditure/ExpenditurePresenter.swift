@@ -205,7 +205,7 @@ class ExpenditurePresenter {
     }
 
     func onContinuePressed(delegate: ExpenditureDelegate) {
-        guard var user = currentUser else { return }
+
         router.showLoadingModal()
         // Cancel any existing save to prevent race conditions
 
@@ -217,16 +217,8 @@ class ExpenditurePresenter {
 
             interactor.trackEvent(event: Event.profileSaveStart)
             do {
-                user.submittedGender = delegate.gender
-                user.submittedDateOfBirth = delegate.dateOfBirth
-                user.submittedHeightCentimeters = delegate.heightInCentimetres
-                user.submittedLengthUnitPreference = delegate.lengthUnitPreference
-                user.submittedWeightKilograms = delegate.weightInKilograms
-                user.submittedWeightUnitPreference = delegate.weightUnitPreference
-                user.submittedExerciseFrequency = delegate.exerciseFrequency
-                user.submittedDailyActivityLevel = delegate.activityLevel
-                user.submittedCardioFitnessLevel = delegate.cardioFitnessLevel
-                try await interactor.saveUser(user: user, image: nil)
+                let input = CompleteAccountSetupProfileInput(from: delegate)
+                try await interactor.saveUserCompleteAccountSetup(input: input)
                 interactor.trackEvent(event: Event.profileSaveSuccess)
                 
                 router.dismissModal()
@@ -301,5 +293,19 @@ class ExpenditurePresenter {
                 return .analytic
             }
         }
+    }
+}
+
+extension CompleteAccountSetupProfileInput {
+    init(from delegate: ExpenditureDelegate) {
+        self.gender = delegate.gender
+        self.dateOfBirth = delegate.dateOfBirth
+        self.heightCentimeters = delegate.heightInCentimetres
+        self.lengthUnitPreference = delegate.lengthUnitPreference
+        self.weightKilograms = delegate.weightInKilograms
+        self.weightUnitPreference = delegate.weightUnitPreference
+        self.exerciseFrequency = delegate.exerciseFrequency
+        self.dailyActivityLevel = delegate.activityLevel
+        self.cardioFitnessLevel = delegate.cardioFitnessLevel
     }
 }

@@ -27,15 +27,15 @@ class DayPlanEntity {
         self.dateCreated = model.dateCreated
         
         self.exercises = model.exercises
-            .map { ExercisePlanEntity(from: $0) }
+            .enumerated()
+            .map { ExercisePlanEntity(from: $1, index: $0) }
     }
-    
+
     @MainActor
     func toModel() -> DayPlan {
-        var exercisePlans: [WorkoutTemplateExercise] = []
-        for exercise in exercises {
-            exercisePlans.append(exercise.toModel())
-        }
+        let exercisePlans = exercises
+            .sorted { $0.index < $1.index }
+            .map { $0.toModel() }
         return DayPlan(
             id: id,
             authorId: authorId,

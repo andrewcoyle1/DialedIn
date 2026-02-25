@@ -17,32 +17,59 @@ struct TabViewAccessoryView: View {
         Button {
             presenter.reopenActiveSession(activeSession: delegate.active)
         } label: {
-            HStack {
-                iconSection
-                workoutDescriptionSection
-            }
-            .padding(.horizontal)
-            .frame(maxWidth: .infinity)
+            workoutDescriptionSection
+                .frame(maxWidth: .infinity)
+                .padding()
+                .tappableBackground()
         }
         .buttonStyle(.plain)
     }
-    
-    private var iconSection: some View {
-        // Icon
-        Image(systemName: presenter.isRestActive ? "timer" : "figure.strengthtraining.traditional")
-            .foregroundStyle(presenter.isRestActive ? .orange : .accent)
-    }
-    
+        
     private var workoutDescriptionSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .firstTextBaseline) {
+        HStack {
+            VStack(alignment: .leading) {
                 workoutName
-                Spacer()
                 timeSection(workoutSession: delegate.active)
             }
-            ProgressView(value: presenter.progress)
+            Spacer()
+            exerciseImagesSection
         }
-        .padding(.bottom, 6)
+    }
+
+    private var exerciseImagesSection: some View {
+        HStack(spacing: -10) {
+            if let activeSession = presenter.activeSession {
+                ForEach(activeSession.exercises.prefix(5)) { exercise in
+                    exerciseCircle(exercise: exercise)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func exerciseCircle(exercise: WorkoutExerciseModel) -> some View {
+        let isCompleted = !exercise.sets.isEmpty && exercise.sets.allSatisfy { $0.completedAt != nil }
+        ZStack {
+            Circle()
+                .fill(Color(uiColor: .secondarySystemBackground))
+
+            ImageLoaderView(
+                urlString: exercise.imageName ?? "SplashScreen",
+                resizingMode: .fit,
+                clipShape: AnyShape(Circle())
+            )
+            .grayscale(isCompleted ? 1 : 0)
+
+            if isCompleted {
+                Circle()
+                    .fill(.black.opacity(0.4))
+                Image(systemName: "checkmark")
+                    .font(.caption.bold())
+                    .foregroundStyle(.white)
+            }
+        }
+        .frame(width: 38, height: 38)
+        .overlay(Circle().stroke(Color(uiColor: .systemBackground), lineWidth: 2))
     }
     
     private var workoutName: some View {
@@ -50,14 +77,13 @@ struct TabViewAccessoryView: View {
             .font(.subheadline)
             .fontWeight(.semibold)
             .lineLimit(1)
-            .padding(.trailing)
     }
 
     private func timeSection(workoutSession active: WorkoutSessionModel) -> some View {
         Group {
-            if let restEndTime = presenter.restEndTime {
-                let now = Date()
-                if now < restEndTime {
+            let now = Date()
+            if let restEndTime = presenter.restEndTime,
+               now < restEndTime {
                     // Rest timer
                     HStack(alignment: .bottom, spacing: 4) {
                         Text("Rest: ")
@@ -65,14 +91,7 @@ struct TabViewAccessoryView: View {
                             .monospacedDigit()
                             .foregroundStyle(.orange)
                     }
-                } else {
-                    HStack(alignment: .bottom, spacing: 4) {
-                        Text("Rest: ")
-                        Text("00:00")
-                            .monospacedDigit()
-                            .foregroundStyle(.orange)
-                    }
-                }
+            
             } else {
                 // Elapsed time
                 HStack(spacing: 4) {
@@ -84,8 +103,7 @@ struct TabViewAccessoryView: View {
         }
         .foregroundStyle(.secondary)
         .font(.subheadline)
-        .multilineTextAlignment(.trailing)
-        .fixedSize(horizontal: true, vertical: true)
+        .multilineTextAlignment(.leading)
     }
 }
 

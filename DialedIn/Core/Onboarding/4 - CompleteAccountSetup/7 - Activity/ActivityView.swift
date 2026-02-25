@@ -44,20 +44,19 @@ struct ActivityView: View {
             dailyActivitySection
         }
         .navigationTitle("Activity Level")
-        .toolbar {
-            toolbarContent
-        }
+#if DEBUG || MOCK
+.toolbar {
+    toolbarContent
+}
+#endif
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
+            .accessibilityIdentifier("Continue")
             .disabled(!presenter.canSubmit)
-            .padding(.horizontal)
         }
     }
     
@@ -72,9 +71,9 @@ struct ActivityView: View {
         }
     }
     
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -82,8 +81,8 @@ struct ActivityView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+    #endif
     
     private func activityRow(_ level: ActivityLevel) -> some View {
         HStack(spacing: 12) {

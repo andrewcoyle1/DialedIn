@@ -8,7 +8,7 @@
 @MainActor
 protocol ExpenditureInteractor {
     var currentUser: UserModel? { get }
-    func saveUser(user: UserModel, image: PlatformImage?) async throws
+    func saveUserCompleteAccountSetup(input: CompleteAccountSetupProfileInput) async throws
     func estimateTDEE(user: UserModel?) -> Double
     func canRequestNotificationAuthorization() async -> Bool
     func canRequestHealthDataAuthorisation() -> Bool

@@ -18,20 +18,19 @@ struct OverarchingObjectiveView: View {
             objectiveSection
         }
         .navigationTitle("What is your goal?")
-        .toolbar {
-            toolbarContent
-        }
+#if DEBUG || MOCK
+.toolbar {
+    toolbarContent
+}
+#endif
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onContinuePressed()
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
+            .accessibilityIdentifier("Continue")
             .disabled(!presenter.canContinue)
-            .padding(.horizontal)
         }
     }
     
@@ -66,9 +65,9 @@ struct OverarchingObjectiveView: View {
         }
     }
     
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -76,8 +75,8 @@ struct OverarchingObjectiveView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+    #endif
 }
 
 extension CoreBuilder {

@@ -8,8 +8,7 @@
 @MainActor
 protocol WelcomeRouter: GlobalRouter {
     func showDevSettingsView()
-    func showPaywall()
-    func showPaywall(onPurchaseSuccess: @escaping @MainActor () -> Void)
+    func showPaywall(isOnboarding: Bool)
     func showIntroView()
     func showAuthView()
     func showSubscriptionView()
@@ -20,7 +19,7 @@ protocol WelcomeRouter: GlobalRouter {
     func showGoalSettingView()
     func showCreateGymProfileView(delegate: CreateGymProfileDelegate)
     func showOnboardingTrainingProgramView(delegate: CreateProgramDelegate)
-    func showOnboardingCustomisingProgramView()
+    func showCustomisingDietProgramView()
     func showOnboardingCompletedView()
     func switchToCoreModule()
 }

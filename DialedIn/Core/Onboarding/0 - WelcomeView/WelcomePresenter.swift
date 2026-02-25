@@ -51,9 +51,7 @@ class WelcomePresenter {
             if interactor.isPremium {
                 router.switchToCoreModule()
             } else {
-                router.showPaywall(onPurchaseSuccess: { [weak self] in
-                    self?.router.switchToCoreModule()
-                })
+                router.showPaywall(isOnboarding: true)
             }
             return
         }
@@ -101,7 +99,7 @@ class WelcomePresenter {
         case .trainingProgramSetup:
             router.showOnboardingTrainingProgramView(delegate: CreateProgramDelegate(onComplete: self.handleNavigation))
         case .customiseProgram:
-            router.showOnboardingCustomisingProgramView()
+            router.showCustomisingDietProgramView()
 
         case .complete:
             router.showOnboardingCompletedView()

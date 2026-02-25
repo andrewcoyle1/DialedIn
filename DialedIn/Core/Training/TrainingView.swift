@@ -10,13 +10,20 @@ import SwiftUI
 import UIKit
 #endif
 
+struct TrainingDelegate {
+    var eventParameters: [String: Any]? {
+        nil
+    }
+}
+
 struct TrainingView<CalendarHeaderView: View>: View {
 
     @Environment(\.layoutMode) private var layoutMode
     @Environment(\.scenePhase) private var scenePhase
 
     @State var presenter: TrainingPresenter
-
+    let delegate: TrainingDelegate
+    
     @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
 
     var body: some View {
@@ -246,12 +253,13 @@ struct TrainingView<CalendarHeaderView: View>: View {
 }
 
 extension CoreBuilder {
-    func trainingView(router: AnyRouter) -> some View {
+    func trainingView(delegate: TrainingDelegate, router: AnyRouter) -> some View {
         TrainingView(
             presenter: TrainingPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
             ),
+            delegate: delegate,
             calendarHeader: { delegate in
                 self.calendarHeaderView(router: router, delegate: delegate)
             }
@@ -263,8 +271,9 @@ extension CoreBuilder {
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
+    let delegate = TrainingDelegate()
     RouterView { router in
-        builder.trainingView(router: router)
+        builder.trainingView(delegate: delegate, router: router)
     }
     
 }

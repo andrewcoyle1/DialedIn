@@ -30,25 +30,24 @@ struct DateOfBirthView: View {
             .removeListRowFormatting()
         }
         .navigationTitle("Date of birth")
-        .toolbar {
-            toolbarContent
-        }
+#if DEBUG || MOCK
+.toolbar {
+    toolbarContent
+}
+#endif
         .safeAreaInset(edge: .bottom) {
-            Button {
+            CallToActionButton {
                 presenter.onContinuePressed(delegate: delegate)
             } label: {
                 Text("Continue")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
-            .padding(.horizontal)
+            .accessibilityIdentifier("Continue")
         }
     }
     
+    #if DEBUG || MOCK
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        #if DEBUG || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -56,8 +55,8 @@ struct DateOfBirthView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
     }
+    #endif
 }
 
 extension CoreBuilder {

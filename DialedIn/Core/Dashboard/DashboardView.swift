@@ -7,31 +7,34 @@
 
 import SwiftUI
 
+struct DashboardDelegate {
+    var eventParameters: [String: Any]? {
+        nil
+    }
+}
+
 struct DashboardView<NutritionChart: View>: View {
 
     @Environment(\.layoutMode) private var layoutMode
     @Environment(\.scenePhase) private var scenePhase
 
     @State var presenter: DashboardPresenter
-
+    let delegate: DashboardDelegate
+    
     @ViewBuilder var nutritionTargetChartView: () -> NutritionChart
+
+    private var showDevSettingsButton: Bool {
+        #if DEV || MOCK
+        return true
+        #else
+        return false
+        #endif
+    }
 
     var body: some View {
         List {
             Group {
-                Section {
-                    ScrollView(.horizontal) {
-                        HStack {
-                            nutritionTargetSection
-                            contributionChartSection
-                        }
-                        .padding(.horizontal)
-                    }
-                    .scrollTargetLayout()
-                    .scrollTargetBehavior(.paging)
-                    .removeListRowFormatting()
-                }
-                .listSectionMargins(.top, 0)
+                headerSection
                 carouselSection
                 insightsAndAnalyticsSection
                 habitsSection
@@ -61,12 +64,38 @@ struct DashboardView<NutritionChart: View>: View {
                 Task { await presenter.onFirstTask() }
             }
         }
+        .onAppear {
+            presenter.onViewAppear(delegate: delegate)
+        }
+        .onDisappear {
+            presenter.onViewDisappear(delegate: delegate)
+        }
         .onNotificationReceived(name: Constants.remoteDataSyncDidComplete) { _ in
             Task { await presenter.onFirstTask() }
         }
         .onOpenURL { url in
             presenter.handleDeepLink(url: url)
         }
+        .onNotificationReceived(name: .pushNotification) { notification in
+            presenter.handlePushNotificationRecieved(notification: notification)
+        }
+    }
+    
+    private var headerSection: some View {
+        Section {
+            ScrollView(.horizontal) {
+                HStack {
+                    nutritionTargetSection
+                    contributionChartSection
+                }
+                .padding(.horizontal)
+            }
+            .scrollTargetLayout()
+            .scrollTargetBehavior(.paging)
+            .removeListRowFormatting()
+        }
+        .listSectionMargins(.top, 0)
+
     }
     
     private var inspectorContent: some View {
@@ -121,6 +150,18 @@ struct DashboardView<NutritionChart: View>: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
 
+        ToolbarItem(placement: .topBarTrailing) {
+            if showDevSettingsButton {
+                Button {
+                    presenter.onDevSettingsPressed()
+                } label: {
+                    Image(systemName: "info")
+                }
+            }
+        }
+        
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+        
         ToolbarItem(placement: .topBarLeading) {
             Button {
                 presenter.onPushNotificationsPressed()
@@ -584,9 +625,13 @@ private extension DashboardView {
 
 extension CoreBuilder {
     
-    func dashboardView(router: AnyRouter) -> some View {
+    func dashboardView(delegate: DashboardDelegate, router: AnyRouter) -> some View {
         DashboardView(
-            presenter: DashboardPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            presenter: DashboardPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate,
             nutritionTargetChartView: {
                 self.nutritionTargetChartView()
             }
@@ -598,8 +643,9 @@ extension CoreBuilder {
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
+    let delegate = DashboardDelegate()
     RouterView { router in
-        builder.dashboardView(router: router)
+        builder.dashboardView(delegate: delegate, router: router)
     }
     
 }
@@ -608,8 +654,9 @@ extension CoreBuilder {
     let container = DevPreview.shared.container()
     container.register(ABTestManager.self, service: ABTestManager(service: MockABTestService(notificationsTest: true), logger: LogManager()))
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
+    let delegate = DashboardDelegate()
     return RouterView { router in
-        builder.dashboardView(router: router)
+        builder.dashboardView(delegate: delegate, router: router)
     }
     
 }
