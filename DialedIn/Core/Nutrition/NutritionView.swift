@@ -9,12 +9,17 @@ import SwiftUI
 #if os(iOS)
 import UIKit
 #endif
-import SwiftfulRouting
+
+struct NutritionDelegate {
+    var eventParameters: [String: Any]? {
+        nil
+    }
+}
 
 struct NutritionView<CalendarHeaderView: View>: View {
 
     @State var presenter: NutritionPresenter
-    
+    let delegate: NutritionDelegate
     @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
 
     @Namespace private var namespace
@@ -273,11 +278,17 @@ struct NutritionView<CalendarHeaderView: View>: View {
 }
 
 extension CoreBuilder {
-    func nutritionView(router: AnyRouter) -> some View {
+    func nutritionView(delegate: NutritionDelegate, router: AnyRouter) -> some View {
         NutritionView(
-            presenter: NutritionPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))) { delegate in
+            presenter: NutritionPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate,
+            calendarHeader: { delegate in
                 self.calendarHeaderView(router: router, delegate: delegate)
             }
+        )
     }
 }
 
@@ -285,8 +296,9 @@ extension CoreBuilder {
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
+    let delegate = NutritionDelegate()
     RouterView { router in
-        builder.nutritionView(router: router)
+        builder.nutritionView(delegate: delegate, router: router)
     }
     
 }

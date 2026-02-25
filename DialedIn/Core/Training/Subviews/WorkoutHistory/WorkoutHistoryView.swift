@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct WorkoutHistoryDelegate {
     let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
@@ -114,7 +113,7 @@ private struct WorkoutHistoryRow: View {
             // Icon
             Image(systemName: "figure.strengthtraining.traditional")
                 .font(.title2)
-                .foregroundStyle(.blue)
+                .foregroundStyle(Color.accentColor)
                 .frame(width: 40)
             
             // Workout info

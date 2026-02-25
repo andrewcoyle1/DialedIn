@@ -14,6 +14,10 @@ class TabViewAccessoryPresenter {
     private let interactor: TabViewAccessoryInteractor
     private let router: TabViewAccessoryRouter
 
+    var activeSession: WorkoutSessionModel? {
+        interactor.activeSession
+    }
+    
     init(
         interactor: TabViewAccessoryInteractor,
         router: TabViewAccessoryRouter

@@ -9,6 +9,14 @@ import SwiftUI
 
 extension ColorScheme {
     
+    var foregroundPrimary: Color {
+        self == .dark ? Color.white : Color.black
+    }
+
+    var foregroundSecondary: Color {
+        self == .dark ? Color.black : Color.white
+    }
+
     var backgroundPrimary: Color {
         self == .dark ? Color(uiColor: .secondarySystemBackground) : Color(uiColor: .systemBackground)
     }

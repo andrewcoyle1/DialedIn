@@ -1,0 +1,14 @@
+//
+//  CalorieFloorRouter.swift
+//  DialedIn
+//
+//  Created by Andrew Coyle on 27/11/2025.
+//
+
+@MainActor
+protocol CalorieFloorRouter {
+    func showDevSettingsView()
+    func showCalorieDistributionView(delegate: CalorieDistributionDelegate)
+}
+
+extension CoreRouter: CalorieFloorRouter { }

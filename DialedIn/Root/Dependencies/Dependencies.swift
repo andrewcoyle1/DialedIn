@@ -27,6 +27,7 @@ struct Dependencies {
 
         let exerciseTemplateManager: ExerciseTemplateManager
         let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
+        let workoutSettingsManager: WorkoutSettingsManager
         let workoutTemplateManager: WorkoutTemplateManager
         let workoutSessionManager: WorkoutSessionManager
         let exerciseHistoryManager: ExerciseHistoryManager
@@ -51,22 +52,37 @@ struct Dependencies {
         let imageUploadManager: ImageUploadManager
         
         switch config {
-        case .mock(isSignedIn: let isSignedIn):
+        case .mock(let scenario):
             logManager = LogManager(services: [
                 ConsoleService(printParameters: true)
             ])
-            authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil))
-            userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
+            switch scenario {
+            case .newAnonymous:
+                authManager = AuthManager(service: MockAuthService(scenario: .newAnonymous))
+                userManager = UserManager(services: MockUserServices(user: nil))
+                purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
+                appState = AppState(startingModuleId: Constants.onboardingModuleId)
+            case .existingSignedOut:
+                authManager = AuthManager(service: MockAuthService(scenario: .existingSignedOut))
+                userManager = UserManager(services: MockUserServices(user: .mockExisting))
+                purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
+                appState = AppState(startingModuleId: Constants.onboardingModuleId)
+            case .existingSignedIn:
+                authManager = AuthManager(service: MockAuthService(scenario: .existingSignedIn))
+                userManager = UserManager(services: MockUserServices(user: .mockExisting))
+                purchaseManager = PurchaseManager(service: MockPurchaseService(availableProducts: AnyProduct.mocks))
+                appState = AppState(startingModuleId: Constants.tabBarModuleId)
+            }
             abTestManager = ABTestManager(service: MockABTestService(), logger: logManager)
-            purchaseManager = PurchaseManager(service: MockPurchaseService())
             exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
+            workoutSettingsManager = WorkoutSettingsManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
             exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())
             trainingProgramManager = TrainingProgramManager(services: MockTrainingProgramServices())
             gymProfileManager = GymProfileManager(services: MockGymProfileServices())
-            
+
             ingredientTemplateManager = IngredientTemplateManager(services: MockIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: MockRecipeTemplateServices())
             nutritionManager = NutritionManager(services: MockNutritionServices())
@@ -81,7 +97,6 @@ struct Dependencies {
             liveActivityManager = LiveActivityManager()
             hkWorkoutManager.liveActivityUpdater = liveActivityManager
             #endif
-            appState = AppState(startingModuleId: isSignedIn ? Constants.tabBarModuleId : Constants.onboardingModuleId)
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
             pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
@@ -100,12 +115,13 @@ struct Dependencies {
             purchaseManager = PurchaseManager(service: RevenueCatPurchaseService(apiKey: Keys.revenueCatAPIKey), logger: logManager)
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
+            workoutSettingsManager = WorkoutSettingsManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices(logManager: logManager))
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             trainingProgramManager = TrainingProgramManager(services: ProductionTrainingProgramServices())
             gymProfileManager = GymProfileManager(services: ProductionGymProfileServices())
-            
+
             ingredientTemplateManager = IngredientTemplateManager(services: ProductionIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: ProductionRecipeTemplateServices())
             nutritionManager = NutritionManager(services: ProductionNutritionServices())
@@ -138,12 +154,13 @@ struct Dependencies {
             purchaseManager = PurchaseManager(service: StoreKitPurchaseService())
             exerciseTemplateManager = ExerciseTemplateManager(services: ProductionExerciseTemplateServices())
             exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
+            workoutSettingsManager = WorkoutSettingsManager(userManager: userManager)
             workoutTemplateManager = WorkoutTemplateManager(services: ProductionWorkoutTemplateServices(exerciseManager: exerciseTemplateManager), exerciseManager: exerciseTemplateManager)
             workoutSessionManager = WorkoutSessionManager(services: ProductionWorkoutSessionServices(logManager: logManager))
             exerciseHistoryManager = ExerciseHistoryManager(services: ProductionExerciseHistoryServices())
             trainingProgramManager = TrainingProgramManager(services: ProductionTrainingProgramServices())
             gymProfileManager = GymProfileManager(services: ProductionGymProfileServices())
-            
+
             ingredientTemplateManager = IngredientTemplateManager(services: ProductionIngredientTemplateServices())
             recipeTemplateManager = RecipeTemplateManager(services: ProductionRecipeTemplateServices())
             nutritionManager = NutritionManager(services: ProductionNutritionServices())
@@ -174,6 +191,7 @@ struct Dependencies {
         container.register(LogManager.self, service: logManager)
         container.register(ExerciseTemplateManager.self, service: exerciseTemplateManager)
         container.register(ExerciseUnitPreferenceManager.self, service: exerciseUnitPreferenceManager)
+        container.register(WorkoutSettingsManager.self, service: workoutSettingsManager)
         container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
         container.register(WorkoutSessionManager.self, service: workoutSessionManager)
         container.register(ExerciseHistoryManager.self, service: exerciseHistoryManager)
@@ -216,6 +234,7 @@ class DevPreview {
         container.register(PurchaseManager.self, service: purchaseManager)
         container.register(ExerciseTemplateManager.self, service: exerciseTemplateManager)
         container.register(ExerciseUnitPreferenceManager.self, service: exerciseUnitPreferenceManager)
+        container.register(WorkoutSettingsManager.self, service: workoutSettingsManager)
         container.register(WorkoutTemplateManager.self, service: workoutTemplateManager)
         container.register(WorkoutSessionManager.self, service: workoutSessionManager)
         container.register(ExerciseHistoryManager.self, service: exerciseHistoryManager)
@@ -251,6 +270,7 @@ class DevPreview {
     let purchaseManager: PurchaseManager
     let exerciseTemplateManager: ExerciseTemplateManager
     let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
+    let workoutSettingsManager: WorkoutSettingsManager
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
     let exerciseHistoryManager: ExerciseHistoryManager
@@ -281,17 +301,18 @@ class DevPreview {
     
     init(isSignedIn: Bool = true) {
         let logManager = LogManager(services: [ConsoleService(printParameters: true)])
-        let userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mock : nil))
+        let userManager = UserManager(services: MockUserServices(user: isSignedIn ? .mockExisting : nil))
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         let hkWorkoutManager = HKWorkoutManager()
         #endif
         
-        self.authManager = AuthManager(service: MockAuthService(user: isSignedIn ? .mock() : nil), logger: logManager)
+        self.authManager = AuthManager(service: MockAuthService(scenario: isSignedIn ? .existingSignedIn : .newAnonymous), logger: logManager)
         self.userManager = userManager
         self.abTestManager = ABTestManager(service: MockABTestService(), logger: logManager)
         self.purchaseManager = PurchaseManager(service: MockPurchaseService())
         self.exerciseTemplateManager = ExerciseTemplateManager(services: MockExerciseTemplateServices())
         self.exerciseUnitPreferenceManager = ExerciseUnitPreferenceManager(userManager: userManager)
+        self.workoutSettingsManager = WorkoutSettingsManager(userManager: userManager)
         self.workoutTemplateManager = WorkoutTemplateManager(services: MockWorkoutTemplateServices(), exerciseManager: ExerciseTemplateManager(services: MockExerciseTemplateServices()))
         self.workoutSessionManager = WorkoutSessionManager(services: MockWorkoutSessionServices())
         self.exerciseHistoryManager = ExerciseHistoryManager(services: MockExerciseHistoryServices())

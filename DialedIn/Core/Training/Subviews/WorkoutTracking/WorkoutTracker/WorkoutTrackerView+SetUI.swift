@@ -60,7 +60,7 @@ extension WorkoutTrackerView {
             }
             .frame(maxWidth: .infinity)
             
-            restSelector(exercise: exercise, set: set)
+//            restSelector(exercise: exercise, set: set)
         }
         .padding(.vertical, 4)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
@@ -72,7 +72,7 @@ extension WorkoutTrackerView {
         }
         .swipeActions(edge: .leading, allowsFullSwipe: false) {
             Button {
-                
+                presenter.onRestPickerRequested(setId: set.id)
             } label: {
                 Label("Rest Timer", systemImage: "timer")
             }

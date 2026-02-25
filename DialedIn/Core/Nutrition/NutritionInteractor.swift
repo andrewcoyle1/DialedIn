@@ -8,7 +8,7 @@
 import Foundation
 
 @MainActor
-protocol NutritionInteractor {
+protocol NutritionInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     var userImageUrl: String? { get }
     func getMeals(for dayKey: String) throws -> [MealLogModel]
@@ -16,7 +16,6 @@ protocol NutritionInteractor {
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget?
     func addMeal(_ meal: MealLogModel) async throws
     func deleteMealAndSync(id: String, dayKey: String, authorId: String) async throws
-    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: NutritionInteractor { }

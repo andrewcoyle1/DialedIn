@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct MealLogDelegate {
     var isShowingInspector: Binding<Bool>

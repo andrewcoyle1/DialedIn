@@ -1,11 +1,28 @@
 import SwiftUI
 
 struct ProgramDesignDelegate {
+    let onComplete: (() -> Void)?
     var id: String
     var authorId: String
     var name: String
     var colour: Color
     var icon: String
+    
+    init(
+        onComplete: (() -> Void)? = nil,
+        id: String,
+        authorId: String,
+        name: String,
+        colour: Color,
+        icon: String
+    ) {
+        self.onComplete = onComplete
+        self.id = id
+        self.authorId = authorId
+        self.name = name
+        self.colour = colour
+        self.icon = icon
+    }
 }
 
 struct EditTrainingProgramDelegate {
@@ -132,29 +149,27 @@ struct ProgramDesignView<DefineWorkout: View>: View {
     
     private var bottomSafeAreaSection: some View {
         VStack {
-            HStack {
-                Spacer()
+            Button {
+                presenter.onActivatePressed(delegate: delegate)
+            } label: {
                 Text("Activate Program")
-                    .foregroundStyle(.white)
-                Spacer()
-            }
-            .padding(.vertical)
-            .background {
-                Capsule()
+                    .padding(.vertical, 12)
                     .frame(maxWidth: .infinity)
             }
-            .anyButton {
-                presenter.onActivatePressed(delegate: delegate)
-            }
-            .padding()
-            
-            Text("Save Program")
-                .anyButton {
-                    presenter.onSavePressed(delegate: delegate)
-                }
-        }
-        .frame(maxWidth: .infinity)
+            .buttonStyle(.glassProminent)
 
+            if delegate.onComplete == nil {
+                Button {
+                    presenter.onSavePressed(delegate: delegate)
+                } label: {
+                    Text("Save Program")
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glass)
+            }
+        }
+        .padding(.horizontal)
     }
     
     private var dayOptionBar: some View {

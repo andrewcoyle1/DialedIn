@@ -36,8 +36,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D012F0192EACD46C0014C602"
-               BuildableName = "DialedInTests.xctest"
-               BlueprintName = "DialedInTests"
+               BuildableName = "DialedInUnitTests.xctest"
+               BlueprintName = "DialedInUnitTests"
                ReferencedContainer = "container:DialedIn.xcodeproj">
             </BuildableReference>
          </TestableReference>

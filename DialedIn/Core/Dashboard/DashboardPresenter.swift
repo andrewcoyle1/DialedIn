@@ -74,6 +74,14 @@ class DashboardPresenter {
         self.interactor = interactor
         self.router = router
     }
+    
+    func onViewAppear(delegate: DashboardDelegate) {
+        interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
+    }
+    
+    func onViewDisappear(delegate: DashboardDelegate) {
+        interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
+    }
 
     func onFirstTask() async {
         loadLocalScaleWeightEntries()
@@ -88,29 +96,56 @@ class DashboardPresenter {
     }
     
     func handleDeepLink(url: URL) {
-        
-        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              let queryItems = components.queryItems else {
-            // no query items
-            print("NO QUERY ITEMS!")
+        interactor.trackEvent(event: Event.deepLinkStart)
+
+        guard
+            let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+            let queryItems = components.queryItems,
+            !queryItems.isEmpty else {
+            interactor.trackEvent(event: Event.deepLinkNoQueryItems)
             return
         }
         
+        interactor.trackEvent(event: Event.deepLinkSuccess)
+        
         for queryItem in queryItems {
-            print(queryItem.name)
+            if let value = queryItem.value, !value.isEmpty {
+                // Do something with value
+            }
+        }
+    }
+
+    func handlePushNotificationRecieved(notification: Notification) {
+        interactor.trackEvent(event: Event.pushNotifStart)
+        
+        guard
+            let userInfo = notification.userInfo,
+            !userInfo.isEmpty else {
+            interactor.trackEvent(event: Event.pushNotifNoData)
+            return
         }
         
+        interactor.trackEvent(event: Event.pushNotifSuccess)
+        
+        for (_, _) in userInfo {
+            // Do something with (key, value)
+        }
     }
-    
+
     func onPushNotificationsPressed() {
         interactor.trackEvent(event: Event.onNotificationsPressed)
         router.showNotificationsView()
     }
 
     func onDevSettingsPressed() {
+        #if MOCK || DEV
+        interactor.trackEvent(event: Event.onDevSettings)
         router.showDevSettingsView()
+        #else
+        interactor.trackEvent(event: Event.onDevSettingsFail)
+        #endif
     }
-    
+
     func onSubscribePressed() {
         router.showPaywall()
     }
@@ -192,7 +227,7 @@ class DashboardPresenter {
     }
 
     func onExpenditurePressed(themeColor: Color?) {
-        router.showExpenditureView(delegate: ExpenditureDelegate(), themeColor: themeColor)
+        router.showExpenditureDetailView(delegate: ExpenditureDetailDelegate(), themeColor: themeColor)
     }
 
     func onStepsPressed(themeColor: Color?) {
@@ -401,16 +436,39 @@ class DashboardPresenter {
     }
 
     enum Event: LoggableEvent {
+        case onAppear(delegate: DashboardDelegate)
+        case onDisappear(delegate: DashboardDelegate)
         case onNotificationsPressed
+        case deepLinkStart
+        case deepLinkNoQueryItems
+        case deepLinkSuccess
+        case pushNotifStart
+        case pushNotifNoData
+        case pushNotifSuccess
+        case onDevSettings
+        case onDevSettingsFail
 
         var eventName: String {
             switch self {
-            case .onNotificationsPressed:   return "Dashboard_NotificationsPressed"
+            case .onAppear:                 return "DashboardView_Appear"
+            case .onDisappear:              return "DashboardView_Disappear"
+            case .onNotificationsPressed:   return "DashboardView_NotificationsPressed"
+            case .deepLinkStart:            return "DashboardView_DeepLink_Start"
+            case .deepLinkNoQueryItems:     return "DashboardView_DeepLink_NoItems"
+            case .deepLinkSuccess:          return "DashboardView_DeepLink_Success"
+            case .pushNotifStart:           return "DashboardView_PushNotif_Start"
+            case .pushNotifNoData:          return "DashboardView_PushNotif_NoItems"
+            case .pushNotifSuccess:         return "DashboardView_PushNotif_Success"
+            case .onDevSettings:            return "DashboardView_DevSettings"
+            case .onDevSettingsFail:        return "DashboardView_DevSettings_Fail"
+
             }
         }
 
         var parameters: [String: Any]? {
             switch self {
+            case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
+                return delegate.eventParameters
             default:
                 return nil
             }
@@ -418,9 +476,10 @@ class DashboardPresenter {
 
         var type: LogType {
             switch self {
+            case .onDevSettingsFail:
+                return .severe
             default:
                 return .analytic
-
             }
         }
     }

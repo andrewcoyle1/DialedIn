@@ -7,7 +7,6 @@
 
 import SwiftUI
 import PhotosUI
-import SwiftfulRouting
 
 struct NameWorkoutDelegate {
     var workoutTemplate: WorkoutTemplateModel?

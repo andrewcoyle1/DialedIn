@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct WorkoutListDelegateBuilder {
     var onWorkoutSelectionChanged: ((WorkoutTemplateModel) -> Void)?

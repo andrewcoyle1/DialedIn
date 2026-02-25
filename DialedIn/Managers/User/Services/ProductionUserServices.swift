@@ -6,12 +6,6 @@
 //
 
 struct ProductionUserServices: UserServices {
-    let remote: RemoteUserService
-    let local: LocalUserPersistence
-    
-    @MainActor
-    init() {
-        self.remote = FirebaseUserService()
-        self.local = FileManagerUserPersistence()
-    }
+    let remote: RemoteUserService = FirebaseUserService()
+    let local: LocalUserPersistence = FileManagerUserPersistence()
 }

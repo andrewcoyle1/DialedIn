@@ -29,9 +29,20 @@ private enum ActiveSortedWeightSubtitle {
     }
 }
 
+struct GymProfileDelegate {
+    let onCompleted: (() -> Void)?
+    let gymProfile: GymProfileModel
+    
+    init(onCompleted: (() -> Void)? = nil, gymProfile: GymProfileModel) {
+        self.onCompleted = onCompleted
+        self.gymProfile = gymProfile
+    }
+}
+
 struct GymProfileView: View {
     
     @State var presenter: GymProfilePresenter
+    let delegate: GymProfileDelegate
     
     var body: some View {
         List {
@@ -96,7 +107,19 @@ struct GymProfileView: View {
                 await presenter.onImageSelectorChanged(newItem)
             }
         }
-
+        .safeAreaInset(edge: .bottom) {
+            if delegate.onCompleted != nil {
+                Button {
+                    presenter.onContinuePressed(delegate: delegate)
+                } label: {
+                    Text("Continue")
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glassProminent)
+                .padding(.horizontal)
+            }
+        }
     }
     
     private var imageHeader: some View {
@@ -616,13 +639,14 @@ private struct GymProfileMachineSectionsView: View {
 
 extension CoreBuilder {
     
-    func gymProfileView(router: AnyRouter, gymProfile: GymProfileModel) -> some View {
+    func gymProfileView(router: AnyRouter, delegate: GymProfileDelegate) -> some View {
         GymProfileView(
             presenter: GymProfilePresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self),
-                gymProfile: gymProfile
-            )
+                gymProfile: delegate.gymProfile
+            ),
+            delegate: delegate
         )
     }
     
@@ -630,9 +654,9 @@ extension CoreBuilder {
 
 extension CoreRouter {
     
-    func showGymProfileView(gymProfile: GymProfileModel) {
+    func showGymProfileView(delegate: GymProfileDelegate) {
         router.showScreen(.push) { router in
-            builder.gymProfileView(router: router, gymProfile: gymProfile)
+            builder.gymProfileView(router: router, delegate: delegate)
         }
     }
     
@@ -641,9 +665,9 @@ extension CoreRouter {
 #Preview {
     let container = DevPreview.shared.container()
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-    
+    let delegate = GymProfileDelegate(gymProfile: GymProfileModel.mock)
     return RouterView { router in
-        builder.gymProfileView(router: router, gymProfile: GymProfileModel.mock)
+        builder.gymProfileView(router: router, delegate: delegate)
     }
     
 }

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 // MARK: - Workout Completion
 extension WorkoutTrackerPresenter {
@@ -50,6 +51,7 @@ extension WorkoutTrackerPresenter {
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 interactor.endLiveActivity(session: workoutSession, isCompleted: true, statusMessage: "Workout ended & saved.")
                 #endif
+                UIApplication.shared.isIdleTimerDisabled = false
                 SharedWorkoutStorage.clearHKStartedSessionId()
                 await interactor.endActiveSession(markScheduledComplete: true)
                 await MainActor.run {

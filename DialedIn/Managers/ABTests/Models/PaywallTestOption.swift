@@ -11,6 +11,6 @@ enum PaywallTestOption: String, Codable, CaseIterable {
     case storeKit, custom, revenueCat
     
     static var `default`: Self {
-        .storeKit
+        .custom
     }
 }

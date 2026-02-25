@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct ProfileView: View {
     
@@ -45,12 +44,17 @@ struct ProfileView: View {
             if let user = presenter.currentUser {
                 HStack(spacing: 16) {
                     // Profile Image
-                    CachedProfileImageView(
-                        userId: user.userId,
-                        imageUrl: user.submittedProfileImage,
-                        size: 60
-                    )
-                    
+                    ZStack {
+                        Image(systemName: "person.circle")
+                            .resizable()
+                            .font(.system(size: 24))
+                        if let urlString = user.profileImageNameCalculated {
+                            ImageLoaderView(urlString: urlString, clipShape: AnyShape(Circle()))
+                                .contentShape(Circle())
+                        }
+                    }
+                    .frame(width: 80, height: 80)
+
                     // User Info
                     VStack(alignment: .leading, spacing: 6) {
                         Text(presenter.fullName)

@@ -14,9 +14,9 @@ struct CompleteAccountSetupProfileInput {
     let gender: Gender
     let heightCentimeters: Double
     let weightKilograms: Double
-    let exerciseFrequency: ProfileExerciseFrequency
-    let dailyActivityLevel: ProfileDailyActivityLevel
-    let cardioFitnessLevel: ProfileCardioFitnessLevel
+    let exerciseFrequency: ExerciseFrequency
+    let dailyActivityLevel: ActivityLevel
+    let cardioFitnessLevel: CardioFitnessLevel
     let lengthUnitPreference: LengthUnitPreference
     let weightUnitPreference: WeightUnitPreference
 }
@@ -39,82 +39,146 @@ class UserManager {
         self.currentUser = local.getCurrentUser()
     }
     
-    // MARK: - Local operations
-    func currentUserId() throws -> String {
-        guard let uid = currentUser?.userId else {
-            throw UserManagerError.noUserId
+    /// Log In
+    func logIn(auth: UserAuthInfo, isNewUser: Bool) async throws {
+        if isNewUser {
+            // New user: create their Firestore document from auth data.
+            let user = UserModel(auth: auth, creationVersion: Utilities.appVersion)
+            logManager?.trackEvent(event: Event.logInStart(user: user))
+            try await remote.saveUser(user: user)
+            self.currentUser = user
+            logManager?.trackEvent(event: Event.logInSuccess(user: user))
+        } else {
+            // Returning user: fetch their existing document so currentUser is correct
+            // before any routing decisions are made. Writing an auth-only stub would
+            // overwrite non-optional fields like didCompleteOnboarding with defaults.
+            logManager?.trackEvent(event: Event.logInStart(user: currentUser))
+            let storedUser = try await remote.getUser(userId: auth.uid)
+            self.currentUser = storedUser
+            logManager?.trackEvent(event: Event.logInSuccess(user: storedUser))
         }
-        return uid
+
+        addCurrentUserListener(userId: auth.uid)
     }
-    
+
+    /// User Streaming
+    private func addCurrentUserListener(userId: String) {
+        logManager?.trackEvent(event: Event.remoteListenerStart)
+
+        currentUserListenerTask?.cancel()
+        currentUserListenerTask = Task {
+            do {
+                for try await value in remote.streamUser(userId: userId) {
+                    self.currentUser = value
+                    logManager?.trackEvent(event: Event.remoteListenerSuccess(user: value))
+                    logManager?.addUserProperties(dict: value.eventParameters, isHighPriority: true)
+                    
+                    self.saveCurrentUserLocally()
+                }
+            } catch {
+                logManager?.trackEvent(event: Event.remoteListenerFail(error: error))
+            }
+        }
+    }
+
+    /// Save current user locally
     private func saveCurrentUserLocally() {
         logManager?.trackEvent(event: Event.saveLocalStart(user: currentUser))
+        
         Task {
             do {
                 try local.saveCurrentUser(user: currentUser)
                 logManager?.trackEvent(event: Event.saveLocalSuccess(user: currentUser))
-                
-                // Cache profile image if available
-                await cacheProfileImageIfNeeded()
             } catch {
                 logManager?.trackEvent(event: Event.saveLocalFail(error: error))
             }
         }
     }
     
-    private func cacheProfileImageIfNeeded() async {
-        guard let user = currentUser,
-              let urlString = user.submittedProfileImage,
-              !urlString.isEmpty else {
-            return
-        }
-        
-        // Check if image is already cached
-        if ProfileImageCache.shared.getCachedImage(userId: user.userId) != nil {
-            return
-        }
-        
-        // Download and cache the image
-        do {
-            _ = try await ProfileImageCache.shared.downloadAndCache(from: urlString, userId: user.userId)
-            logManager?.trackEvent(eventName: "profile_image_cached", parameters: ["user_id": user.userId])
-        } catch {
-            logManager?.trackEvent(eventName: "profile_image_cache_failed", parameters: [
-                "user_id": user.userId,
-                "error": error.localizedDescription
-            ])
-        }
+    func getUser(userId: String) async throws -> UserModel {
+        try await remote.getUser(userId: userId)
     }
     
-    /// Force refresh the cached profile image from Firebase
-    func refreshProfileImage() async throws {
-        guard let user = currentUser,
-              let urlString = user.submittedProfileImage,
-              !urlString.isEmpty else {
-            return
-        }
-        
-        // Remove old cached image
-        ProfileImageCache.shared.removeCachedImage(userId: user.userId)
-        
-        // Download fresh image
-            _ = try await ProfileImageCache.shared.downloadAndCache(from: urlString, userId: user.userId)
-            logManager?.trackEvent(eventName: "profile_image_refreshed", parameters: ["user_id": user.userId])
-        
+    // MARK: - Personal Info
+    
+    func updateUserName(firstName: String? = nil, lastName: String? = nil) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserName(userId: uid, firstName: firstName, lastName: lastName)
+    }
+
+    func updateUserEmail(email: String) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserEmail(userId: uid, email: email)
+    }
+
+    // MARK: - Image URL
+    
+    func updateProfileImage(image: PlatformImage) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserProfileImage(userId: uid, image: image)
+    }
+
+    func updateGender(gender: Gender) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserGender(userId: uid, gender: gender)
+    }
+
+    func updateDateOfBirth(dob: Date) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserDateOfBirth(userId: uid, dateOfBirth: dob)
     }
     
-    func clearAllLocalData() {
-        logManager?.trackEvent(event: Event.clearAllLocalData)
-        local.clearCurrentUser()
-        
-        // Clear cached profile images
-        if let userId = currentUser?.userId {
-            ProfileImageCache.shared.removeCachedImage(userId: userId)
-        }
-        
-        currentUser = nil
+    func updateUserHeight(heightInCentimeters: Double, lengthUnitPreference: LengthUnitPreference) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserHeightCentimeters(userId: uid, heightInCentimeters: heightInCentimeters, lengthUnitPreference: lengthUnitPreference)
+    }
+
+    func updateUserWeight(weightInKilograms: Double, weightUnitPreference: WeightUnitPreference) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserWeightKilograms(userId: uid, weightInKilograms: weightInKilograms, weightUnitPreference: weightUnitPreference)
     }
     
+    func updateUserExerciseFrequency(exerciseFrequency: ExerciseFrequency) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserExerciseFrequency(userId: uid, exerciseFrequency: exerciseFrequency)
+    }
+    
+    func updateUserDailyActivityLevel(activityLevel: ActivityLevel) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserDailyActivityLevel(userId: uid, activityLevel: activityLevel)
+    }
+
+    func updateUserCardioFitnessLevel(cardioFitnessLevel: CardioFitnessLevel) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserCardioFitnessLevel(userId: uid, cardioFitnessLevel: cardioFitnessLevel)
+    }
+    
+    func saveUserCompleteAccountSetup(input: CompleteAccountSetupProfileInput) async throws {
+        let uid = try currentUserId()
+        try await remote.saveUserCompleteAccountSetup(userId: uid, input: input)
+    }
+        
+    // MARK: Update Active Training Program
+    
+    func updateActiveTrainingProgramId(programId: String?) async throws {
+        let uid = try currentUserId()
+        guard let activeProgramId = programId else { return }
+        try await remote.saveUserActiveTrainingProgramId(userId: uid, activeTrainingProgramId: activeProgramId)
+    }
+
+    // MARK: Update Favourite Gym Profile
+
+    func updateFavouriteGymProfileId(profileId: String?) async throws {
+        let uid = try currentUserId()
+        guard let favouriteGymProfileId = profileId else { return }
+        try await remote.saveUserFavouriteGymProfileId(userId: uid, favouriteGymProfileId: favouriteGymProfileId)
+    }
+    
+    func saveOnboardingCompleteForCurrentUser() async throws {
+        let uid = try currentUserId()
+        try await remote.updateDidCompleteOnboarding(userId: uid)
+    }
+
     // User FCM Token
     
     func saveUserFCMToken(token: String) async throws {
@@ -125,255 +189,16 @@ class UserManager {
     // MARK: - Remote operations
     // MARK: - User
     
-    func logIn(auth: UserAuthInfo, image: PlatformImage? = nil, isNewUser: Bool = false) async throws {
-        let creationVersion = isNewUser ? Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String : nil
-
-        // Capture any existing anonymous session before state changes.
-        // Only considered anonymous if the UID is different (not the same account re-logging in).
-        let previousAnonUser: UserModel? = (currentUser?.isAnonymous == true && currentUser?.userId != auth.uid)
-            ? currentUser
-            : nil
-
-        if isNewUser {
-            let user: UserModel
-
-            if let anonUser = previousAnonUser {
-                // Anonymous user signing up via SSO for the first time.
-                // Migrate all accumulated onboarding data to the new SSO account
-                // rather than starting with a blank profile.
-                logManager?.trackEvent(event: Event.migrateAnonUser(fromId: anonUser.userId, toId: auth.uid))
-                user = UserModel(
-                    userId: auth.uid,
-                    email: auth.email ?? anonUser.email,
-                    isAnonymous: auth.isAnonymous,
-                    authProviders: auth.authProviders.map { $0.rawValue },
-                    displayName: auth.displayName ?? anonUser.displayName,
-                    firstName: auth.firstName ?? anonUser.firstName,
-                    lastName: auth.lastName ?? anonUser.lastName,
-                    phoneNumber: auth.phoneNumber ?? anonUser.phoneNumber,
-                    photoUrl: auth.photoURL?.absoluteString ?? anonUser.photoUrl,
-                    creationDate: auth.creationDate,
-                    creationVersion: creationVersion,
-                    lastSignInDate: auth.lastSignInDate,
-                    submittedEmail: anonUser.submittedEmail,
-                    submittedFirstName: anonUser.submittedFirstName,
-                    submittedLastName: anonUser.submittedLastName,
-                    submittedProfileImage: anonUser.submittedProfileImage,
-                    submittedDateOfBirth: anonUser.submittedDateOfBirth,
-                    submittedGender: anonUser.submittedGender,
-                    submittedHeightCentimeters: anonUser.submittedHeightCentimeters,
-                    submittedWeightKilograms: anonUser.submittedWeightKilograms,
-                    submittedExerciseFrequency: anonUser.submittedExerciseFrequency,
-                    submittedDailyActivityLevel: anonUser.submittedDailyActivityLevel,
-                    submittedCardioFitnessLevel: anonUser.submittedCardioFitnessLevel,
-                    submittedLengthUnitPreference: anonUser.submittedLengthUnitPreference,
-                    submittedWeightUnitPreference: anonUser.submittedWeightUnitPreference,
-                    submittedCurrentGoalId: anonUser.submittedCurrentGoalId,
-                    submittedActiveTrainingProgramId: anonUser.submittedActiveTrainingProgramId,
-                    submittedFavouriteGymProfileId: anonUser.submittedFavouriteGymProfileId,
-                    blockedUserIds: anonUser.blockedUserIds,
-                    fcmToken: anonUser.fcmToken,
-                    didCompleteOnboarding: anonUser.didCompleteOnboarding,
-                    acceptedHealthDisclaimerVersion: anonUser.acceptedHealthDisclaimerVersion,
-                    acceptedHealthDisclaimerDate: anonUser.acceptedHealthDisclaimerDate,
-                    acceptedHealthPrivacyPolicyVersion: anonUser.acceptedHealthPrivacyPolicyVersion,
-                    acceptedHealthPrivacyPolicyDate: anonUser.acceptedHealthPrivacyPolicyDate
-                )
-            } else {
-                // Fresh SSO sign-up with no prior anonymous session — create a new profile.
-                user = UserModel(auth: auth, creationVersion: creationVersion)
-            }
-
-            logManager?.trackEvent(event: Event.logInStart(user: user))
-            try await remote.saveUser(user: user)
-            logManager?.trackEvent(event: Event.logInSuccess(user: user))
-
-            // Delete the now-orphaned anonymous document after migration succeeds.
-            if let anonUser = previousAnonUser {
-                Task { try? await remote.deleteUser(userId: anonUser.userId) }
-            }
-
-            self.currentUser = user
-            self.saveCurrentUserLocally()
-            addCurrentUserListener(userId: auth.uid)
-
-        } else {
-            // Existing SSO account: fetch their document directly so currentUser reflects
-            // the correct account (and userId) before logIn returns.
-            logManager?.trackEvent(event: Event.logInStart(user: currentUser))
-
-            let existingUser = try await remote.getUser(userId: auth.uid)
-            let authProviders = auth.authProviders.map { $0.rawValue }
-            let authPhotoUrl = auth.photoURL?.absoluteString
-
-            var updatedUser = existingUser
-            updatedUser.isAnonymous = auth.isAnonymous
-            updatedUser.authProviders = authProviders
-            updatedUser.email = auth.email ?? existingUser.email
-            updatedUser.displayName = auth.displayName ?? existingUser.displayName
-            updatedUser.firstName = auth.firstName ?? existingUser.firstName
-            updatedUser.lastName = auth.lastName ?? existingUser.lastName
-            updatedUser.phoneNumber = auth.phoneNumber ?? existingUser.phoneNumber
-            updatedUser.photoUrl = authPhotoUrl ?? existingUser.photoUrl
-            updatedUser.lastSignInDate = auth.lastSignInDate ?? existingUser.lastSignInDate
-
-            self.currentUser = updatedUser
-            self.saveCurrentUserLocally()
-
-            // Stream keeps currentUser up to date with any subsequent remote changes.
-            addCurrentUserListener(userId: auth.uid)
-
-            // Delete the orphaned anonymous document now that we have confirmed
-            // the user is signing into a different, pre-existing account.
-            if let anonUser = previousAnonUser {
-                logManager?.trackEvent(event: Event.deleteAnonDocument(userId: anonUser.userId))
-                Task { try? await remote.deleteUser(userId: anonUser.userId) }
-            }
-
-            // Persist auth-derived field updates to Firestore.
-            Task {
-                try? await remote.updateUserAuthState(
-                    userId: auth.uid,
-                    isAnonymous: auth.isAnonymous ?? false,
-                    authProviders: authProviders,
-                    email: auth.email,
-                    displayName: auth.displayName,
-                    firstName: auth.firstName,
-                    lastName: auth.lastName,
-                    phoneNumber: auth.phoneNumber,
-                    photoUrl: authPhotoUrl,
-                    lastSignInDate: auth.lastSignInDate
-                )
-            }
-
-            logManager?.trackEvent(event: Event.logInSuccess(user: currentUser))
-        }
-    }
-    
-    func saveUser(user: UserModel, image: PlatformImage?) async throws {
+    func saveUser(user: UserModel) async throws {
         try await remote.saveUser(user: user)
-
-        // Cache the image locally if provided
-        if let image = image {
-            do {
-                try ProfileImageCache.shared.cacheImage(image, userId: user.userId)
-                logManager?.trackEvent(eventName: "profile_image_uploaded_and_cached", parameters: ["user_id": user.userId])
-            } catch {
-                logManager?.trackEvent(eventName: "profile_image_cache_after_upload_failed", parameters: [
-                    "user_id": user.userId,
-                    "error": error.localizedDescription
-                ])
-            }
-        }
+        self.currentUser = user
     }
-    
-    // MARK: - Onboarding: Complete Account Setup
-    func saveCompleteAccountSetupProfile(_ input: CompleteAccountSetupProfileInput) async throws -> UserModel {
-        guard let existing = currentUser else { throw UserManagerError.noUserId }
-        let updated = UserModel(
-            userId: existing.userId,
-            email: existing.email,
-            isAnonymous: existing.isAnonymous,
-            firstName: existing.firstName,
-            lastName: existing.lastName,
-            creationDate: existing.creationDate,
-            creationVersion: existing.creationVersion,
-            lastSignInDate: existing.lastSignInDate,
-            submittedProfileImage: existing.submittedProfileImage,
-            submittedDateOfBirth: input.dateOfBirth,
-            submittedGender: input.gender,
-            submittedHeightCentimeters: input.heightCentimeters,
-            submittedWeightKilograms: input.weightKilograms,
-            submittedExerciseFrequency: input.exerciseFrequency,
-            submittedDailyActivityLevel: input.dailyActivityLevel,
-            submittedCardioFitnessLevel: input.cardioFitnessLevel,
-            submittedLengthUnitPreference: input.lengthUnitPreference,
-            submittedWeightUnitPreference: input.weightUnitPreference,
-            blockedUserIds: existing.blockedUserIds,
-            didCompleteOnboarding: existing.didCompleteOnboarding
-        )
-        try await remote.saveUser(user: updated)
-        return updated
-    }
-    
+        
     func signOut() {
         currentUserListenerTask?.cancel()
         currentUserListenerTask = nil
         currentUser = nil
         logManager?.trackEvent(event: Event.signOut)
-    }
-
-    // MARK: - Personal Info
-    
-    func updateUserName(firstName: String? = nil, lastName: String? = nil) async throws {
-        let uid = try currentUserId()
-        try await remote.updateUserName(userId: uid, firstName: firstName, lastName: lastName)
-    }
-    
-    func updateGender(gender: Gender) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserGender(userId: uid, gender: gender)
-    }
-
-    func updateDateOfBirth(dob: Date) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserDateOfBirth(userId: uid, dateOfBirth: dob)
-    }
-
-    func updateWeight(userId: String, weightKg: Double) async throws {
-        try await remote.saveUserWeightKilograms(userId: userId, weightKg: weightKg)
-        
-        // Update local cache
-        if var user = currentUser, user.userId == userId {
-            user = UserModel(
-                userId: user.userId,
-                email: user.email,
-                isAnonymous: user.isAnonymous,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                creationDate: user.creationDate,
-                creationVersion: user.creationVersion,
-                lastSignInDate: user.lastSignInDate,
-                submittedProfileImage: user.submittedProfileImage,
-                submittedDateOfBirth: user.submittedDateOfBirth,
-                submittedGender: user.submittedGender,
-                submittedHeightCentimeters: user.submittedHeightCentimeters,
-                submittedWeightKilograms: weightKg,
-                submittedExerciseFrequency: user.submittedExerciseFrequency,
-                submittedDailyActivityLevel: user.submittedDailyActivityLevel,
-                submittedCardioFitnessLevel: user.submittedCardioFitnessLevel,
-                submittedLengthUnitPreference: user.submittedLengthUnitPreference,
-                submittedWeightUnitPreference: user.submittedWeightUnitPreference,
-                submittedCurrentGoalId: user.submittedCurrentGoalId,
-                blockedUserIds: user.blockedUserIds,
-                didCompleteOnboarding: user.didCompleteOnboarding
-            )
-            currentUser = user
-            saveCurrentUserLocally()
-        }
-    }
-    
-    // MARK: - Image URL
-    
-    func updateProfileImage(image: PlatformImage) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserProfileImage(userId: uid, image: image)
-    }
-    
-    // MARK: Update Active Training Program
-    
-    func updateActiveTrainingProgramId(programId: String?) async throws {
-        let uid = try currentUserId()
-        guard let activeProgramId = programId else { return }
-        try await remote.saveUserActiveTrainingProgramId(userId: uid, activeTrainingProgramId: activeProgramId)
-    }
-
-    // MARK: Update Favourite Gym Profile
-    
-    func updateFavouriteGymProfileId(profileId: String?) async throws {
-        let uid = try currentUserId()
-        guard let favouriteGymProfileId = profileId else { return }
-        try await remote.saveUserFavouriteGymProfileId(userId: uid, favouriteGymProfileId: favouriteGymProfileId)
     }
     
     // MARK: - Update Metadata
@@ -428,39 +253,20 @@ class UserManager {
         logManager?.trackEvent(event: Event.deleteAccountStart)
         
         let uid = try currentUserId()
-
-        // Remove the user profile document
         try await remote.deleteUser(userId: uid)
-
-        // Clear local cache/state
-        self.clearAllLocalData()
         logManager?.trackEvent(event: Event.deleteAccountSuccess)
 
         // Reset UserManager state (does not sign out Auth)
         signOut()
     }
     
-    // MARK: - User Streaming
-    
-    private func addCurrentUserListener(userId: String) {
-        logManager?.trackEvent(event: Event.remoteListenerStart)
-
-        currentUserListenerTask?.cancel()
-        currentUserListenerTask = Task {
-            do {
-                for try await value in remote.streamUser(userId: userId) {
-                    self.currentUser = value
-                    logManager?.trackEvent(event: Event.remoteListenerSuccess(user: value))
-                    logManager?.addUserProperties(dict: value.eventParameters, isHighPriority: true)
-                    
-                    self.saveCurrentUserLocally()
-                }
-            } catch {
-                logManager?.trackEvent(event: Event.remoteListenerFail(error: error))
-            }
+    func currentUserId() throws -> String {
+        guard let uid = currentUser?.userId else {
+            throw UserManagerError.noUserId
         }
+        return uid
     }
-
+    
     enum UserManagerError: LocalizedError {
         case noUserId
         
@@ -561,63 +367,14 @@ extension CoreInteractor {
         try userManager.currentUserId()
     }
     
-    func refreshProfileImage() async throws {
-        try await userManager.refreshProfileImage()
-    }
-
     var userImageUrl: String? {
         currentUser?.submittedProfileImage
     }
-
-    func clearAllLocalData() {
-        userManager.clearAllLocalData()
-    }
     
-    func saveUser(user: UserModel, image: PlatformImage? = nil) async throws {
-        try await userManager.saveUser(user: user, image: image)
+    func saveUser(user: UserModel) async throws {
+        try await userManager.saveUser(user: user)
     }
-    
-    func saveCompleteAccountSetupProfile(_ input: CompleteAccountSetupProfileInput) async throws -> UserModel {
-        try await userManager.saveCompleteAccountSetupProfile(input)
-    }
-
-    func saveCompleteAccountSetupProfile(userBuilder: UserModelBuilder) async throws -> UserModel {
-        guard let dob = userBuilder.dateOfBirth,
-              let height = userBuilder.height,
-              let weight = userBuilder.weight,
-              let exercise = userBuilder.exerciseFrequency,
-              let activity = userBuilder.activityLevel,
-              let cardio = userBuilder.cardioFitness,
-              let lengthPref = userBuilder.lengthUnitPreference,
-              let weightPref = userBuilder.weightUnitPreferene else {
-            throw CoreInteractorError.incompleteUserBuilder
-        }
-        let input = CompleteAccountSetupProfileInput(
-            dateOfBirth: dob,
-            gender: userBuilder.gender,
-            heightCentimeters: height,
-            weightKilograms: weight,
-            exerciseFrequency: mapProfileExerciseFrequency(exercise),
-            dailyActivityLevel: mapProfileActivityLevel(activity),
-            cardioFitnessLevel: mapProfileCardioFitness(cardio),
-            lengthUnitPreference: lengthPref,
-            weightUnitPreference: weightPref
-        )
-        return try await saveCompleteAccountSetupProfile(input)
-    }
-
-    private func mapProfileExerciseFrequency(_ frequency: ExerciseFrequency) -> ProfileExerciseFrequency {
-        ProfileExerciseFrequency(rawValue: frequency.rawValue) ?? .threeToFour
-    }
-
-    private func mapProfileActivityLevel(_ activityLevel: ActivityLevel) -> ProfileDailyActivityLevel {
-        ProfileDailyActivityLevel(rawValue: activityLevel.rawValue) ?? .moderate
-    }
-    
-    private func mapProfileCardioFitness(_ level: CardioFitnessLevel) -> ProfileCardioFitnessLevel {
-        ProfileCardioFitnessLevel(rawValue: level.rawValue) ?? .intermediate
-    }
-            
+                
     func updateFirstName(firstName: String? = nil, lastName: String? = nil) async throws {
         try await userManager.updateUserName(firstName: firstName)
     }
@@ -630,8 +387,12 @@ extension CoreInteractor {
         try await userManager.updateGender(gender: gender)
     }
     
-    func updateWeight(userId: String, weightKg: Double) async throws {
-        try await userManager.updateWeight(userId: userId, weightKg: weightKg)
+    func updateWeight(userId: String, weight: Double, weightUnitPreference: WeightUnitPreference) async throws {
+        try await userManager.updateUserWeight(weightInKilograms: weight, weightUnitPreference: weightUnitPreference)
+    }
+    
+    func saveUserCompleteAccountSetup(input: CompleteAccountSetupProfileInput) async throws {
+        try await userManager.saveUserCompleteAccountSetup(input: input)
     }
     
     // Image URL
@@ -666,6 +427,10 @@ extension CoreInteractor {
     
     func updateDidCompleteOnboarding() async throws {
         try await userManager.updateDidCompleteOnboarding()
+    }
+    
+    func saveOnboardingComplete() async throws {
+        try await userManager.saveOnboardingCompleteForCurrentUser()
     }
 
     // Goal Settings

@@ -8,7 +8,7 @@
 import SwiftUI
 
 extension View {
-    
+        
     func callToActionButton(isPrimaryAction: Bool = false) -> some View {
         modifier(CtaButtonViewModifier(isPrimaryAction: isPrimaryAction))
     }
@@ -20,7 +20,7 @@ extension View {
             .foregroundStyle(Color.white)
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
-            .background(Color.blue)
+            .background(Color.accentColor)
             .cornerRadius(6)
     }
         

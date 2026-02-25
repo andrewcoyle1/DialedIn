@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct WorkoutExerciseEquipmentSheetDelegate {
     let exercise: WorkoutExerciseModel

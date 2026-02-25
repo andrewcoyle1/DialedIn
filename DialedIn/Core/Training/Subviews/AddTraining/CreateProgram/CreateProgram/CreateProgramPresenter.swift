@@ -24,8 +24,8 @@ class CreateProgramPresenter {
         router.dismissScreen()
     }
     
-    func onNextPressed() {
-        router.showNameProgramView(delegate: NameProgramDelegate())
+    func onNextPressed(delegate: CreateProgramDelegate) {
+        router.showNameProgramView(delegate: NameProgramDelegate(onComplete: delegate.onComplete))
     }
     
 }

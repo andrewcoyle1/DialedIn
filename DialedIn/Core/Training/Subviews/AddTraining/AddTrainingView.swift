@@ -81,7 +81,7 @@ extension CoreBuilder {
 extension CoreRouter {
     
     func showAddTrainingView(delegate: AddTrainingDelegate, onDismiss: (() -> Void)? = nil) {
-        router.showScreen(.sheetConfig(config: ResizableSheetConfig(detents: [.fraction(0.25)]))) { router in
+        router.showScreen(.sheetConfig(config: ResizableSheetConfig(detents: [.fraction(0.28)]))) { router in
             builder.addTrainingView(router: router, delegate: delegate)
         }
     }

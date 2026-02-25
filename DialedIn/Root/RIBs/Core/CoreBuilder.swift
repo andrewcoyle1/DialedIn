@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 private struct WorkoutStartMiddleContent: View {
     let template: WorkoutTemplateModel

@@ -1,6 +1,26 @@
 import SwiftUI
 
 @MainActor
-protocol CorePaywallRouter: GlobalRouter { }
+protocol PaywallRouter: GlobalRouter {
+    
+    func showCompleteAccountSetupView()
 
-extension CoreRouter: CorePaywallRouter { }
+    func showNotificationsPermissionsView()
+
+    func showOnboardingHealthDataView()
+
+    func showHealthDisclaimerView()
+
+    func showGoalSettingView()
+    
+    func showCreateGymProfileView(delegate: CreateGymProfileDelegate)
+
+    func showOnboardingTrainingProgramView(delegate: CreateProgramDelegate)
+
+    func showCustomisingDietProgramView()
+
+    func showOnboardingCompletedView()
+
+}
+
+extension CoreRouter: PaywallRouter { }

@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 protocol GymProfilesRouter: GlobalRouter {
-    func showGymProfileView(gymProfile: GymProfileModel)
+    func showGymProfileView(delegate: GymProfileDelegate)
 }
 
 extension CoreRouter: GymProfilesRouter { }

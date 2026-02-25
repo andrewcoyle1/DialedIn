@@ -156,7 +156,13 @@ class WorkoutTrackerPresenter {
         let totalVolume = computeTotalVolumeKg()
         return String(format: "%.0f kg", totalVolume)
     }
-    
+
+    // MARK: - Display Settings
+
+    var showWorkoutTimer: Bool { interactor.workoutSettings.showWorkoutTimer }
+    var showBodyweightContribution: Bool { interactor.workoutSettings.showBodyweightContribution }
+    var showRIRTracking: Bool { interactor.workoutSettings.rirTracking }
+
     // MARK: - Lifecycle
     @MainActor
     deinit {
@@ -178,12 +184,15 @@ class WorkoutTrackerPresenter {
             }
         }
         
+        // Apply keep-alive setting
+        UIApplication.shared.isIdleTimerDisabled = interactor.workoutSettings.keepAlive
+
         // Verify workout write permission before starting
         guard !HealthKitService().needsAuthorisationForRequiredTypes() else {
             print("Skipping HKWorkoutSession start: missing HealthKit authorization")
             return
         }
-        
+
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Avoid starting the same HK workout session multiple times for this workout.
         if SharedWorkoutStorage.hkStartedSessionId == workoutSession.id {
@@ -250,7 +259,28 @@ class WorkoutTrackerPresenter {
         
         // Check for pending widget completions that happened while backgrounded
         syncPendingSetCompletionFromWidget()
+
+        // Strip incomplete warmup sets if the setting is off
+        applyWarmupSetting()
+
         print("✅ WorkoutTrackerPresenter.buildView() completed; exercises=\(workoutSession.exercises.count), currentExerciseIndex=\(currentExerciseIndex)")
+    }
+
+    private func applyWarmupSetting() {
+        guard !interactor.workoutSettings.addSmartWarmUps else { return }
+        var updated = workoutSession.exercises
+        var changed = false
+        for index in updated.indices {
+            let before = updated[index].sets.count
+            updated[index].sets.removeAll { $0.isWarmup && $0.completedAt == nil }
+            if updated[index].sets.count != before {
+                for jindex in updated[index].sets.indices { updated[index].sets[jindex].index = jindex + 1 }
+                changed = true
+            }
+        }
+        guard changed else { return }
+        workoutSession.updateExercises(updated)
+        saveWorkoutProgress()
     }
             
     // MARK: - Previous Values
@@ -398,6 +428,7 @@ class WorkoutTrackerPresenter {
 
                 try interactor.deleteLocalWorkoutSession(id: workoutSession.id)
                 // Don't mark scheduled workout as complete when discarding
+                UIApplication.shared.isIdleTimerDisabled = false
                 SharedWorkoutStorage.clearHKStartedSessionId()
                 await interactor.endActiveSession(markScheduledComplete: false)
                 router.dismissScreen()

@@ -20,7 +20,7 @@ protocol DashboardRouter: GlobalRouter {
     func showEnergyBalanceView(delegate: EnergyBalanceDelegate, themeColor: Color?)
     func showWorkoutView(delegate: WorkoutDelegate, themeColor: Color?)
     func showWorkoutConsistencyView(delegate: WorkoutConsistencyDelegate, themeColor: Color?)
-    func showExpenditureView(delegate: ExpenditureDelegate, themeColor: Color?)
+    func showExpenditureDetailView(delegate: ExpenditureDetailDelegate, themeColor: Color?)
     func showStepsView(delegate: StepsDelegate, themeColor: Color?)
     func showVisualBodyFatView(delegate: VisualBodyFatDelegate, themeColor: Color?)
     func showInsightsAndAnalyticsView(delegate: InsightsAndAnalyticsDelegate)

@@ -86,7 +86,21 @@ struct AccountView: View {
 
     private var profileSection: some View {
         Section("Profile") {
-            rowItem(title: "Name", subtitle: "\(presenter.firstName) \(presenter.lastName)", action: { print("edit name pressed")})
+            CustomLabelButtonView(
+                symbolName: "person.fill",
+                title: "Name",
+                subtitle: "\(presenter.firstName) \(presenter.lastName)",
+                content: {
+                    Text("Edit")
+                        .padding(.horizontal, 8)
+                        .padding(8)
+                        .background(Color.secondary.opacity(0.2), in: .capsule)
+                        .anyButton(.press) {
+                            print("Edit name pressed")
+                        }
+                }
+            )
+
             DatePicker("Date of birth", selection: $presenter.dateOfBirth, displayedComponents: .date)
             Picker(selection: $presenter.selectedGender) {
                 Text("Not specified").tag(nil as Gender?)

@@ -55,11 +55,13 @@ class GymProfilesPresenter {
     
     func onAddGymProfilePressed() {
         guard let userId = interactor.userId else { return }
-        router.showGymProfileView(gymProfile: GymProfileModel(authorId: userId))
+        let delegate = GymProfileDelegate(gymProfile: GymProfileModel(authorId: userId))
+        router.showGymProfileView(delegate: delegate)
     }
 
     func onGymProfilePressed(gymProfile: GymProfileModel) {
-        router.showGymProfileView(gymProfile: gymProfile)
+        let delegate = GymProfileDelegate(gymProfile: gymProfile)
+        router.showGymProfileView(delegate: delegate)
     }
         
     func deleteGymProfile(profile: GymProfileModel) {

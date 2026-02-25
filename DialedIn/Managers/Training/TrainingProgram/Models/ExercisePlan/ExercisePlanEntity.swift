@@ -17,16 +17,18 @@ class ExercisePlanEntity {
     var exerciseData: Data
     var setTargets: Data
     var setRestTimers: Bool
-    
+    var index: Int = 0
+
     @Relationship var dayPlan: DayPlanEntity?
-    
+
     @MainActor
-    init(from model: WorkoutTemplateExercise) {
+    init(from model: WorkoutTemplateExercise, index: Int = 0) {
         self.id = model.id
         self.authorId = model.exercise.authorId
         self.exerciseData = Self.encode(model.exercise)
         self.setTargets = Self.encode(model.setTargets)
         self.setRestTimers = model.setRestTimers
+        self.index = index
         self.dayPlan = nil
     }
     

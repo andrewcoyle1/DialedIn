@@ -129,7 +129,7 @@ protocol WorkoutTrackerInteractor {
 
     // MARK: - Rest & Notifications
 
-    func schedulePushNotification(identifier: String, title: String, subtitle: String, triggerDate: Date, sound: Bool, badge: Int?) async throws
+    func schedulePushNotification(delegate: PushNotificationDelegate) async throws
     
     /// Start a rest timer for the specified duration in seconds,
     /// associated with the current session/exercise state.
@@ -153,6 +153,9 @@ protocol WorkoutTrackerInteractor {
 
     /// Load unit preferences for an exercise template.
     func getPreference(templateId: String) -> ExerciseUnitPreference
+
+    /// The current workout settings.
+    var workoutSettings: WorkoutSettings { get }
 }
 
 extension CoreInteractor: WorkoutTrackerInteractor { }

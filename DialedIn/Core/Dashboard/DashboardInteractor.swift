@@ -8,14 +8,13 @@
 import Foundation
 
 @MainActor
-protocol DashboardInteractor {
+protocol DashboardInteractor: GlobalInteractor {
     var userImageUrl: String? { get }
     var activeTests: ActiveABTests { get }
     var userId: String? { get }
     var currentUser: UserModel? { get }
     var measurementHistory: [BodyMeasurementEntry] { get }
     var auth: UserAuthInfo? { get }
-    func trackEvent(event: LoggableEvent)
     func readAllLocalWeightEntries() throws -> [BodyMeasurementEntry]
     func readAllRemoteWeightEntries(userId: String) async throws -> [BodyMeasurementEntry]
     func getLocalWorkoutSessionsForAuthor(authorId: String, limitTo: Int) throws -> [WorkoutSessionModel]

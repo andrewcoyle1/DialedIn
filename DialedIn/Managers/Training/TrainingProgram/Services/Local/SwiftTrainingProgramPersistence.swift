@@ -39,7 +39,7 @@ struct SwiftTrainingProgramPersistence: LocalTrainingProgramPersistence {
                 for: TrainingProgramEntity.self,
                 DayPlanEntity.self,
                 ExercisePlanEntity.self,
-                ExerciseTemplateEntity.self,
+                ExerciseEntity.self,
                 configurations: configuration
             )
         } catch {
@@ -51,7 +51,7 @@ struct SwiftTrainingProgramPersistence: LocalTrainingProgramPersistence {
                 for: TrainingProgramEntity.self,
                 DayPlanEntity.self,
                 ExercisePlanEntity.self,
-                ExerciseTemplateEntity.self,
+                ExerciseEntity.self,
                 configurations: configuration
             )
         }

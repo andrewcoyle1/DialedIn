@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 @MainActor
 protocol TrainingRouter: GlobalRouter {

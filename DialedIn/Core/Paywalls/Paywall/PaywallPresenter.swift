@@ -3,11 +3,11 @@ import StoreKit
 
 @Observable
 @MainActor
-class CorePaywallPresenter {
+class PaywallPresenter {
     
-    private let interactor: CorePaywallInteractor
-    private let router: CorePaywallRouter
-    private let onPurchaseSuccess: (@MainActor () -> Void)?
+    private let interactor: PaywallInteractor
+    private let router: PaywallRouter
+    let isOnboarding: Bool
 
     private(set) var products: [AnyProduct] = []
     private(set) var productIds: [String] = EntitlementOption.allProductIds
@@ -16,6 +16,10 @@ class CorePaywallPresenter {
     
     var paywallTest: PaywallTestOption {
         interactor.paywallTest
+    }
+    
+    var currentUser: UserModel? {
+        interactor.currentUser
     }
 
     enum PaywallLoadError: LocalizedError {
@@ -29,10 +33,10 @@ class CorePaywallPresenter {
         }
     }
 
-    init(interactor: CorePaywallInteractor, router: CorePaywallRouter, onPurchaseSuccess: (@MainActor () -> Void)? = nil) {
+    init(interactor: PaywallInteractor, router: PaywallRouter, isOnboarding: Bool) {
         self.interactor = interactor
         self.router = router
-        self.onPurchaseSuccess = onPurchaseSuccess
+        self.isOnboarding = isOnboarding
     }
     
     func onViewAppear() {
@@ -71,6 +75,59 @@ class CorePaywallPresenter {
         router.dismissScreen()
     }
     
+    private func onPurchaseSuccess() {
+        if isOnboarding {
+            handleNavigation()
+        } else {
+            router.dismissEnvironment()
+        }
+    }
+    
+    // MARK: Handle Navigation
+    func handleNavigation() {
+        // Navigate based on user's inferred onboarding step
+        if let currentUser = interactor.currentUser {
+            let step = currentUser.inferredOnboardingStep
+
+            route(to: step)
+        }
+    }
+
+    private func route(to step: OnboardingStep) {
+        switch step {
+        case .auth, .subscription:
+            // For anything at/before subscription, move them into complete-account setup
+            router.showCompleteAccountSetupView()
+
+        case .completeAccountSetup:
+            router.showCompleteAccountSetupView()
+
+        case .notifications:
+            router.showNotificationsPermissionsView()
+
+        case .healthData:
+            router.showOnboardingHealthDataView()
+
+        case .healthDisclaimer:
+            router.showHealthDisclaimerView()
+
+        case .goalSetting:
+            router.showGoalSettingView()
+
+        case .gymProfileSetup:
+            let delegate = CreateGymProfileDelegate(onComplete: self.handleNavigation)
+            router.showCreateGymProfileView(delegate: delegate)
+
+        case .trainingProgramSetup:
+            router.showOnboardingTrainingProgramView(delegate: CreateProgramDelegate(onComplete: self.handleNavigation))
+        case .customiseProgram:
+            router.showCustomisingDietProgramView()
+
+        case .complete:
+            router.showOnboardingCompletedView()
+        }
+    }
+
     func onRestorePurchasePressed() {
         interactor.trackEvent(event: Event.restorePurchaseStart)
 
@@ -79,8 +136,7 @@ class CorePaywallPresenter {
                 let entitlements = try await interactor.restorePurchase()
                 
                 if entitlements.hasActiveEntitlement {
-                    router.dismissScreen()
-                    onPurchaseSuccess?()
+                    onPurchaseSuccess()
                 }
             } catch {
                 router.showAlert(error: error)
@@ -97,8 +153,7 @@ class CorePaywallPresenter {
                 interactor.trackEvent(event: Event.purchaseSuccess(product: product))
 
                 if entitlements.hasActiveEntitlement {
-                    router.dismissScreen()
-                    onPurchaseSuccess?()
+                    onPurchaseSuccess()
                 }
             } catch {
                 interactor.trackEvent(event: Event.purchaseFail(error: error))
@@ -120,8 +175,7 @@ class CorePaywallPresenter {
             switch value {
             case .success:
                 interactor.trackEvent(event: Event.purchaseSuccess(product: product))
-                router.dismissScreen()
-                onPurchaseSuccess?()
+                onPurchaseSuccess()
             case .pending:
                 interactor.trackEvent(event: Event.purchasePending(product: product))
             case .userCancelled:

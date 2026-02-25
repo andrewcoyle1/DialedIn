@@ -20,8 +20,6 @@ class CreateExercisePresenter {
     var exerciseName: String?
     var exerciseDescription: String?
     private(set) var instructions: [String] = []
-    var muscleGroups: [MuscleGroup] = []
-    var category: ExerciseCategory = .none
 
     var trackableMetricA: TrackableExerciseMetric?
     var trackableMetricB: TrackableExerciseMetric?

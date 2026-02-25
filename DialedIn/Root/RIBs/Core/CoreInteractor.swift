@@ -23,6 +23,7 @@ struct CoreInteractor: GlobalInteractor {
     let purchaseManager: PurchaseManager
     let exerciseTemplateManager: ExerciseTemplateManager
     let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
+    let workoutSettingsManager: WorkoutSettingsManager
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
     let exerciseHistoryManager: ExerciseHistoryManager
@@ -56,6 +57,7 @@ struct CoreInteractor: GlobalInteractor {
         self.purchaseManager = container.resolve(PurchaseManager.self)!
         self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
         self.exerciseUnitPreferenceManager = container.resolve(ExerciseUnitPreferenceManager.self)!
+        self.workoutSettingsManager = container.resolve(WorkoutSettingsManager.self)!
         self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
         self.exerciseHistoryManager = container.resolve(ExerciseHistoryManager.self)!
@@ -137,7 +139,19 @@ struct CoreInteractor: GlobalInteractor {
             async let deleteGoals: () = goalManager.deleteAllGoalsForUser(userId: auth.uid)
             async let deleteUser: () = userManager.deleteCurrentUser()
 
-            _ = try await (deleteExerciseTemplates, deleteExerciseHistory, deleteWorkoutTemplates, deleteWorkoutSessions, deleteRecipeTemplates, deleteIngredientTemplates, deleteMealLogs, deleteWeightEntries, deleteStepsEntries, deleteGoals, deleteUser)
+            _ = try await (
+                deleteExerciseTemplates,
+                deleteExerciseHistory,
+                deleteWorkoutTemplates,
+                deleteWorkoutSessions,
+                deleteRecipeTemplates,
+                deleteIngredientTemplates,
+                deleteMealLogs,
+                deleteWeightEntries,
+                deleteStepsEntries,
+                deleteGoals,
+                deleteUser
+            )
             
         }
         

@@ -79,31 +79,38 @@ class GymProfilePresenter {
     }
     
     func onBackButtonPressed() {
+        guard !gymProfile.name.isEmpty else {
+            router.showAlert(
+                title: "Discard Gym Profile",
+                subtitle: "To save the gym profile, you must give it a name.",
+                buttons: {
+                    AnyView(
+                        Button(role: .destructive) {
+                            self.router.dismissScreen()
+                        }
+                    )
+                }
+            )
+            return
+        }
+        saveGymProfile {
+            self.router.dismissScreen()
+        }
+    }
+    
+    private func saveGymProfile(onComplete: @escaping () -> Void) {
         Task {
             do {
                 interactor.trackEvent(event: Event.saveGymProfileStart)
-                guard !gymProfile.name.isEmpty else {
-                    router.showAlert(
-                        title: "Discard Gym Profile",
-                        subtitle: "To save the gym profile, you must give it a name.",
-                        buttons: {
-                            AnyView(
-                                Button(role: .destructive) {
-                                    self.router.dismissScreen()
-                                }
-                            )
-                        }
-                    )
-                    return
-                }
                 gymProfile.dateModified = .now
                 gymProfile = try await interactor.updateGymProfile(profile: gymProfile, image: nil)
                 interactor.trackEvent(event: Event.saveGymProfileSuccess)
-                router.dismissScreen()
+                onComplete()
             } catch {
                 interactor.trackEvent(event: Event.saveGymProfileFail(error: error))
             }
         }
+
     }
 
     private func sortedIndicesByName<T: GymEquipmentItem>(
@@ -141,6 +148,21 @@ class GymProfilePresenter {
         }
     }
         
+    func onContinuePressed(delegate: GymProfileDelegate) {
+        saveGymProfile {
+            Task {
+                self.interactor.trackEvent(event: Event.favouriteGymProfileStart)
+                do {
+                    try await self.interactor.updateFavouriteGymProfileId(profileId: self.gymProfile.id)
+                    self.interactor.trackEvent(event: Event.favouriteGymProfileSuccess)
+                } catch {
+                    self.interactor.trackEvent(event: Event.favouriteGymProfileFail(error: error))
+                }
+                self.handleNavigation()
+            }
+        }
+    }
+    
     func onEditFreeWeightPressed(freeWeight: Binding<FreeWeights>) {
         router.showEditFreeWeightView(freeWeight: freeWeight)
     }
@@ -198,6 +220,50 @@ class GymProfilePresenter {
             }
         }
     }
+    
+    // MARK: Handle Navigation
+    func handleNavigation() {
+        // Navigate based on user's inferred onboarding step
+        if let currentUser = interactor.currentUser {
+            let step = currentUser.inferredOnboardingStep
+            route(to: step)
+        }
+    }
+
+    private func route(to step: OnboardingStep) {
+        switch step {
+        case .auth, .subscription:
+            // For anything at/before subscription, move them into complete-account setup
+            router.showCompleteAccountSetupView()
+
+        case .completeAccountSetup:
+            router.showCompleteAccountSetupView()
+
+        case .notifications:
+            router.showNotificationsPermissionsView()
+
+        case .healthData:
+            router.showOnboardingHealthDataView()
+
+        case .healthDisclaimer:
+            router.showHealthDisclaimerView()
+
+        case .goalSetting:
+            router.showGoalSettingView()
+
+        case .gymProfileSetup:
+            let delegate = CreateGymProfileDelegate(onComplete: self.handleNavigation)
+            router.showCreateGymProfileView(delegate: delegate)
+
+        case .trainingProgramSetup:
+            router.showOnboardingTrainingProgramView(delegate: CreateProgramDelegate(onComplete: self.handleNavigation))
+        case .customiseProgram:
+            router.showCustomisingDietProgramView()
+
+        case .complete:
+            router.showOnboardingCompletedView()
+        }
+    }
 
     enum Event: LoggableEvent {
         case onAppear
@@ -209,6 +275,9 @@ class GymProfilePresenter {
         case imageSelectorSuccess
         case imageSelectorCancel
         case imageSelectorFail(error: Error)
+        case favouriteGymProfileStart
+        case favouriteGymProfileSuccess
+        case favouriteGymProfileFail(error: Error)
 
         var eventName: String {
             switch self {
@@ -221,6 +290,9 @@ class GymProfilePresenter {
             case .imageSelectorSuccess:     return "GymProfileView_ImageSelected_Success"
             case .imageSelectorFail:        return "GymProfileView_ImageSelected_Fail"
             case .imageSelectorCancel:      return "GymProfileView_ImageSelected_Cancel"
+            case .favouriteGymProfileStart:     return "GymProfileView_FavouriteGymProfile_Start"
+            case .favouriteGymProfileSuccess:   return "GymProfileView_FavouriteGymProfile_Success"
+            case .favouriteGymProfileFail:      return "GymProfileView_FavouriteGymProfile_Fail"
             }
         }
         

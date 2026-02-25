@@ -1,10 +1,16 @@
 import SwiftUI
 
 struct NameProgramDelegate {
+    let onComplete: (() -> Void)?
     
+    init(onComplete: (() -> Void)? = nil) {
+        self.onComplete = onComplete
+    }
 }
 
 struct NameProgramView: View {
+    
+    @Environment(\.colorScheme) private var colorScheme
     
     @State var presenter: NameProgramPresenter
     let delegate: NameProgramDelegate
@@ -24,6 +30,7 @@ struct NameProgramView: View {
             Spacer()
         }
         .padding(.horizontal)
+        .background(colorScheme.backgroundSecondary)
         .navigationTitle("Create Program")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -32,22 +39,17 @@ struct NameProgramView: View {
         .onDisappear {
             presenter.onViewDisappear()
         }
-        .toolbar {
-            toolbarContent
-        }
-    }
-    
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        
-        ToolbarItem(placement: .bottomBar) {
+        .safeAreaInset(edge: .bottom) {
             Button {
-                presenter.onNextPressed()
+                presenter.onNextPressed(delegate: delegate)
             } label: {
-                Image(systemName: "chevron.right")
+                Text("Continue")
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.glassProminent)
             .disabled(!presenter.canSave)
+            .padding(.horizontal)
         }
     }
 }
@@ -81,7 +83,7 @@ extension CoreRouter {
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     let delegate = NameProgramDelegate()
     
-    return RouterView { router in
+    RouterView { router in
         builder.nameProgramView(router: router, delegate: delegate)
     }
     

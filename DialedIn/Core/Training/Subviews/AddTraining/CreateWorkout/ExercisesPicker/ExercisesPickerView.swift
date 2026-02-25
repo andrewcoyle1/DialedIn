@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftfulRouting
 
 struct ExercisesPickerDelegate {
     var addedExercises: Binding<[WorkoutTemplateExercise]>

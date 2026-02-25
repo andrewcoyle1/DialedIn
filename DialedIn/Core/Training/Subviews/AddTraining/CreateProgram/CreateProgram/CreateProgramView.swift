@@ -1,7 +1,13 @@
 import SwiftUI
 
 struct CreateProgramDelegate {
+    let onDismiss: (() -> Void)?
+    let onComplete: (() -> Void)?
     
+    init(onDismiss: (() -> Void)? = nil, onComplete: (() -> Void)? = nil) {
+        self.onDismiss = onDismiss
+        self.onComplete = onComplete
+    }
 }
 
 struct CreateProgramView: View {
@@ -33,24 +39,28 @@ struct CreateProgramView: View {
         .toolbar {
             toolbarContent
         }
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                presenter.onNextPressed(delegate: delegate)
+            } label: {
+                Text("Continue")
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .padding(.horizontal)
+        }
     }
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .cancellationAction) {
-            Button {
-                presenter.onDismissPressed()
-            } label: {
-                Image(systemName: "xmark")
-            }
-        }
-        
-        ToolbarSpacer(.flexible, placement: .bottomBar)
-        ToolbarItem(placement: .bottomBar) {
-            Button {
-                presenter.onNextPressed()
-            } label: {
-                Image(systemName: "chevron.right")
+        if delegate.onDismiss != nil {
+            ToolbarItem(placement: .cancellationAction) {
+                Button {
+                    presenter.onDismissPressed()
+                } label: {
+                    Image(systemName: "xmark")
+                }
             }
         }
     }
@@ -76,9 +86,27 @@ extension CoreRouter {
             builder.createProgramView(router: router, delegate: delegate)
         }
     }
+    
+    func showOnboardingTrainingProgramView(delegate: CreateProgramDelegate) {
+        router.showScreen(.push) { router in
+            builder.createProgramView(router: router, delegate: delegate)
+        }
+    }
+
 }
 
-#Preview {
+#Preview("Sheet presentations") {
+    let container = DevPreview.shared.container()
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
+    let delegate = CreateProgramDelegate(onDismiss: { print("dismissed") })
+    
+    return RouterView { router in
+        builder.createProgramView(router: router, delegate: delegate)
+    }
+    
+}
+
+#Preview("Onboarding presentations") {
     let container = DevPreview.shared.container()
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     let delegate = CreateProgramDelegate()

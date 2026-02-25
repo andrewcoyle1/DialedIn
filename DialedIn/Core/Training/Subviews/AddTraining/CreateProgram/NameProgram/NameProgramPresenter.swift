@@ -26,8 +26,8 @@ class NameProgramPresenter {
         interactor.trackEvent(event: Event.onDisappear)
     }
     
-    func onNextPressed() {
-        router.showProgramIconView(delegate: ProgramIconDelegate(name: programName))
+    func onNextPressed(delegate: NameProgramDelegate) {
+        router.showProgramIconView(delegate: ProgramIconDelegate(onComplete: delegate.onComplete, name: programName))
     }
     
 }

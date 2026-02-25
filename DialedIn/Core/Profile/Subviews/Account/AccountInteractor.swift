@@ -7,7 +7,8 @@ protocol AccountInteractor: GlobalInteractor {
     func signOut() async throws
     func deleteUserProfile()
     func deleteAccount() async throws
-    func saveUser(user: UserModel, image: PlatformImage?) async throws
+    func updateProfileImageUrl(image: PlatformImage) async throws
+    func saveUser(user: UserModel) async throws
 }
 
 extension CoreInteractor: AccountInteractor { }

@@ -45,7 +45,7 @@ class TrainingProgramEntity {
         var dayPlanModels: [DayPlan] = []
         let sortedDayPlans = dayPlans.sorted { $0.dateCreated < $1.dateCreated }
         for dayPlan in sortedDayPlans {
-            let exercisePlanModels = dayPlan.exercises.map { $0.toModel() }
+            let exercisePlanModels = dayPlan.exercises.sorted { $0.index < $1.index }.map { $0.toModel() }
             dayPlanModels.append(
                 DayPlan(
                     id: dayPlan.id,

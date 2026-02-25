@@ -15,17 +15,17 @@ struct UserModel: Codable, Equatable, Sendable {
     
     // These values come from the user's Auth info
     let userId: String
-    var email: String?
-    var isAnonymous: Bool?
-    var authProviders: [String]?
-    var displayName: String?
-    var firstName: String?
-    var lastName: String?
-    var phoneNumber: String?
-    var photoUrl: String?
+    let email: String?
+    let isAnonymous: Bool?
+    let authProviders: [String]?
+    let displayName: String?
+    let firstName: String?
+    let lastName: String?
+    let phoneNumber: String?
+    let photoUrl: String?
     let creationDate: Date?
     let creationVersion: String?
-    var lastSignInDate: Date?
+    let lastSignInDate: Date?
     
     // These values are submitted by the user
     let submittedEmail: String?
@@ -36,14 +36,14 @@ struct UserModel: Codable, Equatable, Sendable {
     let submittedGender: Gender?
     let submittedHeightCentimeters: Double?
     let submittedWeightKilograms: Double?
-    let submittedExerciseFrequency: ProfileExerciseFrequency?
-    let submittedDailyActivityLevel: ProfileDailyActivityLevel?
-    let submittedCardioFitnessLevel: ProfileCardioFitnessLevel?
+    let submittedExerciseFrequency: ExerciseFrequency?
+    let submittedDailyActivityLevel: ActivityLevel?
+    let submittedCardioFitnessLevel: CardioFitnessLevel?
     let submittedLengthUnitPreference: LengthUnitPreference?
     let submittedWeightUnitPreference: WeightUnitPreference?
     let submittedCurrentGoalId: String?
-    let submittedActiveTrainingProgramId: String?
     let submittedFavouriteGymProfileId: String?
+    let submittedActiveTrainingProgramId: String?
     let fcmToken: String?
     let blockedUserIds: [String]?
     var didCompleteOnboarding: Bool
@@ -73,9 +73,9 @@ struct UserModel: Codable, Equatable, Sendable {
         submittedGender: Gender? = nil,
         submittedHeightCentimeters: Double? = nil,
         submittedWeightKilograms: Double? = nil,
-        submittedExerciseFrequency: ProfileExerciseFrequency? = nil,
-        submittedDailyActivityLevel: ProfileDailyActivityLevel? = nil,
-        submittedCardioFitnessLevel: ProfileCardioFitnessLevel? = nil,
+        submittedExerciseFrequency: ExerciseFrequency? = nil,
+        submittedDailyActivityLevel: ActivityLevel? = nil,
+        submittedCardioFitnessLevel: CardioFitnessLevel? = nil,
         submittedLengthUnitPreference: LengthUnitPreference? = nil,
         submittedWeightUnitPreference: WeightUnitPreference? = nil,
         submittedCurrentGoalId: String? = nil,
@@ -88,7 +88,6 @@ struct UserModel: Codable, Equatable, Sendable {
         acceptedHealthDisclaimerDate: Date? = nil,
         acceptedHealthPrivacyPolicyVersion: String? = nil,
         acceptedHealthPrivacyPolicyDate: Date? = nil
-
     ) {
         self.userId = userId
         self.email = email
@@ -143,6 +142,88 @@ struct UserModel: Codable, Equatable, Sendable {
             lastSignInDate: auth.lastSignInDate
         )
     }
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case email
+        case isAnonymous = "is_anonymous"
+        case authProviders = "auth_providers"
+        case displayName = "display_name"
+        case firstName = "first_name"
+        case lastName = "last_name"
+        case phoneNumber = "phone_number"
+        case photoUrl = "photo_url"
+        case creationDate = "creation_date"
+        case creationVersion = "creation_version"
+        case lastSignInDate = "last_sign_in_date"
+        case submittedFirstName = "submitted_first_name"
+        case submittedLastName = "submitted_last_name"
+        case submittedEmail = "submitted_email"
+        case submittedProfileImage = "submitted_profile_image"
+        case submittedDateOfBirth = "submitted_date_of_birth"
+        case submittedGender = "submitted_gender"
+        case submittedHeightCentimeters = "submitted_height_centimeters"
+        case submittedWeightKilograms = "submitted_weight_kilograms"
+        case submittedExerciseFrequency = "submitted_exercise_frequency"
+        case submittedDailyActivityLevel = "submitted_daily_activity_level"
+        case submittedCardioFitnessLevel = "submitted_cardio_fitness_level"
+        case submittedLengthUnitPreference = "submitted_length_unit_preference"
+        case submittedWeightUnitPreference = "submitted_weight_unit_preference"
+        case submittedCurrentGoalId = "submitted_current_goal_id"
+        case submittedActiveTrainingProgramId = "submitted_active_training_program_id"
+        case submittedFavouriteGymProfileId = "submitted_favourite_gym_profile_id"
+        case didCompleteOnboarding = "did_complete_onboarding"
+        case blockedUserIds = "blocked_user_ids"
+        case fcmToken = "fcm_token"
+        case acceptedHealthDisclaimerVersion = "accepted_health_disclaimer_version"
+        case acceptedHealthDisclaimerDate = "accepted_health_disclaimer_date"
+        case acceptedHealthPrivacyPolicyVersion = "accepted_health_privacy_policy_version"
+        case acceptedHealthPrivacyPolicyDate = "accepted_health_privacy_policy_date"
+    }
+    
+    var eventParameters: [String: Any] {
+        let dict: [String: Any?] = [
+            "user_\(CodingKeys.userId.rawValue)": userId,
+            "user_\(CodingKeys.email.rawValue)": email,
+            "user_\(CodingKeys.isAnonymous.rawValue)": isAnonymous,
+            "user_\(CodingKeys.authProviders.rawValue)": authProviders?.sorted().joined(separator: ", "),
+            "user_\(CodingKeys.displayName.rawValue)": displayNameCalculated,
+            "user_\(CodingKeys.firstName.rawValue)": firstNameCalculated,
+            "user_\(CodingKeys.lastName.rawValue)": lastNameCalculated,
+            "user_common_name_calc": commonNameCalculated,
+            "user_full_name_calc": fullNameCalculated,
+            "user_\(CodingKeys.phoneNumber.rawValue)": phoneNumber,
+            "user_\(CodingKeys.photoUrl.rawValue)": photoUrl,
+            "user_\(CodingKeys.creationDate.rawValue)": creationDate,
+            "user_\(CodingKeys.creationVersion.rawValue)": creationVersion,
+            "user_\(CodingKeys.lastSignInDate.rawValue)": lastSignInDate,
+            "user_\(CodingKeys.submittedFirstName.rawValue)": submittedFirstName,
+            "user_\(CodingKeys.submittedLastName.rawValue)": submittedLastName,
+            "user_\(CodingKeys.submittedEmail.rawValue)": submittedEmail,
+            "user_\(CodingKeys.submittedProfileImage.rawValue)": submittedProfileImage,
+            "user_\(CodingKeys.submittedDateOfBirth.rawValue)": submittedDateOfBirth,
+            "user_\(CodingKeys.submittedGender.rawValue)": submittedGender?.description,
+            "user_\(CodingKeys.submittedHeightCentimeters.rawValue)": submittedHeightCentimeters,
+            "user_\(CodingKeys.submittedWeightKilograms.rawValue)": submittedWeightKilograms,
+            "user_\(CodingKeys.submittedExerciseFrequency.rawValue)": submittedExerciseFrequency?.rawValue,
+            "user_\(CodingKeys.submittedDailyActivityLevel.rawValue)": submittedDailyActivityLevel?.rawValue,
+            "user_\(CodingKeys.submittedCardioFitnessLevel.rawValue)": submittedCardioFitnessLevel?.rawValue,
+            "user_\(CodingKeys.submittedLengthUnitPreference.rawValue)": submittedLengthUnitPreference?.rawValue,
+            "user_\(CodingKeys.submittedWeightUnitPreference.rawValue)": submittedWeightUnitPreference?.rawValue,
+            "user_\(CodingKeys.submittedCurrentGoalId.rawValue)": submittedCurrentGoalId,
+            "user_\(CodingKeys.submittedActiveTrainingProgramId.rawValue)": submittedActiveTrainingProgramId,
+            "user_\(CodingKeys.submittedFavouriteGymProfileId.rawValue)": submittedFavouriteGymProfileId,
+            "user_\(CodingKeys.blockedUserIds.rawValue)": blockedUserIds,
+            "user_has_\(CodingKeys.fcmToken.rawValue)": (fcmToken?.count ?? 0) > 0,
+            "user_\(CodingKeys.didCompleteOnboarding.rawValue)": didCompleteOnboarding,
+            "user_\(CodingKeys.acceptedHealthDisclaimerVersion.rawValue)": acceptedHealthDisclaimerVersion,
+            "user_\(CodingKeys.acceptedHealthDisclaimerDate.rawValue)": acceptedHealthDisclaimerDate,
+            "user_\(CodingKeys.acceptedHealthPrivacyPolicyVersion.rawValue)": acceptedHealthPrivacyPolicyVersion,
+            "user_\(CodingKeys.acceptedHealthPrivacyPolicyDate.rawValue)": acceptedHealthPrivacyPolicyDate
+        ]
+        return dict.compactMapValues({ $0 })
+    }
+    
     /// First name, per user's Auth info
     var firstNameCalculated: String? {
         if let submittedFirstName,
@@ -230,89 +311,14 @@ struct UserModel: Codable, Equatable, Sendable {
         }
         guard acceptedHealthDisclaimerVersion != nil else { return .healthDisclaimer }
         guard submittedCurrentGoalId != nil else { return .goalSetting }
+        guard submittedFavouriteGymProfileId != nil else { return .gymProfileSetup }
+        guard submittedActiveTrainingProgramId != nil else { return .trainingProgramSetup }
         guard didCompleteOnboarding else { return .customiseProgram }
         return .complete
     }
-
-    enum CodingKeys: String, CodingKey {
-        case userId = "user_id"
-        case email
-        case isAnonymous = "is_anonymous"
-        case authProviders = "auth_providers"
-        case displayName = "display_name"
-        case firstName = "first_name"
-        case lastName = "last_name"
-        case phoneNumber = "phone_number"
-        case photoUrl = "photo_url"
-        case creationDate = "creation_date"
-        case creationVersion = "creation_version"
-        case lastSignInDate = "last_sign_in_date"
-        case submittedFirstName = "submitted_first_name"
-        case submittedLastName = "submitted_last_name"
-        case submittedEmail = "submitted_email"
-        case submittedProfileImage = "submitted_profile_image"
-        case submittedDateOfBirth = "date_of_birth"
-        case submittedGender = "submitted_gender"
-        case submittedHeightCentimeters = "height_cm"
-        case submittedWeightKilograms = "weight_kg"
-        case submittedExerciseFrequency = "exercise_frequency"
-        case submittedDailyActivityLevel = "daily_activity_level"
-        case submittedCardioFitnessLevel = "cardio_fitness_level"
-        case submittedLengthUnitPreference = "length_unit_preference"
-        case submittedWeightUnitPreference = "weight_unit_preference"
-        case submittedCurrentGoalId = "current_goal_id"
-        case submittedActiveTrainingProgramId = "active_training_program_id"
-        case submittedFavouriteGymProfileId = "favourite_gym_profile_id"
-        case didCompleteOnboarding = "did_complete_onboarding"
-        case blockedUserIds = "blocked_user_ids"
-        case fcmToken = "fcm_token"
-        case acceptedHealthDisclaimerVersion = "accepted_health_disclaimer_version"
-        case acceptedHealthDisclaimerDate = "accepted_health_disclaimer_date"
-        case acceptedHealthPrivacyPolicyVersion = "accepted_health_privacy_policy_version"
-        case acceptedHealthPrivacyPolicyDate = "accepted_health_privacy_policy_date"
-    }
     
-    var eventParameters: [String: Any] {
-        let dict: [String: Any?] = [
-            "user_\(CodingKeys.userId.rawValue)": userId,
-            "user_\(CodingKeys.email.rawValue)": email,
-            "user_\(CodingKeys.isAnonymous.rawValue)": isAnonymous,
-            "user_\(CodingKeys.authProviders.rawValue)": authProviders?.sorted().joined(separator: ", "),
-            "user_\(CodingKeys.displayName.rawValue)": displayNameCalculated,
-            "user_\(CodingKeys.firstName.rawValue)": firstNameCalculated,
-            "user_\(CodingKeys.lastName.rawValue)": lastNameCalculated,
-            "user_common_name_calc": commonNameCalculated,
-            "user_full_name_calc": fullNameCalculated,
-            "user_\(CodingKeys.phoneNumber.rawValue)": phoneNumber,
-            "user_\(CodingKeys.photoUrl.rawValue)": photoUrl,
-            "user_\(CodingKeys.creationDate.rawValue)": creationDate,
-            "user_\(CodingKeys.creationVersion.rawValue)": creationVersion,
-            "user_\(CodingKeys.lastSignInDate.rawValue)": lastSignInDate,
-            "user_\(CodingKeys.submittedFirstName.rawValue)": submittedFirstName,
-            "user_\(CodingKeys.submittedLastName.rawValue)": submittedLastName,
-            "user_\(CodingKeys.submittedEmail.rawValue)": submittedEmail,
-            "user_\(CodingKeys.submittedProfileImage.rawValue)": submittedProfileImage,
-            "user_\(CodingKeys.submittedDateOfBirth.rawValue)": submittedDateOfBirth,
-            "user_\(CodingKeys.submittedGender.rawValue)": submittedGender?.description,
-            "user_\(CodingKeys.submittedHeightCentimeters.rawValue)": submittedHeightCentimeters,
-            "user_\(CodingKeys.submittedWeightKilograms.rawValue)": submittedWeightKilograms,
-            "user_\(CodingKeys.submittedExerciseFrequency.rawValue)": submittedExerciseFrequency?.rawValue,
-            "user_\(CodingKeys.submittedDailyActivityLevel.rawValue)": submittedDailyActivityLevel?.rawValue,
-            "user_\(CodingKeys.submittedCardioFitnessLevel.rawValue)": submittedCardioFitnessLevel?.rawValue,
-            "user_\(CodingKeys.submittedLengthUnitPreference.rawValue)": submittedLengthUnitPreference?.rawValue,
-            "user_\(CodingKeys.submittedWeightUnitPreference.rawValue)": submittedWeightUnitPreference?.rawValue,
-            "user_\(CodingKeys.submittedCurrentGoalId.rawValue)": submittedCurrentGoalId,
-            "user_\(CodingKeys.submittedActiveTrainingProgramId.rawValue)": submittedActiveTrainingProgramId,
-            "user_\(CodingKeys.submittedFavouriteGymProfileId.rawValue)": submittedFavouriteGymProfileId,
-            "user_\(CodingKeys.blockedUserIds.rawValue)": blockedUserIds,
-            "user_has_\(CodingKeys.fcmToken.rawValue)": (fcmToken?.count ?? 0) > 0,
-            "user_\(CodingKeys.didCompleteOnboarding.rawValue)": didCompleteOnboarding,
-            "user_\(CodingKeys.acceptedHealthDisclaimerVersion.rawValue)": acceptedHealthDisclaimerVersion,
-            "user_\(CodingKeys.acceptedHealthDisclaimerDate.rawValue)": acceptedHealthDisclaimerDate,
-            "user_\(CodingKeys.acceptedHealthPrivacyPolicyVersion.rawValue)": acceptedHealthPrivacyPolicyVersion,
-            "user_\(CodingKeys.acceptedHealthPrivacyPolicyDate.rawValue)": acceptedHealthPrivacyPolicyDate
-        ]
-        return dict.compactMapValues({ $0 })
+    mutating func markDidCompleteOnboarding() {
+        didCompleteOnboarding = true
     }
 }
 
@@ -321,7 +327,33 @@ extension UserModel {
     static var mock: Self {
         mocks[0]
     }
-    
+
+    /// A complete, fully-onboarded user whose userId matches `UserAuthInfo.mock().uid`.
+    /// Use this in mock scenarios where an existing authenticated user is required.
+    static var mockExisting: Self {
+        UserModel(
+            userId: "mock_user_123",
+            email: "alice@example.com",
+            isAnonymous: false,
+            firstName: "Alice",
+            lastName: "Cooper",
+            creationDate: Date().addingTimeInterval(-30 * 86400),
+            creationVersion: "1.0.0",
+            lastSignInDate: Date(),
+            submittedProfileImage: "https://picsum.photos/200",
+            submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
+            submittedGender: .male,
+            submittedHeightCentimeters: 175.0,
+            submittedWeightKilograms: 70.0,
+            submittedExerciseFrequency: .daily,
+            submittedDailyActivityLevel: .active,
+            submittedCardioFitnessLevel: .intermediate,
+            submittedCurrentGoalId: "goal1",
+            didCompleteOnboarding: true,
+            acceptedHealthDisclaimerVersion: "2025.10.05"
+        )
+    }
+
     static func mockWithStep(_ step: OnboardingStep) -> Self {
         let now = Date()
         let hasProfile = step.orderIndex >= OnboardingStep.completeAccountSetup.orderIndex
@@ -353,7 +385,11 @@ extension UserModel {
         let now = Date()
         return [
             UserModel(
-                userId: "user1",
+                userId: "mock_user_123",
+                isAnonymous: true,
+            ),
+            UserModel(
+                userId: "user_1",
                 email: "user1@example.com",
                 isAnonymous: false,
                 firstName: "Alice",
@@ -382,7 +418,7 @@ extension UserModel {
                 creationDate: now.addingTimeInterval(-86400),
                 creationVersion: "1.0.0",
                 lastSignInDate: now.addingTimeInterval(-3600),
-                blockedUserIds: ["user1", "user3"],
+                blockedUserIds: ["mock_user_123", "user3"],
                 didCompleteOnboarding: false
             ),
             UserModel(
@@ -401,7 +437,7 @@ extension UserModel {
                 submittedDailyActivityLevel: .moderate,
                 submittedCardioFitnessLevel: .novice,
                 submittedCurrentGoalId: "goal3",
-                blockedUserIds: ["user1", "user2"],
+                blockedUserIds: ["mock_user_123", "user2"],
                 didCompleteOnboarding: true,
                 acceptedHealthDisclaimerVersion: "2025.10.05"
             ),
@@ -420,7 +456,7 @@ extension UserModel {
                 submittedExerciseFrequency: .fiveToSix,
                 submittedDailyActivityLevel: .active,
                 submittedCardioFitnessLevel: .intermediate,
-                blockedUserIds: ["user1", "user2"],
+                blockedUserIds: ["mock_user_123", "user2"],
                 didCompleteOnboarding: false,
                 acceptedHealthDisclaimerVersion: "2025.10.05"
             ),
@@ -458,30 +494,6 @@ enum Gender: String, Codable, Sendable {
         case .female: return "Female"
         }
     }
-}
-
-enum ProfileExerciseFrequency: String, Codable, Sendable {
-    case never
-    case oneToTwo = "1-2"
-    case threeToFour = "3-4"
-    case fiveToSix = "5-6"
-    case daily
-}
-
-enum ProfileDailyActivityLevel: String, Codable, Sendable {
-    case sedentary
-    case light
-    case moderate
-    case active
-    case veryActive = "very_active"
-}
-
-enum ProfileCardioFitnessLevel: String, Codable, Sendable {
-    case beginner
-    case novice
-    case intermediate
-    case advanced
-    case elite
 }
 
 enum LengthUnitPreference: String, Codable, Sendable {
@@ -572,6 +584,8 @@ enum OnboardingStep: String, Codable, Sendable {
     case healthData
     case healthDisclaimer
     case goalSetting
+    case gymProfileSetup
+    case trainingProgramSetup
     case customiseProgram
     case complete
     
@@ -594,8 +608,10 @@ extension OnboardingStep {
         case .healthData: return 4
         case .healthDisclaimer: return 5
         case .goalSetting: return 6
-        case .customiseProgram: return 7
-        case .complete: return 8
+        case .trainingProgramSetup: return 7
+        case .gymProfileSetup: return 8
+        case .customiseProgram: return 9
+        case .complete: return 10
         }
     }
 }
