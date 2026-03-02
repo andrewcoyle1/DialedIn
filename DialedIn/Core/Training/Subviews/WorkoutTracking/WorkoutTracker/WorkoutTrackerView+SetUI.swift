@@ -59,8 +59,6 @@ extension WorkoutTrackerView {
                 completeButton(exercise: exercise, set: set)
             }
             .frame(maxWidth: .infinity)
-            
-//            restSelector(exercise: exercise, set: set)
         }
         .padding(.vertical, 4)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {

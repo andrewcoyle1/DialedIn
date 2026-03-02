@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct ProgramIconDelegate {
-    let onComplete: (() -> Void)?
+    let onComplete: (@Sendable () -> Void)?
     let name: String
 
-    init(onComplete: (() -> Void)? = nil, name: String) {
+    init(onComplete: (@Sendable () -> Void)? = nil, name: String) {
         self.onComplete = onComplete
         self.name = name
     }

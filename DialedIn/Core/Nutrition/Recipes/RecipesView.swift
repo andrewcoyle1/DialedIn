@@ -14,8 +14,14 @@ struct RecipesView<RecipeList: View>: View {
     @ViewBuilder var recipeListViewBuilder: (RecipeListBuilderDelegate) -> RecipeList
     
     var body: some View {
-        let delegate = RecipeListBuilderDelegate(onRecipePressed: presenter.onRecipePressed)
+        let delegate = RecipeListBuilderDelegate(onRecipeSelectionChanged: presenter.onRecipePressed)
         recipeListViewBuilder(delegate)
+            .onAppear {
+                presenter.onViewAppear()
+            }
+            .onDisappear {
+                presenter.onViewDisappear()
+            }
     }
 }
 

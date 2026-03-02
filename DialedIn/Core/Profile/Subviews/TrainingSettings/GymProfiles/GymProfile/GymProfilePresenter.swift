@@ -16,6 +16,10 @@ class GymProfilePresenter {
     var selectedImageData: Data?
     var isImagePickerPresented: Bool = false
 
+    var currentUser: UserModel? {
+        interactor.currentUser
+    }
+    
     private var trimmedSearchQuery: String {
         searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
     }
@@ -103,7 +107,7 @@ class GymProfilePresenter {
             do {
                 interactor.trackEvent(event: Event.saveGymProfileStart)
                 gymProfile.dateModified = .now
-                gymProfile = try await interactor.updateGymProfile(profile: gymProfile, image: nil)
+                try await interactor.saveGymProfile(profile: gymProfile, image: nil)
                 interactor.trackEvent(event: Event.saveGymProfileSuccess)
                 onComplete()
             } catch {
@@ -209,7 +213,7 @@ class GymProfilePresenter {
                 selectedImageData = data
                 let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
                 gymProfile.dateModified = .now
-                gymProfile = try await interactor.updateGymProfile(profile: gymProfile, image: uiImage)
+                try await interactor.saveGymProfile(profile: gymProfile, image: uiImage)
                 interactor.trackEvent(event: Event.imageSelectorSuccess)
             } else {
                 interactor.trackEvent(event: Event.imageSelectorCancel)
@@ -256,7 +260,16 @@ class GymProfilePresenter {
             router.showCreateGymProfileView(delegate: delegate)
 
         case .trainingProgramSetup:
-            router.showOnboardingTrainingProgramView(delegate: CreateProgramDelegate(onComplete: self.handleNavigation))
+            router.showOnboardingTrainingProgramView(
+                delegate: CreateProgramDelegate(
+                    onComplete: { [weak self] in
+                        guard let self else { return }
+                        Task { @MainActor in
+                            self.handleNavigation()
+                        }
+                    }
+                )
+            )
         case .customiseProgram:
             router.showCustomisingDietProgramView()
 

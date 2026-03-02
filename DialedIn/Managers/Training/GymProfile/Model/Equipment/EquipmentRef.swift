@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct EquipmentRef: Codable, Hashable, Identifiable, Sendable {
+struct EquipmentRef: DataSyncModelProtocol, Hashable, Sendable {
     let kind: EquipmentKind
     let equipmentId: String
     

@@ -10,161 +10,61 @@ import Foundation
 @Observable
 @MainActor
 class GoalManager {
-    private let remote: RemoteGoalService
-    private let local: LocalGoalService
     
-    private(set) var currentGoal: WeightGoal?
-    private(set) var goalHistory: [WeightGoal] = []
-    private(set) var isLoading: Bool = false
+    private let userGoalSyncEngine: DocumentSyncEngine<WeightGoal>
     
-    init(services: GoalServices) {
-        self.remote = services.remote
-        self.local = services.local
+    var currentGoal: WeightGoal? {
+        userGoalSyncEngine.currentDocument
+    }
+    
+    init(userGoalSyncEngine: DocumentSyncEngine<WeightGoal>) {
+        self.userGoalSyncEngine = userGoalSyncEngine
     }
     
     // MARK: - Public Methods
     
-    /// Create a new goal with the current weight as starting weight
-    func createGoal(
-        userId: String,
-        objective: OverarchingObjective,
-        startingWeightKg: Double,
-        targetWeightKg: Double,
-        weeklyChangeKg: Double
-    ) async throws -> WeightGoal {
-        isLoading = true
-        defer { isLoading = false }
-        
-        let goal = WeightGoal(
-            userId: userId,
-            objective: objective,
-            startingWeightKg: startingWeightKg,
-            targetWeightKg: targetWeightKg,
-            weeklyChangeKg: weeklyChangeKg,
-            status: .active
-        )
-        
-        // Save to remote
-        try await remote.createGoal(goal)
-        
-        // Cache locally
-        try await local.cacheGoal(goal)
-        
-        // Update local state
-        currentGoal = goal
-        
-        return goal
+    func signIn(goalId id: String) async throws {
+        try await userGoalSyncEngine.startListening(documentId: id)
     }
     
-    /// Get the active goal for the user
-    @discardableResult
-    func getActiveGoal(userId: String) async throws -> WeightGoal? {
-        isLoading = true
-        defer { isLoading = false }
-        
-        // Try local cache first
-        if let cached = try? await local.getCachedActiveGoal(userId: userId) {
-            currentGoal = cached
-            return cached
-        }
-        
-        // Fetch from remote
-        let goal = try await remote.getActiveGoal(userId: userId)
-        
-        // Cache it
-        if let goal = goal {
-            try? await local.cacheGoal(goal)
-        }
-        
-        currentGoal = goal
-        return goal
+    func signOut() {
+        userGoalSyncEngine.stopListening()
     }
     
-    /// Get all goals for the user (including past goals)
-    func getAllGoals(userId: String) async throws -> [WeightGoal] {
-        isLoading = true
-        defer { isLoading = false }
-        
-        let goals = try await remote.getAllGoals(userId: userId)
-        
-        // Cache active goal
-        if let activeGoal = goals.first(where: { $0.status == .active }) {
-            try? await local.cacheGoal(activeGoal)
-            currentGoal = activeGoal
-        }
-        
-        goalHistory = goals
-        return goals
+    func saveGoal(_ goal: WeightGoal) async throws {
+        try await userGoalSyncEngine.saveDocument(goal)
+    }
+    
+    func deleteGoal() async throws {
+        try await userGoalSyncEngine.deleteDocument()
     }
     
     /// Mark a goal as completed
-    func completeGoal(goalId: String, userId: String) async throws {
-        isLoading = true
-        defer { isLoading = false }
-        
-        try await remote.updateGoalStatus(goalId: goalId, userId: userId, status: .completed)
-        
-        // Clear current goal if it was the active one
-        if currentGoal?.goalId == goalId {
-            currentGoal = nil
-            try? await local.clearCache(userId: userId)
-        }
+    func completeGoal() async throws {
+        try await self.updateGoalStatus(.completed)
     }
     
     /// Mark a goal as abandoned
-    func abandonGoal(goalId: String, userId: String) async throws {
-        isLoading = true
-        defer { isLoading = false }
-        
-        try await remote.updateGoalStatus(goalId: goalId, userId: userId, status: .abandoned)
-        
-        // Clear current goal if it was the active one
-        if currentGoal?.goalId == goalId {
-            currentGoal = nil
-            try? await local.clearCache(userId: userId)
-        }
+    func abandonGoal() async throws {
+        try await self.updateGoalStatus(.abandoned)
     }
-    
+        
     /// Pause a goal
-    func pauseGoal(goalId: String, userId: String) async throws {
-        isLoading = true
-        defer { isLoading = false }
-        
-        try await remote.updateGoalStatus(goalId: goalId, userId: userId, status: .paused)
-        
-        // Clear current goal if it was the active one
-        if currentGoal?.goalId == goalId {
-            currentGoal = nil
-            try? await local.clearCache(userId: userId)
-        }
+    func pauseGoal() async throws {
+        try await self.updateGoalStatus(.paused)
     }
     
-    func deleteAllGoalsForUser(userId: String) async throws {
-        try await remote.deleteAllGoalsForUser(userId: userId)
-    }
-
-    /// Delete a goal
-    func deleteGoal(goalId: String, userId: String) async throws {
-        isLoading = true
-        defer { isLoading = false }
-
-        try await remote.deleteGoal(goalId: goalId, userId: userId)
-
-        // Clear from local state
-        if currentGoal?.goalId == goalId {
-            currentGoal = nil
-        }
-        goalHistory.removeAll { $0.goalId == goalId }
-
-        // Clear cache
-        try? await local.clearCache(userId: userId)
+    /// Resume a goal
+    func resumeGoal() async throws {
+        try await self.updateGoalStatus(.active)
     }
     
-    // MARK: - Testing Helper
-    
-    /// Set current goal directly (for previews and testing only)
-    func setCurrentGoalForTesting(_ goal: WeightGoal?) {
-        currentGoal = goal
+    private func updateGoalStatus(_ status: WeightGoal.GoalStatus) async throws {
+        try await userGoalSyncEngine.updateDocument(
+            data: [
+                WeightGoal.CodingKeys.status.rawValue: status.rawValue
+            ]
+        )
     }
 }
 
@@ -175,49 +75,29 @@ extension CoreInteractor {
     var currentGoal: WeightGoal? {
         goalManager.currentGoal
     }
-    
-    var goalHistory: [WeightGoal] {
-        goalManager.goalHistory
+        
+    func saveGoal(_ goal: WeightGoal) async throws {
+        try await goalManager.saveGoal(goal)
+    }
+        
+    func completeGoal() async throws {
+        try await goalManager.completeGoal()
     }
     
-    func createGoal(
-        userId: String,
-        objective: OverarchingObjective,
-        startingWeightKg: Double,
-        targetWeightKg: Double,
-        weeklyChangeKg: Double
-    ) async throws -> WeightGoal {
-        try await goalManager.createGoal(userId: userId, objective: objective, startingWeightKg: startingWeightKg, targetWeightKg: targetWeightKg, weeklyChangeKg: weeklyChangeKg)
+    func abandonGoal() async throws {
+        try await goalManager.abandonGoal()
     }
     
-    func getActiveGoal(userId: String) async throws -> WeightGoal? {
-        try await goalManager.getActiveGoal(userId: userId)
+    func pauseGoal() async throws {
+        try await goalManager.pauseGoal()
     }
-    
-    func getAllGoals(userId: String) async throws -> [WeightGoal] {
-        try await goalManager.getAllGoals(userId: userId)
+
+    func resumeGoal() async throws {
+        try await goalManager.resumeGoal()
     }
-    
-    func completeGoal(goalId: String, userId: String) async throws {
-        try await goalManager.completeGoal(goalId: goalId, userId: userId)
-    }
-    
-    func abandonGoal(goalId: String, userId: String) async throws {
-        try await goalManager.abandonGoal(goalId: goalId, userId: userId)
-    }
-    
-    func pauseGoal(goalId: String, userId: String) async throws {
-        try await goalManager.pauseGoal(goalId: goalId, userId: userId)
-    }
-    
+
     /// Delete a goal
-    func deleteGoal(goalId: String, userId: String) async throws {
-        try await goalManager.deleteGoal(goalId: goalId, userId: userId)
+    func deleteGoal() async throws {
+        try await goalManager.deleteGoal()
     }
-
-    /// Set current goal directly (for previews and testing only)
-    func setCurrentGoalForTesting(_ goal: WeightGoal?) {
-        goalManager.setCurrentGoalForTesting(goal)
-    }
-
 }

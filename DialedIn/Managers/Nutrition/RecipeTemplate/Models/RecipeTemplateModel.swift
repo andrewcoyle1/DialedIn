@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RecipeTemplateModel: TemplateModel {
+struct RecipeTemplateModel: DataSyncModelProtocol {
     var id: String {
         recipeId
     }
@@ -389,5 +389,16 @@ struct RecipeTemplateModel: TemplateModel {
             favouriteCount: 10
         )
         ]
+    }
+}
+
+extension RecipeTemplateModel: Hashable {
+
+    static func == (lhs: RecipeTemplateModel, rhs: RecipeTemplateModel) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }

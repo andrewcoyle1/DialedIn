@@ -13,29 +13,6 @@ struct WorkoutTrackerDelegate {
     let workoutSessionId: String
 }
 
-// MARK: - Host view (creates presenter once per presentation to avoid fullScreenCover re-run loop)
-struct WorkoutTrackerHostView: View {
-    let delegate: WorkoutTrackerDelegate
-    let interactor: WorkoutTrackerInteractor
-    let router: WorkoutTrackerRouter
-    @State private var presenter: WorkoutTrackerPresenter?
-
-    var body: some View {
-        Group {
-            if let presenter {
-                WorkoutTrackerView(presenter: presenter, delegate: delegate)
-            } else {
-                ProgressView("Loading workout...")
-            }
-        }
-        .task(id: delegate.workoutSessionId) {
-            if presenter == nil {
-                presenter = WorkoutTrackerPresenter(interactor: interactor, router: router)
-            }
-        }
-    }
-}
-
 struct WorkoutTrackerView: View {
 
     @Environment(\.scenePhase) private var scenePhase
@@ -60,11 +37,9 @@ struct WorkoutTrackerView: View {
             timerHeaderView
         }
         .task(id: delegate.workoutSessionId) {
-            await presenter.loadWorkoutSession(delegate.workoutSessionId)
             await presenter.onAppear()
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
-            print("🌗 WorkoutTrackerView.scenePhase changed \(oldPhase) -> \(newPhase) for session id=\(delegate.workoutSessionId)")
             presenter.onScenePhaseChange(oldPhase: oldPhase, newPhase: newPhase)
         }
     }
@@ -80,13 +55,10 @@ struct WorkoutTrackerView: View {
                         Text("Current Workout")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
                         Text(presenter.exercisesCount)
                             .font(.headline)
                     }
-                    
                     Spacer()
-                    
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("Sets Completed")
                             .font(.caption)
@@ -240,12 +212,13 @@ struct WorkoutTrackerView: View {
 
 extension CoreBuilder {
     func workoutTrackerView(router: AnyRouter, delegate: WorkoutTrackerDelegate) -> some View {
-        WorkoutTrackerHostView(
-            delegate: delegate,
-            interactor: interactor,
-            router: CoreRouter(router: router, builder: self)
+        WorkoutTrackerView(
+            presenter: WorkoutTrackerPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
         )
-        .id(delegate.workoutSessionId)
     }
 }
 

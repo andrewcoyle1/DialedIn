@@ -1,5 +1,5 @@
 //
-//  ExerciseTemplateModelCodableAndProtocolTests.swift
+//  ExerciseModelModelCodableAndProtocolTests.swift
 //  DialedInUnitTests
 //
 //  Created by Andrew Coyle on 28/10/2025.
@@ -10,17 +10,17 @@ import Foundation
 @testable import DialedIn
 
 @MainActor
-struct ExerciseTemplateCodableTests {
+struct ExerciseModelCodableTests {
 
     // MARK: - Identifiable Tests
     
-    @Test("Test ExerciseTemplateModel Is Identifiable")
-    func testExerciseTemplateModelIsIdentifiable() {
+    @Test("Test ExerciseModelModel Is Identifiable")
+    func testExerciseModelModelIsIdentifiable() {
         let randomExerciseId = String.random
         let randomName = String.random
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             dateCreated: randomDate,
@@ -40,7 +40,7 @@ struct ExerciseTemplateCodableTests {
         let randomDate = Date.random
         let randomImageUrl = "https://example.com/\(String.random).jpg"
         
-        var exercise = ExerciseTemplateModel(
+        var exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             dateCreated: randomDate,
@@ -62,7 +62,7 @@ struct ExerciseTemplateCodableTests {
         let firstImageUrl = "https://example.com/first.jpg"
         let secondImageUrl = "https://example.com/second.jpg"
         
-        var exercise = ExerciseTemplateModel(
+        var exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             dateCreated: randomDate,
@@ -89,7 +89,7 @@ struct ExerciseTemplateCodableTests {
         let randomDateCreated = Date.random
         let randomDateModified = Date.random
         
-        let originalExercise = ExerciseTemplateModel(
+        let originalExercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             authorId: randomAuthorId,
             name: randomName,
@@ -112,7 +112,7 @@ struct ExerciseTemplateCodableTests {
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .millisecondsSince1970
-        let decodedExercise = try decoder.decode(ExerciseTemplateModel.self, from: encodedData)
+        let decodedExercise = try decoder.decode(ExerciseModelModel.self, from: encodedData)
         
         // With millisecondsSince1970, dates preserve sub-second precision
         #expect(decodedExercise.exerciseId == originalExercise.exerciseId)
@@ -138,7 +138,7 @@ struct ExerciseTemplateCodableTests {
         let randomAuthorId = String.random
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             authorId: randomAuthorId,
             name: randomName,
@@ -185,7 +185,7 @@ struct ExerciseTemplateCodableTests {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .millisecondsSince1970
         
-        let exercise = try decoder.decode(ExerciseTemplateModel.self, from: jsonData)
+        let exercise = try decoder.decode(ExerciseModelModel.self, from: jsonData)
         
         #expect(exercise.name == "Test Exercise")
         #expect(!exercise.exerciseId.isEmpty) // Should generate a UUID
@@ -215,7 +215,7 @@ struct ExerciseTemplateCodableTests {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .millisecondsSince1970
         
-        let exercise = try decoder.decode(ExerciseTemplateModel.self, from: jsonData)
+        let exercise = try decoder.decode(ExerciseModelModel.self, from: jsonData)
         
         #expect(exercise.exerciseId == "test-id")
         #expect(exercise.name == "Partial Exercise")
@@ -232,21 +232,21 @@ struct ExerciseTemplateCodableTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let exercise1 = ExerciseTemplateModel(
+        let exercise1 = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             dateCreated: randomDate,
             dateModified: randomDate
         )
         
-        let exercise2 = ExerciseTemplateModel(
+        let exercise2 = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             dateCreated: randomDate,
             dateModified: randomDate
         )
         
-        var hashSet = Set<ExerciseTemplateModel>()
+        var hashSet = Set<ExerciseModelModel>()
         hashSet.insert(exercise1)
         hashSet.insert(exercise2)
         
@@ -259,21 +259,21 @@ struct ExerciseTemplateCodableTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let exercise1 = ExerciseTemplateModel(
+        let exercise1 = ExerciseModelModel(
             exerciseId: String.random,
             name: randomName,
             dateCreated: randomDate,
             dateModified: randomDate
         )
         
-        let exercise2 = ExerciseTemplateModel(
+        let exercise2 = ExerciseModelModel(
             exerciseId: String.random,
             name: randomName,
             dateCreated: randomDate,
             dateModified: randomDate
         )
         
-        var hashSet = Set<ExerciseTemplateModel>()
+        var hashSet = Set<ExerciseModelModel>()
         hashSet.insert(exercise1)
         hashSet.insert(exercise2)
         

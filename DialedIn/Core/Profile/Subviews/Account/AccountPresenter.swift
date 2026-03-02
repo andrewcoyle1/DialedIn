@@ -70,35 +70,28 @@ class AccountPresenter {
         isSaving = true
 
         do {
-            guard let userId = currentUser?.userId else {
-                interactor.trackEvent(eventName: "profile_edit_save_failed", parameters: ["error": "Missing current user ID"], type: .analytic)
-                isSaving = false
-                return
-            }
 
             let trimmedFirst = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
             let trimmedLast = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
 
-            let user = UserModel(
-                userId: userId,
-                email: currentUser?.email,
-                isAnonymous: currentUser?.isAnonymous,
-                firstName: trimmedFirst,
-                lastName: trimmedLast.isEmpty ? nil : trimmedLast,
-                submittedDateOfBirth: dateOfBirth,
-                submittedGender: selectedGender
-            )
-
+            var data: [String: any DMCodableSendable] = [
+                UserModel.CodingKeys.submittedFirstName.rawValue: trimmedFirst,
+                UserModel.CodingKeys.submittedLastName.rawValue: trimmedLast,
+                UserModel.CodingKeys.submittedDateOfBirth.rawValue: dateOfBirth
+            ]
+            if let gender = selectedGender {
+                data[UserModel.CodingKeys.submittedFirstName.rawValue] = gender.rawValue
+            }
             #if canImport(UIKit)
             if let uiImage = selectedImageData.flatMap({ UIImage(data: $0) }) {
                 try await interactor.updateProfileImageUrl(image: uiImage)
             }
-            try await interactor.saveUser(user: user)
+            try await interactor.updateUser(data: data)
             #elseif canImport(AppKit)
             if let nsImage = selectedImageData.flatMap({ NSImage(data: $0) }) {
                 try await interactor.updateProfileImageUrl(image: nsImage)
             }
-            try await interactor.saveUser(user: user)
+            try await interactor.updateUser(data: data)
             #endif
 
             interactor.trackEvent(eventName: "profile_edit_save_success", parameters: [:], type: .analytic)
@@ -111,6 +104,30 @@ class AccountPresenter {
             )
         }
         isSaving = false
+    }
+    
+    func onEditNamePressed() {
+        
+    }
+    
+    func onEditHeightPressed() {
+        
+    }
+    
+    func onEditCardioFitnessPressed() {
+        
+    }
+    
+    func onEditLiftingExperiencePressed() {
+        
+    }
+    
+    func onEditEmailPressed() {
+        
+    }
+    
+    func onEditPasswordPressed() {
+        
     }
 
     func onSignOutPressed() {

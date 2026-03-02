@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D00087042F51D3FA00E51645 /* SwiftfulDataManagersFirebase in Frameworks */ = {isa = PBXBuildFile; productRef = D00087032F51D3FA00E51645 /* SwiftfulDataManagersFirebase */; };
 		D0136D522F48EE9100729550 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = D0136D512F48EE9100729550 /* FirebaseMessaging */; };
 		D04CF16D2F492A0F002876A8 /* SwiftfulUI in Frameworks */ = {isa = PBXBuildFile; productRef = D04CF16C2F492A0F002876A8 /* SwiftfulUI */; };
 		D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0B9D2E8EA0F00027C662 /* Mixpanel */; };
@@ -21,6 +22,7 @@
 		D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BB82E8EA1710027C662 /* SDWebImageSwiftUI */; };
 		D05D0BBB2E8EA1C00027C662 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BBA2E8EA1C00027C662 /* FirebaseCrashlytics */; };
 		D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BBD2E8EA22E0027C662 /* SwiftfulUtilities */; };
+		D06AE7782F51BC450030A100 /* SwiftfulDataManagers in Frameworks */ = {isa = PBXBuildFile; productRef = D06AE7772F51BC450030A100 /* SwiftfulDataManagers */; };
 		D06E0A8D2F282F8400746BD6 /* SwiftfulRouting in Frameworks */ = {isa = PBXBuildFile; productRef = D06E0A8C2F282F8400746BD6 /* SwiftfulRouting */; };
 		D08F584A2E8BF61B001D3980 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F58492E8BF61B001D3980 /* WidgetKit.framework */; };
 		D08F584C2E8BF61B001D3980 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D08F584B2E8BF61B001D3980 /* SwiftUI.framework */; };
@@ -31,6 +33,8 @@
 		D0AB1C9A2EA1907200682653 /* SharedWorkoutStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AB1C982EA1907000682653 /* SharedWorkoutStorage.swift */; };
 		D0BF744D2F4CADF300DE875A /* SwiftfulAuthUI in Frameworks */ = {isa = PBXBuildFile; productRef = D0BF744C2F4CADF300DE875A /* SwiftfulAuthUI */; };
 		D0BF744F2F4CADF300DE875A /* SwiftfulAuthenticating in Frameworks */ = {isa = PBXBuildFile; productRef = D0BF744E2F4CADF300DE875A /* SwiftfulAuthenticating */; };
+		D0D44BAB2F54D5BE00D5BD92 /* SwiftfulGamification in Frameworks */ = {isa = PBXBuildFile; productRef = D0D44BAA2F54D5BE00D5BD92 /* SwiftfulGamification */; };
+		D0D44BAE2F54D63200D5BD92 /* SwiftfulGamificationFirebase in Frameworks */ = {isa = PBXBuildFile; productRef = D0D44BAD2F54D63200D5BD92 /* SwiftfulGamificationFirebase */; };
 		D0DB1C932EA1901D00682653 /* MetricsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C922EA1901800682653 /* MetricsModel.swift */; };
 		D0DB1C942EA1901D00682653 /* MetricsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C922EA1901800682653 /* MetricsModel.swift */; };
 		D0DB1C962EA1906000682653 /* ElapsedTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */; };
@@ -217,6 +221,7 @@
 				D04CF16D2F492A0F002876A8 /* SwiftfulUI in Frameworks */,
 				D05D0BB92E8EA1710027C662 /* SDWebImageSwiftUI in Frameworks */,
 				D0E7AA692EE2DB6100BEE79F /* SwiftfulLogging in Frameworks */,
+				D0D44BAE2F54D63200D5BD92 /* SwiftfulGamificationFirebase in Frameworks */,
 				D0E7D5A32EE3139400BEE79F /* FirebaseRemoteConfig in Frameworks */,
 				D0BF744F2F4CADF300DE875A /* SwiftfulAuthenticating in Frameworks */,
 				D06E0A8D2F282F8400746BD6 /* SwiftfulRouting in Frameworks */,
@@ -227,6 +232,7 @@
 				D0E7D5E92EE34B6B00BEE79F /* RevenueCat in Frameworks */,
 				D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */,
 				D05D0BAA2E8EA15E0027C662 /* FirebaseAnalytics in Frameworks */,
+				D0D44BAB2F54D5BE00D5BD92 /* SwiftfulGamification in Frameworks */,
 				D0EC89962F2BACF000845CB6 /* SwiftfulHaptics in Frameworks */,
 				D0136D522F48EE9100729550 /* FirebaseMessaging in Frameworks */,
 				D05D0BAC2E8EA15E0027C662 /* FirebaseAppCheck in Frameworks */,
@@ -234,6 +240,7 @@
 				D05D0BB22E8EA15E0027C662 /* FirebaseFirestore in Frameworks */,
 				D05D0BAE2E8EA15E0027C662 /* FirebaseAuth in Frameworks */,
 				D05D0BB42E8EA15E0027C662 /* FirebaseFunctions in Frameworks */,
+				D00087042F51D3FA00E51645 /* SwiftfulDataManagersFirebase in Frameworks */,
 				D0E7D5EB2EE34B6B00BEE79F /* RevenueCatUI in Frameworks */,
 				D0E7D5AA2EE31EDD00BEE79F /* SwiftfulPurchasing in Frameworks */,
 				D0EC899E2F2BAD7000845CB6 /* SwiftfulSoundEffects in Frameworks */,
@@ -245,6 +252,7 @@
 				D05D0BB62E8EA15E0027C662 /* FirebaseStorage in Frameworks */,
 				D05D0BB02E8EA15E0027C662 /* FirebaseCore in Frameworks */,
 				D0E7D5A72EE31E7F00BEE79F /* StoreKit.framework in Frameworks */,
+				D06AE7782F51BC450030A100 /* SwiftfulDataManagers in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -423,6 +431,10 @@
 				D04CF16C2F492A0F002876A8 /* SwiftfulUI */,
 				D0BF744C2F4CADF300DE875A /* SwiftfulAuthUI */,
 				D0BF744E2F4CADF300DE875A /* SwiftfulAuthenticating */,
+				D06AE7772F51BC450030A100 /* SwiftfulDataManagers */,
+				D00087032F51D3FA00E51645 /* SwiftfulDataManagersFirebase */,
+				D0D44BAA2F54D5BE00D5BD92 /* SwiftfulGamification */,
+				D0D44BAD2F54D63200D5BD92 /* SwiftfulGamificationFirebase */,
 			);
 			productName = DialedIn;
 			productReference = D0A2993D2E54AEA700DA64F7 /* DialedIn.app */;
@@ -483,6 +495,10 @@
 				D0EC899C2F2BAD7000845CB6 /* XCRemoteSwiftPackageReference "SwiftfulSoundEffects" */,
 				D04CF16B2F492A0F002876A8 /* XCRemoteSwiftPackageReference "SwiftfulUI" */,
 				D0BF744B2F4CADF300DE875A /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */,
+				D06AE7762F51BC450030A100 /* XCRemoteSwiftPackageReference "SwiftfulDataManagers" */,
+				D00087022F51D3FA00E51645 /* XCRemoteSwiftPackageReference "SwiftfulDataManagersFirebase" */,
+				D0D44BA92F54D5BE00D5BD92 /* XCRemoteSwiftPackageReference "SwiftfulGamification" */,
+				D0D44BAC2F54D63200D5BD92 /* XCRemoteSwiftPackageReference "SwiftfulGamificationFirebase" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0A2993E2E54AEA700DA64F7 /* Products */;
@@ -1531,6 +1547,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		D00087022F51D3FA00E51645 /* XCRemoteSwiftPackageReference "SwiftfulDataManagersFirebase" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/andrewcoyle1/SwiftfulDataManagersFirebase.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		D04CF16B2F492A0F002876A8 /* XCRemoteSwiftPackageReference "SwiftfulUI" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulUI.git";
@@ -1559,8 +1583,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.3.0;
+				kind = exactVersion;
+				version = 12.3.0;
 			};
 		};
 		D05D0BB72E8EA1710027C662 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
@@ -1579,6 +1603,14 @@
 				minimumVersion = 1.1.6;
 			};
 		};
+		D06AE7762F51BC450030A100 /* XCRemoteSwiftPackageReference "SwiftfulDataManagers" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/andrewcoyle1/SwiftfulDataManagers.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		D06E0A8B2F282F8400746BD6 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/andrewcoyle1/SwiftfulRouting.git";
@@ -1593,6 +1625,22 @@
 			requirement = {
 				branch = main;
 				kind = branch;
+			};
+		};
+		D0D44BA92F54D5BE00D5BD92 /* XCRemoteSwiftPackageReference "SwiftfulGamification" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/andrewcoyle1/SwiftfulGamification.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+		D0D44BAC2F54D63200D5BD92 /* XCRemoteSwiftPackageReference "SwiftfulGamificationFirebase" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/andrewcoyle1/SwiftfulGamificationFirebase.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
 			};
 		};
 		D0E7A8A22EE2D90700BEE79F /* XCRemoteSwiftPackageReference "SwiftfulAuthenticatingFirebase" */ = {
@@ -1686,6 +1734,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		D00087032F51D3FA00E51645 /* SwiftfulDataManagersFirebase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D00087022F51D3FA00E51645 /* XCRemoteSwiftPackageReference "SwiftfulDataManagersFirebase" */;
+			productName = SwiftfulDataManagersFirebase;
+		};
 		D0136D512F48EE9100729550 /* FirebaseMessaging */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
@@ -1771,6 +1824,11 @@
 			package = D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
 			productName = SwiftfulUtilities;
 		};
+		D06AE7772F51BC450030A100 /* SwiftfulDataManagers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D06AE7762F51BC450030A100 /* XCRemoteSwiftPackageReference "SwiftfulDataManagers" */;
+			productName = SwiftfulDataManagers;
+		};
 		D06E0A8C2F282F8400746BD6 /* SwiftfulRouting */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D06E0A8B2F282F8400746BD6 /* XCRemoteSwiftPackageReference "SwiftfulRouting" */;
@@ -1785,6 +1843,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D0BF744B2F4CADF300DE875A /* XCRemoteSwiftPackageReference "SwiftfulAuthenticating" */;
 			productName = SwiftfulAuthenticating;
+		};
+		D0D44BAA2F54D5BE00D5BD92 /* SwiftfulGamification */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0D44BA92F54D5BE00D5BD92 /* XCRemoteSwiftPackageReference "SwiftfulGamification" */;
+			productName = SwiftfulGamification;
+		};
+		D0D44BAD2F54D63200D5BD92 /* SwiftfulGamificationFirebase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0D44BAC2F54D63200D5BD92 /* XCRemoteSwiftPackageReference "SwiftfulGamificationFirebase" */;
+			productName = SwiftfulGamificationFirebase;
 		};
 		D0E7A8A32EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -1,5 +1,5 @@
 {
-  "originHash" : "a93573d42ff6d4708e96e778bdc32bbc4accdc81757ba3830956cde361995b0f",
+  "originHash" : "66692e62cc963181bcdf90517bf5d32dd8a8a0ec22a0bdd62b9c939feb40aac5",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -31,7 +31,7 @@
     {
       "identity" : "firebase-ios-sdk",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/firebase/firebase-ios-sdk.git",
+      "location" : "https://github.com/firebase/firebase-ios-sdk",
       "state" : {
         "revision" : "1cce11cf94d27e2fc194112cc7ad51e8fb279230",
         "version" : "12.3.0"
@@ -222,8 +222,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-protobuf.git",
       "state" : {
-        "revision" : "2547102afd04fe49f1b286090f13ebce07284980",
-        "version" : "1.31.1"
+        "revision" : "5596511fce902e649c403cd4d6d5da1254f142b7",
+        "version" : "1.35.1"
       }
     },
     {
@@ -245,12 +245,48 @@
       }
     },
     {
+      "identity" : "swiftfuldatamanagers",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/andrewcoyle1/SwiftfulDataManagers.git",
+      "state" : {
+        "revision" : "e24eb293d0171a21261829d417c200b3a18b8522",
+        "version" : "1.1.2"
+      }
+    },
+    {
+      "identity" : "swiftfuldatamanagersfirebase",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/andrewcoyle1/SwiftfulDataManagersFirebase.git",
+      "state" : {
+        "revision" : "616e24aa911d03fc346a857b7db80fe93971e125",
+        "version" : "1.0.0"
+      }
+    },
+    {
       "identity" : "swiftfulfirestore",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/SwiftfulThinking/SwiftfulFirestore",
       "state" : {
-        "revision" : "288c869297fd3615ce8791f2740760d36b3b8db1",
-        "version" : "11.0.4"
+        "revision" : "92e1cc8a44ce3ca8abf262f822c076cdf5b22f8f",
+        "version" : "11.0.6"
+      }
+    },
+    {
+      "identity" : "swiftfulgamification",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/andrewcoyle1/SwiftfulGamification.git",
+      "state" : {
+        "revision" : "f02628e31c7567899d1c4781f459c77f7c66b0bf",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "swiftfulgamificationfirebase",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/andrewcoyle1/SwiftfulGamificationFirebase.git",
+      "state" : {
+        "revision" : "906b5a4c6b41dd74fa1bbd78828e0f4c9297594f",
+        "version" : "1.0.0"
       }
     },
     {

@@ -19,33 +19,22 @@ struct WorkoutHistoryView: View {
 
     var body: some View {
         List {
-            if presenter.isLoading && presenter.sessions.isEmpty {
+            if presenter.isLoading && presenter.workoutSessions.isEmpty {
                 loadingState
-            } else if presenter.sessions.isEmpty {
+            } else if presenter.workoutSessions.isEmpty {
                 emptyState
             } else {
                 listContents
             }
         }
+        .scrollIndicators(.hidden)
         .navigationTitle("Workout Sessions")
-        .toolbarTitleDisplayMode(.inlineLarge)
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             presenter.onViewAppear()
         }
         .onDisappear {
             presenter.onViewDisappear()
-        }
-        .scrollIndicators(.hidden)
-        .onAppear {
-            presenter.loadInitialSessions()
-        }
-        .onFirstTask {
-            await presenter.syncSessions()
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                presenter.loadInitialSessions()
-            }
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -75,9 +64,7 @@ struct WorkoutHistoryView: View {
             Text("Complete your first workout to see it here")
         } actions: {
             Button {
-                Task {
-                    await presenter.syncSessions()
-                }
+                // TODO: Implement force read function here
             } label: {
                 Text("Reload")
             }
@@ -86,7 +73,7 @@ struct WorkoutHistoryView: View {
     
     private var listContents: some View {
         Section {
-            ForEach(presenter.sessions) { session in
+            ForEach(presenter.workoutSessions) { session in
                 WorkoutHistoryRow(session: session)
                     .contentShape(Rectangle())
                     .anyButton(.highlight) {
@@ -97,7 +84,7 @@ struct WorkoutHistoryView: View {
             HStack {
                 Text("Completed Workouts")
                 Spacer()
-                Text("\(presenter.sessions.count)")
+                Text("\(presenter.workoutSessions.count)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -176,49 +163,49 @@ extension CoreRouter {
     
 }
 
-#Preview("Slow Loading") {
-    let container = DevPreview.shared.container()
-    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
-    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-    return RouterView { router in
-        builder.workoutHistoryView(router: router)
-        .navigationTitle("Workout History")
-    }
-    
-}
-
-#Preview("No Data") {
-    let container = DevPreview.shared.container()
-    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(sessions: [])))
-    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-    return RouterView { router in
-        builder.workoutHistoryView(router: router)
-        .navigationTitle("Workout History")
-    }
-    
-}
-
-#Preview("Remote Loading Failure") {
-    let container = DevPreview.shared.container()
-    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 1, showErrorRemote: true)))
-    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-
-    return RouterView { router in
-        builder.workoutHistoryView(router: router)
-        .navigationTitle("Workout History")
-    }
-    
-}
-
-#Preview("Local Loading Failure") {
-    let container = DevPreview.shared.container()
-    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(
-        services: MockWorkoutSessionServices(delay: 3, showErrorLocal: true)))
-    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-
-    return RouterView { router in
-        builder.workoutHistoryView(router: router)
-        .navigationTitle("Workout History")
-    }
-    
-}
+// #Preview("Slow Loading") {
+//    let container = DevPreview.shared.container()
+//    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
+//    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
+//    return RouterView { router in
+//        builder.workoutHistoryView(router: router)
+//        .navigationTitle("Workout History")
+//    }
+//    
+// }
+//
+// #Preview("No Data") {
+//    let container = DevPreview.shared.container()
+//    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(sessions: [])))
+//    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
+//    return RouterView { router in
+//        builder.workoutHistoryView(router: router)
+//        .navigationTitle("Workout History")
+//    }
+//    
+// }
+//
+// #Preview("Remote Loading Failure") {
+//    let container = DevPreview.shared.container()
+//    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 1, showErrorRemote: true)))
+//    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
+//
+//    return RouterView { router in
+//        builder.workoutHistoryView(router: router)
+//        .navigationTitle("Workout History")
+//    }
+//    
+// }
+//
+// #Preview("Local Loading Failure") {
+//    let container = DevPreview.shared.container()
+//    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(
+//        services: MockWorkoutSessionServices(delay: 3, showErrorLocal: true)))
+//    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
+//
+//    return RouterView { router in
+//        builder.workoutHistoryView(router: router)
+//        .navigationTitle("Workout History")
+//    }
+//    
+// }

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// A horizontal progress bar chart for macro/nutrient display in dashboard cards.
+/// A horizontal progress bar chart for macro/nutrient display in analytics cards.
 /// Shows current value as a colored fill, with an optional target marker line.
 struct MacroProgressChart: View {
     var current: Double

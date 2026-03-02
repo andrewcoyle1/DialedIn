@@ -14,52 +14,10 @@ import ActivityKit
 @MainActor
 class LiveActivityManager: LiveActivityUpdating {
     
-    // Track active state internally instead of setting it on HKWorkoutManager
-    private(set) var isLiveActivityActive: Bool = false
+    private let logger: LogManager
     
-    init() {
-        // No circular reference setup needed
-    }
-    
-    // The state model for keeping track of the widget's current state
-    struct ActivityViewState: Sendable {
-        var activityState: ActivityState
-        var contentState: WorkoutActivityAttributes.ContentState
-        var pushToken: String?
-        
-        // End the widget state controls.
-        var shouldShowEndControls: Bool {
-            switch activityState {
-            case .active, .stale:
-                return true
-            case .ended, .dismissed:
-                return false
-            case .pending:
-                return false
-            @unknown default:
-                return false
-            }
-        }
-        
-        var updateControlDisabled: Bool = false
-        
-        // Update the widget state controls
-        var shouldShowUpdateControls: Bool {
-            switch activityState {
-            case .active, .stale:
-                return true
-            case .ended, .pending:
-                return false
-            case .dismissed:
-                return false
-            @unknown default:
-                return false
-            }
-        }
-        
-        var isStale: Bool {
-            return activityState == .stale
-        }
+    init(logger: LogManager) {
+        self.logger = logger
     }
     
     var activityViewState: ActivityViewState?
@@ -86,7 +44,7 @@ class LiveActivityManager: LiveActivityUpdating {
 		restEndsAt: Date? = nil,
 		statusMessage: String? = nil
 	) {
-        
+        logger.trackEvent(event: Event.startLiveActivityStart)
         let areActivitiesEnabled = ActivityAuthorizationInfo().areActivitiesEnabled
         
         if areActivitiesEnabled {
@@ -96,7 +54,6 @@ class LiveActivityManager: LiveActivityUpdating {
             if let existing = existingActivities.first {
                 self.currentActivity = existing
                 self.setup(withActivity: existing)
-                isLiveActivityActive = true
                 return
             }
                         
@@ -128,12 +85,12 @@ class LiveActivityManager: LiveActivityUpdating {
                 
                 self.currentActivity = activity
                 self.setup(withActivity: activity)
-                isLiveActivityActive = true
+                logger.trackEvent(event: Event.startLiveActivitySuccess)
             } catch {
-                isLiveActivityActive = false
+                logger.trackEvent(event: Event.startLiveActivityFail(error: error))
             }
         } else {
-            
+            logger.trackEvent(event: Event.liveActivitiesNotEnabled)
         }
 	}
 
@@ -163,7 +120,7 @@ class LiveActivityManager: LiveActivityUpdating {
         }
         
         // Otherwise start a new live activity
-        startLiveActivity(
+        self.startLiveActivity(
             session: session,
             isActive: isActive,
             currentExerciseIndex: currentExerciseIndex,
@@ -173,6 +130,7 @@ class LiveActivityManager: LiveActivityUpdating {
     }
 
     func updateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) {
+        logger.trackEvent(event: Event.updateLiveActivityStart)
         // Only update if meaningful changes occurred
         let shouldUpdate = lastContentState == nil ||
             lastContentState?.currentExerciseIndex != contentState.currentExerciseIndex ||
@@ -194,8 +152,10 @@ class LiveActivityManager: LiveActivityUpdating {
                activity.activityState == .active || activity.activityState == .stale {
                 do {
                     try await self.updateWorkoutActivity(with: contentState)
+                    logger.trackEvent(event: Event.updateLiveActivitySuccess)
+
                 } catch {
-                    print("⚠️ Failed to update Live Activity: \(error)")
+                    logger.trackEvent(event: Event.updateLiveActivityFail(error: error))
                     // Clean up if the activity is in an invalid state
                     if activity.activityState == .dismissed || activity.activityState == .ended {
                         self.cleanupDismissedActivity()
@@ -211,6 +171,7 @@ class LiveActivityManager: LiveActivityUpdating {
     
 	/// Update the Workout Live Activity with latest session progress
 	func updateLiveActivity(params: LiveActivityUpdateParams) {
+        logger.trackEvent(event: Event.updateLiveActivityStart)
         let updatedState = makeContentState(params: MakeContentStateParams(
 			session: params.session,
 			isActive: params.isActive,
@@ -242,8 +203,9 @@ class LiveActivityManager: LiveActivityUpdating {
                activity.activityState == .active || activity.activityState == .stale {
                 do {
                     try await self.updateWorkoutActivity(with: updatedState)
+                    logger.trackEvent(event: Event.updateLiveActivitySuccess)
                 } catch {
-                    print("⚠️ Failed to update Live Activity: \(error)")
+                    logger.trackEvent(event: Event.updateLiveActivityFail(error: error))
                     // Clean up if the activity is in an invalid state
                     if activity.activityState == .dismissed || activity.activityState == .ended {
                         self.cleanupDismissedActivity()
@@ -262,6 +224,7 @@ class LiveActivityManager: LiveActivityUpdating {
 		isCompleted: Bool = true,
 		statusMessage: String? = nil
 	) {
+        logger.trackEvent(event: Event.endLiveActivityStart)
 		let message = statusMessage ?? (isCompleted ? "Workout completed" : "Workout ended")
 		
 		// Build final state with summary metrics if completed
@@ -302,8 +265,55 @@ class LiveActivityManager: LiveActivityUpdating {
 
         Task {
             await self.endActivity(with: finalState, dismissalPolicy: dismissalPolicy)
+            logger.trackEvent(event: Event.endLiveActivitySuccess)
         }
 	}
+}
+
+extension LiveActivityManager {
+    enum Event: LoggableEvent {
+        case startLiveActivityStart
+        case startLiveActivitySuccess
+        case startLiveActivityFail(error: Error)
+        case liveActivitiesNotEnabled
+        case updateLiveActivityStart
+        case updateLiveActivitySuccess
+        case updateLiveActivityFail(error: Error)
+        case endLiveActivityStart
+        case endLiveActivitySuccess
+
+        var eventName: String {
+            switch self {
+            case .startLiveActivityStart:       return "LiveActivityMan_StartLiveActiviey_Start"
+            case .startLiveActivitySuccess:     return "LiveActivityMan_StartLiveActiviey_Success"
+            case .startLiveActivityFail:        return "LiveActivityMan_StartLiveActiviey_Fail"
+            case .liveActivitiesNotEnabled:     return "LiveActivityMan_LiveActivitiesNotEnabled"
+            case .updateLiveActivityStart:      return "LiveActivityMan_UpdateLiveActivity_Start"
+            case .updateLiveActivitySuccess:    return "LiveActivityMan_UpdateLiveActivity_Success"
+            case .updateLiveActivityFail:       return "LiveActivityMan_UpdateLiveActivity_Fail"
+            case .endLiveActivityStart:         return "LiveActivityMan_EndLiveActivity_Start"
+            case .endLiveActivitySuccess:       return "LiveActivityMan_EndLiveActivity_Success"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            case .startLiveActivityFail(error: let error), .updateLiveActivityFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            case .startLiveActivityFail, .updateLiveActivityFail:
+                return .severe
+            default:
+                return .analytic
+            }
+        }
+    }
 }
 
 extension LiveActivityManager {
@@ -313,7 +323,6 @@ extension LiveActivityManager {
             return
         }
         
-        isLiveActivityActive = false
         Task {
             await activity.end(
                 ActivityContent(
@@ -377,7 +386,6 @@ extension LiveActivityManager {
         self.currentActivity = nil
         self.activityViewState = nil
         self.lastContentState = nil
-        self.isLiveActivityActive = false
     }
     
     // MARK: - Helpers
@@ -394,7 +402,6 @@ extension LiveActivityManager {
     private func makeContentState(params: MakeContentStateParams) -> WorkoutActivityAttributes.ContentState {
         let totals = computeTotals(session: params.session, totalVolumeKgOverride: params.totalVolumeKgOverride)
         let current = deriveCurrentExerciseData(session: params.session, index: params.currentExerciseIndex)
-        logExerciseImageChange(current.imageName, currentExerciseIndex: params.currentExerciseIndex, exerciseName: current.name)
 
         return WorkoutActivityAttributes.ContentState(
             isActive: params.isActive,
@@ -543,14 +550,6 @@ extension LiveActivityManager {
         )
     }
 
-    private func logExerciseImageChange(_ imageName: String?, currentExerciseIndex: Int, exerciseName: String?) {
-        guard imageName != lastContentState?.currentExerciseImageName else { return }
-        if let imageName {
-            print("📸 Live Activity: Exercise image changed to '\(imageName)' (index: \(currentExerciseIndex), name: \(exerciseName ?? "nil"))")
-        } else {
-            print("⚠️ Live Activity: No image for current exercise (index: \(currentExerciseIndex))")
-        }
-    }
 }
 
 #else
@@ -602,7 +601,7 @@ class LiveActivityManager: LiveActivityUpdating {
 extension CoreInteractor {
     // MARK: LiveActivityManager
     
-    var liveActivityViewState: LiveActivityManager.ActivityViewState? {
+    var liveActivityViewState: ActivityViewState? {
         liveActivityManager.activityViewState
     }
     
@@ -682,3 +681,45 @@ private extension Data {
         }
     }
 }
+
+// The state model for keeping track of the widget's current state
+struct ActivityViewState: Sendable {
+    var activityState: ActivityState
+    var contentState: WorkoutActivityAttributes.ContentState
+    var pushToken: String?
+    
+    // End the widget state controls.
+    var shouldShowEndControls: Bool {
+        switch activityState {
+        case .active, .stale:
+            return true
+        case .ended, .dismissed:
+            return false
+        case .pending:
+            return false
+        @unknown default:
+            return false
+        }
+    }
+    
+    var updateControlDisabled: Bool = false
+    
+    // Update the widget state controls
+    var shouldShowUpdateControls: Bool {
+        switch activityState {
+        case .active, .stale:
+            return true
+        case .ended, .pending:
+            return false
+        case .dismissed:
+            return false
+        @unknown default:
+            return false
+        }
+    }
+    
+    var isStale: Bool {
+        return activityState == .stale
+    }
+}
+

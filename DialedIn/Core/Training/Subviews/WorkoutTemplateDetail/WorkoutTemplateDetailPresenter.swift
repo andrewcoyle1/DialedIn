@@ -101,6 +101,7 @@ class WorkoutTemplateDetailPresenter {
                             onResumeWorkout()
                         }
                         Button("Discard & Start New", role: .destructive) {
+                            try? self.interactor.deleteActiveSession()
                             onStartNewWorkout()
                         }
                         Button("Cancel", role: .cancel) { }
@@ -126,36 +127,35 @@ class WorkoutTemplateDetailPresenter {
                 programId: nil,
                 dayPlanId: nil,
                 onStartWorkoutPressed: {
-                    
-                    do {
-                        // Load unit preferences for all exercises in template
-                        var unitPreferences: [String: ExerciseUnitPreference] = [:]
-                        for exerciseTemplate in workoutTemplate.exercises {
-                            let preference = self.interactor.getPreference(templateId: exerciseTemplate.exercise.id)
-                            unitPreferences[exerciseTemplate.exercise.id] = preference
+                    Task {
+                        do {
+                            // Load unit preferences for all exercises in template
+                            var unitPreferences: [String: ExerciseUnitPreference] = [:]
+                            for exerciseModel in workoutTemplate.exercises {
+                                let preference = self.interactor.getPreference(templateId: exerciseModel.exercise.id)
+                                unitPreferences[exerciseModel.exercise.id] = preference
+                            }
+                            
+                            // Create workout session from template
+                            let session = WorkoutSessionModel(
+                                authorId: userId,
+                                template: workoutTemplate,
+                                notes: nil,
+                                scheduledWorkoutId: nil,
+                                trainingPlanId: nil,
+                                programId: nil,
+                                dayPlanId: nil,
+                                unitPreferences: unitPreferences
+                            )
+                            
+                            // Set as active session locally (Firebase save happens on workout completion)
+                            try self.interactor.updateActiveSession(session)
+                            self.router.dismissModal()
+                            self.router.dismissEnvironment()
+                            self.router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
+                        } catch {
+                            self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
                         }
-                        
-                        // Create workout session from template
-                        let session = WorkoutSessionModel(
-                            authorId: userId,
-                            template: workoutTemplate,
-                            notes: nil,
-                            scheduledWorkoutId: nil,
-                            trainingPlanId: nil,
-                            programId: nil,
-                            dayPlanId: nil,
-                            unitPreferences: unitPreferences
-                        )
-                        
-                        // Save locally first (MainActor-isolated)
-                        try self.interactor.addLocalWorkoutSession(session: session)
-                        
-                        self.interactor.startActiveSession(session)
-                                self.router.dismissModal()
-                        self.router.dismissEnvironment()
-                        self.router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
-                    } catch {
-                        self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
                     }
                 },
                 onCancelPressed: {

@@ -1,13 +1,13 @@
 import SwiftUI
 
-struct RenameDayPlanDelegate {
+struct RenameWorkoutTemplateModelDelegate {
     let initialName: String
     let onSave: (String) -> Void
 }
 
-struct RenameDayPlanView: View {
-    @State var presenter: RenameDayPlanPresenter
-    let delegate: RenameDayPlanDelegate
+struct RenameWorkoutTemplateModelView: View {
+    @State var presenter: RenameWorkoutTemplateModelPresenter
+    let delegate: RenameWorkoutTemplateModelDelegate
 
     var body: some View {
         NavigationStack {
@@ -45,9 +45,9 @@ struct RenameDayPlanView: View {
 }
 
 extension CoreBuilder {
-    func renameDayPlanView(router: AnyRouter, delegate: RenameDayPlanDelegate) -> some View {
-        RenameDayPlanView(
-            presenter: RenameDayPlanPresenter(
+    func renameWorkoutTemplateModelView(router: AnyRouter, delegate: RenameWorkoutTemplateModelDelegate) -> some View {
+        RenameWorkoutTemplateModelView(
+            presenter: RenameWorkoutTemplateModelPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self),
                 initialName: delegate.initialName
@@ -62,9 +62,9 @@ extension CoreBuilder {
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
-        builder.renameDayPlanView(
+        builder.renameWorkoutTemplateModelView(
             router: router,
-            delegate: RenameDayPlanDelegate(
+            delegate: RenameWorkoutTemplateModelDelegate(
                 initialName: "Day 1",
                 onSave: { _ in }
             )

@@ -293,7 +293,7 @@ struct UserModelTests {
 //            creationVersion: randomVersion,
 //            didCompleteOnboarding: randomDidComplete,
 //            onboardingStep: .complete,
-//            createdExerciseTemplateIds: [randomEx1, randomEx2],
+//            createdExerciseModelIds: [randomEx1, randomEx2],
 //            blockedUserIds: [randomUser1]
 //        )
 //        

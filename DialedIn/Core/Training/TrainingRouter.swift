@@ -22,7 +22,6 @@ protocol TrainingRouter: GlobalRouter {
     func showCreateExerciseView()
     func showProfileView()
     func showEditTrainingProgramView(delegate: EditTrainingProgramDelegate)
-
 }
 
 extension CoreRouter: TrainingRouter {

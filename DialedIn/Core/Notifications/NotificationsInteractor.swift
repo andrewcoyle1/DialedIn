@@ -9,7 +9,10 @@ import UserNotifications
 
 @MainActor
 protocol NotificationsInteractor: GlobalInteractor {
-    func requestPushAuthorization() async throws -> Bool
+    var isAuthorised: UNAuthorizationStatus { get }
+    func requestPushAuthorisation() async throws -> Bool
+    func canRequestNotificationAuthorisation() async -> Bool
+    func removeDeliveredNotifications(ids: [String])
 }
 
 extension CoreInteractor: NotificationsInteractor { }

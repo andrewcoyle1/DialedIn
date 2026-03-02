@@ -25,6 +25,10 @@ class WorkoutExerciseEquipmentSheetPresenter {
         interactor.userId
     }
     
+    var allExercises: [ExerciseModel] {
+        interactor.allExercises
+    }
+    
     init(
         interactor: WorkoutExerciseEquipmentSheetInteractor,
         router: WorkoutExerciseEquipmentSheetRouter
@@ -49,30 +53,23 @@ class WorkoutExerciseEquipmentSheetPresenter {
         }
     }
 
-    func loadChoosableEquipment(exerciseTemplateId: String) async {
+    func loadChoosableEquipment(exerciseModelId: String) async {
+        guard let template = allExercises.first(where: { $0.id == exerciseModelId }) else { return }
         guard let uid = userId else { return }
         isLoading = true
         loadError = nil
         defer { isLoading = false }
-        do {
-            let template = try await interactor.getExerciseTemplate(id: exerciseTemplateId)
-            guard let gym = interactor.favouriteGymProfile else {
-                loadError = "Set a favourite gym profile to choose equipment."
-                return
-            }
-            let resistanceRefs = template.resistanceEquipment
-            let supportRefs = template.supportEquipment
-            // Fall back to default equipment when the user's gym doesn't have a ref (e.g. older gym or subset)
-            
-            let fallbackGym = GymProfileModel(authorId: uid)
-            choosableResistance = resistanceRefs.compactMap { gym.equipment(for: $0) ?? fallbackGym.equipment(for: $0) }.filter(\.isActive)
-            choosableSupport = supportRefs.compactMap { gym.equipment(for: $0) ?? fallbackGym.equipment(for: $0) }.filter(\.isActive)
-        } catch {
-            let nsError = error as NSError
-            loadError = (nsError.domain == "ExerciseTemplateManager" && nsError.code == 404)
-                ? "Exercise not found."
-                : "Could not load equipment. Please try again."
+        guard let gym = interactor.favouriteGymProfile else {
+            loadError = "Set a favourite gym profile to choose equipment."
+            return
         }
+        let resistanceRefs = template.resistanceEquipment
+        let supportRefs = template.supportEquipment
+        // Fall back to default equipment when the user's gym doesn't have a ref (e.g. older gym or subset)
+        
+        let fallbackGym = GymProfileModel(authorId: uid)
+        choosableResistance = resistanceRefs.compactMap { gym.equipment(for: $0) ?? fallbackGym.equipment(for: $0) }.filter(\.isActive)
+        choosableSupport = supportRefs.compactMap { gym.equipment(for: $0) ?? fallbackGym.equipment(for: $0) }.filter(\.isActive)
     }
 
     func onCancelPressed() {

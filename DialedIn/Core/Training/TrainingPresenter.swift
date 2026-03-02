@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MicrocycleItem: Identifiable {
     let id: String
-    let dayPlan: DayPlan
+    let dayPlan: WorkoutTemplateModel
     let completedSessionId: String?
     
     var isCompleted: Bool {
@@ -17,10 +17,10 @@ struct MicrocycleItem: Identifiable {
     }
 }
 
-struct MicrocycleDayPlanItem: Identifiable {
+struct MicrocycleWorkoutTemplateModelItem: Identifiable {
     let id: String
     let date: Date
-    let dayPlan: DayPlan
+    let dayPlan: WorkoutTemplateModel
     let completedSessionId: String?
     
     var isCompleted: Bool {
@@ -43,6 +43,14 @@ class TrainingPresenter {
     var selectedTime: Date = Date()
     
     var today: Date = Date()
+    
+    var favouriteGymProfile: GymProfileModel? {
+        interactor.favouriteGymProfile
+    }
+    
+    var workoutSessions: [WorkoutSessionModel] {
+        interactor.workoutSessions
+    }
     
     init(
         interactor: TrainingInteractor,
@@ -76,8 +84,6 @@ class TrainingPresenter {
     var userImageUrl: String? {
         interactor.userImageUrl
     }
-
-    private(set) var favouriteGymProfileImageUrl: String?
     
     var activeSession: WorkoutSessionModel? {
         interactor.activeSession
@@ -97,7 +103,7 @@ class TrainingPresenter {
         )
         router.showAddTrainingView(delegate: delegate, onDismiss: nil)
     }
-    
+        
     func onProfilePressed() {
         router.showProfileView()
     }
@@ -128,6 +134,7 @@ class TrainingPresenter {
                             onResumeWorkout()
                         }
                         Button("Discard & Start New", role: .destructive) {
+                            try? self.interactor.deleteActiveSession()
                             onStartNewWorkout()
                         }
                         Button("Cancel", role: .cancel) { }
@@ -151,7 +158,7 @@ class TrainingPresenter {
                 AnyView(
                     VStack {
                         Button(role: .destructive) {
-                            self.deleteTrainingProgram(program: program)
+                            Task { try? await self.deleteTrainingProgram(programId: program.id) }
                         }
                         Button(role: .cancel) { }
                     }
@@ -160,11 +167,8 @@ class TrainingPresenter {
         )
     }
     
-    private func deleteTrainingProgram(program: TrainingProgram) {
-        Task {
-            try? await interactor.deleteTrainingProgram(program: program)
-            
-        }
+    private func deleteTrainingProgram(programId: String) async throws {
+        try await interactor.deleteTrainingProgram(programId: programId)
     }
     
     private func resumeActiveWorkout() {
@@ -172,7 +176,7 @@ class TrainingPresenter {
         router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: activeSession.id))
     }
 
-    func startDayPlanWorkout(_ dayPlan: DayPlan) {
+    func startWorkoutTemplateModelWorkout(_ dayPlan: WorkoutTemplateModel) {
         let shouldProceed = checkForActiveWorkout(
             onResumeWorkout: { [weak self] in
                 Task {
@@ -181,17 +185,17 @@ class TrainingPresenter {
             },
             onStartNewWorkout: { [weak self] in
                 Task {
-                    await self?.performStartDayPlanWorkout(dayPlan)
+                    await self?.performStartWorkoutTemplateModelWorkout(dayPlan)
                 }
             }
         )
         
         if shouldProceed {
-            performStartDayPlanWorkout(dayPlan)
+            performStartWorkoutTemplateModelWorkout(dayPlan)
         }
     }
     
-    private func performStartDayPlanWorkout(_ dayPlan: DayPlan) {
+    private func performStartWorkoutTemplateModelWorkout(_ dayPlan: WorkoutTemplateModel) {
         interactor.trackEvent(event: Event.startWorkoutRequestedStart)
         do {
             let authId = try interactor.getAuthId()
@@ -217,14 +221,9 @@ class TrainingPresenter {
     
     func openCompletedSession(sessionId: String) {
         interactor.trackEvent(event: Event.openCompletedSessionStart)
-        do {
-            let session = try interactor.getLocalWorkoutSession(id: sessionId)
-            router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
-            interactor.trackEvent(event: Event.openCompletedSessionSuccess)
-        } catch {
-            router.showAlert(error: error)
-            interactor.trackEvent(event: Event.openCompletedSessionFail(error: error))
-        }
+        guard let session = workoutSessions.first(where: { $0.id == sessionId }) else { return }
+        router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
+        interactor.trackEvent(event: Event.openCompletedSessionSuccess)
     }
 
     func onDatePressed(date: Date) {
@@ -286,64 +285,30 @@ class TrainingPresenter {
     }
     
     private func performStartEmptyWorkout() {
-        guard let userId = currentUser?.userId else {
-            return
-        }
+        guard let userId = currentUser?.userId else { return }
+        let session = WorkoutSessionModel(
+            id: UUID().uuidString,
+            authorId: userId,
+            name: "Untitled Workout",
+            dateCreated: .now,
+            exercises: []
+        )
+        guard (try? interactor.updateActiveSession(session)) != nil else { return }
         defer {
             Task {
-                let session = WorkoutSessionModel(
-                    id: UUID().uuidString,
-                    authorId: userId,
-                    name: "Untitled Workout",
-                    dateCreated: .now,
-                    exercises: []
-                )
-                try interactor.addLocalWorkoutSession(session: session)
-                
                 try? await Task.sleep(for: .seconds(0.1))
-                
                 await MainActor.run {
-                    interactor.startActiveSession(session)
                     router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
                 }
             }
         }
-        
         router.dismissScreen()
     }
     
     // MARK: - Data Loading
-    
-    func loadData() async {
-        _ = try? await interactor.getActiveTrainingProgram()
-        await refreshFavouriteGymProfileImage()
-    }
-    
+        
     func refreshData() async {
         interactor.trackEvent(event: Event.refreshDataStart)
-        await refreshFavouriteGymProfileImage()
-    }
-
-    func refreshFavouriteGymProfileImage() async {
-        guard let favouriteId = currentUser?.submittedFavouriteGymProfileId else {
-            favouriteGymProfileImageUrl = nil
-            return
-        }
-
-        do {
-            let localProfile = try interactor.readLocalGymProfile(profileId: favouriteId)
-            favouriteGymProfileImageUrl = localProfile.imageUrl
-            return
-        } catch {
-            // Fall back to remote fetch if not cached locally.
-        }
-
-        do {
-            let remoteProfile = try await interactor.readRemoteGymProfile(profileId: favouriteId)
-            favouriteGymProfileImageUrl = remoteProfile.imageUrl
-        } catch {
-            favouriteGymProfileImageUrl = nil
-        }
     }
 
     func onProgramManagementPressed() {
@@ -435,7 +400,7 @@ enum TrainingPresentationMode {
 
 enum ActiveSheet: Identifiable {
     case programPicker
-    case progressDashboard
+    case progressAnalytics
     case strengthProgress
     case workoutHeatmap
     case addGoal
@@ -443,7 +408,7 @@ enum ActiveSheet: Identifiable {
     var id: String {
         switch self {
         case .programPicker: return "programPicker"
-        case .progressDashboard: return "progressDashboard"
+        case .progressAnalytics: return "progressAnalytics"
         case .strengthProgress: return "strengthProgress"
         case .workoutHeatmap: return "workoutHeatmap"
         case .addGoal: return "addGoal"

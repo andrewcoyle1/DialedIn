@@ -7,6 +7,13 @@ class StrategySettingsPresenter {
     private let interactor: StrategySettingsInteractor
     private let router: StrategySettingsRouter
     
+    var fastCheckInEnabled: Bool = false
+    
+    var partialLoggingEnabled: Bool = true
+    var weighInEnabled: Bool = true
+    var fastingEnabled: Bool = true
+    var loggingBreakEnabled: Bool = true
+    
     init(interactor: StrategySettingsInteractor, router: StrategySettingsRouter) {
         self.interactor = interactor
         self.router = router
@@ -19,6 +26,11 @@ class StrategySettingsPresenter {
     func onViewDisappear() {
         interactor.trackEvent(event: Event.onDisappear)
     }
+    
+    func onEditCheckInDayPressed() {
+        
+    }
+    
 }
 
 extension StrategySettingsPresenter {

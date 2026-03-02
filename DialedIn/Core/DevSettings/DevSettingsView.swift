@@ -21,7 +21,7 @@ struct DevSettingsView: View {
             activeWorkoutSessionSection
             localStorageDebugSection
             firebaseTestSection
-            exerciseTemplateSection
+            exerciseModelSection
             workoutTemplateSection
             seedingSection
         }
@@ -103,11 +103,10 @@ struct DevSettingsView: View {
         }
     }
     
-    private var exerciseTemplateSection: some View {
+    private var exerciseModelSection: some View {
         Group {
-            let array = presenter.getLocalExercises()
             Section {
-                ForEach(array, id: \.id) { item in
+                ForEach(presenter.allExercises, id: \.id) { item in
                     CustomListCellView(imageName: item.imageURL, title: item.name, subtitle: item.description)
                         .removeListRowFormatting()
                 }
@@ -115,7 +114,7 @@ struct DevSettingsView: View {
                 HStack {
                     Text("Exercises")
                     Spacer()
-                    Text("\(array.count)")
+                    Text("\(presenter.allExercises.count)")
                         .foregroundStyle(.secondary)
                 }
             }
@@ -124,24 +123,14 @@ struct DevSettingsView: View {
     
     private var workoutTemplateSection: some View {
         Group {
-            let workouts = presenter.getLocalWorkoutTemplates()
             Section {
-                ForEach(workouts, id: \.workoutId) { workout in
+                ForEach(presenter.allWorkoutTemplates, id: \.workoutId) { workout in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Text(workout.name)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             Spacer()
-                            if workout.isSystemWorkout {
-                                Text("System")
-                                    .font(.caption2)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(.blue.opacity(0.1))
-                                    .foregroundStyle(.blue)
-                                    .clipShape(Capsule())
-                            }
                         }
                         
                         if let description = workout.description {
@@ -164,7 +153,7 @@ struct DevSettingsView: View {
                 HStack {
                     Text("Workout Templates")
                     Spacer()
-                    Text("\(workouts.count)")
+                    Text("\(presenter.allWorkoutTemplates.count)")
                         .foregroundStyle(.secondary)
                 }
             }
@@ -173,7 +162,7 @@ struct DevSettingsView: View {
     
     private var activeWorkoutSessionSection: some View {
         Section {
-            if let session = presenter.getActiveSession() {
+            if let session = presenter.activeSession {
                 VStack(alignment: .leading, spacing: 8) {
                     debugRow(label: "Session ID", value: session.id)
                     debugRow(label: "Name", value: session.name)
@@ -209,7 +198,7 @@ struct DevSettingsView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 // Active session from local storage
-                if let activeSession = presenter.getActiveLocalWorkoutSession() {
+                if let activeSession = presenter.activeSession {
                     Text("Active Session (Local)")
                         .font(.caption)
                         .fontWeight(.semibold)
@@ -234,7 +223,7 @@ struct DevSettingsView: View {
                 Divider()
                 
                 // Recent sessions
-                let recentSessions = presenter.getRecentWorkoutSessions()
+                let recentSessions = presenter.workoutSessions
                 let last3 = Array(recentSessions.sorted(by: { $0.dateCreated > $1.dateCreated }).prefix(3))
                 
                 Text("Recent Sessions (Last 3)")
@@ -268,12 +257,6 @@ struct DevSettingsView: View {
             }
             .padding(.vertical, 4)
             
-            Button(role: .destructive) {
-                presenter.clearAllLocalStepsData()
-            } label: {
-                Label("Clear All Local Steps Data", systemImage: "trash")
-            }
-            .font(.caption)
         } header: {
             Text("Local Storage Debug")
         } footer: {

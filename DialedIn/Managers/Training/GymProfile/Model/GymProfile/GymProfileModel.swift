@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct GymProfileModel: Identifiable, Codable {
+struct GymProfileModel: DataSyncModelProtocol {
     
     var id: String
     var authorId: String
@@ -95,6 +95,10 @@ struct GymProfileModel: Identifiable, Codable {
         case cableMachines = "cable_machines"
         case plateLoadedMachines = "plate_loaded_machines"
         case pinLoadedMachines = "pin_loaded_machines"
+    }
+    
+    var eventParameters: [String: Any] {
+        [:]
     }
     
     static var mock: GymProfileModel {

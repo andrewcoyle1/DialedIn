@@ -33,13 +33,9 @@ class DefineWorkoutWrapperPresenter {
             name: delegate.name,
             description: nil,
             imageURL: nil,
-            isSystemWorkout: false,
             dateCreated: Date.now,
             dateModified: Date.now,
-            exercises: exercises,
-            clickCount: 0,
-            bookmarkCount: 0,
-            favouriteCount: 0
+            exercises: exercises
         )
         
         defer {
@@ -48,7 +44,7 @@ class DefineWorkoutWrapperPresenter {
         
         Task {
             do {
-                try await interactor.createWorkoutTemplate(workout: workout, image: nil)
+                try await interactor.saveWorkoutTemplate(workoutTemplate: workout, image: nil)
             } catch {
                 router.showSimpleAlert(title: "Unable to Create Workout", subtitle: "Please try again.")
             }

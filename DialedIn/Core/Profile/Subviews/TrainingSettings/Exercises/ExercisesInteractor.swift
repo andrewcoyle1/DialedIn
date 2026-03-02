@@ -6,10 +6,8 @@
 //
 
 @MainActor
-protocol ExercisesInteractor {
+protocol ExercisesInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func incrementExerciseTemplateInteraction(id: String) async throws
-    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: ExercisesInteractor { }

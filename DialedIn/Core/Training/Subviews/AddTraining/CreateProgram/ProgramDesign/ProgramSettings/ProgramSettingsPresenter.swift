@@ -27,7 +27,7 @@ class ProgramSettingsPresenter {
     func onActivatePressed(program: TrainingProgram) {
         Task {
             do {
-                try await interactor.upsertTrainingProgram(program: program)
+                try await interactor.saveTrainingProgram(trainingProgram: program)
                 try await interactor.setActiveTrainingProgram(programId: program.id)
                 router.dismissScreen()
             } catch {

@@ -7,23 +7,19 @@
 
 import Foundation
 
-struct WorkoutTemplateModel: TemplateModel {
+struct WorkoutTemplateModel: DataSyncModelProtocol {
     var id: String {
         workoutId
     }
     
     let workoutId: String
-    let authorId: String?
-    let name: String
+    let authorId: String
+    var name: String
     let description: String?
     private(set) var imageURL: String?
-    let isSystemWorkout: Bool
     let dateCreated: Date
     let dateModified: Date
     var exercises: [WorkoutTemplateExercise]
-    let clickCount: Int?
-    let bookmarkCount: Int?
-    let favouriteCount: Int?
     
     init(
         id: String = UUID().uuidString,
@@ -31,26 +27,18 @@ struct WorkoutTemplateModel: TemplateModel {
         name: String,
         description: String? = nil,
         imageURL: String? = nil,
-        isSystemWorkout: Bool = false,
-        dateCreated: Date,
-        dateModified: Date,
+        dateCreated: Date = .now,
+        dateModified: Date = .now,
         exercises: [WorkoutTemplateExercise] = [],
-        clickCount: Int? = 0,
-        bookmarkCount: Int? = 0,
-        favouriteCount: Int? = 0
     ) {
         self.workoutId = id
         self.authorId = authorId
         self.name = name
         self.description = description
         self.imageURL = imageURL
-        self.isSystemWorkout = isSystemWorkout
         self.dateCreated = dateCreated
         self.dateModified = dateModified
         self.exercises = exercises
-        self.clickCount = clickCount
-        self.bookmarkCount = bookmarkCount
-        self.favouriteCount = favouriteCount
     }
     
     mutating func updateImageURL(imageUrl: String) {
@@ -60,16 +48,13 @@ struct WorkoutTemplateModel: TemplateModel {
     mutating func updateDateModified(dateModified: Date) {
         self = WorkoutTemplateModel(
             id: workoutId,
-            authorId: authorId ?? "",
+            authorId: authorId,
             name: name,
             description: description,
             imageURL: imageURL,
             dateCreated: dateCreated,
             dateModified: dateModified,
             exercises: exercises,
-            clickCount: clickCount,
-            bookmarkCount: bookmarkCount,
-            favouriteCount: favouriteCount
         )
     }
     
@@ -79,13 +64,9 @@ struct WorkoutTemplateModel: TemplateModel {
         case name = "name"
         case description = "description"
         case imageURL = "image_url"
-        case isSystemWorkout = "is_system_workout"
         case dateCreated = "date_created"
         case dateModified = "date_modified"
         case exercises = "exercises"
-        case clickCount = "click_count"
-        case bookmarkCount = "bookmark_count"
-        case favouriteCount = "favourite_count"
     }
     
     var eventParameters: [String: Any] {
@@ -98,9 +79,6 @@ struct WorkoutTemplateModel: TemplateModel {
             "workout_\(CodingKeys.dateCreated.rawValue)": dateCreated,
             "workout_\(CodingKeys.dateModified.rawValue)": dateModified,
             "workout_\(CodingKeys.exercises.rawValue)": exercises.map { $0.id },
-            "workout_\(CodingKeys.clickCount.rawValue)": clickCount,
-            "workout_\(CodingKeys.bookmarkCount.rawValue)": bookmarkCount,
-            "workout_\(CodingKeys.favouriteCount.rawValue)": favouriteCount
         ]
         return dict.compactMapValues { $0 }
     }
@@ -110,11 +88,7 @@ struct WorkoutTemplateModel: TemplateModel {
         authorId: String,
         description: String? = nil,
         imageURL: String? = nil,
-        isSystemWorkout: Bool = false,
-        exercises: [WorkoutTemplateExercise] = [],
-        clickCount: Int? = 0,
-        bookmarkCount: Int? = 0,
-        favouriteCount: Int? = 0
+        exercises: [WorkoutTemplateExercise] = []
     ) -> Self {
         WorkoutTemplateModel(
             id: UUID().uuidString,
@@ -122,13 +96,9 @@ struct WorkoutTemplateModel: TemplateModel {
             name: name,
             description: description,
             imageURL: imageURL,
-            isSystemWorkout: isSystemWorkout,
             dateCreated: .now,
             dateModified: .now,
-            exercises: exercises,
-            clickCount: clickCount,
-            bookmarkCount: bookmarkCount,
-            favouriteCount: favouriteCount
+            exercises: exercises
         )
     }
     
@@ -147,9 +117,7 @@ struct WorkoutTemplateModel: TemplateModel {
             imageURL: Constants.randomImage,
             dateCreated: Date(timeIntervalSinceNow: -86400 * 7),
             dateModified: Date(timeIntervalSinceNow: -86400 * 2),
-            exercises: WorkoutTemplateExercise.mocks,
-            bookmarkCount: 12,
-            favouriteCount: 3
+            exercises: WorkoutTemplateExercise.mocks
         ),
         WorkoutTemplateModel(
             id: "workout2",
@@ -159,9 +127,7 @@ struct WorkoutTemplateModel: TemplateModel {
             imageURL: nil,
             dateCreated: Date(timeIntervalSinceNow: -86400 * 14),
             dateModified: Date(),
-            exercises: WorkoutTemplateExercise.mocks,
-            bookmarkCount: 18,
-            favouriteCount: 1
+            exercises: WorkoutTemplateExercise.mocks
         ),
         WorkoutTemplateModel(
             id: "workout3",
@@ -171,9 +137,7 @@ struct WorkoutTemplateModel: TemplateModel {
             imageURL: Constants.randomImage,
             dateCreated: Date(timeIntervalSinceNow: -86400 * 3),
             dateModified: Date(timeIntervalSinceNow: -86400),
-            exercises: WorkoutTemplateExercise.mocks,
-            bookmarkCount: 28,
-            favouriteCount: 5
+            exercises: WorkoutTemplateExercise.mocks
         )
         ]
     }

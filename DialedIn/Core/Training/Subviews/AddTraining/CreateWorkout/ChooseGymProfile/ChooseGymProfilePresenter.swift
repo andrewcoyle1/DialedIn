@@ -7,7 +7,13 @@ class ChooseGymProfilePresenter {
     private let interactor: ChooseGymProfileInteractor
     private let router: ChooseGymProfileRouter
     
-    private(set) var gymProfiles: [GymProfileModel] = []
+    var favouriteGymProfile: GymProfileModel? {
+        interactor.favouriteGymProfile
+    }
+    
+    var gymProfiles: [GymProfileModel] {
+        interactor.gymProfiles
+    }
     
     var numGyms: Int {
         gymProfiles.count
@@ -20,7 +26,6 @@ class ChooseGymProfilePresenter {
     init(interactor: ChooseGymProfileInteractor, router: ChooseGymProfileRouter) {
         self.interactor = interactor
         self.router = router
-        self.loadLocalGymProfiles()
     }
     
     func onViewAppear() {
@@ -35,28 +40,6 @@ class ChooseGymProfilePresenter {
         router.showDefineWorkoutWrapperView(delegate: DefineWorkoutWrapperDelegate(name: name, gymProfile: profile))
     }
     
-    func loadLocalGymProfiles() {
-        interactor.trackEvent(event: Event.loadLocalGymProfileStart)
-        do {
-            gymProfiles = try interactor.readAllLocalGymProfiles()
-            interactor.trackEvent(event: Event.loadLocalGymProfileSuccess)
-        } catch {
-            router.showAlert(error: error)
-            interactor.trackEvent(event: Event.loadLocalGymProfileFail(error: error))
-        }
-    }
-    
-    func loadRemoteGymProfiles() async {
-        interactor.trackEvent(event: Event.loadRemoteGymProfileStart)
-        do {
-            guard let userId = interactor.userId else { return }
-            gymProfiles = try await interactor.readAllRemoteGymProfilesForAuthor(userId: userId)
-            interactor.trackEvent(event: Event.loadRemoteGymProfileSuccess)
-        } catch {
-            interactor.trackEvent(event: Event.loadRemoteGymProfileFail(error: error))
-        }
-    }
-
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear

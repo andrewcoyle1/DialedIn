@@ -33,10 +33,6 @@ struct ProfileView: View {
         .toolbar {
             toolbarContent
         }
-        .task {
-            await presenter.getActiveGoal()
-            
-        }
     }
     
     private var profileHeaderSection: some View {
@@ -101,11 +97,11 @@ struct ProfileView: View {
                     .anyButton {
                         presenter.onUnitsPressed()
                     }
-                Label("Dashboard", systemImage: "house")
+                Label("Analytics", systemImage: "chart.bar.xaxis")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()
                     .anyButton {
-                        presenter.onCustomiseDashboardPressed()
+                        presenter.onCustomiseAnalyticsPressed()
                     }
                 Label("Siri", systemImage: "siri")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -308,7 +304,19 @@ extension CoreRouter {
 #Preview("User No Profile") {
     let container = DevPreview.shared.container()
     
-    container.register(UserManager.self, service: UserManager(services: MockUserServices(user: nil)))
+    let userSyncEngine = DocumentSyncEngine<UserModel>(
+        remote: MockRemoteDocumentService(),
+        managerKey: "user",
+        enableLocalPersistence: true,
+        logger: nil
+    )
+    let followingUsersSyncEngine = CollectionSyncEngine<UserModel>(
+        remote: MockRemoteCollectionService(),
+        managerKey: "followingUsers",
+        enableLocalPersistence: true,
+        logger: nil
+    )
+    container.register(UserManager.self, service: UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine))
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     return RouterView { router in
         builder.profileView(router: router)

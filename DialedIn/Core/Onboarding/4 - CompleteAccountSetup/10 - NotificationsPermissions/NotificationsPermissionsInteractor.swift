@@ -7,7 +7,7 @@
 
 @MainActor
 protocol NotificationsPermissionsInteractor: GlobalInteractor {
-    func requestPushAuthorization() async throws -> Bool
+    func requestPushAuthorisation() async throws -> Bool
     func canRequestHealthDataAuthorisation() -> Bool
 }
 

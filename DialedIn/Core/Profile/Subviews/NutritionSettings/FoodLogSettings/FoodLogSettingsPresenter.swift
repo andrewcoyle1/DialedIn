@@ -7,6 +7,16 @@ class FoodLogSettingsPresenter {
     private let interactor: FoodLogSettingsInteractor
     private let router: FoodLogSettingsRouter
     
+    var showOverages: Bool = false
+    
+    var showsFoodTimestamps: Bool = true
+    var showHourlyMacroTotals: Bool = true
+    var showCalendarWeekBanner: Bool = true
+    var premove: Bool = false
+
+    var showBrandedFoods: Bool = true
+    var showOpenFoodFactsFoods: Bool = true
+    
     init(interactor: FoodLogSettingsInteractor, router: FoodLogSettingsRouter) {
         self.interactor = interactor
         self.router = router
@@ -18,6 +28,42 @@ class FoodLogSettingsPresenter {
     
     func onViewDisappear() {
         interactor.trackEvent(event: Event.onDisappear)
+    }
+    
+    func onEditHourRangePressed() {
+        
+    }
+    
+    func onEditAlignmentPressed() {
+        
+    }
+    
+    func onEditAddFoodsToHourPressed() {
+        
+    }
+    
+    func onLoggedBannerPressed() {
+        
+    }
+    
+    func onTimelineFoodTilesPressed() {
+        
+    }
+    
+    func onLoggerFoodTilesPressed() {
+        
+    }
+    
+    func onTimeSelectionPressed() {
+        
+    }
+    
+    func onFavouriteMeasurementsPressed() {
+        
+    }
+    
+    func onOptimisationPressed() {
+        
     }
 }
 

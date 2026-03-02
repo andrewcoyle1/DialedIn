@@ -1,6 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol CustomiseDashboardInteractor: GlobalInteractor { }
+protocol CustomiseAnalyticsInteractor: GlobalInteractor { }
 
-extension CoreInteractor: CustomiseDashboardInteractor { }
+extension CoreInteractor: CustomiseAnalyticsInteractor { }

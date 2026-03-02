@@ -6,13 +6,11 @@
 //
 
 @MainActor
-protocol WorkoutSessionDetailInteractor {
+protocol WorkoutSessionDetailInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func updateLocalWorkoutSession(session: WorkoutSessionModel) throws
-    func updateWorkoutSession(session: WorkoutSessionModel) async throws
+    func saveWorkoutSession(_ session: WorkoutSessionModel) async throws
     func getPreference(templateId: String) -> ExerciseUnitPreference
     func setPreference(weightUnit: ExerciseWeightUnit?, distanceUnit: ExerciseDistanceUnit?, for templateId: String)
-    func deleteLocalWorkoutSession(id: String) throws
     func deleteWorkoutSession(id: String) async throws
 }
 

@@ -28,7 +28,6 @@ struct TrainingView<CalendarHeaderView: View>: View {
 
     var body: some View {
         List {
-            
             if let program = presenter.activeTrainingProgram {
                 trainingProgramHeaderSection(program: program)
             } else {
@@ -44,25 +43,6 @@ struct TrainingView<CalendarHeaderView: View>: View {
             toolbarContent
         }
         .toolbarRole(.browser)
-        .onAppear {
-            Task {
-                await presenter.refreshFavouriteGymProfileImage()
-            }
-        }
-        .onFirstTask {
-            await presenter.loadData()
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                Task { await presenter.loadData() }
-            }
-        }
-        .onChange(of: presenter.currentUser?.submittedActiveTrainingProgramId) { _, _ in
-            Task { await presenter.loadData() }
-        }
-        .onNotificationReceived(name: Constants.remoteDataSyncDidComplete) { _ in
-            Task { await presenter.loadData() }
-        }
         .safeAreaInset(edge: .top) {
             calendarHeader(
                 CalendarHeaderDelegate(
@@ -150,7 +130,7 @@ struct TrainingView<CalendarHeaderView: View>: View {
             if let sessionId = item.completedSessionId {
                 presenter.openCompletedSession(sessionId: sessionId)
             } else {
-                presenter.startDayPlanWorkout(item.dayPlan)
+                presenter.startWorkoutTemplateModelWorkout(item.dayPlan)
             }
         }
     }
@@ -222,6 +202,14 @@ struct TrainingView<CalendarHeaderView: View>: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
 
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onDevSettingsPressed()
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onAddPressed()

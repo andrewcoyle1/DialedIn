@@ -75,10 +75,6 @@ struct WorkoutExerciseEquipmentSheetView: View {
                 }
             }
         }
-
-        .task(id: delegate.exercise.templateId) {
-            await presenter.loadChoosableEquipment(exerciseTemplateId: delegate.exercise.templateId)
-        }
         .onAppear {
             presenter.chosenResistance = delegate.exercise.chosenResistanceEquipment
             presenter.chosenSupport = delegate.exercise.chosenSupportEquipment

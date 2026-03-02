@@ -1,16 +1,16 @@
 //
-//  ExerciseTemplateDetailRouter.swift
+//  ExerciseModelDetailRouter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 28/11/2025.
 //
 
 @MainActor
-protocol ExerciseTemplateDetailRouter {
+protocol ExerciseModelDetailRouter {
     func showDevSettingsView()
     func dismissScreen()
     
     func showSimpleAlert(title: String, subtitle: String?)
 }
 
-extension CoreRouter: ExerciseTemplateDetailRouter { }
+extension CoreRouter: ExerciseModelDetailRouter { }

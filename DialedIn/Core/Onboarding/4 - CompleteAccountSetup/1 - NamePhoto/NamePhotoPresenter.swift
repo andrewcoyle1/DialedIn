@@ -60,36 +60,19 @@ class NamePhotoPresenter {
             }
             
             do {
-                guard let userId = interactor.currentUser?.userId else {
-                    interactor.trackEvent(event: Event.noUserId)
-                    return
-                }
-                
-                let trimmedFirst = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
-                let trimmedLast = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
-                
-                let user = UserModel(
-                    userId: userId,
-                    email: interactor.currentUser?.email,
-                    isAnonymous: interactor.currentUser?.isAnonymous,
-                    firstName: trimmedFirst,
-                    lastName: trimmedLast.isEmpty ? nil : trimmedLast
-                )
-                                
 #if canImport(UIKit)
                 if let uiImage = selectedImageData.flatMap({ UIImage(data: $0) }) {
                     try await interactor.updateProfileImageUrl(image: uiImage)
                 }
-                try await interactor.saveUser(user: user)
+                try await interactor.updateUserName(firstName: firstName, lastName: lastName)
 #elseif canImport(AppKit)
                 if let nsImage = selectedImageData.flatMap({ NSImage(data: $0) }) {
                     try await interactor.updateProfileImageUrl(image: nsImage)
                 }
-                try await interactor.saveUser(user: user)
+                try await interactor.updateUserName(firstName: firstName, lastName: lastName)
 #endif
                 
                 interactor.trackEvent(event: Event.namePhotoSaveSuccess)
-                interactor.trackEvent(event: Event.navigate)
                 router.showGenderView()
             } catch {
                 interactor.trackEvent(event: Event.namePhotoSaveFail(error: error))

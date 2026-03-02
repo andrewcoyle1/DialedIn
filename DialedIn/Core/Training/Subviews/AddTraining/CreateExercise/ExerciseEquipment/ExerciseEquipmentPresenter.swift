@@ -7,6 +7,10 @@ class ExerciseEquipmentPresenter {
     private let interactor: ExerciseEquipmentInteractor
     private let router: ExerciseEquipmentRouter
     
+    var favouriteGymProfile: GymProfileModel? {
+        interactor.favouriteGymProfile
+    }
+    
     init(interactor: ExerciseEquipmentInteractor, router: ExerciseEquipmentRouter) {
         self.interactor = interactor
         self.router = router
@@ -78,57 +82,47 @@ class ExerciseEquipmentPresenter {
     }
     
     func onAddResistancePressed() {
-        Task {
-            do {
-                let gymProfile = try await interactor.readFavouriteGymProfile()
-                equipmentIndex = gymProfile.equipmentIndex
-                
-                let chosenBinding = Binding<[EquipmentRef]>(
-                    get: { self.chosenResistanceEquipment },
-                    set: { self.chosenResistanceEquipment = $0 }
-                )
-                
-                let equipmentItems = gymProfile.allEquipment.filter {
-                    $0.ref.kind != .supportEquipment && $0.ref.kind != .accessoryEquipment
-                }
-                let delegate = EquipmentPickerDelegate(
-                    items: equipmentItems,
-                    headerTitle: "Resistance Equipment",
-                    chosenItem: chosenBinding
-                )
-                
-                router.showEquipmentPickerView(delegate: delegate)
-            } catch {
-                router.showSimpleAlert(title: "No Equipment Data", subtitle: "Unable to load gym profile. Please set a favourite gym profile and try again.")
-            }
+        guard let gymProfile = favouriteGymProfile else { return }
+
+        equipmentIndex = gymProfile.equipmentIndex
+        
+        let chosenBinding = Binding<[EquipmentRef]>(
+            get: { self.chosenResistanceEquipment },
+            set: { self.chosenResistanceEquipment = $0 }
+        )
+        
+        let equipmentItems = gymProfile.allEquipment.filter {
+            $0.ref.kind != .supportEquipment && $0.ref.kind != .accessoryEquipment
         }
+        let delegate = EquipmentPickerDelegate(
+            items: equipmentItems,
+            headerTitle: "Resistance Equipment",
+            chosenItem: chosenBinding
+        )
+        
+        router.showEquipmentPickerView(delegate: delegate)
     }
     
     func onAddSupportPressed() {
-        Task {
-            do {
-                let gymProfile = try await interactor.readFavouriteGymProfile()
-                equipmentIndex = gymProfile.equipmentIndex
-
-                let chosenBinding = Binding<[EquipmentRef]>(
-                    get: { self.chosenSupportEquipment },
-                    set: { self.chosenSupportEquipment = $0 }
-                )
-
-                let equipmentItems = gymProfile.allEquipment.filter {
-                    $0.ref.kind != .supportEquipment || $0.ref.kind != .accessoryEquipment
-                }
-                let delegate = EquipmentPickerDelegate(
-                    items: equipmentItems,
-                    headerTitle: "Support Equipment",
-                    chosenItem: chosenBinding
-                )
-
-                router.showEquipmentPickerView(delegate: delegate)
-            } catch {
-                router.showSimpleAlert(title: "No Equipment Data", subtitle: "Unable to load gym profile. Please set a favourite gym profile and try again.")
-            }
+        guard let gymProfile = favouriteGymProfile else { return }
+        
+        equipmentIndex = gymProfile.equipmentIndex
+        
+        let chosenBinding = Binding<[EquipmentRef]>(
+            get: { self.chosenSupportEquipment },
+            set: { self.chosenSupportEquipment = $0 }
+        )
+        
+        let equipmentItems = gymProfile.allEquipment.filter {
+            $0.ref.kind != .supportEquipment || $0.ref.kind != .accessoryEquipment
         }
+        let delegate = EquipmentPickerDelegate(
+            items: equipmentItems,
+            headerTitle: "Support Equipment",
+            chosenItem: chosenBinding
+        )
+        
+        router.showEquipmentPickerView(delegate: delegate)
     }
     
     private func name(for equipmentRef: EquipmentRef) -> String {

@@ -9,15 +9,23 @@ class ExerciseListBuilderPresenter {
 
     private(set) var isLoading: Bool = false
     private(set) var searchExerciseTask: Task<Void, Never>?
-    private(set) var myExercises: [ExerciseModel] = []
-    private(set) var favouriteExercises: [ExerciseModel] = []
-    private(set) var bookmarkedExercises: [ExerciseModel] = []
-    private(set) var officialExercises: [ExerciseModel] = []
-    private(set) var exercises: [ExerciseModel] = []
-
+    
+    var userExercises: [ExerciseModel] {
+        interactor.userExercises
+    }
+    
+    var systemExercises: [ExerciseModel] {
+        interactor.systemExercises
+    }
+    
+    var filteredExercises: [ExerciseModel] {
+        interactor.allExercises
+            .filter({ $0.name == searchText })
+    }
+    
     var searchText: String = ""
     var selectedWorkoutTemplate: WorkoutTemplateModel?
-    var selectedExerciseTemplate: ExerciseModel?
+    var selectedExerciseModel: ExerciseModel?
 
     private var trimmedSearchText: String {
         searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -29,50 +37,6 @@ class ExerciseListBuilderPresenter {
 
     var currentUser: UserModel? {
         interactor.currentUser
-    }
-
-    var myExerciseIds: Set<String> {
-        Set(myExercises.map { $0.id })
-    }
-
-    var favouriteExerciseIds: Set<String> {
-        Set(favouriteExercises.map { $0.id })
-    }
-
-    var favouriteExercisesVisible: [ExerciseModel] {
-        filterBySearchText(favouriteExercises)
-    }
-
-    var myExercisesVisible: [ExerciseModel] {
-        filterBySearchText(myExercises.filter { !favouriteExerciseIds.contains($0.id) })
-    }
-
-    var bookmarkedOnlyExercises: [ExerciseModel] {
-        filterBySearchText(bookmarkedExercises.filter { !favouriteExerciseIds.contains($0.id) && !myExerciseIds.contains($0.id) })
-    }
-    
-    var officialExerciseIds: Set<String> {
-        Set(officialExercises.map { $0.id })
-    }
-
-    var savedExerciseIds: Set<String> {
-        favouriteExerciseIds.union(Set(bookmarkedOnlyExercises.map { $0.id }))
-    }
-    
-    var officialExercisesVisible: [ExerciseModel] {
-        filterBySearchText(officialExercises.filter {
-            !favouriteExerciseIds.contains($0.id) && !myExerciseIds.contains($0.id) && !savedExerciseIds.contains($0.id)
-        })
-    }
-
-    var trendingExercisesDeduped: [ExerciseModel] {
-        filterBySearchText(exercises.filter {
-            !myExerciseIds.contains($0.id) && !savedExerciseIds.contains($0.id) && !officialExerciseIds.contains($0.id)
-        })
-    }
-
-    var visibleExerciseTemplates: [ExerciseModel] {
-        trendingExercisesDeduped
     }
 
     init(interactor: ExerciseListBuilderInteractor, router: ExerciseListBuilderRouter) {
@@ -103,188 +67,6 @@ class ExerciseListBuilderPresenter {
     func onAddExercisePressed() {
         interactor.trackEvent(event: Event.onAddExercisePressed)
         router.showCreateExerciseView()
-    }
-
-    func onExercisePressed(exercise: ExerciseModel, onExercisePressed: ((ExerciseModel) -> Void)? = nil) {
-        // Only increment click count for non-system exercises
-        // System exercises (IDs starting with "system-") are read-only
-        if !exercise.id.hasPrefix("system-") {
-            Task {
-                interactor.trackEvent(event: Event.incrementExerciseStart)
-                do {
-                    try await interactor.incrementExerciseTemplateInteraction(id: exercise.id)
-                    interactor.trackEvent(event: Event.incrementExerciseSuccess)
-                } catch {
-                    interactor.trackEvent(event: Event.incrementExerciseFail(error: error))
-                }
-            }
-        }
-
-        onExercisePressed?(exercise)
-    }
-
-    func onExercisePressedFromFavourites(exercise: ExerciseModel) {
-        interactor.trackEvent(event: Event.onExercisePressedFromFavourites)
-        onExercisePressed(exercise: exercise)
-    }
-
-    func onExercisePressedFromBookmarked(exercise: ExerciseModel) {
-        interactor.trackEvent(event: Event.onExercisePressedFromBookmarked)
-        onExercisePressed(exercise: exercise)
-    }
-
-    func onExercisePressedFromTrending(exercise: ExerciseModel) {
-        interactor.trackEvent(event: Event.onExercisePressedFromTrending)
-        onExercisePressed(exercise: exercise)
-    }
-
-    func onExercisePressedFromMyTemplates(exercise: ExerciseModel) {
-        interactor.trackEvent(event: Event.onExercisePressedFromMyTemplates)
-        onExercisePressed(exercise: exercise)
-    }
-
-    func performExerciseSearch(for query: String) {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        // Cancel any ongoing search
-        searchExerciseTask?.cancel()
-
-        guard !trimmed.isEmpty else {
-            handleSearchCleared()
-            return
-        }
-
-        startFreshSearch(for: trimmed)
-    }
-
-    func handleSearchCleared() {
-        interactor.trackEvent(event: Event.searchCleared)
-        Task { await loadTopExercisesIfNeeded() }
-    }
-
-    func startFreshSearch(for query: String) {
-        isLoading = true
-        interactor.trackEvent(event: Event.performExerciseSearchStart)
-
-        searchExerciseTask = Task {
-            do {
-                // Debounce the search
-                try? await Task.sleep(for: .milliseconds(350))
-                guard !Task.isCancelled else { return }
-
-                // Perform the actual search
-                let results = try await interactor.getExerciseTemplatesByName(name: query)
-
-                // Update UI on main thread
-                await MainActor.run {
-                    handleSearchResults(results, for: query)
-                }
-
-            } catch {
-                await MainActor.run {
-                    handleSearchError(error)
-                }
-            }
-        }
-    }
-
-    func handleSearchResults(_ results: [ExerciseModel], for query: String) {
-        exercises = results
-        isLoading = false
-
-        if results.isEmpty {
-            interactor.trackEvent(event: Event.performExerciseSearchEmptyResults(query: query))
-        } else {
-            interactor.trackEvent(event: Event.performExerciseSearchSuccess(query: query, resultCount: results.count))
-        }
-    }
-
-    func handleSearchError(_ error: Error) {
-        interactor.trackEvent(event: Event.performExerciseSearchFail(error: error))
-        isLoading = false
-        exercises = []
-
-        router.showSimpleAlert(
-            title: "No Exercises Found",
-            subtitle: "We couldn't find any exercise templates matching your search. Please try a different name or check your connection."
-        )
-    }
-
-    func loadExercises() async {
-        await loadMyExercisesIfNeeded()
-        await loadOfficialExercises()
-        await loadTopExercisesIfNeeded()
-    }
-    
-    private func loadMyExercisesIfNeeded() async {
-        guard let userId = interactor.currentUser?.userId else { return }
-        interactor.trackEvent(event: Event.loadMyExercisesStart)
-        do {
-            let mine = try await interactor.getExerciseTemplatesForAuthor(authorId: userId)
-            myExercises = mine
-            interactor.trackEvent(event: Event.loadMyExercisesSuccess(count: mine.count))
-        } catch {
-            interactor.trackEvent(event: Event.loadMyExercisesFail(error: error))
-            router.showSimpleAlert(
-                title: "Unable to Load Your Exercises",
-                subtitle: "We couldn't retrieve your custom exercise templates. Please check your connection or try again later."
-            )
-        }
-    }
-    
-    private func loadOfficialExercises() async {
-        interactor.trackEvent(event: Event.loadOfficialExercisesStart)
-        do {
-            let official = try interactor.getSystemExerciseTemplates()
-            officialExercises = official
-            interactor.trackEvent(event: Event.loadOfficialExercisesSuccess(count: official.count))
-        } catch {
-            interactor.trackEvent(event: Event.loadOfficialExercisesFail(error: error))
-            // Don't show alert for official exercises - it's not critical
-        }
-    }
-
-    private func loadTopExercisesIfNeeded() async {
-        guard searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        isLoading = true
-        interactor.trackEvent(event: Event.loadTopExercisesStart)
-        do {
-            let top = try await interactor.getTopExerciseTemplatesByClicks(limitTo: 10)
-            exercises = top
-            isLoading = false
-            interactor.trackEvent(event: Event.loadTopExercisesSuccess(count: top.count))
-        } catch {
-            isLoading = false
-            interactor.trackEvent(event: Event.loadTopExercisesFail(error: error))
-            router.showSimpleAlert(
-                title: "Unable to Load Trending Templates",
-                subtitle: "We couldn't load top exercise templates. Please try again later."
-            )
-        }
-    }
-    
-    func favouritesSectionViewed() {
-        interactor.trackEvent(event: Event.favouritesSectionViewed(count: favouriteExercisesVisible.count))
-    }
-    
-    func bookmarkedSectionViewed() {
-        interactor.trackEvent(event: Event.bookmarkedSectionViewed(count: bookmarkedOnlyExercises.count))
-    }
-    
-    func trendingSectionViewed() {
-        interactor.trackEvent(event: Event.trendingSectionViewed(count: visibleExerciseTemplates.count))
-    }
-    
-    func myTemplatesViewed() {
-        interactor.trackEvent(event: Event.myTemplatesSectionViewed(count: myExercisesVisible.count))
-    }
-    
-    func officialSectionViewed() {
-        interactor.trackEvent(event: Event.officialSectionViewed(count: officialExercisesVisible.count))
-    }
-    
-    func emptyStateShown() {
-        interactor.trackEvent(event: Event.emptyStateShown)
     }
 
     enum Event: LoggableEvent {

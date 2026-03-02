@@ -209,8 +209,14 @@ class AuthPresenter {
             router.showCreateGymProfileView(delegate: CreateGymProfileDelegate(onComplete: self.handleNavigation))
 
         case .trainingProgramSetup:
-            router.showOnboardingTrainingProgramView(delegate: CreateProgramDelegate(onComplete: self.handleNavigation))
-
+            router.showCreateGymProfileView(
+                    delegate: CreateGymProfileDelegate(onComplete: { [weak self] in
+                        guard let self else { return }
+                        Task { @MainActor in
+                            self.handleNavigation()
+                        }
+                    })
+                )
         case .customiseProgram:
             router.showCustomisingDietProgramView()
 

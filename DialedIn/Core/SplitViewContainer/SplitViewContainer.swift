@@ -57,10 +57,10 @@ extension CoreBuilder {
     func splitViewContainer(router: AnyRouter) -> some View {
         let tabs: [TabBarScreen] = [
             TabBarScreen(
-                title: "Dashboard",
+                title: "Analytics",
                 systemImage: "house",
                 screen: {
-                    self.dashboardView(delegate: DashboardDelegate(), router: router)
+                    self.analyticsView(delegate: AnalyticsDelegate(), router: router)
                     .any()
                 }
             ),

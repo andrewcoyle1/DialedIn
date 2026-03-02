@@ -11,118 +11,38 @@ import Foundation
 @MainActor
 class GymProfileManager {
     
-    private let local: LocalGymProfilePersistence
-    private let remote: RemoteGymProfileService
-    
-    private(set) var defaultGymProfile: GymProfileModel?
-    
-    private(set) var gymProfiles: [GymProfileModel] = []
-    
-    init(services: GymProfileServices) {
-        self.local = services.local
-        self.remote = services.remote
-    }
-    
-    // MARK: CREATE
-    func createGymProfile(profile: GymProfileModel) async throws {
-        try local.createGymProfile(profile: profile)
-        try await remote.createGymProfile(profile: profile)
-    }
-
-    // MARK: READ
-    
-    func readLocalGymProfile(profileId: String) throws -> GymProfileModel {
-        try local.readGymProfile(profileId: profileId)
-    }
-    
-    func readAllLocalGymProfiles() throws -> [GymProfileModel] {
-        try local.readAllLocalGymProfiles(includeDeleted: false)
-    }
-    
-    func readRemoteGymProfile(profileId: String) async throws -> GymProfileModel {
-        try await remote.readGymProfile(profileId: profileId)
-    }
-    
-    func readAllRemoteGymProfilesForAuthor(userId: String) async throws -> [GymProfileModel] {
-        let remoteProfiles = try await remote.readAllGymProfilesForAuthor(userId: userId)
-        let localProfiles = try local.readAllLocalGymProfiles(includeDeleted: true)
-
-        let remoteById = Dictionary(uniqueKeysWithValues: remoteProfiles.map { ($0.id, $0) })
-        let localById = Dictionary(uniqueKeysWithValues: localProfiles.map { ($0.id, $0) })
-
-        let allIds = Set(remoteById.keys).union(localById.keys)
-
-        func upsertLocal(profile: GymProfileModel) throws {
-            do {
-                try local.createGymProfile(profile: profile)
-            } catch {
-                try local.updateGymProfile(profile: profile)
-            }
-        }
-
-        for id in allIds {
-            switch (remoteById[id], localById[id]) {
-            case let (remoteProfile?, nil):
-                try upsertLocal(profile: remoteProfile)
-            case let (nil, localProfile?):
-                try await remote.updateGymProfile(profile: localProfile)
-            case let (remoteProfile?, localProfile?):
-                if remoteProfile.dateModified > localProfile.dateModified {
-                    try local.updateGymProfile(profile: remoteProfile)
-                } else if localProfile.dateModified > remoteProfile.dateModified {
-                    try await remote.updateGymProfile(profile: localProfile)
-                } else {
-                    try local.updateGymProfile(profile: remoteProfile)
-                }
-            case (nil, nil):
-                break
-            }
-        }
-
-        return try local.readAllLocalGymProfiles(includeDeleted: false)
-    }
-
-    // MARK: UPDATE
-    
-    @discardableResult
-    func updateGymProfile(profile: GymProfileModel, image: PlatformImage? = nil) async throws -> GymProfileModel {
+    private let gymProfileSyncEngine: CollectionSyncEngine<GymProfileModel>
         
-        if let image {
-            var profileToSave = profile
-            // Upload the image
-            let path = "gym_profiles/\(profile.id)/image.jpg"
-            let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
-            
-            // Persist the download URL on the ingredient that will be saved
-            profileToSave.updateImageUrl(imageUrl: url.absoluteString)
-            do {
-                try local.updateGymProfile(profile: profileToSave)
-            } catch let error as URLError where error.code == .fileDoesNotExist {
-                try local.createGymProfile(profile: profileToSave)
-            }
-
-            try await remote.updateGymProfile(profile: profileToSave)
-            return profileToSave
-        } else {
-            
-            do {
-                try local.updateGymProfile(profile: profile)
-            } catch let error as URLError where error.code == .fileDoesNotExist {
-                try local.createGymProfile(profile: profile)
-            }
-            try await remote.updateGymProfile(profile: profile)
-            return profile
-        }
+    var gymProfiles: [GymProfileModel] {
+        gymProfileSyncEngine.currentCollection
     }
-
+    
+    init(gymProfileSyncEngine: CollectionSyncEngine<GymProfileModel>) {
+        self.gymProfileSyncEngine = gymProfileSyncEngine
+    }
+    
+    func saveGymProfile(profile: GymProfileModel, image: PlatformImage?) async throws {
+        var profile = profile
+        if let image {
+            let path = "users/\(profile.authorId)/gymProfiles/\(profile.id)"
+            let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
+            profile.updateImageUrl(imageUrl: url.absoluteString)
+        }
+        try await gymProfileSyncEngine.saveDocument(profile)
+    }
+    
+    func signIn() async {
+        await gymProfileSyncEngine.startListening()
+    }
+    
+    func signOut() {
+        gymProfileSyncEngine.stopListening()
+    }
+    
     // MARK: DELETE
         
-    func deleteGymProfile(profile: GymProfileModel) async throws {
-        var deletedProfile = profile
-        deletedProfile.deletedAt = .now
-        deletedProfile.dateModified = .now
-        try local.deleteGymProfile(profile: deletedProfile)
-        try await remote.deleteGymProfile(profile: deletedProfile)
+    func deleteGymProfile(_ profileId: String) async throws {
+        try await gymProfileSyncEngine.deleteDocument(id: profileId)
     }
 
 }
@@ -131,55 +51,23 @@ extension CoreInteractor {
     
     // MARK: GymProfileManager
     
+    var gymProfiles: [GymProfileModel] {
+        gymProfileManager.gymProfiles
+    }
+    
     var favouriteGymProfile: GymProfileModel? {
         guard let favouriteGymProfileId = currentUser?.submittedFavouriteGymProfileId else { return nil }
-        return try? readLocalGymProfile(profileId: favouriteGymProfileId)
-    }
-
-    // CREATE
-    func createGymProfile(profile: GymProfileModel) async throws {
-        try await gymProfileManager.createGymProfile(profile: profile)
-    }
-
-    // READ
-    
-    func readFavouriteGymProfile() async throws -> GymProfileModel {
-        guard let user = currentUser,
-              let favourite = user.submittedFavouriteGymProfileId else { throw CoreError.noCurrentUser }
-        do {
-            return try gymProfileManager.readLocalGymProfile(profileId: favourite)
-        } catch {
-            return try await gymProfileManager.readRemoteGymProfile(profileId: favourite)
+        return gymProfiles.first { model in
+            model.id == favouriteGymProfileId
         }
     }
-    
-    func readLocalGymProfile(profileId: String) throws -> GymProfileModel {
-        try gymProfileManager.readLocalGymProfile(profileId: profileId)
-    }
-    
-    func readAllLocalGymProfiles() throws -> [GymProfileModel] {
-        try gymProfileManager.readAllLocalGymProfiles()
-    }
-    
-    func readRemoteGymProfile(profileId: String) async throws -> GymProfileModel {
-        try await gymProfileManager.readRemoteGymProfile(profileId: profileId)
-    }
-    
-    func readAllRemoteGymProfilesForAuthor(userId: String) async throws -> [GymProfileModel] {
-        try await gymProfileManager.readAllRemoteGymProfilesForAuthor(userId: userId)
+
+    func saveGymProfile(profile: GymProfileModel, image: PlatformImage?) async throws {
+        try await gymProfileManager.saveGymProfile(profile: profile, image: image)
     }
 
-    // UPDATE
-    
-    @discardableResult
-    func updateGymProfile(profile: GymProfileModel, image: PlatformImage? = nil) async throws -> GymProfileModel {
-        try await gymProfileManager.updateGymProfile(profile: profile, image: image)
-    }
-
-    // DELETE
-        
-    func deleteGymProfile(profile: GymProfileModel) async throws {
-        try await gymProfileManager.deleteGymProfile(profile: profile)
+    func deleteGymProfile(_ profileId: String) async throws {
+        try await gymProfileManager.deleteGymProfile(profileId)
     }
 
 }

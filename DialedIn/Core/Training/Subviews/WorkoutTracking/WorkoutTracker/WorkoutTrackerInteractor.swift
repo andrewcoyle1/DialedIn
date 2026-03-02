@@ -23,7 +23,7 @@ struct LiveActivityUpdateParams {
 /// and data/services, supporting HealthKit session handling, local persistence, notifications,
 /// user event tracking, rest timing, preferences, and history management.
 @MainActor
-protocol WorkoutTrackerInteractor {
+protocol WorkoutTrackerInteractor: GlobalInteractor {
 
     // MARK: - User and Session Properties
 
@@ -37,9 +37,6 @@ protocol WorkoutTrackerInteractor {
     
     /// The current active workout session, if any.
     var activeSession: WorkoutSessionModel? { get }
-    
-    /// The current HealthKit workout session state, if available.
-    var workoutSessionState: HKWorkoutSessionState? { get }
 
     // MARK: - Workout Session Configuration & Lifecycle
 
@@ -49,44 +46,24 @@ protocol WorkoutTrackerInteractor {
         location: HKWorkoutSessionLocationType
     )
 
-    /// Start a new workout with the given session model.
     func startWorkout(workout: WorkoutSessionModel)
-
-    /// Retrieve a local workout session by its unique identifier.
-    func getLocalWorkoutSession(id: String) throws -> WorkoutSessionModel
-
-    /// Retrieve a remote workout session by its unique identifier.
-    func getWorkoutSession(id: String) async throws -> WorkoutSessionModel
-    /// Retrieve the currently active local workout session, if any.
-    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
-
+    
     /// Create a new workout session and store it locally.
-    func createWorkoutSession(session: WorkoutSessionModel) async throws
-
-    /// Mark a local workout session as ended at the given date.
-    func endLocalWorkoutSession(id: String, at endedAt: Date) throws
-
-    /// End a workout session and optionally mark it as completed if scheduled.
-    func endActiveSession(markScheduledComplete: Bool) async
-
+    func saveWorkoutSession(_ session: WorkoutSessionModel) async throws
+    func updateActiveSession(_ session: WorkoutSessionModel) throws
+    
+    func getWorkoutSession(id: String) async throws -> WorkoutSessionModel
     /// End a remote (possibly HealthKit) workout session asynchronously at provided date.
-    func endWorkoutSession(id: String, at endedAt: Date) async throws
 
+    func endWorkoutSession(_ session: WorkoutSessionModel) async throws
+    func deleteActiveSession() throws 
     /// End the current workout and persist/close resources as needed.
     func endWorkout()
 
-    /// Delete a local workout session by its identifier.
-    func deleteLocalWorkoutSession(id: String) throws
+    /// Discard the current workout without saving to HealthKit.
+    func discardWorkout()
 
-    /// Update a local workout session with new values.
-    func updateLocalWorkoutSession(session: WorkoutSessionModel) throws
-
-    /// Set a local session as the current active one, passing nil to clear.
-    func setActiveLocalWorkoutSession(_ session: WorkoutSessionModel?) throws
-
-    /// Fetch the exercise template by id (for equipment sheet).
-    func getExerciseTemplate(id: String) async throws -> ExerciseModel
-
+    var allExercises: [ExerciseModel] { get }
     func setWeightUnit(_ unit: ExerciseWeightUnit, for templateId: String)
     
     /// Set the distance unit preference for a specific exercise template
@@ -121,12 +98,6 @@ protocol WorkoutTrackerInteractor {
         authorId: String
     ) async throws -> WorkoutSessionModel?
 
-    /// Add a workout set result or data point to the local exercise history.
-    func addLocalExerciseHistory(entry: ExerciseHistoryEntryModel) throws
-
-    /// Persist a new history entry to remote or cloud store.
-    func createExerciseHistory(entry: ExerciseHistoryEntryModel) async throws
-
     // MARK: - Rest & Notifications
 
     func schedulePushNotification(delegate: PushNotificationDelegate) async throws
@@ -156,6 +127,8 @@ protocol WorkoutTrackerInteractor {
 
     /// The current workout settings.
     var workoutSettings: WorkoutSettings { get }
+    
+    func addWorkoutStreakEvent() async throws
 }
 
 extension CoreInteractor: WorkoutTrackerInteractor { }

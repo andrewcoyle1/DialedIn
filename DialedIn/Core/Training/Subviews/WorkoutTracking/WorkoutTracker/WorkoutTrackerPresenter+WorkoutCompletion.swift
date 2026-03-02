@@ -33,27 +33,18 @@ extension WorkoutTrackerPresenter {
                 
                 let endTime = Date()
                 
-                // Cancel any pending rest timer notifications
-//                await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
-                
                 // Update session end time
                 workoutSession.endSession(at: endTime)
-                self.workoutSession = workoutSession
-                try interactor.endLocalWorkoutSession(id: workoutSession.id, at: endTime)
-                
+
                 // Save to remote
-                try await interactor.createWorkoutSession(session: workoutSession)
-                try await interactor.endWorkoutSession(id: workoutSession.id, at: endTime)
-                
-                // Create exercise history entries (remote + local)
-                try await createExerciseHistoryEntries(performedAt: endTime)
-                
+                try await interactor.endWorkoutSession(workoutSession)
+                try? await interactor.addWorkoutStreakEvent()
+
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 interactor.endLiveActivity(session: workoutSession, isCompleted: true, statusMessage: "Workout ended & saved.")
                 #endif
                 UIApplication.shared.isIdleTimerDisabled = false
                 SharedWorkoutStorage.clearHKStartedSessionId()
-                await interactor.endActiveSession(markScheduledComplete: true)
                 await MainActor.run {
                     self.router.dismissScreen()
                 }
@@ -65,29 +56,4 @@ extension WorkoutTrackerPresenter {
         }
     }
     
-    private func createExerciseHistoryEntries(performedAt: Date) async throws {
-        guard let userId = interactor.currentUser?.userId else {
-            throw NSError(domain: "WorkoutTrackerPresenter", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
-        }
-        
-        // Create exercise history entries for each exercise in the session
-        for workoutExercise in workoutSession.exercises {
-            let historyEntry = ExerciseHistoryEntryModel.newEntry(params: ExerciseHistoryEntryModel.NewEntryParams(
-                authorId: userId,
-                templateId: workoutExercise.templateId,
-                templateName: workoutExercise.name,
-                workoutSessionId: workoutSession.id,
-                workoutExerciseId: workoutExercise.id,
-                performedAt: performedAt,
-                notes: workoutExercise.notes,
-                sets: workoutExercise.sets
-            ))
-            
-            // Save to local storage
-            try interactor.addLocalExerciseHistory(entry: historyEntry)
-            
-            // Save to remote storage
-            try await interactor.createExerciseHistory(entry: historyEntry)
-        }
-    }
 }

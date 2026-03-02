@@ -7,11 +7,11 @@
 
 import SwiftUI
 
-struct ExerciseTemplateDetailView: View {
+struct ExerciseModelDetailView: View {
 
-    @State var presenter: ExerciseTemplateDetailPresenter
+    @State var presenter: ExerciseModelDetailPresenter
 
-    var delegate: ExerciseTemplateDetailDelegate
+    var delegate: ExerciseModelDetailDelegate
 
     var body: some View {
         List {
@@ -27,7 +27,7 @@ struct ExerciseTemplateDetailView: View {
                 recordsSection
             }
         }
-        .navigationTitle(delegate.exerciseTemplate.name)
+        .navigationTitle(delegate.exerciseModel.name)
         .navigationSubtitle(presenter.performedSubtitle)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
@@ -37,13 +37,13 @@ struct ExerciseTemplateDetailView: View {
     
     private var aboutSection: some View {
         Group {
-            if let url = delegate.exerciseTemplate.imageURL {
+            if let url = delegate.exerciseModel.imageURL {
                 imageSection(url: url)
             }
 
             definitionSection
 
-            if !delegate.exerciseTemplate.muscleGroups.isEmpty {
+            if !delegate.exerciseModel.muscleGroups.isEmpty {
                 targetMusclesSection
             }
 
@@ -61,40 +61,9 @@ struct ExerciseTemplateDetailView: View {
     }
     
     private var historySection: some View {
-        Group {
-            Section(header: Text("History")) {
-                if presenter.isLoadingHistory {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                } else if presenter.history.isEmpty {
-                    Text("No history yet.")
-                        .foregroundColor(.secondary)
-                } else {
-                    ForEach(presenter.history, id: \.id) { entry in
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(entry.performedAt, style: .date)
-                                    .font(.subheadline)
-                                    .foregroundColor(.primary)
-                                Spacer()
-                                if let first = entry.sets.first {
-                                    if let reps = first.reps { Text("\(reps) reps").font(.caption).foregroundColor(.secondary) }
-                                    if let weightKg = first.weightKg, let pref = presenter.unitPreference {
-                                        let displayWeight = UnitConversion.formatWeight(weightKg, unit: pref.weightUnit)
-                                        Text("\(displayWeight) \(pref.weightUnit.abbreviation)").font(.caption).foregroundColor(.secondary)
-                                    }
-                                }
-                            }
-                            if let notes = entry.notes, !notes.isEmpty {
-                                Text(notes)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                }
-            }
+        Section(header: Text("History")) {
+            Text("History coming soon.")
+                .foregroundColor(.secondary)
         }
     }
     
@@ -134,7 +103,7 @@ struct ExerciseTemplateDetailView: View {
 }
 
 // MARK: - Sections (extracted for type_body_length)
-private extension ExerciseTemplateDetailView {
+private extension ExerciseModelDetailView {
     var chartsSection: some View {
         Group {
             weightProgressChart
@@ -144,51 +113,15 @@ private extension ExerciseTemplateDetailView {
 
     var weightProgressChart: some View {
         Section(header: Text("Weight Progress Chart")) {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Weight lifted over last sessions")
-                    .font(.subheadline)
-                let weights: [Double] = presenter.history.compactMap { $0.sets.first?.weightKg }
-                HStack(alignment: .bottom, spacing: 4) {
-                    ForEach(Array(weights.enumerated()), id: \.offset) { _, weightKg in
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.blue)
-                            .frame(width: 20, height: CGFloat(max(10, min(100, weightKg))))
-                    }
-                }
-                .padding(.vertical, 8)
-                if let pref = presenter.unitPreference {
-                    Text(weights.map { UnitConversion.formatWeight($0, unit: pref.weightUnit) + pref.weightUnit.abbreviation }.joined(separator: ", "))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                } else {
-                    Text(weights.map { String(format: "%.1fkg", $0) }.joined(separator: ", "))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-            .padding(.vertical, 8)
+            Text("Charts coming soon.")
+                .foregroundColor(.secondary)
         }
     }
 
     var repsProgressChart: some View {
         Section(header: Text("Reps Progress Chart")) {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Reps performed over last sessions")
-                    .font(.subheadline)
-                let reps: [Int] = presenter.history.compactMap { $0.sets.first?.reps }
-                HStack(alignment: .bottom, spacing: 4) {
-                    ForEach(Array(reps.enumerated()), id: \.offset) { _, reps in
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.green)
-                            .frame(width: 20, height: CGFloat(max(10, min(100, reps * 5))))
-                    }
-                }
-                .padding(.vertical, 8)
-                Text(reps.map { String($0) }.joined(separator: ", ") + " reps")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.vertical, 8)
+            Text("Charts coming soon.")
+                .foregroundColor(.secondary)
         }
     }
 
@@ -234,17 +167,8 @@ private extension ExerciseTemplateDetailView {
 
     var recentRecordsSubSection: some View {
         Section {
-            ForEach(presenter.records, id: \.0) { date, record in
-                HStack {
-                    Text(record)
-                        .font(.body)
-                    Spacer()
-                    Text(date)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.vertical, 2)
-            }
+            Text("Records coming soon.")
+                .foregroundColor(.secondary)
         } header: {
             Text("Recent Records")
         }
@@ -290,7 +214,7 @@ private extension ExerciseTemplateDetailView {
                 Text("Exercise Name")
                     .fontWeight(.semibold)
                 Spacer()
-                Text(delegate.exerciseTemplate.name)
+                Text(delegate.exerciseModel.name)
             }
             HStack(alignment: .firstTextBaseline) {
                 Text("Trackable Metrics")
@@ -302,19 +226,19 @@ private extension ExerciseTemplateDetailView {
                 Text("Type")
                     .fontWeight(.semibold)
                 Spacer()
-                Text(delegate.exerciseTemplate.type?.name ?? "None")
+                Text(delegate.exerciseModel.type?.name ?? "None")
             }
             HStack(alignment: .firstTextBaseline) {
                 Text("Laterality")
                     .fontWeight(.semibold)
                 Spacer()
-                Text(delegate.exerciseTemplate.laterality?.name ?? "None")
+                Text(delegate.exerciseModel.laterality?.name ?? "None")
             }
             HStack(alignment: .firstTextBaseline) {
                 Text("Bodyweight")
                     .fontWeight(.semibold)
                 Spacer()
-                Text(delegate.exerciseTemplate.isBodyweight ? "Yes" : "No")
+                Text(delegate.exerciseModel.isBodyweight ? "Yes" : "No")
             }
         } header: {
             HStack(alignment: .firstTextBaseline) {
@@ -328,7 +252,7 @@ private extension ExerciseTemplateDetailView {
     }
 
     var targetMusclesSection: some View {
-        let muscles = Array(delegate.exerciseTemplate.muscleGroups).sorted { $0.key.name < $1.key.name }
+        let muscles = Array(delegate.exerciseModel.muscleGroups).sorted { $0.key.name < $1.key.name }
         return Section {
             ScrollView(.horizontal) {
                 HStack {
@@ -365,7 +289,7 @@ private extension ExerciseTemplateDetailView {
             HStack {
                 ForEach(1...5, id: \.self) { value in
                     Capsule()
-                        .fill(value <= delegate.exerciseTemplate.rangeOfMotion ? Color.accentColor : Color.secondary.opacity(0.2))
+                        .fill(value <= delegate.exerciseModel.rangeOfMotion ? Color.accentColor : Color.secondary.opacity(0.2))
                 }
             }
             .frame(maxWidth: 200)
@@ -379,7 +303,7 @@ private extension ExerciseTemplateDetailView {
             HStack {
                 ForEach(1...5, id: \.self) { value in
                     Capsule()
-                        .fill(value <= delegate.exerciseTemplate.stability ? Color.accentColor : Color.secondary.opacity(0.2))
+                        .fill(value <= delegate.exerciseModel.stability ? Color.accentColor : Color.secondary.opacity(0.2))
                 }
             }
             .frame(maxWidth: 200)
@@ -388,13 +312,13 @@ private extension ExerciseTemplateDetailView {
 
     var resistanceEquipmentSection: some View {
         Section {
-            if delegate.exerciseTemplate.resistanceEquipment.isEmpty {
+            if delegate.exerciseModel.resistanceEquipment.isEmpty {
                 Text("None")
                     .foregroundStyle(.secondary)
             } else {
                 ScrollView(.horizontal) {
                     HStack {
-                        ForEach(delegate.exerciseTemplate.resistanceEquipment, id: \.self) { equipment in
+                        ForEach(delegate.exerciseModel.resistanceEquipment, id: \.self) { equipment in
                             VStack {
                                 ImageLoaderView()
                                     .frame(height: 200)
@@ -417,13 +341,13 @@ private extension ExerciseTemplateDetailView {
 
     var supportEquipmentSection: some View {
         Section {
-            if delegate.exerciseTemplate.supportEquipment.isEmpty {
+            if delegate.exerciseModel.supportEquipment.isEmpty {
                 Text("None")
                     .foregroundStyle(.secondary)
             } else {
                 ScrollView(.horizontal) {
                     HStack {
-                        ForEach(delegate.exerciseTemplate.supportEquipment, id: \.self) { equipment in
+                        ForEach(delegate.exerciseModel.supportEquipment, id: \.self) { equipment in
                             VStack {
                                 ImageLoaderView()
                                     .frame(height: 200)
@@ -450,7 +374,7 @@ private extension ExerciseTemplateDetailView {
                 Text("Body Weight Contribution")
                     .fontWeight(.semibold)
                 Spacer()
-                Text("\(delegate.exerciseTemplate.bodyWeightContribution)%")
+                Text("\(delegate.exerciseModel.bodyWeightContribution)%")
             }
             HStack(alignment: .firstTextBaseline) {
                 Text("Alternative Names")
@@ -464,8 +388,8 @@ private extension ExerciseTemplateDetailView {
                 Text("Description")
                     .fontWeight(.semibold)
                 Spacer()
-                Text(delegate.exerciseTemplate.description ?? "None")
-                    .foregroundStyle(delegate.exerciseTemplate.description == nil ? .secondary : .primary)
+                Text(delegate.exerciseModel.description ?? "None")
+                    .foregroundStyle(delegate.exerciseModel.description == nil ? .secondary : .primary)
                     .lineLimit(3)
             }
         } header: {
@@ -479,18 +403,18 @@ private extension ExerciseTemplateDetailView {
                 Text("Exercise ID")
                     .fontWeight(.semibold)
                 Spacer()
-                Text(delegate.exerciseTemplate.id)
+                Text(delegate.exerciseModel.id)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.trailing)
             }
-            if !delegate.exerciseTemplate.authorId.isEmpty {
+            if !delegate.exerciseModel.authorId.isEmpty {
                 HStack(alignment: .firstTextBaseline) {
                     Text("Author ID")
                         .fontWeight(.semibold)
                     Spacer()
-                    Text(delegate.exerciseTemplate.authorId)
+                    Text(delegate.exerciseModel.authorId)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
@@ -501,39 +425,39 @@ private extension ExerciseTemplateDetailView {
                 Text("System Exercise")
                     .fontWeight(.semibold)
                 Spacer()
-                Text(delegate.exerciseTemplate.isSystemExercise ? "Yes" : "No")
+                Text(delegate.exerciseModel.isSystemExercise ? "Yes" : "No")
             }
             HStack(alignment: .firstTextBaseline) {
                 Text("Date Created")
                     .fontWeight(.semibold)
                 Spacer()
-                Text(delegate.exerciseTemplate.dateCreated.formatted(date: .abbreviated, time: .omitted))
+                Text(delegate.exerciseModel.dateCreated.formatted(date: .abbreviated, time: .omitted))
             }
             HStack(alignment: .firstTextBaseline) {
                 Text("Date Modified")
                     .fontWeight(.semibold)
                 Spacer()
-                Text(delegate.exerciseTemplate.dateModified.formatted(date: .abbreviated, time: .omitted))
+                Text(delegate.exerciseModel.dateModified.formatted(date: .abbreviated, time: .omitted))
             }
             HStack(alignment: .firstTextBaseline) {
                 Text("Click Count")
                     .fontWeight(.semibold)
                 Spacer()
-                Text("\(delegate.exerciseTemplate.clickCount ?? 0)")
+                Text("\(delegate.exerciseModel.clickCount ?? 0)")
             }
             HStack(alignment: .firstTextBaseline) {
                 Text("Bookmark Count")
                     .fontWeight(.semibold)
                 Spacer()
-                Text("\(delegate.exerciseTemplate.bookmarkCount ?? 0)")
+                Text("\(delegate.exerciseModel.bookmarkCount ?? 0)")
             }
             HStack(alignment: .firstTextBaseline) {
                 Text("Favourite Count")
                     .fontWeight(.semibold)
                 Spacer()
-                Text("\(delegate.exerciseTemplate.favouriteCount ?? 0)")
+                Text("\(delegate.exerciseModel.favouriteCount ?? 0)")
             }
-            if let imageURL = delegate.exerciseTemplate.imageURL, !imageURL.isEmpty {
+            if let imageURL = delegate.exerciseModel.imageURL, !imageURL.isEmpty {
                 HStack(alignment: .firstTextBaseline) {
                     Text("Image URL")
                         .fontWeight(.semibold)
@@ -573,28 +497,28 @@ private extension ExerciseTemplateDetailView {
     }
 
     var trackableMetricString: String {
-        let names = delegate.exerciseTemplate.trackableMetrics.map { $0.name }
+        let names = delegate.exerciseModel.trackableMetrics.map { $0.name }
         return names.isEmpty ? "None" : names.joined(separator: " x ")
     }
 
     var alternateNamesConcatenated: String {
-        delegate.exerciseTemplate.alternateNames.joined(separator: ", ")
+        delegate.exerciseModel.alternateNames.joined(separator: ", ")
     }
 }
 
 extension CoreBuilder {
-    func exerciseTemplateDetailView(router: AnyRouter, delegate: ExerciseTemplateDetailDelegate) -> some View {
-        ExerciseTemplateDetailView(
-            presenter: ExerciseTemplateDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+    func exerciseModelDetailView(router: AnyRouter, delegate: ExerciseModelDetailDelegate) -> some View {
+        ExerciseModelDetailView(
+            presenter: ExerciseModelDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate
         )
     }
 }
 
 extension CoreRouter {
-    func showExerciseTemplateDetailView(delegate: ExerciseTemplateDetailDelegate) {
+    func showExerciseModelDetailView(delegate: ExerciseModelDetailDelegate) {
         router.showScreen(.sheet) { router in
-            builder.exerciseTemplateDetailView(router: router, delegate: delegate)
+            builder.exerciseModelDetailView(router: router, delegate: delegate)
         }
     }
 }
@@ -604,10 +528,10 @@ extension CoreRouter {
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
-        builder.exerciseTemplateDetailView(
+        builder.exerciseModelDetailView(
             router: router,
-            delegate: ExerciseTemplateDetailDelegate(
-                exerciseTemplate: ExerciseModel.mocks[0]
+            delegate: ExerciseModelDetailDelegate(
+                exerciseModel: ExerciseModel.mocks[0]
             )
         )
     }

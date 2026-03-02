@@ -30,6 +30,4 @@ protocol LiveActivityUpdating: AnyObject {
         isCompleted: Bool,
         statusMessage: String?
     )
-    
-    var isLiveActivityActive: Bool { get }
 }

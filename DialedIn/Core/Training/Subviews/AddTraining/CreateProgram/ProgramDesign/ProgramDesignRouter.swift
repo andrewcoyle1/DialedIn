@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 protocol ProgramDesignRouter: GlobalRouter {
-    func showRenameDayPlanView(delegate: RenameDayPlanDelegate)
+    func showRenameWorkoutTemplateModelView(delegate: RenameWorkoutTemplateModelDelegate)
     func showProgramSettingsView(program: Binding<TrainingProgram>)
     func showExercisePickerView(delegate: ExercisePickerDelegate)
     func showCompleteAccountSetupView()
@@ -19,9 +19,9 @@ protocol ProgramDesignRouter: GlobalRouter {
 extension CoreRouter: ProgramDesignRouter { }
 
 extension CoreRouter {
-    func showRenameDayPlanView(delegate: RenameDayPlanDelegate) {
+    func showRenameWorkoutTemplateModelView(delegate: RenameWorkoutTemplateModelDelegate) {
         router.showScreen(.sheet) { router in
-            builder.renameDayPlanView(router: router, delegate: delegate)
+            builder.renameWorkoutTemplateModelView(router: router, delegate: delegate)
                 .presentationDetents([.fraction(0.8)])
         }
     }

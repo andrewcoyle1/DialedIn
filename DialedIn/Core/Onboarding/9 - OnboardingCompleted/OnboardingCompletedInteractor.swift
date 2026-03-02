@@ -7,7 +7,7 @@
 
 @MainActor
 protocol OnboardingCompletedInteractor: GlobalInteractor {
-    func updateDidCompleteOnboarding() async throws
+    func saveOnboardingComplete() async throws
 }
 
 extension CoreInteractor: OnboardingCompletedInteractor { }

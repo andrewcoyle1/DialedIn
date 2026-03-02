@@ -20,13 +20,4 @@ class AdaptiveMainPresenter {
         self.interactor = interactor
         self.router = router
     }
-
-    func getActiveLocalWorkoutSession() {
-        do {
-            _ = try interactor.getActiveLocalWorkoutSession()
-        } catch {
-            router.showSimpleAlert(title: "Error Loading Active Workout Sessions", subtitle: nil)
-        }
-    }
-
 }

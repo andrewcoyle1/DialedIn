@@ -5,7 +5,10 @@
 //  Created by Andrew Coyle on 04/02/2026.
 //
 
-enum WeightSource: String, Codable {
+enum WeightSource: String, DataSyncModelProtocol {
+    
+    var id: String { self.rawValue }
+    
     case manual
     case healthkit
     case imported

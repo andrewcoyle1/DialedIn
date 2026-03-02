@@ -48,7 +48,6 @@ extension TrainingPresenter {
     ) async {
         do {
             let previousSession = await loadPreviousWorkoutSession(template: template, userId: userId)
-            let gymProfile = await loadGymProfile()
             let unitPreferences = loadUnitPreferences(for: template)
             
             let session = WorkoutSessionModel(
@@ -59,12 +58,11 @@ extension TrainingPresenter {
                 programId: programId,
                 dayPlanId: dayPlanId,
                 previousWorkoutSession: previousSession,
-                gymProfile: gymProfile,
+                gymProfile: favouriteGymProfile,
                 unitPreferences: unitPreferences
             )
             
-            try interactor.addLocalWorkoutSession(session: session)
-            interactor.startActiveSession(session)
+            try interactor.updateActiveSession(session)
             
             Task {
                 try? await Task.sleep(for: .seconds(0.5))
@@ -82,20 +80,9 @@ extension TrainingPresenter {
         template: WorkoutTemplateModel,
         userId: String
     ) async -> WorkoutSessionModel? {
-        print("🔥 [Smart Progression] Loading previous workout session for template: \(template.id)")
         
         // First try exact template ID match
-        var previousSession = try? await interactor.getLastCompletedSessionForTemplate(
-            templateId: template.id,
-            authorId: userId
-        )
-        
-        // If no exact match, try to find a session with matching exercises
-        if previousSession == nil {
-            previousSession = await findSessionWithMatchingExercises(template: template, userId: userId)
-        }
-        
-        return previousSession
+        return workoutSessions.first(where: { $0.workoutTemplateId == template.id}) 
     }
     
     /// Finds a workout session with matching exercise template IDs
@@ -103,61 +90,27 @@ extension TrainingPresenter {
         template: WorkoutTemplateModel,
         userId: String
     ) async -> WorkoutSessionModel? {
-        print("   🔍 No exact template ID match, searching by exercise template IDs...")
         let currentExerciseIds = Set(template.exercises.map { $0.exercise.id })
-        print("   🔍 Current template has \(currentExerciseIds.count) exercises: \(currentExerciseIds)")
-        
-        guard let allSessions = try? interactor.getLocalWorkoutSessionsForAuthor(authorId: userId, limitTo: 0) else {
-            return nil
-        }
-        
-        let completedSessions = allSessions.filter { $0.endedAt != nil }
+                
+        let completedSessions = workoutSessions.filter { $0.endedAt != nil }
             .sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
         
         for session in completedSessions {
             let sessionExerciseIds = Set(session.exercises.map { $0.templateId })
-            print("   🔍 Session \(session.id) has exercises: \(sessionExerciseIds)")
             
             if sessionExerciseIds == currentExerciseIds {
-                print("   ✅ Found session with matching exercises: \(session.id)")
                 return session
             }
         }
-        
-        print("   ⚠️ No session found with matching exercises")
-        return nil
-    }
-    
-    /// Loads gym profile for equipment-aware weight rounding
-    private func loadGymProfile() async -> GymProfileModel? {
-        guard let favouriteGymProfileId = interactor.currentUser?.submittedFavouriteGymProfileId else {
-            print("⚠️ [Equipment Rounding] No favourite gym profile ID found")
-            return nil
-        }
-        
-        do {
-            let gymProfile = try interactor.readLocalGymProfile(profileId: favouriteGymProfileId)
-            print("✅ [Equipment Rounding] Loaded gym profile: \(gymProfile.name)")
-            return gymProfile
-        } catch {
-            print("⚠️ [Equipment Rounding] Failed to load gym profile locally, trying remote...")
-            do {
-                let gymProfile = try await interactor.readRemoteGymProfile(profileId: favouriteGymProfileId)
-                print("✅ [Equipment Rounding] Loaded gym profile from remote: \(gymProfile.name)")
-                return gymProfile
-            } catch {
-                print("⚠️ [Equipment Rounding] Failed to load gym profile: \(error.localizedDescription)")
                 return nil
-            }
-        }
     }
-    
+        
     /// Loads unit preferences for all exercises in template
     private func loadUnitPreferences(for template: WorkoutTemplateModel) -> [String: ExerciseUnitPreference] {
         var unitPreferences: [String: ExerciseUnitPreference] = [:]
-        for exerciseTemplate in template.exercises {
-            let preference = interactor.getPreference(templateId: exerciseTemplate.exercise.id)
-            unitPreferences[exerciseTemplate.exercise.id] = preference
+        for exerciseModel in template.exercises {
+            let preference = interactor.getPreference(templateId: exerciseModel.exercise.id)
+            unitPreferences[exerciseModel.exercise.id] = preference
         }
         return unitPreferences
     }

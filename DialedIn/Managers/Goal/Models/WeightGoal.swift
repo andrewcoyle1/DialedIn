@@ -7,7 +7,10 @@
 
 import Foundation
 
-struct WeightGoal: Codable, Identifiable, Equatable {
+struct WeightGoal: DataSyncModelProtocol, Equatable {
+    
+    var id: String { goalId }
+    
     let goalId: String
     let userId: String
     let objective: OverarchingObjective
@@ -17,9 +20,7 @@ struct WeightGoal: Codable, Identifiable, Equatable {
     let createdAt: Date
     let status: GoalStatus
     let completedAt: Date?
-    
-    var id: String { goalId }
-    
+        
     init(
         goalId: String = UUID().uuidString,
         userId: String,

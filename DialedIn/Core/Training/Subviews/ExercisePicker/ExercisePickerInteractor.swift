@@ -7,10 +7,9 @@
 
 @MainActor
 protocol ExercisePickerInteractor {
-    func getSystemExerciseTemplates() throws -> [ExerciseModel]
-    func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseModel]
-    func getAllLocalExerciseTemplates() throws -> [ExerciseModel]
-    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseModel]
+    var systemExercises: [ExerciseModel] { get }
+    var userExercises: [ExerciseModel] { get }
+    var allExercises: [ExerciseModel] { get }
 }
 
 extension CoreInteractor: ExercisePickerInteractor { }

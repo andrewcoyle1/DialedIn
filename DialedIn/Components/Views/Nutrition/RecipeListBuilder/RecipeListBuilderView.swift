@@ -1,31 +1,31 @@
 import SwiftUI
 
+struct RecipeListBuilderDelegate {
+    var onRecipeSelectionChanged: ((RecipeTemplateModel) -> Void)?
+    /// Optional list of recipe templates that should display as "selected" in the UI.
+    /// If `nil`, no selection state is shown.
+    var selectedRecipeTemplates: [RecipeTemplateModel]?
+}
+
 struct RecipeListBuilderView: View {
     
     @State var presenter: RecipeListBuilderPresenter
     
     let delegate: RecipeListBuilderDelegate
     
+    private func isRecipeTemplateSelected(_ recipeTemplate: RecipeTemplateModel) -> Bool {
+        delegate.selectedRecipeTemplates?.contains(recipeTemplate) ?? false
+    }
+
     var body: some View {
         List {
-            if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-
-                if !presenter.favouriteRecipes.isEmpty {
-                    favouriteRecipeTemplatesSection
+            if presenter.searchText.isEmpty {
+                if !presenter.userRecipeTemplates.isEmpty {
+                    userRecipeTemplatesSection
                 }
-
-                myRecipeSection
-
-                if !presenter.bookmarkedOnlyRecipes.isEmpty {
-                    bookmarkedRecipeTemplatesSection
-                }
-
-                if !presenter.trendingRecipesDeduped.isEmpty {
-                    recipeTemplateSection
-                }
+                systemRecipeTemplatesSection
             } else {
-                // Show search results when there is a query
-                recipeTemplateSection
+                filteredRecipeTemplatesSection
             }
         }
         .onAppear {
@@ -35,14 +35,8 @@ struct RecipeListBuilderView: View {
             presenter.onViewDisappear()
         }
         .navigationTitle("Recipes")
-        .navigationSubtitle("\(presenter.recipes.count) recipes")
+        .navigationSubtitle("\(presenter.userRecipeTemplates.count) recipes")
         .scrollIndicators(.hidden)
-        .onFirstTask {
-            await presenter.loadAllRecipes()
-        }
-        .refreshable {
-            await presenter.loadAllRecipes()
-        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -56,114 +50,60 @@ struct RecipeListBuilderView: View {
     }
     
     // MARK: UI Components
-    private var favouriteRecipeTemplatesSection: some View {
+    private var userRecipeTemplatesSection: some View {
         Section {
-            ForEach(presenter.favouriteRecipes) { recipe in
+            ForEach(presenter.userRecipeTemplates) { recipe in
                 CustomListCellView(
                     imageName: recipe.imageURL,
                     title: recipe.name,
-                    subtitle: recipe.description
+                    subtitle: recipe.description,
+                    isSelected: isRecipeTemplateSelected(recipe)
                 )
                 .anyButton(.highlight) {
-                    presenter.onRecipePressedFromFavourites(recipe: recipe, onRecipePressed: delegate.onRecipePressed)
+                    delegate.onRecipeSelectionChanged?(recipe)
                 }
                 .removeListRowFormatting()
             }
         } header: {
-            Text("Favourites")
-        }
-        .onAppear {
-            presenter.favouritesSectionViewed()
+            Text("Custom Exercises")
         }
     }
 
-    private var bookmarkedRecipeTemplatesSection: some View {
+    private var systemRecipeTemplatesSection: some View {
         Section {
-            ForEach(presenter.bookmarkedOnlyRecipes) { recipe in
+            ForEach(presenter.systemRecipeTemplates) { recipe in
                 CustomListCellView(
                     imageName: recipe.imageURL,
                     title: recipe.name,
-                    subtitle: recipe.description
+                    subtitle: recipe.description,
+                    isSelected: isRecipeTemplateSelected(recipe)
                 )
                 .anyButton(.highlight) {
-                    presenter.onRecipePressedFromBookmarked(recipe: recipe, onRecipePressed: delegate.onRecipePressed)
+                    delegate.onRecipeSelectionChanged?(recipe)
                 }
                 .removeListRowFormatting()
             }
         } header: {
-            Text("Bookmarked")
-        }
-        .onAppear {
-            presenter.bookmarksSectionViewed()
+            Text("Custom Exercises")
         }
     }
 
-    private var recipeTemplateSection: some View {
+    private var filteredRecipeTemplatesSection: some View {
         Section {
-            if presenter.isLoading {
-                HStack {
-                    ProgressView()
-                    Text("Loading...")
-                }
-                .foregroundStyle(Color.secondary)
-                .removeListRowFormatting()
-            }
-            ForEach(presenter.visibleRecipeTemplates) { recipe in
+            ForEach(presenter.filteredRecipeTemplates) { recipe in
                 CustomListCellView(
                     imageName: recipe.imageURL,
                     title: recipe.name,
-                    subtitle: recipe.description
+                    subtitle: recipe.description,
+                    isSelected: isRecipeTemplateSelected(recipe)
                 )
                 .anyButton(.highlight) {
-                    presenter.onRecipePressedFromTrending(recipe: recipe, onRecipePressed: delegate.onRecipePressed)
+                    delegate.onRecipeSelectionChanged?(recipe)
                 }
                 .removeListRowFormatting()
             }
-        } header: {
-            Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
-        }
-        .onAppear {
-            presenter.trendingSectionViewed()
         }
     }
-
-    private var myRecipeSection: some View {
-        Section {
-            if presenter.myRecipesVisible.isEmpty {
-                HStack {
-                    Image(systemName: "tray")
-                        .foregroundColor(.secondary)
-                    Text("No recipe templates yet. Tap + to create your first one!")
-                        .foregroundColor(.secondary)
-                        .font(.callout)
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, 12)
-                .removeListRowFormatting()
-                .onAppear {
-                    presenter.emptyStateShown()
-                }
-            } else {
-                ForEach(presenter.myRecipesVisible) { recipe in
-                    CustomListCellView(
-                        imageName: recipe.imageURL,
-                        title: recipe.name,
-                        subtitle: recipe.description
-                    )
-                    .anyButton(.highlight) {
-                        presenter.onRecipePressedFromMyTemplates(recipe: recipe, onRecipePressed: delegate.onRecipePressed)
-                    }
-                    .removeListRowFormatting()
-                }
-            }
-        } header: {
-            Text("My Templates")
-        }
-        .onAppear {
-            presenter.myTemplatesSectionViewed()
-        }
-    }
-
 }
 
 extension CoreBuilder {

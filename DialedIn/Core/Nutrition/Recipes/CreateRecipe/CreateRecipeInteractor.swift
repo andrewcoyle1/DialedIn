@@ -8,11 +8,10 @@
 import SwiftUI
 
 @MainActor
-protocol CreateRecipeInteractor {
+protocol CreateRecipeInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func createRecipeTemplate(recipe: RecipeTemplateModel, image: PlatformImage?) async throws
+    func saveRecipeTemplate(_ recipe: RecipeTemplateModel, image: PlatformImage?) async throws
     func generateImage(input: String) async throws -> UIImage
-    func trackEvent(eventName: String, parameters: [String: Any]?, type: LogType)
 }
 
 extension CoreInteractor: CreateRecipeInteractor { }

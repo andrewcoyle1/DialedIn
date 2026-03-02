@@ -52,10 +52,8 @@ extension WorkoutTrackerPresenter {
 
         updatedExercises[exerciseIndex].sets = updatedSets
         workoutSession.updateExercises(updatedExercises)
-        self.workoutSession = workoutSession
 
         updateWeightUnit(newUnit, for: exercise.templateId)
-        saveWorkoutProgress()
     }
     
     /// Converts distances to new unit and updates the workout session
@@ -90,12 +88,7 @@ extension WorkoutTrackerPresenter {
         
         updatedExercises[exerciseIndex].sets = updatedSets
         workoutSession.updateExercises(updatedExercises)
-        self.workoutSession = workoutSession
-        
-        // Update unit preference
+
         updateDistanceUnit(newUnit, for: exercise.templateId)
-        
-        // Save progress
-        saveWorkoutProgress()
     }
 }

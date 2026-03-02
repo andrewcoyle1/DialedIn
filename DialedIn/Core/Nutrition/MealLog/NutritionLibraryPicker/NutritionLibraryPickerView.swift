@@ -46,12 +46,6 @@ struct NutritionLibraryPickerView: View {
         .navigationTitle("Add Item")
         .navigationBarTitleDisplayMode(.large)
         .searchable(text: $presenter.searchText)
-        .onChange(of: presenter.searchText) { _, newValue in
-            Task { await presenter.performSearch(query: newValue) }
-        }
-        .task {
-            await presenter.loadInitial()
-        }
         .toolbar {
             toolbarContent
         }
@@ -79,11 +73,11 @@ struct NutritionLibraryPickerView: View {
     
     private var ingredientsSection: some View {
         Section {
-            if presenter.ingredients.isEmpty {
+            if presenter.ingredientTemplates.isEmpty {
                 Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No ingredients to show yet" : "No results")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(presenter.ingredients) { ingredient in
+                ForEach(presenter.ingredientTemplates) { ingredient in
                     Button {
                         presenter.navToIngredientAmount(ingredient, onPick: delegate.onPick)
                     } label: {

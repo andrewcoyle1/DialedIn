@@ -39,14 +39,6 @@ struct ExercisePickerView: View {
                 }
             }
         }
-        .task {
-            await presenter.loadExercises()
-        }
-        .onChange(of: presenter.searchText) {
-            Task {
-                await presenter.searchExercises()
-            }
-        }
     }
 
     private var progressSection: some View {
@@ -68,9 +60,7 @@ struct ExercisePickerView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             Button("Try Again") {
-                Task {
-                    await presenter.loadExercises()
-                }
+                // TODO: Solve case where exercises dont load
             }
             .buttonStyle(.borderedProminent)
         }

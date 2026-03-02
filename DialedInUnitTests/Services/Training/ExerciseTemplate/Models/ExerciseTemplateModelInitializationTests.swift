@@ -1,5 +1,5 @@
 //
-//  ExerciseTemplateModelInitializationTests.swift
+//  ExerciseModelModelInitializationTests.swift
 //  DialedInUnitTests
 //
 //  Created by Andrew Coyle on 28/10/2025.
@@ -10,7 +10,7 @@ import Foundation
 @testable import DialedIn
 
 @MainActor
-struct ExerciseTemplateInitTests {
+struct ExerciseModelInitTests {
 
     // MARK: - Initialization Tests
     
@@ -20,7 +20,7 @@ struct ExerciseTemplateInitTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             dateCreated: randomDate,
@@ -53,7 +53,7 @@ struct ExerciseTemplateInitTests {
         let randomImageUrl = "https://example.com/image.jpg"
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             authorId: randomAuthorId,
             name: randomName,
@@ -90,7 +90,7 @@ struct ExerciseTemplateInitTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             authorId: nil,
             name: randomName,
@@ -123,7 +123,7 @@ struct ExerciseTemplateInitTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let barbellExercise = ExerciseTemplateModel(
+        let barbellExercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             type: .barbell,
@@ -131,7 +131,7 @@ struct ExerciseTemplateInitTests {
             dateModified: randomDate
         )
         
-        let dumbbellExercise = ExerciseTemplateModel(
+        let dumbbellExercise = ExerciseModelModel(
             exerciseId: String.random,
             name: randomName,
             type: .dumbbell,
@@ -139,7 +139,7 @@ struct ExerciseTemplateInitTests {
             dateModified: randomDate
         )
         
-        let bodyweightExercise = ExerciseTemplateModel(
+        let bodyweightExercise = ExerciseModelModel(
             exerciseId: String.random,
             name: randomName,
             type: .weightedBodyweight,
@@ -158,7 +158,7 @@ struct ExerciseTemplateInitTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let chestExercise = ExerciseTemplateModel(
+        let chestExercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             muscleGroups: [.chest],
@@ -166,7 +166,7 @@ struct ExerciseTemplateInitTests {
             dateModified: randomDate
         )
         
-        let compoundExercise = ExerciseTemplateModel(
+        let compoundExercise = ExerciseModelModel(
             exerciseId: String.random,
             name: randomName,
             muscleGroups: [.legs, .back, .core],
@@ -184,7 +184,7 @@ struct ExerciseTemplateInitTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             instructions: [],
@@ -207,7 +207,7 @@ struct ExerciseTemplateInitTests {
             "Step 3: Return to starting position"
         ]
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             instructions: instructions,
@@ -222,13 +222,13 @@ struct ExerciseTemplateInitTests {
     }
     
     @Test("Test New Exercise Template Factory Method")
-    func testNewExerciseTemplateFactoryMethod() {
+    func testNewExerciseModelFactoryMethod() {
         let randomName = String.random
         let randomAuthorId = String.random
         let randomDescription = String.random
         let instructions = ["Step 1", "Step 2"]
         
-        let exercise = ExerciseTemplateModel.newExerciseTemplate(
+        let exercise = ExerciseModelModel.newExerciseModel(
             name: randomName,
             authorId: randomAuthorId,
             description: randomDescription,
@@ -255,7 +255,7 @@ struct ExerciseTemplateInitTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let systemExercise = ExerciseTemplateModel(
+        let systemExercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             isSystemExercise: true,
@@ -263,7 +263,7 @@ struct ExerciseTemplateInitTests {
             dateModified: randomDate
         )
         
-        let userExercise = ExerciseTemplateModel(
+        let userExercise = ExerciseModelModel(
             exerciseId: String.random,
             name: randomName,
             isSystemExercise: false,

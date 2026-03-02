@@ -12,37 +12,20 @@ struct WorkoutListDelegateBuilder {
 }
 
 struct WorkoutListViewBuilder: View {
-
+    
     @State var presenter: WorkoutListPresenterBuilder
-
+    
     let delegate: WorkoutListDelegateBuilder
     
     var body: some View {
         List {
-            if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-
-                if !presenter.favouriteWorkouts.isEmpty {
-                    favouriteWorkoutTemplatesSection
+            if presenter.searchText.isEmpty {
+                if !presenter.userWorkoutTemplates.isEmpty {
+                    userWorkoutTemplatesSection
                 }
-
-                if !presenter.myWorkouts.isEmpty {
-                    myWorkoutsSection
-                }
-                
-                if !presenter.systemWorkouts.isEmpty {
-                    systemWorkoutTemplatesSection
-                }
-
-                if !presenter.bookmarkedOnlyWorkouts.isEmpty {
-                    bookmarkedWorkoutTemplatesSection
-                }
-
-                if !presenter.trendingWorkoutsDeduped.isEmpty {
-                    workoutTemplateSection
-                }
+                systemWorkoutTemplatesSection
             } else {
-                // Show search results when there is a query
-                workoutTemplateSection
+                filteredWorkoutTemplatesSection
             }
         }
         .onAppear {
@@ -55,12 +38,6 @@ struct WorkoutListViewBuilder: View {
         .navigationSubtitle("\(presenter.workoutsCount) workouts")
         .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
-        .onFirstTask {
-            await presenter.loadAllWorkouts()
-        }
-        .refreshable {
-            await presenter.loadAllWorkouts()
-        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -72,83 +49,6 @@ struct WorkoutListViewBuilder: View {
             }
         }
     }
-
-    // MARK: UI Components
-    private var favouriteWorkoutTemplatesSection: some View {
-        Section {
-            ForEach(presenter.favouriteWorkouts) { workout in
-                workoutRow(workout)
-            }
-        } header: {
-            Text("Favourites")
-        }
-        .onAppear {
-            presenter.favouritesSectionViewed()
-        }
-    }
-
-    private var bookmarkedWorkoutTemplatesSection: some View {
-        Section {
-            ForEach(presenter.bookmarkedOnlyWorkouts) { workout in
-                workoutRow(workout)
-            }
-        } header: {
-            Text("Bookmarked")
-        }
-        .onAppear {
-            presenter.bookmarkedSectionViewed()
-        }
-    }
-
-    private var workoutTemplateSection: some View {
-        Section {
-            if presenter.isLoading {
-                HStack {
-                    ProgressView()
-                    Text("Loading...")
-                }
-                .foregroundStyle(Color.secondary)
-                .removeListRowFormatting()
-            }
-            ForEach(presenter.visibleWorkoutTemplates) { workout in
-                workoutRow(workout)
-            }
-        } header: {
-            Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
-        }
-        .onAppear {
-            presenter.trendingSectionViewed()
-        }
-    }
-
-    private var myWorkoutsSection: some View {
-        Section {
-            if presenter.myWorkoutsVisible.isEmpty {
-                HStack {
-                    Image(systemName: "tray")
-                        .foregroundColor(.secondary)
-                    Text("No workout templates yet. Tap + to create your first one!")
-                        .foregroundColor(.secondary)
-                        .font(.callout)
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, 12)
-                .removeListRowFormatting()
-                .onAppear {
-                    presenter.emptyStateShown()
-                }
-            } else {
-                ForEach(presenter.myWorkoutsVisible) { workout in
-                    workoutRow(workout)
-                }
-            }
-        } header: {
-            Text("My Templates")
-        }
-        .onAppear {
-            presenter.myTemplatesSectionViewed()
-        }
-    }
     
     private func workoutRow(_ workout: WorkoutTemplateModel) -> some View {
         let subtitle = workout.exercises.map { "\($0.exercise.name)"}.joined(separator: ", ")
@@ -158,31 +58,61 @@ struct WorkoutListViewBuilder: View {
             subtitle: subtitle
         )
         .anyButton(.highlight) {
-            presenter.onWorkoutPressedFromMyTemplates(workout: workout, onWorkoutPressed: delegate.onWorkoutSelectionChanged)
+            presenter.onWorkoutPressed(workout: workout, onWorkoutPressed: delegate.onWorkoutSelectionChanged)
         }
         .removeListRowFormatting()
     }
     
     private var systemWorkoutTemplatesSection: some View {
         Section {
-            ForEach(presenter.systemWorkouts) { workout in
+            ForEach(presenter.systemWorkoutTemplates) { workout in
                 workoutRow(workout)
             }
         } header: {
             HStack {
                 Text("Pre-Built Templates")
                 Spacer()
-                Text("\(presenter.systemWorkouts.count)")
+                Text("\(presenter.systemWorkoutTemplates.count)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
         } footer: {
             Text("Professional workout templates designed for common training programs.")
         }
-        .onAppear {
-            presenter.systemTemplatesSectionViewed()
+    }
+
+    private var userWorkoutTemplatesSection: some View {
+        Section {
+            ForEach(presenter.userWorkoutTemplates) { workout in
+                workoutRow(workout)
+            }
+        } header: {
+            HStack {
+                Text("Custom Templates")
+                Spacer()
+                Text("\(presenter.userWorkoutTemplates.count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
+
+    private var filteredWorkoutTemplatesSection: some View {
+        Section {
+            ForEach(presenter.filteredWorkoutTemplates) { workout in
+                workoutRow(workout)
+            }
+        } header: {
+            HStack {
+                Text("Workout Templates")
+                Spacer()
+                Text("\(presenter.filteredWorkoutTemplates.count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
 }
 
 extension CoreBuilder {
@@ -210,9 +140,7 @@ extension CoreBuilder {
             ),
             delegate: WorkoutListDelegateBuilder(
                 onWorkoutSelectionChanged: { template in
-                    print(
-                        template.name
-                    )
+                    print(template.name)
                 }
             )
         )

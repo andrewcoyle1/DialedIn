@@ -9,7 +9,7 @@
 protocol WorkoutExerciseEquipmentSheetInteractor {
     var userId: String? { get }
     var favouriteGymProfile: GymProfileModel? { get }
-    func getExerciseTemplate(id: String) async throws -> ExerciseModel
+    var allExercises: [ExerciseModel] { get }
 }
 
 extension CoreInteractor: WorkoutExerciseEquipmentSheetInteractor { }

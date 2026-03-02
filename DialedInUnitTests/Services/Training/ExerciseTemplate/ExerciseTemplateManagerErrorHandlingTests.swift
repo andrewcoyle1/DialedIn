@@ -1,5 +1,5 @@
 //
-//  ExerciseTemplateManagerErrorTests.swift
+//  ExerciseModelManagerErrorTests.swift
 //  DialedInUnitTests
 //
 
@@ -8,32 +8,32 @@ import Foundation
 @testable import DialedIn
 
 @MainActor
-struct ExerciseTemplateManagerErrorTests {
+struct ExerciseModelManagerErrorTests {
 
     @Test("Test Get All Local Exercise Templates Throws Error When Service Fails")
-    func testGetAllLocalExerciseTemplatesThrowsErrorWhenServiceFails() {
-        let services = MockExerciseTemplateServices(showError: true)
-        let manager = ExerciseTemplateManager(services: services)
+    func testGetAllLocalExerciseModelsThrowsErrorWhenServiceFails() {
+        let services = MockExerciseModelServices(showError: true)
+        let manager = ExerciseModelManager(services: services)
 
         #expect(throws: URLError.self) {
-            try manager.getAllLocalExerciseTemplates()
+            try manager.getAllLocalExerciseModels()
         }
     }
 
     @Test("Test Get Local Exercise Template Throws Error When Service Fails")
-    func testGetLocalExerciseTemplateThrowsErrorWhenServiceFails() {
-        let services = MockExerciseTemplateServices(showError: true)
-        let manager = ExerciseTemplateManager(services: services)
+    func testGetLocalExerciseModelThrowsErrorWhenServiceFails() {
+        let services = MockExerciseModelServices(showError: true)
+        let manager = ExerciseModelManager(services: services)
 
         #expect(throws: URLError.self) {
-            try manager.getLocalExerciseTemplate(id: "test-id")
+            try manager.getLocalExerciseModel(id: "test-id")
         }
     }
 
     @Test("Test Create Exercise Template Throws Error When Service Fails")
-    func testCreateExerciseTemplateThrowsErrorWhenServiceFails() async {
-        let services = MockExerciseTemplateServices(showError: true)
-        let manager = ExerciseTemplateManager(services: services)
+    func testCreateExerciseModelThrowsErrorWhenServiceFails() async {
+        let services = MockExerciseModelServices(showError: true)
+        let manager = ExerciseModelManager(services: services)
 
         let exercise = ExerciseModel(
             authorId: "test_user",
@@ -52,57 +52,57 @@ struct ExerciseTemplateManagerErrorTests {
         )
 
         await #expect(throws: URLError.self) {
-            try await manager.createExerciseTemplate(exercise: exercise, image: nil)
+            try await manager.createExerciseModel(exercise: exercise, image: nil)
         }
     }
 
     @Test("Test Get Exercise Template Throws Error When Service Fails")
-    func testGetExerciseTemplateThrowsErrorWhenServiceFails() async {
-        let services = MockExerciseTemplateServices(showError: true)
-        let manager = ExerciseTemplateManager(services: services)
+    func testGetExerciseModelThrowsErrorWhenServiceFails() async {
+        let services = MockExerciseModelServices(showError: true)
+        let manager = ExerciseModelManager(services: services)
 
         await #expect(throws: URLError.self) {
-            try await manager.getExerciseTemplate(id: "test-id")
+            try await manager.getExerciseModel(id: "test-id")
         }
     }
 
     @Test("Test Get Exercise Templates By Name Throws Error When Service Fails")
-    func testGetExerciseTemplatesByNameThrowsErrorWhenServiceFails() async {
-        let services = MockExerciseTemplateServices(showError: true)
-        let manager = ExerciseTemplateManager(services: services)
+    func testGetExerciseModelsByNameThrowsErrorWhenServiceFails() async {
+        let services = MockExerciseModelServices(showError: true)
+        let manager = ExerciseModelManager(services: services)
 
         await #expect(throws: URLError.self) {
-            try await manager.getExerciseTemplatesByName(name: "Test")
+            try await manager.getExerciseModelsByName(name: "Test")
         }
     }
 
     @Test("Test Increment Interaction Throws Error When Service Fails")
     func testIncrementInteractionThrowsErrorWhenServiceFails() async {
-        let services = MockExerciseTemplateServices(showError: true)
-        let manager = ExerciseTemplateManager(services: services)
+        let services = MockExerciseModelServices(showError: true)
+        let manager = ExerciseModelManager(services: services)
 
         await #expect(throws: URLError.self) {
-            try await manager.incrementExerciseTemplateInteraction(id: "test-id")
+            try await manager.incrementExerciseModelInteraction(id: "test-id")
         }
     }
 
     @Test("Test Bookmark Exercise Template Throws Error When Service Fails")
-    func testBookmarkExerciseTemplateThrowsErrorWhenServiceFails() async {
-        let services = MockExerciseTemplateServices(showError: true)
-        let manager = ExerciseTemplateManager(services: services)
+    func testBookmarkExerciseModelThrowsErrorWhenServiceFails() async {
+        let services = MockExerciseModelServices(showError: true)
+        let manager = ExerciseModelManager(services: services)
 
         await #expect(throws: URLError.self) {
-            try await manager.bookmarkExerciseTemplate(id: "test-id", isBookmarked: true)
+            try await manager.bookmarkExerciseModel(id: "test-id", isBookmarked: true)
         }
     }
 
     @Test("Test Favourite Exercise Template Throws Error When Service Fails")
-    func testFavouriteExerciseTemplateThrowsErrorWhenServiceFails() async {
-        let services = MockExerciseTemplateServices(showError: true)
-        let manager = ExerciseTemplateManager(services: services)
+    func testFavouriteExerciseModelThrowsErrorWhenServiceFails() async {
+        let services = MockExerciseModelServices(showError: true)
+        let manager = ExerciseModelManager(services: services)
 
         await #expect(throws: URLError.self) {
-            try await manager.favouriteExerciseTemplate(id: "test-id", isFavourited: true)
+            try await manager.favouriteExerciseModel(id: "test-id", isFavourited: true)
         }
     }
 }

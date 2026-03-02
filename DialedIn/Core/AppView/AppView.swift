@@ -72,7 +72,19 @@ struct AppView<Content: View>: View {
 
 #Preview("AppView - Onboarding") {
     let container = DevPreview.shared.container()
-    container.register(UserManager.self, service: UserManager(services: MockUserServices(user: nil)))
+    let userSyncEngine = DocumentSyncEngine<UserModel>(
+        remote: MockRemoteDocumentService(),
+        managerKey: "user",
+        enableLocalPersistence: true,
+        logger: nil
+    )
+    let followingUsersSyncEngine = CollectionSyncEngine<UserModel>(
+        remote: MockRemoteCollectionService(),
+        managerKey: "followingUsers",
+        enableLocalPersistence: true,
+        logger: nil
+    )
+    container.register(UserManager.self, service: UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine))
     container.register(AuthManager.self, service: AuthManager(service: MockAuthService(scenario: .newAnonymous)))
     container.register(AppState.self, service: AppState(startingModuleId: Constants.onboardingModuleId))
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))

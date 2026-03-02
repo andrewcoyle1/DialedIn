@@ -160,38 +160,41 @@ struct WorkoutSessionDetailView: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            if presenter.isEditMode {
-                Button("Save") {
-                    Task { await presenter.saveChanges() }
-                }
-                .disabled(presenter.isSaving)
-                .fontWeight(.semibold)
-            } else {
-                Button(role: .destructive) {
-                    presenter.onDeletePressed(
-                        session: delegate.workoutSession
-                    )
-                } label: {
-                    Image(systemName: "trash")
-                }
-                .disabled(presenter.isDeleting)
-            }
-        }
-        
-        ToolbarItem(placement: .topBarLeading) {
-            if presenter.isEditMode {
-                Button("Cancel") {
-                    if presenter.hasUnsavedChanges(session: delegate.workoutSession) {
-                        presenter.showDiscardChangesAlert(session: delegate.workoutSession)
-                    } else {
-                        presenter.cancelEditing(session: delegate.workoutSession)
+        if presenter.isAuthor {
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                if presenter.isEditMode {
+                    Button("Save") {
+                        Task { await presenter.saveChanges() }
                     }
+                    .disabled(presenter.isSaving)
+                    .fontWeight(.semibold)
+                } else {
+                    Button(role: .destructive) {
+                        presenter.onDeletePressed(
+                            session: delegate.workoutSession
+                        )
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .disabled(presenter.isDeleting)
                 }
-                .disabled(presenter.isSaving)
-            } else {
-                Button("Edit") {
-                    presenter.enterEditMode(session: delegate.workoutSession)
+            }
+        
+            ToolbarItem(placement: .topBarLeading) {
+                if presenter.isEditMode {
+                    Button("Cancel") {
+                        if presenter.hasUnsavedChanges(session: delegate.workoutSession) {
+                            presenter.showDiscardChangesAlert(session: delegate.workoutSession)
+                        } else {
+                            presenter.cancelEditing(session: delegate.workoutSession)
+                        }
+                    }
+                    .disabled(presenter.isSaving)
+                } else {
+                    Button("Edit") {
+                        presenter.enterEditMode(session: delegate.workoutSession)
+                    }
                 }
             }
         }

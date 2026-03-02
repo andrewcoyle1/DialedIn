@@ -22,15 +22,6 @@ class IngredientsPresenter {
     }
     
     func onIngredientPressed(ingredient: IngredientTemplateModel) {
-        Task {
-            interactor.trackEvent(event: Event.incrementIngredientStart)
-            do {
-                try await interactor.incrementIngredientTemplateInteraction(id: ingredient.id)
-                interactor.trackEvent(event: Event.incrementIngredientSuccess)
-            } catch {
-                interactor.trackEvent(event: Event.incrementIngredientFail(error: error))
-            }
-        }
         router.showIngredientDetailView(delegate: IngredientDetailDelegate(ingredientTemplate: ingredient))
     }
     

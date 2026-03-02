@@ -166,7 +166,7 @@ class ExpenditurePresenter {
 
     func checkCanRequestPermissions() async {
         self.canRequestHealthData = interactor.canRequestHealthDataAuthorisation()
-        self.canRequestNotifications = await interactor.canRequestNotificationAuthorization()
+        self.canRequestNotifications = await interactor.canRequestNotificationAuthorisation()
     }
     
     func progress(for item: Breakdown) -> Double {
@@ -214,10 +214,20 @@ class ExpenditurePresenter {
             defer {
                 router.dismissModal()
             }
-
+            
             interactor.trackEvent(event: Event.profileSaveStart)
             do {
-                let input = CompleteAccountSetupProfileInput(from: delegate)
+                let input: [String: any DMCodableSendable] = [
+                    UserModel.CodingKeys.submittedGender.rawValue: delegate.gender.rawValue,
+                    UserModel.CodingKeys.submittedDateOfBirth.rawValue: delegate.dateOfBirth,
+                    UserModel.CodingKeys.submittedHeightCentimeters.rawValue: delegate.heightInCentimetres,
+                    UserModel.CodingKeys.submittedLengthUnitPreference.rawValue: delegate.lengthUnitPreference.rawValue,
+                    UserModel.CodingKeys.submittedWeightKilograms.rawValue: delegate.weightInKilograms,
+                    UserModel.CodingKeys.submittedWeightUnitPreference.rawValue: delegate.weightUnitPreference.rawValue,
+                    UserModel.CodingKeys.submittedDailyActivityLevel.rawValue: delegate.activityLevel.rawValue,
+                    UserModel.CodingKeys.submittedExerciseFrequency.rawValue: delegate.exerciseFrequency.rawValue,
+                    UserModel.CodingKeys.submittedCardioFitnessLevel.rawValue: delegate.cardioFitnessLevel.rawValue
+                ]
                 try await interactor.saveUserCompleteAccountSetup(input: input)
                 interactor.trackEvent(event: Event.profileSaveSuccess)
                 
@@ -293,19 +303,5 @@ class ExpenditurePresenter {
                 return .analytic
             }
         }
-    }
-}
-
-extension CompleteAccountSetupProfileInput {
-    init(from delegate: ExpenditureDelegate) {
-        self.gender = delegate.gender
-        self.dateOfBirth = delegate.dateOfBirth
-        self.heightCentimeters = delegate.heightInCentimetres
-        self.lengthUnitPreference = delegate.lengthUnitPreference
-        self.weightKilograms = delegate.weightInKilograms
-        self.weightUnitPreference = delegate.weightUnitPreference
-        self.exerciseFrequency = delegate.exerciseFrequency
-        self.dailyActivityLevel = delegate.activityLevel
-        self.cardioFitnessLevel = delegate.cardioFitnessLevel
     }
 }

@@ -29,7 +29,7 @@ class OnboardingCompletedPresenter {
 
         Task {
             do {
-                try await interactor.updateDidCompleteOnboarding()
+                try await interactor.saveOnboardingComplete()
                 interactor.trackEvent(event: Event.finishSuccess)
                 isCompletingProfileSetup = false
                 router.switchToCoreModule()

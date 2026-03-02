@@ -16,9 +16,15 @@ class NutritionLibraryPickerPresenter {
     var mode: PickerMode = .ingredients
     var searchText: String = ""
     private(set) var isLoading: Bool = false
-    private(set) var ingredients: [IngredientTemplateModel] = []
     private(set) var recipes: [RecipeTemplateModel] = []
 
+    var ingredientTemplates: [IngredientTemplateModel] {
+        interactor.ingredientTemplates
+            .filter {
+                $0.name == searchText
+            }
+    }
+    
     init(
         interactor: NutritionLibraryPickerInteractor,
         router: NutritionLibraryPickerRouter
@@ -26,41 +32,7 @@ class NutritionLibraryPickerPresenter {
         self.interactor = interactor
         self.router = router
     }
-    
-    func loadInitial() async {
-        isLoading = true
-        defer { isLoading = false }
-        do {
-            async let topIngredients = interactor.getTopIngredientTemplatesByClicks(limitTo: 20)
-            async let topRecipes = interactor.getTopRecipeTemplatesByClicks(limitTo: 20)
-            let (ings, recs) = try await (topIngredients, topRecipes)
-            ingredients = ings
-            recipes = recs
-        } catch {
-            router.showAlert(error: error)
-        }
-    }
-    
-    func performSearch(query: String) async {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        isLoading = true
-        defer { isLoading = false }
-        do {
-            if trimmed.isEmpty {
-                await loadInitial()
-                return
-            }
-            switch mode {
-            case .ingredients:
-                ingredients = try await interactor.getIngredientTemplatesByName(name: trimmed)
-            case .recipes:
-                recipes = try await interactor.getRecipeTemplatesByName(name: trimmed)
-            }
-        } catch {
-            router.showAlert(error: error)
-        }
-    }
-
+        
     func navToIngredientAmount(_ ingredient: IngredientTemplateModel, onPick: @escaping (MealItemModel) -> Void) {
         router.showIngredientAmountView(delegate: IngredientAmountDelegate(ingredient: ingredient, onPick: onPick))
     }

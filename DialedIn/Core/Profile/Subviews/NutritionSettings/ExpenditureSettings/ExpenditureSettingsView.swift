@@ -12,19 +12,87 @@ struct ExpenditureSettingsView: View {
     var body: some View {
         List {
             Section {
-                Text("Hello, World!")
+                CustomLabelButtonView(
+                    symbolName: "",
+                    title: "Estimation Method",
+                    subtitle: "Default") {
+                        Text("Edit")
+                            .padding(.horizontal, 8)
+                            .padding(8)
+                            .background(Color.secondary.opacity(0.2), in: .capsule)
+                            .anyButton(.press) {
+
+                            }
+                    }
+                CustomLabelButtonView(
+                    symbolName: "",
+                    title: "Calculation Start Date",
+                    subtitle: "Default") {
+                        Text("Edit")
+                            .padding(.horizontal, 8)
+                            .padding(8)
+                            .background(Color.secondary.opacity(0.2), in: .capsule)
+                            .anyButton(.press) {
+
+                            }
+                    }
+                CustomLabelButtonView(
+                    symbolName: "",
+                    title: "BMR Equation",
+                    subtitle: "Configure how your BMR is initially calculated") {
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.secondary)
+                            .padding()
+                            .anyButton(.press) {
+
+                            }
+                    }
             } header: {
                 Text("Initial Estimate")
             }
 
             Section {
-                Text("Hello, World!")
+                CustomLabelButtonView(
+                    symbolName: "",
+                    title: "Calculation Mode",
+                    subtitle: "Dynamic") {
+                        Text("Edit")
+                            .padding(.horizontal, 8)
+                            .padding(8)
+                            .background(Color.secondary.opacity(0.2), in: .capsule)
+                            .anyButton(.press) {
+
+                            }
+                    }
+                CustomLabelButtonView(
+                    symbolName: "",
+                    title: "Algorithm",
+                    subtitle: "Expenditure V1") {
+                        Text("Edit")
+                            .padding(.horizontal, 8)
+                            .padding(8)
+                            .background(Color.secondary.opacity(0.2), in: .capsule)
+                            .anyButton(.press) {
+
+                            }
+                    }
             } header: {
                 Text("Expenditure Calculation")
             }
 
             Section {
-                Text("Hello, World!")
+                CustomToggleView(
+                    symbolName: "",
+                    title: "Step-Informed Updates",
+                    subtitle: "Uses step trends to speed up expenditure updates during periods where the step data improves confidence",
+                    bool: $presenter.stepInformedUpdates
+                )
+                CustomToggleView(
+                    symbolName: "",
+                    title: "Predictive Goal Adjustment",
+                    subtitle: "Applies a predictive adjustment to expenditure based on the likely impact of goal changes",
+                    bool: $presenter.predictiveGoalAdjustments
+                )
             } header: {
                 Text("Expenditure Modifiers")
             }

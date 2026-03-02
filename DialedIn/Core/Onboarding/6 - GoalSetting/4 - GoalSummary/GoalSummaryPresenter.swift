@@ -50,7 +50,14 @@ class GoalSummaryPresenter {
 
             do {
                 // Create goal in subcollection with frozen starting weight
-                let goal = try await interactor.createGoal(userId: user.userId, objective: delegate.overarchingObjective, startingWeightKg: startingWeight, targetWeightKg: delegate.targetWeight, weeklyChangeKg: delegate.weightChangeRate)
+                let goal = WeightGoal(
+                    userId: user.userId,
+                    objective: delegate.overarchingObjective,
+                    startingWeightKg: startingWeight,
+                    targetWeightKg: delegate.targetWeight,
+                    weeklyChangeKg: delegate.weightChangeRate,
+                )
+                try await interactor.saveGoal(goal)
 
                 // Update user's currentGoalId reference
                 try await interactor.updateCurrentGoalId(goalId: goal.goalId)
@@ -104,7 +111,16 @@ class GoalSummaryPresenter {
             router.showCreateGymProfileView(delegate: delegate)
 
         case .trainingProgramSetup:
-            router.showOnboardingTrainingProgramView(delegate: CreateProgramDelegate(onComplete: self.handleNavigation))
+            router.showOnboardingTrainingProgramView(
+                delegate: CreateProgramDelegate(
+                    onComplete: { [weak self] in
+                        guard let self else { return }
+                        Task { @MainActor in
+                            self.handleNavigation()
+                        }
+                    }
+                )
+            )
         case .customiseProgram:
             router.showCustomisingDietProgramView()
 

@@ -8,8 +8,8 @@
 @MainActor
 protocol NamePhotoInteractor {
     var currentUser: UserModel? { get }
+    func updateUserName(firstName: String?, lastName: String?) async throws 
     func updateProfileImageUrl(image: PlatformImage) async throws
-    func saveUser(user: UserModel) async throws
     func trackEvent(event: LoggableEvent)
 }
 

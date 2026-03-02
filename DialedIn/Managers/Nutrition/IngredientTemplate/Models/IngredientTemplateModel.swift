@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct IngredientTemplateModel: TemplateModel {
+struct IngredientTemplateModel: DataSyncModelProtocol {
     var id: String {
         ingredientId
     }
@@ -373,3 +373,12 @@ struct IngredientTemplateModel: TemplateModel {
 }
 
 extension IngredientTemplateModel: Sendable {}
+
+extension IngredientTemplateModel: Hashable {
+    static func == (lhs: IngredientTemplateModel, rhs: IngredientTemplateModel) -> Bool {
+        lhs.ingredientId == rhs.ingredientId
+    }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(ingredientId)
+    }
+}

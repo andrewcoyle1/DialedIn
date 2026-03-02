@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct StepsModel: Identifiable, Codable {
+struct StepsModel: DataSyncModelProtocol {
     let id: String
     let authorId: String
     var number: Int
@@ -52,6 +52,22 @@ struct StepsModel: Identifiable, Codable {
         case healthKitId = "healthkit_id"
     }
     
+    var eventParameters: [String: Any] {
+        let dict: [String: Any?] = [
+            "steps_\(CodingKeys.id.rawValue)": id,
+            "steps_\(CodingKeys.authorId.rawValue)": authorId,
+            "steps_\(CodingKeys.number.rawValue)": number,
+            "steps_\(CodingKeys.date.rawValue)": date,
+            "steps_\(CodingKeys.source.rawValue)": source.rawValue,
+            "steps_\(CodingKeys.dateCreated.rawValue)": dateCreated,
+            "steps_\(CodingKeys.dateModified.rawValue)": dateModified,
+            "steps_\(CodingKeys.deletedAt.rawValue)": deletedAt,
+            "steps_\(CodingKeys.healthKitId.rawValue)": healthKitId
+        ]
+        return dict.compactMapValues({ $0 })
+
+    }
+    
     static var mock: StepsModel {
         mocks[0]
     }
@@ -67,4 +83,18 @@ struct StepsModel: Identifiable, Codable {
         StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now.addingTimeInterval(days: -1)),
         StepsModel(authorId: UserModel.mock.userId, number: 3000, date: .now)
     ]
+}
+
+enum StepsSource: String, Codable {
+    case manual
+    case healthkit
+    case imported
+
+    var displayName: String {
+        switch self {
+        case .manual: return "Manual Entry"
+        case .healthkit: return "HealthKit"
+        case .imported: return "Imported"
+        }
+    }
 }

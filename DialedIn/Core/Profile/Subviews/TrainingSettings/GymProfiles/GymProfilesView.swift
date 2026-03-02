@@ -6,7 +6,12 @@ struct GymProfilesView: View {
     
     var body: some View {
         List {
-            gymProfilesSection
+            if let favouriteGymProfile = presenter.favouriteGymProfile {
+                favouriteGymProfileSection(gymProfile: favouriteGymProfile)
+            }
+            if !presenter.nonFavouriteGymProfiles.isEmpty {
+                otherGymProfilesSection
+            }
         }
         .navigationTitle("Gym Profiles")
         .navigationBarTitleDisplayMode(.inline)
@@ -19,17 +24,35 @@ struct GymProfilesView: View {
         .toolbar {
             toolbarContent
         }
-        .onAppear {
-            presenter.loadLocalGymProfiles()
-        }
-        .onFirstTask {
-            await presenter.loadRemoteGymProfiles()
-        }
     }
     
-    private var gymProfilesSection: some View {
+    private func favouriteGymProfileSection(gymProfile: GymProfileModel) -> some View {
         Section {
-            ForEach(presenter.gymProfiles) { profile in
+            CustomListCellView(
+                imageName: gymProfile.imageUrl,
+                title: gymProfile.name,
+                subtitle: equipmentSubtitle(for: gymProfile)
+            )
+            .anyButton {
+                presenter.onGymProfilePressed(gymProfile: gymProfile)
+            }
+            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                Button(role: .destructive) {
+                    presenter.deleteGymProfile(profile: gymProfile)
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+            .removeListRowFormatting()
+
+        } header: {
+            Text("Favourite Gym Profile")
+        }
+    }
+
+    private var otherGymProfilesSection: some View {
+        Section {
+            ForEach(presenter.nonFavouriteGymProfiles) { profile in
                 CustomListCellView(
                     imageName: profile.imageUrl,
                     title: profile.name,
@@ -57,7 +80,7 @@ struct GymProfilesView: View {
             .removeListRowFormatting()
 
         } header: {
-            Text(String.countCaption(count: presenter.numGyms, unit: "Gym"))
+            Text(String.countCaption(count: presenter.nonFavouriteGymProfiles.count, unit: "Gym"))
         }
     }
     

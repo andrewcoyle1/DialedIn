@@ -7,7 +7,8 @@
 
 import Foundation
 
-struct BodyMeasurementEntry: Sendable, Codable, Identifiable, Equatable {
+struct BodyMeasurementEntry: DataSyncModelProtocol, Equatable {
+    
     let id: String
     let authorId: String
     let weightKg: Double?

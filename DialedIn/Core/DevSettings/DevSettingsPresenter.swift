@@ -25,6 +25,30 @@ class DevSettingsPresenter {
     var isInNotificationsABTest: Bool = false
     var paywallTest: PaywallTestOption = .default
 
+    var workoutSessions: [WorkoutSessionModel] {
+        interactor.workoutSessions
+    }
+    
+    var allExercises: [ExerciseModel] {
+        interactor.allExercises
+    }
+    
+    var activeSession: WorkoutSessionModel? {
+        interactor.activeSession
+    }
+    
+    var userWorkoutTemplates: [WorkoutTemplateModel] {
+        interactor.userWorkoutTemplates
+    }
+    
+    var systemWorkoutTemplates: [WorkoutTemplateModel] {
+        interactor.systemWorkoutTemplates
+    }
+    
+    var allWorkoutTemplates: [WorkoutTemplateModel] {
+        interactor.allWorkoutTemplates
+    }
+    
     init(
         interactor: DevSettingsInteractor,
         router: DevSettingsRouter
@@ -92,33 +116,13 @@ class DevSettingsPresenter {
     func deviceParams() -> [(key: String, value: Any)] {
         Utilities.eventParameters.asAlphabeticalArray
     }
-    
-    func getLocalExercises() -> [ExerciseModel] {
-        (try? interactor.getAllLocalExerciseTemplates()) ?? []
-    }
-    
-    func getLocalWorkoutTemplates() -> [WorkoutTemplateModel] {
-        (try? interactor.getAllLocalWorkoutTemplates()) ?? []
-    }
-            
-    func getActiveSession() -> WorkoutSessionModel? {
-        interactor.activeSession
-    }
-    
-    func getActiveLocalWorkoutSession() -> WorkoutSessionModel? {
-        try? interactor.getActiveLocalWorkoutSession()
-    }
-    
-    func getRecentWorkoutSessions() -> [WorkoutSessionModel] {
-        (try? interactor.getAllLocalWorkoutSessions()) ?? []
-    }
-        
+                    
     func resetExerciseSeeding() async {
         isReseeding = true
         reseedingMessage = "Resetting exercises..."
-        
-        UserDefaults.standard.removeObject(forKey: "hasSeededPrebuiltExercises")
-        UserDefaults.standard.removeObject(forKey: "prebuiltExercisesSeedingVersion")
+
+        UserDefaults.standard.removeObject(forKey: "hasSeededPrebuiltExercisesV2")
+        UserDefaults.standard.removeObject(forKey: "prebuiltExercisesSeedingVersionV2")
         
         reseedingMessage = "Complete! Restart app to reseed."
         
@@ -144,9 +148,9 @@ class DevSettingsPresenter {
     func resetAllSeeding() async {
         isReseeding = true
         reseedingMessage = "Resetting all seeding..."
-        
-        UserDefaults.standard.removeObject(forKey: "hasSeededPrebuiltExercises")
-        UserDefaults.standard.removeObject(forKey: "prebuiltExercisesSeedingVersion")
+
+        UserDefaults.standard.removeObject(forKey: "hasSeededPrebuiltExercisesV2")
+        UserDefaults.standard.removeObject(forKey: "prebuiltExercisesSeedingVersionV2")
         UserDefaults.standard.removeObject(forKey: "hasSeededPrebuiltWorkouts")
         UserDefaults.standard.removeObject(forKey: "prebuiltWorkoutsSeedingVersion")
         
@@ -194,15 +198,7 @@ class DevSettingsPresenter {
             }
         }
     }
-    
-    func clearAllLocalStepsData() {
-        do {
-            try interactor.clearAllLocalStepsData()
-        } catch {
-            router.showAlert(error: error)
-        }
-    }
-    
+        
     func onDismissPressed() {
         router.dismissScreen()
     }

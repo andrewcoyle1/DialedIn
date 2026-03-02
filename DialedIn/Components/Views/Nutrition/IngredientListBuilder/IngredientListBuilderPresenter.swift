@@ -9,44 +9,20 @@ class IngredientListBuilderPresenter {
     
     var isLoading: Bool = false
     var searchText: String = ""
-    var searchIngredientTask: Task<Void, Never>?
-    var myIngredients: [IngredientTemplateModel] = []
-    var favouriteIngredients: [IngredientTemplateModel] = []
-    var bookmarkedIngredients: [IngredientTemplateModel] = []
-    var ingredients: [IngredientTemplateModel] = []
+    
+    var userIngredientTemplates: [IngredientTemplateModel] {
+        interactor.ingredientTemplates
+    }
+    
+    var systemIngredientTemplates: [IngredientTemplateModel] = []
+    
+    var filteredIngredientTemplates: [IngredientTemplateModel] {
+        interactor.ingredientTemplates
+            .filter({ $0.name == searchText })
+    }
 
     var currentUser: UserModel? {
         interactor.currentUser
-    }
-    
-    // MARK: Computed variables
-    var myIngredientIds: Set<String> {
-        Set(myIngredients.map { $0.id })
-    }
-
-    var favouriteIngredientIds: Set<String> {
-        Set(favouriteIngredients.map { $0.id })
-    }
-
-    var myIngredientsVisible: [IngredientTemplateModel] {
-        myIngredients.filter { !favouriteIngredientIds.contains($0.id) }
-    }
-
-    var bookmarkedOnlyIngredients: [IngredientTemplateModel] {
-        bookmarkedIngredients.filter { !favouriteIngredientIds.contains($0.id) && !myIngredientIds.contains($0.id) }
-    }
-
-    var savedIngredientIds: Set<String> {
-        favouriteIngredientIds.union(Set(bookmarkedOnlyIngredients.map { $0.id }))
-    }
-
-    var trendingIngredientsDeduped: [IngredientTemplateModel] {
-        ingredients.filter { !myIngredientIds.contains($0.id) && !savedIngredientIds.contains($0.id) }
-    }
-
-    var visibleIngredientTemplates: [IngredientTemplateModel] {
-        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? trendingIngredientsDeduped : ingredients
     }
 
     init(interactor: IngredientListBuilderInteractor, router: IngredientListBuilderRouter) {
@@ -61,159 +37,14 @@ class IngredientListBuilderPresenter {
     func onViewDisappear() {
         interactor.trackEvent(event: Event.onDisappear)
     }
-
-    func loadAllIngredients() async {
-        await loadMyIngredientsIfNeeded()
-        await loadTopIngredientsIfNeeded()
-    }
-    
-    func onMyTemplatesShown() {
-        interactor.trackEvent(event: Event.myTemplatesSectionViewed(count: myIngredientsVisible.count))
-    }
-    
-    func favouriteIngredientsShown() {
-        interactor.trackEvent(event: Event.favouritesSectionViewed(count: favouriteIngredients.count))
-    }
-    
-    func bookmarkedIngredientsShown() {
-        interactor.trackEvent(event: Event.bookmarkedSectionViewed(count: bookmarkedOnlyIngredients.count))
-    }
-    
-    func trendingSectionShown() {
-        interactor.trackEvent(event: Event.trendingSectionViewed(count: visibleIngredientTemplates.count))
-    }
-    
-    func emptyStateShown() {
-        interactor.trackEvent(event: Event.emptyStateShown)
-    }
-    
+        
     func onAddIngredientPressed() {
         interactor.trackEvent(event: Event.onAddIngredientPressed)
+        router.showCreateIngredientView()
     }
 
     func onIngredientPressed(ingredient: IngredientTemplateModel, onIngredientPressed: ((IngredientTemplateModel) -> Void)?) {
-        Task {
-            interactor.trackEvent(event: Event.incrementIngredientStart)
-            do {
-                try await interactor.incrementIngredientTemplateInteraction(id: ingredient.id)
-                interactor.trackEvent(event: Event.incrementIngredientSuccess)
-            } catch {
-                interactor.trackEvent(event: Event.incrementIngredientFail(error: error))
-            }
-        }
         onIngredientPressed?(ingredient)
-    }
-    
-    func onIngredientPressedFromFavourites(ingredient: IngredientTemplateModel, onIngredientPressed: ((IngredientTemplateModel) -> Void)?) {
-        interactor.trackEvent(event: Event.onIngredientPressedFromFavourites)
-        self.onIngredientPressed(ingredient: ingredient, onIngredientPressed: onIngredientPressed)
-    }
-    
-    func onIngredientPressedFromBookmarked(ingredient: IngredientTemplateModel, onIngredientPressed: ((IngredientTemplateModel) -> Void)?) {
-        interactor.trackEvent(event: Event.onIngredientPressedFromBookmarked)
-        self.onIngredientPressed(ingredient: ingredient, onIngredientPressed: onIngredientPressed)
-    }
-    
-    func onIngredientPressedFromTrending(ingredient: IngredientTemplateModel, onIngredientPressed: ((IngredientTemplateModel) -> Void)?) {
-        interactor.trackEvent(event: Event.onIngredientPressedFromTrending)
-        self.onIngredientPressed(ingredient: ingredient, onIngredientPressed: onIngredientPressed)
-    }
-    
-    func onIngredientPressedFromMyTemplates(ingredient: IngredientTemplateModel, onIngredientPressed: ((IngredientTemplateModel) -> Void)?) {
-        interactor.trackEvent(event: Event.onIngredientPressedFromMyTemplates)
-        self.onIngredientPressed(ingredient: ingredient, onIngredientPressed: onIngredientPressed)
-    }
-
-    func performIngredientSearch(for query: String) {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // Cancel any ongoing search
-        searchIngredientTask?.cancel()
-        
-        guard !trimmed.isEmpty else {
-            handleSearchCleared()
-            return
-        }
-        
-        startFreshSearch(for: trimmed)
-    }
-    
-    func handleSearchCleared() {
-        interactor.trackEvent(event: Event.searchCleared)
-        Task { await loadTopIngredientsIfNeeded() }
-    }
-    
-    func startFreshSearch(for query: String) {
-        isLoading = true
-        interactor.trackEvent(event: Event.performIngredientSearchStart)
-        
-        searchIngredientTask = Task {
-            do {
-                // Debounce the search
-                try await Task.sleep(for: .milliseconds(350))
-                guard !Task.isCancelled else { return }
-                
-                // Perform the actual search
-                let results = try await interactor.getIngredientTemplatesByName(name: query)
-                
-                // Update UI on main thread
-                await MainActor.run {
-                    handleSearchResults(results, for: query)
-                }
-                
-            } catch {
-                await MainActor.run {
-                    handleSearchError(error)
-                }
-            }
-        }
-    }
-    
-    func handleSearchResults(_ results: [IngredientTemplateModel], for query: String) {
-        ingredients = results
-        isLoading = false
-        
-        if results.isEmpty {
-            interactor.trackEvent(event: Event.performIngredientSearchEmptyResults(query: query))
-        } else {
-            interactor.trackEvent(event: Event.performIngredientSearchSuccess(query: query, resultCount: results.count))
-        }
-    }
-    
-    func handleSearchError(_ error: Error) {
-        interactor.trackEvent(event: Event.performIngredientSearchFail(error: error))
-        isLoading = false
-        ingredients = []
-        router.showSimpleAlert(title: "No Ingredients Found", subtitle: "We couldn't find any ingredient templates matching your search. Please try a different name or check your connection.")
-    }
-
-    func loadMyIngredientsIfNeeded() async {
-        guard let userId = currentUser?.userId else { return }
-        interactor.trackEvent(event: Event.loadMyIngredientsStart)
-        do {
-            let mine = try await interactor.getIngredientTemplatesForAuthor(authorId: userId)
-            myIngredients = mine
-            interactor.trackEvent(event: Event.loadMyIngredientsSuccess(count: mine.count))
-        } catch {
-            interactor.trackEvent(event: Event.loadMyIngredientsFail(error: error))
-            router.showSimpleAlert(title: "Unable to Load Your Ingredients", subtitle: "We couldn't retrieve your custom ingredient templates. Please check your connection or try again later.")
-        }
-    }
-
-    func loadTopIngredientsIfNeeded() async {
-        guard searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        isLoading = true
-        interactor.trackEvent(event: Event.loadTopIngredientsStart)
-        do {
-            let top = try await interactor.getTopIngredientTemplatesByClicks(limitTo: 10)
-            ingredients = top
-            isLoading = false
-            interactor.trackEvent(event: Event.loadTopIngredientsSuccess(count: top.count))
-        } catch {
-            isLoading = false
-            interactor.trackEvent(event: Event.loadTopIngredientsFail(error: error))
-            router.showSimpleAlert(title: "Unable to Load Trending Ingredients", subtitle: "We couldn't load top ingredients. Please try again later.")
-        }
     }
 
     // MARK: Analytics Events

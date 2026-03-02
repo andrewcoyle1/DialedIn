@@ -155,10 +155,10 @@ class CreateIngredientPresenter {
             
 #if canImport(UIKit)
             let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
-            try await interactor.createIngredientTemplate(ingredient: newIngredient, image: uiImage)
+            try await interactor.saveIngredientTemplate(newIngredient, image: uiImage)
 #elseif canImport(AppKit)
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            try await interactor.createIngredientTemplate(ingredient: newIngredient, image: nsImage)
+            try await interactor.saveIngredientTemplate(newIngredient, image: uiImage)
 #endif
         } catch {
             

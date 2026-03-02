@@ -16,8 +16,11 @@ class WorkoutTrackerPresenter {
     let router: WorkoutTrackerRouter
 
     // MARK: - State Properties
-    var workoutSession: WorkoutSessionModel
-    var restDurationSeconds: Int = 90
+    var workoutSession: WorkoutSessionModel {
+        didSet { saveWorkoutProgress() }
+    }
+    
+    var restDurationSeconds: Int { interactor.workoutSettings.defaultRestDurationSeconds }
     var restBeforeSetIdToSec: [String: Int] = [:]
     var restPickerTargetSetId: String?
     var restPickerMinutesSelection: Int = 0
@@ -77,36 +80,13 @@ class WorkoutTrackerPresenter {
         self.interactor = interactor
         self.router = router
         
-        if let session = interactor.activeSession {
-            self.workoutSession = session
-            loadUnitPreferences()
-        } else {
-            self.workoutSession = WorkoutSessionModel(authorId: UUID().uuidString, template: .mock)
-            loadUnitPreferences()
-        }
-    }
-    
-    func loadWorkoutSession(_ workoutSessionId: String) async {
-        do {
-            self.workoutSession = try interactor.getLocalWorkoutSession(id: workoutSessionId)
-        } catch let localError {
-            print("⚠️ Failed to load workout session locally: \(localError.localizedDescription)")
-            do {
-                self.workoutSession = try await interactor.getWorkoutSession(id: workoutSessionId)
-            } catch let remoteError {
-                print("⚠️ Failed to load workout session remotely: \(remoteError.localizedDescription)")
-                // Only show error if we don't already have a valid session from activeSession
-                if workoutSession.id != workoutSessionId {
-                    router.showSimpleAlert(title: "Failed to load workout session", subtitle: "Please try again")
-                }
-            }
-        }
-        self.workoutNotes = workoutSession.notes ?? ""
-        self.startTime = workoutSession.dateCreated
-        // Load unit preferences for all exercises
+        self.workoutSession = interactor.activeSession ?? WorkoutSessionModel(
+            authorId: "",
+            name: "",
+            dateCreated: .now,
+            exercises: []
+        )
         loadUnitPreferences()
-        // Refresh from local storage to ensure latest persisted changes are loaded
-        buildView()
     }
     
     func loadUnitPreferences() {
@@ -170,7 +150,6 @@ class WorkoutTrackerPresenter {
     }
     
     func onAppear() async {
-        print("📥 WorkoutTrackerPresenter.onAppear() for session id=\(workoutSession.id)")
         buildView()
         startWidgetSyncTimer()
         
@@ -179,62 +158,36 @@ class WorkoutTrackerPresenter {
         if healthKitManager.canRequestAuthorisation() && healthKitManager.needsAuthorisationForRequiredTypes() {
             do {
                 try await healthKitManager.requestAuthorisation()
-            } catch {
-                print("HealthKit authorization failed: \(error)")
-            }
+            } catch { }
         }
         
         // Apply keep-alive setting
         UIApplication.shared.isIdleTimerDisabled = interactor.workoutSettings.keepAlive
 
         // Verify workout write permission before starting
-        guard !HealthKitService().needsAuthorisationForRequiredTypes() else {
-            print("Skipping HKWorkoutSession start: missing HealthKit authorization")
-            return
-        }
+        guard !HealthKitService().needsAuthorisationForRequiredTypes() else { return }
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Avoid starting the same HK workout session multiple times for this workout.
-        if SharedWorkoutStorage.hkStartedSessionId == workoutSession.id {
-            print("⏭️ Skipping HK start; already started for session id=\(workoutSession.id)")
-            return
-        }
-        
-        let currentHKState = interactor.workoutSessionState
-        print("📊 HK state in onAppear for session \(workoutSession.id): \(String(describing: currentHKState)))")
-        // Configure and start HK session for strength training
-        print("📱 WorkoutTrackerPresenter: Configuring HK session for strength training")
+        if SharedWorkoutStorage.hkStartedSessionId == workoutSession.id { return }
         interactor.setWorkoutConfiguration(activityType: .traditionalStrengthTraining, location: .indoor)
-        print("📱 WorkoutTrackerPresenter: About to call hkWorkoutManager.startWorkout()")
         interactor.startWorkout(workout: workoutSession)
-        print("📱 WorkoutTrackerPresenter: hkWorkoutManager.startWorkout() completed")
         SharedWorkoutStorage.hkStartedSessionId = workoutSession.id
         #endif
     }
     
     func onScenePhaseChange(oldPhase: ScenePhase, newPhase: ScenePhase) {
         if newPhase == .active && oldPhase == .background {
-            print("📱 App returned to foreground, syncing widget completions and refreshing view")
             syncPendingSetCompletionFromWidget()
             buildView()
         }
     }
     
     func buildView() {
-        print("🏗️ WorkoutTrackerPresenter.buildView() starting for session id=\(workoutSession.id)")
         // Refresh from local active session to ensure persisted edits are loaded
-        if let latest = try? interactor.getLocalWorkoutSession(id: workoutSession.id) {
-            self.workoutSession = latest
-            workoutNotes = latest.notes ?? ""
-            workoutSession = latest
-        } else if let activeOpt = try? interactor.getActiveLocalWorkoutSession() {
-            if activeOpt.id == workoutSession.id {
-                self.workoutSession = activeOpt
-                workoutNotes = activeOpt.notes ?? ""
-                workoutSession = activeOpt
-            }
-        }
-        // Ensure start time comes from the session creation time
+        guard let latest = interactor.activeSession else { return }
+        workoutSession = latest
+        workoutNotes = latest.notes ?? ""
         startTime = workoutSession.dateCreated
         // Ensure current exercise points to the first incomplete item
         syncCurrentExerciseIndexToFirstIncomplete(in: workoutSession.exercises)
@@ -263,7 +216,6 @@ class WorkoutTrackerPresenter {
         // Strip incomplete warmup sets if the setting is off
         applyWarmupSetting()
 
-        print("✅ WorkoutTrackerPresenter.buildView() completed; exercises=\(workoutSession.exercises.count), currentExerciseIndex=\(currentExerciseIndex)")
     }
 
     private func applyWarmupSetting() {
@@ -280,7 +232,6 @@ class WorkoutTrackerPresenter {
         }
         guard changed else { return }
         workoutSession.updateExercises(updated)
-        saveWorkoutProgress()
     }
             
     // MARK: - Previous Values
@@ -300,7 +251,6 @@ class WorkoutTrackerPresenter {
                     authorId: authorId
                 )
             } catch {
-                print("Failed to load previous workout session: \(error)")
                 previousWorkoutSession = nil
             }
         }
@@ -414,23 +364,20 @@ class WorkoutTrackerPresenter {
             do {
                 try? await Task.sleep(for: .seconds(1))
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-                // End HK session first
-                interactor.endWorkout()
+                // Discard HK session without saving to HealthKit
+                interactor.discardWorkout()
                 #endif
-
-                // Cancel any pending rest timer notifications
-//                await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
 
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 // End live activity with immediate dismissal for discarded workouts
                 interactor.endLiveActivity(session: workoutSession, isCompleted: false, statusMessage: "Workout Discarded")
                 #endif
 
-                try interactor.deleteLocalWorkoutSession(id: workoutSession.id)
+                try interactor.deleteActiveSession()
                 // Don't mark scheduled workout as complete when discarding
                 UIApplication.shared.isIdleTimerDisabled = false
                 SharedWorkoutStorage.clearHKStartedSessionId()
-                await interactor.endActiveSession(markScheduledComplete: false)
+
                 router.dismissScreen()
 
             } catch {
@@ -475,25 +422,15 @@ class WorkoutTrackerPresenter {
         interactor.cancelRest()
         #endif
         
-        // Cancel the pending rest timer notification
-//        Task {
-//            await interactor.removePendingNotifications(withIdentifiers: [restTimerNotificationId])
-//        }
     }
-            
+
     // MARK: - Persistence
     
     func saveWorkoutProgress() {
-        Task {
-            do {
-                try interactor.updateLocalWorkoutSession(session: workoutSession)
-                // Keep active session storage in sync so minimize/restore loads latest edits
-                try? interactor.setActiveLocalWorkoutSession(workoutSession)
-            } catch {
-                await MainActor.run {
-                    self.router.showSimpleAlert(title: "Failed to save progress", subtitle: error.localizedDescription)
-                }
-            }
+        do {
+            try interactor.updateActiveSession(workoutSession)
+        } catch {
+            router.showSimpleAlert(title: "Unable to Save Progress", subtitle: "We were unable to save your workout. Please try again.")
         }
     }
     
@@ -519,9 +456,6 @@ class WorkoutTrackerPresenter {
         } else {
             currentExerciseIndex = max(0, exercises.isEmpty ? 0 : exercises.count - 1)
         }
-        if oldIndex != currentExerciseIndex {
-            print("🔄 Current exercise index changed: \(oldIndex) → \(currentExerciseIndex) (reason: sync to first incomplete)")
-        }
     }
     
     func applyReorderedExercises(_ updated: [WorkoutExerciseModel], movedFrom: Int?, movedTo: Int) {
@@ -533,10 +467,7 @@ class WorkoutTrackerPresenter {
 
         // Always align current exercise to top-most incomplete after reorders
         workoutSession.updateExercises(updated)
-        self.workoutSession = workoutSession
         syncCurrentExerciseIndexToFirstIncomplete(in: updated)
-
-        saveWorkoutProgress()
     }
         
     func presentWorkoutNotes() {
@@ -559,8 +490,6 @@ class WorkoutTrackerPresenter {
     
     private func updateWorkoutNotes() {
         workoutSession.notes = workoutNotes.isEmpty ? nil : workoutNotes
-        self.workoutSession = workoutSession
-        saveWorkoutProgress()
     }
     
     func presentAddExercise() {
@@ -577,4 +506,19 @@ class WorkoutTrackerPresenter {
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }
+    
+    enum WorkoutTrackerError: LocalizedError {
+        case noLocalActiveWorkout
+        case noActiveWorkout
+
+        var errorDescription: String? {
+            switch self {
+            case .noLocalActiveWorkout:
+                return "No local active workout available"
+            case .noActiveWorkout:
+                return "No active workout available"
+            }
+        }
+    }
+
 }

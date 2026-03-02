@@ -13,11 +13,7 @@ extension WorkoutTrackerPresenter {
 
     // MARK: - Widget Sync
     func startWidgetSyncTimer() {
-        if widgetSyncTimer != nil {
-            print("⏱️ WorkoutTrackerPresenter.startWidgetSyncTimer() skipped; timer already running")
-            return
-        }
-        print("⏱️ WorkoutTrackerPresenter.startWidgetSyncTimer() creating timer")
+        if widgetSyncTimer != nil { return }
         widgetSyncTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.syncPendingSetCompletionFromWidget()
@@ -36,31 +32,21 @@ extension WorkoutTrackerPresenter {
 
     func syncPendingSetCompletionFromWidget() {
         guard let pending = SharedWorkoutStorage.pendingSetCompletion else { return }
-        print("🔍 Widget Completion: Found pending for set '\(pending.setId)'")
-        print("   Values: weight=\(pending.weightKg ?? 0)kg, reps=\(pending.reps ?? 0)")
 
         guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { exercise in
             exercise.sets.contains { $0.id == pending.setId }
         }) else {
-            print("❌ Widget Completion: Set not found in current workout")
-            print("   Available set IDs: \(workoutSession.exercises.flatMap { $0.sets.map { $0.id } })")
             SharedWorkoutStorage.clearPendingSetCompletion()
             return
         }
 
         guard let setIndex = workoutSession.exercises[exerciseIndex].sets.firstIndex(where: { $0.id == pending.setId }) else {
-            print("❌ Set ID matched but not found in sets array")
             SharedWorkoutStorage.clearPendingSetCompletion()
             return
         }
 
         let exercise = workoutSession.exercises[exerciseIndex]
-        print("✓ Found in exercise \(exerciseIndex): '\(exercise.name)' at set index \(setIndex)")
-
         var updatedSet = exercise.sets[setIndex]
-
-        let beforeComplete = updatedSet.completedAt
-        print("   Before: completedAt=\(beforeComplete?.description ?? "nil")")
 
         if let weight = pending.weightKg { updatedSet.weightKg = weight }
         if let reps = pending.reps { updatedSet.reps = reps }
@@ -68,17 +54,11 @@ extension WorkoutTrackerPresenter {
         if let duration = pending.durationSec { updatedSet.durationSec = duration }
         updatedSet.completedAt = pending.completedAt
 
-        print("   After: completedAt=\(updatedSet.completedAt?.description ?? "nil")")
-
         SharedWorkoutStorage.clearPendingSetCompletion()
-
-        print("✅ Widget Completion: Routing through updateSet() to trigger all mechanics")
-
         updateSet(updatedSet, in: exercise.id)
     }
 
     func updateSet(_ updatedSet: WorkoutSetModel, in exerciseId: String) {
-        print("✏️ WorkoutTrackerPresenter.updateSet() exerciseId=\(exerciseId) setId=\(updatedSet.id)")
         guard let exerciseIndex = workoutSession.exercises.firstIndex(where: { $0.id == exerciseId }),
               let setIndex = workoutSession.exercises[exerciseIndex].sets.firstIndex(where: { $0.id == updatedSet.id }) else {
             return
@@ -110,13 +90,12 @@ extension WorkoutTrackerPresenter {
 
         let isExerciseCompleteNow = !updatedExercises[exerciseIndex].sets.isEmpty && updatedExercises[exerciseIndex].sets.allSatisfy { $0.completedAt != nil }
         workoutSession.updateExercises(updatedExercises)
-        try? interactor.setActiveLocalWorkoutSession(workoutSession)
-        saveWorkoutProgress()
 
         let allSets = updatedExercises.flatMap { $0.sets }
         let isAllSetsComplete = !allSets.isEmpty && allSets.allSatisfy { $0.completedAt != nil }
 
-        if previousCompletedAt == nil, updatedSet.completedAt != nil, !isAllSetsComplete {
+        if previousCompletedAt == nil, updatedSet.completedAt != nil, !isAllSetsComplete,
+           interactor.workoutSettings.useRestTimers {
             let customForThisSet = restBeforeSetIdToSec[updatedSet.id]
             startRestTimer(durationSeconds: customForThisSet ?? restDurationSeconds)
         }
@@ -126,7 +105,6 @@ extension WorkoutTrackerPresenter {
             if nextIndex < updatedExercises.count && interactor.workoutSettings.exerciseAutoNext {
                 expandedExerciseIds.removeAll()
                 expandedExerciseIds.insert(updatedExercises[nextIndex].id)
-                print("🔄 Current exercise index changed: \(currentExerciseIndex) → \(nextIndex) (reason: exercise completed)")
                 currentExerciseIndex = nextIndex
             } else if nextIndex >= updatedExercises.count {
                 expandedExerciseIds.remove(updatedExercises[exerciseIndex].id)
@@ -173,8 +151,6 @@ extension WorkoutTrackerPresenter {
 
         updatedExercises[exerciseIndex].sets.append(newSet)
         workoutSession.updateExercises(updatedExercises)
-        self.workoutSession = workoutSession
-        saveWorkoutProgress()
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         interactor.updateLiveActivity(params: LiveActivityUpdateParams(
@@ -202,10 +178,8 @@ extension WorkoutTrackerPresenter {
         }
 
         workoutSession.updateExercises(updatedExercises)
-        self.workoutSession = workoutSession
         restBeforeSetIdToSec.removeValue(forKey: setId)
         syncCurrentExerciseIndexToFirstIncomplete(in: updatedExercises)
-        saveWorkoutProgress()
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         interactor.updateLiveActivity(params: LiveActivityUpdateParams(
@@ -228,8 +202,6 @@ extension WorkoutTrackerPresenter {
         var updatedExercises = workoutSession.exercises
         updatedExercises[exerciseIndex].notes = notes.isEmpty ? nil : notes
         workoutSession.updateExercises(updatedExercises)
-        self.workoutSession = workoutSession
-        saveWorkoutProgress()
     }
 
     func updateRestBefore(setId: String, seconds: Int?) {
@@ -238,7 +210,6 @@ extension WorkoutTrackerPresenter {
         } else {
             restBeforeSetIdToSec.removeValue(forKey: setId)
         }
-        saveWorkoutProgress()
     }
 
     func onRestPickerRequested(setId: String) {
@@ -288,7 +259,6 @@ extension WorkoutTrackerPresenter {
                     try await interactor.schedulePushNotification(delegate: delegate)
                 } catch {
                     // Silently fail - notification is nice to have but not critical
-                    print("Failed to schedule rest timer notification: \(error)")
                 }
             }
         }
@@ -298,15 +268,10 @@ extension WorkoutTrackerPresenter {
     func syncPendingWorkoutCompletionFromWidget() {
         guard let pending = SharedWorkoutStorage.pendingWorkoutCompletion else { return }
 
-        print("🔍 Widget Workout Completion: Found pending for session '\(pending.sessionId)'")
-
         guard pending.sessionId == workoutSession.id else {
-            print("❌ Widget Workout Completion: Session ID mismatch")
             SharedWorkoutStorage.clearPendingWorkoutCompletion()
             return
         }
-
-        print("✅ Widget Workout Completion: Triggering finishWorkout()")
 
         SharedWorkoutStorage.clearPendingWorkoutCompletion()
     }
@@ -342,13 +307,11 @@ extension WorkoutTrackerPresenter {
             updated.append(newExercise)
         }
         workoutSession.updateExercises(updated)
-        self.workoutSession = workoutSession
         syncCurrentExerciseIndexToFirstIncomplete(in: updated)
         if currentExerciseIndex < updated.count {
             expandedExerciseIds.removeAll()
             expandedExerciseIds.insert(updated[currentExerciseIndex].id)
         }
-        saveWorkoutProgress()
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         interactor.updateLiveActivity(params: LiveActivityUpdateParams(
@@ -371,10 +334,8 @@ extension WorkoutTrackerPresenter {
         updated.remove(at: idx)
         for index in updated.indices { updated[index].index = index + 1 }
         workoutSession.updateExercises(updated)
-        self.workoutSession = workoutSession
         expandedExerciseIds.remove(exerciseId)
         syncCurrentExerciseIndexToFirstIncomplete(in: updated)
-        saveWorkoutProgress()
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         interactor.updateLiveActivity(params: LiveActivityUpdateParams(
@@ -432,8 +393,6 @@ extension WorkoutTrackerPresenter {
             )
             updated[idx] = updatedExercise
             workoutSession.updateExercises(updated)
-            try? interactor.setActiveLocalWorkoutSession(workoutSession)
-            saveWorkoutProgress()
         }
         router.showWorkoutExerciseEquipmentSheetView(delegate: delegate)
     }

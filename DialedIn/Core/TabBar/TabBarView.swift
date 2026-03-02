@@ -81,7 +81,7 @@ extension CoreBuilder {
                 systemImage: "house",
                 screen: {
                     RouterView { router in
-                        self.dashboardView(delegate: DashboardDelegate(), router: router)
+                        self.dashboardView(router: router, delegate: DashboardDelegate())
                     }
                     .any()
                 }
@@ -102,6 +102,16 @@ extension CoreBuilder {
                 screen: {
                     RouterView { router in
                         self.nutritionView(delegate: NutritionDelegate(), router: router)
+                    }
+                    .any()
+                }
+            ),
+            TabBarScreen(
+                title: "Analytics",
+                systemImage: "chart.bar.xaxis",
+                screen: {
+                    RouterView { router in
+                        self.analyticsView(delegate: AnalyticsDelegate(), router: router)
                     }
                     .any()
                 }

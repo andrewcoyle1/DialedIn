@@ -16,16 +16,23 @@ class WorkoutSessionDetailPresenter {
     private(set) var isEditMode = false
     private(set) var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
     
+    private(set) var session: WorkoutSessionModel?
+    
     var isDeleting = false
     var editedSession: WorkoutSessionModel?
     var isSaving = false
     var isLoading: Bool {
         isSaving || isDeleting
     }
-    var selectedExerciseTemplates: [ExerciseModel] = []
+    var selectedExerciseModels: [ExerciseModel] = []
+    
+    var isAuthor: Bool {
+        interactor.currentUser?.userId == session?.authorId
+    }
     
     func currentSession(session: WorkoutSessionModel) -> WorkoutSessionModel {
-        isEditMode ? editedSession ?? session : session
+        self.session = session
+        return isEditMode ? editedSession ?? session : session
     }
     
     func hasUnsavedChanges(session: WorkoutSessionModel) -> Bool {
@@ -118,11 +125,7 @@ class WorkoutSessionDetailPresenter {
             }
             sessionToSave.updateExercises(sessionToSave.exercises)
             
-            // Save to local first
-            try interactor.updateLocalWorkoutSession(session: sessionToSave)
-            
-            // Save to Firebase
-            try await interactor.updateWorkoutSession(session: sessionToSave)
+            try await interactor.saveWorkoutSession(sessionToSave)
             
             isEditMode = false
             
@@ -218,7 +221,7 @@ class WorkoutSessionDetailPresenter {
     }
     
     func addSelectedExercises() {
-        guard !selectedExerciseTemplates.isEmpty,
+        guard !selectedExerciseModels.isEmpty,
               var session = editedSession,
               let userId = interactor.currentUser?.userId else {
             return
@@ -227,7 +230,7 @@ class WorkoutSessionDetailPresenter {
         var updated = session.exercises
         let startIndex = updated.count
         
-        for (offset, template) in selectedExerciseTemplates.enumerated() {
+        for (offset, template) in selectedExerciseModels.enumerated() {
             let index = startIndex + offset + 1
             let mode = WorkoutSessionModel.trackingMode(for: template)
             let defaultSets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: userId)
@@ -249,7 +252,7 @@ class WorkoutSessionDetailPresenter {
         
         session.updateExercises(updated)
         editedSession = session
-        selectedExerciseTemplates.removeAll()
+        selectedExerciseModels.removeAll()
     }
     
     // MARK: - Unit Preferences
@@ -304,8 +307,6 @@ class WorkoutSessionDetailPresenter {
         defer { isDeleting = false }
         
         do {
-            // Delete from local first for instant feedback (soft delete)
-            try interactor.deleteLocalWorkoutSession(id: session.id)
 
             // Delete from remote in background (soft delete)
             try await interactor.deleteWorkoutSession(id: session.id)
@@ -337,10 +338,10 @@ class WorkoutSessionDetailPresenter {
             delegate: ExercisePickerDelegate(
                 selectedExercises: Binding(
                     get: {
-                        self.selectedExerciseTemplates
+                        self.selectedExerciseModels
                     },
                     set: { newValue in
-                        self.selectedExerciseTemplates = newValue
+                        self.selectedExerciseModels = newValue
                     }
                 )
             )

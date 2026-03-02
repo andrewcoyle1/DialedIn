@@ -44,7 +44,7 @@ struct ExerciseUnitPreferenceManagerTests {
         
         // Manager should be initialized successfully
         let preference = manager.getPreference(for: "test-template")
-        #expect(preference.exerciseTemplateId == "test-template")
+        #expect(preference.ExerciseModelId == "test-template")
     }
     
     @Test("Test Initialization With Custom User Defaults")
@@ -55,7 +55,7 @@ struct ExerciseUnitPreferenceManagerTests {
         let manager = ExerciseUnitPreferenceManager(userDefaults: customDefaults, userManager: userManager)
         
         let preference = manager.getPreference(for: "test-template")
-        #expect(preference.exerciseTemplateId == "test-template")
+        #expect(preference.ExerciseModelId == "test-template")
     }
     
     // MARK: - Get Preference Tests
@@ -67,7 +67,7 @@ struct ExerciseUnitPreferenceManagerTests {
         
         let preference = manager.getPreference(for: "template1")
         
-        #expect(preference.exerciseTemplateId == "template1")
+        #expect(preference.ExerciseModelId == "template1")
         #expect(preference.weightUnit == .kilograms)
         #expect(preference.distanceUnit == .meters)
     }
@@ -120,7 +120,7 @@ struct ExerciseUnitPreferenceManagerTests {
         let preference1 = manager.getPreference(for: "template1")
         let preference2 = manager.getPreference(for: "template1")
         
-        #expect(preference1.exerciseTemplateId == preference2.exerciseTemplateId)
+        #expect(preference1.exerciseModelId == preference2.exerciseModelId)
         #expect(preference1.weightUnit == preference2.weightUnit)
         #expect(preference1.distanceUnit == preference2.distanceUnit)
     }
@@ -132,7 +132,7 @@ struct ExerciseUnitPreferenceManagerTests {
         
         // Manually save a preference to UserDefaults
         let savedPreference = ExerciseUnitPreference(
-            exerciseTemplateId: "template1",
+            exerciseModelId: "template1",
             weightUnit: .pounds,
             distanceUnit: .miles
         )
@@ -157,8 +157,8 @@ struct ExerciseUnitPreferenceManagerTests {
         let preference1 = manager.getPreference(for: "template1")
         let preference2 = manager.getPreference(for: "template2")
         
-        #expect(preference1.exerciseTemplateId == "template1")
-        #expect(preference2.exerciseTemplateId == "template2")
+        #expect(preference1.ExerciseModelId == "template1")
+        #expect(preference2.ExerciseModelId == "template2")
     }
     
     // MARK: - Set Weight Unit Tests
@@ -424,7 +424,7 @@ struct ExerciseUnitPreferenceManagerTests {
         
         let preference = manager.getPreference(for: "template1")
         
-        #expect(preference.exerciseTemplateId == "template1")
+        #expect(preference.ExerciseModelId == "template1")
         #expect(preference.weightUnit == .kilograms)
         #expect(preference.distanceUnit == .meters)
     }
@@ -460,7 +460,7 @@ struct ExerciseUnitPreferenceManagerTests {
         
         let preference = manager.getPreference(for: "")
         
-        #expect(preference.exerciseTemplateId == "")
+        #expect(preference.ExerciseModelId == "")
     }
     
     @Test("Test Set Weight Unit With Special Characters In Template ID")

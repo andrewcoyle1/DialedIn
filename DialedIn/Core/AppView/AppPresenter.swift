@@ -32,7 +32,7 @@ class AppPresenter {
     func onViewDisappear() {
         interactor.trackEvent(event: Event.onDisappear)
     }
-
+    
     func showATTPromptIfNeeded() async {
         #if !DEBUG && !MOCK
         let status = await AppTrackingTransparencyHelper.requestTrackingAuthorization()

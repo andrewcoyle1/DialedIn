@@ -25,22 +25,6 @@ struct ProgramManagementView: View {
         .toolbar {
             toolbarContent
         }
-        .overlay {
-            if presenter.isLoading {
-                ProgressView()
-                    .padding()
-                    .background(.regularMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-        }
-        .task {
-            await presenter.loadSavedPrograms()
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                Task { await presenter.loadSavedPrograms() }
-            }
-        }
     }
     
     private var savedProgramsSection: some View {

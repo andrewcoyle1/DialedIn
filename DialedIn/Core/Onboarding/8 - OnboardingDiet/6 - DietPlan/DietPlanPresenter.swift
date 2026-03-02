@@ -41,7 +41,7 @@ class DietPlanPresenter {
         Task {
             interactor.trackEvent(event: Event.saveDietPlanStart)
             do {
-                try await interactor.saveDietPlan(plan: plan)
+                try await interactor.saveDietPlan(plan)
                 interactor.trackEvent(event: Event.saveDietPlanSuccess)
                 interactor.trackEvent(event: Event.navigate)
                 router.showOnboardingCompletedView()

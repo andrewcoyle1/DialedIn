@@ -21,7 +21,7 @@ class ExerciseSavePresenter {
         let model = ExerciseModel(from: delegate, authorId: userId)
         Task {
             do {
-                try await interactor.createExerciseTemplate(exercise: model, image: nil)
+                try await interactor.saveExerciseModel(exercise: model, image: nil)
                 router.dismissEnvironment()
             } catch {
                 router.showSimpleAlert(title: "Unable to Create Exercise", subtitle: "Please try again.")
