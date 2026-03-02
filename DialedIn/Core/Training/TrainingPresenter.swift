@@ -109,8 +109,13 @@ class TrainingPresenter {
     }
     
     func getLoggedWorkoutCountForDate(_ date: Date, calendar: Calendar) -> Int {
-        // TODO: Implement workout count logic here
-        return 0
+        sessionsForDate(date).count
+    }
+
+    private func sessionsForDate(_ date: Date) -> [WorkoutSessionModel] {
+        interactor.workoutSessions.filter { session in
+            session.endedAt != nil && calendar.isDate(session.dateCreated, inSameDayAs: date)
+        }
     }
 
     // MARK: - Active Workout Safeguard
@@ -173,7 +178,7 @@ class TrainingPresenter {
     
     private func resumeActiveWorkout() {
         guard let activeSession = activeSession else { return }
-        router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: activeSession.id))
+        router.showWorkoutTrackerView()
     }
 
     func startWorkoutTemplateModelWorkout(_ dayPlan: WorkoutTemplateModel) {
@@ -228,7 +233,35 @@ class TrainingPresenter {
 
     func onDatePressed(date: Date) {
         self.selectedDate = date.startOfDay
-        
+        let sessions = sessionsForDate(date)
+        switch sessions.count {
+        case 0:
+            break
+        case 1:
+            openCompletedSession(sessionId: sessions[0].id)
+        default:
+            showSessionPicker(sessions: sessions)
+        }
+    }
+
+    private func showSessionPicker(sessions: [WorkoutSessionModel]) {
+        router.showAlert(
+            title: "Multiple Workouts",
+            subtitle: "Which workout would you like to open?",
+            buttons: {
+                AnyView(
+                    VStack {
+                        ForEach(sessions) { session in
+                            let time = session.dateCreated.formatted(date: .omitted, time: .shortened)
+                            Button("\(session.name) · \(time)") {
+                                self.openCompletedSession(sessionId: session.id)
+                            }
+                        }
+                        Button("Cancel", role: .cancel) { }
+                    }
+                )
+            }
+        )
     }
             
     func adherenceColor(_ rate: Double) -> Color {
@@ -298,7 +331,7 @@ class TrainingPresenter {
             Task {
                 try? await Task.sleep(for: .seconds(0.1))
                 await MainActor.run {
-                    router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
+                    router.showWorkoutTrackerView()
                 }
             }
         }

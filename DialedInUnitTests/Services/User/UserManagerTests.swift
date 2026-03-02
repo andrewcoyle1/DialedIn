@@ -17,17 +17,25 @@ struct UserManagerTests {
     @Test("Test Initialization With Existing User In Local Storage")
     func testInitializationWithExistingUser() async {
         let existingUser = UserModel.mock
-        let services = MockUserServices(user: existingUser)
-        let manager = UserManager(services: services)
+        let userSyncEngine = DocumentSyncEngine<UserModel>(remote: MockRemoteDocumentService(document: UserModel.mock), managerKey: Keys.userManagerKey)
+        let followingUsersSyncEngine = CollectionSyncEngine<UserModel>(
+            remote: MockRemoteCollectionService(collection: UserModel.mocks),
+            managerKey: Keys.followingUsersManagerKey
+        )
+        let manager = UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
         
         #expect(manager.currentUser == existingUser)
     }
     
     @Test("Test Initialization With No User In Local Storage")
     func testInitializationWithNoUser() async {
-        let services = MockUserServices(user: nil)
-        let manager = UserManager(services: services)
-        
+        let userSyncEngine = DocumentSyncEngine<UserModel>(remote: MockRemoteDocumentService(document: nil), managerKey: Keys.userManagerKey)
+        let followingUsersSyncEngine = CollectionSyncEngine<UserModel>(
+            remote: MockRemoteCollectionService(collection: []),
+            managerKey: Keys.followingUsersManagerKey
+        )
+        let manager = UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine)
+
         #expect(manager.currentUser == nil)
     }
     

@@ -25,6 +25,22 @@ class DashboardPresenter {
         interactor.currentStreakData.isStreakActive
     }
 
+    var isStreakAtRisk: Bool {
+        interactor.currentStreakData.isStreakAtRisk
+    }
+
+    var longestStreak: Int {
+        interactor.currentStreakData.longestStreak ?? 0
+    }
+
+    var totalWorkouts: Int {
+        interactor.currentStreakData.totalEvents ?? 0
+    }
+
+    var workoutDaysThisWeek: Set<Date> {
+        Set(interactor.currentStreakData.getCalendarDaysWithEventsThisWeek())
+    }
+
     func author(for session: WorkoutSessionModel) -> UserModel? {
         if let user = interactor.currentUser, session.authorId == user.userId {
             return user

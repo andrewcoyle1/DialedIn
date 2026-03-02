@@ -8,44 +8,53 @@
 import SwiftUI
 
 struct WorkoutSessionDetailDelegate {
-    let workoutSession: WorkoutSessionModel
+    let initialSession: WorkoutSessionModel
+
+    init(workoutSession: WorkoutSessionModel) {
+        self.initialSession = workoutSession
+    }
 }
 
 struct WorkoutSessionDetailView: View {
 
     @State var presenter: WorkoutSessionDetailPresenter
+    @State private var session: WorkoutSessionModel
 
-    var delegate: WorkoutSessionDetailDelegate
+    let delegate: WorkoutSessionDetailDelegate
 
     @ViewBuilder var editableExerciseCardWrapper: (EditableExerciseCardWrapperDelegate) -> AnyView
+
+    init(
+        presenter: WorkoutSessionDetailPresenter,
+        delegate: WorkoutSessionDetailDelegate,
+        editableExerciseCardWrapper: @escaping (EditableExerciseCardWrapperDelegate) -> AnyView
+    ) {
+        self._presenter = State(initialValue: presenter)
+        self._session = State(initialValue: delegate.initialSession)
+        self.delegate = delegate
+        self.editableExerciseCardWrapper = editableExerciseCardWrapper
+    }
+    
     var body: some View {
         List {
-            let session = activeSession
             if let endedAt = session.endedAt {
                 headerSection(session: session, endedAt: endedAt)
             }
             summarySection(session: session)
-            exercisesSection(session: session)
+            exercisesSection
+            deleteSection
         }
-        .navigationTitle(activeSession.name)
-        .navigationBarTitleDisplayMode(.large)
-        .showModal(showModal: Binding(get: { presenter.isLoading }, set: { _ in })) {
-            ProgressView()
-                .tint(.white)
-        }
+        .navigationTitle(session.name)
+        .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
         }
         .onAppear {
-            presenter.loadUnitPreferences(for: delegate.workoutSession)
+            presenter.loadUnitPreferences(for: session)
         }
     }
 
-    private var activeSession: WorkoutSessionModel {
-        presenter.currentSession(session: delegate.workoutSession)
-    }
-    
     private func headerSection(session: WorkoutSessionModel, endedAt: Date) -> some View {
         Section {
             HStack {
@@ -89,14 +98,14 @@ struct WorkoutSessionDetailView: View {
                 )
                 
                 StatCard(
-                    value: "\(presenter.totalSets(session: delegate.workoutSession))",
+                    value: "\(presenter.totalSets(session: session))",
                     label: "Sets",
                     icon: "square.stack.3d.up",
                     color: .purple
                 )
-                
+
                 StatCard(
-                    value: presenter.volumeFormatted(session: delegate.workoutSession),
+                    value: presenter.volumeFormatted(session: session),
                     label: "Volume",
                     icon: "scalemass",
                     color: .orange
@@ -107,37 +116,44 @@ struct WorkoutSessionDetailView: View {
         }
     }
     
-    private func exercisesSection(session: WorkoutSessionModel) -> some View {
+    private var exercisesSection: some View {
         Section {
             if presenter.isEditMode {
-                if let editedSession = presenter.editedSession {
-                    ForEach(editedSession.exercises.indices, id: \.self) { index in
-                        let exercise = editedSession.exercises[index]
-                        let preference = presenter.getUnitPreference(for: exercise.templateId)
-                        editableExerciseCardWrapper(
-                            EditableExerciseCardWrapperDelegate(
-                                exercise: exercise,
-                                index: index + 1,
-                                weightUnit: preference.weightUnit,
-                                distanceUnit: preference.distanceUnit,
-                                onExerciseUpdate: { updated in presenter.updateExercise(at: index, with: updated) },
-                                onAddSet: { presenter.addSet(to: exercise.id) },
-                                onDeleteSet: { setId in presenter.deleteSet(setId, from: exercise.id) },
-                                onWeightUnitChange: { unit in presenter.updateWeightUnit(unit, for: exercise.templateId) },
-                                onDistanceUnitChange: { unit in presenter.updateDistanceUnit(unit, for: exercise.templateId) }
-                            )
-                        )
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                presenter.deleteExercise(id: exercise.id)
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                ForEach(0..<session.exercises.count, id: \.self) { index in
+                    let exercise = session.exercises[index]
+                    let preference = presenter.getUnitPreference(for: exercise.templateId)
+                    editableExerciseCardWrapper(
+                        EditableExerciseCardWrapperDelegate(
+                            exercise: exercise,
+                            index: index + 1,
+                            weightUnit: preference.weightUnit,
+                            distanceUnit: preference.distanceUnit,
+                            onExerciseUpdate: { updated in
+                                presenter.updateExercise(session: $session, at: index, with: updated)
+                            },
+                            onAddSet: {
+                                presenter.addSet(session: $session, to: exercise.id)
+                            },
+                            onDeleteSet: { setId in
+                                presenter.deleteSet(session: $session, setId, from: exercise.id)
+                            },
+                            onWeightUnitChange: { unit in
+                                presenter.updateWeightUnit(unit, for: exercise.templateId)
+                            },
+                            onDistanceUnitChange: { unit in
+                                presenter.updateDistanceUnit(unit, for: exercise.templateId)
                             }
+                        )
+                    )
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            presenter.deleteExercise(session: $session, id: exercise.id)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
                         }
                     }
                 }
-                
-                // Add Exercise button
+
                 Button {
                     presenter.onAddExercisePressed()
                 } label: {
@@ -158,42 +174,39 @@ struct WorkoutSessionDetailView: View {
         }
     }
     
+    private var deleteSection: some View {
+        Section {
+            Button(role: .destructive) {
+                presenter.onDeletePressed(session: session)
+            }
+            .disabled(presenter.isLoading)
+        }
+    }
+    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        if presenter.isAuthor {
-            
+        
+        ToolbarItem(placement: .topBarLeading) {
+            Button(role: .close) {
+                if presenter.hasUnsavedChanges(session: delegate.initialSession, editedSession: session) {
+                    presenter.showDiscardChangesAlert(session: session)
+                } else {
+                    presenter.onDismissPressed()
+                }
+            }
+        }
+        
+        if presenter.isAuthor(sessionAuthorId: session.authorId) {
             ToolbarItem(placement: .topBarTrailing) {
                 if presenter.isEditMode {
                     Button("Save") {
-                        Task { await presenter.saveChanges() }
+                        Task { await presenter.saveChanges(initialSession: delegate.initialSession, session: $session) }
                     }
-                    .disabled(presenter.isSaving)
+                    .disabled(presenter.isLoading || !presenter.hasUnsavedChanges(session: delegate.initialSession, editedSession: session))
                     .fontWeight(.semibold)
                 } else {
-                    Button(role: .destructive) {
-                        presenter.onDeletePressed(
-                            session: delegate.workoutSession
-                        )
-                    } label: {
-                        Image(systemName: "trash")
-                    }
-                    .disabled(presenter.isDeleting)
-                }
-            }
-        
-            ToolbarItem(placement: .topBarLeading) {
-                if presenter.isEditMode {
-                    Button("Cancel") {
-                        if presenter.hasUnsavedChanges(session: delegate.workoutSession) {
-                            presenter.showDiscardChangesAlert(session: delegate.workoutSession)
-                        } else {
-                            presenter.cancelEditing(session: delegate.workoutSession)
-                        }
-                    }
-                    .disabled(presenter.isSaving)
-                } else {
                     Button("Edit") {
-                        presenter.enterEditMode(session: delegate.workoutSession)
+                        presenter.enterEditMode(session: session)
                     }
                 }
             }
@@ -210,21 +223,19 @@ struct WorkoutSessionDetailView: View {
                     .foregroundStyle(.secondary)
                 
                 ZStack(alignment: .topLeading) {
-                    let notesValue = presenter.editedSession?.notes ?? ""
+                    let notesValue = session.notes ?? ""
                     if notesValue.isEmpty {
                         Text("Add notes here...")
                             .foregroundStyle(.secondary)
                             .padding(.top, 8)
                             .padding(.leading, 6)
                     }
-                    TextEditor(text: Binding(
-                        get: { presenter.editedSession?.notes ?? "" },
-                        set: { newValue in
-                            guard var editedSession = presenter.editedSession else { return }
-                            editedSession.notes = newValue.isEmpty ? nil : newValue
-                            presenter.editedSession = editedSession
-                        }
-                    ))
+                    TextEditor(
+                        text: Binding(
+                            get: { session.notes ?? "" },
+                            set: { newValue in session.notes = newValue.isEmpty ? nil : newValue }
+                        )
+                    )
                     .scrollContentBackground(.hidden)
                     .frame(minHeight: 80)
                     .textInputAutocapitalization(.sentences)
@@ -233,7 +244,7 @@ struct WorkoutSessionDetailView: View {
                 .background(Color.accentColor.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-        } else if let notes = activeSession.notes, !notes.isEmpty {
+        } else if let notes = session.notes, !notes.isEmpty {
             Text(notes)
                 .font(.subheadline)
                 .foregroundStyle(.primary)

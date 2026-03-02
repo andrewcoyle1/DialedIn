@@ -69,7 +69,7 @@ extension TrainingPresenter {
                 router.dismissModal()
             }
             
-            router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
+            router.showWorkoutTrackerView()
         } catch {
             router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
         }

@@ -9,21 +9,17 @@ import SwiftUI
 import HealthKit
 import Combine
 
-struct WorkoutTrackerDelegate {
-    let workoutSessionId: String
-}
-
-struct WorkoutTrackerView: View {
+struct WorkoutTrackerView<ExerciseTracker: View>: View {
 
     @Environment(\.scenePhase) private var scenePhase
     
     @State var presenter: WorkoutTrackerPresenter
-    let delegate: WorkoutTrackerDelegate
 
+    @ViewBuilder var exerciseTrackerView: (Binding<WorkoutExerciseModel>) -> ExerciseTracker
+    
     var body: some View {
         List {
             workoutOverviewCard
-                .listSectionMargins(.top, 0)
             exerciseSection
         }
         .navigationTitle(presenter.workoutSession.name)
@@ -36,7 +32,7 @@ struct WorkoutTrackerView: View {
         .safeAreaInset(edge: .bottom) {
             timerHeaderView
         }
-        .task(id: delegate.workoutSessionId) {
+        .task {
             await presenter.onAppear()
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
@@ -92,6 +88,7 @@ struct WorkoutTrackerView: View {
         } header: {
             Text("Workout Overview")
         }
+        .listSectionMargins(.top, 0)
     }
 
     // MARK: - Exercise Section Card
@@ -107,8 +104,8 @@ struct WorkoutTrackerView: View {
                 }
                 .removeListRowFormatting()
             } else {
-                ForEach(Array(presenter.workoutSession.exercises.enumerated()), id: \.element.id) { _, exercise in
-                    exerciseTracker(exercise)
+                ForEach($presenter.workoutSession.exercises) { $exercise in
+                    exerciseTrackerView($exercise)
                 }
                 .onMove { source, destination in
                     presenter.moveExercises(from: source, to: destination)
@@ -211,21 +208,27 @@ struct WorkoutTrackerView: View {
 }
 
 extension CoreBuilder {
-    func workoutTrackerView(router: AnyRouter, delegate: WorkoutTrackerDelegate) -> some View {
-        WorkoutTrackerView(
-            presenter: WorkoutTrackerPresenter(
-                interactor: interactor,
-                router: CoreRouter(router: router, builder: self)
-            ),
-            delegate: delegate
+    func workoutTrackerView(router: AnyRouter) -> some View {
+        let trackerPresenter = WorkoutTrackerPresenter(
+            interactor: interactor,
+            router: CoreRouter(router: router, builder: self)
+        )
+        return WorkoutTrackerView(
+            presenter: trackerPresenter,
+            exerciseTrackerView: { exercise in
+                self.exerciseTrackerView(
+                    router: router,
+                    delegate: ExerciseTrackerDelegate(exercise: exercise)
+                )
+            }
         )
     }
 }
 
 extension CoreRouter {
-    func showWorkoutTrackerView(delegate: WorkoutTrackerDelegate) {
+    func showWorkoutTrackerView() {
         router.showScreen(.fullScreenCover) { router in
-            builder.workoutTrackerView(router: router, delegate: delegate)
+            builder.workoutTrackerView(router: router)
         }
     }
 }
@@ -235,7 +238,7 @@ extension CoreRouter {
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
-        builder.workoutTrackerView(router: router, delegate: WorkoutTrackerDelegate(workoutSessionId: WorkoutSessionModel.mock.id))
+        builder.workoutTrackerView(router: router)
     }
     
 }

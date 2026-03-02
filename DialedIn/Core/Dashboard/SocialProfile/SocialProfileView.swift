@@ -77,7 +77,9 @@ struct SocialProfileView: View {
                         }
                 }
                 
-                mutualFollowersImagesSection
+                if !presenter.mutualFollowers.isEmpty {
+                    mutualFollowersImagesSection
+                }
             }
             
         }
@@ -91,7 +93,7 @@ struct SocialProfileView: View {
                 subtitle: "Yesterday") {
                     Image(systemName: "chevron.right")
                         .foregroundStyle(.secondary)
-                        .padding()
+                        .padding(.horizontal)
                         .anyButton(.press) {
                             
                         }
@@ -102,7 +104,7 @@ struct SocialProfileView: View {
                 subtitle: "This year: 93.0 km") {
                     Image(systemName: "chevron.right")
                         .foregroundStyle(.secondary)
-                        .padding()
+                        .padding(.horizontal)
                         .anyButton(.press) {
                             
                         }
@@ -113,7 +115,7 @@ struct SocialProfileView: View {
                 subtitle: "-") {
                     Image(systemName: "chevron.right")
                         .foregroundStyle(.secondary)
-                        .padding()
+                        .padding(.horizontal)
                         .anyButton(.press) {
                             
                         }
@@ -124,7 +126,7 @@ struct SocialProfileView: View {
                 subtitle: "-") {
                     Image(systemName: "chevron.right")
                         .foregroundStyle(.secondary)
-                        .padding()
+                        .padding(.horizontal)
                         .anyButton(.press) {
                             
                         }
@@ -135,7 +137,7 @@ struct SocialProfileView: View {
                 subtitle: "See all") {
                     Image(systemName: "chevron.right")
                         .foregroundStyle(.secondary)
-                        .padding()
+                        .padding(.horizontal)
                         .anyButton(.press) {
                             
                         }
@@ -146,7 +148,7 @@ struct SocialProfileView: View {
                 subtitle: "1") {
                     Image(systemName: "chevron.right")
                         .foregroundStyle(.secondary)
-                        .padding()
+                        .padding(.horizontal)
                         .anyButton(.press) {
                             
                         }
@@ -157,7 +159,7 @@ struct SocialProfileView: View {
                 subtitle: "Puma Deviate Nitro") {
                     Image(systemName: "chevron.right")
                         .foregroundStyle(.secondary)
-                        .padding()
+                        .padding(.horizontal)
                         .anyButton(.press) {
                             
                         }

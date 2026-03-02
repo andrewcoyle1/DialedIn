@@ -15,27 +15,19 @@ class WorkoutSessionDetailPresenter {
 
     private(set) var isEditMode = false
     private(set) var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
-    
-    private(set) var session: WorkoutSessionModel?
-    
-    var isDeleting = false
-    var editedSession: WorkoutSessionModel?
-    var isSaving = false
+        
+    var isSaving: Bool = false
     var isLoading: Bool {
-        isSaving || isDeleting
+        isSaving
     }
+    
     var selectedExerciseModels: [ExerciseModel] = []
     
-    var isAuthor: Bool {
-        interactor.currentUser?.userId == session?.authorId
+    func isAuthor(sessionAuthorId: String?) -> Bool {
+        interactor.currentUser?.userId == sessionAuthorId
     }
-    
-    func currentSession(session: WorkoutSessionModel) -> WorkoutSessionModel {
-        self.session = session
-        return isEditMode ? editedSession ?? session : session
-    }
-    
-    func hasUnsavedChanges(session: WorkoutSessionModel) -> Bool {
+        
+    func hasUnsavedChanges(session: WorkoutSessionModel, editedSession: WorkoutSessionModel) -> Bool {
         editedSession != session
     }
     
@@ -48,7 +40,7 @@ class WorkoutSessionDetailPresenter {
     }
     
     func totalSets(session: WorkoutSessionModel) -> Int {
-        currentSession(session: session)
+        session
             .exercises
             .flatMap { $0.sets }
             .filter { !$0.isWarmup }
@@ -56,7 +48,7 @@ class WorkoutSessionDetailPresenter {
     }
     
     func totalVolume(session: WorkoutSessionModel) -> Double {
-        currentSession(session: session)
+        session
             .exercises
             .flatMap { $0.sets }
             .filter { !$0.isWarmup }
@@ -79,16 +71,10 @@ class WorkoutSessionDetailPresenter {
     // MARK: - Edit Mode Actions
     
     func enterEditMode(session: WorkoutSessionModel) {
-        editedSession = session
         isEditMode = true
         loadUnitPreferences(for: session)
     }
-    
-    func cancelEditing(session: WorkoutSessionModel) {
-        editedSession = session
-        isEditMode = false
-    }
-    
+        
     func showDiscardChangesAlert(session: WorkoutSessionModel) {
         router.showAlert(
             title: "Discard changes?",
@@ -97,7 +83,7 @@ class WorkoutSessionDetailPresenter {
                 AnyView(
                     VStack {
                         Button("Discard Changes", role: .destructive) {
-                            self.cancelEditing(session: session)
+                            self.onDismissPressed()
                         }
                         Button("Keep Editing", role: .cancel) {
 
@@ -107,25 +93,33 @@ class WorkoutSessionDetailPresenter {
             }
         )
     }
+    
+    func onDismissPressed() {
+        self.dismissScreen()
+    }
 
     private func dismissScreen() {
         router.dismissScreen()
     }
 
-    func saveChanges() async {
+    func saveChanges(initialSession: WorkoutSessionModel, session: Binding<WorkoutSessionModel>) async {
+        router.showLoadingModal()
         isSaving = true
-        defer { isSaving = false }
+        defer {
+            router.dismissModal()
+            isSaving = false
+        }
         
         do {
             // Update dateModified using the model's method
-            guard var sessionToSave = editedSession else {
+            guard initialSession != session.wrappedValue else {
                 isEditMode = false
                 dismissScreen()
                 return
             }
-            sessionToSave.updateExercises(sessionToSave.exercises)
+            session.wrappedValue.updateExercises(session.wrappedValue.exercises)
             
-            try await interactor.saveWorkoutSession(sessionToSave)
+            try await interactor.saveWorkoutSession(session.wrappedValue)
             
             isEditMode = false
             
@@ -141,26 +135,21 @@ class WorkoutSessionDetailPresenter {
     
     // MARK: - Exercise Updates
     
-    func updateExercise(at index: Int, with updated: WorkoutExerciseModel) {
-        guard var session = editedSession else { return }
-        guard session.exercises.indices.contains(index) else { return }
+    func updateExercise(session: Binding<WorkoutSessionModel>, at index: Int, with updated: WorkoutExerciseModel) {
+        guard session.wrappedValue.exercises.indices.contains(index) else { return }
         
-        var updatedExercises = session.exercises
+        var updatedExercises = session.wrappedValue.exercises
         updatedExercises[index] = updated
-        session.updateExercises(updatedExercises)
-        editedSession = session
+        session.wrappedValue.updateExercises(updatedExercises)
     }
     
     // MARK: - Set Management
     
-    func addSet(to exerciseId: String) {
-        guard var session = editedSession,
-              let exerciseIndex = session.exercises.firstIndex(where: { $0.id == exerciseId }),
-              let userId = interactor.currentUser?.userId else {
-            return
-        }
+    func addSet(session: Binding<WorkoutSessionModel>, to exerciseId: String) {
         
-        var updatedExercises = session.exercises
+        guard let exerciseIndex = session.wrappedValue.exercises.firstIndex(where: { $0.id == exerciseId }),
+        let userId = interactor.currentUser?.userId else { return }
+        var updatedExercises = session.wrappedValue.exercises
         let exercise = updatedExercises[exerciseIndex]
         let newIndex = exercise.sets.count + 1
         
@@ -181,17 +170,13 @@ class WorkoutSessionDetailPresenter {
         )
         
         updatedExercises[exerciseIndex].sets.append(newSet)
-        session.updateExercises(updatedExercises)
-        editedSession = session
+        session.wrappedValue.updateExercises(updatedExercises)
     }
     
-    func deleteSet(_ setId: String, from exerciseId: String) {
-        guard var session = editedSession,
-              let exerciseIndex = session.exercises.firstIndex(where: { $0.id == exerciseId }) else {
-            return
-        }
+    func deleteSet(session: Binding<WorkoutSessionModel>, _ setId: String, from exerciseId: String) {
+        guard let exerciseIndex = session.wrappedValue.exercises.firstIndex(where: { $0.id == exerciseId }) else { return }
         
-        var updatedExercises = session.exercises
+        var updatedExercises = session.wrappedValue.exercises
         updatedExercises[exerciseIndex].sets.removeAll { $0.id == setId }
         
         // Reindex remaining sets
@@ -199,16 +184,14 @@ class WorkoutSessionDetailPresenter {
             updatedExercises[exerciseIndex].sets[index].index = index + 1
         }
         
-        session.updateExercises(updatedExercises)
-        editedSession = session
+        session.wrappedValue.updateExercises(updatedExercises)
     }
     
     // MARK: - Exercise Management
     
-    func deleteExercise(id: String) {
-        guard var session = editedSession else { return }
+    func deleteExercise(session: Binding<WorkoutSessionModel>, id: String) {
         
-        var updatedExercises = session.exercises
+        var updatedExercises = session.wrappedValue.exercises
         updatedExercises.removeAll { $0.id == id }
         
         // Reindex remaining exercises
@@ -216,18 +199,16 @@ class WorkoutSessionDetailPresenter {
             updatedExercises[index].index = index + 1
         }
         
-        session.updateExercises(updatedExercises)
-        editedSession = session
+        session.wrappedValue.updateExercises(updatedExercises)
     }
     
-    func addSelectedExercises() {
+    func addSelectedExercises(session: Binding<WorkoutSessionModel>) {
         guard !selectedExerciseModels.isEmpty,
-              var session = editedSession,
               let userId = interactor.currentUser?.userId else {
             return
         }
         
-        var updated = session.exercises
+        var updated = session.wrappedValue.exercises
         let startIndex = updated.count
         
         for (offset, template) in selectedExerciseModels.enumerated() {
@@ -250,8 +231,7 @@ class WorkoutSessionDetailPresenter {
             updated.append(newExercise)
         }
         
-        session.updateExercises(updated)
-        editedSession = session
+        session.wrappedValue.updateExercises(updated)
         selectedExerciseModels.removeAll()
     }
     
@@ -260,7 +240,7 @@ class WorkoutSessionDetailPresenter {
     func loadUnitPreferences(for session: WorkoutSessionModel) {
         exerciseUnitPreferences.removeAll(keepingCapacity: true)
         
-        for exercise in currentSession(session: session).exercises {
+        for exercise in session.exercises {
             let preference = interactor.getPreference(templateId: exercise.templateId)
             exerciseUnitPreferences[exercise.templateId] = (
                 weightUnit: preference.weightUnit,
@@ -295,41 +275,25 @@ class WorkoutSessionDetailPresenter {
     
     // MARK: - Delete Session
     
-    func onDeletePressed(session: WorkoutSessionModel, ) {
-        Task {
-            await deleteSession(session: session)
-        }
-        dismissScreen()
-    }
-    
-    func deleteSession(session: WorkoutSessionModel) async {
-        isDeleting = true
-        defer { isDeleting = false }
-        
-        do {
-
-            // Delete from remote in background (soft delete)
-            try await interactor.deleteWorkoutSession(id: session.id)
-
-        } catch {
-            router.showAlert(
-                title: "Delete Failed",
-                subtitle: "Unable to delete workout session. Please try again.",
-                buttons: {
-                    AnyView(
-                        HStack {
-                            Button("Cancel") { }
-                            Button("Try Again") {
-                                Task {
-                                    await self.deleteSession(
-                                        session: session
-                                    )
-                                }
-                            }
+    func onDeletePressed(session: WorkoutSessionModel) {
+        router.showAlert(
+            title: "Delete Workout?",
+            subtitle: "Are you sure you want to delete this workout? This cannot be undone.") {
+                AnyView(
+                    HStack {
+                        Button(role: .cancel) { }
+                        Button(role: .destructive) {
+                            self.deleteSession(session: session)
                         }
-                    )
-                }
-            )
+                    }
+                )
+            }
+    }
+
+    func deleteSession(session: WorkoutSessionModel) {
+        router.dismissScreen()
+        Task {
+            try? await interactor.deleteWorkoutSession(id: session.id)
         }
     }
 

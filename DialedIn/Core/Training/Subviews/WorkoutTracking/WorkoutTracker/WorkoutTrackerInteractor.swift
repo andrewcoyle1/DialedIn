@@ -64,10 +64,6 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
     func discardWorkout()
 
     var allExercises: [ExerciseModel] { get }
-    func setWeightUnit(_ unit: ExerciseWeightUnit, for templateId: String)
-    
-    /// Set the distance unit preference for a specific exercise template
-    func setDistanceUnit(_ unit: ExerciseDistanceUnit, for templateId: String)
     
     // MARK: - Live Activity & Status Updates
 
@@ -113,22 +109,14 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
     /// Cancel any running rest timer.
     func cancelRest()
 
-    // MARK: - Analytics & Event Logging
-
-    /// Track an analytics or custom event with optional parameters.
-    func trackEvent(
-        eventName: String,
-        parameters: [String: Any]?,
-        type: LogType
-    )
-
-    /// Load unit preferences for an exercise template.
-    func getPreference(templateId: String) -> ExerciseUnitPreference
-
     /// The current workout settings.
     var workoutSettings: WorkoutSettings { get }
     
     func addWorkoutStreakEvent() async throws
+
+    /// Load unit preferences for an exercise template.
+    func getPreference(templateId: String) -> ExerciseUnitPreference
+
 }
 
 extension CoreInteractor: WorkoutTrackerInteractor { }

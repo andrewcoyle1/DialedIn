@@ -20,7 +20,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
     private(set) var dateModified: Date
     private(set) var endedAt: Date?
     var notes: String?
-    private(set) var exercises: [WorkoutExerciseModel]
+    var exercises: [WorkoutExerciseModel]
     var deletedAt: Date?
 
     init(

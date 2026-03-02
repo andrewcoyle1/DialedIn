@@ -4,15 +4,21 @@ struct WorkoutSettings: DataSyncModelProtocol {
 
     var id: String = "workout_settings"
     var authorId: String
+
     // MARK: - General
+    var previousWorkoutReference: PreviousWorkoutReferenceOption = .anyWorkout
+    var propagateChanges: Bool = false
+    var rirTracking: Bool = false
+    var supersetAutoScroll: Bool = true
+    var exerciseAutoNext: Bool = true
+
+    // MARK: - Display
     var keepAlive: Bool = true
     var showWorkoutTimer: Bool = true
     var showBodyweightContribution: Bool = false
-    var exerciseAutoNext: Bool = true
-    var propagateChanges: Bool = false
-    var rirTracking: Bool = false
+    
+    // MARK: - Warm-Up
     var addSmartWarmUps: Bool = true
-    var supersetAutoScroll: Bool = true
 
     // MARK: - Rest Timer: Behaviour
     var useRestTimers: Bool = true
@@ -57,10 +63,36 @@ struct WorkoutSettings: DataSyncModelProtocol {
         case sideSetRestScaling = "side_set_rest_scaling"
         case restDurationsByExerciseType = "rest_durations_by_exercise_type"
         case defaultRestDurationSeconds = "default_rest_duration_seconds"
+        case previousWorkoutReference = "previous_workout_reference"
     }
     
     var eventParameters: [String: Any] {
         [:]
     }
     
+}
+
+enum PreviousWorkoutReferenceOption: String, DataSyncModelProtocol {
+    var id: String { self.rawValue }
+    
+    case anyWorkout
+    case workoutsInProgram
+    
+    var title: String {
+        switch self {
+        case .anyWorkout:
+            return "Any workout"
+        case .workoutsInProgram:
+            return "Workouts within program only"
+        }
+    }
+    
+    var subtitle: String {
+        switch self {
+        case .anyWorkout:
+            return "Previous values for an exercise will display weight, reps, and RIR values from any workout that has previously included this exercise."
+        case .workoutsInProgram:
+            return "Previous values for an exercise will display weight, reps, and RIR values only from workouts within the same program."
+        }
+    }
 }

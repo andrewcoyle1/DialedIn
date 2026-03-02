@@ -116,7 +116,7 @@ class WorkoutTemplateDetailPresenter {
     private func resumeActiveWorkout() {
         guard let activeSession = activeSession else { return }
         router.dismissEnvironment()
-        router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: activeSession.id))
+        router.showWorkoutTrackerView()
     }
     
     private func performStartWorkout(workoutTemplate: WorkoutTemplateModel) {
@@ -152,7 +152,7 @@ class WorkoutTemplateDetailPresenter {
                             try self.interactor.updateActiveSession(session)
                             self.router.dismissModal()
                             self.router.dismissEnvironment()
-                            self.router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
+                            self.router.showWorkoutTrackerView()
                         } catch {
                             self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
                         }

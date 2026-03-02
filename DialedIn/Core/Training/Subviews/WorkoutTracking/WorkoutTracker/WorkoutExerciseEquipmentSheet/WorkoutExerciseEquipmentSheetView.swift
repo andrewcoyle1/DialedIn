@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct WorkoutExerciseEquipmentSheetDelegate {
-    let exercise: WorkoutExerciseModel
+    let exercise: Binding<WorkoutExerciseModel>
     let onSelect: ([EquipmentRef], [EquipmentRef]) -> Void
 }
 
@@ -61,7 +61,7 @@ struct WorkoutExerciseEquipmentSheetView: View {
                 .listStyle(.insetGrouped)
             }
         }
-        .navigationTitle(delegate.exercise.name)
+        .navigationTitle(delegate.exercise.wrappedValue.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -76,8 +76,8 @@ struct WorkoutExerciseEquipmentSheetView: View {
             }
         }
         .onAppear {
-            presenter.chosenResistance = delegate.exercise.chosenResistanceEquipment
-            presenter.chosenSupport = delegate.exercise.chosenSupportEquipment
+            presenter.chosenResistance = delegate.exercise.wrappedValue.chosenResistanceEquipment
+            presenter.chosenSupport = delegate.exercise.wrappedValue.chosenSupportEquipment
         }
     }
 
@@ -110,10 +110,11 @@ struct WorkoutExerciseEquipmentSheetView: View {
 }
 
 #Preview {
+    @Previewable @State var exercise: WorkoutExerciseModel = .mock
     let container = DevPreview.shared.container()
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     
-    let delegate = WorkoutExerciseEquipmentSheetDelegate(exercise: .mock) { _, _ in
+    let delegate = WorkoutExerciseEquipmentSheetDelegate(exercise: $exercise) { _, _ in
         
     }
     RouterView { router in

@@ -15,7 +15,7 @@ struct TabViewAccessoryView: View {
     
     var body: some View {
         Button {
-            presenter.reopenActiveSession(activeSession: delegate.active)
+            presenter.reopenActiveSession()
         } label: {
             workoutDescriptionSection
                 .frame(maxWidth: .infinity)

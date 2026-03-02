@@ -28,7 +28,7 @@ struct WorkoutHistoryView: View {
             }
         }
         .scrollIndicators(.hidden)
-        .navigationTitle("Workout Sessions")
+        .navigationTitle("Workout History")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             presenter.onViewAppear()
@@ -163,49 +163,24 @@ extension CoreRouter {
     
 }
 
-// #Preview("Slow Loading") {
-//    let container = DevPreview.shared.container()
-//    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 10)))
-//    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-//    return RouterView { router in
-//        builder.workoutHistoryView(router: router)
-//        .navigationTitle("Workout History")
-//    }
-//    
-// }
-//
-// #Preview("No Data") {
-//    let container = DevPreview.shared.container()
-//    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(sessions: [])))
-//    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-//    return RouterView { router in
-//        builder.workoutHistoryView(router: router)
-//        .navigationTitle("Workout History")
-//    }
-//    
-// }
-//
-// #Preview("Remote Loading Failure") {
-//    let container = DevPreview.shared.container()
-//    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(services: MockWorkoutSessionServices(delay: 1, showErrorRemote: true)))
-//    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-//
-//    return RouterView { router in
-//        builder.workoutHistoryView(router: router)
-//        .navigationTitle("Workout History")
-//    }
-//    
-// }
-//
-// #Preview("Local Loading Failure") {
-//    let container = DevPreview.shared.container()
-//    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(
-//        services: MockWorkoutSessionServices(delay: 3, showErrorLocal: true)))
-//    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-//
-//    return RouterView { router in
-//        builder.workoutHistoryView(router: router)
-//        .navigationTitle("Workout History")
-//    }
-//    
-// }
+#Preview("No Data") {
+    let container = DevPreview.shared.container()
+    let userWorkoutSessionSyncEngine = CollectionSyncEngine<WorkoutSessionModel>(
+        remote: MockRemoteCollectionService(collection: []),
+        managerKey: Keys.userWorkoutSessionManagerKey
+    )
+    let followingWorkoutSessionSyncEngine = CollectionGroupSyncEngine<WorkoutSessionModel>(
+        remote: MockRemoteCollectionGroupService(collection: []),
+        managerKey: Keys.followingWorkoutSessionsManagerKey
+    )
+    
+    let activeWorkoutSessionPersistence = FileManagerDocumentPersistence<WorkoutSessionModel>()
+    
+    container.register(WorkoutSessionManager.self, service: WorkoutSessionManager(activeWorkoutSessionPersistence: activeWorkoutSessionPersistence, userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine, followingWorkoutSessionSyncEngine: followingWorkoutSessionSyncEngine))
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
+    return RouterView { router in
+        builder.workoutHistoryView(router: router)
+            .navigationTitle("Workout History")
+    }
+    
+}

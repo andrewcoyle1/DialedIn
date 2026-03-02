@@ -203,7 +203,7 @@ class SearchPresenter {
                         try self.interactor.updateActiveSession(session)
                         self.router.dismissModal()
                         self.router.dismissEnvironment()
-                        self.router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
+                        self.router.showWorkoutTrackerView()
                     } catch {
                         self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
                     }
