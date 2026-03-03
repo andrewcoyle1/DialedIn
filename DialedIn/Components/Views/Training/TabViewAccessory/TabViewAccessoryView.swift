@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+struct TabViewAccessoryDelegate {
+    var active: WorkoutSessionModel
+}
+
 struct TabViewAccessoryView: View {
     
     @State var presenter: TabViewAccessoryPresenter
@@ -15,7 +19,7 @@ struct TabViewAccessoryView: View {
     
     var body: some View {
         Button {
-            presenter.reopenActiveSession(activeSession: delegate.active)
+            presenter.reopenActiveSession()
         } label: {
             workoutDescriptionSection
                 .frame(maxWidth: .infinity)

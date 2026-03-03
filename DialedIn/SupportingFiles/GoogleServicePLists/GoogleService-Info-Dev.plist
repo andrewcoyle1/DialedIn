@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>94958324260-dj2up48mi1vpvh7jdihj2cdrmhq284gh.apps.googleusercontent.com</string>
+	<string>94958324260-t0henv0q8ij3cj1h80fr5ufh7ge3lehq.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.94958324260-dj2up48mi1vpvh7jdihj2cdrmhq284gh</string>
+	<string>com.googleusercontent.apps.94958324260-t0henv0q8ij3cj1h80fr5ufh7ge3lehq</string>
 	<key>API_KEY</key>
 	<string>AIzaSyDS6KX7LElGkRRLbHM64Verv69kofPSmM4</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.andrewcoyle.Dialed.dev</string>
+	<string>com.andrewcoyle.DialedIn.dev</string>
 	<key>PROJECT_ID</key>
 	<string>dialed-c3cb5</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:94958324260:ios:7ac77707de8e7e8f88e6b1</string>
+	<string>1:94958324260:ios:2829754ca12e3f8188e6b1</string>
 </dict>
 </plist>

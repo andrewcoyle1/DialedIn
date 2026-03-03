@@ -6,9 +6,6 @@
 //
 
 @MainActor
-protocol IngredientsInteractor {
-    func incrementIngredientTemplateInteraction(id: String) async throws
-    func trackEvent(event: LoggableEvent)
-}
+protocol IngredientsInteractor: GlobalInteractor { }
 
 extension CoreInteractor: IngredientsInteractor { }

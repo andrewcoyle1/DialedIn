@@ -9,8 +9,9 @@
 protocol WorkoutTemplateDetailInteractor {
     var currentUser: UserModel? { get }
     var activeSession: WorkoutSessionModel? { get }
-    func addLocalWorkoutSession(session: WorkoutSessionModel) throws
-    func startActiveSession(_ session: WorkoutSessionModel)
+    func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws
+    func updateActiveSession(_ session: WorkoutSessionModel) throws
+    func deleteActiveSession() throws
     func deleteWorkoutTemplate(id: String) async throws
     func getPreference(templateId: String) -> ExerciseUnitPreference
 }

@@ -8,7 +8,7 @@
 @MainActor
 protocol ExercisesRouter: GlobalRouter {
     func showCreateExerciseView()
-    func showExerciseTemplateDetailView(delegate: ExerciseTemplateDetailDelegate)
+    func showExerciseModelDetailView(delegate: ExerciseModelDetailDelegate)
     
     func showSimpleAlert(title: String, subtitle: String?)
 }

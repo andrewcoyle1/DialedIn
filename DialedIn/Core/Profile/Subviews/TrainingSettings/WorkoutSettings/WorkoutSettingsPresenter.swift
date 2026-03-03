@@ -88,7 +88,9 @@ class WorkoutSettingsPresenter {
     // MARK: - Private
 
     private func save() {
-        interactor.saveWorkoutSettings(settings)
+        Task {
+            try? await interactor.saveWorkoutSettings(settings)
+        }
     }
 }
 

@@ -22,7 +22,7 @@ protocol ProfileRouter: GlobalRouter {
     func showLegalView(delegate: LegalDelegate)
     func showPaywall()
     func showShortcutsView(delegate: ShortcutsDelegate)
-    func showCustomiseDashboardView(delegate: CustomiseDashboardDelegate)
+    func showCustomiseAnalyticsView(delegate: CustomiseAnalyticsDelegate)
     func showFoodLogSettingsView(delegate: FoodLogSettingsDelegate)
     func showExpenditureSettingsView(delegate: ExpenditureSettingsDelegate)
     func showStrategySettingsView(delegate: StrategySettingsDelegate)

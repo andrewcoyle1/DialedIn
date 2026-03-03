@@ -14,11 +14,13 @@ class NutritionPresenter {
     private let router: NutritionRouter
    
     var selectedDate: Date = Date()
-    private(set) var meals: [MealLogModel] = []
+    var meals: [MealLogModel] {
+        interactor.userMeals
+    }
+    
     private(set) var dailyTotals: DailyMacroTarget?
     private(set) var dailyTarget: DailyMacroTarget?
     private(set) var isLoading: Bool = false
-    var selectedMealType: MealType = .breakfast
 
     var caloriePercentage: Double {
         guard let target = dailyTarget?.calories, target > 0 else { return 0 }
@@ -83,42 +85,10 @@ class NutritionPresenter {
     func onIngredientLibraryPressed() {
         router.showIngredientsView()
     }
-    
-    func mealTypeIcon(_ mealType: MealType) -> String {
-        switch mealType {
-        case .breakfast:
-            return "sunrise.fill"
-        case .lunch:
-            return "sun.max.fill"
-        case .dinner:
-            return "moon.stars.fill"
-        case .snack:
-            return "fork.knife"
-        }
-    }
-    
-    func loadMeals() async {
-        isLoading = true
-        defer { isLoading = false }
-        
-        do {
-            meals = try interactor.getMeals(for: dayKey).sorted(by: { $0.date < $1.date })
-            dailyTotals = try interactor.getDailyTotals(dayKey: dayKey)
             
-            // Load target for the day (if diet plan exists)
-            if let user = interactor.currentUser {
-                dailyTarget = try await interactor.getDailyTarget(for: selectedDate, userId: user.userId)
-            }
-        } catch {
-            router.showAlert(error: error)
-        }
-    }
-    
     func saveMeal(_ meal: MealLogModel) async {
         do {
             try await interactor.addMeal(meal)
-            await loadMeals()
-
         } catch {
             router.showAlert(error: error)
         }
@@ -131,7 +101,6 @@ class NutritionPresenter {
                 dayKey: meal.dayKey,
                 authorId: meal.authorId
             )
-            await loadMeals()
         } catch {
             router.showAlert(error: error)
         }
@@ -140,11 +109,14 @@ class NutritionPresenter {
     func navToMealDetail(meal: MealLogModel) {
         router.showMealDetailView(delegate: MealDetailDelegate(meal: meal))
     }
+    
+    func onTimelineActionsPressed() {
+        router.showTimelineActionsView(delegate: TimelineActionsDelegate())
+    }
 
-    func onAddMealPressed(mealType: MealType) {
+    func onAddMealPressed() {
         let delegate = AddMealDelegate(
             selectedDate: selectedDate,
-            mealType: mealType,
             onSave: { meal in
                 Task { [weak self] in
                     await self?.saveMeal(meal)

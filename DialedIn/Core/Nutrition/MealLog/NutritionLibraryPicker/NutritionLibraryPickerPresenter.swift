@@ -13,12 +13,17 @@ class NutritionLibraryPickerPresenter {
     private let interactor: NutritionLibraryPickerInteractor
     private let router: NutritionLibraryPickerRouter
 
-    var mode: PickerMode = .ingredients
+    private(set) var mode: NutritionPickerMode = .search
     var searchText: String = ""
-    private(set) var isLoading: Bool = false
-    private(set) var ingredients: [IngredientTemplateModel] = []
     private(set) var recipes: [RecipeTemplateModel] = []
 
+    var ingredientTemplates: [IngredientTemplateModel] {
+        interactor.ingredientTemplates
+            .filter {
+                $0.name == searchText
+            }
+    }
+    
     init(
         interactor: NutritionLibraryPickerInteractor,
         router: NutritionLibraryPickerRouter
@@ -26,52 +31,17 @@ class NutritionLibraryPickerPresenter {
         self.interactor = interactor
         self.router = router
     }
-    
-    func loadInitial() async {
-        isLoading = true
-        defer { isLoading = false }
-        do {
-            async let topIngredients = interactor.getTopIngredientTemplatesByClicks(limitTo: 20)
-            async let topRecipes = interactor.getTopRecipeTemplatesByClicks(limitTo: 20)
-            let (ings, recs) = try await (topIngredients, topRecipes)
-            ingredients = ings
-            recipes = recs
-        } catch {
-            router.showAlert(error: error)
-        }
+        
+    func onModePressed(_ mode: NutritionPickerMode) {
+        self.mode = mode
     }
     
-    func performSearch(query: String) async {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        isLoading = true
-        defer { isLoading = false }
-        do {
-            if trimmed.isEmpty {
-                await loadInitial()
-                return
-            }
-            switch mode {
-            case .ingredients:
-                ingredients = try await interactor.getIngredientTemplatesByName(name: trimmed)
-            case .recipes:
-                recipes = try await interactor.getRecipeTemplatesByName(name: trimmed)
-            }
-        } catch {
-            router.showAlert(error: error)
-        }
-    }
-
     func navToIngredientAmount(_ ingredient: IngredientTemplateModel, onPick: @escaping (MealItemModel) -> Void) {
         router.showIngredientAmountView(delegate: IngredientAmountDelegate(ingredient: ingredient, onPick: onPick))
     }
 
     func navToRecipeAmount(_ recipe: RecipeTemplateModel, onPick: @escaping (MealItemModel) -> Void) {
         router.showRecipeAmountView(delegate: RecipeAmountDelegate(recipe: recipe, onPick: onPick))
-    }
-
-    enum PickerMode: String, CaseIterable, Hashable {
-        case ingredients
-        case recipes
     }
 
     enum Event: LoggableEvent {
@@ -104,5 +74,39 @@ class NutritionLibraryPickerPresenter {
     
     func onDevSettingsPressed() {
         router.showDevSettingsView()
+    }
+}
+
+enum NutritionPickerMode: String, CaseIterable, DataSyncModelProtocol {
+    
+    var id: String { self.rawValue }
+    
+    case barcode
+    case search
+    case ai
+    case quickAdd
+    case library
+    case describe
+    
+    var title: String {
+        switch self {
+        case .barcode: return "Barcode"
+        case .search: return "Search"
+        case .ai: return "AI"
+        case .quickAdd: return "Quick Add"
+        case .library: return "Library"
+        case .describe: return "Describe"
+        }
+    }
+    
+    var systemName: String {
+        switch self {
+        case .barcode: return "barcode"
+        case .search: return "magnifyingglass"
+        case .ai: return "wand.and.stars"
+        case .quickAdd: return "hare"
+        case .library: return "book"
+        case .describe: return "pencil"
+        }
     }
 }

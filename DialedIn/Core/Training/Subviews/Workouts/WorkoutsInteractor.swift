@@ -6,9 +6,6 @@
 //
 
 @MainActor
-protocol WorkoutsInteractor {
-    func trackEvent(event: LoggableEvent)
-    func incrementWorkoutTemplateInteraction(id: String) async throws
-}
+protocol WorkoutsInteractor: GlobalInteractor { }
 
 extension CoreInteractor: WorkoutsInteractor { }

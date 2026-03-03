@@ -9,6 +9,8 @@
 
 // MARK: - Query Extensions
 
+typealias FieldValue = FirebaseFirestore.FieldValue
+
 extension Query {
     
     /// Fetches all documents from a query and decodes them to the specified type

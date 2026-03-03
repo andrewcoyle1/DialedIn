@@ -41,7 +41,7 @@ class NotificationsPermissionsPresenter {
         interactor.trackEvent(event: Event.enableNotificationsStart)
         Task {
             do {
-                let isAuthorised = try await interactor.requestPushAuthorization()
+                let isAuthorised = try await interactor.requestPushAuthorisation()
 
                 interactor.trackEvent(event: Event.enableNotificationsSuccess(isAuthorised: isAuthorised))
                 router.dismissModal()

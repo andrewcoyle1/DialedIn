@@ -31,19 +31,11 @@ struct NutritionView<CalendarHeaderView: View>: View {
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
-        .toolbarTitleDisplayMode(.inlineLarge)
+        .toolbarTitleDisplayMode(.inline)
         .toolbar {
             toolbarContent
         }
         .toolbarRole(.browser)
-        .task {
-            await presenter.loadMeals()
-        }
-        .onChange(of: presenter.selectedDate) { _, _ in
-            Task {
-                await presenter.loadMeals()
-            }
-        }
         .safeAreaInset(edge: .top) {
             topSafeAreaSection
         }
@@ -127,6 +119,9 @@ struct NutritionView<CalendarHeaderView: View>: View {
                     Image(systemName: "plus")
                         .padding(8)
                         .background(.secondary.opacity(0.2), in: .circle)
+                        .anyButton {
+                            presenter.onAddMealPressed()
+                        }
                 }
                 .font(.caption)
                 .padding(.bottom)
@@ -164,68 +159,44 @@ struct NutritionView<CalendarHeaderView: View>: View {
     // MARK: - Meals Section
     
     private var mealsSection: some View {
-        ForEach(MealType.allCases, id: \.self) { mealType in
-            let mealsForType = presenter.meals.filter { $0.mealType == mealType }
-            
-            Section {
-                if mealsForType.isEmpty {
+        let meals = presenter.meals
+        
+        return Section {
+            if meals.isEmpty {
+                Button {
+                    presenter.onAddMealPressed()
+                } label: {
+                    Label("Add Meal", systemImage: "plus")
+                }
+            } else {
+                ForEach(meals) { meal in
                     Button {
-                        presenter.selectedMealType = mealType
-                        presenter.onAddMealPressed(mealType: mealType)
+                        presenter.navToMealDetail(meal: meal)
                     } label: {
-                        HStack {
-                            Text("Add \(mealType.rawValue.capitalized)")
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Image(systemName: "plus.circle.fill")
-                                .foregroundStyle(.accent)
-                        }
+                        MealLogRowView(meal: meal)
                     }
-                } else {
-                    ForEach(mealsForType) { meal in
-                        Button {
-                            presenter.navToMealDetail(meal: meal)
-                        } label: {
-                            MealLogRowView(meal: meal)
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                Task {
-                                    await presenter.deleteMeal(meal)
-                                }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            Task {
+                                await presenter.deleteMeal(meal)
                             }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
                         }
                     }
                 }
-            } header: {
-                Text(mealType.rawValue.capitalized)
             }
+        } header: {
+            Text("Meals")
         }
     }
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        
-        ToolbarItem(placement: .topBarTrailing) {
-            Menu {
-                ForEach(MealType.allCases, id: \.self) { mealType in
-                    Button {
-                        presenter.selectedMealType = mealType
-                        presenter.onAddMealPressed(mealType: mealType)
-                    } label: {
-                        Label(mealType.rawValue.capitalized, systemImage: presenter.mealTypeIcon(mealType))
-                    }
-                }
-            } label: {
-                Image(systemName: "plus")
-            }
-        }
-        
+                
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                
+                presenter.onTimelineActionsPressed()
             } label: {
                 Image(systemName: "line.3.horizontal")
             }

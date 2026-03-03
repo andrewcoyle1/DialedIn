@@ -2,9 +2,9 @@ import SwiftUI
 
 @Observable
 @MainActor
-class RenameDayPlanPresenter {
-    private let interactor: RenameDayPlanInteractor
-    private let router: RenameDayPlanRouter
+class RenameWorkoutTemplateModelPresenter {
+    private let interactor: RenameWorkoutTemplateModelInteractor
+    private let router: RenameWorkoutTemplateModelRouter
 
     var nameText: String
 
@@ -13,8 +13,8 @@ class RenameDayPlanPresenter {
     }
 
     init(
-        interactor: RenameDayPlanInteractor,
-        router: RenameDayPlanRouter,
+        interactor: RenameWorkoutTemplateModelInteractor,
+        router: RenameWorkoutTemplateModelRouter,
         initialName: String
     ) {
         self.interactor = interactor

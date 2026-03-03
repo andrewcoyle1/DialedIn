@@ -7,6 +7,9 @@ class ExpenditureSettingsPresenter {
     private let interactor: ExpenditureSettingsInteractor
     private let router: ExpenditureSettingsRouter
     
+    var stepInformedUpdates: Bool = false
+    var predictiveGoalAdjustments: Bool = true
+    
     init(interactor: ExpenditureSettingsInteractor, router: ExpenditureSettingsRouter) {
         self.interactor = interactor
         self.router = router

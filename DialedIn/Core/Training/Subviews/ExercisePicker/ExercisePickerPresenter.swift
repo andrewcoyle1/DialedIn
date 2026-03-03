@@ -13,15 +13,14 @@ class ExercisePickerPresenter {
     private let interactor: ExercisePickerInteractor
     private let router: ExercisePickerRouter
 
-    private(set) var exercises: [ExerciseModel] = []
     var searchText: String = ""
     private(set) var isLoading: Bool = false
     private(set) var errorMessage: String?
 
     var filteredExercises: [ExerciseModel] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return exercises }
-        return exercises.filter { exercise in
+        guard !query.isEmpty else { return allExercises }
+        return allExercises.filter { exercise in
             var fields: [String] = [
                 exercise.name,
                 exercise.type?.name ?? ""
@@ -30,6 +29,18 @@ class ExercisePickerPresenter {
             fields.append(contentsOf: exercise.muscleGroups.keys.map { $0.name })
             return fields.contains { $0.localizedCaseInsensitiveContains(query) }
         }
+    }
+    
+    var systemExercises: [ExerciseModel] {
+        interactor.systemExercises
+    }
+    
+    var userExercises: [ExerciseModel] {
+        interactor.userExercises
+    }
+    
+    var allExercises: [ExerciseModel] {
+        interactor.allExercises
     }
     
     init(
@@ -47,88 +58,16 @@ class ExercisePickerPresenter {
             selectedExercises.wrappedValue.append(exercise)
         }
     }
-    
-    func loadExercises() async {
-        guard !isLoading else { return }
-        isLoading = true
-        errorMessage = nil
         
-        // Always load system exercises from local storage
-        let systemExercises = (try? interactor.getSystemExerciseTemplates()) ?? []
-        
-        do {
-            // Load top exercises from remote
-            let trendingExercises = try await interactor.getTopExerciseTemplatesByClicks(limitTo: 50)
-            
-            // Combine system exercises and trending exercises
-            // System exercises first, then trending (deduplicated)
-            let systemIds = Set(systemExercises.map { $0.id })
-            let uniqueTrending = trendingExercises.filter { !systemIds.contains($0.id) }
-            
-            await MainActor.run {
-                exercises = systemExercises + uniqueTrending
-                isLoading = false
-            }
-        } catch {
-            // Fallback to all local exercises if remote fails
-            do {
-                let localExercises = try interactor.getAllLocalExerciseTemplates()
-                await MainActor.run {
-                    exercises = localExercises
-                    isLoading = false
-                }
-            } catch {
-                // At minimum, show system exercises even if everything else fails
-                await MainActor.run {
-                    exercises = systemExercises
-                    isLoading = false
-                    if systemExercises.isEmpty {
-                        errorMessage = "Failed to load exercises. Please check your connection and try again."
-                    }
-                }
-            }
-        }
-    }
-    
-    func searchExercises() async {
-        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // If search is empty, reload top exercises
-        guard !query.isEmpty else {
-            await loadExercises()
-            return
-        }
-        
-        // Don't search for very short queries to avoid too many API calls
-        guard query.count >= 2 else { return }
-        
-        // Always include system exercises in search
-        let systemExercises = (try? interactor.getSystemExerciseTemplates()) ?? []
-        
-        do {
-            // Search remote exercises
-            let remoteResults = try await interactor.getExerciseTemplatesByName(name: query)
-            
-            // Combine system exercises and remote results (deduplicated)
-            let systemIds = Set(systemExercises.map { $0.id })
-            let uniqueRemote = remoteResults.filter { !systemIds.contains($0.id) }
-            
-            await MainActor.run {
-                exercises = systemExercises + uniqueRemote
-            }
-        } catch {
-            // If remote search fails, just show system exercises
-            await MainActor.run {
-                exercises = systemExercises
-            }
-        }
-    }
-
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }
 
     func dismissScreen() {
         router.dismissScreen()
+    }
+    
+    func onAddExercisePressed() {
+        router.showCreateExerciseView()
     }
 }

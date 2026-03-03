@@ -2,9 +2,9 @@ import SwiftUI
 
 struct CreateProgramDelegate {
     let onDismiss: (() -> Void)?
-    let onComplete: (() -> Void)?
+    let onComplete: (@Sendable () -> Void)?
     
-    init(onDismiss: (() -> Void)? = nil, onComplete: (() -> Void)? = nil) {
+    init(onDismiss: (() -> Void)? = nil, onComplete: (@Sendable () -> Void)? = nil) {
         self.onDismiss = onDismiss
         self.onComplete = onComplete
     }

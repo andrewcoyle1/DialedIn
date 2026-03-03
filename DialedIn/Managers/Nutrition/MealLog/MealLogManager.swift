@@ -10,196 +10,130 @@ import SwiftUI
 @Observable
 @MainActor
 class MealLogManager {
-    
-    private let local: LocalMealLogPersistence
-    private let remote: RemoteMealLogService
-    
+
+    private let mealLogSyncEngine: CollectionSyncEngine<MealLogModel>
+
     // UI state for draft/edit flows
     var draftMeal: MealLogModel?
-    
-    var mealsLastModified: Date = Date()
 
-    init(services: MealLogServices) {
-        self.remote = services.remote
-        self.local = services.local
+    var userMeals: [MealLogModel] {
+        mealLogSyncEngine.currentCollection
     }
-    
+
+    init(mealLogSyncEngine: CollectionSyncEngine<MealLogModel>) {
+        self.mealLogSyncEngine = mealLogSyncEngine
+    }
+
+    // MARK: - Lifecycle
+
+    func signIn(userId: String) async {
+        await mealLogSyncEngine.startListening { query in
+            query.where("author_id", isEqualTo: userId)
+        }
+    }
+
+    func signOut() {
+        mealLogSyncEngine.stopListening()
+    }
+
     // MARK: - High-level API
-    func addMeal(_ meal: MealLogModel) async throws {
-        try local.addLocalMeal(meal)
-        try await remote.createMeal(meal)
-    }
-    
-    func updateMealAndSync(_ meal: MealLogModel) async throws {
-        try local.updateLocalMeal(meal)
-        try await remote.updateMeal(meal)
-    }
-    
-    func deleteMealAndSync(id: String, dayKey: String, authorId: String) async throws {
-        try local.deleteLocalMeal(id: id, dayKey: dayKey)
-        try await remote.deleteMeal(id: id, dayKey: dayKey, authorId: authorId)
-    }
-    
-    func getMeals(for dayKey: String) throws -> [MealLogModel] {
-        try local.getLocalMeals(dayKey: dayKey)
-    }
-    
-    func getMeals(startDayKey: String, endDayKey: String) throws -> [MealLogModel] {
-        try local.getLocalMeals(startDayKey: startDayKey, endDayKey: endDayKey)
-    }
-    
-    func getDailyTotals(dayKey: String) throws -> DailyMacroTarget {
-        try local.getLocalDailyTotals(dayKey: dayKey)
-    }
-    
-    // MARK: - LocalMealLogPersistence
-    func addLocalMeal(_ meal: MealLogModel) throws { try local.addLocalMeal(meal) }
-    func updateLocalMeal(_ meal: MealLogModel) throws { try local.updateLocalMeal(meal) }
-    func deleteLocalMeal(id: String, dayKey: String) throws { try local.deleteLocalMeal(id: id, dayKey: dayKey) }
-    func getLocalMeal(id: String) throws -> MealLogModel { try local.getLocalMeal(id: id) }
-    func getLocalMeals(dayKey: String) throws -> [MealLogModel] { try local.getLocalMeals(dayKey: dayKey) }
-    func getLocalMeals(startDayKey: String, endDayKey: String) throws -> [MealLogModel] { try local.getLocalMeals(startDayKey: startDayKey, endDayKey: endDayKey) }
-    func getLocalDailyTotals(dayKey: String) throws -> DailyMacroTarget { try local.getLocalDailyTotals(dayKey: dayKey) }
-    
-    // MARK: - RemoteMealLogService
-    func createMeal(_ meal: MealLogModel) async throws { try await remote.createMeal(meal) }
-    func updateMeal(_ meal: MealLogModel) async throws { try await remote.updateMeal(meal) }
-    func deleteMeal(id: String, dayKey: String, authorId: String) async throws { try await remote.deleteMeal(id: id, dayKey: dayKey, authorId: authorId) }
-    func getMeals(dayKey: String, authorId: String, limitTo: Int) async throws -> [MealLogModel] { try await remote.getMeals(dayKey: dayKey, authorId: authorId, limitTo: limitTo) }
-    func getMeals(startDayKey: String, endDayKey: String, authorId: String, limitTo: Int) async throws -> [MealLogModel] { try await remote.getMeals(startDayKey: startDayKey, endDayKey: endDayKey, authorId: authorId, limitTo: limitTo) }
-    
-    func deleteAllMealLogsForAuthor(authorId: String) async throws {
-        try await remote.deleteAllMealLogsForAuthor(authorId: authorId)
-        mealsLastModified = Date()
 
+    func saveMeal(_ meal: MealLogModel) async throws {
+        try await mealLogSyncEngine.saveDocument(meal)
     }
-    
-    // MARK: - Sync Operations
-    
-    /// Syncs meal logs from remote Firebase to local storage.
-    /// Fetches meals for the last 90 days and upserts into local store.
-    func syncMealsFromRemote(authorId: String, limitTo: Int = 1000) async throws {
-        let calendar = Calendar.current
-        let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -90, to: endDate) else { return }
-        let startDayKey = startDate.dayKey
-        let endDayKey = endDate.dayKey
-        let remoteMeals = try await remote.getMeals(
-            startDayKey: startDayKey,
-            endDayKey: endDayKey,
-            authorId: authorId,
-            limitTo: limitTo
+
+    func deleteMeal(id: String) async throws {
+        try await mealLogSyncEngine.deleteDocument(id: id)
+    }
+
+    func deleteAllMeals() async throws {
+        for meal in userMeals {
+            try await deleteMeal(id: meal.id)
+        }
+    }
+
+    func getMeals(for dayKey: String) -> [MealLogModel] {
+        userMeals.filter { $0.dayKey == dayKey }
+    }
+
+    func getMeals(startDayKey: String, endDayKey: String) -> [MealLogModel] {
+        userMeals.filter { $0.dayKey >= startDayKey && $0.dayKey <= endDayKey }
+    }
+
+    func getDailyTotals(dayKey: String) -> DailyMacroTarget {
+        let meals = getMeals(for: dayKey)
+        let totals = meals.reduce((cal: 0.0, protein: 0.0, carbs: 0.0, fats: 0.0)) { acc, meal in
+            (acc.cal + meal.totalCalories,
+             acc.protein + meal.totalProteinGrams,
+             acc.carbs + meal.totalCarbGrams,
+             acc.fats + meal.totalFatGrams)
+        }
+        return DailyMacroTarget(
+            calories: totals.cal,
+            proteinGrams: totals.protein,
+            carbGrams: totals.carbs,
+            fatGrams: totals.fats
         )
-        for meal in remoteMeals {
-            do {
-                _ = try local.getLocalMeal(id: meal.mealId)
-                try local.updateLocalMeal(meal)
-            } catch {
-                try local.addLocalMeal(meal)
-            }
-        }
-        mealsLastModified = Date()
     }
 
-    /// Uploads local meal logs to Firebase so they appear on other devices.
-    /// Use when meals may exist only locally (e.g. added offline, prior sync failure).
-    func uploadLocalMealsToRemote(authorId: String) async throws {
-        let calendar = Calendar.current
-        let endDate = calendar.startOfDay(for: Date())
-        guard let startDate = calendar.date(byAdding: .day, value: -90, to: endDate) else { return }
-        let startDayKey = startDate.dayKey
-        let endDayKey = endDate.dayKey
-        let localMeals = try local.getLocalMeals(startDayKey: startDayKey, endDayKey: endDayKey)
-        for meal in localMeals where meal.authorId == authorId {
-            try? await remote.updateMeal(meal)
-        }
-        mealsLastModified = Date()
+    func deleteAllMealLogsForAuthor(authorId: String) async throws {
+        try await deleteAllMeals()
     }
 }
 
 extension CoreInteractor {
     // MARK: MealLogManager
-    
+
+    var userMeals: [MealLogModel] {
+        mealLogManager.userMeals
+    }
+
     var draftMeal: MealLogModel? {
         mealLogManager.draftMeal
     }
-    
+
     func addMeal(_ meal: MealLogModel) async throws {
-        try await mealLogManager.addMeal(meal)
+        try await mealLogManager.saveMeal(meal)
     }
-    
-    func updateMealAndSync(_ meal: MealLogModel) async throws {
-        try await mealLogManager.updateMealAndSync(meal)
-    }
-    
+
     func deleteMealAndSync(id: String, dayKey: String, authorId: String) async throws {
-        try await mealLogManager.deleteMealAndSync(id: id, dayKey: dayKey, authorId: authorId)
+        try await mealLogManager.deleteMeal(id: id)
     }
-    
+
     func getMeals(for dayKey: String) throws -> [MealLogModel] {
-        try mealLogManager.getMeals(for: dayKey)
+        mealLogManager.getMeals(for: dayKey)
     }
-    
+
     func getMeals(startDayKey: String, endDayKey: String) throws -> [MealLogModel] {
-        try mealLogManager.getLocalMeals(startDayKey: startDayKey, endDayKey: endDayKey)
+        mealLogManager.getMeals(startDayKey: startDayKey, endDayKey: endDayKey)
     }
-    
+
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget {
-        try mealLogManager.getLocalDailyTotals(dayKey: dayKey)
+        mealLogManager.getDailyTotals(dayKey: dayKey)
     }
-    
+
     func getDailyTotals(startDayKey: String, endDayKey: String) throws -> [(dayKey: String, totals: DailyMacroTarget)] {
         guard let startDate = Date(dayKey: startDayKey), let endDate = Date(dayKey: endDayKey), startDate <= endDate else {
             return []
         }
         let keys = Date.dayKeys(from: startDate, to: endDate)
         return keys.map { key in
-            (dayKey: key, totals: (try? mealLogManager.getLocalDailyTotals(dayKey: key)) ?? DailyMacroTarget(calories: 0, proteinGrams: 0, carbGrams: 0, fatGrams: 0))
+            (dayKey: key, totals: mealLogManager.getDailyTotals(dayKey: key))
         }
     }
-    
-    // LocalMealLogPersistence
-    
-    func addLocalMeal(_ meal: MealLogModel) throws {
-        try mealLogManager.addLocalMeal(meal)
-    }
-    
-    func updateLocalMeal(_ meal: MealLogModel) throws {
-        try mealLogManager.updateLocalMeal(meal)
-    }
-    
-    func deleteLocalMeal(id: String, dayKey: String) throws {
-        try mealLogManager.deleteLocalMeal(id: id, dayKey: dayKey)
-    }
-    
-    func getLocalMeal(id: String) throws -> MealLogModel {
-        try mealLogManager.getLocalMeal(id: id)
-    }
-    
-    func getLocalMeals(dayKey: String) throws -> [MealLogModel] {
-        try mealLogManager.getLocalMeals(dayKey: dayKey)
-    }
-    
-    func getLocalMeals(startDayKey: String, endDayKey: String) throws -> [MealLogModel] {
-        try mealLogManager.getLocalMeals(startDayKey: startDayKey, endDayKey: endDayKey)
-    }
-    
-    func getLocalDailyTotals(dayKey: String) throws -> DailyMacroTarget {
-        try mealLogManager.getLocalDailyTotals(dayKey: dayKey)
-    }
-    
+
     func getDailyNutritionBreakdown(dayKey: String) throws -> DailyNutritionBreakdown {
-        let meals = try mealLogManager.getMeals(for: dayKey)
+        let meals = mealLogManager.getMeals(for: dayKey)
         var breakdown = DailyNutritionBreakdown()
         for meal in meals {
             for item in meal.items {
                 if item.sourceType == .ingredient {
-                    if let ingredient = try? ingredientTemplateManager.getLocalIngredientTemplate(id: item.sourceId) {
+                    if let ingredient = ingredientTemplates.first(where: { $0.id == item.sourceId }) {
                         let scale = ((item.resolvedGrams ?? item.resolvedMilliliters) ?? 0) / 100.0
                         addIngredientToBreakdown(ingredient, scale: scale, into: &breakdown)
                     }
                 } else if item.sourceType == .recipe {
-                    if let recipe = try? recipeTemplateManager.getLocalRecipeTemplate(id: item.sourceId) {
+                    if let recipe = userRecipeTemplates.first(where: { $0.id == item.sourceId }) {
                         let recipeTotals = aggregateRecipeNutrients(recipe: recipe)
                         let scale = item.amount
                         addRecipeTotalsToBreakdown(recipeTotals, scale: scale, into: &breakdown)
@@ -207,12 +141,13 @@ extension CoreInteractor {
                 }
             }
         }
-        if let fiber = breakdown.fiberGrams, let carbs = try? mealLogManager.getLocalDailyTotals(dayKey: dayKey).carbGrams {
+        if let fiber = breakdown.fiberGrams {
+            let carbs = mealLogManager.getDailyTotals(dayKey: dayKey).carbGrams
             breakdown.netCarbsGrams = max(0, carbs - fiber)
         }
         return breakdown
     }
-    
+
     func getDailyNutritionBreakdown(startDayKey: String, endDayKey: String) throws -> [(dayKey: String, breakdown: DailyNutritionBreakdown)] {
         guard let startDate = Date(dayKey: startDayKey), let endDate = Date(dayKey: endDayKey), startDate <= endDate else {
             return []
@@ -222,7 +157,7 @@ extension CoreInteractor {
             (dayKey: key, breakdown: (try? getDailyNutritionBreakdown(dayKey: key)) ?? DailyNutritionBreakdown.empty)
         }
     }
-    
+
     private func addIngredientToBreakdown(_ ingredient: IngredientTemplateModel, scale: Double, into breakdown: inout DailyNutritionBreakdown) {
         func add(_ value: Double?, to keyPath: inout Double?) {
             guard let value, value > 0 else { return }
@@ -258,7 +193,7 @@ extension CoreInteractor {
         add(ingredient.caffeineMg, to: &breakdown.caffeineMg)
         add(ingredient.cholesterolMg, to: &breakdown.cholesterolMg)
     }
-    
+
     private struct RecipeNutrientTotals {
         var fiberGrams: Double = 0
         var sugarGrams: Double = 0
@@ -290,7 +225,7 @@ extension CoreInteractor {
         var caffeineMg: Double = 0
         var cholesterolMg: Double = 0
     }
-    
+
     private func aggregateRecipeNutrients(recipe: RecipeTemplateModel) -> RecipeNutrientTotals {
         var totals = RecipeNutrientTotals()
         for ringredient in recipe.ingredients {
@@ -342,7 +277,7 @@ extension CoreInteractor {
         guard let value else { return }
         total += value * scale
     }
-    
+
     private func addRecipeTotalsToBreakdown(_ totals: RecipeNutrientTotals, scale: Double, into breakdown: inout DailyNutritionBreakdown) {
         func add(_ value: Double, to keyPath: inout Double?) {
             guard value > 0 else { return }
@@ -378,27 +313,4 @@ extension CoreInteractor {
         add(totals.caffeineMg, to: &breakdown.caffeineMg)
         add(totals.cholesterolMg, to: &breakdown.cholesterolMg)
     }
-    
-    // RemoteMealLogService
-    
-    func createMeal(_ meal: MealLogModel) async throws {
-        try await mealLogManager.createMeal(meal)
-    }
-    
-    func updateMeal(_ meal: MealLogModel) async throws {
-        try await mealLogManager.updateMeal(meal)
-    }
-    
-    func deleteMeal(id: String, dayKey: String, authorId: String) async throws {
-        try await mealLogManager.deleteMeal(id: id, dayKey: dayKey, authorId: authorId)
-    }
-    
-    func getMeals(dayKey: String, authorId: String, limitTo: Int) async throws -> [MealLogModel] {
-        try await mealLogManager.getMeals(dayKey: dayKey, authorId: authorId, limitTo: limitTo)
-    }
-    
-    func getMeals(startDayKey: String, endDayKey: String, authorId: String, limitTo: Int) async throws -> [MealLogModel] {
-        try await mealLogManager.getMeals(startDayKey: startDayKey, endDayKey: endDayKey, authorId: authorId, limitTo: limitTo)
-    }
-
 }

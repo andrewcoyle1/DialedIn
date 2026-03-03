@@ -9,6 +9,7 @@
 protocol ExercisePickerRouter {
     func showDevSettingsView()
     func dismissScreen()
+    func showCreateExerciseView()
 }
 
 extension CoreRouter: ExercisePickerRouter { }

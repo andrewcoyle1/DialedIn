@@ -10,174 +10,190 @@ import SwiftUI
 @Observable
 @MainActor
 class WorkoutTemplateManager {
-    
-    private let local: LocalWorkoutTemplatePersistence
-    private let remote: RemoteWorkoutTemplateService
-    private let exerciseManager: ExerciseTemplateManager
-    
-    init(services: WorkoutTemplateServices, exerciseManager: ExerciseTemplateManager) {
-        self.exerciseManager = exerciseManager
-        self.local = services.local
-        self.remote = services.remote
+
+    private let userWorkoutTemplateSyncEngine: CollectionSyncEngine<WorkoutTemplateModel>
+    private let systemWorkoutTemplatePersistence: any LocalCollectionPersistence<WorkoutTemplateModel>
+
+    private let userDefaults = UserDefaults.standard
+    private static let hasSeededKey = "hasSeededPrebuiltWorkouts"
+    private static let seedingVersionKey = "prebuiltWorkoutsSeedingVersion"
+    private static let currentSeedingVersion = 3
+
+    var hasSeeded: Bool {
+        userDefaults.bool(forKey: Self.hasSeededKey)
     }
-    
-    // MARK: - Override for special get behavior
-    
+
+    var seedingVersion: Int {
+        userDefaults.integer(forKey: Self.seedingVersionKey)
+    }
+
+    var systemWorkoutTemplates: [WorkoutTemplateModel] {
+        (try? systemWorkoutTemplatePersistence.getCollection(managerKey: Keys.systemWorkoutTemplateManagerKey)) ?? []
+    }
+
+    var userWorkoutTemplates: [WorkoutTemplateModel] {
+        userWorkoutTemplateSyncEngine.currentCollection
+    }
+
+    var allWorkoutTemplates: [WorkoutTemplateModel] {
+        systemWorkoutTemplates + userWorkoutTemplates
+    }
+
+    init(
+        userWorkoutTemplateSyncEngine: CollectionSyncEngine<WorkoutTemplateModel>,
+        systemWorkoutTemplatePersistence: any LocalCollectionPersistence<WorkoutTemplateModel>
+    ) {
+        self.userWorkoutTemplateSyncEngine = userWorkoutTemplateSyncEngine
+        self.systemWorkoutTemplatePersistence = systemWorkoutTemplatePersistence
+    }
+
+    func signIn() async {
+        await userWorkoutTemplateSyncEngine.startListening()
+    }
+
+    func signOut() {
+        userWorkoutTemplateSyncEngine.stopListening()
+    }
+
+    // MARK: - System Workout Template Seeding
+
+    func seedWorkoutTemplatesIfNeeded(exercises: [ExerciseModel]) throws {
+        guard !hasSeeded || seedingVersion < Self.currentSeedingVersion else { return }
+        // Always clear before inserting — prevents accumulation from past version bumps
+        try deleteExistingSystemWorkoutTemplates()
+        let workouts = try loadPrebuiltWorkouts(exercises: exercises)
+        try seedWorkouts(workouts)
+        userDefaults.set(true, forKey: Self.hasSeededKey)
+        userDefaults.set(Self.currentSeedingVersion, forKey: Self.seedingVersionKey)
+    }
+
+    func resetAndReseedWorkoutTemplates(exercises: [ExerciseModel]) throws {
+        userDefaults.removeObject(forKey: Self.hasSeededKey)
+        userDefaults.removeObject(forKey: Self.seedingVersionKey)
+        try seedWorkoutTemplatesIfNeeded(exercises: exercises)
+    }
+
+    private func loadPrebuiltWorkouts(exercises: [ExerciseModel]) throws -> [WorkoutTemplateModel] {
+        guard let url = Bundle.main.url(forResource: "PrebuiltWorkouts", withExtension: "json") else {
+            throw SeedingError.bundleNotFound
+        }
+        let data = try Data(contentsOf: url)
+        let container = try JSONDecoder().decode(PrebuiltWorkoutsContainer.self, from: data)
+        return container.workouts.compactMap { $0.toModel(exercises: exercises) }
+    }
+
+    private func seedWorkouts(_ workouts: [WorkoutTemplateModel]) throws {
+        for workout in workouts {
+            try systemWorkoutTemplatePersistence.saveDocument(managerKey: Keys.systemWorkoutTemplateManagerKey, workout)
+        }
+    }
+
+    private func deleteExistingSystemWorkoutTemplates() throws {
+        for template in systemWorkoutTemplates {
+            try systemWorkoutTemplatePersistence.deleteDocument(managerKey: Keys.systemWorkoutTemplateManagerKey, id: template.id)
+        }
+    }
+
+    // MARK: - User Workout Templates
+
+    func getWorkoutTemplate(id: String) -> WorkoutTemplateModel? {
+        userWorkoutTemplateSyncEngine.getDocument(id: id)
+    }
+
     func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel {
-        // Try local first (for system workouts), then remote
-        if let localTemplate = try? local.getLocalWorkoutTemplate(id: id) {
-            return localTemplate
-        }
-        return try await remote.getWorkoutTemplate(id: id)
+        try await userWorkoutTemplateSyncEngine.getDocumentAsync(id: id)
     }
-        
+
+    func saveWorkoutTemplate(_ workoutTemplate: WorkoutTemplateModel, _ image: PlatformImage?) async throws {
+        var workoutTemplate = workoutTemplate
+        if let image {
+            let path = "users/\(workoutTemplate.authorId)/workout_templates/\(workoutTemplate.id)"
+            let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
+            workoutTemplate.updateImageURL(imageUrl: url.absoluteString)
+        }
+        try await userWorkoutTemplateSyncEngine.saveDocument(workoutTemplate)
+    }
+
     func deleteWorkoutTemplate(id: String) async throws {
-        try await remote.deleteWorkoutTemplate(id: id)
-        // Also delete local copy if it exists
-        do {
-            try local.deleteLocalWorkoutTemplate(id: id)
-        } catch {
-            // Ignore if local copy doesn't exist
-            print("⚠️ No local workout template to delete for \(id)")
+        try await userWorkoutTemplateSyncEngine.deleteDocument(id: id)
+    }
+
+    func deleteAllWorkoutTemplateForAuthor() async throws {
+        for workoutTemplate in userWorkoutTemplates {
+            try await userWorkoutTemplateSyncEngine.deleteDocument(id: workoutTemplate.id)
         }
     }
-    
-    // MARK: - Method Aliases for Backward Compatibility
-    
-    func addLocalWorkoutTemplate(workout: WorkoutTemplateModel) async throws {
-        try local.addLocalWorkoutTemplate(workout: workout)
-    }
-    
-    func getLocalWorkoutTemplate(id: String) throws -> WorkoutTemplateModel {
-        try local.getLocalWorkoutTemplate(id: id)
-    }
-    
-    func getLocalWorkoutTemplates(ids: [String]) throws -> [WorkoutTemplateModel] {
-        try local.getLocalWorkoutTemplates(ids: ids)
-    }
-    
-    func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel] {
-        try local.getAllLocalWorkoutTemplates()
-    }
-    
-    func createWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws {
-        try await remote.createWorkoutTemplate(workout: workout, image: image)
-    }
-    
-    func updateWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws {
-        try await remote.updateWorkoutTemplate(workout: workout, image: image)
-    }
-    
-    func getWorkoutTemplates(ids: [String], limitTo: Int = 20) async throws -> [WorkoutTemplateModel] {
-        try await remote.getWorkoutTemplates(ids: ids, limitTo: limitTo)
-    }
-    
-    func getWorkoutTemplatesByName(name: String) async throws -> [WorkoutTemplateModel] {
-        try await remote.getWorkoutTemplatesByName(name: name)
-    }
-    
-    func getWorkoutTemplatesForAuthor(authorId: String) async throws -> [WorkoutTemplateModel] {
-        try await remote.getWorkoutTemplatesForAuthor(authorId: authorId)
-    }
-    
-    func getTopWorkoutTemplatesByClicks(limitTo: Int = 10) async throws -> [WorkoutTemplateModel] {
-        try await remote.getTopWorkoutTemplatesByClicks(limitTo: limitTo)
-    }
-    
-    func incrementWorkoutTemplateInteraction(id: String) async throws {
-        try await remote.incrementWorkoutTemplateInteraction(id: id)
-    }
-    
-    func removeAuthorIdFromWorkoutTemplate(id: String) async throws {
-        try await remote.removeAuthorIdFromWorkoutTemplate(id: id)
-    }
-    
-    func removeAuthorIdFromAllWorkoutTemplates(id: String) async throws {
-        try await remote.removeAuthorIdFromAllWorkoutTemplates(id: id)
-    }
-    
-    func bookmarkWorkoutTemplate(id: String, isBookmarked: Bool) async throws {
-        try await remote.bookmarkWorkoutTemplate(id: id, isBookmarked: isBookmarked)
-    }
-    
-    func favouriteWorkoutTemplate(id: String, isFavourited: Bool) async throws {
-        try await remote.favouriteWorkoutTemplate(id: id, isFavourited: isFavourited)
+
+}
+
+// MARK: - Supporting Types
+
+private struct PrebuiltWorkoutsContainer: Codable {
+    let workouts: [PrebuiltWorkoutDTO]
+}
+
+private struct PrebuiltWorkoutDTO: Codable {
+    let workoutId: String
+    let name: String
+    let description: String?
+    let isSystemWorkout: Bool
+    let exerciseIds: [String]
+
+    func toModel(exercises: [ExerciseModel]) -> WorkoutTemplateModel? {
+        let workoutExercises: [WorkoutTemplateExercise] = exerciseIds.compactMap { exerciseId in
+            guard let exercise = exercises.first(where: { $0.id == exerciseId }) else {
+                return nil
+            }
+            return WorkoutTemplateExercise(exercise: exercise, setRestTimers: false)
+        }
+        guard !workoutExercises.isEmpty else {
+            return nil
+        }
+        return WorkoutTemplateModel(
+            id: workoutId,
+            authorId: "official",
+            name: name,
+            description: description,
+            imageURL: nil,
+            dateCreated: Date(),
+            dateModified: Date(),
+            exercises: workoutExercises
+        )
     }
 }
- 
+
 extension CoreInteractor {
     // MARK: WorkoutTemplateManager
-    
-    func addLocalWorkoutTemplate(workout: WorkoutTemplateModel) async throws {
-        try await workoutTemplateManager.incrementWorkoutTemplateInteraction(id: workout.id)
+
+    var userWorkoutTemplates: [WorkoutTemplateModel] {
+        workoutTemplateManager.userWorkoutTemplates
     }
-    
-    func getLocalWorkoutTemplate(id: String) throws -> WorkoutTemplateModel {
-        try workoutTemplateManager.getLocalWorkoutTemplate(id: id)
+
+    var systemWorkoutTemplates: [WorkoutTemplateModel] {
+        workoutTemplateManager.systemWorkoutTemplates
     }
-    
-    func getLocalWorkoutTemplates(ids: [String]) throws -> [WorkoutTemplateModel] {
-        try workoutTemplateManager.getLocalWorkoutTemplates(ids: ids)
+
+    var allWorkoutTemplates: [WorkoutTemplateModel] {
+        workoutTemplateManager.allWorkoutTemplates
     }
-    
-    func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel] {
-        try workoutTemplateManager.getAllLocalWorkoutTemplates()
+
+    func getWorkoutTemplate(id: String) -> WorkoutTemplateModel? {
+        workoutTemplateManager.getWorkoutTemplate(id: id)
     }
-    
-    func createWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws {
-        try await workoutTemplateManager.createWorkoutTemplate(workout: workout, image: image)
-    }
-    
-    func updateWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws {
-        try await workoutTemplateManager.updateWorkoutTemplate(workout: workout, image: image)
-    }
-    
-    func deleteWorkoutTemplate(id: String) async throws {
-        try await workoutTemplateManager.deleteWorkoutTemplate(id: id)
-    }
-    
+
     func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel {
         try await workoutTemplateManager.getWorkoutTemplate(id: id)
     }
-    
-    func get(id: String) async -> WorkoutTemplateModel? {
-        return try? await workoutTemplateManager.getWorkoutTemplate(id: id)
-    }
-    
-    func getWorkoutTemplates(ids: [String], limitTo: Int = 20) async throws -> [WorkoutTemplateModel] {
-        try await workoutTemplateManager.getWorkoutTemplates(ids: ids, limitTo: limitTo)
-    }
-    
-    func getWorkoutTemplatesByName(name: String) async throws -> [WorkoutTemplateModel] {
-        try await workoutTemplateManager.getWorkoutTemplatesByName(name: name)
-    }
-    
-    func getWorkoutTemplatesForAuthor(authorId: String) async throws -> [WorkoutTemplateModel] {
-        try await workoutTemplateManager.getWorkoutTemplatesForAuthor(authorId: authorId)
-    }
-    
-    func getTopWorkoutTemplatesByClicks(limitTo: Int = 10) async throws -> [WorkoutTemplateModel] {
-        try await workoutTemplateManager.getTopWorkoutTemplatesByClicks(limitTo: limitTo)
-    }
-    
-    func incrementWorkoutTemplateInteraction(id: String) async throws {
-        try await workoutTemplateManager.incrementWorkoutTemplateInteraction(id: id)
-    }
-    
-    func removeAuthorIdFromWorkoutTemplate(id: String) async throws {
-        try await workoutTemplateManager.removeAuthorIdFromWorkoutTemplate(id: id)
-    }
-    
-    func removeAuthorIdFromAllWorkoutTemplates(id: String) async throws {
-        try await workoutTemplateManager.removeAuthorIdFromAllWorkoutTemplates(id: id)
-    }
-    
-    func bookmarkWorkoutTemplate(id: String, isBookmarked: Bool) async throws {
-        try await workoutTemplateManager.bookmarkWorkoutTemplate(id: id, isBookmarked: isBookmarked)
-    }
-    
-    func favouriteWorkoutTemplate(id: String, isFavourited: Bool) async throws {
-        try await workoutTemplateManager.favouriteWorkoutTemplate(id: id, isFavourited: isFavourited)
+
+    func saveWorkoutTemplate(workoutTemplate: WorkoutTemplateModel, image: PlatformImage?) async throws {
+        try await workoutTemplateManager.saveWorkoutTemplate(workoutTemplate, image)
     }
 
+    func deleteWorkoutTemplate(id: String) async throws {
+        try await workoutTemplateManager.deleteWorkoutTemplate(id: id)
+    }
+
+    func seedWorkoutTemplatesIfNeeded() throws {
+        try workoutTemplateManager.seedWorkoutTemplatesIfNeeded(exercises: exerciseModelManager.allExercises)
+    }
 }

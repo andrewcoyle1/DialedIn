@@ -187,7 +187,7 @@ struct ProgramSettingsView: View {
     
     private var dayOrderSubtitle: String {
         var subtitle = ""
-        for plan in program.dayPlans {
+        for plan in program.workoutTemplates {
             if plan.exercises.isEmpty {
                 subtitle += "R "
             } else {

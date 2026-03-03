@@ -10,149 +10,66 @@ import Foundation
 @Observable
 @MainActor
 class BodyMeasurementsManager {
-    private let remote: RemoteBodyMeasurementService
-    private let local: LocalBodyMeasurementService
+    
+    private let bodyMeasurementsSyncEngine: CollectionSyncEngine<BodyMeasurementEntry>
+    #if canImport(HealthKit)
+        private let healthKitService: HealthKitWeightService?
+        private var lastUserIdForSync: String?
+        private var isHealthKitSyncInProgress = false
+        private let healthKitLastSyncKey = "healthkit.weight.lastSyncDate"
+        private let healthKitBodyFatLastSyncKey = "healthkit.bodyfat.lastSyncDate"
+    #endif
+
+    var bodyMeasurements: [BodyMeasurementEntry] {
+        bodyMeasurementsSyncEngine.currentCollection
+    }
+    
+    init(
+        bodyMeasurementsSyncEngine: CollectionSyncEngine<BodyMeasurementEntry>,
+        healthKitService: HealthKitWeightService
+    ) {
+        self.bodyMeasurementsSyncEngine = bodyMeasurementsSyncEngine
 #if canImport(HealthKit)
-    private let healthKit: HealthKitWeightService?
-    private var lastUserIdForSync: String?
-    private var isHealthKitSyncInProgress = false
-    private let healthKitLastSyncKey = "healthkit.weight.lastSyncDate"
-    private let healthKitBodyFatLastSyncKey = "healthkit.bodyfat.lastSyncDate"
+        self.healthKitService = healthKitService
 #endif
+    }
 
-    private(set) var measurementHistory: [BodyMeasurementEntry] = []
+    // MARK: - Lifecycle
 
-    init(services: BodyMeasurementServices) {
-        self.remote = services.remote
-        self.local = services.local
-#if canImport(HealthKit)
-        self.healthKit = services.healthKit
-#endif
+    func signIn(userId: String) async {
+        await bodyMeasurementsSyncEngine.startListening { query in
+            query.where("author_id", isEqualTo: userId)
+        }
+    }
 
-        _ = try? self.readAllLocalWeightEntries()
+    func signOut() {
+        bodyMeasurementsSyncEngine.stopListening()
     }
 
     // MARK: CREATE
-    func createWeightEntry(weightEntry: BodyMeasurementEntry) async throws {
-        try local.createWeightEntry(weightEntry: weightEntry)
-        try await remote.createWeightEntry(entry: weightEntry)
+    func saveBodyMeasurement(bodyMeasurement: BodyMeasurementEntry) async throws {
+        try await bodyMeasurementsSyncEngine.saveDocument(bodyMeasurement)
 #if canImport(HealthKit)
-        lastUserIdForSync = weightEntry.authorId
-        await exportToHealthKitIfNeeded(entry: weightEntry)
+        lastUserIdForSync = bodyMeasurement.authorId
+        await exportToHealthKitIfNeeded(entry: bodyMeasurement)
 #endif
-    }
-
-    // MARK: READ
-    func readLocalWeightEntry(id: String) throws -> BodyMeasurementEntry {
-        try local.readWeightEntry(id: id)
-    }
-
-    func readRemoteWeightEntry(userId: String, entryId: String) async throws -> BodyMeasurementEntry {
-        try await remote.readWeightEntry(userId: userId, entryId: entryId)
-    }
-
-    @discardableResult
-    func readAllLocalWeightEntries() throws -> [BodyMeasurementEntry] {
-        self.measurementHistory = try local.readWeightEntries()
-#if canImport(HealthKit)
-        if let userId = lastUserIdForSync ?? measurementHistory.first?.authorId {
-            Task { [weak self] in
-                await self?.syncWithHealthKit(userId: userId)
-            }
-        }
-#endif
-        return self.measurementHistory
-    }
-
-    @discardableResult
-    func readAllRemoteWeightEntries(userId: String) async throws -> [BodyMeasurementEntry] {
-#if canImport(HealthKit)
-        lastUserIdForSync = userId
-        await syncWithHealthKit(userId: userId)
-#endif
-        let remoteEntries = try await remote.readAllWeightEntriesForAuthor(userId: userId)
-        for entry in remoteEntries {
-            do {
-                try local.createWeightEntry(weightEntry: entry)
-            } catch {
-                try? local.updateWeightEntry(entry: entry)
-            }
-        }
-        self.measurementHistory = remoteEntries
-        return self.measurementHistory
-    }
-
-    // MARK: UPDATE
-    func updateWeightEntry(entry: BodyMeasurementEntry) async throws {
-        try local.updateWeightEntry(entry: entry)
-        try await remote.updateWeightEntry(entry: entry)
-        // Update the in-memory cache to reflect the changes
-        if let index = measurementHistory.firstIndex(where: { $0.id == entry.id }) {
-            measurementHistory[index] = entry
-        } else {
-            // If entry not found in cache, refresh from local storage
-            _ = try? readAllLocalWeightEntries()
-        }
     }
 
     // MARK: DELETE
-    func deleteWeightEntry(userId: String, entryId: String) async throws {
-        try local.deleteWeightEntry(id: entryId)
-        try await remote.deleteWeightEntry(userId: userId, entryId: entryId)
+    func deleteWeightEntry(entryId: String) async throws {
+        try await bodyMeasurementsSyncEngine.deleteDocument(id: entryId)
     }
 
-    func deleteAllWeightEntriesForUser(userId: String) async throws {
-        try await remote.deleteAllWeightEntriesForUser(userId: userId)
-    }
-
-    // MARK: Maintenance
-    func dedupeWeightEntriesByDay(userId: String) async throws {
-        let entries = try local.readWeightEntries()
-        let filteredEntries = entries.filter { $0.authorId == userId && $0.deletedAt == nil }
-        guard !filteredEntries.isEmpty else { return }
-
-        let entriesByDay = Dictionary(grouping: filteredEntries) { entry in
-            Calendar.current.startOfDay(for: entry.date)
-        }
-
-        var idsToDelete = Set<String>()
-        for (_, dayEntries) in entriesByDay {
-            // Only dedupe entries that have weightKg
-            let entriesWithWeight = dayEntries.filter { $0.weightKg != nil }
-            guard !entriesWithWeight.isEmpty else { continue }
-            
-            guard let minEntry = entriesWithWeight.min(by: { lhs, rhs in
-                guard let lhsWeight = lhs.weightKg, let rhsWeight = rhs.weightKg else {
-                    return false
-                }
-                if lhsWeight == rhsWeight {
-                    return lhs.date < rhs.date
-                }
-                return lhsWeight < rhsWeight
-            }) else {
-                continue
-            }
-
-            // Delete other entries with weightKg from the same day
-            for entry in entriesWithWeight where entry.id != minEntry.id {
-                idsToDelete.insert(entry.id)
-            }
-        }
-
-        for entryId in idsToDelete {
-            try local.deleteWeightEntry(id: entryId)
-            try await remote.deleteWeightEntry(userId: userId, entryId: entryId)
-        }
-
-        if let refreshed = try? local.readWeightEntries() {
-            measurementHistory = refreshed
+    func deleteAllWeightEntriesForUser() async throws {
+        for entry in self.bodyMeasurements {
+            try await bodyMeasurementsSyncEngine.deleteDocument(id: entry.id)
         }
     }
 
 #if canImport(HealthKit)
     // MARK: HealthKit Sync
     func syncWithHealthKit(userId: String) async {
-        guard healthKit != nil else { return }
+        guard healthKitService != nil else { return }
         guard !isHealthKitSyncInProgress else { return }
         isHealthKitSyncInProgress = true
         defer { isHealthKitSyncInProgress = false }
@@ -165,28 +82,27 @@ class BodyMeasurementsManager {
     }
 
     func backfillBodyFatFromHealthKit(userId: String) async {
-        guard healthKit != nil else { return }
+        guard healthKitService != nil else { return }
         guard !isHealthKitSyncInProgress else { return }
         isHealthKitSyncInProgress = true
         defer { isHealthKitSyncInProgress = false }
 
         do {
-            let existingEntries = (try? local.readWeightEntries()) ?? []
-            try await importBodyFatFromHealthKit(userId: userId, existingEntries: existingEntries, forceFullSync: true)
+            try await importBodyFatFromHealthKit(userId: userId, existingEntries: self.bodyMeasurements, forceFullSync: true)
         } catch {
             return
         }
     }
 
     private func importFromHealthKit(userId: String) async throws {
-        guard let healthKit else { return }
+        guard let healthKitService else { return }
 
         let lastSync = lastHealthKitSyncDate()
-        let samples = try await healthKit.readWeightSamples(since: lastSync)
+        let samples = try await healthKitService.readWeightSamples(since: lastSync)
         guard !samples.isEmpty else { return }
 
         let consolidatedSamples = consolidateWeightSamplesByDay(samples)
-        let existingEntries = (try? local.readWeightEntries()) ?? []
+        let existingEntries = self.bodyMeasurements
         let existingUUIDs = Set(existingEntries.compactMap(\.healthKitUUID))
         let existingDayMins = existingDayMinWeights(userId: userId, entries: existingEntries)
 
@@ -202,16 +118,12 @@ class BodyMeasurementsManager {
             setLastHealthKitSyncDate(newestDate)
         }
 
-        let refreshedEntries = (try? local.readWeightEntries()) ?? existingEntries
+        let refreshedEntries = self.bodyMeasurements
         try await importBodyFatFromHealthKit(
             userId: userId,
             existingEntries: refreshedEntries,
             forceFullSync: refreshedEntries.contains { $0.source == .healthkit && $0.deletedAt == nil && $0.bodyFatPercentage == nil }
         )
-
-        if let refreshed = try? local.readWeightEntries() {
-            measurementHistory = refreshed
-        }
     }
 
     private func consolidateWeightSamplesByDay(_ samples: [HealthKitWeightSample]) -> [HealthKitWeightSample] {
@@ -257,16 +169,7 @@ class BodyMeasurementsManager {
                 deletedAt: nil,
                 healthKitUUID: sample.uuid
             )
-            do {
-                try local.createWeightEntry(weightEntry: entry)
-            } catch {
-                try? local.updateWeightEntry(entry: entry)
-            }
-            do {
-                try await remote.createWeightEntry(entry: entry)
-            } catch {
-                try? await remote.updateWeightEntry(entry: entry)
-            }
+            try? await self.saveBodyMeasurement(bodyMeasurement: entry)
         }
         return newestDate
     }
@@ -276,10 +179,10 @@ class BodyMeasurementsManager {
         existingEntries: [BodyMeasurementEntry],
         forceFullSync: Bool
     ) async throws {
-        guard let healthKit else { return }
+        guard let healthKitService else { return }
 
         let since = forceFullSync ? nil : lastHealthKitBodyFatSyncDate()
-        let samples = try await healthKit.readBodyFatSamples(since: since)
+        let samples = try await healthKitService.readBodyFatSamples(since: since)
         guard !samples.isEmpty else { return }
 
         let consolidatedSamples = consolidateBodyFatSamplesByDay(samples)
@@ -322,12 +225,8 @@ class BodyMeasurementsManager {
             else { continue }
 
             let updatedEntry = entryWithBodyFat(entryToUpdate, bodyFatPercentage: sample.bodyFatPercentage)
-            do {
-                try local.updateWeightEntry(entry: updatedEntry)
-                try await remote.updateWeightEntry(entry: updatedEntry)
-            } catch {
-                continue
-            }
+            
+            try? await self.saveBodyMeasurement(bodyMeasurement: updatedEntry)
         }
         return newestDate
     }
@@ -367,12 +266,12 @@ class BodyMeasurementsManager {
     }
 
     private func exportToHealthKitIfNeeded(entry: BodyMeasurementEntry) async {
-        guard let healthKit else { return }
+        guard let healthKitService else { return }
         guard entry.source != .healthkit, entry.healthKitUUID == nil else { return }
         guard let weightKg = entry.weightKg else { return }
 
         do {
-            let uuid = try await healthKit.saveWeightSample(weightKg: weightKg, date: entry.date)
+            let uuid = try await healthKitService.saveWeightSample(weightKg: weightKg, date: entry.date)
             let updatedEntry = BodyMeasurementEntry(
                 id: entry.id,
                 authorId: entry.authorId,
@@ -405,12 +304,7 @@ class BodyMeasurementsManager {
                 healthKitUUID: uuid
             )
 
-            try local.updateWeightEntry(entry: updatedEntry)
-            try await remote.updateWeightEntry(entry: updatedEntry)
-
-            if let index = measurementHistory.firstIndex(where: { $0.id == updatedEntry.id }) {
-                measurementHistory[index] = updatedEntry
-            }
+            try? await self.saveBodyMeasurement(bodyMeasurement: updatedEntry)
         } catch {
             return
         }
@@ -437,44 +331,18 @@ class BodyMeasurementsManager {
 extension CoreInteractor {
     // BodyMeasurementsManager
 
-    var measurementHistory: [BodyMeasurementEntry] {
-        bodyMeasurementsManager.measurementHistory
+    var bodyMeasurements: [BodyMeasurementEntry] {
+        bodyMeasurementsManager.bodyMeasurements
     }
 
     /// CREATE
-    func createWeightEntry(weightEntry: BodyMeasurementEntry) async throws {
-        try await bodyMeasurementsManager.createWeightEntry(weightEntry: weightEntry)
-    }
-
-    /// READ
-    func readLocalWeightEntry(id: String) throws -> BodyMeasurementEntry {
-        try bodyMeasurementsManager.readLocalWeightEntry(id: id)
-    }
-
-    func readRemoteWeightEntry(userId: String, entryId: String) async throws -> BodyMeasurementEntry {
-        try await bodyMeasurementsManager.readRemoteWeightEntry(userId: userId, entryId: entryId)
-    }
-
-    func readAllLocalWeightEntries() throws -> [BodyMeasurementEntry] {
-        try bodyMeasurementsManager.readAllLocalWeightEntries()
-    }
-
-    func readAllRemoteWeightEntries(userId: String) async throws -> [BodyMeasurementEntry] {
-        try await bodyMeasurementsManager.readAllRemoteWeightEntries(userId: userId)
-    }
-
-    /// UPDATE
-    func updateWeightEntry(entry: BodyMeasurementEntry) async throws {
-        try await bodyMeasurementsManager.updateWeightEntry(entry: entry)
+    func saveBodyMeasurement(bodyMeasurement: BodyMeasurementEntry) async throws {
+        try await bodyMeasurementsManager.saveBodyMeasurement(bodyMeasurement: bodyMeasurement)
     }
 
     /// DELETE
-    func deleteWeightEntry(userId: String, entryId: String) async throws {
-        try await bodyMeasurementsManager.deleteWeightEntry(userId: userId, entryId: entryId)
-    }
-
-    func dedupeWeightEntriesByDay(userId: String) async throws {
-        try await bodyMeasurementsManager.dedupeWeightEntriesByDay(userId: userId)
+    func deleteWeightEntry(entryId: String) async throws {
+        try await bodyMeasurementsManager.deleteWeightEntry(entryId: entryId)
     }
 
     func backfillBodyFatFromHealthKit() async {

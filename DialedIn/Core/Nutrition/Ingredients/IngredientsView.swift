@@ -14,7 +14,7 @@ struct IngredientsView<IngredientList: View>: View {
     @ViewBuilder var ingredientListViewBuilder: (IngredientListBuilderDelegate) -> IngredientList
 
     var body: some View {
-        let delegate = IngredientListBuilderDelegate(onIngredientPressed: presenter.onIngredientPressed)
+        let delegate = IngredientListBuilderDelegate(onIngredientSelectionChanged: presenter.onIngredientPressed)
         ingredientListViewBuilder(delegate)
     }
 }

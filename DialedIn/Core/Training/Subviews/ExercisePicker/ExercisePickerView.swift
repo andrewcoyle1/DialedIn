@@ -38,13 +38,13 @@ struct ExercisePickerView: View {
                     Image(systemName: "xmark")
                 }
             }
-        }
-        .task {
-            await presenter.loadExercises()
-        }
-        .onChange(of: presenter.searchText) {
-            Task {
-                await presenter.searchExercises()
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    presenter.onAddExercisePressed()
+                } label: {
+                    Image(systemName: "plus")
+                }
             }
         }
     }
@@ -68,9 +68,7 @@ struct ExercisePickerView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             Button("Try Again") {
-                Task {
-                    await presenter.loadExercises()
-                }
+                // TODO: Solve case where exercises dont load
             }
             .buttonStyle(.borderedProminent)
         }

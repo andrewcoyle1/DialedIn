@@ -311,25 +311,7 @@ struct ContributionChartView: View {
         let dayOffset = columnIndex * rows + rowIndex
         return calendar.date(byAdding: .day, value: dayOffset, to: startDate) ?? startDate
     }
-    
-    /// Debug method to print the date mapping
-    private func printDateMapping() {
-        print("Contribution Chart Date Mapping:")
-        print("Start Date: \(startDate)")
-        print("End Date: \(endDate)")
-        print("Total Days: \(rows * columns)")
-        print("Data Count: \(data.count)")
         
-        for column in 0..<columns {
-            for row in 0..<rows {
-                let date = dateForCell(columnIndex: column, rowIndex: row)
-                let dataIndex = column * rows + row
-                let value = dataIndex < data.count ? data[dataIndex] : 0.0
-                print("Column \(column), Row \(row): \(date) -> Value: \(value)")
-            }
-        }
-    }
-    
     /// The end date of the chart
     
     /// The date range string for debugging

@@ -9,18 +9,19 @@ import SwiftUI
 
 struct MicrocycleItem: Identifiable {
     let id: String
-    let dayPlan: DayPlan
+    let workoutTemplate: WorkoutTemplateModel
     let completedSessionId: String?
+    let trainingProgramId: String
     
     var isCompleted: Bool {
         completedSessionId != nil
     }
 }
 
-struct MicrocycleDayPlanItem: Identifiable {
+struct MicrocycleWorkoutTemplateModelItem: Identifiable {
     let id: String
     let date: Date
-    let dayPlan: DayPlan
+    let dayPlan: WorkoutTemplateModel
     let completedSessionId: String?
     
     var isCompleted: Bool {
@@ -43,6 +44,14 @@ class TrainingPresenter {
     var selectedTime: Date = Date()
     
     var today: Date = Date()
+    
+    var favouriteGymProfile: GymProfileModel? {
+        interactor.favouriteGymProfile
+    }
+    
+    var workoutSessions: [WorkoutSessionModel] {
+        interactor.workoutSessions
+    }
     
     init(
         interactor: TrainingInteractor,
@@ -76,8 +85,6 @@ class TrainingPresenter {
     var userImageUrl: String? {
         interactor.userImageUrl
     }
-
-    private(set) var favouriteGymProfileImageUrl: String?
     
     var activeSession: WorkoutSessionModel? {
         interactor.activeSession
@@ -86,7 +93,7 @@ class TrainingPresenter {
     func onAddPressed() {
         let delegate = AddTrainingDelegate(
             onSelectProgram: { [weak self] in
-                self?.router.showCreateProgramView(delegate: CreateProgramDelegate())
+                self?.router.showCreateProgramView(delegate: CreateProgramDelegate(onDismiss: { self?.router.dismissScreen() }))
             },
             onSelectWorkout: { [weak self] in
                 self?.router.showCreateWorkoutView(delegate: CreateWorkoutDelegate())
@@ -97,14 +104,19 @@ class TrainingPresenter {
         )
         router.showAddTrainingView(delegate: delegate, onDismiss: nil)
     }
-    
+        
     func onProfilePressed() {
         router.showProfileView()
     }
     
     func getLoggedWorkoutCountForDate(_ date: Date, calendar: Calendar) -> Int {
-        // TODO: Implement workout count logic here
-        return 0
+        sessionsForDate(date).count
+    }
+
+    private func sessionsForDate(_ date: Date) -> [WorkoutSessionModel] {
+        interactor.workoutSessions.filter { session in
+            session.endedAt != nil && calendar.isDate(session.dateCreated, inSameDayAs: date)
+        }
     }
 
     // MARK: - Active Workout Safeguard
@@ -128,6 +140,7 @@ class TrainingPresenter {
                             onResumeWorkout()
                         }
                         Button("Discard & Start New", role: .destructive) {
+                            try? self.interactor.deleteActiveSession()
                             onStartNewWorkout()
                         }
                         Button("Cancel", role: .cancel) { }
@@ -151,7 +164,7 @@ class TrainingPresenter {
                 AnyView(
                     VStack {
                         Button(role: .destructive) {
-                            self.deleteTrainingProgram(program: program)
+                            Task { try? await self.deleteTrainingProgram(programId: program.id) }
                         }
                         Button(role: .cancel) { }
                     }
@@ -160,19 +173,16 @@ class TrainingPresenter {
         )
     }
     
-    private func deleteTrainingProgram(program: TrainingProgram) {
-        Task {
-            try? await interactor.deleteTrainingProgram(program: program)
-            
-        }
+    private func deleteTrainingProgram(programId: String) async throws {
+        try await interactor.deleteTrainingProgram(programId: programId)
     }
     
     private func resumeActiveWorkout() {
-        guard let activeSession = activeSession else { return }
-        router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: activeSession.id))
+        guard activeSession != nil else { return }
+        router.showWorkoutTrackerView()
     }
 
-    func startDayPlanWorkout(_ dayPlan: DayPlan) {
+    func startWorkoutTemplateModelWorkout(_ workoutTemplate: WorkoutTemplateModel, in trainingProgram: String?) {
         let shouldProceed = checkForActiveWorkout(
             onResumeWorkout: { [weak self] in
                 Task {
@@ -181,55 +191,79 @@ class TrainingPresenter {
             },
             onStartNewWorkout: { [weak self] in
                 Task {
-                    await self?.performStartDayPlanWorkout(dayPlan)
+                    await self?.performStartWorkoutTemplateModelWorkout(workoutTemplate, in: trainingProgram)
                 }
             }
         )
         
         if shouldProceed {
-            performStartDayPlanWorkout(dayPlan)
+            performStartWorkoutTemplateModelWorkout(workoutTemplate, in: trainingProgram)
         }
     }
     
-    private func performStartDayPlanWorkout(_ dayPlan: DayPlan) {
-        interactor.trackEvent(event: Event.startWorkoutRequestedStart)
-        do {
-            let authId = try interactor.getAuthId()
-            let template = WorkoutTemplateModel.newWorkoutTemplate(
-                name: dayPlan.name,
-                authorId: authId,
-                exercises: dayPlan.exercises
-            )
-                        
-            // Notify parent to show WorkoutStartView
-            handleWorkoutStartRequest(
+    private func performStartWorkoutTemplateModelWorkout(_ template: WorkoutTemplateModel, in trainingProgramId: String?) {
+        // Notify parent to show WorkoutStartView
+        router.showWorkoutStartModal(
+            delegate: WorkoutStartDelegate(
                 template: template,
-                programId: activeTrainingProgram?.id,
-                dayPlanId: dayPlan.id
+                trainingProgramId: trainingProgramId,
+                onStartWorkoutPressed: { [weak self] in
+                    guard let self else { return }
+                    Task {
+                        do {
+                            try await self.interactor.startWorkout(for: template, in: trainingProgramId)
+                            self.router.dismissModal()
+                            self.router.showWorkoutTrackerView()
+                        } catch {
+                            self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
+                        }
+                    }
+                },
+                onCancelPressed: {
+                    self.router.dismissModal()
+                }
             )
-            interactor.trackEvent(event: Event.startWorkoutRequestedSuccess)
-
-        } catch {
-            interactor.trackEvent(event: Event.startWorkoutRequestedFail(error: error))
-            self.router.showAlert(error: error)
-        }
+        )
     }
     
     func openCompletedSession(sessionId: String) {
         interactor.trackEvent(event: Event.openCompletedSessionStart)
-        do {
-            let session = try interactor.getLocalWorkoutSession(id: sessionId)
-            router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
-            interactor.trackEvent(event: Event.openCompletedSessionSuccess)
-        } catch {
-            router.showAlert(error: error)
-            interactor.trackEvent(event: Event.openCompletedSessionFail(error: error))
-        }
+        guard let session = workoutSessions.first(where: { $0.id == sessionId }) else { return }
+        router.showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate(workoutSession: session))
+        interactor.trackEvent(event: Event.openCompletedSessionSuccess)
     }
 
     func onDatePressed(date: Date) {
         self.selectedDate = date.startOfDay
-        
+        let sessions = sessionsForDate(date)
+        switch sessions.count {
+        case 0:
+            break
+        case 1:
+            openCompletedSession(sessionId: sessions[0].id)
+        default:
+            showSessionPicker(sessions: sessions)
+        }
+    }
+
+    private func showSessionPicker(sessions: [WorkoutSessionModel]) {
+        router.showAlert(
+            title: "Multiple Workouts",
+            subtitle: "Which workout would you like to open?",
+            buttons: {
+                AnyView(
+                    VStack {
+                        ForEach(sessions) { session in
+                            let time = session.dateCreated.formatted(date: .omitted, time: .shortened)
+                            Button("\(session.name) · \(time)") {
+                                self.openCompletedSession(sessionId: session.id)
+                            }
+                        }
+                        Button("Cancel", role: .cancel) { }
+                    }
+                )
+            }
+        )
     }
             
     func adherenceColor(_ rate: Double) -> Color {
@@ -286,64 +320,208 @@ class TrainingPresenter {
     }
     
     private func performStartEmptyWorkout() {
-        guard let userId = currentUser?.userId else {
-            return
-        }
+        guard let userId = currentUser?.userId else { return }
+        let session = WorkoutSessionModel(
+            id: UUID().uuidString,
+            authorId: userId,
+            name: "Untitled Workout",
+            dateCreated: .now,
+            exercises: []
+        )
+        guard (try? interactor.updateActiveSession(session)) != nil else { return }
         defer {
             Task {
-                let session = WorkoutSessionModel(
-                    id: UUID().uuidString,
-                    authorId: userId,
-                    name: "Untitled Workout",
-                    dateCreated: .now,
-                    exercises: []
-                )
-                try interactor.addLocalWorkoutSession(session: session)
-                
                 try? await Task.sleep(for: .seconds(0.1))
-                
                 await MainActor.run {
-                    interactor.startActiveSession(session)
-                    router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
+                    router.showWorkoutTrackerView()
                 }
             }
         }
-        
         router.dismissScreen()
     }
     
-    // MARK: - Data Loading
-    
-    func loadData() async {
-        _ = try? await interactor.getActiveTrainingProgram()
-        await refreshFavouriteGymProfileImage()
+    func microcycleItemsForWeek(weekStart: Date, calendar: Calendar) -> [Date: MicrocycleWorkoutTemplateModelItem] {
+        guard let program = activeTrainingProgram, !program.workoutTemplates.isEmpty else {
+            microcycleHeaderText = "Current Microcycle"
+            return [:]
+        }
+        let dayPlans = program.workoutTemplates
+        let workoutWorkoutTemplateModelIds = Set(dayPlans.filter { !$0.exercises.isEmpty }.map { $0.id })
+        let completedSessions = microcycleCompletedSessions(program: program, dayPlans: dayPlans)
+        let weekDates = (0..<7)
+            .compactMap { calendar.date(byAdding: .day, value: $0, to: weekStart) }
+            .map { calendar.startOfDay(for: $0) }
+        let weekDateSet = Set(weekDates)
+
+        let cycleState = microcycleCycleState(
+            program: program,
+            completedSessions: completedSessions,
+            workoutWorkoutTemplateModelIds: workoutWorkoutTemplateModelIds
+        )
+        microcycleHeaderText = "Microcycle \(cycleState.cycleIndex) of \(cycleState.cyclesTotal)"
+
+        var itemsByDay = microcycleItemsFromCompleted(
+            weekDateSet: weekDateSet,
+            completedSessions: completedSessions,
+            calendar: calendar
+        )
+        let startIndex = microcycleStartIndex(
+            dayPlans: dayPlans,
+            workoutWorkoutTemplateModelIds: workoutWorkoutTemplateModelIds,
+            completedInCurrentCycle: cycleState.completedInCurrentCycle
+        )
+        var nextIndex = startIndex % dayPlans.count
+        for day in weekDates where itemsByDay[day] == nil {
+            let dayPlan = dayPlans[nextIndex]
+            itemsByDay[day] = MicrocycleWorkoutTemplateModelItem(
+                id: "\(day.timeIntervalSince1970)-\(dayPlan.id)",
+                date: day,
+                dayPlan: dayPlan,
+                completedSessionId: nil
+            )
+            nextIndex = (nextIndex + 1) % dayPlans.count
+        }
+        return itemsByDay
+    }
+
+    func microcycleCompletedSessions(
+        program: TrainingProgram,
+        dayPlans: [WorkoutTemplateModel]
+    ) -> [(WorkoutSessionModel, WorkoutTemplateModel)] {
+        let dayPlanNames = Set(dayPlans.map { $0.name })
+        let dayPlanById = Dictionary(uniqueKeysWithValues: dayPlans.map { ($0.id, $0) })
+        return workoutSessions
+            .compactMap { session -> (WorkoutSessionModel, WorkoutTemplateModel)? in
+                guard session.endedAt != nil else { return nil }
+                let shouldInclude = session.trainingProgramId == program.id
+                    || (session.trainingProgramId == nil && dayPlanNames.contains(session.name))
+                guard shouldInclude else { return nil }
+                if let dayPlanId = session.workoutTemplateId, let plan = dayPlanById[dayPlanId] {
+                    return (session, plan)
+                }
+                if let plan = dayPlans.first(where: { $0.name == session.name }) {
+                    return (session, plan)
+                }
+                return nil
+            }
+            .sorted { ($0.0.endedAt ?? .distantPast) < ($1.0.endedAt ?? .distantPast) }
+    }
+
+    func microcycleCycleState(
+        program: TrainingProgram,
+        completedSessions: [(WorkoutSessionModel, WorkoutTemplateModel)],
+        workoutWorkoutTemplateModelIds: Set<String>
+    ) -> MicrocycleCycleState {
+        let cyclesTotal = max(program.numMicrocycles, 1)
+        var completedCycles = 0
+        var completedInCurrentCycle = Set<String>()
+        for (_, dayPlan) in completedSessions {
+            guard workoutWorkoutTemplateModelIds.contains(dayPlan.id) else { continue }
+            completedInCurrentCycle.insert(dayPlan.id)
+            if completedInCurrentCycle == workoutWorkoutTemplateModelIds && !workoutWorkoutTemplateModelIds.isEmpty {
+                completedCycles += 1
+                completedInCurrentCycle.removeAll()
+            }
+        }
+        let cycleIndex = min(completedCycles + 1, cyclesTotal)
+        return MicrocycleCycleState(
+            cycleIndex: cycleIndex,
+            cyclesTotal: cyclesTotal,
+            completedInCurrentCycle: completedInCurrentCycle
+        )
+    }
+
+    func microcycleItemsFromCompleted(
+        weekDateSet: Set<Date>,
+        completedSessions: [(WorkoutSessionModel, WorkoutTemplateModel)],
+        calendar: Calendar
+    ) -> [Date: MicrocycleWorkoutTemplateModelItem] {
+        var itemsByDay: [Date: MicrocycleWorkoutTemplateModelItem] = [:]
+        for (session, dayPlan) in completedSessions {
+            guard let endedAt = session.endedAt else { continue }
+            let day = calendar.startOfDay(for: endedAt)
+            guard weekDateSet.contains(day), itemsByDay[day] == nil else { continue }
+            itemsByDay[day] = MicrocycleWorkoutTemplateModelItem(
+                id: "\(day.timeIntervalSince1970)-\(dayPlan.id)",
+                date: day,
+                dayPlan: dayPlan,
+                completedSessionId: session.id
+            )
+        }
+        return itemsByDay
+    }
+
+    func microcycleStartIndex(
+        dayPlans: [WorkoutTemplateModel],
+        workoutWorkoutTemplateModelIds: Set<String>,
+        completedInCurrentCycle: Set<String>
+    ) -> Int {
+        if workoutWorkoutTemplateModelIds.isEmpty { return 0 }
+        if let first = dayPlans.firstIndex(where: { !$0.exercises.isEmpty && !completedInCurrentCycle.contains($0.id) }) {
+            return first
+        }
+        return 0
+    }
+
+    func currentMicrocycleItems() -> [MicrocycleItem] {
+        guard let program = activeTrainingProgram, !program.workoutTemplates.isEmpty else {
+            microcycleHeaderText = "Current Microcycle"
+            return []
+        }
+
+        let dayPlans = program.workoutTemplates
+        let dayPlanNames = Set(dayPlans.map { $0.name })
+        let dayPlanById = Dictionary(uniqueKeysWithValues: dayPlans.map { ($0.id, $0) })
+        let workoutWorkoutTemplateModelIds = Set(dayPlans.filter { !$0.exercises.isEmpty }.map { $0.id })
+
+        let completedSessions = workoutSessions
+            .compactMap { session -> (WorkoutSessionModel, WorkoutTemplateModel)? in
+                let shouldInclude = session.trainingProgramId == program.id
+                    || (session.trainingProgramId == nil && session.workoutTemplateId == nil && dayPlanNames.contains(session.name))
+                guard shouldInclude else { return nil }
+                if let dayPlanId = session.workoutTemplateId, let plan = dayPlanById[dayPlanId] {
+                    return (session, plan)
+                }
+                if let plan = dayPlans.first(where: { $0.name == session.name }) {
+                    return (session, plan)
+                }
+                return nil
+            }
+            .sorted { ($0.0.endedAt ?? .distantPast) < ($1.0.endedAt ?? .distantPast) }
+
+        let cyclesTotal = max(program.numMicrocycles, 1)
+        var completedCycles = 0
+        var completedInCurrentCycle = Set<String>()
+        var sessionByPlanId: [String: String] = [:]
+        for (session, dayPlan) in completedSessions {
+            guard workoutWorkoutTemplateModelIds.contains(dayPlan.id) else { continue }
+            if !completedInCurrentCycle.contains(dayPlan.id) {
+                completedInCurrentCycle.insert(dayPlan.id)
+                sessionByPlanId[dayPlan.id] = session.id
+            }
+            if completedInCurrentCycle == workoutWorkoutTemplateModelIds && !workoutWorkoutTemplateModelIds.isEmpty {
+                completedCycles += 1
+                completedInCurrentCycle.removeAll()
+                sessionByPlanId.removeAll()
+            }
+        }
+        let cycleIndex = min(completedCycles + 1, cyclesTotal)
+        microcycleHeaderText = "Microcycle \(cycleIndex) of \(cyclesTotal)"
+
+        return dayPlans.map { plan in
+            MicrocycleItem(
+                id: plan.id,
+                workoutTemplate: plan,
+                completedSessionId: sessionByPlanId[plan.id],
+                trainingProgramId: program.id
+            )
+        }
     }
     
+    // MARK: - Data Loading
+        
     func refreshData() async {
         interactor.trackEvent(event: Event.refreshDataStart)
-        await refreshFavouriteGymProfileImage()
-    }
-
-    func refreshFavouriteGymProfileImage() async {
-        guard let favouriteId = currentUser?.submittedFavouriteGymProfileId else {
-            favouriteGymProfileImageUrl = nil
-            return
-        }
-
-        do {
-            let localProfile = try interactor.readLocalGymProfile(profileId: favouriteId)
-            favouriteGymProfileImageUrl = localProfile.imageUrl
-            return
-        } catch {
-            // Fall back to remote fetch if not cached locally.
-        }
-
-        do {
-            let remoteProfile = try await interactor.readRemoteGymProfile(profileId: favouriteId)
-            favouriteGymProfileImageUrl = remoteProfile.imageUrl
-        } catch {
-            favouriteGymProfileImageUrl = nil
-        }
     }
 
     func onProgramManagementPressed() {
@@ -426,36 +604,8 @@ class TrainingPresenter {
     }
 }
 
-enum TrainingPresentationMode {
-    case program
-    case workouts
-    case exercises
-    case history
-}
-
-enum ActiveSheet: Identifiable {
-    case programPicker
-    case progressDashboard
-    case strengthProgress
-    case workoutHeatmap
-    case addGoal
-    
-    var id: String {
-        switch self {
-        case .programPicker: return "programPicker"
-        case .progressDashboard: return "progressDashboard"
-        case .strengthProgress: return "strengthProgress"
-        case .workoutHeatmap: return "workoutHeatmap"
-        case .addGoal: return "addGoal"
-        }
-    }
-    
-    var eventParameters: [String: Any] {
-        let sheet = self
-        let params: [String: Any] = [
-            "program_sheet": sheet.id
-        ]
-        
-        return params
-    }
+struct MicrocycleCycleState {
+    let cycleIndex: Int
+    let cyclesTotal: Int
+    let completedInCurrentCycle: Set<String>
 }

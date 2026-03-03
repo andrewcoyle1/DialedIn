@@ -8,11 +8,9 @@
 import SwiftUI
 
 @MainActor
-protocol NameWorkoutInteractor {
+protocol NameWorkoutInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func updateWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws
-    func createWorkoutTemplate(workout: WorkoutTemplateModel, image: PlatformImage?) async throws
-    func trackEvent(eventName: String, parameters: [String: Any]?, type: LogType)
+    func saveWorkoutTemplate(workoutTemplate: WorkoutTemplateModel, image: PlatformImage?) async throws
     func generateImage(input: String) async throws -> UIImage
 }
 

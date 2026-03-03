@@ -31,9 +31,6 @@ struct AdaptiveMainView<TabBarView: View, SplitView: View>: View {
             }
             #endif
         }
-        .onAppear {
-            presenter.getActiveLocalWorkoutSession()
-        }
     }
 }
 

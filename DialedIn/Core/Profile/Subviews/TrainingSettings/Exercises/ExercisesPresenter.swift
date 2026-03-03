@@ -22,21 +22,7 @@ class ExercisesPresenter {
     }
 
     func onExercisePressed(exercise: ExerciseModel) {
-        // Only increment click count for non-system exercises
-        // System exercises (IDs starting with "system-") are read-only
-        if !exercise.id.hasPrefix("system-") {
-            Task {
-                interactor.trackEvent(event: ExercisesViewEvents.incrementExerciseStart)
-                do {
-                    try await interactor.incrementExerciseTemplateInteraction(id: exercise.id)
-                    interactor.trackEvent(event: ExercisesViewEvents.incrementExerciseSuccess)
-                } catch {
-                    interactor.trackEvent(event: ExercisesViewEvents.incrementExerciseFail(error: error))
-                }
-            }
-        }
-
-        router.showExerciseTemplateDetailView(delegate: ExerciseTemplateDetailDelegate(exerciseTemplate: exercise))
+        router.showExerciseModelDetailView(delegate: ExerciseModelDetailDelegate(exerciseModel: exercise))
     }
 
     enum ExercisesViewEvents: LoggableEvent {

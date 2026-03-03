@@ -18,6 +18,8 @@ protocol NutritionRouter: GlobalRouter {
     func showIngredientsView()
 
     func showProfileView()
+    
+    func showTimelineActionsView(delegate: TimelineActionsDelegate)
 
 }
 

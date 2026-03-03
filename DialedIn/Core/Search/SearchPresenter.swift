@@ -16,7 +16,11 @@ class SearchPresenter {
 
     var searchString: String = ""
 
-    private(set) var exercises: [ExerciseModel] = []
+    var filteredExercises: [ExerciseModel] = []
+    var allExercises: [ExerciseModel] {
+        interactor.allExercises
+    }
+    private(set) var users: [UserModel] = []
     private(set) var workouts: [WorkoutTemplateModel] = []
     private(set) var recipes: [RecipeTemplateModel] = []
     private(set) var isLoading: Bool = false
@@ -38,7 +42,11 @@ class SearchPresenter {
     }
 
     var hasResults: Bool {
-        !exercises.isEmpty || !workouts.isEmpty || !recipes.isEmpty
+        !filteredExercises.isEmpty || !workouts.isEmpty || !recipes.isEmpty || !users.isEmpty
+    }
+
+    func isFollowing(userId: String) -> Bool {
+        interactor.followingIds.contains(userId)
     }
 
     init(
@@ -58,38 +66,25 @@ class SearchPresenter {
         }
 
         let query = trimmedSearchString
-        searchTask = Task { @MainActor in
+        searchTask = Task { 
             isLoading = true
-            do {
-                try await Task.sleep(for: .milliseconds(350))
-                guard !Task.isCancelled else { return }
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled else { return }
 
-                let exercisesResult = try await interactor.getExerciseTemplatesByName(name: query)
-                guard !Task.isCancelled else { return }
-                let workoutsResult = try await interactor.getWorkoutTemplatesByName(name: query)
-                guard !Task.isCancelled else { return }
-                let recipesResult = try await interactor.getRecipeTemplatesByName(name: query)
+            let exercises = allExercises.filter { $0.name.localizedCaseInsensitiveContains(query) }
+            let fetchedUsers = (try? await interactor.searchUsers(query: query)) ?? []
+            guard !Task.isCancelled else { return }
 
-                exercises = exercisesResult
-                workouts = workoutsResult
-                recipes = recipesResult
-                isLoading = false
-                interactor.addRecentSearch(query: query)
-            } catch {
-                isLoading = false
-                exercises = []
-                workouts = []
-                recipes = []
-                router.showSimpleAlert(
-                    title: "Search Failed",
-                    subtitle: "We couldn't complete your search. Please try again."
-                )
-            }
+            filteredExercises = exercises
+            users = fetchedUsers
+            isLoading = false
+            interactor.addRecentSearch(query: query)
         }
     }
 
     func onSearchCleared() {
-        exercises = []
+        filteredExercises = []
+        users = []
         workouts = []
         recipes = []
         reloadRecentQueries()
@@ -151,6 +146,26 @@ class SearchPresenter {
         router.showExerciseListBuilderView(delegate: ExerciseListBuilderDelegate())
     }
 
+    func onFollowPressed(user: UserModel) {
+        Task {
+            do {
+                try await interactor.followUser(userId: user.userId)
+            } catch {
+                router.showSimpleAlert(title: "Unable to follow user", subtitle: "Please try again.")
+            }
+        }
+    }
+
+    func onUnfollowPressed(user: UserModel) {
+        Task {
+            do {
+                try await interactor.unfollowUser(userId: user.userId)
+            } catch {
+                router.showSimpleAlert(title: "Unable to unfollow user", subtitle: "Please try again.")
+            }
+        }
+    }
+
     func onProfilePressed(_ transitionId: String, in namespace: Namespace.ID) {
         router.showProfileViewZoom(
             transitionId: transitionId,
@@ -159,40 +174,21 @@ class SearchPresenter {
     }
 
     private func showWorkoutStartModal(for template: WorkoutTemplateModel) {
-        guard let userId = interactor.currentUser?.userId else { return }
-        
-        // Load unit preferences for all exercises in template
-        var unitPreferences: [String: ExerciseUnitPreference] = [:]
-        for exerciseTemplate in template.exercises {
-            let preference = interactor.getPreference(templateId: exerciseTemplate.exercise.id)
-            unitPreferences[exerciseTemplate.exercise.id] = preference
-        }
-        
-        let session = WorkoutSessionModel(
-            authorId: userId,
-            template: template,
-            notes: nil,
-            scheduledWorkoutId: nil,
-            trainingPlanId: nil,
-            programId: nil,
-            dayPlanId: nil,
-            unitPreferences: unitPreferences
-        )
         router.showWorkoutStartModal(
             delegate: WorkoutStartDelegate(
                 template: template,
-                programId: nil,
-                dayPlanId: nil,
+                trainingProgramId: nil,
                 onStartWorkoutPressed: { [weak self] in
                     guard let self else { return }
-                    do {
-                        try self.interactor.addLocalWorkoutSession(session: session)
-                        self.interactor.startActiveSession(session)
-                        self.router.dismissModal()
-                        self.router.dismissEnvironment()
-                        self.router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
-                    } catch {
-                        self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
+                    Task {
+                        do {
+                            try await self.interactor.startWorkout(for: template, in: nil)
+                            self.router.dismissModal()
+                            self.router.dismissEnvironment()
+                            self.router.showWorkoutTrackerView()
+                        } catch {
+                            self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
+                        }
                     }
                 },
                 onCancelPressed: { [weak self] in

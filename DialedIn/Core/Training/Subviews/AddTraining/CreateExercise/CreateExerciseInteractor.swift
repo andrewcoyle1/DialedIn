@@ -10,7 +10,7 @@ import SwiftUI
 @MainActor
 protocol CreateExerciseInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func createExerciseTemplate(exercise: ExerciseModel, image: PlatformImage?) async throws
+    func saveExerciseModel(exercise: ExerciseModel, image: PlatformImage?) async throws
     func generateImage(input: String) async throws -> UIImage
 }
 

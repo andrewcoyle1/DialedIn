@@ -21,6 +21,7 @@ struct SearchView: View {
                 if presenter.isLoading {
                     loadingSection
                 } else if presenter.hasResults {
+                    usersSection
                     exercisesSection
                     workoutsSection
                     recipesSection
@@ -32,6 +33,7 @@ struct SearchView: View {
         .listSectionMargins(.horizontal, 0)
         .listRowSeparator(.hidden)
         .navigationTitle("Search")
+        .toolbarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .top) {
             quickActionsSection
         }
@@ -178,9 +180,25 @@ struct SearchView: View {
         }
     }
 
+    private var usersSection: some View {
+        Section {
+            ForEach(presenter.users) { user in
+                UserSearchRow(
+                    user: user,
+                    isFollowing: presenter.isFollowing(userId: user.userId),
+                    onFollowPressed: { presenter.onFollowPressed(user: user) },
+                    onUnfollowPressed: { presenter.onUnfollowPressed(user: user) }
+                )
+                .removeListRowFormatting()
+            }
+        } header: {
+            Text("People")
+        }
+    }
+
     private var exercisesSection: some View {
         Section {
-            ForEach(presenter.exercises) { exercise in
+            ForEach(presenter.filteredExercises) { exercise in
                 CustomListCellView(
                     imageName: exercise.imageURL,
                     title: exercise.name,
@@ -250,6 +268,53 @@ struct SearchView: View {
             .matchedTransitionSource(id: "search-profile-button", in: namespace)
         }
         .sharedBackgroundVisibility(.hidden)
+    }
+}
+
+private struct UserSearchRow: View {
+
+    let user: UserModel
+    let isFollowing: Bool
+    let onFollowPressed: () -> Void
+    let onUnfollowPressed: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let imageUrl = user.profileImageNameCalculated {
+                ImageLoaderView(urlString: imageUrl)
+                    .frame(width: 44, height: 44)
+                    .clipShape(Circle())
+            } else {
+                Image(systemName: "person.circle.fill")
+                    .font(.system(size: 44))
+                    .foregroundStyle(.secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(user.fullNameCalculated ?? user.firstNameCalculated ?? "Unknown")
+                    .font(.body.weight(.medium))
+            }
+
+            Spacer(minLength: 0)
+
+            Button {
+                if isFollowing {
+                    onUnfollowPressed()
+                } else {
+                    onFollowPressed()
+                }
+            } label: {
+                Text(isFollowing ? "Following" : "Follow")
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .background(isFollowing ? Color(.secondarySystemBackground) : Color.accentColor)
+                    .foregroundStyle(isFollowing ? Color.primary : Color.white)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.vertical, 6)
     }
 }
 

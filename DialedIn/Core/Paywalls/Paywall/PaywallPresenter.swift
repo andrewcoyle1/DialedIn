@@ -119,7 +119,16 @@ class PaywallPresenter {
             router.showCreateGymProfileView(delegate: delegate)
 
         case .trainingProgramSetup:
-            router.showOnboardingTrainingProgramView(delegate: CreateProgramDelegate(onComplete: self.handleNavigation))
+            router.showOnboardingTrainingProgramView(
+                delegate: CreateProgramDelegate(
+                    onComplete: { [weak self] in
+                        guard let self else { return }
+                        Task { @MainActor in
+                            self.handleNavigation()
+                        }
+                    }
+                )
+            )
         case .customiseProgram:
             router.showCustomisingDietProgramView()
 

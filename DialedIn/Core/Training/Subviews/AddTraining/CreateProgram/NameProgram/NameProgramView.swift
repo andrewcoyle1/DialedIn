@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct NameProgramDelegate {
-    let onComplete: (() -> Void)?
+    let onComplete: (@Sendable () -> Void)?
     
-    init(onComplete: (() -> Void)? = nil) {
+    init(onComplete: (@Sendable () -> Void)? = nil) {
         self.onComplete = onComplete
     }
 }

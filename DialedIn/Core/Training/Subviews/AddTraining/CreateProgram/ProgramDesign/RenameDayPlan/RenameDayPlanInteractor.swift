@@ -1,7 +1,7 @@
 import SwiftUI
 
 @MainActor
-protocol RenameDayPlanInteractor {
+protocol RenameWorkoutTemplateModelInteractor {
 }
 
-extension CoreInteractor: RenameDayPlanInteractor { }
+extension CoreInteractor: RenameWorkoutTemplateModelInteractor { }

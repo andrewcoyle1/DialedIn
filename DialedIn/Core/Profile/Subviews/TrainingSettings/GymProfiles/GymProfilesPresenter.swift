@@ -7,7 +7,13 @@ class GymProfilesPresenter {
     private let interactor: GymProfilesInteractor
     private let router: GymProfilesRouter
     
-    private(set) var gymProfiles: [GymProfileModel] = []
+    var currentUser: UserModel? {
+        interactor.currentUser
+    }
+    
+    var gymProfiles: [GymProfileModel] {
+        interactor.gymProfiles
+    }
     
     var numGyms: Int {
         gymProfiles.count
@@ -17,10 +23,17 @@ class GymProfilesPresenter {
         interactor.currentUser?.submittedFavouriteGymProfileId
     }
     
+    var favouriteGymProfile: GymProfileModel? {
+        gymProfiles.first(where: { $0.id == favouriteGymProfileId })
+    }
+    
+    var nonFavouriteGymProfiles: [GymProfileModel] {
+        gymProfiles.filter { $0.id != favouriteGymProfileId }
+    }
+    
     init(interactor: GymProfilesInteractor, router: GymProfilesRouter) {
         self.interactor = interactor
         self.router = router
-        self.loadLocalGymProfiles()
     }
     
     func onViewAppear() {
@@ -29,28 +42,6 @@ class GymProfilesPresenter {
     
     func onViewDisappear() {
         interactor.trackEvent(event: Event.onDisappear)
-    }
-
-    func loadLocalGymProfiles() {
-        interactor.trackEvent(event: Event.loadLocalGymProfileStart)
-        do {
-            gymProfiles = try interactor.readAllLocalGymProfiles()
-            interactor.trackEvent(event: Event.loadLocalGymProfileSuccess)
-        } catch {
-            router.showAlert(error: error)
-            interactor.trackEvent(event: Event.loadLocalGymProfileFail(error: error))
-        }
-    }
-    
-    func loadRemoteGymProfiles() async {
-        interactor.trackEvent(event: Event.loadRemoteGymProfileStart)
-        do {
-            guard let userId = interactor.userId else { return }
-            gymProfiles = try await interactor.readAllRemoteGymProfilesForAuthor(userId: userId)
-            interactor.trackEvent(event: Event.loadRemoteGymProfileSuccess)
-        } catch {
-            interactor.trackEvent(event: Event.loadRemoteGymProfileFail(error: error))
-        }
     }
     
     func onAddGymProfilePressed() {
@@ -68,8 +59,7 @@ class GymProfilesPresenter {
         Task {
             interactor.trackEvent(event: Event.deleteProfileStart)
             do {
-                try await interactor.deleteGymProfile(profile: profile)
-                gymProfiles.removeAll { $0.id == profile.id }
+                try await interactor.deleteGymProfile(profile.id)
                 interactor.trackEvent(event: Event.deleteProfileSuccess)
             } catch {
                 interactor.trackEvent(event: Event.deleteProfileFail(error: error))

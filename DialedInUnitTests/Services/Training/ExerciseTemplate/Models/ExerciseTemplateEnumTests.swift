@@ -1,5 +1,5 @@
 //
-//  ExerciseTemplateEnumTests.swift
+//  ExerciseModelEnumTests.swift
 //  DialedInUnitTests
 //
 //  Created by Andrew Coyle on 28/10/2025.
@@ -239,14 +239,14 @@ struct MuscleGroupTests {
 }
 
 @MainActor
-struct ExerciseTemplateEnumIntegrationTests {
+struct ExerciseModelEnumIntegrationTests {
 
     // MARK: - Integration Tests
     
-    @Test("Test ExerciseTemplateModel With All Exercise Categories")
-    func testExerciseTemplateModelWithAllExerciseCategories() {
+    @Test("Test ExerciseModelModel With All Exercise Categories")
+    func testExerciseModelModelWithAllExerciseCategories() {
         for category in ExerciseCategory.allCases {
-            let exercise = ExerciseTemplateModel(
+            let exercise = ExerciseModelModel(
                 exerciseId: String.random,
                 name: "Test \(category.description)",
                 type: category,
@@ -258,10 +258,10 @@ struct ExerciseTemplateEnumIntegrationTests {
         }
     }
     
-    @Test("Test ExerciseTemplateModel With All Muscle Groups")
-    func testExerciseTemplateModelWithAllMuscleGroups() {
+    @Test("Test ExerciseModelModel With All Muscle Groups")
+    func testExerciseModelModelWithAllMuscleGroups() {
         for muscleGroup in MuscleGroup.allCases {
-            let exercise = ExerciseTemplateModel(
+            let exercise = ExerciseModelModel(
                 exerciseId: String.random,
                 name: "Test \(muscleGroup.description)",
                 muscleGroups: [muscleGroup],
@@ -273,11 +273,11 @@ struct ExerciseTemplateEnumIntegrationTests {
         }
     }
     
-    @Test("Test ExerciseTemplateModel With Multiple Muscle Groups")
-    func testExerciseTemplateModelWithMultipleMuscleGroups() {
+    @Test("Test ExerciseModelModel With Multiple Muscle Groups")
+    func testExerciseModelModelWithMultipleMuscleGroups() {
         let allMainMuscleGroups: [MuscleGroup] = [.chest, .shoulders, .back, .arms, .legs, .core]
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: String.random,
             name: "Full Body Exercise",
             muscleGroups: allMainMuscleGroups,
@@ -293,7 +293,7 @@ struct ExerciseTemplateEnumIntegrationTests {
     
     @Test("Test Exercise Category And Muscle Group Encoding Together")
     func testExerciseCategoryAndMuscleGroupEncodingTogether() throws {
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: String.random,
             name: "Bench Press",
             type: .barbell,
@@ -306,7 +306,7 @@ struct ExerciseTemplateEnumIntegrationTests {
         let encodedData = try encoder.encode(exercise)
         
         let decoder = JSONDecoder()
-        let decodedExercise = try decoder.decode(ExerciseTemplateModel.self, from: encodedData)
+        let decodedExercise = try decoder.decode(ExerciseModelModel.self, from: encodedData)
         
         #expect(decodedExercise.type == .barbell)
         #expect(decodedExercise.muscleGroups == [.chest, .arms])
@@ -315,7 +315,7 @@ struct ExerciseTemplateEnumIntegrationTests {
     @Test("Test Common Exercise Category And Muscle Group Combinations")
     func testCommonExerciseCategoryAndMuscleGroupCombinations() {
         // Bench Press - Barbell, Chest & Arms
-        let benchPress = ExerciseTemplateModel(
+        let benchPress = ExerciseModelModel(
             exerciseId: String.random,
             name: "Bench Press",
             type: .barbell,
@@ -327,7 +327,7 @@ struct ExerciseTemplateEnumIntegrationTests {
         #expect(benchPress.muscleGroups == [.chest, .arms])
         
         // Squat - Barbell, Legs & Core
-        let squat = ExerciseTemplateModel(
+        let squat = ExerciseModelModel(
             exerciseId: String.random,
             name: "Squat",
             type: .barbell,
@@ -339,7 +339,7 @@ struct ExerciseTemplateEnumIntegrationTests {
         #expect(squat.muscleGroups == [.legs, .core])
         
         // Running - Cardio, Legs
-        let running = ExerciseTemplateModel(
+        let running = ExerciseModelModel(
             exerciseId: String.random,
             name: "Running",
             type: .cardio,
@@ -351,7 +351,7 @@ struct ExerciseTemplateEnumIntegrationTests {
         #expect(running.muscleGroups == [.legs])
         
         // Plank - Bodyweight, Core
-        let plank = ExerciseTemplateModel(
+        let plank = ExerciseModelModel(
             exerciseId: String.random,
             name: "Plank",
             type: .weightedBodyweight,

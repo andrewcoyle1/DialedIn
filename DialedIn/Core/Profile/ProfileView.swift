@@ -14,7 +14,8 @@ struct ProfileView: View {
     var body: some View {
         List {
             if let user = presenter.currentUser,
-               let firstName = user.firstName, !firstName.isEmpty {
+               let firstName = user.firstNameCalculated,
+                !firstName.isEmpty {
                 profileHeaderSection
                     .listSectionMargins(.top, 0)
                 
@@ -28,14 +29,10 @@ struct ProfileView: View {
             }
         }
         .navigationTitle("Profile")
+        .toolbarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
-        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             toolbarContent
-        }
-        .task {
-            await presenter.getActiveGoal()
-            
         }
     }
     
@@ -61,7 +58,7 @@ struct ProfileView: View {
                             .font(.title3)
                             .fontWeight(.semibold)
                         
-                        if let email = user.email {
+                        if let email = user.emailCalculated {
                             Text(email)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
@@ -101,11 +98,11 @@ struct ProfileView: View {
                     .anyButton {
                         presenter.onUnitsPressed()
                     }
-                Label("Dashboard", systemImage: "house")
+                Label("Analytics", systemImage: "chart.bar.xaxis")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()
                     .anyButton {
-                        presenter.onCustomiseDashboardPressed()
+                        presenter.onCustomiseAnalyticsPressed()
                     }
                 Label("Siri", systemImage: "siri")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -308,7 +305,19 @@ extension CoreRouter {
 #Preview("User No Profile") {
     let container = DevPreview.shared.container()
     
-    container.register(UserManager.self, service: UserManager(services: MockUserServices(user: nil)))
+    let userSyncEngine = DocumentSyncEngine<UserModel>(
+        remote: MockRemoteDocumentService(),
+        managerKey: "user",
+        enableLocalPersistence: true,
+        logger: nil
+    )
+    let followingUsersSyncEngine = CollectionSyncEngine<UserModel>(
+        remote: MockRemoteCollectionService(),
+        managerKey: "followingUsers",
+        enableLocalPersistence: true,
+        logger: nil
+    )
+    container.register(UserManager.self, service: UserManager(userSyncEngine: userSyncEngine, followingUsersSyncEngine: followingUsersSyncEngine))
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
     return RouterView { router in
         builder.profileView(router: router)

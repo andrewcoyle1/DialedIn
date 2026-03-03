@@ -8,7 +8,7 @@ protocol AccountInteractor: GlobalInteractor {
     func deleteUserProfile()
     func deleteAccount() async throws
     func updateProfileImageUrl(image: PlatformImage) async throws
-    func saveUser(user: UserModel) async throws
+    func updateUser(data: [String: any DMCodableSendable]) async throws
 }
 
 extension CoreInteractor: AccountInteractor { }

@@ -11,33 +11,39 @@ class ProgramDesignPresenter {
         interactor.userId ?? ""
     }
     
+    var favouriteGymProfile: GymProfileModel? {
+        interactor.favouriteGymProfile
+    }
+    
     var program: TrainingProgram
     
-    static let defaultDayPlans: [DayPlan] = [
+    static let defaultWorkoutTemplateModels: [WorkoutTemplateModel] = [
         
     ]
     
-    var dayPlans: [DayPlan]
+    var dayPlans: [WorkoutTemplateModel]
     
-    var selectedDayPlan: DayPlan
-
-    var gymProfile: GymProfileModel?
+    var selectedWorkoutTemplateModel: WorkoutTemplateModel
     
-    var selectedDayPlanExercises: Binding<[WorkoutTemplateExercise]> {
+    var selectedWorkoutTemplateModelExercises: Binding<[WorkoutTemplateExercise]> {
         Binding(
-            get: { self.selectedDayPlan.exercises },
+            get: { self.selectedWorkoutTemplateModel.exercises },
             set: { [weak self] newValue in
                 guard let self else { return }
-                guard let index = self.dayPlans.firstIndex(where: { $0.id == self.selectedDayPlan.id }) else { return }
+                guard let index = self.dayPlans.firstIndex(where: { $0.id == self.selectedWorkoutTemplateModel.id }) else { return }
                 self.dayPlans[index].exercises = newValue
-                self.selectedDayPlan = self.dayPlans[index]
-                self.recalculateAutoDayPlanNames()
+                self.selectedWorkoutTemplateModel = self.dayPlans[index]
+                self.recalculateAutoWorkoutTemplateModelNames()
             }
         )
     }
     
-    var canRemoveDayPlan: Bool {
+    var canRemoveWorkoutTemplateModel: Bool {
         dayPlans.count > 1
+    }
+
+    var isProgramActive: Bool {
+        interactor.activeTrainingProgram?.id == program.id
     }
     
     init(interactor: ProgramDesignInteractor, router: ProgramDesignRouter, program: TrainingProgram) {
@@ -46,24 +52,21 @@ class ProgramDesignPresenter {
         self.program = program
         
         let uid = interactor.userId
-        self.dayPlans = Self.defaultDayPlans
-        
-        if let firstPlan = Self.defaultDayPlans.first {
-            self.selectedDayPlan = firstPlan
+        let initialPlans = program.workoutTemplates.isEmpty ? Self.defaultWorkoutTemplateModels : program.workoutTemplates
+        self.dayPlans = initialPlans
+
+        if let firstPlan = initialPlans.first {
+            self.selectedWorkoutTemplateModel = firstPlan
         } else {
-            self.selectedDayPlan = DayPlan(
+            self.selectedWorkoutTemplateModel = WorkoutTemplateModel(
                 id: UUID().uuidString,
                 authorId: uid ?? "",
                 name: "Rest",
                 exercises: []
             )
-            self.dayPlans = [self.selectedDayPlan]
+            self.dayPlans = [self.selectedWorkoutTemplateModel]
         }
-        self.program.dayPlans = self.dayPlans
-
-        Task {
-            await loadFavouriteGymProfile()
-        }
+        self.program.workoutTemplates = self.dayPlans
     }
 
     func onViewAppear() {
@@ -73,53 +76,45 @@ class ProgramDesignPresenter {
     func onViewDisappear() {
         interactor.trackEvent(event: Event.onDisappear)
     }
-
-    func loadFavouriteGymProfile() async {
-        do {
-            gymProfile = try await interactor.readFavouriteGymProfile()
-        } catch {
-            gymProfile = nil
-        }
-    }
     
     func onAddDayPressed() {
-        let newDayPlan = DayPlan(
+        let newWorkoutTemplateModel = WorkoutTemplateModel(
             id: UUID().uuidString,
             authorId: userId,
             name: "Rest Day",
             exercises: []
         )
         dayPlans.append(
-            newDayPlan
+            newWorkoutTemplateModel
         )
-        selectedDayPlan = newDayPlan
-        recalculateAutoDayPlanNames()
+        selectedWorkoutTemplateModel = newWorkoutTemplateModel
+        recalculateAutoWorkoutTemplateModelNames()
     }
     
-    func onDayPlanSelected(_ dayPlan: DayPlan) {
-        selectedDayPlan = dayPlan
+    func onWorkoutTemplateModelSelected(_ dayPlan: WorkoutTemplateModel) {
+        selectedWorkoutTemplateModel = dayPlan
     }
     
-    func onRemoveDayPlanPressed() {
-        guard canRemoveDayPlan else { return }
-        if let index = dayPlans.firstIndex(where: { $0.id == selectedDayPlan.id }) {
+    func onRemoveWorkoutTemplateModelPressed() {
+        guard canRemoveWorkoutTemplateModel else { return }
+        if let index = dayPlans.firstIndex(where: { $0.id == selectedWorkoutTemplateModel.id }) {
             dayPlans.remove(at: index)
-            selectedDayPlan = dayPlans.first!
-            recalculateAutoDayPlanNames()
+            selectedWorkoutTemplateModel = dayPlans.first!
+            recalculateAutoWorkoutTemplateModelNames()
         }
     }
     
-    func onRenameDayPlanPressed() {
-        let selectedId = selectedDayPlan.id
-        router.showRenameDayPlanView(
-            delegate: RenameDayPlanDelegate(
-                initialName: selectedDayPlan.name,
+    func onRenameWorkoutTemplateModelPressed() {
+        let selectedId = selectedWorkoutTemplateModel.id
+        router.showRenameWorkoutTemplateModelView(
+            delegate: RenameWorkoutTemplateModelDelegate(
+                initialName: selectedWorkoutTemplateModel.name,
                 onSave: { [weak self] newName in
                     guard let self else { return }
                     guard let index = self.dayPlans.firstIndex(where: { $0.id == selectedId }) else { return }
                     self.dayPlans[index].name = newName
-                    self.selectedDayPlan = self.dayPlans[index]
-                    self.program.dayPlans = self.dayPlans
+                    self.selectedWorkoutTemplateModel = self.dayPlans[index]
+                    self.program.workoutTemplates = self.dayPlans
                 }
             )
         )
@@ -134,9 +129,36 @@ class ProgramDesignPresenter {
     }
     
     func onActivatePressed(delegate: ProgramDesignDelegate) {
+        router.showAlert(title: "Save Workout Templates", subtitle: "Would you like to save the workout templates in the training program for use independently?") {
+            AnyView(
+                VStack {
+                    Button {
+                        Task {
+                            for workoutTemplate in self.dayPlans {
+                                try await self.interactor.saveWorkoutTemplate(workoutTemplate: workoutTemplate, image: nil)
+                            }
+                            try await self.activateProgram(delegate: delegate)
+                        }
+                    } label: {
+                        Text("Yes")
+                    }
+                    Button {
+                        Task {
+                            try await self.activateProgram(delegate: delegate)
+                        }
+                    } label: {
+                        Text("No")
+                    }
+                    Button(role: .close) { }
+                }
+            )
+        }
+    }
+    
+    private func activateProgram(delegate: ProgramDesignDelegate) async throws {
         Task {
             do {
-                try await interactor.upsertTrainingProgram(program: program)
+                try await interactor.saveTrainingProgram(trainingProgram: program)
                 try await interactor.setActiveTrainingProgram(programId: program.id)
                 if delegate.onComplete != nil {
                     handleNavigation()
@@ -147,6 +169,7 @@ class ProgramDesignPresenter {
                 router.showAlert(error: error)
             }
         }
+
     }
 
     // MARK: Handle Navigation
@@ -181,7 +204,16 @@ class ProgramDesignPresenter {
             router.showCreateGymProfileView(delegate: CreateGymProfileDelegate(onComplete: self.handleNavigation))
 
         case .trainingProgramSetup:
-            router.showOnboardingTrainingProgramView(delegate: CreateProgramDelegate(onComplete: self.handleNavigation))
+            router.showOnboardingTrainingProgramView(
+                delegate: CreateProgramDelegate(
+                    onComplete: { [weak self] in
+                        guard let self else { return }
+                        Task { @MainActor in
+                            self.handleNavigation()
+                        }
+                    }
+                )
+            )
 
         case .customiseProgram:
             router.showCustomisingDietProgramView()
@@ -191,10 +223,14 @@ class ProgramDesignPresenter {
         }
     }
     
+    func onDismissPressed() {
+        router.dismissScreen()
+    }
+
     func onSavePressed(delegate: ProgramDesignDelegate) {
         Task {
             do {
-                try await interactor.upsertTrainingProgram(program: program)
+                try await interactor.saveTrainingProgram(trainingProgram: program)
                 router.dismissEnvironment()
             } catch {
                 router.showAlert(error: error)
@@ -202,7 +238,7 @@ class ProgramDesignPresenter {
         }
     }
 
-    private func recalculateAutoDayPlanNames() {
+    private func recalculateAutoWorkoutTemplateModelNames() {
         var workoutIndex = 0
         for index in dayPlans.indices {
             let isRestDay = dayPlans[index].exercises.isEmpty
@@ -214,18 +250,18 @@ class ProgramDesignPresenter {
                 workoutIndex += 1
             }
             
-            if isDefaultDayPlanName(dayPlans[index].name) {
+            if isDefaultWorkoutTemplateModelName(dayPlans[index].name) {
                 dayPlans[index].name = desiredName
             }
         }
         
-        if let selectedIndex = dayPlans.firstIndex(where: { $0.id == selectedDayPlan.id }) {
-            selectedDayPlan = dayPlans[selectedIndex]
+        if let selectedIndex = dayPlans.firstIndex(where: { $0.id == selectedWorkoutTemplateModel.id }) {
+            selectedWorkoutTemplateModel = dayPlans[selectedIndex]
         }
-        program.dayPlans = dayPlans
+        program.workoutTemplates = dayPlans
     }
     
-    private func isDefaultDayPlanName(_ name: String) -> Bool {
+    private func isDefaultWorkoutTemplateModelName(_ name: String) -> Bool {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed == "Rest" || trimmed == "Rest Day" {
             return true

@@ -27,19 +27,6 @@ class WorkoutsPresenter {
     }
     
     func onWorkoutPressed(workout: WorkoutTemplateModel) {
-        // Only increment click count for non-system workouts
-        // System workouts (IDs starting with "system-") are read-only
-        if !workout.id.hasPrefix("system-") {
-            Task {
-                interactor.trackEvent(event: Event.incrementWorkoutStart)
-                do {
-                    try await interactor.incrementWorkoutTemplateInteraction(id: workout.id)
-                    interactor.trackEvent(event: Event.incrementWorkoutSuccess)
-                } catch {
-                    interactor.trackEvent(event: Event.incrementWorkoutFail(error: error))
-                }
-            }
-        }
         router.showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate(workoutTemplate: workout))
     }
 

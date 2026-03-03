@@ -12,10 +12,10 @@ import SwiftUI
 class ProgramManagementPresenter {
     private let interactor: ProgramManagementInteractor
     private let router: ProgramManagementRouter
-
-    private(set) var isLoading = false
     
-    private(set) var savedPrograms: [TrainingProgram] = []
+    var savedPrograms: [TrainingProgram] {
+        interactor.trainingPrograms
+    }
     
     init(
         interactor: ProgramManagementInteractor,
@@ -23,23 +23,8 @@ class ProgramManagementPresenter {
     ) {
         self.interactor = interactor
         self.router = router
-        
-        Task { [weak self] in
-            await self?.loadSavedPrograms()
-        }
     }
     
-    func loadSavedPrograms() async {
-        isLoading = true
-        defer { isLoading = false }
-        
-        do {
-            savedPrograms = try interactor.readAllLocalTrainingPrograms()
-        } catch {
-            savedPrograms = []
-        }
-    }
-
     func showDeleteAlert(program: TrainingProgram) {
         router.showAlert(
             title: "Delete Program",
@@ -60,28 +45,16 @@ class ProgramManagementPresenter {
     }
 
     func onSavedProgramPressed(_ program: TrainingProgram) {
-        let programBinding = Binding<TrainingProgram>(
-            get: { [weak self] in
-                self?.savedPrograms.first { $0.id == program.id } ?? program
-            },
-            set: { [weak self] newValue in
-                if let index = self?.savedPrograms.firstIndex(where: { $0.id == newValue.id }) {
-                    self?.savedPrograms[index] = newValue
-                }
-            }
-        )
-        router.showProgramSettingsView(program: programBinding)
+        router.showEditTrainingProgramView(delegate: EditTrainingProgramDelegate(program: program))
     }
     
     func deleteProgram(_ program: TrainingProgram) async {
-        isLoading = true
-        defer { isLoading = false }
-        
+        interactor.trackEvent(event: Event.deleteProgramStart)
         do {
-            try await interactor.deleteTrainingProgram(program: program)
-            await loadSavedPrograms()
+            try await interactor.deleteTrainingProgram(programId: program.id)
+            interactor.trackEvent(event: Event.deleteProgramSuccess)
         } catch {
-            print("Error deleting plan: \(error)")
+            interactor.trackEvent(event: Event.deleteProgramFail(error: error))
         }
     }
         
@@ -95,5 +68,43 @@ class ProgramManagementPresenter {
 
     func dismissScreen() {
         router.dismissScreen()
+    }
+}
+
+extension ProgramManagementPresenter {
+    enum Event: LoggableEvent {
+        case onAppear
+        case onDisappear
+        case deleteProgramStart
+        case deleteProgramSuccess
+        case deleteProgramFail(error: Error)
+
+        var eventName: String {
+            switch self {
+            case .onAppear:             return "ProgramManagementView_Appear"
+            case .onDisappear:          return "ProgramManagementView_Disappear"
+            case .deleteProgramStart:   return "ProgramManagementView_Start"
+            case .deleteProgramSuccess: return "ProgramManagementView_Success"
+            case .deleteProgramFail:    return "ProgramManagementView_Fail"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            case .deleteProgramFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            case .deleteProgramFail:
+                return .severe
+            default:
+                return .analytic
+            }
+        }
     }
 }

@@ -14,7 +14,10 @@ class WorkoutPickerPresenter {
     private let router: WorkoutPickerRouter
     
     private(set) var isLoading: Bool = false
-    private(set) var templates: [WorkoutTemplateModel] = []
+    
+    var workoutTemplates: [WorkoutTemplateModel] {
+        interactor.allWorkoutTemplates
+    }
 
     init(
         interactor: WorkoutPickerInteractor,
@@ -23,23 +26,7 @@ class WorkoutPickerPresenter {
         self.interactor = interactor
         self.router = router
     }
-        
-    func loadLocalWorkouts() async {
-        isLoading = true
-        
-        defer {
-            isLoading = false
-        }
-        
-        interactor.trackEvent(event: Event.loadLocalWorkoutsStart)
-        do {
-            let templates = try interactor.getAllLocalWorkoutTemplates()
-            interactor.trackEvent(event: Event.loadLocalWorkoutsSuccess(count: templates.count))
-        } catch {
-            interactor.trackEvent(event: Event.loadLocalWorkoutsFail(error: error))
-        }
-    }
-    
+            
     func onWorkoutPressed(template: WorkoutTemplateModel, onSelect: (WorkoutTemplateModel) -> Void) {
         defer {
             self.onDismissPressed()

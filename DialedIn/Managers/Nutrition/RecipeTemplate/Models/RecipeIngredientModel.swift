@@ -13,7 +13,7 @@ enum IngredientAmountUnit: String, Codable, CaseIterable, Sendable {
     case units
 }
 
-struct RecipeIngredientModel: TemplateModel {
+struct RecipeIngredientModel: DataSyncModelProtocol {
     var id: String { ingredient.ingredientId }
     var name: String { ingredient.name }
     var description: String? { ingredient.description }

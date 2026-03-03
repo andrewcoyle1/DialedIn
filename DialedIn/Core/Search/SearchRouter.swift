@@ -17,7 +17,7 @@ protocol SearchRouter {
     func showRecipesView()
     func showWorkoutPickerView(delegate: WorkoutPickerDelegate)
     func showExerciseListBuilderView(delegate: ExerciseListBuilderDelegate)
-    func showWorkoutTrackerView(delegate: WorkoutTrackerDelegate)
+    func showWorkoutTrackerView()
     func showSimpleAlert(title: String, subtitle: String?)
     func dismissModal()
     func dismissEnvironment()

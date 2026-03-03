@@ -1,8 +1,8 @@
 import SwiftUI
 
 @MainActor
-protocol RenameDayPlanRouter: GlobalRouter {
+protocol RenameWorkoutTemplateModelRouter: GlobalRouter {
     
 }
 
-extension CoreRouter: RenameDayPlanRouter { }
+extension CoreRouter: RenameWorkoutTemplateModelRouter { }

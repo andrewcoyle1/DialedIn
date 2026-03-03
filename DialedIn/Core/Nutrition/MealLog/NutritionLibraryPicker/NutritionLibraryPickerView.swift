@@ -8,82 +8,82 @@
 import SwiftUI
 
 struct NutritionLibraryPickerDelegate {
+    var items: Binding<[MealItemModel]>
     var onPick: (MealItemModel) -> Void
 }
 
-struct NutritionLibraryPickerView: View {
+struct NutritionLibraryPickerView<FoodItemSearch: View, BarcodeScanner: View, FoodPhotoScanner: View>: View {
 
     @State var presenter: NutritionLibraryPickerPresenter
 
     var delegate: NutritionLibraryPickerDelegate
 
+    @ViewBuilder var barcodeScanner: (BarcodeScannerDelegate) -> BarcodeScanner
+    @ViewBuilder var foodItemSearch: (FoodItemSearchDelegate) -> FoodItemSearch
+    @ViewBuilder var foodPhotoScanner: (FoodPhotoScannerDelegate) -> FoodPhotoScanner
+
     var body: some View {
-        List {
-            Section {
-                Picker("Type", selection: $presenter.mode) {
-                    Text("Ingredients").tag(NutritionLibraryPickerPresenter.PickerMode.ingredients)
-                    Text("Recipes").tag(NutritionLibraryPickerPresenter.PickerMode.recipes)
+        VStack {
+            ScrollView(.horizontal) {
+                HStack {
+                    ForEach(NutritionPickerMode.allCases) { mode in
+                        Button {
+                            presenter.onModePressed(mode)
+                        } label: {
+                            Label(mode.title, systemImage: mode.systemName).tag(mode)
+                        }
+                        .buttonStyle(.glass)
+                    }
                 }
-                .pickerStyle(.segmented)
             }
-            .listSectionSpacing(0)
-            .removeListRowFormatting()
+            .scrollIndicators(.hidden)
+            .padding(.horizontal)
             
-            if presenter.isLoading {
-                Section {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
+            switch presenter.mode {
+            case .barcode:
+                barcodeScanner(BarcodeScannerDelegate())
+            case .search:
+                foodItemSearch(FoodItemSearchDelegate())
+            case .ai:
+                foodPhotoScanner(FoodPhotoScannerDelegate(onPick: delegate.onPick))
+            case .quickAdd:
+                List {
+                    quickAddSection
                 }
-            } else {
-                switch presenter.mode {
-                case .ingredients:
-                    ingredientsSection
-                case .recipes:
-                    recipesSection
+            case .library:
+                List {
+                    librarySection
+                }
+            case .describe:
+                List {
+                    describeSection
                 }
             }
+            
         }
         .navigationTitle("Add Item")
-        .navigationBarTitleDisplayMode(.large)
-        .searchable(text: $presenter.searchText)
-        .onChange(of: presenter.searchText) { _, newValue in
-            Task { await presenter.performSearch(query: newValue) }
-        }
-        .task {
-            await presenter.loadInitial()
-        }
-        .toolbar {
-            toolbarContent
-        }
+        .navigationBarTitleDisplayMode(.inline)
     }
     
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                presenter.dismissScreen()
-            } label: {
-                Image(systemName: "xmark")
-            }
-        }
+    private var quickAddSection: some View {
+        Text("Quick Add Section...")
+    }
+
+    private var librarySection: some View {
+        Text("Library Section...")
+    }
+
+    private var describeSection: some View {
+        Text("Describe Section...")
+    }
         
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                presenter.dismissScreen()
-            } label: {
-                Image(systemName: "checkmark")
-            }
-            .buttonStyle(.glassProminent)
-        }
-    }
-    
     private var ingredientsSection: some View {
         Section {
-            if presenter.ingredients.isEmpty {
+            if presenter.ingredientTemplates.isEmpty {
                 Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No ingredients to show yet" : "No results")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(presenter.ingredients) { ingredient in
+                ForEach(presenter.ingredientTemplates) { ingredient in
                     Button {
                         presenter.navToIngredientAmount(ingredient, onPick: delegate.onPick)
                     } label: {
@@ -127,24 +127,35 @@ extension CoreBuilder {
     func nutritionLibraryPickerView(router: AnyRouter, delegate: NutritionLibraryPickerDelegate) -> some View {
         NutritionLibraryPickerView(
             presenter: NutritionLibraryPickerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
-            delegate: delegate
+            delegate: delegate,
+            barcodeScanner: { scannerDelegate in
+                self.barcodeScannerView(router: router, delegate: scannerDelegate)
+            },
+            foodItemSearch: { searchDelegate in
+                self.foodItemSearchView(router: router, delegate: searchDelegate)
+            },
+            foodPhotoScanner: { photoDelegate in
+                self.foodPhotoScannerView(router: router, delegate: photoDelegate)
+            }
         )
     }
 }
 
 extension CoreRouter {
     func showNutritionLibraryPickerView(delegate: NutritionLibraryPickerDelegate) {
-        router.showScreen(.sheet) { router in
+        router.showScreen(.sheetConfig(config: ResizableSheetConfig(detents: [.fraction(0.95)], dragIndicator: .visible))) { router in
             builder.nutritionLibraryPickerView(router: router, delegate: delegate)
         }
     }
 }
 
 #Preview {
+    @Previewable @State var items: [MealItemModel] = MealItemModel.mocks
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
     let delegate = NutritionLibraryPickerDelegate(
+        items: $items,
         onPick: { item in
             print(item.displayName)
         }

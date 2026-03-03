@@ -19,31 +19,16 @@ struct ExerciseListBuilderView: View {
     
     var body: some View {
         List {
-            
-            if !presenter.favouriteExercisesVisible.isEmpty {
-                favouriteExerciseTemplatesSection
-            }
-
-            if !presenter.myExercisesVisible.isEmpty {
-                myExercisesSection
-            }
-
-            if !presenter.officialExercisesVisible.isEmpty {
-                officialExercisesSection
-            }
-
-            if !presenter.bookmarkedOnlyExercises.isEmpty {
-                bookmarkedExerciseTemplatesSection
-            }
-
-            if !presenter.trendingExercisesDeduped.isEmpty || presenter.isLoading {
-                exerciseTemplateSection
+            if presenter.searchText.isEmpty {
+                if !presenter.userExercises.isEmpty {
+                    userExercisesSection
+                }
+                systemExercisesSection
+            } else {
+                filteredExercisesSection
             }
         }
         .searchable(text: $presenter.searchText, placement: .toolbar, prompt: Text("Search exercises"))
-        .refreshable {
-            await presenter.loadExercises()
-        }
         .scrollIndicators(.hidden)
         .toolbarVisibility(.hidden)
         .onAppear {
@@ -51,9 +36,6 @@ struct ExerciseListBuilderView: View {
         }
         .onDisappear {
             presenter.onViewDisappear()
-        }
-        .onFirstTask {
-            await presenter.loadExercises()
         }
         .safeAreaInset(edge: .top) {
             filterSection
@@ -133,9 +115,9 @@ struct ExerciseListBuilderView: View {
         .scrollIndicators(.hidden)
     }
 
-    private var favouriteExerciseTemplatesSection: some View {
+    private var userExercisesSection: some View {
         Section {
-            ForEach(presenter.favouriteExercisesVisible) { exercise in
+            ForEach(presenter.userExercises) { exercise in
                 CustomListCellView(
                     imageName: exercise.imageURL,
                     title: exercise.name,
@@ -143,21 +125,18 @@ struct ExerciseListBuilderView: View {
                     isSelected: isExerciseSelected(exercise)
                 )
                 .anyButton(.highlight) {
-                    presenter.onExercisePressed(exercise: exercise, onExercisePressed: delegate.onExerciseSelectionChanged)
+                    delegate.onExerciseSelectionChanged?(exercise)
                 }
                 .removeListRowFormatting()
             }
         } header: {
-            Text("Favourites")
-        }
-        .onAppear {
-            presenter.favouritesSectionViewed()
+            Text("Custom Exercises")
         }
     }
 
-    private var bookmarkedExerciseTemplatesSection: some View {
+    private var systemExercisesSection: some View {
         Section {
-            ForEach(presenter.bookmarkedOnlyExercises) { exercise in
+            ForEach(presenter.systemExercises) { exercise in
                 CustomListCellView(
                     imageName: exercise.imageURL,
                     title: exercise.name,
@@ -165,160 +144,32 @@ struct ExerciseListBuilderView: View {
                     isSelected: isExerciseSelected(exercise)
                 )
                 .anyButton(.highlight) {
-                    presenter.onExercisePressed(exercise: exercise, onExercisePressed: delegate.onExerciseSelectionChanged)
-                }
-                .removeListRowFormatting()
-            }
-        } header: {
-            Text("Bookmarked")
-        }
-        .onAppear {
-            presenter.bookmarkedSectionViewed()
-        }
-    }
-
-    private var exerciseTemplateSection: some View {
-        Section {
-            if presenter.isLoading {
-                HStack {
-                    ProgressView()
-                    Text("Loading...")
-                }
-                .foregroundStyle(Color.secondary)
-                .removeListRowFormatting()
-            }
-            ForEach(presenter.visibleExerciseTemplates) { exercise in
-                HStack(spacing: 8) {
-                    ZStack {
-                        if let imageName = exercise.imageURL {
-                            if imageName.starts(with: "http://") || imageName.starts(with: "https://") {
-                                ImageLoaderView(urlString: imageName, resizingMode: .fit)
-                            } else {
-                                // Treat as bundled asset name
-                                Image(imageName)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                            }
-                        } else {
-                            Rectangle()
-                                .fill(.secondary.opacity(0.5))
-                        }
-                    }
-                    .aspectRatio(1, contentMode: .fit)
-                    .frame(height: 60)
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(exercise.name)
-                            .font(.headline)
-                        if let subtitle = exercise.description {
-                            Text(subtitle)
-                                .font(.subheadline)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding(12)
-                .padding(.vertical, 4)
-                .background(Color(uiColor: .systemBackground))
-                .anyButton(.highlight) {
-                    presenter.onExercisePressed(exercise: exercise, onExercisePressed: delegate.onExerciseSelectionChanged)
-                }
-                .removeListRowFormatting()
-            }
-        } header: {
-            Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
-        }
-        .onAppear {
-            presenter.trendingSectionViewed()
-        }
-    }
-
-    private var myExercisesSection: some View {
-        Section {
-            if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && presenter.myExercisesVisible.isEmpty {
-                HStack {
-                    Image(systemName: "tray")
-                        .foregroundColor(.secondary)
-                    Text("No exercise templates yet. Tap + to create your first one!")
-                        .foregroundColor(.secondary)
-                        .font(.callout)
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, 12)
-                .removeListRowFormatting()
-                .onAppear {
-                    presenter.emptyStateShown()
-                }
-            } else if !presenter.myExercisesVisible.isEmpty {
-                ForEach(presenter.myExercisesVisible) { exercise in
-                    CustomListCellView(
-                        imageName: exercise.imageURL,
-                        title: exercise.name,
-                        subtitle: exercise.description,
-                        isSelected: isExerciseSelected(exercise)
-                    )
-                    .anyButton(.highlight) {
-                        presenter.onExercisePressed(exercise: exercise, onExercisePressed: delegate.onExerciseSelectionChanged)
-                    }
-                    .removeListRowFormatting()
-                }
-            }
-        } header: {
-            Text("My Templates")
-        }
-        .onAppear {
-            presenter.myTemplatesViewed()
-        }
-    }
-    
-    private var officialExercisesSection: some View {
-        Section {
-            ForEach(presenter.officialExercisesVisible) { exercise in
-                HStack(spacing: 8) {
-                    ZStack {
-                        if let imageName = exercise.imageURL {
-                            if imageName.starts(with: "http://") || imageName.starts(with: "https://") {
-                                ImageLoaderView(urlString: imageName, resizingMode: .fit)
-                            } else {
-                                // Treat as bundled asset name
-                                Image(imageName)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                            }
-                        } else {
-                            Rectangle()
-                                .fill(.secondary.opacity(0.5))
-                        }
-                    }
-                    .aspectRatio(1, contentMode: .fit)
-                    .frame(width: 60, height: 60)
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(exercise.name)
-                            .font(.headline)
-                        if let subtitle = exercise.description {
-                            Text(subtitle)
-                                .font(.subheadline)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding(12)
-                .padding(.vertical, 4)
-                .background(Color(uiColor: .systemBackground))
-                .anyButton(.highlight) {
-                    presenter.onExercisePressed(exercise: exercise, onExercisePressed: delegate.onExerciseSelectionChanged)
+                    delegate.onExerciseSelectionChanged?(exercise)
                 }
                 .removeListRowFormatting()
             }
         } header: {
             Text("Official Exercises")
         }
-        .onAppear {
-            presenter.officialSectionViewed()
+    }
+
+    private var filteredExercisesSection: some View {
+        Section {
+            ForEach(presenter.filteredExercises) { exercise in
+                CustomListCellView(
+                    imageName: exercise.imageURL,
+                    title: exercise.name,
+                    subtitle: exercise.description,
+                    isSelected: isExerciseSelected(exercise)
+                )
+                .anyButton(.highlight) {
+                    delegate.onExerciseSelectionChanged?(exercise)
+                }
+                .removeListRowFormatting()
+            }
         }
     }
-    
+
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {

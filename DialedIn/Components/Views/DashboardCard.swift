@@ -1,5 +1,5 @@
 //
-//  DashboardCard.swift
+//  AnalyticsCard.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 04/02/2026.
@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-struct DashboardCardChartConfiguration {
+struct AnalyticsCardChartConfiguration {
     var height: CGFloat = 44
     var verticalPadding: CGFloat = 4
 }
 
-struct DashboardCard<MetricChart: View>: View {
+struct AnalyticsCard<MetricChart: View>: View {
     
     @Environment(\.colorScheme) private var colorScheme
     
@@ -21,7 +21,7 @@ struct DashboardCard<MetricChart: View>: View {
     var subsubtitle: String?
     var subsubsubtitle: String?
     var themeColor: Color?
-    var chartConfiguration: DashboardCardChartConfiguration
+    var chartConfiguration: AnalyticsCardChartConfiguration
     var chart: () -> MetricChart
     
     init(
@@ -30,7 +30,7 @@ struct DashboardCard<MetricChart: View>: View {
         subsubtitle: String? = "Subsubtitle",
         subsubsubtitle: String? = "Subsubsubtitle",
         themeColor: Color? = nil,
-        chartConfiguration: DashboardCardChartConfiguration = DashboardCardChartConfiguration(),
+        chartConfiguration: AnalyticsCardChartConfiguration = AnalyticsCardChartConfiguration(),
         chart: @escaping () -> MetricChart = {
             ContributionChartView(
                 data: [0, 0.1, 0.3, 0.5, 0.7, 0.9],
@@ -105,7 +105,7 @@ struct DashboardCard<MetricChart: View>: View {
     List {
         Section {
             LazyVGrid(columns: [GridItem(), GridItem()]) {
-                DashboardCard()
+                AnalyticsCard()
             }
             .removeListRowFormatting()
             .padding(.horizontal)

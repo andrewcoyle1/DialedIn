@@ -3,7 +3,7 @@ import SwiftUI
 @MainActor
 protocol WorkoutSettingsInteractor: GlobalInteractor {
     var workoutSettings: WorkoutSettings { get }
-    func saveWorkoutSettings(_ settings: WorkoutSettings)
+    func saveWorkoutSettings(_ workoutSettings: WorkoutSettings) async throws 
 }
 
 extension CoreInteractor: WorkoutSettingsInteractor { }

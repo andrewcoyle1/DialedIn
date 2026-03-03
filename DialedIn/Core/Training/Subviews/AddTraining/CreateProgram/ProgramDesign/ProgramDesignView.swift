@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ProgramDesignDelegate {
-    let onComplete: (() -> Void)?
+    let onComplete: (@Sendable () -> Void)?
     var id: String
     var authorId: String
     var name: String
@@ -9,7 +9,7 @@ struct ProgramDesignDelegate {
     var icon: String
     
     init(
-        onComplete: (() -> Void)? = nil,
+        onComplete: (@Sendable () -> Void)? = nil,
         id: String,
         authorId: String,
         name: String,
@@ -49,7 +49,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
     }
     
     var body: some View {
-        workoutDefinitionSection(dayPlan: presenter.selectedDayPlan)
+        workoutDefinitionSection(dayPlan: presenter.selectedWorkoutTemplateModel)
             .navigationTitle("Create Program")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
@@ -69,8 +69,9 @@ struct ProgramDesignView<DefineWorkout: View>: View {
             }
     }
     
-    private func workoutDefinitionSection(dayPlan: DayPlan) -> some View {
-        let gymProfile = presenter.gymProfile ?? GymProfileModel(
+    private func workoutDefinitionSection(dayPlan: WorkoutTemplateModel) -> some View {
+        
+        let gymProfile = presenter.favouriteGymProfile ?? GymProfileModel(
             authorId: presenter.userId,
             freeWeights: [],
             loadableBars: [],
@@ -87,7 +88,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
         let delegate = DefineWorkoutDelegate(
             name: dayPlan.name,
             gymProfile: gymProfile,
-            exercises: presenter.selectedDayPlanExercises,
+            exercises: presenter.selectedWorkoutTemplateModelExercises,
             topSectionStyle: .programDay
         )
         return workoutDefinitionView(delegate)
@@ -118,11 +119,11 @@ struct ProgramDesignView<DefineWorkout: View>: View {
         .scrollIndicators(.hidden)
     }
     
-    private func dayPlanCell(_ dayPlan: DayPlan) -> some View {
+    private func dayPlanCell(_ dayPlan: WorkoutTemplateModel) -> some View {
         Group {
-            if presenter.selectedDayPlan.id == dayPlan.id {
+            if presenter.selectedWorkoutTemplateModel.id == dayPlan.id {
                 Button {
-                    presenter.onDayPlanSelected(dayPlan)
+                    presenter.onWorkoutTemplateModelSelected(dayPlan)
                 } label: {
                     Text(dayPlan.name)
                         .fontWeight(.bold)
@@ -130,7 +131,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                 .buttonStyle(.glassProminent)
             } else {
                 Button {
-                    presenter.onDayPlanSelected(dayPlan)
+                    presenter.onWorkoutTemplateModelSelected(dayPlan)
                 } label: {
                     Text(dayPlan.name)
                         .fontWeight(.regular)
@@ -149,14 +150,16 @@ struct ProgramDesignView<DefineWorkout: View>: View {
     
     private var bottomSafeAreaSection: some View {
         VStack {
-            Button {
-                presenter.onActivatePressed(delegate: delegate)
-            } label: {
-                Text("Activate Program")
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
+            if !presenter.isProgramActive {
+                Button {
+                    presenter.onActivatePressed(delegate: delegate)
+                } label: {
+                    Text("Activate Program")
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glassProminent)
             }
-            .buttonStyle(.glassProminent)
 
             if delegate.onComplete == nil {
                 Button {
@@ -178,16 +181,16 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                 HStack {
                     OptionCell(imageName: "minus.circle.fill", title: "Remove")
                         .anyButton {
-                            presenter.onRemoveDayPlanPressed()
+                            presenter.onRemoveWorkoutTemplateModelPressed()
                         }
-                        .disabled(!presenter.canRemoveDayPlan)
+                        .disabled(!presenter.canRemoveWorkoutTemplateModel)
                         .padding(.leading)
                     
                     OptionCell(imageName: "pencil", title: "Rename")
                         .anyButton {
-                            presenter.onRenameDayPlanPressed()
+                            presenter.onRenameWorkoutTemplateModelPressed()
                         }
-                        .disabled(presenter.selectedDayPlan.exercises.isEmpty)
+                        .disabled(presenter.selectedWorkoutTemplateModel.exercises.isEmpty)
                         .padding(.trailing)
                 }
             }
@@ -199,6 +202,15 @@ struct ProgramDesignView<DefineWorkout: View>: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        if delegate.onComplete == nil {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    presenter.onDismissPressed()
+                } label: {
+                    Image(systemName: "xmark")
+                }
+            }
+        }
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onProgramSettingsPressed(program: $presenter.program)

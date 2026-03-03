@@ -7,241 +7,286 @@
 
 import SwiftUI
 import SwiftfulAuthenticating
-
-/// Input for completing account setup: profile fields.
-struct CompleteAccountSetupProfileInput {
-    let dateOfBirth: Date
-    let gender: Gender
-    let heightCentimeters: Double
-    let weightKilograms: Double
-    let exerciseFrequency: ExerciseFrequency
-    let dailyActivityLevel: ActivityLevel
-    let cardioFitnessLevel: CardioFitnessLevel
-    let lengthUnitPreference: LengthUnitPreference
-    let weightUnitPreference: WeightUnitPreference
-}
+@preconcurrency import FirebaseFirestore
 
 @Observable
 @MainActor
 class UserManager {
     
-    let remote: RemoteUserService
-    private let local: LocalUserPersistence
-    private let logManager: LogManager?
-    
-    private(set) var currentUser: UserModel?
-    private var currentUserListenerTask: Task<Void, Error>?
+    private let userSyncEngine: DocumentSyncEngine<UserModel>
+    private let followingUsersSyncEngine: CollectionSyncEngine<UserModel>
 
-    init(services: UserServices, logManager: LogManager? = nil) {
-        self.remote = services.remote
-        self.local = services.local
-        self.logManager = logManager
-        self.currentUser = local.getCurrentUser()
+    var currentUser: UserModel? { userSyncEngine.currentDocument }
+
+    var followingUsers: [UserModel] {
+        followingUsersSyncEngine.currentCollection
+    }
+
+    init(
+        userSyncEngine: DocumentSyncEngine<UserModel>,
+        followingUsersSyncEngine: CollectionSyncEngine<UserModel>
+    ) {
+        self.userSyncEngine = userSyncEngine
+        self.followingUsersSyncEngine = followingUsersSyncEngine
     }
     
-    /// Log In
-    func logIn(auth: UserAuthInfo, isNewUser: Bool) async throws {
+    func signIn(auth: UserAuthInfo, isNewUser: Bool) async throws {
         if isNewUser {
             // New user: create their Firestore document from auth data.
             let user = UserModel(auth: auth, creationVersion: Utilities.appVersion)
-            logManager?.trackEvent(event: Event.logInStart(user: user))
-            try await remote.saveUser(user: user)
-            self.currentUser = user
-            logManager?.trackEvent(event: Event.logInSuccess(user: user))
-        } else {
-            // Returning user: fetch their existing document so currentUser is correct
-            // before any routing decisions are made. Writing an auth-only stub would
-            // overwrite non-optional fields like didCompleteOnboarding with defaults.
-            logManager?.trackEvent(event: Event.logInStart(user: currentUser))
-            let storedUser = try await remote.getUser(userId: auth.uid)
-            self.currentUser = storedUser
-            logManager?.trackEvent(event: Event.logInSuccess(user: storedUser))
+            try await userSyncEngine.saveDocument(user)
         }
-
-        addCurrentUserListener(userId: auth.uid)
+        try await userSyncEngine.startListening(documentId: auth.uid)
+    }
+    
+    func signOut() {
+        userSyncEngine.stopListening()
+        followingUsersSyncEngine.stopListening()
     }
 
-    /// User Streaming
-    private func addCurrentUserListener(userId: String) {
-        logManager?.trackEvent(event: Event.remoteListenerStart)
-
-        currentUserListenerTask?.cancel()
-        currentUserListenerTask = Task {
-            do {
-                for try await value in remote.streamUser(userId: userId) {
-                    self.currentUser = value
-                    logManager?.trackEvent(event: Event.remoteListenerSuccess(user: value))
-                    logManager?.addUserProperties(dict: value.eventParameters, isHighPriority: true)
-                    
-                    self.saveCurrentUserLocally()
-                }
-            } catch {
-                logManager?.trackEvent(event: Event.remoteListenerFail(error: error))
-            }
+    func refreshFollowingUsers(followingIds: [String]) async {
+        guard !followingIds.isEmpty else {
+            followingUsersSyncEngine.stopListening()
+            return
         }
-    }
-
-    /// Save current user locally
-    private func saveCurrentUserLocally() {
-        logManager?.trackEvent(event: Event.saveLocalStart(user: currentUser))
-        
-        Task {
-            do {
-                try local.saveCurrentUser(user: currentUser)
-                logManager?.trackEvent(event: Event.saveLocalSuccess(user: currentUser))
-            } catch {
-                logManager?.trackEvent(event: Event.saveLocalFail(error: error))
-            }
+        await followingUsersSyncEngine.startListening { query in
+            query.where("user_id", in: followingIds)
         }
     }
     
-    func getUser(userId: String) async throws -> UserModel {
-        try await remote.getUser(userId: userId)
-    }
-    
+//    /// Log In
+//    func logIn(auth: UserAuthInfo, isNewUser: Bool) async throws {
+//        if isNewUser {
+//            // New user: create their Firestore document from auth data.
+//            let user = UserModel(auth: auth, creationVersion: Utilities.appVersion)
+//            logManager?.trackEvent(event: Event.logInStart(user: user))
+//            try await remote.saveUser(user: user)
+//            logManager?.trackEvent(event: Event.logInSuccess(user: user))
+//        } else {
+//            // Returning user: fetch their existing document so currentUser is correct
+//            // before any routing decisions are made. Writing an auth-only stub would
+//            // overwrite non-optional fields like didCompleteOnboarding with defaults.
+//            logManager?.trackEvent(event: Event.logInStart(user: currentUser))
+//            let storedUser = try await remote.getUser(userId: auth.uid)
+//            logManager?.trackEvent(event: Event.logInSuccess(user: storedUser))
+//        }
+//
+//        addCurrentUserListener(userId: auth.uid)
+//    }
+
     // MARK: - Personal Info
     
+    func updateUser(data: [String: any DMCodableSendable]) async throws {
+        try await userSyncEngine.updateDocument(data: data)
+    }
+    
     func updateUserName(firstName: String? = nil, lastName: String? = nil) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserName(userId: uid, firstName: firstName, lastName: lastName)
+        var data: [String: any DMCodableSendable] = [:]
+        if let firstName = firstName {
+            data["submitted_first_name"] = firstName
+        }
+        if let lastName = lastName {
+            data["submitted_last_name"] = lastName
+        }
+        try await userSyncEngine.updateDocument(data: data)
     }
 
     func updateUserEmail(email: String) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserEmail(userId: uid, email: email)
+        try await userSyncEngine.updateDocument(data: ["submitted_email": email])
     }
 
     // MARK: - Image URL
     
     func updateProfileImage(image: PlatformImage) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserProfileImage(userId: uid, image: image)
+        guard let userId = currentUser?.userId else {
+            throw UserManagerError.noUserId
+        }
+        
+        let path = "users/\(userId)/profile"
+        let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
+
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.submittedProfileImage.rawValue: url.absoluteString
+        ])
     }
 
     func updateGender(gender: Gender) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserGender(userId: uid, gender: gender)
+        try await userSyncEngine.updateDocument(data: [UserModel.CodingKeys.submittedGender.rawValue: gender.rawValue])
     }
 
     func updateDateOfBirth(dob: Date) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserDateOfBirth(userId: uid, dateOfBirth: dob)
+        try await userSyncEngine.updateDocument(data: [UserModel.CodingKeys.submittedDateOfBirth.rawValue: dob])
     }
     
     func updateUserHeight(heightInCentimeters: Double, lengthUnitPreference: LengthUnitPreference) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserHeightCentimeters(userId: uid, heightInCentimeters: heightInCentimeters, lengthUnitPreference: lengthUnitPreference)
+        try await userSyncEngine.updateDocument(
+            data: [
+                UserModel.CodingKeys.submittedHeightCentimeters.rawValue: heightInCentimeters,
+                UserModel.CodingKeys.submittedLengthUnitPreference.rawValue: lengthUnitPreference.rawValue
+            ]
+        )
     }
 
     func updateUserWeight(weightInKilograms: Double, weightUnitPreference: WeightUnitPreference) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserWeightKilograms(userId: uid, weightInKilograms: weightInKilograms, weightUnitPreference: weightUnitPreference)
+        try await userSyncEngine.updateDocument(
+            data: [
+                UserModel.CodingKeys.submittedWeightKilograms.rawValue: weightInKilograms,
+                UserModel.CodingKeys.submittedWeightUnitPreference.rawValue: weightUnitPreference.rawValue
+            ]
+        )
     }
     
     func updateUserExerciseFrequency(exerciseFrequency: ExerciseFrequency) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserExerciseFrequency(userId: uid, exerciseFrequency: exerciseFrequency)
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.submittedExerciseFrequency.rawValue: exerciseFrequency.rawValue
+        ])
     }
     
     func updateUserDailyActivityLevel(activityLevel: ActivityLevel) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserDailyActivityLevel(userId: uid, activityLevel: activityLevel)
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.submittedDailyActivityLevel.rawValue: activityLevel.rawValue
+        ])
     }
 
     func updateUserCardioFitnessLevel(cardioFitnessLevel: CardioFitnessLevel) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserCardioFitnessLevel(userId: uid, cardioFitnessLevel: cardioFitnessLevel)
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.submittedCardioFitnessLevel.rawValue: cardioFitnessLevel.rawValue
+        ])
     }
     
-    func saveUserCompleteAccountSetup(input: CompleteAccountSetupProfileInput) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserCompleteAccountSetup(userId: uid, input: input)
+    func saveUserCompleteAccountSetup(input data: [String: any DMCodableSendable]) async throws {
+        try await userSyncEngine.updateDocument(data: data)
     }
         
     // MARK: Update Active Training Program
     
     func updateActiveTrainingProgramId(programId: String?) async throws {
-        let uid = try currentUserId()
         guard let activeProgramId = programId else { return }
-        try await remote.saveUserActiveTrainingProgramId(userId: uid, activeTrainingProgramId: activeProgramId)
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.submittedActiveTrainingProgramId.rawValue: activeProgramId
+        ])
     }
 
     // MARK: Update Favourite Gym Profile
 
     func updateFavouriteGymProfileId(profileId: String?) async throws {
-        let uid = try currentUserId()
         guard let favouriteGymProfileId = profileId else { return }
-        try await remote.saveUserFavouriteGymProfileId(userId: uid, favouriteGymProfileId: favouriteGymProfileId)
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.submittedFavouriteGymProfileId.rawValue: favouriteGymProfileId
+        ])
     }
     
     func saveOnboardingCompleteForCurrentUser() async throws {
-        let uid = try currentUserId()
-        try await remote.updateDidCompleteOnboarding(userId: uid)
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.didCompleteOnboarding.rawValue: true
+        ])
     }
 
     // User FCM Token
     
     func saveUserFCMToken(token: String) async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserFCMToken(userId: uid, token: token)
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.fcmToken.rawValue: token
+        ])
     }
 
-    // MARK: - Remote operations
-    // MARK: - User
-    
-    func saveUser(user: UserModel) async throws {
-        try await remote.saveUser(user: user)
-        self.currentUser = user
-    }
-        
-    func signOut() {
-        currentUserListenerTask?.cancel()
-        currentUserListenerTask = nil
-        currentUser = nil
-        logManager?.trackEvent(event: Event.signOut)
-    }
-    
-    // MARK: - Update Metadata
-    
-    func updateLastSignInDate() async throws {
-        let uid = try currentUserId()
-        try await remote.saveUserLastSignInDate(userId: uid)
-    }
-    
-    func updateDidCompleteOnboarding() async throws {
-        let uid = try currentUserId()
-        try await remote.updateDidCompleteOnboarding(userId: uid)
-        logManager?.trackEvent(event: Event.updateDidCompleteOnboarding)
-        if var existing = currentUser {
-            existing.didCompleteOnboarding = true
-            self.currentUser = existing
-            self.saveCurrentUserLocally()
-        }
-    }
-    
     // MARK: - Goal Settings
     func updateCurrentGoalId(goalId: String?) async throws {
-        let uid = try currentUserId()
         guard let currentGoalId = goalId else { return }
-        try await remote.saveUserCurrentGoalId(userId: uid, currentGoalId: currentGoalId)
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.submittedCurrentGoalId.rawValue: currentGoalId
+        ])
     }
     
     // MARK: - Consents
     func updateHealthConsents(disclaimerVersion: String, privacyVersion: String, acceptedAt: Date = Date()) async throws {
-        let uid = try currentUserId()
-        try await remote.updateHealthConsents(userId: uid, disclaimerVersion: disclaimerVersion, privacyVersion: privacyVersion, acceptedAt: acceptedAt)
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.acceptedHealthDisclaimerVersion.rawValue: disclaimerVersion,
+            UserModel.CodingKeys.acceptedHealthDisclaimerDate.rawValue: acceptedAt,
+            UserModel.CodingKeys.acceptedHealthPrivacyPolicyVersion.rawValue: privacyVersion,
+            UserModel.CodingKeys.acceptedHealthPrivacyPolicyDate.rawValue: acceptedAt
+        ])
     }
     
+    // MARK: - User Lookup
+
+    func getUser(userId: String) async throws -> UserModel {
+        try await userSyncEngine.getDocumentAsync(id: userId)
+    }
+
+    // MARK: - User Followers
+
+    func fetchFollowers(userId: String) async throws -> [UserModel] {
+        try await Firestore.firestore()
+            .collection("users")
+            .whereField(UserModel.CodingKeys.followingIds.rawValue, arrayContains: userId)
+            .limit(to: 200)
+            .getAllDocuments()
+    }
+
+    // MARK: - User Search
+
+    func searchUsers(query: String) async throws -> [UserModel] {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return [] }
+
+        let capitalizedQuery = trimmed.prefix(1).uppercased() + trimmed.dropFirst()
+        let field = UserModel.CodingKeys.submittedFirstName.rawValue
+
+        return try await Firestore.firestore()
+            .collection("users")
+            .whereField(field, isGreaterThanOrEqualTo: capitalizedQuery)
+            .whereField(field, isLessThan: capitalizedQuery + "\u{f8ff}")
+            .limit(to: 20)
+            .getAllDocuments()
+    }
+
     // MARK: - User Blocking
-    
+
     func blockUser(userId: String) async throws {
-        let uid = try currentUserId()
-        try await remote.blockUser(currentUserId: uid, blockedUserId: userId)
+        var blockList = currentUser?.blockedUserIds ?? []
+        if !blockList.contains(userId) {
+            blockList.append(userId)
+        }
+        
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.blockedUserIds.rawValue: blockList
+        ])
     }
     
     func unblockUser(userId: String) async throws {
-        let uid = try currentUserId()
-        try await remote.unblockUser(currentUserId: uid, blockedUserId: userId)
+        var blockedUserIds = currentUser?.blockedUserIds ?? []
+        if let index = blockedUserIds.firstIndex(of: userId) {
+            blockedUserIds.remove(at: index)
+        }
+
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.blockedUserIds.rawValue: blockedUserIds
+        ])
+    }
+
+    // MARK: - User Following
+
+    func followUser(userId: String) async throws {
+        var followingIds = currentUser?.followingIds ?? []
+        if !followingIds.contains(userId) {
+            followingIds.append(userId)
+        }
+
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.followingIds.rawValue: followingIds
+        ])
+    }
+
+    func unfollowUser(userId: String) async throws {
+        var followingIds = currentUser?.followingIds ?? []
+        if let index = followingIds.firstIndex(of: userId) {
+            followingIds.remove(at: index)
+        }
+
+        try await userSyncEngine.updateDocument(data: [
+            UserModel.CodingKeys.followingIds.rawValue: followingIds
+        ])
     }
     
     // MARK: - User deletion
@@ -250,23 +295,11 @@ class UserManager {
     /// Note: This method only handles user profile deletion. The caller (typically CoreInteractor)
     /// is responsible for orchestrating deletion of related data (workout sessions, exercise history, templates, etc.)
     func deleteCurrentUser() async throws {
-        logManager?.trackEvent(event: Event.deleteAccountStart)
-        
-        let uid = try currentUserId()
-        try await remote.deleteUser(userId: uid)
-        logManager?.trackEvent(event: Event.deleteAccountSuccess)
-
+        try await userSyncEngine.deleteDocument()
         // Reset UserManager state (does not sign out Auth)
         signOut()
     }
-    
-    func currentUserId() throws -> String {
-        guard let uid = currentUser?.userId else {
-            throw UserManagerError.noUserId
-        }
-        return uid
-    }
-    
+        
     enum UserManagerError: LocalizedError {
         case noUserId
         
@@ -353,6 +386,7 @@ extension CoreInteractor {
     
     func setActiveTrainingProgram(programId: String) async throws {
         try await userManager.updateActiveTrainingProgramId(programId: programId)
+        try await trainingProgramManager.setActiveProgram(programId: programId)
     }
 
     var currentUser: UserModel? {
@@ -362,21 +396,17 @@ extension CoreInteractor {
     var userId: String? {
         userManager.currentUser?.userId
     }
-    
-    func currentUserId() throws -> String? {
-        try userManager.currentUserId()
-    }
-    
+        
     var userImageUrl: String? {
         currentUser?.submittedProfileImage
     }
-    
-    func saveUser(user: UserModel) async throws {
-        try await userManager.saveUser(user: user)
+              
+    func updateUser(data: [String: any DMCodableSendable]) async throws {
+        try await userManager.updateUser(data: data)
     }
-                
-    func updateFirstName(firstName: String? = nil, lastName: String? = nil) async throws {
-        try await userManager.updateUserName(firstName: firstName)
+
+    func updateUserName(firstName: String? = nil, lastName: String? = nil) async throws {
+        try await userManager.updateUserName(firstName: firstName, lastName: lastName)
     }
         
     func updateDateOfBirth(dob: Date) async throws {
@@ -391,7 +421,7 @@ extension CoreInteractor {
         try await userManager.updateUserWeight(weightInKilograms: weight, weightUnitPreference: weightUnitPreference)
     }
     
-    func saveUserCompleteAccountSetup(input: CompleteAccountSetupProfileInput) async throws {
+    func saveUserCompleteAccountSetup(input: [String: any DMCodableSendable]) async throws {
         try await userManager.saveUserCompleteAccountSetup(input: input)
     }
     
@@ -420,15 +450,7 @@ extension CoreInteractor {
     }
 
     // Update Metadata
-    
-    func updateLastSignInDate() async throws {
-        try await userManager.updateLastSignInDate()
-    }
-    
-    func updateDidCompleteOnboarding() async throws {
-        try await userManager.updateDidCompleteOnboarding()
-    }
-    
+            
     func saveOnboardingComplete() async throws {
         try await userManager.saveOnboardingCompleteForCurrentUser()
     }
@@ -444,13 +466,41 @@ extension CoreInteractor {
     }
     
     // User Blocking
-    
+
     func blockUser(userId: String) async throws {
         try await userManager.blockUser(userId: userId)
     }
-    
+
     func unblockUser(userId: String) async throws {
         try await userManager.unblockUser(userId: userId)
+    }
+
+    // User Following
+
+    var followingUsers: [UserModel] {
+        userManager.followingUsers
+    }
+
+    func followUser(userId: String) async throws {
+        try await userManager.followUser(userId: userId)
+        let ids = userManager.currentUser?.followingIds ?? []
+        async let refreshSessions: () = workoutSessionManager.refreshFollowingSync(followingIds: ids)
+        async let refreshProfiles: () = userManager.refreshFollowingUsers(followingIds: ids)
+        await refreshSessions
+        await refreshProfiles
+    }
+
+    func unfollowUser(userId: String) async throws {
+        try await userManager.unfollowUser(userId: userId)
+        let ids = userManager.currentUser?.followingIds ?? []
+        async let refreshSessions: () = workoutSessionManager.refreshFollowingSync(followingIds: ids)
+        async let refreshProfiles: () = userManager.refreshFollowingUsers(followingIds: ids)
+        await refreshSessions
+        await refreshProfiles
+    }
+
+    func fetchFollowers(userId: String) async throws -> [UserModel] {
+        try await userManager.fetchFollowers(userId: userId)
     }
 
 }

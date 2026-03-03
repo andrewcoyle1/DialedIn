@@ -3,12 +3,9 @@ import SwiftUI
 @MainActor
 protocol ExerciseListBuilderInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func incrementExerciseTemplateInteraction(id: String) async throws
-    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseModel]
-    func getExerciseTemplates(ids: [String], limitTo: Int) async throws -> [ExerciseModel]
-    func getExerciseTemplatesForAuthor(authorId: String) async throws -> [ExerciseModel]
-    func getSystemExerciseTemplates() throws -> [ExerciseModel]
-    func getTopExerciseTemplatesByClicks(limitTo: Int) async throws -> [ExerciseModel]
+    var userExercises: [ExerciseModel] { get }
+    var systemExercises: [ExerciseModel] { get }
+    var allExercises: [ExerciseModel] { get }
 }
 
 extension CoreInteractor: ExerciseListBuilderInteractor { }

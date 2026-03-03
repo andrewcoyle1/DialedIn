@@ -1,8 +1,8 @@
 import SwiftUI
 
 @MainActor
-protocol CustomiseDashboardRouter {
+protocol CustomiseAnalyticsRouter {
     
 }
 
-extension CoreRouter: CustomiseDashboardRouter { }
+extension CoreRouter: CustomiseAnalyticsRouter { }

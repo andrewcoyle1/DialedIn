@@ -15,8 +15,8 @@ struct AddIngredientModalView: View {
 
     private var filteredIngredients: [IngredientTemplateModel] {
         let query = presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return presenter.ingredients }
-        return presenter.ingredients.filter { ingredient in
+        guard !query.isEmpty else { return presenter.ingredientTemplates }
+        return presenter.ingredientTemplates.filter { ingredient in
             var fields: [String] = [
                 ingredient.name
             ]
@@ -26,35 +26,16 @@ struct AddIngredientModalView: View {
     }
     
     var body: some View {
-        Group {
-            if presenter.isLoading {
-                VStack {
-                    ProgressView()
-                    Text("Loading ingredients...")
-                        .foregroundStyle(.secondary)
-                }
-            } else if let errorMessage = presenter.errorMessage {
-                VStack(spacing: 16) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.largeTitle)
-                        .foregroundStyle(.orange)
-                    Text("Error Loading Ingredients")
-                        .font(.headline)
-                    Text(errorMessage)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                    Button("Try Again") {
-                        Task {
-                            await presenter.loadIngredients()
-                        }
+        List {
+            ForEach(filteredIngredients) { ingredient in
+                CustomListCellView(imageName: ingredient.imageURL, title: ingredient.name, subtitle: ingredient.description, isSelected: delegate.selectedIngredients.contains(where: { $0.id == ingredient.id }))
+                    .anyButton {
+                        presenter.onIngredientPressed(ingredient: ingredient, selectedIngredients: &delegate.selectedIngredients.wrappedValue)
                     }
-                    .buttonStyle(.borderedProminent)
-                }
-                .padding()
-            } else {
-                listSection
+                    .removeListRowFormatting()
             }
         }
+        .scrollIndicators(.hidden)
         .searchable(text: $presenter.searchText)
         .navigationTitle("Add Ingredients")
         .navigationSubtitle("Select one or more ingredients to add")
@@ -67,27 +48,6 @@ struct AddIngredientModalView: View {
                 }
             }
         }
-        .task {
-            await presenter.loadIngredients()
-        }
-        .onChange(of: presenter.searchText) {
-            Task {
-                await presenter.searchIngredients()
-            }
-        }
-    }
-
-    private var listSection: some View {
-        List {
-            ForEach(filteredIngredients) { ingredient in
-                CustomListCellView(imageName: ingredient.imageURL, title: ingredient.name, subtitle: ingredient.description, isSelected: delegate.selectedIngredients.contains(where: { $0.id == ingredient.id }))
-                    .anyButton {
-                        presenter.onIngredientPressed(ingredient: ingredient, selectedIngredients: &delegate.selectedIngredients.wrappedValue)
-                    }
-                    .removeListRowFormatting()
-            }
-        }
-        .scrollIndicators(.hidden)
     }
 }
 

@@ -363,3 +363,32 @@ extension CoreRouter {
     }
     
 }
+
+extension ExerciseModel {
+    
+    init(from delegate: ExerciseSaveDelegate, authorId: String) {
+        self.id = UUID().uuidString
+        self.authorId = authorId
+        self.name = delegate.exerciseName
+        self.description = delegate.exerciseDescription
+        self.imageURL = nil
+        self.trackableMetrics = [delegate.trackableMetricA, delegate.trackableMetricB].compactMap { $0 }
+        self.type = delegate.type
+        self.laterality = delegate.laterality
+        self.muscleGroups = delegate.targetMuscles
+        self.isBodyweight = delegate.isBodyweight
+        self.resistanceEquipment = delegate.resistanceEquipment
+        self.supportEquipment = delegate.supportEquipment
+        self.rangeOfMotion = delegate.rangeOfMotion
+        self.stability = delegate.stability
+        self.bodyWeightContribution = delegate.bodyweightContribution
+        self.alternateNames = delegate.alternativeNames
+        self.isSystemExercise = false
+        self.dateCreated = .now
+        self.dateModified = .now
+        self.clickCount = 0
+        self.bookmarkCount = 0
+        self.favouriteCount = 0
+    }
+
+}

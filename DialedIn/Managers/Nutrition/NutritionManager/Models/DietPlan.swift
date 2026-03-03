@@ -7,7 +7,11 @@
 
 import Foundation
 
-struct DietPlan: Codable, Equatable {
+struct DietPlan: DataSyncModelProtocol, Equatable {
+    
+    var id: String {
+        self.planId
+    }
     
     let planId: String
     let userId: String?

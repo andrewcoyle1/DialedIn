@@ -10,7 +10,7 @@ import SwiftUI
 @MainActor
 protocol CreateIngredientInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func createIngredientTemplate(ingredient: IngredientTemplateModel, image: PlatformImage?) async throws
+    func saveIngredientTemplate(_ ingredient: IngredientTemplateModel, image: PlatformImage?) async throws
     func generateImage(input: String) async throws -> UIImage
 }
 

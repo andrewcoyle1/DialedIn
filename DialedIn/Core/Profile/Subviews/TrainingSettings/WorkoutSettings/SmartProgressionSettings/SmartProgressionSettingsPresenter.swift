@@ -7,6 +7,8 @@ class SmartProgressionSettingsPresenter {
     private let interactor: SmartProgressionSettingsInteractor
     private let router: SmartProgressionSettingsRouter
     
+    var applyInSession: Bool = false
+    
     init(interactor: SmartProgressionSettingsInteractor, router: SmartProgressionSettingsRouter) {
         self.interactor = interactor
         self.router = router

@@ -6,10 +6,10 @@
 //
 
 @MainActor
-protocol ProgramManagementInteractor {
-    func readAllLocalTrainingPrograms() throws -> [TrainingProgram]
+protocol ProgramManagementInteractor: GlobalInteractor {
+    var trainingPrograms: [TrainingProgram] { get }
     func setActiveTrainingProgram(programId: String) async throws
-    func deleteTrainingProgram(program: TrainingProgram) async throws
+    func deleteTrainingProgram(programId: String) async throws
 }
 
 extension CoreInteractor: ProgramManagementInteractor { }

@@ -12,15 +12,59 @@ struct StrategySettingsView: View {
     var body: some View {
         List {
             Section {
-                Text("Hello, World!")
+                CustomLabelButtonView(
+                    symbolName: "calendar",
+                    title: "Check-in Day",
+                    subtitle: "Monday") {
+                        Text("Edit")
+                            .padding(.horizontal, 8)
+                            .padding(8)
+                            .background(Color.secondary.opacity(0.2), in: .capsule)
+                            .anyButton(.press) {
+                                presenter.onEditCheckInDayPressed()
+                            }
+                    }
+                CustomToggleView(
+                    symbolName: "hare",
+                    title: "Fast Check-in",
+                    subtitle: "Off",
+                    bool: $presenter.fastCheckInEnabled
+                )
             } header: {
                 Text("General")
             }
 
             Section {
-                Text("Hello, World!")
+                Label("Introduction", systemImage: "info")
+                CustomToggleView(
+                    symbolName: "",
+                    title: "Partial Logging",
+                    subtitle: nil,
+                    bool: $presenter.partialLoggingEnabled
+                )
+                CustomToggleView(
+                    symbolName: "",
+                    title: "Weigh-In",
+                    subtitle: nil,
+                    bool: $presenter.weighInEnabled
+                )
+                CustomToggleView(
+                    symbolName: "",
+                    title: "Fasting",
+                    subtitle: nil,
+                    bool: $presenter.fastingEnabled
+                )
+                CustomToggleView(
+                    symbolName: "",
+                    title: "Logging Break",
+                    subtitle: nil,
+                    bool: $presenter.loggingBreakEnabled
+                )
+                Label("Program Update", systemImage: "star.fill")
             } header: {
                 Text("Coaching Modules")
+            } footer: {
+                Text("Individually configure which modules can appear during your check in.")
             }
         }
         .navigationTitle("Strategy")

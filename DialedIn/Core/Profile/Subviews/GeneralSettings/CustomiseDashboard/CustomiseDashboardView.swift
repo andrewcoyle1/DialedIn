@@ -1,19 +1,19 @@
 import SwiftUI
 
-struct CustomiseDashboardDelegate {
+struct CustomiseAnalyticsDelegate {
     
 }
 
-struct CustomiseDashboardView: View {
+struct CustomiseAnalyticsView: View {
     
-    @State var presenter: CustomiseDashboardPresenter
-    let delegate: CustomiseDashboardDelegate
+    @State var presenter: CustomiseAnalyticsPresenter
+    let delegate: CustomiseAnalyticsDelegate
     
     var body: some View {
         List {
             Text("Hello, World!")
         }
-        .navigationTitle("Customise Dashboard")
+        .navigationTitle("Customise Analytics")
         .onAppear {
             presenter.onViewAppear()
         }
@@ -33,9 +33,9 @@ struct CustomiseDashboardView: View {
 
 extension CoreBuilder {
     
-    func customiseDashboardView(router: AnyRouter, delegate: CustomiseDashboardDelegate) -> some View {
-        CustomiseDashboardView(
-            presenter: CustomiseDashboardPresenter(
+    func customiseAnalyticsView(router: AnyRouter, delegate: CustomiseAnalyticsDelegate) -> some View {
+        CustomiseAnalyticsView(
+            presenter: CustomiseAnalyticsPresenter(
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self)
             ),
@@ -47,9 +47,9 @@ extension CoreBuilder {
 
 extension CoreRouter {
     
-    func showCustomiseDashboardView(delegate: CustomiseDashboardDelegate) {
+    func showCustomiseAnalyticsView(delegate: CustomiseAnalyticsDelegate) {
         router.showScreen(.push) { router in
-            builder.customiseDashboardView(router: router, delegate: delegate)
+            builder.customiseAnalyticsView(router: router, delegate: delegate)
         }
     }
     
@@ -58,10 +58,10 @@ extension CoreRouter {
 #Preview {
     let container = DevPreview.shared.container()
     let builder = CoreBuilder(interactor: CoreInteractor(container: container))
-    let delegate = CustomiseDashboardDelegate()
+    let delegate = CustomiseAnalyticsDelegate()
     
     return RouterView { router in
-        builder.customiseDashboardView(router: router, delegate: delegate)
+        builder.customiseAnalyticsView(router: router, delegate: delegate)
     }
     
 }

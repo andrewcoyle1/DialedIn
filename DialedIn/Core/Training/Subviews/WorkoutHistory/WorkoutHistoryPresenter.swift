@@ -13,11 +13,15 @@ class WorkoutHistoryPresenter {
     private let interactor: WorkoutHistoryInteractor
     private let router: WorkoutHistoryRouter
 
-    private(set) var sessions: [WorkoutSessionModel] = []
     private(set) var isLoading = false
     
     var selectedSession: WorkoutSessionModel?
 
+    var workoutSessions: [WorkoutSessionModel] {
+        interactor.workoutSessions
+            .sorted { ($0.dateCreated) > ($1.dateCreated) }
+    }
+    
     init(
         interactor: WorkoutHistoryInteractor,
         router: WorkoutHistoryRouter
@@ -41,57 +45,6 @@ class WorkoutHistoryPresenter {
     
     func onDismissPressed() {
         router.dismissScreen()
-    }
-    
-    func loadInitialSessions() {
-        guard !isLoading else { return }
-        isLoading = true
-        interactor.trackEvent(event: Event.loadInitialSessionsStart)
-        defer { isLoading = false }
-        
-        do {
-            guard let userId = interactor.auth?.uid else { return }
-            
-            // Load from local storage (limitTo: 0 means no limit)
-            let fetchedSessions = try interactor.getLocalWorkoutSessionsForAuthor(
-                authorId: userId,
-                limitTo: 0
-            )
-            interactor.trackEvent(event: Event.loadInitialSessionsSuccess)
-            // Filter to only completed sessions (with endedAt)
-            sessions = fetchedSessions.filter { $0.endedAt != nil }
-                .sorted { ($0.dateCreated) > ($1.dateCreated) }
-        } catch {
-            interactor.trackEvent(event: Event.loadInitialSessionsFail(error: error))
-            router.showSimpleAlert(
-                title: "We couldn't retrieve your sessions.",
-                subtitle: "Please try again later."
-            )
-        }
-    }
-    
-    func syncSessions() async {
-        isLoading = true
-        defer {
-            isLoading = false
-        }
-        guard let userId = interactor.auth?.uid else { return }
-        interactor.trackEvent(event: Event.syncSessionsStart)
-        do {
-            // Fetch from remote and merge into local
-            try await interactor.syncWorkoutSessionsFromRemote(authorId: userId, limitTo: 100)
-            interactor.trackEvent(event: Event.syncSessionsSuccess)
-
-            // Reload from local
-            loadInitialSessions()
-
-        } catch {
-            interactor.trackEvent(event: Event.syncSessionsFail(error: error))
-            router.showSimpleAlert(
-                title: "We couldn't retrieve your sessions.",
-                subtitle: "Please check your internet connection and try again."
-            )
-        }
     }
     
     func onDevSettingsPressed() {

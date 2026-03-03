@@ -10,15 +10,16 @@ protocol DevSettingsInteractor: GlobalInteractor {
     var auth: UserAuthInfo? { get }
     var currentUser: UserModel? { get }
     var activeTests: ActiveABTests { get }
-    func override(updatedTests: ActiveABTests) throws
     var activeSession: WorkoutSessionModel? { get }
-    func getAllLocalExerciseTemplates() throws -> [ExerciseModel]
-    func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel]
-    func getActiveLocalWorkoutSession() throws -> WorkoutSessionModel?
-    func getAllLocalWorkoutSessions() throws -> [WorkoutSessionModel]
+    var workoutSessions: [WorkoutSessionModel] { get }
+    var userExercises: [ExerciseModel] { get }
+    var systemExercises: [ExerciseModel] { get }
+    var allExercises: [ExerciseModel] { get }
+    var userWorkoutTemplates: [WorkoutTemplateModel] { get }
+    var systemWorkoutTemplates: [WorkoutTemplateModel] { get }
+    var allWorkoutTemplates: [WorkoutTemplateModel] { get }
+    func override(updatedTests: ActiveABTests) throws
     func getWorkoutSession(id: String) async throws -> WorkoutSessionModel
-    func deleteAllLocalWorkoutSessionsForAuthor(authorId: String) throws
-    func clearAllLocalStepsData() throws
     func signOut() async throws
 }
 

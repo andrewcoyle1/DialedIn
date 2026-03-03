@@ -101,6 +101,7 @@ class WorkoutTemplateDetailPresenter {
                             onResumeWorkout()
                         }
                         Button("Discard & Start New", role: .destructive) {
+                            try? self.interactor.deleteActiveSession()
                             onStartNewWorkout()
                         }
                         Button("Cancel", role: .cancel) { }
@@ -113,49 +114,27 @@ class WorkoutTemplateDetailPresenter {
     }
     
     private func resumeActiveWorkout() {
-        guard let activeSession = activeSession else { return }
+        guard activeSession != nil else { return }
         router.dismissEnvironment()
-        router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: activeSession.id))
+        router.showWorkoutTrackerView()
     }
     
     private func performStartWorkout(workoutTemplate: WorkoutTemplateModel) {
-        guard let userId = currentUser?.userId else { return }
         router.showWorkoutStartModal(
             delegate: WorkoutStartDelegate(
                 template: workoutTemplate,
-                programId: nil,
-                dayPlanId: nil,
-                onStartWorkoutPressed: {
-                    
-                    do {
-                        // Load unit preferences for all exercises in template
-                        var unitPreferences: [String: ExerciseUnitPreference] = [:]
-                        for exerciseTemplate in workoutTemplate.exercises {
-                            let preference = self.interactor.getPreference(templateId: exerciseTemplate.exercise.id)
-                            unitPreferences[exerciseTemplate.exercise.id] = preference
+                trainingProgramId: nil,
+                onStartWorkoutPressed: { [weak self] in
+                    guard let self else { return }
+                    Task {
+                        do {
+                            try await self.interactor.startWorkout(for: workoutTemplate, in: nil)
+                            self.router.dismissModal()
+                            self.router.dismissEnvironment()
+                            self.router.showWorkoutTrackerView()
+                        } catch {
+                            self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
                         }
-                        
-                        // Create workout session from template
-                        let session = WorkoutSessionModel(
-                            authorId: userId,
-                            template: workoutTemplate,
-                            notes: nil,
-                            scheduledWorkoutId: nil,
-                            trainingPlanId: nil,
-                            programId: nil,
-                            dayPlanId: nil,
-                            unitPreferences: unitPreferences
-                        )
-                        
-                        // Save locally first (MainActor-isolated)
-                        try self.interactor.addLocalWorkoutSession(session: session)
-                        
-                        self.interactor.startActiveSession(session)
-                                self.router.dismissModal()
-                        self.router.dismissEnvironment()
-                        self.router.showWorkoutTrackerView(delegate: WorkoutTrackerDelegate(workoutSessionId: session.id))
-                    } catch {
-                        self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
                     }
                 },
                 onCancelPressed: {

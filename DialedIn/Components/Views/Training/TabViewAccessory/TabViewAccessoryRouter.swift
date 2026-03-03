@@ -6,7 +6,7 @@
 //
 
 protocol TabViewAccessoryRouter: GlobalRouter {
-    func showWorkoutTrackerView(delegate: WorkoutTrackerDelegate)
+    func showWorkoutTrackerView()
 }
 
 extension CoreRouter: TabViewAccessoryRouter {}

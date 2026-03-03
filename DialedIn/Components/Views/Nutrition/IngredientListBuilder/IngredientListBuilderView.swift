@@ -1,7 +1,10 @@
 import SwiftUI
 
 struct IngredientListBuilderDelegate {
-    var onIngredientPressed: ((IngredientTemplateModel) -> Void)?
+    var onIngredientSelectionChanged: ((IngredientTemplateModel) -> Void)?
+    /// Optional list of ingredient templates that should display as "selected" in the UI.
+    /// If `nil`, no selection state is shown.
+    var selectedIngredientTemplates: [IngredientTemplateModel]?
 }
 
 struct IngredientListBuilderView: View {
@@ -10,26 +13,19 @@ struct IngredientListBuilderView: View {
     
     let delegate: IngredientListBuilderDelegate
     
+    private func isIngredientTemplateSelected(_ ingredientTemplate: IngredientTemplateModel) -> Bool {
+        delegate.selectedIngredientTemplates?.contains(ingredientTemplate) ?? false
+    }
+
     var body: some View {
         List {
-            if presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-
-                if !presenter.favouriteIngredients.isEmpty {
-                    favouriteIngredientTemplatesSection
+            if presenter.searchText.isEmpty {
+                if !presenter.userIngredientTemplates.isEmpty {
+                    userIngredientTemplatesSection
                 }
-
-                myIngredientSection
-
-                if !presenter.bookmarkedOnlyIngredients.isEmpty {
-                    bookmarkedIngredientTemplatesSection
-                }
-
-                if !presenter.trendingIngredientsDeduped.isEmpty {
-                    ingredientTemplateSection
-                }
+                systemIngredientTemplatesSection
             } else {
-                // Show search results when there is a query
-                ingredientTemplateSection
+                filteredIngredientTemplatesSection
             }
         }
         .onAppear {
@@ -38,15 +34,7 @@ struct IngredientListBuilderView: View {
         .onDisappear {
             presenter.onViewDisappear()
         }
-        .navigationTitle("Ingredients")
-        .navigationSubtitle("\(presenter.ingredients.count) ingredients")
         .scrollIndicators(.hidden)
-        .task {
-            await presenter.loadAllIngredients()
-        }
-        .refreshable {
-            await presenter.loadAllIngredients()
-        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -59,113 +47,58 @@ struct IngredientListBuilderView: View {
         }
     }
     
-    // MARK: UI Components
-    private var favouriteIngredientTemplatesSection: some View {
+    private var userIngredientTemplatesSection: some View {
         Section {
-            ForEach(presenter.favouriteIngredients) { ingredient in
+            ForEach(presenter.userIngredientTemplates) { ingredient in
                 CustomListCellView(
                     imageName: ingredient.imageURL,
                     title: ingredient.name,
-                    subtitle: ingredient.description
+                    subtitle: ingredient.description,
+                    isSelected: isIngredientTemplateSelected(ingredient)
                 )
                 .anyButton(.highlight) {
-                    presenter.onIngredientPressedFromFavourites(ingredient: ingredient, onIngredientPressed: delegate.onIngredientPressed)
+                    delegate.onIngredientSelectionChanged?(ingredient)
                 }
                 .removeListRowFormatting()
             }
         } header: {
-            Text("Favourites")
-        }
-        .onAppear {
-            presenter.favouriteIngredientsShown()
+            Text("Custom Exercises")
         }
     }
 
-    private var bookmarkedIngredientTemplatesSection: some View {
+    private var systemIngredientTemplatesSection: some View {
         Section {
-            ForEach(presenter.bookmarkedOnlyIngredients) { ingredient in
+            ForEach(presenter.systemIngredientTemplates) { ingredient in
                 CustomListCellView(
                     imageName: ingredient.imageURL,
                     title: ingredient.name,
-                    subtitle: ingredient.description
+                    subtitle: ingredient.description,
+                    isSelected: isIngredientTemplateSelected(ingredient)
                 )
                 .anyButton(.highlight) {
-                    presenter.onIngredientPressedFromBookmarked(ingredient: ingredient, onIngredientPressed: delegate.onIngredientPressed)
+                    delegate.onIngredientSelectionChanged?(ingredient)
                 }
                 .removeListRowFormatting()
             }
         } header: {
-            Text("Bookmarked")
-        }
-        .onAppear {
-            presenter.bookmarkedIngredientsShown()
+            Text("Custom Exercises")
         }
     }
 
-    private var ingredientTemplateSection: some View {
+    private var filteredIngredientTemplatesSection: some View {
         Section {
-            if presenter.isLoading {
-                HStack {
-                    ProgressView()
-                    Text("Loading...")
-                }
-                .foregroundStyle(Color.secondary)
-                .removeListRowFormatting()
-            }
-            ForEach(presenter.visibleIngredientTemplates) { ingredient in
+            ForEach(presenter.filteredIngredientTemplates) { ingredient in
                 CustomListCellView(
                     imageName: ingredient.imageURL,
                     title: ingredient.name,
-                    subtitle: ingredient.description
+                    subtitle: ingredient.description,
+                    isSelected: isIngredientTemplateSelected(ingredient)
                 )
                 .anyButton(.highlight) {
-                    presenter.onIngredientPressedFromTrending(ingredient: ingredient, onIngredientPressed: delegate.onIngredientPressed)
+                    delegate.onIngredientSelectionChanged?(ingredient)
                 }
                 .removeListRowFormatting()
             }
-        } header: {
-            Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Trending Templates" : "Search Results")
-        }
-        .onAppear {
-            presenter.trendingSectionShown()
-            
-        }
-    }
-
-    private var myIngredientSection: some View {
-        Section {
-            if presenter.myIngredientsVisible.isEmpty {
-                HStack {
-                    Image(systemName: "tray")
-                        .foregroundColor(.secondary)
-                    Text("No ingredient templates yet. Tap + to create your first one!")
-                        .foregroundColor(.secondary)
-                        .font(.callout)
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, 12)
-                .removeListRowFormatting()
-                .onAppear {
-                    presenter.emptyStateShown()
-                }
-            } else {
-                ForEach(presenter.myIngredientsVisible) { ingredient in
-                    CustomListCellView(
-                        imageName: ingredient.imageURL,
-                        title: ingredient.name,
-                        subtitle: ingredient.description
-                    )
-                    .anyButton(.highlight) {
-                        presenter.onIngredientPressedFromMyTemplates(ingredient: ingredient, onIngredientPressed: delegate.onIngredientPressed)
-                    }
-                    .removeListRowFormatting()
-                }
-            }
-        } header: {
-            Text("My Templates")
-        }
-        .onAppear {
-            presenter.onMyTemplatesShown()
         }
     }
 }

@@ -12,6 +12,7 @@ protocol ProgramManagementRouter: GlobalRouter {
     func showDevSettingsView()
     func showProgramSettingsView(program: Binding<TrainingProgram>)
     func showCreateProgramView(delegate: CreateProgramDelegate)
+    func showEditTrainingProgramView(delegate: EditTrainingProgramDelegate)
 }
 
 extension CoreRouter: ProgramManagementRouter { }

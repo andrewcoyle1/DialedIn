@@ -6,10 +6,8 @@
 //
 
 @MainActor
-protocol AddIngredientModalInteractor {
-    func getTopIngredientTemplatesByClicks(limitTo: Int) async throws -> [IngredientTemplateModel]
-    func getAllLocalIngredientTemplates() throws -> [IngredientTemplateModel]
-    func getIngredientTemplatesByName(name: String) async throws -> [IngredientTemplateModel]
+protocol AddIngredientModalInteractor: GlobalInteractor {
+    var ingredientTemplates: [IngredientTemplateModel] { get }
 }
 
 extension CoreInteractor: AddIngredientModalInteractor { }

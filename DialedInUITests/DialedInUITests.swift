@@ -356,7 +356,7 @@ final class DialedInUITests: XCTestCase {
         app.staticTexts.matching(identifier: "Protein").element(boundBy: 1).tap()
         continueButton.tap()
         
-        let dashboardExists = app.navigationBars["Dashboard"].waitForExistence(timeout: 5)
-        XCTAssertTrue(dashboardExists)
+        let analyticsExists = app.navigationBars["Analytics"].waitForExistence(timeout: 5)
+        XCTAssertTrue(analyticsExists)
     }
 }

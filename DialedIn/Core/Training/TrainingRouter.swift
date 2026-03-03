@@ -15,15 +15,13 @@ protocol TrainingRouter: GlobalRouter {
     func showWorkoutsView()
     func showWorkoutHistoryView()
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
-    func showWorkoutTrackerView(delegate: WorkoutTrackerDelegate)
+    func showWorkoutTrackerView()
     func showAddTrainingView(delegate: AddTrainingDelegate, onDismiss: (() -> Void)?)
     func showCreateProgramView(delegate: CreateProgramDelegate)
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
     func showCreateExerciseView()
     func showProfileView()
     func showEditTrainingProgramView(delegate: EditTrainingProgramDelegate)
-
 }
 
-extension CoreRouter: TrainingRouter {
-}
+extension CoreRouter: TrainingRouter { }

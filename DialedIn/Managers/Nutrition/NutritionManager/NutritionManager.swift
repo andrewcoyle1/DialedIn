@@ -20,33 +20,34 @@ extension CalorieFloor {
 @MainActor
 class NutritionManager {
 
-    private let local: LocalNutritionPersistence
-    private let remote: RemoteNutritionService
-    private(set) var currentDietPlan: DietPlan?
+    private let dietPlanSyncEngine: DocumentSyncEngine<DietPlan>
 
-    init(services: NutritionServices) {
-        self.remote = services.remote
-        self.local = services.local
-        self.currentDietPlan = local.getCurrentDietPlan()
+    var currentDietPlan: DietPlan? {
+        dietPlanSyncEngine.currentDocument
+    }
+
+    init(
+        dietPlanSyncEngine: DocumentSyncEngine<DietPlan>
+    ) {
+        self.dietPlanSyncEngine = dietPlanSyncEngine
     }
 
     // MARK: - Public API
 
-    func saveDietPlan(plan: DietPlan) async throws {
-        try local.saveDietPlan(plan: plan)
-        currentDietPlan = plan
-        if let userId = plan.userId {
-            try await remote.saveDietPlan(userId: userId, plan: plan)
-        }
+    func signIn(dietPlanId id: String) async throws {
+        try await dietPlanSyncEngine.startListening(documentId: id)
     }
 
-    func createAndSaveDietPlan(user: UserModel?, delegate: DietPlanDelegate, trainingProgram: TrainingProgram? = nil) async throws {
-        let plan = computeDietPlan(user: user, delegate: delegate, trainingProgram: trainingProgram)
-        try local.saveDietPlan(plan: plan)
-        currentDietPlan = plan
-        if let userId = plan.userId {
-            try await remote.saveDietPlan(userId: userId, plan: plan)
-        }
+    func signOut() {
+        dietPlanSyncEngine.stopListening()
+    }
+
+    func saveDietPlan(_ plan: DietPlan) async throws {
+        try await dietPlanSyncEngine.saveDocument(plan)
+    }
+    
+    func deleteDietPlan() async throws {
+        try await dietPlanSyncEngine.deleteDocument()
     }
 
     /// Get daily macro target for a specific date from the current diet plan
@@ -85,7 +86,7 @@ class NutritionManager {
 
         // Derive training context from the user's active training program.
         // A day plan with at least one exercise counts as a training day.
-        let trainingDaysPerWeek = trainingProgram?.dayPlans.filter { !$0.exercises.isEmpty }.count ?? 0
+        let trainingDaysPerWeek = trainingProgram?.workoutTemplates.filter { !$0.exercises.isEmpty }.count ?? 0
         let hasTraining = trainingDaysPerWeek > 0
 
         let dailyCalories = calculateDailyCalories(
@@ -270,14 +271,14 @@ extension CoreInteractor {
         nutritionManager.computeDietPlan(user: user, delegate: delegate, trainingProgram: activeTrainingProgram)
     }
 
-    func saveDietPlan(plan: DietPlan) async throws {
-        try await nutritionManager.saveDietPlan(plan: plan)
+    func saveDietPlan(_ plan: DietPlan) async throws {
+        try await nutritionManager.saveDietPlan(plan)
     }
 
-    func createAndSaveDietPlan(user: UserModel?, delegate: DietPlanDelegate) async throws {
-        try await nutritionManager.createAndSaveDietPlan(user: user, delegate: delegate, trainingProgram: activeTrainingProgram)
+    func deleteDietPlan() async throws {
+        try await nutritionManager.deleteDietPlan()
     }
-
+    
     // Get daily macro target for a specific date from the current diet plan
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget? {
         try await nutritionManager.getDailyTarget(for: date, userId: userId)

@@ -4,10 +4,11 @@ import SwiftUI
 protocol ProgramDesignInteractor: GlobalInteractor {
     var userId: String? { get }
     var currentUser: UserModel? { get }
+    var favouriteGymProfile: GymProfileModel? { get }
+    var activeTrainingProgram: TrainingProgram? { get }
     func setActiveTrainingProgram(programId: String) async throws
-    func createTrainingProgram(program: TrainingProgram) async throws
-    func upsertTrainingProgram(program: TrainingProgram) async throws
-    func readFavouriteGymProfile() async throws -> GymProfileModel
+    func saveTrainingProgram(trainingProgram: TrainingProgram) async throws
+    func saveWorkoutTemplate(workoutTemplate: WorkoutTemplateModel, image: PlatformImage?) async throws
 }
 
 extension CoreInteractor: ProgramDesignInteractor { }

@@ -9,7 +9,7 @@
 protocol DietPlanInteractor {
     var currentUser: UserModel? { get }
     func computeDietPlan(user: UserModel?, delegate: DietPlanDelegate) -> DietPlan
-    func saveDietPlan(plan: DietPlan) async throws
+    func saveDietPlan(_ plan: DietPlan) async throws
     func trackEvent(event: LoggableEvent)
 }
 

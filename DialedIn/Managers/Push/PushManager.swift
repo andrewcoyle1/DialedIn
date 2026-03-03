@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UserNotifications
 
 @Observable
 @MainActor
@@ -13,8 +14,15 @@ class PushManager {
 
     let logManager: LogManager?
 
+    var isAuthorised: UNAuthorizationStatus
+    
     init(logManager: LogManager? = nil) {
         self.logManager = logManager
+        var authStatus: UNAuthorizationStatus = .notDetermined
+        Task { @MainActor in
+            authStatus = (try? await LocalNotifications.getNotificationStatus()) ?? .notDetermined
+        }
+        self.isAuthorised = authStatus
     }
 
     func requestAuthorisation() async throws -> Bool {
@@ -26,7 +34,11 @@ class PushManager {
     func canRequestAuthorisation() async -> Bool {
         await LocalNotifications.canRequestAuthorization()
     }
-
+    
+    func removeDeliveredNotifications(ids: [String]) {
+        LocalNotifications.removeNotifications(ids: ids, pending: false, delivered: true)
+    }
+    
     func schedulePushNotificationsForNextWeek() {
         LocalNotifications.removeAllPendingNotifications()
         LocalNotifications.removeAllDeliveredNotifications()
@@ -110,20 +122,28 @@ extension CoreInteractor {
     
     // MARK: PushManager
     
+    var isAuthorised: UNAuthorizationStatus {
+        pushManager.isAuthorised
+    }
+    
     func schedulePushNotification(delegate: PushNotificationDelegate) async throws {
         try await pushManager.schedulePushNotification(delegate: delegate)
     }
 
-    func requestPushAuthorization() async throws -> Bool {
+    func requestPushAuthorisation() async throws -> Bool {
         try await pushManager.requestAuthorisation()
     }
     
-    func canRequestNotificationAuthorization() async -> Bool {
+    func canRequestNotificationAuthorisation() async -> Bool {
         await pushManager.canRequestAuthorisation()
     }
     
     func schedulePushNotificationsForNextWeek() {
         pushManager.schedulePushNotificationsForNextWeek()
     }
-
+    
+    func removeDeliveredNotifications(ids: [String]) {
+        pushManager.removeDeliveredNotifications(ids: ids)
+    }
+    
 }

@@ -13,10 +13,9 @@ struct WorkoutPickerDelegate {
     let onCancelWorkout: () -> Void
 
     /// Protocol requirements (type-erased to `any TemplateModel`)
-    var onSelect: (any TemplateModel) -> Void {
+    var onSelect: (WorkoutTemplateModel) -> Void {
         { template in
-            guard let workout = template as? WorkoutTemplateModel else { return }
-            self.onSelectWorkout(workout)
+            self.onSelectWorkout(template)
         }
     }
 

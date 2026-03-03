@@ -2,12 +2,12 @@ import SwiftUI
 
 @Observable
 @MainActor
-class CustomiseDashboardPresenter {
+class CustomiseAnalyticsPresenter {
     
-    private let interactor: CustomiseDashboardInteractor
-    private let router: CustomiseDashboardRouter
+    private let interactor: CustomiseAnalyticsInteractor
+    private let router: CustomiseAnalyticsRouter
     
-    init(interactor: CustomiseDashboardInteractor, router: CustomiseDashboardRouter) {
+    init(interactor: CustomiseAnalyticsInteractor, router: CustomiseAnalyticsRouter) {
         self.interactor = interactor
         self.router = router
     }
@@ -22,7 +22,7 @@ class CustomiseDashboardPresenter {
 
 }
 
-extension CustomiseDashboardPresenter {
+extension CustomiseAnalyticsPresenter {
     
     enum Event: LoggableEvent {
         case onAppear
@@ -30,8 +30,8 @@ extension CustomiseDashboardPresenter {
         
         var eventName: String {
             switch self {
-            case .onAppear:     return "CustomiseDashboardView_Appear"
-            case .onDisappear:  return "CustomiseDashboardView_Disappear"
+            case .onAppear:     return "CustomiseAnalyticsView_Appear"
+            case .onDisappear:  return "CustomiseAnalyticsView_Disappear"
             }
         }
         

@@ -1,10 +1,10 @@
 //
-//  ExerciseTemplateDetailDelegate.swift
+//  ExerciseModelDetailDelegate.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 03/12/2025.
 //
 
-struct ExerciseTemplateDetailDelegate {
-    var exerciseTemplate: ExerciseModel
+struct ExerciseModelDetailDelegate {
+    var exerciseModel: ExerciseModel
 }

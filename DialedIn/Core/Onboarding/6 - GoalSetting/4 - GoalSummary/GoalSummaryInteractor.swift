@@ -8,13 +8,8 @@
 @MainActor
 protocol GoalSummaryInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func createGoal(
-        userId: String,
-        objective: OverarchingObjective,
-        startingWeightKg: Double,
-        targetWeightKg: Double,
-        weeklyChangeKg: Double
-    ) async throws -> WeightGoal
+    func saveGoal(_ goal: WeightGoal
+    ) async throws
     func updateCurrentGoalId(goalId: String?) async throws
 }
 

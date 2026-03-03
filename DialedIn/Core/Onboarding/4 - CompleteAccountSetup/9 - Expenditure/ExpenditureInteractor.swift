@@ -6,13 +6,12 @@
 //
 
 @MainActor
-protocol ExpenditureInteractor {
+protocol ExpenditureInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    func saveUserCompleteAccountSetup(input: CompleteAccountSetupProfileInput) async throws
+    func saveUserCompleteAccountSetup(input: [String: any DMCodableSendable]) async throws
     func estimateTDEE(user: UserModel?) -> Double
-    func canRequestNotificationAuthorization() async -> Bool
+    func canRequestNotificationAuthorisation() async -> Bool
     func canRequestHealthDataAuthorisation() -> Bool
-    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: ExpenditureInteractor { }

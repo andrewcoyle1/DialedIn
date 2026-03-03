@@ -1,5 +1,5 @@
 //
-//  ExerciseTemplateModelMockAndEdgeCasesTests.swift
+//  ExerciseModelModelMockAndEdgeCasesTests.swift
 //  DialedInUnitTests
 //
 //  Created by Andrew Coyle on 28/10/2025.
@@ -10,13 +10,13 @@ import Foundation
 @testable import DialedIn
 
 @MainActor
-struct ExerciseTemplateMockTests {
+struct ExerciseModelMockTests {
 
     // MARK: - Mock Tests
     
     @Test("Test Mock Property")
     func testMockProperty() {
-        let mock = ExerciseTemplateModel.mock
+        let mock = ExerciseModelModel.mock
         
         #expect(mock.exerciseId == "1")
         #expect(mock.authorId == "1")
@@ -31,7 +31,7 @@ struct ExerciseTemplateMockTests {
     
     @Test("Test Mocks Property")
     func testMocksProperty() {
-        let mocks = ExerciseTemplateModel.mocks
+        let mocks = ExerciseModelModel.mocks
         
         #expect(mocks.count == 10)
         #expect(mocks[0].name == "Bench Press")
@@ -43,7 +43,7 @@ struct ExerciseTemplateMockTests {
     
     @Test("Test Mocks Have Different Exercise Types")
     func testMocksHaveDifferentExerciseTypes() {
-        let mocks = ExerciseTemplateModel.mocks
+        let mocks = ExerciseModelModel.mocks
         
         #expect(mocks[0].type == .barbell) // Bench Press
         #expect(mocks[1].type == .barbell) // Squat
@@ -56,7 +56,7 @@ struct ExerciseTemplateMockTests {
     
     @Test("Test Mocks Have Different Muscle Groups")
     func testMocksHaveDifferentMuscleGroups() {
-        let mocks = ExerciseTemplateModel.mocks
+        let mocks = ExerciseModelModel.mocks
         
         #expect(mocks[0].muscleGroups == [.chest, .arms]) // Bench Press
         #expect(mocks[1].muscleGroups == [.legs, .core]) // Squat
@@ -67,7 +67,7 @@ struct ExerciseTemplateMockTests {
     
     @Test("Test Mocks Have Different Author IDs")
     func testMocksHaveDifferentAuthorIds() {
-        let mocks = ExerciseTemplateModel.mocks
+        let mocks = ExerciseModelModel.mocks
         
         #expect(mocks[0].authorId == "1")
         #expect(mocks[1].authorId == "2")
@@ -77,7 +77,7 @@ struct ExerciseTemplateMockTests {
     
     @Test("Test Mocks Have Instructions")
     func testMocksHaveInstructions() {
-        let mocks = ExerciseTemplateModel.mocks
+        let mocks = ExerciseModelModel.mocks
         
         for mock in mocks {
             #expect(!mock.instructions.isEmpty)
@@ -86,7 +86,7 @@ struct ExerciseTemplateMockTests {
     
     @Test("Test Mocks Have Different Click Counts")
     func testMocksHaveDifferentClickCounts() {
-        let mocks = ExerciseTemplateModel.mocks
+        let mocks = ExerciseModelModel.mocks
         
         #expect(mocks[0].clickCount == 48)
         #expect(mocks[1].clickCount == 34)
@@ -104,7 +104,7 @@ struct ExerciseTemplateMockTests {
         let randomDescription = String.random
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             authorId: randomAuthorId,
             name: randomName,
@@ -139,7 +139,7 @@ struct ExerciseTemplateMockTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             authorId: nil,
             name: randomName,
@@ -163,7 +163,7 @@ struct ExerciseTemplateMockTests {
         let randomDate = Date.random
         let instructions = ["Step 1", "Step 2", "Step 3"]
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             instructions: instructions,
@@ -185,7 +185,7 @@ struct ExerciseTemplateMockTests {
         let randomExerciseId = String.random
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: "",
             dateCreated: randomDate,
@@ -201,7 +201,7 @@ struct ExerciseTemplateMockTests {
         let longName = String(repeating: "a", count: 1000)
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: longName,
             dateCreated: randomDate,
@@ -218,7 +218,7 @@ struct ExerciseTemplateMockTests {
         let longDescription = String(repeating: "b", count: 5000)
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             description: longDescription,
@@ -236,7 +236,7 @@ struct ExerciseTemplateMockTests {
         let randomDate = Date.random
         let manyInstructions = (1...100).map { "Step \($0)" }
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             instructions: manyInstructions,
@@ -254,7 +254,7 @@ struct ExerciseTemplateMockTests {
         let randomDate = Date.random
         let allMuscleGroups: [MuscleGroup] = [.chest, .shoulders, .back, .arms, .legs, .core]
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             muscleGroups: allMuscleGroups,
@@ -271,7 +271,7 @@ struct ExerciseTemplateMockTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             dateCreated: randomDate,
@@ -292,7 +292,7 @@ struct ExerciseTemplateMockTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             dateCreated: randomDate,
@@ -313,7 +313,7 @@ struct ExerciseTemplateMockTests {
         let specialName = "Test-Exercise_123!@#$%^&*()"
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: specialName,
             dateCreated: randomDate,
@@ -329,7 +329,7 @@ struct ExerciseTemplateMockTests {
         let unicodeName = "Упражнение 运动 エクササイズ 🏋️"
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: unicodeName,
             dateCreated: randomDate,
@@ -345,7 +345,7 @@ struct ExerciseTemplateMockTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             instructions: [],
@@ -365,7 +365,7 @@ struct ExerciseTemplateMockTests {
         let laterDate = Date(timeIntervalSince1970: 2000000000)
         
         // This is an unusual case but the model should handle it
-        let exercise = ExerciseTemplateModel(
+        let exercise = ExerciseModelModel(
             exerciseId: randomExerciseId,
             name: randomName,
             dateCreated: laterDate,

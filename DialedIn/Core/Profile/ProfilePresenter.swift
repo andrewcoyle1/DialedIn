@@ -21,8 +21,8 @@ class ProfilePresenter {
 
     var fullName: String {
         guard let user = currentUser else { return "" }
-        let first = user.firstName ?? ""
-        let last = user.lastName ?? ""
+        let first = user.firstNameCalculated ?? ""
+        let last = user.lastNameCalculated ?? ""
         return "\(first) \(last)".trimmingCharacters(in: .whitespaces)
     }
 
@@ -48,12 +48,6 @@ class ProfilePresenter {
 
     func onWorkoutSettingsPressed() {
         router.showWorkoutSettingsView(delegate: WorkoutSettingsDelegate())
-    }
-
-    func getActiveGoal() async {
-        if let userId = self.currentUser?.userId {
-            activeGoal = try? await interactor.getActiveGoal(userId: userId)
-        }
     }
     
     func onUnitsPressed() {
@@ -104,8 +98,8 @@ class ProfilePresenter {
         router.showShortcutsView(delegate: ShortcutsDelegate())
     }
     
-    func onCustomiseDashboardPressed() {
-        router.showCustomiseDashboardView(delegate: CustomiseDashboardDelegate())
+    func onCustomiseAnalyticsPressed() {
+        router.showCustomiseAnalyticsView(delegate: CustomiseAnalyticsDelegate())
     }
 
     func onLegalPressed() {

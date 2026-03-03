@@ -21,12 +21,11 @@ struct CoreInteractor: GlobalInteractor {
     let userManager: UserManager
     let abTestManager: ABTestManager
     let purchaseManager: PurchaseManager
-    let exerciseTemplateManager: ExerciseTemplateManager
+    let exerciseModelManager: ExerciseModelManager
     let exerciseUnitPreferenceManager: ExerciseUnitPreferenceManager
     let workoutSettingsManager: WorkoutSettingsManager
     let workoutTemplateManager: WorkoutTemplateManager
     let workoutSessionManager: WorkoutSessionManager
-    let exerciseHistoryManager: ExerciseHistoryManager
     let trainingProgramManager: TrainingProgramManager
     let gymProfileManager: GymProfileManager
     let ingredientTemplateManager: IngredientTemplateManager
@@ -46,6 +45,7 @@ struct CoreInteractor: GlobalInteractor {
     let hkWorkoutManager: HKWorkoutManager
     let liveActivityManager: LiveActivityManager
     #endif
+    let streakManager: StreakManager
     let appState: AppState
     let hapticManager: HapticManager
     let soundEffectManager: SoundEffectManager
@@ -55,12 +55,11 @@ struct CoreInteractor: GlobalInteractor {
         self.userManager = container.resolve(UserManager.self)!
         self.abTestManager = container.resolve(ABTestManager.self)!
         self.purchaseManager = container.resolve(PurchaseManager.self)!
-        self.exerciseTemplateManager = container.resolve(ExerciseTemplateManager.self)!
+        self.exerciseModelManager = container.resolve(ExerciseModelManager.self)!
         self.exerciseUnitPreferenceManager = container.resolve(ExerciseUnitPreferenceManager.self)!
         self.workoutSettingsManager = container.resolve(WorkoutSettingsManager.self)!
         self.workoutTemplateManager = container.resolve(WorkoutTemplateManager.self)!
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
-        self.exerciseHistoryManager = container.resolve(ExerciseHistoryManager.self)!
         self.trainingProgramManager = container.resolve(TrainingProgramManager.self)!
         self.gymProfileManager = container.resolve(GymProfileManager.self)!
         self.ingredientTemplateManager = container.resolve(IngredientTemplateManager.self)!
@@ -80,18 +79,56 @@ struct CoreInteractor: GlobalInteractor {
         self.hkWorkoutManager = container.resolve(HKWorkoutManager.self)!
         self.liveActivityManager = container.resolve(LiveActivityManager.self)!
         #endif
+        self.streakManager = container.resolve(StreakManager.self)!
         self.appState = container.resolve(AppState.self)!
 
         self.hapticManager = container.resolve(HapticManager.self)!
         self.soundEffectManager = container.resolve(SoundEffectManager.self)!
-
-        _ = try? getActiveTrainingProgram()
     }
 
     // MARK: Shared
     
     func logIn(user: UserAuthInfo, isNewUser: Bool) async throws {
-        try await userManager.logIn(auth: user, isNewUser: isNewUser)
+        try await userManager.signIn(auth: user, isNewUser: isNewUser)
+        async let workoutSettingsSignIn: () = workoutSettingsManager.signIn(userId: user.uid)
+        async let stepsSignIn: () = stepsManager.signIn()
+        async let workoutTemplatesSignIn: () = workoutTemplateManager.signIn()
+        async let gymProfileSignIn: () = gymProfileManager.signIn()
+        async let trainingProgramSignIn: () = trainingProgramManager.signIn(programId: userManager.currentUser?.submittedActiveTrainingProgramId ?? "")
+        let followingIds = userManager.currentUser?.followingIds ?? []
+        async let workoutSessionSignIn: () = workoutSessionManager.signIn(userId: user.uid, followingIds: followingIds)
+        async let followingUsersSignIn: () = userManager.refreshFollowingUsers(followingIds: followingIds)
+        async let exerciseSignIn: () = exerciseModelManager.signIn(userId: user.uid)
+        async let recipeTemplatesSignIn: () = recipeTemplateManager.signIn()
+        async let ingredientTemplatesSignIn: () = ingredientTemplateManager.signIn()
+        async let nutritionSignIn: () = nutritionManager.signIn(dietPlanId: user.uid)
+        async let mealLogSignIn: () = mealLogManager.signIn(userId: user.uid)
+        async let bodyMeasurementsSignIn: () = bodyMeasurementsManager.signIn(userId: user.uid)
+        async let goalSignIn: () = goalManager.signIn(userId: user.uid)
+        async let streakSignIn: () = streakManager.logIn(userId: user.uid)
+
+        try await workoutSettingsSignIn
+        try await trainingProgramSignIn
+        try await nutritionSignIn
+        try await goalSignIn
+        await stepsSignIn
+        await workoutTemplatesSignIn
+        await gymProfileSignIn
+        await workoutSessionSignIn
+        await followingUsersSignIn
+        await exerciseSignIn
+        await recipeTemplatesSignIn
+        await ingredientTemplatesSignIn
+        await mealLogSignIn
+        await bodyMeasurementsSignIn
+        try await streakSignIn
+
+        // Seed system content after all sync engines have started listening,
+        // so local persistence is loaded and allExercises is populated before
+        // workout templates try to resolve exercises by ID.
+        try? exerciseModelManager.seedExercisesIfNeeded()
+        try? workoutTemplateManager.seedWorkoutTemplatesIfNeeded(exercises: exerciseModelManager.allExercises)
+
         try await purchaseManager.logIn(
             userId: user.uid,
             userAttributes: PurchaseProfileAttributes(
@@ -107,6 +144,20 @@ struct CoreInteractor: GlobalInteractor {
         try authManager.signOut()
         try await purchaseManager.logOut()
         userManager.signOut()
+        stepsManager.signOut()
+        workoutTemplateManager.signOut()
+        workoutSessionManager.signOut()
+        gymProfileManager.signOut()
+        trainingProgramManager.signOut()
+        exerciseModelManager.signOut()
+        workoutSettingsManager.signOut()
+        recipeTemplateManager.signOut()
+        ingredientTemplateManager.signOut()
+        nutritionManager.signOut()
+        mealLogManager.signOut()
+        bodyMeasurementsManager.signOut()
+        goalManager.signOut()
+        streakManager.logOut()
     }
     
     func deleteAccount() async throws {
@@ -127,21 +178,19 @@ struct CoreInteractor: GlobalInteractor {
             // Note: this must be done within this closure
             // So that it completes before auth is revoked
             // Once auth is revoked, security rules may restrict user from reading/writing to Firestore
-            async let deleteExerciseTemplates: () = exerciseTemplateManager.removeAuthorIdFromAllExerciseTemplates(id: auth.uid)
-            async let deleteExerciseHistory: () = exerciseHistoryManager.deleteAllLocalExerciseHistoryForAuthor(authorId: auth.uid)
-            async let deleteWorkoutTemplates: () = workoutTemplateManager.removeAuthorIdFromAllWorkoutTemplates(id: auth.uid)
+            async let deleteExerciseModels: () = exerciseModelManager.deleteAllExercises()
+            async let deleteWorkoutTemplates: () = workoutTemplateManager.deleteAllWorkoutTemplateForAuthor()
             async let deleteWorkoutSessions: () = workoutSessionManager.deleteAllWorkoutSessionsForAuthor(authorId: auth.uid)
-            async let deleteRecipeTemplates: () = recipeTemplateManager.removeAuthorIdFromAllRecipeTemplates(id: auth.uid)
-            async let deleteIngredientTemplates: () = ingredientTemplateManager.removeAuthorIdFromAllIngredientTemplates(id: auth.uid)
+            async let deleteRecipeTemplates: () = recipeTemplateManager.deleteAllRecipeTemplates()
+            async let deleteIngredientTemplates: () = ingredientTemplateManager.deleteAllIngredientTemplates(id: auth.uid)
             async let deleteMealLogs: () = mealLogManager.deleteAllMealLogsForAuthor(authorId: auth.uid)
-            async let deleteWeightEntries: () = bodyMeasurementsManager.deleteAllWeightEntriesForUser(userId: auth.uid)
-            async let deleteStepsEntries: () = stepsManager.deleteAllStepsEntriesForUser(userId: auth.uid)
-            async let deleteGoals: () = goalManager.deleteAllGoalsForUser(userId: auth.uid)
+            async let deleteWeightEntries: () = bodyMeasurementsManager.deleteAllWeightEntriesForUser()
+            async let deleteStepsEntries: () = stepsManager.signOut()
+            async let deleteGoals: () = goalManager.deleteGoal()
             async let deleteUser: () = userManager.deleteCurrentUser()
 
             _ = try await (
-                deleteExerciseTemplates,
-                deleteExerciseHistory,
+                deleteExerciseModels,
                 deleteWorkoutTemplates,
                 deleteWorkoutSessions,
                 deleteRecipeTemplates,
@@ -161,19 +210,34 @@ struct CoreInteractor: GlobalInteractor {
         // Delete logs (Mixpanel)
         logManager.deleteUserProfile()
     }
+    
+    func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws {
+        guard let userId = self.userId else { throw CoreError.noCurrentUser }
+        var unitPreferences: [String: ExerciseUnitPreference] = [:]
+        for exerciseModel in template.exercises {
+            let preference = self.getPreference(templateId: exerciseModel.exercise.id)
+            unitPreferences[exerciseModel.exercise.id] = preference
+        }
+        let previousSession = try await self.workoutSessionManager.getLastWorkoutSessionForTemplate(templateId: template.id)
+        
+        let session = WorkoutSessionModel(
+            authorId: userId,
+            template: template,
+            notes: nil,
+            trainingProgramId: trainingProgramId,
+            previousWorkoutSession: previousSession,
+            unitPreferences: unitPreferences
+        )
+        
+        try self.updateActiveSession(session)
+    }
+    
+    func deleteActiveSession() throws {
+        try workoutSessionManager.deleteActiveSession()
+        hkWorkoutManager.discardWorkout()
+    }
                             
     func syncAllRemoteDataIfLoggedIn() async {
-        guard let userId = auth?.uid else { return }
-        let user = userManager.currentUser
-        
-        try? await workoutSessionManager.syncWorkoutSessionsFromRemote(authorId: userId, limitTo: 100)
-        try? await mealLogManager.syncMealsFromRemote(authorId: userId)
-        try? await mealLogManager.uploadLocalMealsToRemote(authorId: userId)
-        try? await trainingProgramManager.syncTrainingProgramsFromRemote(authorId: userId)
-        try? await trainingProgramManager.uploadLocalProgramsToRemote(authorId: userId)
-        _ = try? await stepsManager.readAllRemoteStepsEntries(userId: userId, userCreationDate: user?.creationDate)
-        _ = try? await bodyMeasurementsManager.readAllRemoteWeightEntries(userId: userId)
-        
         NotificationCenter.default.post(name: Constants.remoteDataSyncDidComplete, object: nil)
     }
 }

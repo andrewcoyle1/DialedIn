@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 protocol ExerciseEquipmentInteractor: GlobalInteractor {
-    func readFavouriteGymProfile() async throws -> GymProfileModel
+    var favouriteGymProfile: GymProfileModel? { get }
 }
 
 extension CoreInteractor: ExerciseEquipmentInteractor { }

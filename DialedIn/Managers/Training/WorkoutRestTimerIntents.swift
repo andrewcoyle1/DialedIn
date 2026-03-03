@@ -34,7 +34,6 @@ struct AdjustRestTimerIntent: LiveActivityIntent {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Find the active workout Live Activity
         guard let activity = Activity<WorkoutActivityAttributes>.activities.first else {
-            print("⚠️ No active Live Activity found")
             return .result()
         }
         
@@ -42,7 +41,6 @@ struct AdjustRestTimerIntent: LiveActivityIntent {
         
         // Get current rest end time
         guard let currentRestEnd = state.restEndsAt else {
-            print("⚠️ No active rest timer")
             return .result()
         }
         
@@ -82,7 +80,6 @@ struct AdjustRestTimerIntent: LiveActivityIntent {
             )
         )
         
-        print("✅ Rest timer adjusted by \(adjustment)s, new end time: \(finalRestEnd)")
         #endif
         
         return .result()
@@ -101,7 +98,6 @@ struct SkipRestTimerIntent: LiveActivityIntent {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Find the active workout Live Activity
         guard let activity = Activity<WorkoutActivityAttributes>.activities.first else {
-            print("⚠️ No active Live Activity found")
             return .result()
         }
         
@@ -138,7 +134,6 @@ struct SkipRestTimerIntent: LiveActivityIntent {
             )
         )
         
-        print("✅ Rest timer skipped")
         #endif
         return .result()
     }
@@ -156,7 +151,6 @@ struct CompleteWorkoutIntent: LiveActivityIntent {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Find the active workout Live Activity
         guard let activity = Activity<WorkoutActivityAttributes>.activities.first else {
-            print("⚠️ No active Live Activity found")
             return .result()
         }
         
@@ -182,9 +176,7 @@ struct CompleteWorkoutIntent: LiveActivityIntent {
             completedAt: Date()
         )
         SharedWorkoutStorage.pendingWorkoutCompletion = completion
-        
-        print("✅ Workout completion requested for session '\(sessionId)'")
-        
+                
         // The main app will handle the actual workout completion and will end the Live Activity
         #endif
         return .result()
@@ -206,7 +198,6 @@ struct CompleteSetIntent: LiveActivityIntent {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Find the active workout Live Activity
         guard let activity = Activity<WorkoutActivityAttributes>.activities.first else {
-            print("⚠️ No active Live Activity found")
             return .result()
         }
 
@@ -214,7 +205,6 @@ struct CompleteSetIntent: LiveActivityIntent {
         
         // Only complete if we have a target set ID
         guard let setId = state.targetSetId else {
-            print("⚠️ No target set to complete")
             return .result()
         }
         
@@ -232,11 +222,6 @@ struct CompleteSetIntent: LiveActivityIntent {
         updatedState = applyRestLogic(to: updatedState)
         await pushUpdate(activity: activity, newState: updatedState)
 
-        if let restEnd = updatedState.restEndsAt {
-            print("✅ Completed set '\(setId)' with values (weight: \(state.targetWeightKg ?? 0)kg, reps: \(state.targetReps ?? 0)), starting rest until: \(restEnd)")
-        } else {
-            print("✅ Completed set '\(setId)' - all sets complete, no rest timer started")
-        }
         #endif
         return .result()
     }

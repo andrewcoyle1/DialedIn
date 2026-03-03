@@ -6,9 +6,8 @@
 //
 
 @MainActor
-protocol WorkoutPickerInteractor {
-    func getAllLocalWorkoutTemplates() throws -> [WorkoutTemplateModel]
-    func trackEvent(event: LoggableEvent)
+protocol WorkoutPickerInteractor: GlobalInteractor {
+    var allWorkoutTemplates: [WorkoutTemplateModel] { get }
 }
 
 extension CoreInteractor: WorkoutPickerInteractor {

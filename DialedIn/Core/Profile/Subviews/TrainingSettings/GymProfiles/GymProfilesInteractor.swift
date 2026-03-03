@@ -4,10 +4,9 @@ import SwiftUI
 protocol GymProfilesInteractor: GlobalInteractor {
     var userId: String? { get }
     var currentUser: UserModel? { get }
-    func readAllRemoteGymProfilesForAuthor(userId: String) async throws -> [GymProfileModel]
+    var gymProfiles: [GymProfileModel] { get }
     func updateFavouriteGymProfileId(profileId: String?) async throws
-    func readAllLocalGymProfiles() throws -> [GymProfileModel]
-    func deleteGymProfile(profile: GymProfileModel) async throws
+    func deleteGymProfile(_ profileId: String) async throws
 }
 
 extension CoreInteractor: GymProfilesInteractor { }

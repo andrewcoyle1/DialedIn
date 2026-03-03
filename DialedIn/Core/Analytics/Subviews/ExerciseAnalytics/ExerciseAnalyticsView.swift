@@ -1,0 +1,105 @@
+import SwiftUI
+
+struct ExerciseAnalyticsDelegate {
+    
+}
+
+struct ExerciseAnalyticsView: View {
+
+    @State var presenter: ExerciseAnalyticsPresenter
+    let delegate: ExerciseAnalyticsDelegate
+
+    var body: some View {
+        List {
+            Section {
+                let exerciseColor = Color.cyan
+                LazyVGrid(columns: [GridItem(), GridItem()]) {
+                    ForEach(presenter.exerciseCards) { item in
+                        AnalyticsCard(
+                            title: item.name,
+                            subtitle: "Last 7 Workouts",
+                            subsubtitle: item.latest1RM > 0 ? item.latest1RM.formatted(.number.precision(.fractionLength(1))) : "--",
+                            subsubsubtitle: "kg",
+                            themeColor: exerciseColor,
+                            chartConfiguration: AnalyticsCardChartConfiguration(height: 36, verticalPadding: 2)
+                        ) {
+                            SparklineChart(
+                                data: item.sparklineData,
+                                configuration: SparklineConfiguration(
+                                    lineColor: exerciseColor,
+                                    lineWidth: 2,
+                                    fillColor: exerciseColor,
+                                    height: 36
+                                )
+                            )
+                        }
+                        .tappableBackground()
+                        .anyButton(.press) {
+                            presenter.onExercisePressed(templateId: item.templateId, name: item.name, themeColor: exerciseColor)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                .removeListRowFormatting()
+            } header: {
+                Text("Exercises")
+            }
+            .listSectionMargins(.horizontal, 0)
+            .listRowSeparator(.hidden)
+        }
+        .onFirstTask {
+            await presenter.loadData()
+        }
+        .navigationTitle("Exercises")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            presenter.onViewAppear()
+        }
+        .onDisappear {
+            presenter.onViewDisappear()
+        }
+        .scrollIndicators(.hidden)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(role: .close) {
+                    presenter.onDismissPressed()
+                }
+            }
+        }
+    }
+}
+
+extension CoreBuilder {
+    
+    func exerciseAnalyticsView(router: AnyRouter, delegate: ExerciseAnalyticsDelegate) -> some View {
+        ExerciseAnalyticsView(
+            presenter: ExerciseAnalyticsPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
+        )
+    }
+    
+}
+
+extension CoreRouter {
+    
+    func showExerciseAnalyticsView(delegate: ExerciseAnalyticsDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.exerciseAnalyticsView(router: router, delegate: delegate)
+        }
+    }
+    
+}
+
+#Preview {
+    let container = DevPreview.shared.container()
+    let builder = CoreBuilder(interactor: CoreInteractor(container: container))
+    let delegate = ExerciseAnalyticsDelegate()
+    
+    return RouterView { router in
+        builder.exerciseAnalyticsView(router: router, delegate: delegate)
+    }
+    
+}

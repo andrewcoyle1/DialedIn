@@ -6,12 +6,10 @@
 //
 
 @MainActor
-protocol ProfileInteractor {
+protocol ProfileInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     var currentGoal: WeightGoal? { get }
     var currentDietPlan: DietPlan? { get }
-    func getActiveGoal(userId: String) async throws -> WeightGoal?
-    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: ProfileInteractor { }

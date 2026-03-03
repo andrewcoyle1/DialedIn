@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol PreviousWorkoutReferenceSettingsInteractor: GlobalInteractor {
-    
-}
+protocol PreviousWorkoutReferenceSettingsInteractor: GlobalInteractor { }
 
 extension CoreInteractor: PreviousWorkoutReferenceSettingsInteractor { }

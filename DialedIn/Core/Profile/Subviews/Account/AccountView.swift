@@ -96,7 +96,7 @@ struct AccountView: View {
                         .padding(8)
                         .background(Color.secondary.opacity(0.2), in: .capsule)
                         .anyButton(.press) {
-                            print("Edit name pressed")
+                            presenter.onEditNamePressed()
                         }
                 }
             )
@@ -112,19 +112,19 @@ struct AccountView: View {
             }
             if let height = presenter.currentUser?.submittedHeightCentimeters {
                 rowItem(title: "Height", subtitle: "\(height)", action: {
-                    print("Edit height pressed")
+                    presenter.onEditHeightPressed()
                 })
             }
 
             if let cardioExperience = presenter.currentUser?.submittedCardioFitnessLevel {
                 rowItem(title: "Cardio Experience", subtitle: "\(cardioExperience)", action: {
-                    print("Edit cardio experience pressed")
+                    presenter.onEditCardioFitnessPressed()
                 })
             }
 
             if let liftingExperience = presenter.currentUser?.submittedExerciseFrequency {
                 rowItem(title: "Lifting Experience", subtitle: "\(liftingExperience)", action: {
-                    print("Edit lifting experience pressed")
+                    presenter.onEditLiftingExperiencePressed()
                 })
             }
         }
@@ -133,10 +133,10 @@ struct AccountView: View {
     private var securitySection: some View {
         Section {
             rowItem(title: "Email", subtitle: presenter.currentUser?.email, action: {
-                print("Edit Email Pressed")
+                presenter.onEditEmailPressed()
             })
             rowItem(title: "Password", subtitle: "********", action: {
-                print("Edit Password Pressed")
+                presenter.onEditPasswordPressed()
             })
             Text("Log Out")
                 .anyButton {

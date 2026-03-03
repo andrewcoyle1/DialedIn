@@ -7,7 +7,7 @@
 import Foundation
 import SwiftUI
 
-struct UserModel: Codable, Equatable, Sendable {
+struct UserModel: DataSyncModelProtocol, Equatable {
     
     var id: String {
         userId
@@ -46,6 +46,7 @@ struct UserModel: Codable, Equatable, Sendable {
     let submittedActiveTrainingProgramId: String?
     let fcmToken: String?
     let blockedUserIds: [String]?
+    let followingIds: [String]?
     var didCompleteOnboarding: Bool
     let acceptedHealthDisclaimerVersion: String?
     let acceptedHealthDisclaimerDate: Date?
@@ -82,6 +83,7 @@ struct UserModel: Codable, Equatable, Sendable {
         submittedActiveTrainingProgramId: String? = nil,
         submittedFavouriteGymProfileId: String? = nil,
         blockedUserIds: [String]? = nil,
+        followingIds: [String]? = nil,
         fcmToken: String? = nil,
         didCompleteOnboarding: Bool = false,
         acceptedHealthDisclaimerVersion: String? = nil,
@@ -118,6 +120,7 @@ struct UserModel: Codable, Equatable, Sendable {
         self.submittedActiveTrainingProgramId = submittedActiveTrainingProgramId
         self.submittedFavouriteGymProfileId = submittedFavouriteGymProfileId
         self.blockedUserIds = blockedUserIds
+        self.followingIds = followingIds
         self.fcmToken = fcmToken
         self.didCompleteOnboarding = didCompleteOnboarding
         self.acceptedHealthDisclaimerVersion = acceptedHealthDisclaimerVersion
@@ -174,6 +177,7 @@ struct UserModel: Codable, Equatable, Sendable {
         case submittedFavouriteGymProfileId = "submitted_favourite_gym_profile_id"
         case didCompleteOnboarding = "did_complete_onboarding"
         case blockedUserIds = "blocked_user_ids"
+        case followingIds = "following_ids"
         case fcmToken = "fcm_token"
         case acceptedHealthDisclaimerVersion = "accepted_health_disclaimer_version"
         case acceptedHealthDisclaimerDate = "accepted_health_disclaimer_date"
@@ -386,7 +390,32 @@ extension UserModel {
         return [
             UserModel(
                 userId: "mock_user_123",
-                isAnonymous: true,
+                email: "anonymous@example.com",
+                isAnonymous: false,
+                firstName: "Andrew",
+                lastName: "Coyle",
+                creationDate: now,
+                creationVersion: "1.0.0",
+                lastSignInDate: now,
+                submittedProfileImage: Constants.randomImage,
+                submittedDateOfBirth: Calendar.current.date(from: DateComponents(year: 2000, month: 11, day: 13)),
+                submittedGender: .male,
+                submittedHeightCentimeters: 175,
+                submittedWeightKilograms: 82.0,
+                submittedExerciseFrequency: .daily,
+                submittedDailyActivityLevel: .active,
+                submittedCardioFitnessLevel: .intermediate,
+                submittedLengthUnitPreference: .centimeters,
+                submittedWeightUnitPreference: .kilograms,
+                submittedCurrentGoalId: WeightGoal.mocks.first!.id,
+                submittedActiveTrainingProgramId: TrainingProgram.mock.id,
+                submittedFavouriteGymProfileId: GymProfileModel.mock.id,
+                followingIds: ["user_1"],
+                didCompleteOnboarding: true,
+                acceptedHealthDisclaimerVersion: "2025.10.05",
+                acceptedHealthDisclaimerDate: now,
+                acceptedHealthPrivacyPolicyVersion: "2025.10.05",
+                acceptedHealthPrivacyPolicyDate: now
             ),
             UserModel(
                 userId: "user_1",

@@ -9,20 +9,33 @@
 protocol SearchInteractor {
     var userImageUrl: String? { get }
     var currentUser: UserModel? { get }
+    var followingIds: [String] { get }
     var recentSearchQueries: [String] { get }
-    func getExerciseTemplatesByName(name: String) async throws -> [ExerciseModel]
-    func getWorkoutTemplatesByName(name: String) async throws -> [WorkoutTemplateModel]
-    func getRecipeTemplatesByName(name: String) async throws -> [RecipeTemplateModel]
+    var allExercises: [ExerciseModel] { get }
+    var userWorkoutTemplates: [WorkoutTemplateModel] { get }
+    var userRecipeTemplates: [RecipeTemplateModel] { get }
+    func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws
+    func searchUsers(query: String) async throws -> [UserModel]
     func addRecentSearch(query: String)
+    func updateActiveSession(_ session: WorkoutSessionModel) throws
     func clearRecentSearches()
-    func addLocalWorkoutSession(session: WorkoutSessionModel) throws
-    func startActiveSession(_ session: WorkoutSessionModel)
     func getPreference(templateId: String) -> ExerciseUnitPreference
+    func followUser(userId: String) async throws
+    func unfollowUser(userId: String) async throws
 }
 
 extension CoreInteractor: SearchInteractor {
     var recentSearchQueries: [String] {
         RecentSearchManager.recentSearchQueries
+    }
+
+    var followingIds: [String] {
+        currentUser?.followingIds ?? []
+    }
+
+    func searchUsers(query: String) async throws -> [UserModel] {
+        let results = try await userManager.searchUsers(query: query)
+        return results.filter { $0.userId != currentUser?.userId }
     }
 
     func addRecentSearch(query: String) {

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WorkoutExerciseModel: Identifiable, Codable, Hashable {
+struct WorkoutExerciseModel: Identifiable, DataSyncModelProtocol, Equatable {
     let id: String
     let authorId: String
     let templateId: String
