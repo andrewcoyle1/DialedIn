@@ -104,7 +104,7 @@ struct CoreInteractor: GlobalInteractor {
         async let nutritionSignIn: () = nutritionManager.signIn(dietPlanId: user.uid)
         async let mealLogSignIn: () = mealLogManager.signIn(userId: user.uid)
         async let bodyMeasurementsSignIn: () = bodyMeasurementsManager.signIn(userId: user.uid)
-        async let goalSignIn: () = goalManager.signIn(goalId: user.uid)
+        async let goalSignIn: () = goalManager.signIn(userId: user.uid)
         async let streakSignIn: () = streakManager.logIn(userId: user.uid)
 
         try await workoutSettingsSignIn
@@ -211,8 +211,30 @@ struct CoreInteractor: GlobalInteractor {
         logManager.deleteUserProfile()
     }
     
+    func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws {
+        guard let userId = self.userId else { throw CoreError.noCurrentUser }
+        var unitPreferences: [String: ExerciseUnitPreference] = [:]
+        for exerciseModel in template.exercises {
+            let preference = self.getPreference(templateId: exerciseModel.exercise.id)
+            unitPreferences[exerciseModel.exercise.id] = preference
+        }
+        let previousSession = try await self.workoutSessionManager.getLastWorkoutSessionForTemplate(templateId: template.id)
+        
+        let session = WorkoutSessionModel(
+            authorId: userId,
+            template: template,
+            notes: nil,
+            trainingProgramId: trainingProgramId,
+            previousWorkoutSession: previousSession,
+            unitPreferences: unitPreferences
+        )
+        
+        try self.updateActiveSession(session)
+    }
+    
     func deleteActiveSession() throws {
         try workoutSessionManager.deleteActiveSession()
+        hkWorkoutManager.discardWorkout()
     }
                             
     func syncAllRemoteDataIfLoggedIn() async {

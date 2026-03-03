@@ -9,9 +9,8 @@ import Foundation
 
 struct WeightGoal: DataSyncModelProtocol, Equatable {
     
-    var id: String { goalId }
+    var id: String { userId }
     
-    let goalId: String
     let userId: String
     let objective: OverarchingObjective
     let startingWeightKg: Double
@@ -22,7 +21,6 @@ struct WeightGoal: DataSyncModelProtocol, Equatable {
     let completedAt: Date?
         
     init(
-        goalId: String = UUID().uuidString,
         userId: String,
         objective: OverarchingObjective,
         startingWeightKg: Double,
@@ -32,7 +30,6 @@ struct WeightGoal: DataSyncModelProtocol, Equatable {
         status: GoalStatus = .active,
         completedAt: Date? = nil
     ) {
-        self.goalId = goalId
         self.userId = userId
         self.objective = objective
         self.startingWeightKg = startingWeightKg
@@ -60,7 +57,6 @@ struct WeightGoal: DataSyncModelProtocol, Equatable {
     }
     
     enum CodingKeys: String, CodingKey {
-        case goalId = "goal_id"
         case userId = "user_id"
         case objective
         case startingWeightKg = "starting_weight_kg"

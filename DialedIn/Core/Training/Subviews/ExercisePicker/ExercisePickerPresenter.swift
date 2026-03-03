@@ -66,4 +66,8 @@ class ExercisePickerPresenter {
     func dismissScreen() {
         router.dismissScreen()
     }
+    
+    func onAddExercisePressed() {
+        router.showCreateExerciseView()
+    }
 }

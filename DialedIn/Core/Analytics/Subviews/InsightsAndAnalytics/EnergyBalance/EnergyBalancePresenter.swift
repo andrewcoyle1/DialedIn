@@ -32,7 +32,6 @@ class EnergyBalancePresenter {
     func onAddMealPressed() {
         let delegate = AddMealDelegate(
             selectedDate: Date(),
-            mealType: .snack,
             onSave: { [weak self] _ in
                 self?.loadData()
             }

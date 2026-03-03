@@ -38,11 +38,6 @@ class UserManager {
         }
         try await userSyncEngine.startListening(documentId: auth.uid)
     }
-
-//    func signIn(userId: String) async throws {
-//
-//        try await userSyncEngine.startListening(documentId: userId)
-//    }
     
     func signOut() {
         userSyncEngine.stopListening()

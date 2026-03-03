@@ -6,10 +6,9 @@
 //
 
 import SwiftUI
-@preconcurrency import FirebaseFunctions
-@preconcurrency import FirebaseAuth
-@preconcurrency import FirebaseAppCheck
-import Foundation
+import FirebaseFunctions
+import FirebaseAuth
+import FirebaseAppCheck
 
 struct GoogleAIService: AIService {
     private let functions: Functions
@@ -19,10 +18,7 @@ struct GoogleAIService: AIService {
     }
     
     func generateImage(input: String) async throws -> UIImage {
-        try await ensureAuthenticated()
-        try await ensureValidIDToken()
-        _ = try await AppCheckTokenCache.shared.getToken()
-        let payload: NSDictionary = [
+        let payload: [String: Any] = [
             "prompt": input
         ]
         let callable = functions.httpsCallable("imageGenerate")
@@ -37,16 +33,13 @@ struct GoogleAIService: AIService {
     }
     
     func generateText(chats: [AIChatModel]) async throws -> AIChatModel {
-        try await ensureAuthenticated()
-        try await ensureValidIDToken()
-        _ = try await AppCheckTokenCache.shared.getToken()
-        let messages: [NSDictionary] = chats.map { chat in
+        let messages: [[String: Any]] = chats.map { chat in
             [
                 "role": chat.role.rawValue,
                 "message": chat.message
-            ] as NSDictionary
+            ]
         }
-        let payload: NSDictionary = [
+        let payload: [String: Any] = [
             "messages": messages,
             "temperature": 0.7,
             "maxOutputTokens": 512
@@ -62,33 +55,27 @@ struct GoogleAIService: AIService {
         return AIChatModel(role: aiRole, content: message)
     }
     
+    func analyzeNutritionLabel(text: String) async throws -> String {
+        let payload: [String: Any] = ["labelText": text]
+        let result = try await functions.httpsCallable("nutritionLabelAnalyze").call(payload)
+        guard let dict = result.data as? [String: Any],
+              let json = dict["result"] as? String else {
+            throw GoogleAIError.invalidResponse
+        }
+        return json
+    }
+
+    func analyzeFood(imageData: Data) async throws -> String {
+        let payload: [String: Any] = ["imageBase64": imageData.base64EncodedString()]
+        let result = try await functions.httpsCallable("foodAnalyze").call(payload)
+        guard let dict = result.data as? [String: Any],
+              let json = dict["result"] as? String else {
+            throw GoogleAIError.invalidResponse
+        }
+        return json
+    }
+
     enum GoogleAIError: LocalizedError {
         case invalidResponse
-    }
-}
-
-private func ensureAuthenticated() async throws {
-    if Auth.auth().currentUser != nil { return }
-    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-        Auth.auth().signInAnonymously { _, error in
-            if let error = error {
-                continuation.resume(throwing: error)
-            } else {
-                continuation.resume()
-            }
-        }
-    }
-}
-
-private func ensureValidIDToken() async throws {
-    guard let user = Auth.auth().currentUser else { return }
-    _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
-        user.getIDTokenForcingRefresh(false) { token, error in
-            if let error = error {
-                continuation.resume(throwing: error)
-            } else {
-                continuation.resume(returning: token ?? "")
-            }
-        }
     }
 }

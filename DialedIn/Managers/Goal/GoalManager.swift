@@ -23,7 +23,7 @@ class GoalManager {
     
     // MARK: - Public Methods
     
-    func signIn(goalId id: String) async throws {
+    func signIn(userId id: String) async throws {
         try await userGoalSyncEngine.startListening(documentId: id)
     }
     

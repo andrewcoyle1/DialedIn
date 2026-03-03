@@ -74,6 +74,17 @@ extension MacroProgressChart {
     static var otherColor: Color { Color(red: 0.55, green: 0.78, blue: 0.95) }
 }
 
+extension Color {
+    /// Standard colors for Protein, Fat, and Carbs
+    static var proteinColor: Color { Color(red: 0.9, green: 0.4, blue: 0.3) }
+    static var fatColor: Color { Color(red: 0.95, green: 0.75, blue: 0.2) }
+    static var carbsColor: Color { Color(red: 0.4, green: 0.75, blue: 0.5) }
+    /// Colors for Vitamins, Minerals, and Other nutrient categories
+    static var vitaminColor: Color { Color(red: 0.55, green: 0.35, blue: 0.75) }
+    static var mineralColor: Color { Color(red: 0.95, green: 0.5, blue: 0.65) }
+    static var otherColor: Color { Color(red: 0.55, green: 0.78, blue: 0.95) }
+}
+
 #Preview("Protein") {
     MacroProgressChart(
         current: 48.3,

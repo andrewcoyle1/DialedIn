@@ -38,6 +38,14 @@ struct ExercisePickerView: View {
                     Image(systemName: "xmark")
                 }
             }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    presenter.onAddExercisePressed()
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
         }
     }
 

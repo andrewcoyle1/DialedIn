@@ -23,17 +23,33 @@ class AIManager {
     func generateText(chats: [AIChatModel]) async throws -> AIChatModel {
         try await service.generateText(chats: chats)
     }
+
+    func analyzeFood(imageData: Data) async throws -> String {
+        try await service.analyzeFood(imageData: imageData)
+    }
+
+    func analyzeNutritionLabel(text: String) async throws -> String {
+        try await service.analyzeNutritionLabel(text: text)
+    }
 }
 
 extension CoreInteractor {
     // MARK: AIManager
-    
+
     func generateImage(input: String) async throws -> UIImage {
         try await aiManager.generateImage(input: input)
     }
-    
+
     func generateText(chats: [AIChatModel]) async throws -> AIChatModel {
         try await aiManager.generateText(chats: chats)
+    }
+
+    func analyzeFood(imageData: Data) async throws -> String {
+        try await aiManager.analyzeFood(imageData: imageData)
+    }
+
+    func analyzeNutritionLabel(text: String) async throws -> String {
+        try await aiManager.analyzeNutritionLabel(text: text)
     }
 
 }

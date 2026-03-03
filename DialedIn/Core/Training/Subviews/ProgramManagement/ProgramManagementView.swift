@@ -59,7 +59,7 @@ struct ProgramManagementView: View {
                 Text(program.name)
                     .font(.headline)
                 
-                Text("\(program.dayPlans.count) days • \(program.numMicrocycles) cycles")
+                Text("\(program.workoutTemplates.count) days • \(program.numMicrocycles) cycles")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

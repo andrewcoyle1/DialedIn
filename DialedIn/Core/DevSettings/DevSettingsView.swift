@@ -167,8 +167,7 @@ struct DevSettingsView: View {
                     debugRow(label: "Session ID", value: session.id)
                     debugRow(label: "Name", value: session.name)
                     debugRow(label: "Template ID", value: session.workoutTemplateId ?? "nil")
-                    debugRow(label: "Scheduled ID", value: session.scheduledWorkoutId ?? "nil")
-                    debugRow(label: "Plan ID", value: session.trainingPlanId ?? "nil")
+                    debugRow(label: "Plan ID", value: session.trainingProgramId ?? "nil")
                     debugRow(label: "Created", value: session.dateCreated.formatted(date: .numeric, time: .shortened))
                     if let endedAt = session.endedAt {
                         debugRow(label: "Ended", value: endedAt.formatted(date: .numeric, time: .shortened))
@@ -207,8 +206,7 @@ struct DevSettingsView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         debugRow(label: "  Session ID", value: activeSession.id)
                         debugRow(label: "  Template ID", value: activeSession.workoutTemplateId ?? "nil")
-                        debugRow(label: "  Scheduled ID", value: activeSession.scheduledWorkoutId ?? "nil")
-                        debugRow(label: "  Plan ID", value: activeSession.trainingPlanId ?? "nil")
+                        debugRow(label: "  Plan ID", value: activeSession.trainingProgramId ?? "nil")
                     }
                     .padding(.vertical, 2)
                     .padding(.horizontal, 4)
@@ -241,8 +239,7 @@ struct DevSettingsView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             debugRow(label: "  Session ID", value: String(session.id.prefix(8)) + "...")
                             debugRow(label: "  Template ID", value: session.workoutTemplateId ?? "nil")
-                            debugRow(label: "  Scheduled ID", value: session.scheduledWorkoutId ?? "nil")
-                            debugRow(label: "  Plan ID", value: session.trainingPlanId ?? "nil")
+                            debugRow(label: "  Plan ID", value: session.trainingProgramId ?? "nil")
                             debugRow(label: "  Created", value: session.dateCreated.formatted(date: .numeric, time: .shortened))
                             if let ended = session.endedAt {
                                 debugRow(label: "  Ended", value: ended.formatted(date: .numeric, time: .shortened))
@@ -259,8 +256,6 @@ struct DevSettingsView: View {
             
         } header: {
             Text("Local Storage Debug")
-        } footer: {
-            Text("Verifies that scheduledWorkoutId and other IDs are properly persisted in local SwiftData storage. Clears local Steps data only (remote and HealthKit unaffected).")
         }
     }
     
@@ -312,8 +307,7 @@ struct DevSettingsView: View {
                         debugRow(label: "  Session ID", value: String(session.id.prefix(8)) + "...")
                         debugRow(label: "  Name", value: session.name)
                         debugRow(label: "  Template ID", value: session.workoutTemplateId ?? "nil")
-                        debugRow(label: "  Scheduled ID", value: session.scheduledWorkoutId ?? "nil")
-                        debugRow(label: "  Plan ID", value: session.trainingPlanId ?? "nil")
+                        debugRow(label: "  Plan ID", value: session.trainingProgramId ?? "nil")
                         debugRow(label: "  Created", value: session.dateCreated.formatted(date: .numeric, time: .shortened))
                         if let ended = session.endedAt {
                             debugRow(label: "  Ended", value: ended.formatted(date: .numeric, time: .shortened))
@@ -328,8 +322,6 @@ struct DevSettingsView: View {
             .padding(.vertical, 4)
         } header: {
             Text("Firebase Test")
-        } footer: {
-            Text("Fetch a session from Firebase to verify that scheduledWorkoutId and trainingPlanId are properly stored and retrieved.")
         }
     }
     

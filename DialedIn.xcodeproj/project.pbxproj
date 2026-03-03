@@ -11,7 +11,6 @@
 		D0136D522F48EE9100729550 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = D0136D512F48EE9100729550 /* FirebaseMessaging */; };
 		D04CF16D2F492A0F002876A8 /* SwiftfulUI in Frameworks */ = {isa = PBXBuildFile; productRef = D04CF16C2F492A0F002876A8 /* SwiftfulUI */; };
 		D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0B9D2E8EA0F00027C662 /* Mixpanel */; };
-		D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA02E8EA1050027C662 /* OpenAI */; };
 		D05D0BAA2E8EA15E0027C662 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BA92E8EA15E0027C662 /* FirebaseAnalytics */; };
 		D05D0BAC2E8EA15E0027C662 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BAB2E8EA15E0027C662 /* FirebaseAppCheck */; };
 		D05D0BAE2E8EA15E0027C662 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D05D0BAD2E8EA15E0027C662 /* FirebaseAuth */; };
@@ -40,7 +39,6 @@
 		D0DB1C962EA1906000682653 /* ElapsedTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */; };
 		D0DB1C972EA1906000682653 /* ElapsedTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0DB1C952EA1905A00682653 /* ElapsedTimeView.swift */; };
 		D0E5DE342F4E5BE10030B12E /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76D62EB2464700D080ED /* Mixpanel */; };
-		D0E5DE352F4E5BE10030B12E /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76D82EB2464B00D080ED /* OpenAI */; };
 		D0E5DE362F4E5BE10030B12E /* SwiftfulUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = D02A76F02EB2469300D080ED /* SwiftfulUtilities */; };
 		D0E7A8A42EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7A8A32EE2D90700BEE79F /* SwiftfulAuthenticatingFirebase */; };
 		D0E7AA692EE2DB6100BEE79F /* SwiftfulLogging in Frameworks */ = {isa = PBXBuildFile; productRef = D0E7AA682EE2DB6100BEE79F /* SwiftfulLogging */; };
@@ -193,7 +191,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0E5DE362F4E5BE10030B12E /* SwiftfulUtilities in Frameworks */,
-				D0E5DE352F4E5BE10030B12E /* OpenAI in Frameworks */,
 				D0E5DE342F4E5BE10030B12E /* Mixpanel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -227,7 +224,6 @@
 				D06E0A8D2F282F8400746BD6 /* SwiftfulRouting in Frameworks */,
 				D0E7AA722EE2DBA800BEE79F /* SwiftfulLoggingFirebaseCrashlytics in Frameworks */,
 				D05D0BBE2E8EA22E0027C662 /* SwiftfulUtilities in Frameworks */,
-				D05D0BA12E8EA1050027C662 /* OpenAI in Frameworks */,
 				D0BF744D2F4CADF300DE875A /* SwiftfulAuthUI in Frameworks */,
 				D0E7D5E92EE34B6B00BEE79F /* RevenueCat in Frameworks */,
 				D05D0B9E2E8EA0F00027C662 /* Mixpanel in Frameworks */,
@@ -327,7 +323,6 @@
 			name = DialedInUnitTests;
 			packageProductDependencies = (
 				D02A76D62EB2464700D080ED /* Mixpanel */,
-				D02A76D82EB2464B00D080ED /* OpenAI */,
 				D02A76F02EB2469300D080ED /* SwiftfulUtilities */,
 			);
 			productName = DialedInTests;
@@ -402,7 +397,6 @@
 			name = DialedIn;
 			packageProductDependencies = (
 				D05D0B9D2E8EA0F00027C662 /* Mixpanel */,
-				D05D0BA02E8EA1050027C662 /* OpenAI */,
 				D05D0BA92E8EA15E0027C662 /* FirebaseAnalytics */,
 				D05D0BAB2E8EA15E0027C662 /* FirebaseAppCheck */,
 				D05D0BAD2E8EA15E0027C662 /* FirebaseAuth */,
@@ -477,7 +471,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				D05D0B9C2E8EA0F00027C662 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
-				D05D0B9F2E8EA1050027C662 /* XCRemoteSwiftPackageReference "OpenAI" */,
 				D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				D05D0BB72E8EA1710027C662 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 				D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */,
@@ -1013,6 +1006,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "DialedIn - Mock";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We use your calendar to schedule workouts and reminders.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Your camera may be used to add media to the app for barcode scanning, food recognition etc.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads your nutrition and body measurement data to help you with your fitness goals";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app writes workouts and active energy to your Health data.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
@@ -1037,7 +1031,7 @@
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = "-ObjC";
 				OTHER_SWIFT_FLAGS = "-DMOCK";
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.Dialed.mock;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.mock;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -1091,7 +1085,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.Dialed.dev.WorkoutSessionActivity;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.dev.WorkoutSessionActivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1129,7 +1123,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.Dialed.mock.WorkoutSessionActivity;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.mock.WorkoutSessionActivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1168,7 +1162,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.Dialed.WorkoutSessionActivity;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.WorkoutSessionActivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1357,6 +1351,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "DialedIn - Dev";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We use your calendar to schedule workouts and reminders.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Your camera may be used to add media to the app for barcode scanning, food recognition etc.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads your nutrition and body measurement data to help you with your fitness goals";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app writes workouts and active energy to your Health data.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
@@ -1381,7 +1376,7 @@
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = "-ObjC";
 				OTHER_SWIFT_FLAGS = "-DDEV";
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.Dialed.dev;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -1436,6 +1431,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = DialedIn;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "We use your calendar to schedule workouts and reminders.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Your camera may be used to add media to the app for barcode scanning, food recognition etc.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads your nutrition and body measurement data to help you with your fitness goals";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app writes workouts and active energy to your Health data.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
@@ -1459,7 +1455,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.Dialed;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrewcoyle.DialedIn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -1569,14 +1565,6 @@
 			requirement = {
 				branch = master;
 				kind = branch;
-			};
-		};
-		D05D0B9F2E8EA1050027C662 /* XCRemoteSwiftPackageReference "OpenAI" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/MacPaw/OpenAI.git";
-			requirement = {
-				kind = exactVersion;
-				version = 0.3.0;
 			};
 		};
 		D05D0BA82E8EA15E0027C662 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
@@ -1749,11 +1737,6 @@
 			package = D05D0B9C2E8EA0F00027C662 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
 			productName = Mixpanel;
 		};
-		D02A76D82EB2464B00D080ED /* OpenAI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D05D0B9F2E8EA1050027C662 /* XCRemoteSwiftPackageReference "OpenAI" */;
-			productName = OpenAI;
-		};
 		D02A76F02EB2469300D080ED /* SwiftfulUtilities */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0BBC2E8EA22E0027C662 /* XCRemoteSwiftPackageReference "SwiftfulUtilities" */;
@@ -1768,11 +1751,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D05D0B9C2E8EA0F00027C662 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
 			productName = Mixpanel;
-		};
-		D05D0BA02E8EA1050027C662 /* OpenAI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D05D0B9F2E8EA1050027C662 /* XCRemoteSwiftPackageReference "OpenAI" */;
-			productName = OpenAI;
 		};
 		D05D0BA92E8EA15E0027C662 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;

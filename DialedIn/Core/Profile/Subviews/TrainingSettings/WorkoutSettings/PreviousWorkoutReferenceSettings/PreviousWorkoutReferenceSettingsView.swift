@@ -12,13 +12,15 @@ struct PreviousWorkoutReferenceSettingsView: View {
     let delegate: PreviousWorkoutReferenceSettingsDelegate
     
     var body: some View {
-        Text("Hello, World!")
-            .onAppear {
-                presenter.onViewAppear(delegate: delegate)
-            }
-            .onDisappear {
-                presenter.onViewDisappear(delegate: delegate)
-            }
+        List {
+            Text("Hello, World!")
+        }
+        .onAppear {
+            presenter.onViewAppear(delegate: delegate)
+        }
+        .onDisappear {
+            presenter.onViewDisappear(delegate: delegate)
+        }
     }
 }
 
@@ -34,7 +36,6 @@ struct PreviousWorkoutReferenceSettingsView: View {
 }
 
 extension CoreBuilder {
-    
     func previousWorkoutReferenceSettingsView(router: AnyRouter, delegate: PreviousWorkoutReferenceSettingsDelegate) -> some View {
         PreviousWorkoutReferenceSettingsView(
             presenter: PreviousWorkoutReferenceSettingsPresenter(

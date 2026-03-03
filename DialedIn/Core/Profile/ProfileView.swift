@@ -14,7 +14,8 @@ struct ProfileView: View {
     var body: some View {
         List {
             if let user = presenter.currentUser,
-               let firstName = user.firstName, !firstName.isEmpty {
+               let firstName = user.firstNameCalculated,
+                !firstName.isEmpty {
                 profileHeaderSection
                     .listSectionMargins(.top, 0)
                 
@@ -28,8 +29,8 @@ struct ProfileView: View {
             }
         }
         .navigationTitle("Profile")
+        .toolbarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
-        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             toolbarContent
         }
@@ -57,7 +58,7 @@ struct ProfileView: View {
                             .font(.title3)
                             .fontWeight(.semibold)
                         
-                        if let email = user.email {
+                        if let email = user.emailCalculated {
                             Text(email)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)

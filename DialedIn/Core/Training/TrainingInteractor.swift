@@ -17,6 +17,8 @@ protocol TrainingInteractor: GlobalInteractor {
     func getWorkoutTemplate(id: String) async throws -> WorkoutTemplateModel
     func updateActiveSession(_ session: WorkoutSessionModel) throws
     func saveWorkoutSession(_ session: WorkoutSessionModel) async throws
+    
+    func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws
 
     func deleteTrainingProgram(programId: String) async throws
     func deleteActiveSession() throws

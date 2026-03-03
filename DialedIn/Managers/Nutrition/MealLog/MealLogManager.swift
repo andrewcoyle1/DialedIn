@@ -84,6 +84,10 @@ class MealLogManager {
 extension CoreInteractor {
     // MARK: MealLogManager
 
+    var userMeals: [MealLogModel] {
+        mealLogManager.userMeals
+    }
+
     var draftMeal: MealLogModel? {
         mealLogManager.draftMeal
     }

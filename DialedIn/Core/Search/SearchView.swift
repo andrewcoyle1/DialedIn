@@ -33,6 +33,7 @@ struct SearchView: View {
         .listSectionMargins(.horizontal, 0)
         .listRowSeparator(.hidden)
         .navigationTitle("Search")
+        .toolbarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .top) {
             quickActionsSection
         }

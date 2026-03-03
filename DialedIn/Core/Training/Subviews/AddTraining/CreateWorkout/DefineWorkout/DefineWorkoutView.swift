@@ -35,13 +35,6 @@ struct DefineWorkoutView: View {
             presenter.onViewDisappear()
         }
         .navigationBarTitleDisplayMode(.inline)
-//        .toolbar {
-//            ToolbarItem(placement: .topBarTrailing) {
-//                Button("Save", role: .confirm) {
-//                    presenter.onConfirmPressed(delegate: delegate)
-//                }
-//            }
-//        }
     }
     
     @ViewBuilder
@@ -121,7 +114,7 @@ struct DefineWorkoutView: View {
         Section {
             ForEach($presenter.exercises) { $exercise in
                 HStack {
-                    ImageLoaderView()
+                    ImageLoaderView(urlString: exercise.exercise.imageURL ?? Constants.randomImage)
                         .frame(width: 60, height: 60)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(exercise.exercise.name)

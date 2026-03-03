@@ -174,38 +174,21 @@ class SearchPresenter {
     }
 
     private func showWorkoutStartModal(for template: WorkoutTemplateModel) {
-        guard let userId = interactor.currentUser?.userId else { return }
         router.showWorkoutStartModal(
             delegate: WorkoutStartDelegate(
                 template: template,
-                programId: nil,
-                dayPlanId: nil,
+                trainingProgramId: nil,
                 onStartWorkoutPressed: { [weak self] in
                     guard let self else { return }
-                    // Load unit preferences and create session only when user confirms start
-                    var unitPreferences: [String: ExerciseUnitPreference] = [:]
-                    for exerciseModel in template.exercises {
-                        let preference = self.interactor.getPreference(templateId: exerciseModel.exercise.id)
-                        unitPreferences[exerciseModel.exercise.id] = preference
-                    }
-                    let session = WorkoutSessionModel(
-                        authorId: userId,
-                        template: template,
-                        notes: nil,
-                        scheduledWorkoutId: nil,
-                        trainingPlanId: nil,
-                        programId: nil,
-                        dayPlanId: nil,
-                        unitPreferences: unitPreferences
-                    )
-                    do {
-                        // Set as active session locally (Firebase save happens on workout completion)
-                        try self.interactor.updateActiveSession(session)
-                        self.router.dismissModal()
-                        self.router.dismissEnvironment()
-                        self.router.showWorkoutTrackerView()
-                    } catch {
-                        self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
+                    Task {
+                        do {
+                            try await self.interactor.startWorkout(for: template, in: nil)
+                            self.router.dismissModal()
+                            self.router.dismissEnvironment()
+                            self.router.showWorkoutTrackerView()
+                        } catch {
+                            self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
+                        }
                     }
                 },
                 onCancelPressed: { [weak self] in

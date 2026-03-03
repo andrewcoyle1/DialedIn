@@ -17,6 +17,8 @@ class AddMealPresenter {
     var notes: String = ""
     var items: [MealItemModel] = []
     var showLibraryPicker: Bool = false
+    var showAllNutrients: Bool = false
+    var nutritionScope: NutritionScope = .plate
     
     init(
         interactor: AddMealInteractor,
@@ -33,15 +35,21 @@ class AddMealPresenter {
     func deleteItems(at offsets: IndexSet) {
         items.remove(atOffsets: offsets)
     }
-
-    func onNutritionLibraryPickerViewPressed() {
-        let delegate = NutritionLibraryPickerDelegate(onPick: { newItem in
+    
+    func onShowPickerPressed() {
+        let delegate = NutritionLibraryPickerDelegate(
+            items: Binding(get: {
+                self.items
+            }, set: { newValues in
+                self.items = newValues
+            }),
+            onPick: { newItem in
             self.items.append(newItem)
         })
         router.showNutritionLibraryPickerView(delegate: delegate)
     }
 
-    func saveMeal(selectedDate: Date, mealType: MealType, onSave: @escaping (MealLogModel) -> Void) {
+    func saveMeal(selectedDate: Date, onSave: @escaping (MealLogModel) -> Void) {
         guard let userId = interactor.currentUser?.userId else { return }
         
         // Combine selected date with selected time
@@ -69,7 +77,6 @@ class AddMealPresenter {
             authorId: userId,
             dayKey: selectedDate.dayKey,
             date: finalDate,
-            mealType: mealType,
             items: items,
             notes: notes.isEmpty ? nil : notes,
             totalCalories: totalCalories,
@@ -85,4 +92,10 @@ class AddMealPresenter {
     func dismissScreen() {
         router.dismissScreen()
     }
+}
+
+enum NutritionScope: String, DataSyncModelProtocol, CaseIterable {
+    var id: String { self.rawValue }
+    case plate
+    case day
 }

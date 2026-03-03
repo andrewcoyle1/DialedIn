@@ -28,6 +28,8 @@ struct DashboardView<WorkoutSessionRow: View>: View {
             workoutFeedSection
         }
         .navigationTitle("Dashboard")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbarRole(.browser)
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
         }
@@ -179,7 +181,7 @@ struct DashboardView<WorkoutSessionRow: View>: View {
         
         ToolbarSpacer(.fixed, placement: .topBarTrailing)
         
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onPushNotificationsPressed()
             } label: {

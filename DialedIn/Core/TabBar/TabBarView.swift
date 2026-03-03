@@ -39,6 +39,8 @@ struct TabBarView<TabAccessory: View, Search: View>: View {
 
             Tab(role: .search) {
                 searchView()
+            } label: {
+                Image(systemName: "plus")
             }
 
         }

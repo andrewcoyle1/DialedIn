@@ -30,7 +30,9 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
             toolbarContent
         }
         .safeAreaInset(edge: .bottom) {
-            timerHeaderView
+            if presenter.showWorkoutTimer || presenter.isRestActive {
+                timerHeaderView
+            }
         }
         .task {
             await presenter.onAppear()
@@ -111,7 +113,6 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                     presenter.moveExercises(from: source, to: destination)
                 }
             }
-            
         } header: {
             Text("Exercises")
         }
@@ -218,7 +219,10 @@ extension CoreBuilder {
             exerciseTrackerView: { exercise in
                 self.exerciseTrackerView(
                     router: router,
-                    delegate: ExerciseTrackerDelegate(exercise: exercise)
+                    delegate: ExerciseTrackerDelegate(exercise: exercise),
+                    onUpdateRestBefore: { setId, seconds in
+                        trackerPresenter.updateRestBefore(setId: setId, seconds: seconds)
+                    }
                 )
             }
         )

@@ -17,7 +17,10 @@ class WorkoutTrackerPresenter {
 
     // MARK: - State Properties
     var workoutSession: WorkoutSessionModel {
-        didSet { saveWorkoutProgress() }
+        didSet {
+            saveWorkoutProgress()
+            handleWorkoutSessionChange(from: oldValue)
+        }
     }
     
     var restDurationSeconds: Int {
@@ -32,7 +35,10 @@ class WorkoutTrackerPresenter {
 
     var editMode: EditMode = .inactive
     
-    var startTime: Date = Date()
+    var startTime: Date {
+        self.workoutSession.dateCreated
+    }
+    
     var elapsedTime: TimeInterval = 0
     var isActive = true
     
@@ -45,6 +51,9 @@ class WorkoutTrackerPresenter {
 
     // Internal timers
     var widgetSyncTimer: Timer?
+
+    // Prevents handleWorkoutSessionChange from double-processing when updateSet() is the caller
+    private var isProcessingUpdateSet = false
     
     // Notification identifier for rest timer
     let restTimerNotificationId = "workout-rest-timer"
@@ -89,6 +98,32 @@ class WorkoutTrackerPresenter {
             exercises: []
         )
         loadUnitPreferences()
+        
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        // Ensure an existing Live Activity is reused, otherwise start one
+        self.interactor.ensureLiveActivity(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: interactor.restEndTime,
+            statusMessage: isRestActive ? "Resting" : nil
+        )
+        #endif
+        
+        applyWarmupSetting()
+        
+        syncCurrentExerciseIndexToFirstIncomplete(in: workoutSession.exercises)
+
+        // Expand first incomplete exercise by default (fallback to first if all complete)
+        if let idx = firstIncompleteExerciseIndex(in: workoutSession.exercises) {
+            expandedExerciseIds.insert(workoutSession.exercises[idx].id)
+        } else if let firstExercise = workoutSession.exercises.first {
+            expandedExerciseIds.insert(firstExercise.id)
+        }
+        
+        // Check for pending widget completions that happened while backgrounded
+        syncPendingSetCompletionFromWidget()
+
     }
     
     func loadUnitPreferences() {
@@ -141,8 +176,13 @@ class WorkoutTrackerPresenter {
 
     // MARK: - Display Settings
 
-    var showWorkoutTimer: Bool { interactor.workoutSettings.showWorkoutTimer }
-    var showBodyweightContribution: Bool { interactor.workoutSettings.showBodyweightContribution }
+    var showWorkoutTimer: Bool {
+        interactor.workoutSettings.showWorkoutTimer
+    }
+    
+    var showBodyweightContribution: Bool {
+        interactor.workoutSettings.showBodyweightContribution
+    }
     var showRIRTracking: Bool { interactor.workoutSettings.rirTracking }
 
     // MARK: - Lifecycle
@@ -152,7 +192,6 @@ class WorkoutTrackerPresenter {
     }
     
     func onAppear() async {
-        buildView()
         startWidgetSyncTimer()
         
         // Ensure HealthKit authorization before starting HK session
@@ -181,43 +220,7 @@ class WorkoutTrackerPresenter {
     func onScenePhaseChange(oldPhase: ScenePhase, newPhase: ScenePhase) {
         if newPhase == .active && oldPhase == .background {
             syncPendingSetCompletionFromWidget()
-            buildView()
         }
-    }
-    
-    func buildView() {
-        // Refresh from local active session to ensure persisted edits are loaded
-        guard let latest = interactor.activeSession else { return }
-        workoutSession = latest
-        workoutNotes = latest.notes ?? ""
-        startTime = workoutSession.dateCreated
-        // Ensure current exercise points to the first incomplete item
-        syncCurrentExerciseIndexToFirstIncomplete(in: workoutSession.exercises)
-
-        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
-        // Ensure an existing Live Activity is reused, otherwise start one
-        interactor.ensureLiveActivity(
-            session: workoutSession,
-            isActive: isActive,
-            currentExerciseIndex: currentExerciseIndex,
-            restEndsAt: interactor.restEndTime,
-            statusMessage: isRestActive ? "Resting" : nil
-        )
-        #endif
-
-        // Expand first incomplete exercise by default (fallback to first if all complete)
-        if let idx = firstIncompleteExerciseIndex(in: workoutSession.exercises) {
-            expandedExerciseIds.insert(workoutSession.exercises[idx].id)
-        } else if let firstExercise = workoutSession.exercises.first {
-            expandedExerciseIds.insert(firstExercise.id)
-        }
-        
-        // Check for pending widget completions that happened while backgrounded
-        syncPendingSetCompletionFromWidget()
-
-        // Strip incomplete warmup sets if the setting is off
-        applyWarmupSetting()
-
     }
 
     private func applyWarmupSetting() {
@@ -483,7 +486,9 @@ class WorkoutTrackerPresenter {
         }
 
         let isExerciseCompleteNow = !updatedExercises[exerciseIndex].sets.isEmpty && updatedExercises[exerciseIndex].sets.allSatisfy { $0.completedAt != nil }
+        isProcessingUpdateSet = true
         workoutSession.updateExercises(updatedExercises)
+        isProcessingUpdateSet = false
 
         let allSets = updatedExercises.flatMap { $0.sets }
         let isAllSetsComplete = !allSets.isEmpty && allSets.allSatisfy { $0.completedAt != nil }
@@ -579,6 +584,76 @@ class WorkoutTrackerPresenter {
                 }
             }
         }
+        #endif
+    }
+
+    private func handleWorkoutSessionChange(from oldSession: WorkoutSessionModel) {
+        guard !isProcessingUpdateSet else { return }
+
+        // Build a flat lookup of old sets by id
+        var oldSets: [String: WorkoutSetModel] = [:]
+        for exercise in oldSession.exercises {
+            for set in exercise.sets {
+                oldSets[set.id] = set
+            }
+        }
+
+        // Find the first set that transitioned from incomplete → complete
+        var foundSetId: String?
+        var foundExerciseIndex: Int?
+        outer: for (exerciseIndex, exercise) in workoutSession.exercises.enumerated() {
+            for set in exercise.sets {
+                let wasCompleted = oldSets[set.id]?.completedAt != nil
+                let isCompleted = set.completedAt != nil
+                if !wasCompleted && isCompleted {
+                    foundSetId = set.id
+                    foundExerciseIndex = exerciseIndex
+                    break outer
+                }
+            }
+        }
+
+        guard let setId = foundSetId, let exerciseIndex = foundExerciseIndex else { return }
+
+        let exercise = workoutSession.exercises[exerciseIndex]
+
+        // Start rest timer (skip if every set in the workout is now complete)
+        let allSets = workoutSession.exercises.flatMap { $0.sets }
+        let isAllSetsComplete = !allSets.isEmpty && allSets.allSatisfy { $0.completedAt != nil }
+        if !isAllSetsComplete && interactor.workoutSettings.useRestTimers {
+            startRestTimer(durationSeconds: restDuration(for: exercise, customSetId: setId))
+        }
+
+        // Auto-next exercise
+        let oldExercise = oldSession.exercises.first(where: { $0.id == exercise.id })
+        let wasExerciseCompleteBefore = oldExercise.map { ex in
+            !ex.sets.isEmpty && ex.sets.allSatisfy { $0.completedAt != nil }
+        } ?? false
+        let isExerciseCompleteNow = !exercise.sets.isEmpty && exercise.sets.allSatisfy { $0.completedAt != nil }
+
+        if !wasExerciseCompleteBefore && isExerciseCompleteNow {
+            let nextIndex = exerciseIndex + 1
+            let exercises = workoutSession.exercises
+            if nextIndex < exercises.count && interactor.workoutSettings.exerciseAutoNext {
+                expandedExerciseIds.removeAll()
+                expandedExerciseIds.insert(exercises[nextIndex].id)
+                currentExerciseIndex = nextIndex
+            } else if nextIndex >= exercises.count {
+                expandedExerciseIds.remove(exercises[exerciseIndex].id)
+            }
+        }
+
+        // Update Live Activity
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        interactor.updateLiveActivity(params: LiveActivityUpdateParams(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: currentExerciseIndex,
+            restEndsAt: interactor.restEndTime,
+            statusMessage: isRestActive ? "Resting" : nil,
+            totalVolumeKg: computeTotalVolumeKg(),
+            elapsedTime: elapsedTime
+        ))
         #endif
     }
 
@@ -812,8 +887,7 @@ class WorkoutTrackerPresenter {
                 parameters: [
                     "session_id": sessionSnapshot.id,
                     "template_id": sessionSnapshot.workoutTemplateId ?? "nil",
-                    "scheduled_id": sessionSnapshot.scheduledWorkoutId ?? "nil",
-                    "plan_id": sessionSnapshot.trainingPlanId ?? "nil"
+                    "plan_id": sessionSnapshot.trainingProgramId ?? "nil"
                 ],
                 type: .info
             )

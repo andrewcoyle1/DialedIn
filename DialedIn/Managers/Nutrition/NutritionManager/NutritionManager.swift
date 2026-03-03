@@ -86,7 +86,7 @@ class NutritionManager {
 
         // Derive training context from the user's active training program.
         // A day plan with at least one exercise counts as a training day.
-        let trainingDaysPerWeek = trainingProgram?.dayPlans.filter { !$0.exercises.isEmpty }.count ?? 0
+        let trainingDaysPerWeek = trainingProgram?.workoutTemplates.filter { !$0.exercises.isEmpty }.count ?? 0
         let hasTraining = trainingDaysPerWeek > 0
 
         let dailyCalories = calculateDailyCalories(

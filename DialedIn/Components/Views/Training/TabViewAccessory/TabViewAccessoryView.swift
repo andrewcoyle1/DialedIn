@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+struct TabViewAccessoryDelegate {
+    var active: WorkoutSessionModel
+}
+
 struct TabViewAccessoryView: View {
     
     @State var presenter: TabViewAccessoryPresenter

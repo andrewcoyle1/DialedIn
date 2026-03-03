@@ -16,7 +16,7 @@ struct TrainingProgram: DataSyncModelProtocol {
     var numMicrocycles: Int = 8
     var deload: DeloadType = .none
     var periodisation: Bool = false
-    var dayPlans: [WorkoutTemplateModel] = defaultWorkoutTemplateModels
+    var workoutTemplates: [WorkoutTemplateModel]
     let dateCreated: Date
     let dateModified: Date
     
@@ -29,7 +29,7 @@ struct TrainingProgram: DataSyncModelProtocol {
         numMicrocycles: Int = 8,
         deload: DeloadType = .none,
         periodisation: Bool = false,
-        dayPlans: [WorkoutTemplateModel] = defaultWorkoutTemplateModels,
+        workoutTemplates: [WorkoutTemplateModel] = [],
         dateCreated: Date = Date(),
         dateModified: Date = Date()
     ) {
@@ -41,7 +41,7 @@ struct TrainingProgram: DataSyncModelProtocol {
         self.numMicrocycles = numMicrocycles
         self.deload = deload
         self.periodisation = periodisation
-        self.dayPlans = dayPlans
+        self.workoutTemplates = workoutTemplates.isEmpty ? Self.defaultWorkoutTemplateModels(authorId: authorId) : workoutTemplates
         self.dateCreated = dateCreated
         self.dateModified = dateModified
     }
@@ -55,7 +55,7 @@ struct TrainingProgram: DataSyncModelProtocol {
         case numMicrocycles = "num_microcycles"
         case deload
         case periodisation
-        case dayPlans = "day_plans"
+        case workoutTemplates = "workout_templates"
         case dateCreated = "date_created"
         case dateModified = "date_modified"
     }
@@ -63,16 +63,18 @@ struct TrainingProgram: DataSyncModelProtocol {
     var eventParameters: [String: Any] {
         [:]
     }
-
-    static let defaultWorkoutTemplateModels: [WorkoutTemplateModel] = [
-        WorkoutTemplateModel(
-            id: UUID().uuidString,
-            authorId: "",
-            name: "Rest",
-            dateCreated: Date(),
-            exercises: []
-        )
-    ]
+    
+    static func defaultWorkoutTemplateModels(authorId: String) -> [WorkoutTemplateModel] {
+        [
+            WorkoutTemplateModel(
+                id: UUID().uuidString,
+                authorId: authorId,
+                name: "Rest",
+                dateCreated: Date(),
+                exercises: []
+            )
+        ]
+    }
     
     static var mock: TrainingProgram {
         mocks[0]
@@ -89,7 +91,7 @@ struct TrainingProgram: DataSyncModelProtocol {
                 numMicrocycles: 8,
                 deload: .none,
                 periodisation: false,
-                dayPlans: WorkoutTemplateModel.mocks
+                workoutTemplates: WorkoutTemplateModel.mocks
             )
         ]
     }

@@ -37,7 +37,7 @@ struct TrainingView<CalendarHeaderView: View>: View {
             moreSection
         }
         .navigationTitle("Training")
-        .toolbarTitleDisplayMode(.inlineLarge)
+        .toolbarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
@@ -112,15 +112,17 @@ struct TrainingView<CalendarHeaderView: View>: View {
                 .foregroundStyle(item.isCompleted ? .green : .secondary)
             
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.dayPlan.name)
+                Text(item.workoutTemplate.name)
                     .font(.subheadline)
-                MetricView(
-                    label: "Exercises",
-                    value: "\(item.dayPlan.exercises.count)",
-                    icon: "dumbbell"
-                )
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                if !item.workoutTemplate.exercises.isEmpty {
+                    MetricView(
+                        label: "Exercises",
+                        value: "\(item.workoutTemplate.exercises.count)",
+                        icon: "dumbbell"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
             }
             
             Spacer()
@@ -130,7 +132,7 @@ struct TrainingView<CalendarHeaderView: View>: View {
             if let sessionId = item.completedSessionId {
                 presenter.openCompletedSession(sessionId: sessionId)
             } else {
-                presenter.startWorkoutTemplateModelWorkout(item.dayPlan)
+                presenter.startWorkoutTemplateModelWorkout(item.workoutTemplate, in: item.trainingProgramId)
             }
         }
     }

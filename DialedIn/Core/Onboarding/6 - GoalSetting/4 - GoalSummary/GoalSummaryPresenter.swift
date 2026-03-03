@@ -60,7 +60,7 @@ class GoalSummaryPresenter {
                 try await interactor.saveGoal(goal)
 
                 // Update user's currentGoalId reference
-                try await interactor.updateCurrentGoalId(goalId: goal.goalId)
+                try await interactor.updateCurrentGoalId(goalId: goal.id)
 
                 interactor.trackEvent(event: Event.goalSaveSuccess)
 

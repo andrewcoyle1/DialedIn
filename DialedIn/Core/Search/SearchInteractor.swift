@@ -14,6 +14,7 @@ protocol SearchInteractor {
     var allExercises: [ExerciseModel] { get }
     var userWorkoutTemplates: [WorkoutTemplateModel] { get }
     var userRecipeTemplates: [RecipeTemplateModel] { get }
+    func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws
     func searchUsers(query: String) async throws -> [UserModel]
     func addRecentSearch(query: String)
     func updateActiveSession(_ session: WorkoutSessionModel) throws

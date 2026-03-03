@@ -49,7 +49,8 @@ extension CoreInteractor {
     }
     
     var isPremium: Bool {
-        entitlements.hasActiveEntitlement
+        true
+//        entitlements.hasActiveEntitlement
     }
     
     func getProducts(productIds: [String]) async throws -> [AnyProduct] {

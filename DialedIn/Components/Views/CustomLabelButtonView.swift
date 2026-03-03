@@ -14,7 +14,7 @@ struct CustomLabelButtonView<Content: View>: View {
     let symbolName: String
     let title: String
     let subtitle: String?
-    let content: (() -> Content)?
+    var content: (() -> Content)?
     
     init(
         symbolName: String,

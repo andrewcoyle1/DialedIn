@@ -87,6 +87,13 @@ class WorkoutSessionManager {
         try activeWorkoutSessionPersistence.saveDocument(managerKey: "active_session", nil)
         self.activeSession = nil
     }
+    
+    func getLastWorkoutSessionForTemplate(templateId: String) async throws -> WorkoutSessionModel? {
+        let sessions = try await userWorkoutSessionSyncEngine.getDocumentsAsync { session in
+            session.workoutTemplateId == templateId
+        }
+        return sessions.sortedByKeyPath(keyPath: \.dateCreated, ascending: false).first
+    }
 
     // MARK: - Write
 
@@ -189,6 +196,10 @@ extension CoreInteractor {
         try await workoutSessionManager.getWorkoutSession(id: id)
     }
 
+    func getLastWorkoutSessionForTemplate(templateId: String) async throws -> WorkoutSessionModel? {
+        try await workoutSessionManager.getLastWorkoutSessionForTemplate(templateId: templateId)
+    }
+    
     func getWorkoutSessions(ids: [String], limitTo: Int = 20) -> [WorkoutSessionModel] {
         workoutSessionManager.getWorkoutSessions(ids: ids, limitTo: limitTo)
     }

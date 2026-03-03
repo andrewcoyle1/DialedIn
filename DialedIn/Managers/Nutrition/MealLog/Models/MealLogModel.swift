@@ -14,7 +14,6 @@ struct MealLogModel: DataSyncModelProtocol, Hashable {
     /// yyyy-MM-dd for efficient per-day queries
     let dayKey: String
     let date: Date
-    let mealType: MealType
     var items: [MealItemModel]
     var notes: String?
     // Stored totals for snapshot consistency and quick reads
@@ -28,7 +27,6 @@ struct MealLogModel: DataSyncModelProtocol, Hashable {
         case authorId = "author_id"
         case dayKey = "day_key"
         case date
-        case mealType = "meal_type"
         case items
         case notes
         case totalCalories = "total_calories"
@@ -48,7 +46,6 @@ extension MealLogModel {
             authorId: "mock-user",
             dayKey: today.dayKey,
             date: today,
-            mealType: .breakfast,
             items: MealItemModel.mocks,
             notes: "Had a great breakfast!",
             totalCalories: 650,
@@ -95,7 +92,6 @@ extension MealLogModel {
                 authorId: "mock-user",
                 dayKey: key,
                 date: date.addingTimeInterval(hours: 8),
-                mealType: .breakfast,
                 items: breakfastItems,
                 notes: nil,
                 totalCalories: breakfastItems.compactMap { $0.calories }.reduce(0, +),
@@ -237,7 +233,6 @@ extension MealLogModel {
                 authorId: "preview-user",
                 dayKey: key,
                 date: date.addingTimeInterval(hours: 8),
-                mealType: .breakfast,
                 items: breakfastItems,
                 notes: offset % 3 == 0 ? "Great morning meal!" : nil,
                 totalCalories: breakfastItems.compactMap { $0.calories }.reduce(0, +),
@@ -251,7 +246,6 @@ extension MealLogModel {
                 authorId: "preview-user",
                 dayKey: key,
                 date: date.addingTimeInterval(hours: 13),
-                mealType: .lunch,
                 items: lunchItems,
                 notes: nil,
                 totalCalories: lunchItems.compactMap { $0.calories }.reduce(0, +),
@@ -265,7 +259,6 @@ extension MealLogModel {
                 authorId: "preview-user",
                 dayKey: key,
                 date: date.addingTimeInterval(hours: 19),
-                mealType: .dinner,
                 items: dinnerItems,
                 notes: offset % 2 == 0 ? "Delicious dinner!" : nil,
                 totalCalories: dinnerItems.compactMap { $0.calories }.reduce(0, +),

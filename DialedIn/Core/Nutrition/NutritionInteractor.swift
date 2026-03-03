@@ -10,6 +10,7 @@ import Foundation
 @MainActor
 protocol NutritionInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
+    var userMeals: [MealLogModel] { get }
     var userImageUrl: String? { get }
     func getMeals(for dayKey: String) throws -> [MealLogModel]
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget

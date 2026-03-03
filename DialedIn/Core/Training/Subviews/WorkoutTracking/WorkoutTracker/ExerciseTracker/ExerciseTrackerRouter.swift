@@ -6,8 +6,6 @@
 //
 
 @MainActor
-protocol ExerciseTrackerRouter: GlobalRouter {
-    func showWarmupSetInfoModal(primaryButtonAction: @escaping () -> Void)
-}
+protocol ExerciseTrackerRouter: GlobalRouter { }
 
 extension CoreRouter: ExerciseTrackerRouter { }

@@ -1,5 +1,5 @@
 {
-  "originHash" : "66692e62cc963181bcdf90517bf5d32dd8a8a0ec22a0bdd62b9c939feb40aac5",
+  "originHash" : "183ee3a44efc5d22ff72f016314e20f6bb4f95cba6f2b458423c6919b3a36048",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -155,15 +155,6 @@
       }
     },
     {
-      "identity" : "openai",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/MacPaw/OpenAI.git",
-      "state" : {
-        "revision" : "843e087929aa806adb611dbca93f9a4a7f28be04",
-        "version" : "0.3.0"
-      }
-    },
-    {
       "identity" : "promises",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/promises.git",
@@ -249,8 +240,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/andrewcoyle1/SwiftfulDataManagers.git",
       "state" : {
-        "revision" : "e24eb293d0171a21261829d417c200b3a18b8522",
-        "version" : "1.1.2"
+        "revision" : "71729e1f530f6bcb8e2ee503c5c3e90e2d7006bb",
+        "version" : "1.1.3"
       }
     },
     {

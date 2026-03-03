@@ -21,8 +21,8 @@ class ProfilePresenter {
 
     var fullName: String {
         guard let user = currentUser else { return "" }
-        let first = user.firstName ?? ""
-        let last = user.lastName ?? ""
+        let first = user.firstNameCalculated ?? ""
+        let last = user.lastNameCalculated ?? ""
         return "\(first) \(last)".trimmingCharacters(in: .whitespaces)
     }
 

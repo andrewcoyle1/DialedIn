@@ -20,6 +20,7 @@ class SetTrackerPresenter {
     var restPickerMinutesSelection: Int = 0
     var restPickerSecondsSelection: Int = 0
     var restBeforeSetIdToSec: [String: Int] = [:]
+    var onUpdateRestBefore: ((String, Int?) -> Void)?
 
     var defaultRestDurationSeconds: Int {
         interactor.workoutSettings.defaultRestDurationSeconds
@@ -98,7 +99,9 @@ class SetTrackerPresenter {
             primaryButtonAction: { [weak self] in
                 guard let self else { return }
                 let total = (self.restPickerMinutesSelection * 60) + self.restPickerSecondsSelection
-                self.updateRestBefore(setId: setId, seconds: total > 0 ? total : nil)
+                let seconds = total > 0 ? total : nil
+                self.updateRestBefore(setId: setId, seconds: seconds)
+                self.onUpdateRestBefore?(setId, seconds)
                 self.router.dismissModal()
             },
             secondaryButtonAction: { [weak self] in self?.router.dismissModal() },
@@ -192,8 +195,9 @@ class SetTrackerPresenter {
     }
 
     func convertAndRoundWeights(to newUnit: ExerciseWeightUnit, for exercise: Binding<WorkoutExerciseModel>) {
-        let currentUnit = getUnitPreference(for: exercise.wrappedValue).weightUnit
-
+        let existingUnit = getUnitPreference(for: exercise.wrappedValue)
+        let currentUnit = existingUnit.weightUnit
+        
         for set in exercise.sets {
             guard let weightKg = set.wrappedValue.weightKg else { continue }
             let weightInNewUnit = UnitConversion.convertWeight(weightKg, from: currentUnit, into: newUnit)
@@ -221,6 +225,8 @@ class SetTrackerPresenter {
 
             set.wrappedValue.weightKg = roundedWeightKgFinal
         }
+        exerciseUnitPreferences[exercise.wrappedValue.templateId] = (newUnit, existingUnit.distanceUnit)
+        interactor.setWeightUnit(newUnit, for: exercise.wrappedValue.templateId)
 
     }
 

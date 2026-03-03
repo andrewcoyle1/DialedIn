@@ -114,42 +114,21 @@ class WorkoutTemplateDetailPresenter {
     }
     
     private func resumeActiveWorkout() {
-        guard let activeSession = activeSession else { return }
+        guard activeSession != nil else { return }
         router.dismissEnvironment()
         router.showWorkoutTrackerView()
     }
     
     private func performStartWorkout(workoutTemplate: WorkoutTemplateModel) {
-        guard let userId = currentUser?.userId else { return }
         router.showWorkoutStartModal(
             delegate: WorkoutStartDelegate(
                 template: workoutTemplate,
-                programId: nil,
-                dayPlanId: nil,
-                onStartWorkoutPressed: {
+                trainingProgramId: nil,
+                onStartWorkoutPressed: { [weak self] in
+                    guard let self else { return }
                     Task {
                         do {
-                            // Load unit preferences for all exercises in template
-                            var unitPreferences: [String: ExerciseUnitPreference] = [:]
-                            for exerciseModel in workoutTemplate.exercises {
-                                let preference = self.interactor.getPreference(templateId: exerciseModel.exercise.id)
-                                unitPreferences[exerciseModel.exercise.id] = preference
-                            }
-                            
-                            // Create workout session from template
-                            let session = WorkoutSessionModel(
-                                authorId: userId,
-                                template: workoutTemplate,
-                                notes: nil,
-                                scheduledWorkoutId: nil,
-                                trainingPlanId: nil,
-                                programId: nil,
-                                dayPlanId: nil,
-                                unitPreferences: unitPreferences
-                            )
-                            
-                            // Set as active session locally (Firebase save happens on workout completion)
-                            try self.interactor.updateActiveSession(session)
+                            try await self.interactor.startWorkout(for: workoutTemplate, in: nil)
                             self.router.dismissModal()
                             self.router.dismissEnvironment()
                             self.router.showWorkoutTrackerView()

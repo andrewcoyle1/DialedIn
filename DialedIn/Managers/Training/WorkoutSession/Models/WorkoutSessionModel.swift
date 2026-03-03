@@ -12,10 +12,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
     let authorId: String
     var name: String
     let workoutTemplateId: String?
-    let scheduledWorkoutId: String?
-    let trainingPlanId: String?
-    let programId: String?
-    let dayPlanId: String?
+    let trainingProgramId: String?
     let dateCreated: Date
     private(set) var dateModified: Date
     private(set) var endedAt: Date?
@@ -28,10 +25,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         authorId: String,
         name: String,
         workoutTemplateId: String? = nil,
-        scheduledWorkoutId: String? = nil,
-        trainingPlanId: String? = nil,
-        programId: String? = nil,
-        dayPlanId: String? = nil,
+        trainingProgramId: String? = nil,
         dateCreated: Date,
         dateModified: Date? = nil,
         endedAt: Date? = nil,
@@ -43,10 +37,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         self.authorId = authorId
         self.name = name
         self.workoutTemplateId = workoutTemplateId
-        self.scheduledWorkoutId = scheduledWorkoutId
-        self.trainingPlanId = trainingPlanId
-        self.programId = programId
-        self.dayPlanId = dayPlanId
+        self.trainingProgramId = trainingProgramId
         self.dateCreated = dateCreated
         self.dateModified = dateModified ?? dateCreated
         self.endedAt = endedAt
@@ -60,10 +51,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         case authorId = "author_id"
         case name = "name"
         case workoutTemplateId = "workout_template_id"
-        case scheduledWorkoutId = "scheduled_workout_id"
-        case trainingPlanId = "training_plan_id"
-        case programId = "program_id"
-        case dayPlanId = "day_plan_id"
+        case trainingProgramId = "training_program_id"
         case dateCreated = "date_created"
         case dateModified = "date_modified"
         case endedAt = "ended_at"
@@ -79,10 +67,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         authorId: String,
         template: WorkoutTemplateModel,
         notes: String? = nil,
-        scheduledWorkoutId: String? = nil,
-        trainingPlanId: String? = nil,
-        programId: String? = nil,
-        dayPlanId: String? = nil,
+        trainingProgramId: String? = nil,
         previousWorkoutSession: WorkoutSessionModel? = nil,
         gymProfile: GymProfileModel? = nil,
         unitPreferences: [String: ExerciseUnitPreference]? = nil
@@ -91,10 +76,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         self.authorId = authorId
         self.name = template.name
         self.workoutTemplateId = template.id
-        self.scheduledWorkoutId = scheduledWorkoutId
-        self.trainingPlanId = trainingPlanId
-        self.programId = programId
-        self.dayPlanId = dayPlanId
+        self.trainingProgramId = trainingProgramId
         self.dateCreated = .now
         self.dateModified = .now
         self.endedAt = nil

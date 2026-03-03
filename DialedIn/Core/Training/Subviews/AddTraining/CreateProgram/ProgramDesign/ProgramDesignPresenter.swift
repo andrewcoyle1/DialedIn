@@ -52,7 +52,7 @@ class ProgramDesignPresenter {
         self.program = program
         
         let uid = interactor.userId
-        let initialPlans = program.dayPlans.isEmpty ? Self.defaultWorkoutTemplateModels : program.dayPlans
+        let initialPlans = program.workoutTemplates.isEmpty ? Self.defaultWorkoutTemplateModels : program.workoutTemplates
         self.dayPlans = initialPlans
 
         if let firstPlan = initialPlans.first {
@@ -66,7 +66,7 @@ class ProgramDesignPresenter {
             )
             self.dayPlans = [self.selectedWorkoutTemplateModel]
         }
-        self.program.dayPlans = self.dayPlans
+        self.program.workoutTemplates = self.dayPlans
     }
 
     func onViewAppear() {
@@ -114,7 +114,7 @@ class ProgramDesignPresenter {
                     guard let index = self.dayPlans.firstIndex(where: { $0.id == selectedId }) else { return }
                     self.dayPlans[index].name = newName
                     self.selectedWorkoutTemplateModel = self.dayPlans[index]
-                    self.program.dayPlans = self.dayPlans
+                    self.program.workoutTemplates = self.dayPlans
                 }
             )
         )
@@ -258,7 +258,7 @@ class ProgramDesignPresenter {
         if let selectedIndex = dayPlans.firstIndex(where: { $0.id == selectedWorkoutTemplateModel.id }) {
             selectedWorkoutTemplateModel = dayPlans[selectedIndex]
         }
-        program.dayPlans = dayPlans
+        program.workoutTemplates = dayPlans
     }
     
     private func isDefaultWorkoutTemplateModelName(_ name: String) -> Bool {
