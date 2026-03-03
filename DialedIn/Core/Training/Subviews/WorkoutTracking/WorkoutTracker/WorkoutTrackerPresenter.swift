@@ -31,7 +31,7 @@ class WorkoutTrackerPresenter {
     var restPickerMinutesSelection: Int = 0
     var restPickerSecondsSelection: Int = 0
 
-    var pendingSelectedTemplates: [ExerciseModel] = []
+    var pendingSelectedTemplates: [WorkoutTemplateExercise] = []
 
     var editMode: EditMode = .inactive
     
@@ -380,9 +380,9 @@ class WorkoutTrackerPresenter {
     }
     
     func presentAddExercise() {
-        router.showExercisePickerView(
-            delegate: ExercisePickerDelegate(
-                selectedExercises: Binding(
+        router.showExercisesPickerView(
+            delegate: ExercisesPickerDelegate(
+                addedExercises: Binding(
                     get: { self.pendingSelectedTemplates },
                     set: { self.pendingSelectedTemplates = $0 }
                 )
@@ -682,19 +682,28 @@ class WorkoutTrackerPresenter {
         let startIndex = updated.count
         for (offset, template) in templates.enumerated() {
             let index = startIndex + offset + 1
-            let mode = WorkoutSessionModel.trackingMode(for: template)
-            let defaultSets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: userId)
-            let imageName = Constants.exerciseImageName(for: template.name)
+            let exercise = template.exercise
+            let mode = WorkoutSessionModel.trackingMode(for: exercise)
+            let targetCount = max(template.setTargets.count, 1)
+            let defaultSets = WorkoutSessionModel.defaultSets(
+                trackingMode: mode,
+                authorId: userId,
+                targetCount: targetCount
+            )
+            let imageName = Constants.exerciseImageName(for: exercise.name)
             let newExercise = WorkoutExerciseModel(
                 id: UUID().uuidString,
                 authorId: userId,
-                templateId: template.id,
-                name: template.name,
+                templateId: exercise.id,
+                name: exercise.name,
                 trackingMode: mode,
                 index: index,
                 notes: nil,
                 imageName: imageName,
-                sets: defaultSets
+                sets: defaultSets,
+                setTargets: template.setTargets,
+                chosenResistanceEquipment: exercise.resistanceEquipment,
+                chosenSupportEquipment: exercise.supportEquipment
             )
             updated.append(newExercise)
         }
@@ -906,3 +915,4 @@ class WorkoutTrackerPresenter {
         }
     }
 }
+

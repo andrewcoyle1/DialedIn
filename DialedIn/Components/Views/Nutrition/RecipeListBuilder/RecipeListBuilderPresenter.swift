@@ -12,13 +12,22 @@ class RecipeListBuilderPresenter {
     
     var userRecipeTemplates: [RecipeTemplateModel] {
         interactor.userRecipeTemplates
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
     var systemRecipeTemplates: [RecipeTemplateModel] = []
     
     var filteredRecipeTemplates: [RecipeTemplateModel] {
         interactor.userRecipeTemplates
-            .filter({ $0.name == searchText })
+            .filter {
+                $0.name.lowercased().contains(searchText.lowercased()) ||
+                $0.description?.lowercased().contains(searchText.lowercased()) == true ||
+                $0.ingredients
+                    .contains { value in
+                        value.name.lowercased().contains(searchText.lowercased())
+                    } == true
+            }
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
     var currentUser: UserModel? {

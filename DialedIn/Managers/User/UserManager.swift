@@ -386,7 +386,6 @@ extension CoreInteractor {
     
     func setActiveTrainingProgram(programId: String) async throws {
         try await userManager.updateActiveTrainingProgramId(programId: programId)
-        try await trainingProgramManager.setActiveProgram(programId: programId)
     }
 
     var currentUser: UserModel? {

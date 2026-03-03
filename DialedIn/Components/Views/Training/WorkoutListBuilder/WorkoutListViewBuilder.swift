@@ -28,6 +28,7 @@ struct WorkoutListViewBuilder: View {
                 filteredWorkoutTemplatesSection
             }
         }
+        .searchable(text: $presenter.searchText, placement: .toolbar, prompt: Text("Search workouts"))
         .onAppear {
             presenter.onViewAppear()
         }

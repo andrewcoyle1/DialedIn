@@ -103,7 +103,7 @@ struct CustomListCellView: View {
                 }
             }
             .aspectRatio(1, contentMode: .fit)
-            .frame(height: imageHeight)
+            .frame(width: imageHeight, height: imageHeight)
             .cornerRadius(16)
             
             VStack(alignment: .leading, spacing: 4) {

@@ -21,7 +21,7 @@ class WorkoutSessionDetailPresenter {
         isSaving
     }
     
-    var selectedExerciseModels: [ExerciseModel] = []
+    var selectedExerciseModels: [WorkoutTemplateExercise] = []
     
     func isAuthor(sessionAuthorId: String?) -> Bool {
         interactor.currentUser?.userId == sessionAuthorId
@@ -213,15 +213,16 @@ class WorkoutSessionDetailPresenter {
         
         for (offset, template) in selectedExerciseModels.enumerated() {
             let index = startIndex + offset + 1
-            let mode = WorkoutSessionModel.trackingMode(for: template)
-            let defaultSets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: userId)
-            let imageName = Constants.exerciseImageName(for: template.name)
+            let mode = WorkoutSessionModel.trackingMode(for: template.exercise)
+            let targetCount = max(template.setTargets.count, 1)
+            let defaultSets = WorkoutSessionModel.defaultSets(trackingMode: mode, authorId: userId, targetCount: targetCount)
+            let imageName = Constants.exerciseImageName(for: template.exercise.name)
             
             let newExercise = WorkoutExerciseModel(
                 id: UUID().uuidString,
                 authorId: userId,
-                templateId: template.id,
-                name: template.name,
+                templateId: template.exercise.id,
+                name: template.exercise.name,
                 trackingMode: mode,
                 index: index,
                 notes: nil,
@@ -298,9 +299,9 @@ class WorkoutSessionDetailPresenter {
     }
 
     func onAddExercisePressed() {
-        router.showExercisePickerView(
-            delegate: ExercisePickerDelegate(
-                selectedExercises: Binding(
+        router.showExercisesPickerView(
+            delegate: ExercisesPickerDelegate(
+                addedExercises: Binding(
                     get: {
                         self.selectedExerciseModels
                     },
@@ -316,3 +317,4 @@ class WorkoutSessionDetailPresenter {
         router.showDevSettingsView()
     }
 }
+

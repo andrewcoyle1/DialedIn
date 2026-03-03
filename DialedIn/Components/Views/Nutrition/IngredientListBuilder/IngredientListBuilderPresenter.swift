@@ -12,13 +12,18 @@ class IngredientListBuilderPresenter {
     
     var userIngredientTemplates: [IngredientTemplateModel] {
         interactor.ingredientTemplates
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
     var systemIngredientTemplates: [IngredientTemplateModel] = []
     
     var filteredIngredientTemplates: [IngredientTemplateModel] {
         interactor.ingredientTemplates
-            .filter({ $0.name == searchText })
+            .filter {
+                $0.name.lowercased().contains(searchText.lowercased()) ||
+                $0.description?.lowercased().contains(searchText.lowercased()) == true
+            }
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
 
     var currentUser: UserModel? {

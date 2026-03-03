@@ -17,21 +17,31 @@ class WorkoutListPresenterBuilder {
     private(set) var isLoading: Bool = false
     var systemWorkoutTemplates: [WorkoutTemplateModel] {
         interactor.systemWorkoutTemplates
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
+
     }
     
     var userWorkoutTemplates: [WorkoutTemplateModel] {
         interactor.userWorkoutTemplates
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
     var allWorkoutTemplates: [WorkoutTemplateModel] {
         interactor.allWorkoutTemplates
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
     var filteredWorkoutTemplates: [WorkoutTemplateModel] {
-        self.allWorkoutTemplates.filter({ $0.name == searchText })
+        self.allWorkoutTemplates
+            .filter {
+                $0.name.lowercased().contains(searchText.lowercased()) ||
+                $0.description?.lowercased().contains(searchText.lowercased()) == true ||
+                $0.exercises.contains(where: { $0.exercise.name.lowercased().contains(searchText.lowercased()) })
+            }
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
-    private(set) var searchText: String = ""
+    var searchText: String = ""
 
     var selectedExerciseModel: ExerciseModel?
     var selectedWorkoutTemplate: WorkoutTemplateModel?
