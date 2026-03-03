@@ -52,6 +52,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
         workoutDefinitionSection(dayPlan: presenter.selectedWorkoutTemplateModel)
             .navigationTitle("Create Program")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
             .onAppear {
                 presenter.onViewAppear()
             }
@@ -202,15 +203,14 @@ struct ProgramDesignView<DefineWorkout: View>: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        if delegate.onComplete == nil {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    presenter.onDismissPressed()
-                } label: {
-                    Image(systemName: "xmark")
-                }
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                presenter.onDismissPressed()
+            } label: {
+                Image(systemName: "chevron.left")
             }
         }
+        
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onProgramSettingsPressed(program: $presenter.program)

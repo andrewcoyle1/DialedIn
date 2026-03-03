@@ -12,15 +12,23 @@ class ExerciseListBuilderPresenter {
     
     var userExercises: [ExerciseModel] {
         interactor.userExercises
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
     var systemExercises: [ExerciseModel] {
         interactor.systemExercises
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
     var filteredExercises: [ExerciseModel] {
         interactor.allExercises
-            .filter({ $0.name == searchText })
+            .filter {
+                $0.name.lowercased().contains(searchText.lowercased()) ||
+                $0.description?.lowercased().contains(searchText.lowercased()) == true ||
+                $0.muscleGroups.contains(where: { $0.key.rawValue.lowercased().contains(searchText.lowercased()) }) ||
+                $0.alternateNames.contains(where: { $0.lowercased().contains(searchText.lowercased()) })
+            }
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
     var searchText: String = ""

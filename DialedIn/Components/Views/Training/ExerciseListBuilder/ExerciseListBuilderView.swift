@@ -122,7 +122,8 @@ struct ExerciseListBuilderView: View {
                     imageName: exercise.imageURL,
                     title: exercise.name,
                     subtitle: exercise.description,
-                    isSelected: isExerciseSelected(exercise)
+                    isSelected: isExerciseSelected(exercise),
+                    resizingMode: .fit
                 )
                 .anyButton(.highlight) {
                     delegate.onExerciseSelectionChanged?(exercise)
@@ -141,7 +142,8 @@ struct ExerciseListBuilderView: View {
                     imageName: exercise.imageURL,
                     title: exercise.name,
                     subtitle: exercise.description,
-                    isSelected: isExerciseSelected(exercise)
+                    isSelected: isExerciseSelected(exercise),
+                    resizingMode: .fit
                 )
                 .anyButton(.highlight) {
                     delegate.onExerciseSelectionChanged?(exercise)
@@ -160,7 +162,8 @@ struct ExerciseListBuilderView: View {
                     imageName: exercise.imageURL,
                     title: exercise.name,
                     subtitle: exercise.description,
-                    isSelected: isExerciseSelected(exercise)
+                    isSelected: isExerciseSelected(exercise),
+                    resizingMode: .fit
                 )
                 .anyButton(.highlight) {
                     delegate.onExerciseSelectionChanged?(exercise)

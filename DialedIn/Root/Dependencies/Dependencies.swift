@@ -152,19 +152,13 @@ struct Dependencies {
                 userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine,
                 followingWorkoutSessionSyncEngine: followingWorkoutSessionSyncEngine
             )
-            let activeTrainingProgramSyncEngine = DocumentSyncEngine<TrainingProgram>(
-                remote: MockRemoteDocumentService(),
-                managerKey: Keys.activeTrainingProgramManagerKey,
-                enableLocalPersistence: true,
-                logger: logManager
-            )
             let trainingProgramSyncEngine = CollectionSyncEngine<TrainingProgram>(
                 remote: MockRemoteCollectionService(),
                 managerKey: Keys.trainingProgramManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            trainingProgramManager = TrainingProgramManager(activeTrainingProgramSyncEngine: activeTrainingProgramSyncEngine, trainingProgramSyncEngine: trainingProgramSyncEngine)
+            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine)
                 
             let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
                 remote: MockRemoteCollectionService(),
@@ -329,17 +323,6 @@ struct Dependencies {
                 userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine,
                 followingWorkoutSessionSyncEngine: followingWorkoutSessionsSyncEngine
             )
-            let activeTrainingProgramSyncEngine = DocumentSyncEngine<TrainingProgram>(
-                remote: FirebaseRemoteDocumentService(
-                    collectionPath: { [weak authManager] in
-                        guard let uid = authManager?.auth?.uid else { return nil }
-                        return "users/\(uid)/training_programs"
-                    }
-                ),
-                managerKey: Keys.activeTrainingProgramManagerKey,
-                enableLocalPersistence: true,
-                logger: logManager
-            )
             let trainingProgramSyncEngine = CollectionSyncEngine<TrainingProgram>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [weak authManager] in
@@ -351,7 +334,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            trainingProgramManager = TrainingProgramManager(activeTrainingProgramSyncEngine: activeTrainingProgramSyncEngine, trainingProgramSyncEngine: trainingProgramSyncEngine)
+            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine)
             let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [ weak authManager] in
@@ -546,17 +529,6 @@ struct Dependencies {
                 userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine,
                 followingWorkoutSessionSyncEngine: followingWorkoutSessionsSyncEngine
             )
-            let activeTrainingProgramSyncEngine = DocumentSyncEngine<TrainingProgram>(
-                remote: FirebaseRemoteDocumentService(
-                    collectionPath: { [weak authManager] in
-                        guard let uid = authManager?.auth?.uid else { return nil }
-                        return "users/\(uid)/training_programs"
-                    }
-                ),
-                managerKey: Keys.activeTrainingProgramManagerKey,
-                enableLocalPersistence: true,
-                logger: logManager
-            )
             let trainingProgramSyncEngine = CollectionSyncEngine<TrainingProgram>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [weak authManager] in
@@ -568,7 +540,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            trainingProgramManager = TrainingProgramManager(activeTrainingProgramSyncEngine: activeTrainingProgramSyncEngine, trainingProgramSyncEngine: trainingProgramSyncEngine)
+            trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine)
             let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [ weak authManager] in
@@ -868,19 +840,13 @@ class DevPreview {
             userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine,
             followingWorkoutSessionSyncEngine: followingWorkoutSessionSyncEngine
         )
-        let activeTrainingProgramSyncEngine = DocumentSyncEngine<TrainingProgram>(
-            remote: MockRemoteDocumentService(),
-            managerKey: Keys.activeTrainingProgramManagerKey,
-            enableLocalPersistence: true,
-            logger: logManager
-        )
         let trainingProgramSyncEngine = CollectionSyncEngine<TrainingProgram>(
             remote: MockRemoteCollectionService(),
             managerKey: Keys.trainingProgramManagerKey,
             enableLocalPersistence: true,
             logger: logManager
         )
-        self.trainingProgramManager = TrainingProgramManager(activeTrainingProgramSyncEngine: activeTrainingProgramSyncEngine, trainingProgramSyncEngine: trainingProgramSyncEngine)
+        self.trainingProgramManager = TrainingProgramManager(trainingProgramSyncEngine: trainingProgramSyncEngine)
         let gymProfileSyncEngine = CollectionSyncEngine<GymProfileModel>(
             remote: MockRemoteCollectionService(),
             managerKey: Keys.gymProfileManagerKey,

@@ -11,39 +11,21 @@ import Foundation
 @MainActor
 class TrainingProgramManager {
     
-    private let activeTrainingProgramSyncEngine: DocumentSyncEngine<TrainingProgram>
     private let trainingProgramSyncEngine: CollectionSyncEngine<TrainingProgram>
-        
-    var activeTrainingProgram: TrainingProgram? {
-        activeTrainingProgramSyncEngine.currentDocument
-    }
-    
+            
     var trainingPrograms: [TrainingProgram] {
         trainingProgramSyncEngine.currentCollection
     }
     
-    init(activeTrainingProgramSyncEngine: DocumentSyncEngine<TrainingProgram>, trainingProgramSyncEngine: CollectionSyncEngine<TrainingProgram>) {
-        self.activeTrainingProgramSyncEngine = activeTrainingProgramSyncEngine
+    init(trainingProgramSyncEngine: CollectionSyncEngine<TrainingProgram>) {
         self.trainingProgramSyncEngine = trainingProgramSyncEngine
     }
     
-    func signIn(programId: String) async throws {
-        async let trainingProgramSignIn: () = trainingProgramSyncEngine.startListening()
-
-        if !programId.isEmpty {
-            async let activeTrainingProgramSignIn: () = activeTrainingProgramSyncEngine.startListening(documentId: programId)
-            try await activeTrainingProgramSignIn
-        }
-
-        await trainingProgramSignIn
+    func signIn(programId: String) async {
+        await trainingProgramSyncEngine.startListening()
     }
     
-    func setActiveProgram(programId: String) async throws {
-        try await activeTrainingProgramSyncEngine.startListening(documentId: programId)
-    }
-
     func signOut() {
-        activeTrainingProgramSyncEngine.stopListening()
         trainingProgramSyncEngine.stopListening()
     }
     
@@ -60,9 +42,12 @@ class TrainingProgramManager {
 
 extension CoreInteractor {
     // MARK: TrainingProgramManager
-
+    
     var activeTrainingProgram: TrainingProgram? {
-        trainingProgramManager.activeTrainingProgram
+        guard let activeTrainingProgramId = currentUser?.submittedActiveTrainingProgramId else { return nil }
+        return trainingPrograms.first { program in
+            program.id == activeTrainingProgramId
+        }
     }
 
     var trainingPrograms: [TrainingProgram] {

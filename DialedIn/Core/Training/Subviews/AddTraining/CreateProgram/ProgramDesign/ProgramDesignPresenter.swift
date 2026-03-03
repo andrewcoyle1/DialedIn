@@ -119,11 +119,7 @@ class ProgramDesignPresenter {
             )
         )
     }
-    
-    func onAddExercisePressed() {
-        router.showExercisePickerView(delegate: ExercisePickerDelegate(selectedExercises: .constant([])))
-    }
-    
+        
     func onProgramSettingsPressed(program: Binding<TrainingProgram>) {
         router.showProgramSettingsView(program: program)
     }
@@ -217,14 +213,26 @@ class ProgramDesignPresenter {
 
         case .customiseProgram:
             router.showCustomisingDietProgramView()
-
         case .complete:
             router.showOnboardingCompletedView()
         }
     }
     
     func onDismissPressed() {
-        router.dismissScreen()
+        router.showAlert(
+            title: "Discard Program",
+            subtitle: "Are you sure you want to discard your changes?",
+            buttons: {
+                AnyView(
+                    HStack {
+                        Button(role: .cancel) { }
+                        Button(role: .destructive) {
+                            self.router.dismissScreen()
+                        }
+                    }
+                )
+            }
+        )
     }
 
     func onSavePressed(delegate: ProgramDesignDelegate) {
