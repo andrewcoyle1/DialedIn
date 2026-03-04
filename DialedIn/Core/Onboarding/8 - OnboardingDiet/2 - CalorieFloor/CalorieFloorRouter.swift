@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol CalorieFloorRouter {
-    func showDevSettingsView()
+protocol CalorieFloorRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showCalorieDistributionView(delegate: CalorieDistributionDelegate)
 }
 

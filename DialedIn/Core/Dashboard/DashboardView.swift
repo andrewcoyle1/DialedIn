@@ -14,21 +14,14 @@ struct DashboardView<WorkoutSessionRow: View>: View {
 
     @ViewBuilder var workoutSessionRow: (WorkoutSessionRowDelegate) -> WorkoutSessionRow
     
-    private var showDevSettingsButton: Bool {
-        #if DEV || MOCK
-        return true
-        #else
-        return false
-        #endif
-    }
-
     var body: some View {
         List {
             streakSection
             workoutFeedSection
         }
         .navigationTitle("Dashboard")
-        .toolbarTitleDisplayMode(.inline)
+        .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
+        .toolbarTitleDisplayMode(.inlineLarge)
         .toolbarRole(.browser)
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
@@ -169,15 +162,15 @@ struct DashboardView<WorkoutSessionRow: View>: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        #if DEV || MOCK
         ToolbarItem(placement: .topBarTrailing) {
-            if showDevSettingsButton {
-                Button {
-                    presenter.onDevSettingsPressed()
-                } label: {
-                    Image(systemName: "info")
-                }
+            Button {
+                presenter.onDevSettingsPressed()
+            } label: {
+                Image(systemName: "info")
             }
         }
+        #endif
         
         ToolbarSpacer(.fixed, placement: .topBarTrailing)
         
@@ -187,7 +180,6 @@ struct DashboardView<WorkoutSessionRow: View>: View {
             } label: {
                 Image(systemName: "bell")
             }
-            .badge(3)
         }
         
         ToolbarItem(placement: .topBarTrailing) {

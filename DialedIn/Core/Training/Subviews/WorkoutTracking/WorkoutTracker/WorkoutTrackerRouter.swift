@@ -9,7 +9,9 @@ import SwiftUI
 
 @MainActor
 protocol WorkoutTrackerRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showExercisesPickerView(delegate: ExercisesPickerDelegate)
     func showWorkoutNotesView(delegate: WorkoutNotesDelegate)
     func showWorkoutSettingsView(delegate: WorkoutSettingsDelegate)

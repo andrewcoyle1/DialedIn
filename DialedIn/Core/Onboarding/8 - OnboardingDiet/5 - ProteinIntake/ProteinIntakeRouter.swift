@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol ProteinIntakeRouter {
-    func showDevSettingsView()
+protocol ProteinIntakeRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showDietPlanView(delegate: DietPlanDelegate)
 }
 

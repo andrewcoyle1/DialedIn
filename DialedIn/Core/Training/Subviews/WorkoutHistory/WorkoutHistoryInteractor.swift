@@ -7,7 +7,7 @@
 
 @MainActor
 protocol WorkoutHistoryInteractor: GlobalInteractor {
-    var auth: UserAuthInfo? { get }
+    var currentUser: UserModel? { get }
     var workoutSessions: [WorkoutSessionModel] { get }
 }
 

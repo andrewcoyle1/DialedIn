@@ -6,8 +6,6 @@
 //
 
 @MainActor
-protocol NotificationsRouter {
-    func dismissScreen()
-}
+protocol NotificationsRouter: GlobalRouter { }
 
 extension CoreRouter: NotificationsRouter { }

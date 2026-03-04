@@ -13,7 +13,6 @@ class AnalyticsPresenter {
     let interactor: AnalyticsInteractor
     let router: AnalyticsRouter
 
-    private(set) var selectedDate: Date = Date.now
     var showNotifications: Bool = false
     var isShowingInspector: Bool = false
     private(set) var contributionChartData: [Double] = []

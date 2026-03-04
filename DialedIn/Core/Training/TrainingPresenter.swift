@@ -540,10 +540,12 @@ class TrainingPresenter {
         router.showWorkoutHistoryView()
     }
     
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
-        
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
+
     enum Event: LoggableEvent {
         case onAppear(delegate: TrainingDelegate)
         case onDisappear(delegate: TrainingDelegate)

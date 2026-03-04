@@ -27,74 +27,16 @@ class LiveActivityManager: LiveActivityUpdating {
 	
 	// Cache the last content state to avoid unnecessary updates
 	private var lastContentState: WorkoutActivityAttributes.ContentState?
-
+    
 	// MARK: - Public API
-
-	/// Start a Workout Live Activity using data from the given session
-	/// - Parameters:
-	///   - session: The workout session used to seed immutable attributes
-	///   - isActive: Whether the workout timer is running
-	///   - currentExerciseIndex: Index of the currently focused exercise in the session
-	///   - restEndsAt: Optional rest countdown end time
-	///   - statusMessage: Optional status string (e.g. "Resting", "Ready")
-	func startLiveActivity(
-		session: WorkoutSessionModel,
-		isActive: Bool = true,
-		currentExerciseIndex: Int = 0,
-		restEndsAt: Date? = nil,
-		statusMessage: String? = nil
-	) {
-        logger.trackEvent(event: Event.startLiveActivityStart)
-        let areActivitiesEnabled = ActivityAuthorizationInfo().areActivitiesEnabled
-        
-        if areActivitiesEnabled {
-            // Reuse an existing activity if present (e.g. after app launch)
-            let existingActivities = Activity<WorkoutActivityAttributes>.activities
-            
-            if let existing = existingActivities.first {
-                self.currentActivity = existing
-                self.setup(withActivity: existing)
-                return
-            }
-                        
-            do {
-                let attributes = WorkoutActivityAttributes(
-                    sessionId: session.id,
-                    workoutName: session.name,
-                    startedAt: session.dateCreated,
-                    workoutTemplateId: session.workoutTemplateId
-                )
-                
-                let initialState = makeContentState(params: MakeContentStateParams(
-                    session: session,
-                    isActive: isActive,
-                    currentExerciseIndex: currentExerciseIndex,
-                    restEndsAt: restEndsAt,
-                    statusMessage: statusMessage,
-                    totalVolumeKgOverride: nil,
-                    elapsedTimeOverride: nil
-                ))
-                
-                lastContentState = initialState
-                
-                let activity = try Activity.request(
-                    attributes: attributes,
-                    content: ActivityContent(state: initialState, staleDate: nil),
-                    pushType: .token
-                )
-                
-                self.currentActivity = activity
-                self.setup(withActivity: activity)
-                logger.trackEvent(event: Event.startLiveActivitySuccess)
-            } catch {
-                logger.trackEvent(event: Event.startLiveActivityFail(error: error))
-            }
-        } else {
-            logger.trackEvent(event: Event.liveActivitiesNotEnabled)
-        }
-	}
-
-    /// Ensure a Workout Live Activity exists for this session; if found, reuse and update it, otherwise create it
+    
+    /// Ensure a Workout Live Activity using data from the given session
+    /// - Parameters:
+    ///   - session: The workout session used to seed immutable attributes
+    ///   - isActive: Whether the workout timer is running
+    ///   - currentExerciseIndex: Index of the currently focused exercise in the session
+    ///   - restEndsAt: Optional rest countdown end time
+    ///   - statusMessage: Optional status string (e.g. "Resting", "Ready")
     func ensureLiveActivity(
         session: WorkoutSessionModel,
         isActive: Bool = true,
@@ -103,22 +45,22 @@ class LiveActivityManager: LiveActivityUpdating {
         statusMessage: String? = nil
     ) {
         // Attempt to find an existing activity for this session
-        if let existing = Activity<WorkoutActivityAttributes>.activities.first(where: { activity in
-            activity.attributes.sessionId == session.id && activity.activityState == .active
-        }) {
+        if let existing = existingActivity(for: session.id) {
             currentActivity = existing
-            updateLiveActivity(params: LiveActivityUpdateParams(
-                session: session,
-                isActive: isActive,
-                currentExerciseIndex: currentExerciseIndex,
-                restEndsAt: restEndsAt,
-                statusMessage: statusMessage,
-                totalVolumeKg: nil,
-                elapsedTime: nil
-            ))
+            updateLiveActivity(
+                params: LiveActivityUpdateParams(
+                    session: session,
+                    isActive: isActive,
+                    currentExerciseIndex: currentExerciseIndex,
+                    restEndsAt: restEndsAt,
+                    statusMessage: statusMessage,
+                    totalVolumeKg: nil,
+                    elapsedTime: nil
+                )
+            )
             return
         }
-        
+
         // Otherwise start a new live activity
         self.startLiveActivity(
             session: session,
@@ -129,194 +71,85 @@ class LiveActivityManager: LiveActivityUpdating {
         )
     }
 
-    func updateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) {
+    /// Ensure a Workout Live Activity using data from the given session
+    /// - Parameters:
+    ///   - session: WorkoutSessionModel
+    ///   - isActive: Bool
+    ///   - currentExerciseIndex: Int
+    ///   - restEndsAt: Date?
+    ///   - statusMessage: String?
+    ///   - totalVolumeKg: Double?
+    ///   - elapsedTime: TimeInterval?
+    func updateLiveActivity(params: LiveActivityUpdateParams) {
         logger.trackEvent(event: Event.updateLiveActivityStart)
-        // Only update if meaningful changes occurred
-        let shouldUpdate = lastContentState == nil ||
-            lastContentState?.currentExerciseIndex != contentState.currentExerciseIndex ||
-            lastContentState?.completedSetsCount != contentState.completedSetsCount ||
-            lastContentState?.isActive != contentState.isActive ||
-            lastContentState?.restEndsAt != contentState.restEndsAt
+        let updatedState = makeContentState(
+            params: MakeContentStateParams(
+                session: params.session,
+                isActive: params.isActive,
+                currentExerciseIndex: params.currentExerciseIndex,
+                restEndsAt: params.restEndsAt,
+                statusMessage: params.statusMessage,
+                totalVolumeKgOverride: params.totalVolumeKg,
+                elapsedTimeOverride: params.elapsedTime
+            )
+        )
         
-        guard shouldUpdate else { return }
-        
-        lastContentState = contentState
-
-        Task {
-            defer {
-                self.activityViewState?.updateControlDisabled = false
-            }
-            self.activityViewState?.updateControlDisabled = true
-            // Guard activity existence and acceptable state to avoid runtime errors
-            if let activity = self.currentActivity,
-               activity.activityState == .active || activity.activityState == .stale {
-                do {
-                    try await self.updateWorkoutActivity(with: contentState)
-                    logger.trackEvent(event: Event.updateLiveActivitySuccess)
-
-                } catch {
-                    logger.trackEvent(event: Event.updateLiveActivityFail(error: error))
-                    // Clean up if the activity is in an invalid state
-                    if activity.activityState == .dismissed || activity.activityState == .ended {
-                        self.cleanupDismissedActivity()
-                    }
-                }
-            } else {
-                // No-op if activity is missing or ended/dismissed
-                self.activityViewState?.updateControlDisabled = false
-            }
-        }
-
+        self.updateLiveActivity(contentState: updatedState)
     }
     
-	/// Update the Workout Live Activity with latest session progress
-	func updateLiveActivity(params: LiveActivityUpdateParams) {
-        logger.trackEvent(event: Event.updateLiveActivityStart)
-        let updatedState = makeContentState(params: MakeContentStateParams(
-			session: params.session,
-			isActive: params.isActive,
-			currentExerciseIndex: params.currentExerciseIndex,
-			restEndsAt: params.restEndsAt,
-			statusMessage: params.statusMessage,
-			totalVolumeKgOverride: params.totalVolumeKg,
-			elapsedTimeOverride: params.elapsedTime
-		))
-		
-		// Only update if meaningful changes occurred
-		let shouldUpdate = lastContentState == nil ||
-			lastContentState?.currentExerciseIndex != updatedState.currentExerciseIndex ||
-			lastContentState?.completedSetsCount != updatedState.completedSetsCount ||
-			lastContentState?.isActive != updatedState.isActive ||
-			lastContentState?.restEndsAt != updatedState.restEndsAt
-		
-		guard shouldUpdate else { return }
-		
-		lastContentState = updatedState
+    /// Discard the currently active Live Activity
+    func discardLiveActivity() async {
+        await currentActivity?.end(nil, dismissalPolicy: .immediate)
+    }
 
-        Task {
-            defer {
-                self.activityViewState?.updateControlDisabled = false
-            }
-            self.activityViewState?.updateControlDisabled = true
-            // Guard activity existence and acceptable state to avoid runtime errors
-            if let activity = self.currentActivity,
-               activity.activityState == .active || activity.activityState == .stale {
-                do {
-                    try await self.updateWorkoutActivity(with: updatedState)
-                    logger.trackEvent(event: Event.updateLiveActivitySuccess)
-                } catch {
-                    logger.trackEvent(event: Event.updateLiveActivityFail(error: error))
-                    // Clean up if the activity is in an invalid state
-                    if activity.activityState == .dismissed || activity.activityState == .ended {
-                        self.cleanupDismissedActivity()
-                    }
-                }
-            } else {
-                // No-op if activity is missing or ended/dismissed
-                self.activityViewState?.updateControlDisabled = false
-            }
-        }
-	}
-
-	/// End the Workout Live Activity
-	func endLiveActivity(
-		session: WorkoutSessionModel,
-		isCompleted: Bool = true,
-		statusMessage: String? = nil
-	) {
+    /// Ensure a Workout Live Activity using data from the given session
+    /// - Parameters:
+    ///   - session: WorkoutSessionModel
+    ///   - isCompleted: Bool
+    ///   - statusMessage: String?
+    func endLiveActivity(session: WorkoutSessionModel, isCompleted: Bool = true, statusMessage: String? = nil) {
         logger.trackEvent(event: Event.endLiveActivityStart)
-		let message = statusMessage ?? (isCompleted ? "Workout completed" : "Workout ended")
-		
-		// Build final state with summary metrics if completed
-		var finalState = makeContentState(params: MakeContentStateParams(
-			session: session,
-			isActive: false,
-			currentExerciseIndex: 0,
-			restEndsAt: nil,
-			statusMessage: message,
-			totalVolumeKgOverride: nil,
-			elapsedTimeOverride: Date().timeIntervalSince(session.dateCreated)
-		))
-		
-		// Update ended flags
-		finalState.isWorkoutEnded = true
-		finalState.endedSuccessfully = isCompleted
-		
-		// Add summary metrics for completed workouts
-		if isCompleted {
-			let elapsedTime = Date().timeIntervalSince(session.dateCreated)
-			let allSets = session.exercises.flatMap { $0.sets }
-			let completedSetsCount = allSets.filter { $0.completedAt != nil }.count
-			let totalVolume = allSets.compactMap { set -> Double? in
-				guard let weight = set.weightKg, let reps = set.reps else { return nil }
-				return weight * Double(reps)
-			}.reduce(0.0, +)
-			
-			finalState.finalDurationSeconds = elapsedTime
-			finalState.finalVolumeKg = totalVolume > 0 ? totalVolume : nil
-			finalState.finalCompletedSetsCount = completedSetsCount
-			finalState.finalTotalExercisesCount = session.exercises.count
-		}
-		
-		lastContentState = finalState
-		
-		// Use different dismissal policies based on completion state
-		let dismissalPolicy: ActivityUIDismissalPolicy = isCompleted ? .default : .immediate
+        let message = statusMessage ?? (isCompleted ? "Workout completed" : "Workout ended")
+        
+        // Build final state with summary metrics if completed
+        var finalState = makeContentState(
+            params: MakeContentStateParams(
+                session: session,
+                statusMessage: message,
+                elapsedTimeOverride: Date().timeIntervalSince(session.dateCreated)
+            )
+        )
+        
+        // Update ended flags
+        finalState.isWorkoutEnded = true
+        finalState.endedSuccessfully = isCompleted
+        
+        // Add summary metrics for completed workouts
+        if isCompleted {
+            let elapsedTime = Date().timeIntervalSince(session.dateCreated)
+            let allSets = session.exercises.flatMap { $0.sets }
+            let completedSetsCount = allSets.filter { $0.completedAt != nil }.count
+            let totalVolume = allSets.compactMap { set -> Double? in
+                guard let weight = set.weightKg, let reps = set.reps else { return nil }
+                return weight * Double(reps)
+            }.reduce(0.0, +)
+            
+            finalState.finalDurationSeconds = elapsedTime
+            finalState.finalVolumeKg = totalVolume > 0 ? totalVolume : nil
+            finalState.finalCompletedSetsCount = completedSetsCount
+            finalState.finalTotalExercisesCount = session.exercises.count
+        }
+        
+        lastContentState = finalState
+        
+        // Use different dismissal policies based on completion state
+        let dismissalPolicy: ActivityUIDismissalPolicy = isCompleted ? .default : .immediate
 
         Task {
             await self.endActivity(with: finalState, dismissalPolicy: dismissalPolicy)
             logger.trackEvent(event: Event.endLiveActivitySuccess)
         }
-	}
-}
-
-extension LiveActivityManager {
-    enum Event: LoggableEvent {
-        case startLiveActivityStart
-        case startLiveActivitySuccess
-        case startLiveActivityFail(error: Error)
-        case liveActivitiesNotEnabled
-        case updateLiveActivityStart
-        case updateLiveActivitySuccess
-        case updateLiveActivityFail(error: Error)
-        case endLiveActivityStart
-        case endLiveActivitySuccess
-
-        var eventName: String {
-            switch self {
-            case .startLiveActivityStart:       return "LiveActivityMan_StartLiveActiviey_Start"
-            case .startLiveActivitySuccess:     return "LiveActivityMan_StartLiveActiviey_Success"
-            case .startLiveActivityFail:        return "LiveActivityMan_StartLiveActiviey_Fail"
-            case .liveActivitiesNotEnabled:     return "LiveActivityMan_LiveActivitiesNotEnabled"
-            case .updateLiveActivityStart:      return "LiveActivityMan_UpdateLiveActivity_Start"
-            case .updateLiveActivitySuccess:    return "LiveActivityMan_UpdateLiveActivity_Success"
-            case .updateLiveActivityFail:       return "LiveActivityMan_UpdateLiveActivity_Fail"
-            case .endLiveActivityStart:         return "LiveActivityMan_EndLiveActivity_Start"
-            case .endLiveActivitySuccess:       return "LiveActivityMan_EndLiveActivity_Success"
-            }
-        }
-        
-        var parameters: [String: Any]? {
-            switch self {
-            case .startLiveActivityFail(error: let error), .updateLiveActivityFail(error: let error):
-                return error.eventParameters
-            default:
-                return nil
-            }
-        }
-        
-        var type: LogType {
-            switch self {
-            case .startLiveActivityFail, .updateLiveActivityFail:
-                return .severe
-            default:
-                return .analytic
-            }
-        }
     }
-}
-
-extension LiveActivityManager {
     
     func endActivity(with finalState: WorkoutActivityAttributes.ContentState, dismissalPolicy: ActivityUIDismissalPolicy) async {
         guard let activity = currentActivity else {
@@ -333,8 +166,77 @@ extension LiveActivityManager {
             )
         }
     }
+
+    /// Start a Workout Live Activity using data from the given session
+    /// - Parameters:
+    ///   - session: The workout session used to seed immutable attributes
+    ///   - isActive: Whether the workout timer is running
+    ///   - currentExerciseIndex: Index of the currently focused exercise in the session
+    ///   - restEndsAt: Optional rest countdown end time
+    ///   - statusMessage: Optional status string (e.g. "Resting", "Ready")
+    private func startLiveActivity(
+        session: WorkoutSessionModel,
+        isActive: Bool = true,
+        currentExerciseIndex: Int = 0,
+        restEndsAt: Date? = nil,
+        statusMessage: String? = nil
+    ) {
+        logger.trackEvent(event: Event.startLiveActivityStart)
+
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
+            logger.trackEvent(event: Event.liveActivitiesNotEnabled)
+            return
+        }
+
+        // Reuse an existing activity if present (e.g. after app launch)
+        if let existing = firstExistingActivity() {
+            self.currentActivity = existing
+            self.setup(withActivity: existing)
+            return
+        }
+
+        do {
+            let (attributes, initialState) = buildAttributesAndInitialState(
+                session: session,
+                isActive: isActive,
+                currentExerciseIndex: currentExerciseIndex,
+                restEndsAt: restEndsAt,
+                statusMessage: statusMessage
+            )
+            try requestAndSetupActivity(attributes: attributes, initialState: initialState)
+            logger.trackEvent(event: Event.startLiveActivitySuccess)
+        } catch {
+            logger.trackEvent(event: Event.startLiveActivityFail(error: error))
+        }
+    }
     
-    func setup(withActivity activity: Activity<WorkoutActivityAttributes>) {
+    private func updateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) {
+        logger.trackEvent(event: Event.updateLiveActivityStart)
+        // Only update if meaningful changes occurred
+        guard shouldUpdateLiveActivity(contentState: contentState) else { return }
+        
+        self.lastContentState = contentState
+
+        // Guard activity existence and acceptable state to avoid runtime errors
+        if let activity = self.currentActivity,
+           activity.activityState == .active ||
+            activity.activityState == .stale {
+            Task {
+                await activity.update(ActivityContent(state: contentState, staleDate: contentState.restEndsAt))
+                logger.trackEvent(event: Event.updateLiveActivitySuccess)
+            }
+        }
+    }
+        
+    private func shouldUpdateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) -> Bool {
+        lastContentState == nil ||
+            lastContentState?.currentExerciseIndex != contentState.currentExerciseIndex ||
+            lastContentState?.completedSetsCount != contentState.completedSetsCount ||
+            lastContentState?.isActive != contentState.isActive ||
+            lastContentState?.restEndsAt != contentState.restEndsAt
+    }
+    
+    private func setup(withActivity activity: Activity<WorkoutActivityAttributes>) {
         self.activityViewState = .init(
             activityState: activity.activityState,
             contentState: activity.content.state,
@@ -343,7 +245,7 @@ extension LiveActivityManager {
         observeActivity(activity: activity)
     }
     
-    func observeActivity(activity: Activity<WorkoutActivityAttributes>) {
+    private func observeActivity(activity: Activity<WorkoutActivityAttributes>) {
         Task {
             await withTaskGroup(of: Void.self) { group in
                 group.addTask { @MainActor @Sendable in
@@ -364,31 +266,68 @@ extension LiveActivityManager {
             }
         }
     }
-    
-    func updateWorkoutActivity(with updatedState: WorkoutActivityAttributes.ContentState) async throws {
-        guard let activity = currentActivity else {
-            return
-        }
         
-        let contentState: WorkoutActivityAttributes.ContentState
-        
-        contentState = updatedState
-        await activity.update(
-            ActivityContent(
-                state: contentState,
-                staleDate: contentState.restEndsAt,
-                relevanceScore: 100
-            )
-        )
-    }
-    
-    func cleanupDismissedActivity() {
+    private func cleanupDismissedActivity() {
         self.currentActivity = nil
         self.activityViewState = nil
         self.lastContentState = nil
     }
     
     // MARK: - Helpers
+    
+    // MARK: - Internal helpers for activity creation/reuse
+    private func buildAttributesAndInitialState(
+        session: WorkoutSessionModel,
+        isActive: Bool,
+        currentExerciseIndex: Int,
+        restEndsAt: Date?,
+        statusMessage: String?
+    ) -> (WorkoutActivityAttributes, WorkoutActivityAttributes.ContentState) {
+        let attributes = WorkoutActivityAttributes(
+            sessionId: session.id,
+            workoutName: session.name,
+            startedAt: session.dateCreated,
+            workoutTemplateId: session.workoutTemplateId
+        )
+        let initialState = makeContentState(
+            params: MakeContentStateParams(
+                session: session,
+                isActive: isActive,
+                currentExerciseIndex: currentExerciseIndex,
+                restEndsAt: restEndsAt,
+                statusMessage: statusMessage,
+                totalVolumeKgOverride: nil,
+                elapsedTimeOverride: nil
+            )
+        )
+        return (attributes, initialState)
+    }
+
+    private func requestAndSetupActivity(
+        attributes: WorkoutActivityAttributes,
+        initialState: WorkoutActivityAttributes.ContentState
+    ) throws {
+        lastContentState = initialState
+        let activity = try Activity.request(
+            attributes: attributes,
+            content: ActivityContent(state: initialState, staleDate: nil),
+            pushType: .token
+        )
+        self.currentActivity = activity
+        self.setup(withActivity: activity)
+    }
+
+    private func firstExistingActivity() -> Activity<WorkoutActivityAttributes>? {
+        Activity<WorkoutActivityAttributes>.activities.first
+    }
+
+    private func existingActivity(for sessionId: String) -> Activity<WorkoutActivityAttributes>? {
+        Activity<WorkoutActivityAttributes>
+            .activities
+            .first {
+                $0.attributes.sessionId == sessionId && $0.activityState == .active }
+    }
+
     private struct MakeContentStateParams {
         let session: WorkoutSessionModel
         let isActive: Bool
@@ -397,9 +336,28 @@ extension LiveActivityManager {
         let statusMessage: String?
         let totalVolumeKgOverride: Double?
         let elapsedTimeOverride: TimeInterval?
+        
+        init(
+            session: WorkoutSessionModel,
+            isActive: Bool = false,
+            currentExerciseIndex: Int = 0,
+            restEndsAt: Date? = nil,
+            statusMessage: String? = nil,
+            totalVolumeKgOverride: Double? = nil,
+            elapsedTimeOverride: TimeInterval? = nil
+        ) {
+            self.session = session
+            self.isActive = isActive
+            self.currentExerciseIndex = currentExerciseIndex
+            self.restEndsAt = restEndsAt
+            self.statusMessage = statusMessage
+            self.totalVolumeKgOverride = totalVolumeKgOverride
+            self.elapsedTimeOverride = elapsedTimeOverride
+        }
     }
 
     private func makeContentState(params: MakeContentStateParams) -> WorkoutActivityAttributes.ContentState {
+        
         let totals = computeTotals(session: params.session, totalVolumeKgOverride: params.totalVolumeKgOverride)
         let current = deriveCurrentExerciseData(session: params.session, index: params.currentExerciseIndex)
 
@@ -552,6 +510,53 @@ extension LiveActivityManager {
 
 }
 
+// MARK: Events
+extension LiveActivityManager {
+    enum Event: LoggableEvent {
+        case startLiveActivityStart
+        case startLiveActivitySuccess
+        case startLiveActivityFail(error: Error)
+        case liveActivitiesNotEnabled
+        case updateLiveActivityStart
+        case updateLiveActivitySuccess
+        case updateLiveActivityFail(error: Error)
+        case endLiveActivityStart
+        case endLiveActivitySuccess
+
+        var eventName: String {
+            switch self {
+            case .startLiveActivityStart:       return "LiveActivityMan_StartLiveActiviey_Start"
+            case .startLiveActivitySuccess:     return "LiveActivityMan_StartLiveActiviey_Success"
+            case .startLiveActivityFail:        return "LiveActivityMan_StartLiveActiviey_Fail"
+            case .liveActivitiesNotEnabled:     return "LiveActivityMan_LiveActivitiesNotEnabled"
+            case .updateLiveActivityStart:      return "LiveActivityMan_UpdateLiveActivity_Start"
+            case .updateLiveActivitySuccess:    return "LiveActivityMan_UpdateLiveActivity_Success"
+            case .updateLiveActivityFail:       return "LiveActivityMan_UpdateLiveActivity_Fail"
+            case .endLiveActivityStart:         return "LiveActivityMan_EndLiveActivity_Start"
+            case .endLiveActivitySuccess:       return "LiveActivityMan_EndLiveActivity_Success"
+            }
+        }
+        
+        var parameters: [String: Any]? {
+            switch self {
+            case .startLiveActivityFail(error: let error), .updateLiveActivityFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
+            }
+        }
+        
+        var type: LogType {
+            switch self {
+            case .startLiveActivityFail, .updateLiveActivityFail:
+                return .severe
+            default:
+                return .analytic
+            }
+        }
+    }
+}
+
 #else
 @Observable
 class LiveActivityManager: LiveActivityUpdating {
@@ -605,17 +610,13 @@ extension CoreInteractor {
         liveActivityManager.activityViewState
     }
     
-    func startLiveActivity(
-        session: WorkoutSessionModel,
-        isActive: Bool = true,
-        currentExerciseIndex: Int = 0,
-        restEndsAt: Date? = nil,
-        statusMessage: String? = nil
-    ) {
-        liveActivityManager.startLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage)
-    }
-
-    /// Ensure a Workout Live Activity exists for this session; if found, reuse and update it, otherwise create it
+    /// Ensure a Workout Live Activity using data from the given session
+    /// - Parameters:
+    ///   - session: The workout session used to seed immutable attributes
+    ///   - isActive: Whether the workout timer is running
+    ///   - currentExerciseIndex: Index of the currently focused exercise in the session
+    ///   - restEndsAt: Optional rest countdown end time
+    ///   - statusMessage: Optional status string (e.g. "Resting", "Ready")
     func ensureLiveActivity(
         session: WorkoutSessionModel,
         isActive: Bool = true,
@@ -626,16 +627,30 @@ extension CoreInteractor {
         liveActivityManager.ensureLiveActivity(session: session, isActive: isActive, currentExerciseIndex: currentExerciseIndex, restEndsAt: restEndsAt, statusMessage: statusMessage)
     }
     
+    /// Ensure a Workout Live Activity using data from the given session
+    /// - Parameters:
+    ///   - session: The workout session used to seed immutable attributes
+    ///   - session: WorkoutSessionModel
+    ///   - isActive: Bool
+    ///   - currentExerciseIndex: Int
+    ///   - restEndsAt: Date?
+    ///   - statusMessage: String?
+    ///   - totalVolumeKg: Double?
+    ///   - elapsedTime: TimeInterval?
     func updateLiveActivity(params: LiveActivityUpdateParams) {
         liveActivityManager.updateLiveActivity(params: params)
     }
     
-    /// Update the Workout Live Activity with latest session progress
-    func updateLiveActivity(contentState: WorkoutActivityAttributes.ContentState) {
-        liveActivityManager.updateLiveActivity(contentState: contentState)
+    /// Discard the currently active Live Activity
+    func discardLiveActivity() async {
+        await liveActivityManager.discardLiveActivity()
     }
 
-    /// End the Workout Live Activity
+    /// Ensure a Workout Live Activity using data from the given session
+    /// - Parameters:
+    ///   - session: WorkoutSessionModel
+    ///   - isCompleted: Bool
+    ///   - statusMessage: String?
     func endLiveActivity(
         session: WorkoutSessionModel,
         isCompleted: Bool = true,
@@ -644,27 +659,19 @@ extension CoreInteractor {
         liveActivityManager.endLiveActivity(session: session, isCompleted: isCompleted, statusMessage: statusMessage)
     }
     
+    /// End the live activity using a final content state and dismissal policy
+    /// - Parameters:
+    ///   - finalState: WorkoutActivityAttributes.ContentState
+    ///   - dismissalPolicy: ActivityUIDismissalPolicy
     func endActivity(with finalState: WorkoutActivityAttributes.ContentState, dismissalPolicy: ActivityUIDismissalPolicy) async {
         await liveActivityManager.endActivity(with: finalState, dismissalPolicy: dismissalPolicy)
     }
     
-    func setup(withActivity activity: Activity<WorkoutActivityAttributes>) {
-        liveActivityManager.setup(withActivity: activity)
-    }
-    
-    func observeActivity(activity: Activity<WorkoutActivityAttributes>) {
-        liveActivityManager.observeActivity(activity: activity)
-    }
-    
-    func updateWorkoutActivity(with updatedState: WorkoutActivityAttributes.ContentState) async throws {
-        try await liveActivityManager.updateWorkoutActivity(with: updatedState)
-    }
-    
-    func cleanupDismissedActivity() {
-        liveActivityManager.cleanupDismissedActivity()
-    }
-
     /// Update only isActive/rest/status from current content state to avoid recomputing set counts
+    /// - Parameters:
+    ///   - isActive: Bool
+    ///   - restEndsAt: Date?
+    ///   - statusMessage: String?
     func updateRestAndActive(
         isActive: Bool,
         restEndsAt: Date?,
@@ -672,7 +679,6 @@ extension CoreInteractor {
     ) {
         liveActivityManager.updateRestAndActive(isActive: isActive, restEndsAt: restEndsAt, statusMessage: statusMessage)
     }
-
 }
 private extension Data {
     var hexadecimalString: String {
@@ -693,11 +699,7 @@ struct ActivityViewState: Sendable {
         switch activityState {
         case .active, .stale:
             return true
-        case .ended, .dismissed:
-            return false
-        case .pending:
-            return false
-        @unknown default:
+        default:
             return false
         }
     }
@@ -709,11 +711,7 @@ struct ActivityViewState: Sendable {
         switch activityState {
         case .active, .stale:
             return true
-        case .ended, .pending:
-            return false
-        case .dismissed:
-            return false
-        @unknown default:
+        default:
             return false
         }
     }

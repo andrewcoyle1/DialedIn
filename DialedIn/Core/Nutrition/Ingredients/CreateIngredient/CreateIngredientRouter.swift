@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol CreateIngredientRouter {
-    func showDevSettingsView()
+protocol CreateIngredientRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showAlert(error: Error)
 
     func dismissScreen()

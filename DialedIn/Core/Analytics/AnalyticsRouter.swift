@@ -9,7 +9,9 @@ import SwiftUI
 
 @MainActor
 protocol AnalyticsRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showPaywall()
     func showProfileView()
     func showScaleWeightView(delegate: ScaleWeightDelegate, themeColor: Color?)

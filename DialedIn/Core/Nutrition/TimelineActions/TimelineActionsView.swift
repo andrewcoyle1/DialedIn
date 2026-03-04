@@ -13,13 +13,14 @@ struct TimelineActionsView: View {
     
     var body: some View {
         List {
-            Group {
+            Section {
                 CustomLabelButtonView(symbolName: "pages", title: "Copy Day") { EmptyView() }
                 CustomLabelButtonView(symbolName: "checkmark.circle.fill", title: "Select All") { EmptyView() }
                 CustomLabelButtonView(symbolName: "trash", title: "Clear Day") { EmptyView() }
                 CustomToggleView(symbolName: "chevron.up", title: "Hide Food Details", bool: .constant(false))
                 CustomToggleView(symbolName: "hourglass", title: "Hide Empty Hours", bool: .constant(false))
             }
+            .listSectionMargins(.top, 0)
         }
         .navigationTitle("Timeline Actions")
         .navigationBarTitleDisplayMode(.inline)

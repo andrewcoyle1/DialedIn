@@ -7,7 +7,9 @@
 
 @MainActor
 protocol WelcomeRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showPaywall(isOnboarding: Bool)
     func showIntroView()
     func showAuthView()

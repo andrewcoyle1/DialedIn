@@ -7,7 +7,9 @@
 
 @MainActor
 protocol HealthDisclaimerRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showGoalSettingView()
     func showHealthDisclaimerConfirmationModal(onConfirmPressed: @escaping () -> Void, onCancelPressed: @escaping () -> Void) 
 }

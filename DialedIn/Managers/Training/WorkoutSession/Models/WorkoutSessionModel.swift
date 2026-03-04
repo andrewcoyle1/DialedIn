@@ -105,49 +105,47 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
                 // Match working sets with previous workout sets by index (skip warmup sets)
                 let previousWorkingSets = prevSets.filter { !$0.isWarmup }
                 
-                for index in workingSets.indices {
-                    if index < previousWorkingSets.count {
-                        let prevSet = previousWorkingSets[index]
-                        var weightKg = prevSet.weightKg ?? workingSets[index].weightKg
+                for index in workingSets.indices where index < previousWorkingSets.count {
+                    let prevSet = previousWorkingSets[index]
+                    var weightKg = prevSet.weightKg ?? workingSets[index].weightKg
+                    
+                    // Round weight to equipment increments if available, using preferred unit
+                    if let weight = weightKg {
+                        let unitPref = unitPreferences?[exerciseModel.exercise.id]
+                        let preferredUnit = unitPref?.weightUnit
                         
-                        // Round weight to equipment increments if available, using preferred unit
-                        if let weight = weightKg {
-                            let unitPref = unitPreferences?[exerciseModel.exercise.id]
-                            let preferredUnit = unitPref?.weightUnit
-                            
-                            // Try equipment rounding first (only applies to pin-loaded/cable machines)
-                            let roundedByEquipment = WorkoutSessionModel.roundWeightToEquipmentIncrement(
-                                weightKg: weight,
-                                exercise: exerciseModel.exercise,
-                                gymProfile: gymProfile,
-                                preferredWeightUnit: preferredUnit
-                            )
-                            
-                            // If equipment rounding didn't change the weight (free weights), apply unit rounding
-                            if roundedByEquipment == weight, let preferredUnit = preferredUnit {
-                                weightKg = WorkoutSessionModel.roundWeightToPreferredUnit(
-                                    weightKg: roundedByEquipment,
-                                    preferredUnit: preferredUnit
-                                )
-                            } else {
-                                weightKg = roundedByEquipment
-                            }
-                        }
-                        
-                        workingSets[index] = WorkoutSetModel(
-                            id: workingSets[index].id,
-                            authorId: authorId,
-                            index: workingSets[index].index,
-                            reps: prevSet.reps ?? workingSets[index].reps,
-                            weightKg: weightKg,
-                            durationSec: prevSet.durationSec ?? workingSets[index].durationSec,
-                            distanceMeters: prevSet.distanceMeters ?? workingSets[index].distanceMeters,
-                            rpe: workingSets[index].rpe,
-                            isWarmup: false,
-                            completedAt: nil,
-                            dateCreated: .now
+                        // Try equipment rounding first (only applies to pin-loaded/cable machines)
+                        let roundedByEquipment = WorkoutSessionModel.roundWeightToEquipmentIncrement(
+                            weightKg: weight,
+                            exercise: exerciseModel.exercise,
+                            gymProfile: gymProfile,
+                            preferredWeightUnit: preferredUnit
                         )
+                        
+                        // If equipment rounding didn't change the weight (free weights), apply unit rounding
+                        if roundedByEquipment == weight, let preferredUnit = preferredUnit {
+                            weightKg = WorkoutSessionModel.roundWeightToPreferredUnit(
+                                weightKg: roundedByEquipment,
+                                preferredUnit: preferredUnit
+                            )
+                        } else {
+                            weightKg = roundedByEquipment
+                        }
                     }
+                    
+                    workingSets[index] = WorkoutSetModel(
+                        id: workingSets[index].id,
+                        authorId: authorId,
+                        index: workingSets[index].index,
+                        reps: prevSet.reps ?? workingSets[index].reps,
+                        weightKg: weightKg,
+                        durationSec: prevSet.durationSec ?? workingSets[index].durationSec,
+                        distanceMeters: prevSet.distanceMeters ?? workingSets[index].distanceMeters,
+                        rpe: workingSets[index].rpe,
+                        isWarmup: false,
+                        completedAt: nil,
+                        dateCreated: .now
+                    )
                 }
             }
             

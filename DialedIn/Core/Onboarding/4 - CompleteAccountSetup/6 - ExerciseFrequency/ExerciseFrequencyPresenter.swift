@@ -34,9 +34,11 @@ class ExerciseFrequencyPresenter {
         router.showActivityView(delegate: delegate)
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     enum Event: LoggableEvent {
         case navigate

@@ -24,6 +24,24 @@ struct NutritionView<CalendarHeaderView: View>: View {
 
     @Namespace private var namespace
     
+    var workingHours: [Date] {
+        let calendar = Calendar.current
+        // Start at 7 AM today
+        let start = calendar.date(bySettingHour: 7, minute: 0, second: 0, of: Date())!
+        // End at 11 PM today (23:00)
+        let end = calendar.date(bySettingHour: 23, minute: 0, second: 0, of: Date())!
+        
+        var dates: [Date] = []
+        var current = start
+        
+        // Step through hour by hour until reaching the end
+        while current <= end {
+            dates.append(current)
+            current = calendar.date(byAdding: .hour, value: 1, to: current)!
+        }
+        return dates
+    }
+
     var body: some View {
         List {
             mealLogSection
@@ -31,7 +49,7 @@ struct NutritionView<CalendarHeaderView: View>: View {
         }
         .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inlineLarge)
         .toolbar {
             toolbarContent
         }
@@ -108,9 +126,9 @@ struct NutritionView<CalendarHeaderView: View>: View {
 
     private var mealLogSection: some View {
         Section {
-            ForEach(7...23) { hour in
+            ForEach(workingHours, id: \.self) { hour in
                 HStack {
-                    Text("\(hour) AM")
+                    Text(hour, style: .time)
                         .lineLimit(1)
                         .padding(8)
                         .frame(width: 70)
@@ -120,7 +138,7 @@ struct NutritionView<CalendarHeaderView: View>: View {
                         .padding(8)
                         .background(.secondary.opacity(0.2), in: .circle)
                         .anyButton {
-                            presenter.onAddMealPressed()
+                            presenter.onAddMealPressed(selectedTime: hour)
                         }
                 }
                 .font(.caption)
@@ -141,13 +159,13 @@ struct NutritionView<CalendarHeaderView: View>: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()
                     .anyButton {
-                        
+                        presenter.onNutritionOverviewPressed()
                     }
                 Label("Customise Food Log", systemImage: "slider.horizontal.3")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .tappableBackground()
                     .anyButton {
-                        
+                        presenter.onCustomiseFoodLogPressed()
                     }
             }
             .foregroundStyle(.primary)
@@ -155,45 +173,20 @@ struct NutritionView<CalendarHeaderView: View>: View {
             Text("More")
         }
     }
-    
-    // MARK: - Meals Section
-    
-    private var mealsSection: some View {
-        let meals = presenter.meals
         
-        return Section {
-            if meals.isEmpty {
-                Button {
-                    presenter.onAddMealPressed()
-                } label: {
-                    Label("Add Meal", systemImage: "plus")
-                }
-            } else {
-                ForEach(meals) { meal in
-                    Button {
-                        presenter.navToMealDetail(meal: meal)
-                    } label: {
-                        MealLogRowView(meal: meal)
-                    }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            Task {
-                                await presenter.deleteMeal(meal)
-                            }
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
-                }
-            }
-        } header: {
-            Text("Meals")
-        }
-    }
-    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
                 
+#if DEV || MOCK
+ToolbarItem(placement: .topBarTrailing) {
+    Button {
+        presenter.onDevSettingsPressed()
+    } label: {
+        Image(systemName: "info")
+    }
+}
+#endif
+
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onTimelineActionsPressed()
@@ -220,31 +213,6 @@ struct NutritionView<CalendarHeaderView: View>: View {
             }
         }
         .sharedBackgroundVisibility(.hidden)
-
-    }
-    
-    private var recipeLibraryButton: some View {
-        Section {
-            Button {
-                presenter.onRecipeLibraryPressed()
-            } label: {
-                Text("Recipe Library")
-            }
-        } header: {
-            Text("Recipe Library")
-        }
-    }
-    
-    private var ingredientLibraryButton: some View {
-        Section {
-            Button {
-                presenter.onIngredientLibraryPressed()
-            } label: {
-                Text("Ingredient Library")
-            }
-        } header: {
-            Text("Ingredient Library")
-        }
     }
 }
 

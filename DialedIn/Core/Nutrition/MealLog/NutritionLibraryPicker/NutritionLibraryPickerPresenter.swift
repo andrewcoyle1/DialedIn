@@ -72,9 +72,11 @@ class NutritionLibraryPickerPresenter {
         router.dismissScreen()
     }
     
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 }
 
 enum NutritionPickerMode: String, CaseIterable, DataSyncModelProtocol {

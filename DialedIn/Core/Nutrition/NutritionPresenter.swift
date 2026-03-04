@@ -74,18 +74,12 @@ class NutritionPresenter {
         router.showProfileView()
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
-    
-    func onRecipeLibraryPressed() {
-        router.showRecipesView()
-    }
-    
-    func onIngredientLibraryPressed() {
-        router.showIngredientsView()
-    }
-            
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
+
     func saveMeal(_ meal: MealLogModel) async {
         do {
             try await interactor.addMeal(meal)
@@ -113,10 +107,18 @@ class NutritionPresenter {
     func onTimelineActionsPressed() {
         router.showTimelineActionsView(delegate: TimelineActionsDelegate())
     }
+    
+    func onCustomiseFoodLogPressed() {
+        router.showFoodLogSettingsView(delegate: FoodLogSettingsDelegate())
+    }
+    
+    func onNutritionOverviewPressed() {
+        router.showNutritionOverviewView(delegate: NutritionOverviewDelegate())
+    }
 
-    func onAddMealPressed() {
+    func onAddMealPressed(selectedTime: Date = Date()) {
         let delegate = AddMealDelegate(
-            selectedDate: selectedDate,
+            selectedDate: selectedTime,
             onSave: { meal in
                 Task { [weak self] in
                     await self?.saveMeal(meal)

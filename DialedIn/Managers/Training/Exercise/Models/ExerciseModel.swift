@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ExerciseModel: DataSyncModelProtocol {
+struct ExerciseModel: DataSyncModelProtocol, SearchListItem {
     var id: String
     var authorId: String
     var name: String

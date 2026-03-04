@@ -133,9 +133,11 @@ class WeightRatePresenter {
         return "Approximate end date: \(formatter.string(from: endDate))"
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     enum Event: LoggableEvent {
         case navigate

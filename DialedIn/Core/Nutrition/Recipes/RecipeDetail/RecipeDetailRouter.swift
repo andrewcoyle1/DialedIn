@@ -6,10 +6,11 @@
 //
 
 @MainActor
-protocol RecipeDetailRouter {
-    func showDevSettingsView()
+protocol RecipeDetailRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showStartRecipeView(delegate: RecipeStartDelegate)
-    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: RecipeDetailRouter { }

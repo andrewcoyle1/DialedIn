@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol OverarchingObjectiveRouter {
-    func showDevSettingsView()
+protocol OverarchingObjectiveRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showTargetWeightView(delegate: TargetWeightDelegate)
     func showGoalSummaryView(delegate: GoalSummaryDelegate)
 }

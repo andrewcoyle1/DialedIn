@@ -51,7 +51,10 @@ class HKWorkoutManager: NSObject {
         }
     }
 
-    func setWorkoutConfiguration(activityType: HKWorkoutActivityType, location: HKWorkoutSessionLocationType) {
+    func setWorkoutConfiguration(
+        activityType: HKWorkoutActivityType,
+        location: HKWorkoutSessionLocationType
+    ) {
         let configuration = HKWorkoutConfiguration()
         configuration.activityType = activityType
         configuration.locationType = location
@@ -88,13 +91,6 @@ class HKWorkoutManager: NSObject {
                 let startDate = Date()
                 session?.startActivity(with: startDate)
                 try await builder?.beginCollection(at: startDate)
-                liveActivityUpdater?.startLiveActivity(
-                    session: workout,
-                    isActive: true,
-                    currentExerciseIndex: 0,
-                    restEndsAt: nil,
-                    statusMessage: nil
-                )
                 startWorkoutTimer()
                 logger.trackEvent(event: Event.startWorkoutSuccess)
             } catch {
@@ -536,4 +532,3 @@ private struct SessionStateChange {
     let newState: HKWorkoutSessionState
     let date: Date
 }
-

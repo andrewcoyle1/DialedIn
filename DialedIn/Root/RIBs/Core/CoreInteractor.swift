@@ -108,7 +108,7 @@ struct CoreInteractor: GlobalInteractor {
         async let streakSignIn: () = streakManager.logIn(userId: user.uid)
 
         try await workoutSettingsSignIn
-        try await trainingProgramSignIn
+        await trainingProgramSignIn
         try await nutritionSignIn
         try await goalSignIn
         await stepsSignIn
@@ -230,6 +230,8 @@ struct CoreInteractor: GlobalInteractor {
         )
         
         try self.updateActiveSession(session)
+        hkWorkoutManager.startWorkout(workout: session)
+        ensureLiveActivity(session: session)
     }
     
     func deleteActiveSession() throws {

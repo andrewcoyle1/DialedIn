@@ -6,10 +6,10 @@
 //
 
 @MainActor
-protocol LogWeightRouter {
-    func showDevSettingsView()
-    func showAlert(error: Error)
-    func dismissScreen()
+protocol LogWeightRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
 }
 
 extension CoreRouter: LogWeightRouter { }

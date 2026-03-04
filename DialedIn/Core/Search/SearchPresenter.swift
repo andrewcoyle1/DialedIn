@@ -10,19 +10,150 @@ import SwiftUI
 @Observable
 @MainActor
 class SearchPresenter {
-
+    
     private let interactor: SearchInteractor
     private let router: SearchRouter
-
+    
     var searchString: String = ""
+    
+    var trimmedSearchString: String {
+        self.searchString
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: .alphanumerics.inverted)
+            .lowercased()
+    }
 
-    var filteredExercises: [ExerciseModel] = []
+    var filteredExercises: [ExerciseModel] {
+        allExercises
+            .filter {
+                $0.name
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .trimmingCharacters(in: .alphanumerics.inverted)
+                    .lowercased().contains(trimmedSearchString) ||
+                $0.description?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .trimmingCharacters(in: .alphanumerics.inverted)
+                    .lowercased()
+                    .contains(trimmedSearchString) == true ||
+                $0.muscleGroups
+                    .contains { $0.key.rawValue
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                            .trimmingCharacters(in: .alphanumerics.inverted)
+                            .lowercased()
+                            .contains(trimmedSearchString)
+                    } ||
+                $0.alternateNames
+                    .contains {
+                        $0
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                            .trimmingCharacters(in: .alphanumerics.inverted)
+                            .lowercased()
+                            .contains(trimmedSearchString)
+                    }
+            }
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
+    }
+
     var allExercises: [ExerciseModel] {
         interactor.allExercises
     }
+    
+    var filteredWorkoutTemplates: [WorkoutTemplateModel] {
+        allWorkouts
+            .filter {
+                $0.name
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .trimmingCharacters(in: .alphanumerics.inverted)
+                    .lowercased()
+                    .contains(trimmedSearchString.lowercased()) ||
+                $0.description?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .trimmingCharacters(in: .alphanumerics.inverted)
+                    .lowercased()
+                    .contains(trimmedSearchString.lowercased()) == true ||
+                $0.exercises.contains(where: { $0.exercise.name
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                        .trimmingCharacters(in: .alphanumerics.inverted)
+                        .lowercased()
+                    .contains(trimmedSearchString.lowercased()) })
+            }
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
+    }
+    
+    var allWorkouts: [WorkoutTemplateModel] {
+        interactor.allWorkoutTemplates
+    }
+    
+    var filteredRecipeTemplates: [RecipeTemplateModel] {
+        allRecipeTemplates
+            .filter {
+                $0.name
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .trimmingCharacters(in: .alphanumerics.inverted)
+                    .lowercased()
+                    .contains(trimmedSearchString.lowercased()) ||
+                $0.description?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .trimmingCharacters(in: .alphanumerics.inverted)
+                    .lowercased()
+                    .contains(trimmedSearchString.lowercased()) == true ||
+                $0.ingredients
+                    .contains { value in
+                        value.name
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                            .trimmingCharacters(in: .alphanumerics.inverted)
+                            .lowercased()
+                            .contains(trimmedSearchString.lowercased())
+                    } == true
+            }
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
+    }
+    
+    var allRecipeTemplates: [RecipeTemplateModel] {
+        interactor.userRecipeTemplates
+    }
+
+    var filteredIngredientTemplates: [IngredientTemplateModel] {
+        allIngredientTemplates
+            .filter {
+                $0.name
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .trimmingCharacters(in: .alphanumerics.inverted)
+                    .lowercased()
+                    .contains(trimmedSearchString.lowercased()) ||
+                $0.description?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .trimmingCharacters(in: .alphanumerics.inverted)
+                    .lowercased()
+                    .contains(trimmedSearchString.lowercased()) == true
+            }
+            .sortedByKeyPath(keyPath: \.name, ascending: true)
+    }
+    
+    var allIngredientTemplates: [IngredientTemplateModel] {
+        interactor.ingredientTemplates
+    }
+    
+    var filteredUsers: [UserModel] {
+        allUsers
+            .filter {
+                $0.firstNameCalculated?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .trimmingCharacters(in: .alphanumerics.inverted)
+                    .lowercased().contains(trimmedSearchString) == true
+            }
+//            .sortedByKeyPath(keyPath: \.firstNameCalculated, ascending: true)
+    }
+
+    var followingUsers: [UserModel] {
+        interactor.followingUsers
+    }
+
+    var allUsers: [UserModel] {
+        followingUsers + users
+    }
+    
     private(set) var users: [UserModel] = []
-    private(set) var workouts: [WorkoutTemplateModel] = []
-    private(set) var recipes: [RecipeTemplateModel] = []
     private(set) var isLoading: Bool = false
 
     private var searchTask: Task<Void, Never>?
@@ -33,16 +164,12 @@ class SearchPresenter {
         interactor.userImageUrl
     }
 
-    var trimmedSearchString: String {
-        searchString.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
     var hasSearchQuery: Bool {
         !trimmedSearchString.isEmpty
     }
 
     var hasResults: Bool {
-        !filteredExercises.isEmpty || !workouts.isEmpty || !recipes.isEmpty || !users.isEmpty
+        !filteredExercises.isEmpty || !filteredWorkoutTemplates.isEmpty || !filteredRecipeTemplates.isEmpty || !filteredIngredientTemplates.isEmpty || !users.isEmpty
     }
 
     func isFollowing(userId: String) -> Bool {
@@ -71,11 +198,9 @@ class SearchPresenter {
             try? await Task.sleep(for: .milliseconds(350))
             guard !Task.isCancelled else { return }
 
-            let exercises = allExercises.filter { $0.name.localizedCaseInsensitiveContains(query) }
             let fetchedUsers = (try? await interactor.searchUsers(query: query)) ?? []
             guard !Task.isCancelled else { return }
 
-            filteredExercises = exercises
             users = fetchedUsers
             isLoading = false
             interactor.addRecentSearch(query: query)
@@ -83,10 +208,7 @@ class SearchPresenter {
     }
 
     func onSearchCleared() {
-        filteredExercises = []
         users = []
-        workouts = []
-        recipes = []
         reloadRecentQueries()
     }
 
@@ -123,6 +245,10 @@ class SearchPresenter {
         searchString = query
         performUnifiedSearch()
     }
+    
+    func onLogWeightPressed() {
+        router.showLogWeightView()
+    }
 
     func onClearRecentSearchesPressed() {
         interactor.clearRecentSearches()
@@ -130,20 +256,19 @@ class SearchPresenter {
     }
 
     func onStartWorkoutPressed() {
-        router.showWorkoutPickerView(delegate: WorkoutPickerDelegate(
-            onSelect: { [weak self] template in
-                self?.showWorkoutStartModal(for: template)
-            },
-            onCancel: {}
-        ))
+        router.showWorkoutsView()
     }
 
     func onLogMealPressed() {
-        router.showRecipesView()
+        router.showAddMealView(delegate: AddMealDelegate(selectedDate: .now, onSave: { _ in }))
     }
 
+    func onIngredientPressed(ingredient: IngredientTemplateModel) {
+        router.showIngredientDetailView(delegate: IngredientDetailDelegate(ingredientTemplate: ingredient))
+    }
+    
     func onAddExercisePressed() {
-        router.showExerciseListBuilderView(delegate: ExerciseListBuilderDelegate())
+        router.showCreateExerciseView()
     }
 
     func onFollowPressed(user: UserModel) {
@@ -166,11 +291,8 @@ class SearchPresenter {
         }
     }
 
-    func onProfilePressed(_ transitionId: String, in namespace: Namespace.ID) {
-        router.showProfileViewZoom(
-            transitionId: transitionId,
-            namespace: namespace
-        )
+    func onProfilePressed() {
+        router.showProfileView()
     }
 
     private func showWorkoutStartModal(for template: WorkoutTemplateModel) {

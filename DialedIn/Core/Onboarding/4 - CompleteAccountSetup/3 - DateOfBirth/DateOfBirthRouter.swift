@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol DateOfBirthRouter {
-    func showDevSettingsView()
+protocol DateOfBirthRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showHeightView(delegate: HeightDelegate)
 }
 

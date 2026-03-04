@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol ActivityRouter {
-    func showDevSettingsView()
+protocol ActivityRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showCardioFitnessView(delegate: CardioFitnessDelegate)
 }
 

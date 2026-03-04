@@ -5,6 +5,7 @@
 //  Created by Andrew Coyle on 10/22/24.
 //
 
+#if DEV || MOCK
 import SwiftUI
 
 struct DevSettingsView: View {
@@ -442,3 +443,4 @@ extension CoreRouter {
     }
     
 }
+#endif

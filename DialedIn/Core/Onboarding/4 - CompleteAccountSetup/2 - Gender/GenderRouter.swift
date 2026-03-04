@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol GenderRouter {
-    func showDevSettingsView()
+protocol GenderRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showDateOfBirthView(delegate: DateOfBirthDelegate)
 }
 

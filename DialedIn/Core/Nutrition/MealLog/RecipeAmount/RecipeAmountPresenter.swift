@@ -83,7 +83,9 @@ class RecipeAmountPresenter {
         onConfirm(item)
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 }

@@ -6,12 +6,12 @@
 //
 
 @MainActor
-protocol NutritionLibraryPickerRouter {
+protocol NutritionLibraryPickerRouter: GlobalRouter {
     func showIngredientAmountView(delegate: IngredientAmountDelegate)
     func showRecipeAmountView(delegate: RecipeAmountDelegate)
-    func showDevSettingsView()
-    func showAlert(error: Error)
-    func dismissScreen()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
 }
 
 extension CoreRouter: NutritionLibraryPickerRouter { }

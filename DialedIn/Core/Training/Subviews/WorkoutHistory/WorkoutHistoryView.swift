@@ -11,20 +11,22 @@ struct WorkoutHistoryDelegate {
     let onSessionSelectionChanged: ((WorkoutSessionModel) -> Void)?
 }
 
-struct WorkoutHistoryView: View {
+struct WorkoutHistoryView<WorkoutSessionRow: View>: View {
     @Environment(\.layoutMode) private var layoutMode
     @Environment(\.scenePhase) private var scenePhase
     
     @State var presenter: WorkoutHistoryPresenter
 
+    @ViewBuilder var workoutSessionRow: (WorkoutSessionRowDelegate) -> WorkoutSessionRow
+
     var body: some View {
         List {
             if presenter.isLoading && presenter.workoutSessions.isEmpty {
                 loadingState
-            } else if presenter.workoutSessions.isEmpty {
-                emptyState
+            } else if let user = presenter.currentUser {
+                listContents(user: user)
             } else {
-                listContents
+                emptyState
             }
         }
         .scrollIndicators(.hidden)
@@ -71,15 +73,15 @@ struct WorkoutHistoryView: View {
         }
     }
     
-    private var listContents: some View {
+    private func listContents(user: UserModel) -> some View {
         Section {
             ForEach(presenter.workoutSessions) { session in
-                WorkoutHistoryRow(session: session)
-                    .contentShape(Rectangle())
+                workoutSessionRow(WorkoutSessionRowDelegate(session: session, author: user))
                     .anyButton(.highlight) {
                         presenter.onWorkoutSessionPressed(session: session, layoutMode: layoutMode)
                     }
             }
+            .removeListRowFormatting()
         } header: {
             HStack {
                 Text("Completed Workouts")
@@ -139,7 +141,13 @@ private struct WorkoutHistoryRow: View {
 extension CoreBuilder {
     func workoutHistoryView(router: AnyRouter) -> some View {
         WorkoutHistoryView(
-            presenter: WorkoutHistoryPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            presenter: WorkoutHistoryPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            workoutSessionRow: { delegate in
+                self.workoutSessionRowView(router: router, delegate: delegate)
+            }
         )
     }
 }

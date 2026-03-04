@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol HeightRouter {
-    func showDevSettingsView()
+protocol HeightRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showWeightView(delegate: WeightDelegate)
 }
 

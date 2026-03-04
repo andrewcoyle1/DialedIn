@@ -9,7 +9,7 @@ import Foundation
 
 @MainActor
 protocol LiveActivityUpdating: AnyObject {
-    func startLiveActivity(
+    func ensureLiveActivity(
         session: WorkoutSessionModel,
         isActive: Bool,
         currentExerciseIndex: Int,

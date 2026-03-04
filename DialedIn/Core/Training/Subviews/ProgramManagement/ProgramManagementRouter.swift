@@ -9,7 +9,9 @@ import SwiftUI
 
 @MainActor
 protocol ProgramManagementRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showProgramSettingsView(program: Binding<TrainingProgram>)
     func showCreateProgramView(delegate: CreateProgramDelegate)
     func showEditTrainingProgramView(delegate: EditTrainingProgramDelegate)

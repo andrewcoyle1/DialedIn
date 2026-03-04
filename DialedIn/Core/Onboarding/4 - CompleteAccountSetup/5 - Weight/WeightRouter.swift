@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol WeightRouter {
-    func showDevSettingsView()
+protocol WeightRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showExerciseFrequencyView(delegate: ExerciseFrequencyDelegate)
 }
 

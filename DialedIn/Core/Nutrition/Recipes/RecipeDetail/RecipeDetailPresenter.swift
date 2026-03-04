@@ -41,9 +41,11 @@ class RecipeDetailPresenter {
         }
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     func onStartRecipePressed(recipe: RecipeTemplateModel) {
         router.showStartRecipeView(delegate: RecipeStartDelegate(recipe: recipe))

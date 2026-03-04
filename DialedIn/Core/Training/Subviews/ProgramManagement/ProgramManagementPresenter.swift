@@ -13,6 +13,14 @@ class ProgramManagementPresenter {
     private let interactor: ProgramManagementInteractor
     private let router: ProgramManagementRouter
     
+    var activeTrainingProgram: TrainingProgram? {
+        interactor.activeTrainingProgram
+    }
+    
+    var nonActiveTrainingPrograms: [TrainingProgram] {
+        savedPrograms.filter { $0.id != activeTrainingProgram?.id }
+    }
+    
     var savedPrograms: [TrainingProgram] {
         interactor.trainingPrograms
     }
@@ -62,9 +70,11 @@ class ProgramManagementPresenter {
         router.showCreateProgramView(delegate: CreateProgramDelegate())
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     func dismissScreen() {
         router.dismissScreen()

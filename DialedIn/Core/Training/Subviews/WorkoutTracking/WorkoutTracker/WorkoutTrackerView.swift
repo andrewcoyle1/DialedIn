@@ -237,7 +237,32 @@ extension CoreRouter {
     }
 }
 
-#Preview {
+#Preview("With Exercises") {
+    let container = DevPreview.shared.container()
+    let activeWorkoutSessionPersistence = MockLocalDocumentPersistence<WorkoutSessionModel>(document: WorkoutSessionModel.mock)
+    let userWorkoutSessionSyncEngine = CollectionSyncEngine<WorkoutSessionModel>(
+        remote: MockRemoteCollectionService(),
+        managerKey: Keys.userWorkoutSessionManagerKey
+    )
+    let followingWorkoutSessionSyncEngine = CollectionGroupSyncEngine<WorkoutSessionModel>(
+        remote: MockRemoteCollectionGroupService(),
+        managerKey: Keys.followingWorkoutSessionsManagerKey
+    )
+    let workoutSessionManager = WorkoutSessionManager(
+        activeWorkoutSessionPersistence: activeWorkoutSessionPersistence,
+        userWorkoutSessionSyncEngine: userWorkoutSessionSyncEngine,
+        followingWorkoutSessionSyncEngine: followingWorkoutSessionSyncEngine
+    )
+    container.register(WorkoutSessionManager.self, service: workoutSessionManager)
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
+    return RouterView { router in
+        builder.workoutTrackerView(router: router)
+    }
+    
+}
+
+#Preview ("No Exercises"){
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)

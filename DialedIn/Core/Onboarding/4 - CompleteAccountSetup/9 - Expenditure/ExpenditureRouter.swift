@@ -9,7 +9,9 @@ import SwiftUI
 
 @MainActor
 protocol ExpenditureRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showNotificationsPermissionsView()
     func showOnboardingHealthDataView()
     func showHealthDisclaimerView()

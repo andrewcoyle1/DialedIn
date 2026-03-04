@@ -14,9 +14,13 @@ struct ProgramManagementView: View {
 
     var body: some View {
         List {
-            if !presenter.savedPrograms.isEmpty {
+            if let activeTrainingProgram = presenter.activeTrainingProgram {
+                activeTrainingProgramSection(activeTrainingProgram: activeTrainingProgram)
+            }
+            if !presenter.nonActiveTrainingPrograms.isEmpty {
                 savedProgramsSection
-            } else {
+            }
+            if presenter.savedPrograms.isEmpty && presenter.activeTrainingProgram == nil {
                 emptyState
             }
         }
@@ -27,9 +31,17 @@ struct ProgramManagementView: View {
         }
     }
     
+    private func activeTrainingProgramSection(activeTrainingProgram: TrainingProgram) -> some View {
+        Section {
+            savedProgramRow(activeTrainingProgram)
+        } header: {
+            Text("Active Training Program")
+        }
+    }
+
     private var savedProgramsSection: some View {
         Section {
-            ForEach(presenter.savedPrograms) { program in
+            ForEach(presenter.nonActiveTrainingPrograms) { program in
                 savedProgramRow(program)
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {

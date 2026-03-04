@@ -6,9 +6,10 @@
 //
 
 @MainActor
-protocol AddIngredientModalRouter {
-    func showDevSettingsView()
-    func dismissScreen()
+protocol AddIngredientModalRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
 }
 
 extension CoreRouter: AddIngredientModalRouter { }

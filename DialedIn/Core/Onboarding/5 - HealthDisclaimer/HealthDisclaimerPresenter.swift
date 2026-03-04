@@ -76,9 +76,11 @@ class HealthDisclaimerPresenter {
         router.showGoalSettingView()
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     enum Event: LoggableEvent {
         case consentHealthConfirmStart(disclaimerVersion: String, privacyVersion: String)

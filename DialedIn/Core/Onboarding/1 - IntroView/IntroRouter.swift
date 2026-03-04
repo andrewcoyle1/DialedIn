@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol IntroRouter {
-    func showDevSettingsView()
+protocol IntroRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showAuthView()
 }
 

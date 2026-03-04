@@ -15,6 +15,10 @@ class WorkoutHistoryPresenter {
 
     private(set) var isLoading = false
     
+    var currentUser: UserModel? {
+        interactor.currentUser
+    }
+    
     var selectedSession: WorkoutSessionModel?
 
     var workoutSessions: [WorkoutSessionModel] {
@@ -47,9 +51,11 @@ class WorkoutHistoryPresenter {
         router.dismissScreen()
     }
     
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 }
 
 extension WorkoutHistoryPresenter {

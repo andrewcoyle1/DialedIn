@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol SubscriptionRouter {
-    func showDevSettingsView()
+protocol SubscriptionRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showPaywall(isOnboarding: Bool)
     func showCompleteAccountSetupView()
 }

@@ -7,10 +7,10 @@
 
 @MainActor
 protocol DietPlanRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showOnboardingCompletedView()
-
-    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: DietPlanRouter { }

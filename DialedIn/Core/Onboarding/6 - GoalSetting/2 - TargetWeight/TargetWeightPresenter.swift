@@ -123,9 +123,11 @@ class TargetWeightPresenter {
         return min(max(initial, range.lowerBound), range.upperBound)
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     enum Event: LoggableEvent {
         case navigate

@@ -7,7 +7,9 @@
 
 @MainActor
 protocol GoalSettingRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showOverarchingObjectiveView()
 }
 

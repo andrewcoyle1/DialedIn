@@ -67,7 +67,7 @@ struct AddMealView: View {
                 }
             } else {
                 ForEach(presenter.items) { mealItem in
-                    
+                    CustomListCellView(title: mealItem.id)
                 }
             }
         } header: {

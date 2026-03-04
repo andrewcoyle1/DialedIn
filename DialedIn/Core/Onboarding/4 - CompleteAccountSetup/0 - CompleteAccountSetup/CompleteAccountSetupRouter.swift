@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol CompleteAccountSetupRouter {
-    func showDevSettingsView()
+protocol CompleteAccountSetupRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showNamePhotoView()
 }
 

@@ -79,9 +79,11 @@ class WorkoutListPresenterBuilder {
         onWorkoutPressed?(workout)
     }
 
+    #if DEV || MOCK
     func onDevSettingsPressed() {
         router.showDevSettingsView()
     }
+    #endif
 }
 
 extension WorkoutListPresenterBuilder {

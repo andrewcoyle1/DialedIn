@@ -263,7 +263,7 @@ class WorkoutTrackerPresenter {
     
     // MARK: - Workout Actions
     
-    func discardWorkout() {
+    private func discardWorkout() {
         stopWidgetSyncTimer()
         try? interactor.deleteActiveSession()
         UIApplication.shared.isIdleTimerDisabled = false
@@ -274,6 +274,7 @@ class WorkoutTrackerPresenter {
         Task {
             #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
             interactor.discardWorkout()
+            await interactor.discardLiveActivity()
             interactor.endLiveActivity(session: sessionSnapshot, isCompleted: false, statusMessage: "Workout Discarded")
             #endif
         }
@@ -286,8 +287,7 @@ class WorkoutTrackerPresenter {
         ) {
             AnyView(
                 VStack {
-                    Button("Cancel", role: .cancel) {
-                    }
+                    Button("Cancel", role: .cancel) { }
                     Button("Discard", role: .destructive) {
                         self.discardWorkout()
                     }
@@ -337,7 +337,6 @@ class WorkoutTrackerPresenter {
     }
 
     func syncCurrentExerciseIndexToFirstIncomplete(in exercises: [WorkoutExerciseModel]) {
-        let oldIndex = currentExerciseIndex
         if let idx = firstIncompleteExerciseIndex(in: exercises) {
             currentExerciseIndex = idx
         } else {
@@ -390,10 +389,12 @@ class WorkoutTrackerPresenter {
         )
     }
     
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
-    
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
+
     enum WorkoutTrackerError: LocalizedError {
         case noLocalActiveWorkout
         case noActiveWorkout
@@ -626,8 +627,8 @@ class WorkoutTrackerPresenter {
 
         // Auto-next exercise
         let oldExercise = oldSession.exercises.first(where: { $0.id == exercise.id })
-        let wasExerciseCompleteBefore = oldExercise.map { ex in
-            !ex.sets.isEmpty && ex.sets.allSatisfy { $0.completedAt != nil }
+        let wasExerciseCompleteBefore = oldExercise.map { exercise in
+            !exercise.sets.isEmpty && exercise.sets.allSatisfy { $0.completedAt != nil }
         } ?? false
         let isExerciseCompleteNow = !exercise.sets.isEmpty && exercise.sets.allSatisfy { $0.completedAt != nil }
 
@@ -915,4 +916,3 @@ class WorkoutTrackerPresenter {
         }
     }
 }
-

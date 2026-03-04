@@ -85,9 +85,11 @@ class HeightPresenter {
         selectedCentimeters = Int(Double(totalInches) * 2.54)
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     enum Event: LoggableEvent {
         case navigate
