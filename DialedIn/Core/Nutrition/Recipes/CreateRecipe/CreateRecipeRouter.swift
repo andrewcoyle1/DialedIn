@@ -6,11 +6,11 @@
 //
 
 @MainActor
-protocol CreateRecipeRouter {
-    func showDevSettingsView()
+protocol CreateRecipeRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showAddIngredientView(delegate: AddIngredientModalDelegate)
-    func dismissScreen()
-    func showAlert(error: Error)
 }
 
 extension CoreRouter: CreateRecipeRouter { }

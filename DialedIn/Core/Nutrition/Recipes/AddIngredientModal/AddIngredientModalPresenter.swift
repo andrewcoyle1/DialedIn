@@ -39,7 +39,9 @@ class AddIngredientModalPresenter {
         router.dismissScreen()
     }
     
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 }

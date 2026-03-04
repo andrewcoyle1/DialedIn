@@ -9,7 +9,9 @@ import SwiftUI
 
 @MainActor
 protocol WorkoutTemplateDetailRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
     func showWorkoutStartModal(delegate: WorkoutStartDelegate)
     func showWorkoutTrackerView()

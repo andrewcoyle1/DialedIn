@@ -47,6 +47,9 @@ struct CustomLabelButtonView<Content: View>: View {
             Spacer()
             content?()
         }
+        .padding()
+        .background(colorScheme.backgroundPrimary)
+        .removeListRowFormatting()
     }
 }
 

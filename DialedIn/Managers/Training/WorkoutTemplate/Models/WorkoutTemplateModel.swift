@@ -78,7 +78,7 @@ struct WorkoutTemplateModel: DataSyncModelProtocol {
             "workout_\(CodingKeys.imageURL.rawValue)": imageURL,
             "workout_\(CodingKeys.dateCreated.rawValue)": dateCreated,
             "workout_\(CodingKeys.dateModified.rawValue)": dateModified,
-            "workout_\(CodingKeys.exercises.rawValue)": exercises.map { $0.id },
+            "workout_\(CodingKeys.exercises.rawValue)": exercises.map { $0.id }
         ]
         return dict.compactMapValues { $0 }
     }

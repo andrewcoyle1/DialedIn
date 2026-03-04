@@ -7,7 +7,9 @@
 
 @MainActor
 protocol WorkoutListRouterBuilder: GlobalRouter {
+    #if DEV || MOCK
     func showDevSettingsView()
+    #endif
     func showCreateWorkoutView(delegate: CreateWorkoutDelegate)
     func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate)
     

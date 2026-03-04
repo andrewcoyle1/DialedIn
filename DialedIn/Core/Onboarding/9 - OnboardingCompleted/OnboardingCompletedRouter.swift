@@ -7,7 +7,9 @@
 
 @MainActor
 protocol OnboardingCompletedRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
 
     func switchToCoreModule()
 }

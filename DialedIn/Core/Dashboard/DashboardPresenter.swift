@@ -69,9 +69,11 @@ class DashboardPresenter {
         router.showNotificationsView()
     }
     
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
 }
 

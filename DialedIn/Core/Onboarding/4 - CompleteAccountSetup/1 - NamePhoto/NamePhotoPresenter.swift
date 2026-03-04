@@ -43,9 +43,11 @@ class NamePhotoPresenter {
         // Note: We don't prefill the image as it would require fetching from URL
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     func saveAndContinue() {
 

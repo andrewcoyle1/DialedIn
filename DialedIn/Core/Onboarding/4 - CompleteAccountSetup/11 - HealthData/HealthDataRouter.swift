@@ -6,11 +6,12 @@
 //
 
 @MainActor
-protocol OnboardingHealthDataRouter {
+protocol OnboardingHealthDataRouter: GlobalRouter {
+#if DEV || MOCK
     func showDevSettingsView()
+#endif
     func showHealthDisclaimerView()
-
-    func showAlert(error: Error)
+    
 }
 
 extension CoreRouter: OnboardingHealthDataRouter { }

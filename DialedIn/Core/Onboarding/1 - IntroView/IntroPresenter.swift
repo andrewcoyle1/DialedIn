@@ -34,9 +34,11 @@ class IntroPresenter {
         router.showAuthView()
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     enum Event: LoggableEvent {
         case onAppear

@@ -51,9 +51,11 @@ class CreateRecipePresenter {
         router.dismissScreen()
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     func onSavePressed() async throws {
         guard !isSaving, canSave else { return }

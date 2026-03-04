@@ -145,10 +145,12 @@ class WorkoutTemplateDetailPresenter {
         )
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
-    
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
+
     func onDismissPressed() {
         router.dismissScreen()
     }

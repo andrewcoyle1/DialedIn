@@ -4,7 +4,9 @@ import SwiftUI
 protocol DashboardRouter: GlobalRouter {
     func showProfileView()
     func showNotificationsView()
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
 }
 
 extension CoreRouter: DashboardRouter { }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct IngredientTemplateModel: DataSyncModelProtocol {
+struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
     var id: String {
         ingredientId
     }

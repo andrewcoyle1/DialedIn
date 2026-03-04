@@ -36,9 +36,11 @@ class IngredientDetailPresenter {
         interactor.trackEvent(event: Event.onDisappear)
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     enum Event: LoggableEvent {
         case onAppear

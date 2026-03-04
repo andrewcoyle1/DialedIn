@@ -9,7 +9,9 @@
 protocol CreateExerciseRouter: GlobalRouter {
     func showEnumPickerView<Item: PickableItem>(delegate: EnumPickerDelegate<Item>, detentsInput: PresentationDetentTransformable?)
     func showMuscleGroupPickerView(delegate: MuscleGroupPickerDelegate)
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
 }
 
 extension CoreRouter: CreateExerciseRouter { }

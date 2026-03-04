@@ -54,6 +54,14 @@ class NotificationsPresenter {
         notifications.remove(atOffsets: offsets)
     }
     
+    func checkPermissions() async {
+        do {
+            _ = try await interactor.checkPushNotificationAuthorisation()
+        } catch {
+            router.showAlert(error: error)
+        }
+    }
+    
     func onRequestNotificationsPressed() {
         Task {
             do {

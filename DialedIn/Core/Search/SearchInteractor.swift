@@ -6,14 +6,17 @@
 //
 
 @MainActor
-protocol SearchInteractor {
+protocol SearchInteractor: GlobalInteractor {
     var userImageUrl: String? { get }
     var currentUser: UserModel? { get }
     var followingIds: [String] { get }
     var recentSearchQueries: [String] { get }
     var allExercises: [ExerciseModel] { get }
+    var allWorkoutTemplates: [WorkoutTemplateModel] { get }
     var userWorkoutTemplates: [WorkoutTemplateModel] { get }
     var userRecipeTemplates: [RecipeTemplateModel] { get }
+    var ingredientTemplates: [IngredientTemplateModel] { get }
+    var followingUsers: [UserModel] { get }
     func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws
     func searchUsers(query: String) async throws -> [UserModel]
     func addRecentSearch(query: String)

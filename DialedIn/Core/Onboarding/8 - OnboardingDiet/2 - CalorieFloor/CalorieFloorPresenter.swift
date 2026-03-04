@@ -46,10 +46,12 @@ class CalorieFloorPresenter {
         
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
-    
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
+
     enum Event: LoggableEvent {
         case trainingContextLoaded(daysPerWeek: Int?)
         case calorieFloorPrefilled(floor: CalorieFloor, reason: String)

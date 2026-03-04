@@ -6,9 +6,10 @@
 //
 
 @MainActor
-protocol IngredientAmountRouter {
-    func showDevSettingsView()
-    func dismissScreen()
+protocol IngredientAmountRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
 }
 
 extension CoreRouter: IngredientAmountRouter { }

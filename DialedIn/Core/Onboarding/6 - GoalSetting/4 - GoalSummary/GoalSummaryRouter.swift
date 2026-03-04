@@ -7,8 +7,10 @@
 
 @MainActor
 protocol GoalSummaryRouter: GlobalRouter {
-    func showDevSettingsView()
-    
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
+
     func showCompleteAccountSetupView()
     func showNotificationsPermissionsView()
     func showOnboardingHealthDataView()

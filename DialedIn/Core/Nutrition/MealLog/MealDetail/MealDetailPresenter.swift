@@ -21,7 +21,9 @@ class MealDetailPresenter {
         self.router = router
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 }

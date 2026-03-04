@@ -159,7 +159,7 @@ class StepsManager {
                 healthKitId: uuid
             )
 
-            try await stepsSyncEngine.saveDocument(steps)
+            try await stepsSyncEngine.saveDocument(updatedEntry)
         } catch {
             return
         }

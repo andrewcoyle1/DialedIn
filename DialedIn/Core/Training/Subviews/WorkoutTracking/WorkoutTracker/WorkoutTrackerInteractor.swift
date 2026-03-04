@@ -86,6 +86,7 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
     /// Update live activity status and metrics for widgets/external presentation.
     func updateLiveActivity(params: LiveActivityUpdateParams)
 
+    func discardLiveActivity() async 
     // MARK: - Workout History
 
     /// Lookup the last completed session for a given template and author, if present.

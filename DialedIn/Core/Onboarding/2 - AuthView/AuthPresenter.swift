@@ -233,9 +233,11 @@ class AuthPresenter {
         router.dismissModal()
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     // MARK: Events
     enum Event: LoggableEvent {

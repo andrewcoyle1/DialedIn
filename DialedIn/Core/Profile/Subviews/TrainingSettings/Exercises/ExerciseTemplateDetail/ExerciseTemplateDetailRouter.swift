@@ -6,11 +6,10 @@
 //
 
 @MainActor
-protocol ExerciseModelDetailRouter {
-    func showDevSettingsView()
-    func dismissScreen()
-    
-    func showSimpleAlert(title: String, subtitle: String?)
+protocol ExerciseModelDetailRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
 }
 
 extension CoreRouter: ExerciseModelDetailRouter { }

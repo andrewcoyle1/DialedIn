@@ -8,19 +8,20 @@
 import SwiftUI
 
 @MainActor
-protocol SearchRouter {
-    func showProfileViewZoom(transitionId: String?, namespace: Namespace.ID)
+protocol SearchRouter: GlobalRouter {
+    func showProfileView()
     func showExerciseDetailView(templateId: String, name: String, delegate: ExerciseDetailDelegate, themeColor: Color?)
     func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate)
     func showRecipeDetailView(delegate: RecipeDetailDelegate)
+    func showIngredientDetailView(delegate: IngredientDetailDelegate)
     func showWorkoutStartModal(delegate: WorkoutStartDelegate)
     func showRecipesView()
-    func showWorkoutPickerView(delegate: WorkoutPickerDelegate)
+    func showAddMealView(delegate: AddMealDelegate)
+    func showWorkoutsView()
+    func showCreateExerciseView()
     func showExerciseListBuilderView(delegate: ExerciseListBuilderDelegate)
     func showWorkoutTrackerView()
-    func showSimpleAlert(title: String, subtitle: String?)
-    func dismissModal()
-    func dismissEnvironment()
+    func showLogWeightView()
 }
 
 extension CoreRouter: SearchRouter { }

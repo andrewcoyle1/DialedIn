@@ -9,14 +9,13 @@ import SwiftUI
 
 struct SearchView: View {
 
+    @Environment(\.colorScheme) private var colorScheme
     @State var presenter: SearchPresenter
-
-    @Namespace private var namespace
 
     var body: some View {
         List {
             if !presenter.hasSearchQuery {
-                recentSearchesSection
+                quickActionsGridSection
             } else {
                 if presenter.isLoading {
                     loadingSection
@@ -25,6 +24,7 @@ struct SearchView: View {
                     exercisesSection
                     workoutsSection
                     recipesSection
+                    ingredientsSection
                 } else {
                     emptyResultsSection
                 }
@@ -32,11 +32,9 @@ struct SearchView: View {
         }
         .listSectionMargins(.horizontal, 0)
         .listRowSeparator(.hidden)
-        .navigationTitle("Search")
-        .toolbarTitleDisplayMode(.inline)
-        .safeAreaInset(edge: .top) {
-            quickActionsSection
-        }
+        .navigationTitle("Quick Actions")
+        .toolbarRole(.browser)
+        .toolbarTitleDisplayMode(.inlineLarge)
         .searchable(
             text: $presenter.searchString,
             placement: .toolbar,
@@ -55,100 +53,46 @@ struct SearchView: View {
         .scrollIndicators(.hidden)
     }
 
-    private var quickActionsSection: some View {
+    @ViewBuilder
+    private var quickActionsGridSection: some View {
         Section {
-            ScrollView(.horizontal) {
-                HStack(spacing: 12) {
-                    quickActionButton(
-                        title: "Start Workout",
-                        systemImage: "play.circle.fill"
-                    ) {
-                        presenter.onStartWorkoutPressed()
-                    }
-                    .glassEffect()
-                    .padding(.leading)
-
-                    quickActionButton(
-                        title: "Log Meal",
-                        systemImage: "fork.knife"
-                    ) {
-                        presenter.onLogMealPressed()
-                    }
-                    .glassEffect(.clear)
-
-                    quickActionButton(
-                        title: "Add Exercise",
-                        systemImage: "plus.circle.fill"
-                    ) {
-                        presenter.onAddExercisePressed()
-                    }
-                    .glassEffect(.clear)
-                    .padding(.trailing)
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                QuickActionButton(
+                    title: "Start Workout",
+                    systemImage: "play.circle.fill"
+                )
+                .anyButton {
+                    presenter.onStartWorkoutPressed()
+                }
+                
+                QuickActionButton(
+                    title: "Add Exercise",
+                    systemImage: "plus.circle.fill"
+                )
+                .anyButton {
+                    presenter.onAddExercisePressed()
+                }
+                
+                QuickActionButton(
+                    title: "Log Meal",
+                    systemImage: "fork.knife"
+                )
+                .anyButton {
+                    presenter.onLogMealPressed()
+                }
+                
+                QuickActionButton(
+                    title: "Log Weight",
+                    systemImage: "scalemass"
+                )
+                .anyButton {
+                    presenter.onLogWeightPressed()
                 }
             }
-            .scrollIndicators(.hidden)
             .removeListRowFormatting()
         }
-        .listSectionMargins(.top, 0)
-        .listSectionMargins(.bottom, 0)
     }
-
-    private func quickActionButton(
-        title: String,
-        systemImage: String,
-        action: @escaping () -> Void
-    ) -> some View {
-        Label(title, systemImage: systemImage)
-            .font(.subheadline.weight(.medium))
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color(uiColor: .secondarySystemBackground))
-            .clipShape(Capsule())
-            .anyButton(.highlight) {
-                action()
-            }
-    }
-
-    private var recentSearchesSection: some View {
-        Section {
-            if presenter.recentQueries.isEmpty {
-                Text("No recent searches")
-                    .foregroundStyle(.secondary)
-                    .font(.subheadline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 12)
-                    .removeListRowFormatting()
-            } else {
-                ForEach(presenter.recentQueries, id: \.self) { query in
-                    HStack {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .foregroundStyle(.secondary)
-                            .frame(width: 24)
-                        Text(query)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .anyButton(.highlight) {
-                        presenter.onRecentSearchTapped(query: query)
-                    }
-                    .removeListRowFormatting()
-                }
-            }
-        } header: {
-            HStack {
-                Text("Recent Searches")
-                Spacer()
-                if !presenter.recentQueries.isEmpty {
-                    Button("Clear") {
-                        presenter.onClearRecentSearchesPressed()
-                    }
-                    .font(.caption)
-                }
-            }
-        }
-    }
-
+    
     private var loadingSection: some View {
         Section {
             HStack {
@@ -180,82 +124,121 @@ struct SearchView: View {
         }
     }
 
+    @ViewBuilder
     private var usersSection: some View {
-        Section {
-            ForEach(presenter.users) { user in
-                UserSearchRow(
-                    user: user,
-                    isFollowing: presenter.isFollowing(userId: user.userId),
-                    onFollowPressed: { presenter.onFollowPressed(user: user) },
-                    onUnfollowPressed: { presenter.onUnfollowPressed(user: user) }
-                )
-                .removeListRowFormatting()
+        if !presenter.filteredUsers.isEmpty {
+            Section {
+                ForEach(presenter.filteredUsers) { user in
+                    UserSearchRow(
+                        user: user,
+                        isFollowing: presenter.isFollowing(userId: user.userId),
+                        onFollowPressed: { presenter.onFollowPressed(user: user) },
+                        onUnfollowPressed: { presenter.onUnfollowPressed(user: user) }
+                    )
+                    .removeListRowFormatting()
+                }
+            } header: {
+                Text("People")
             }
-        } header: {
-            Text("People")
         }
     }
 
+    @ViewBuilder
     private var exercisesSection: some View {
-        Section {
-            ForEach(presenter.filteredExercises) { exercise in
-                CustomListCellView(
-                    imageName: exercise.imageURL,
-                    title: exercise.name,
-                    subtitle: exercise.description
-                )
-                .anyButton(.highlight) {
-                    presenter.onExercisePressed(exercise: exercise)
+        if !presenter.filteredExercises.isEmpty {
+            searchItemSection(
+                header: "Exercises",
+                items: presenter.filteredExercises,
+                action: { item in
+                    guard let item = item as? ExerciseModel else { return }
+                    presenter.onExercisePressed(exercise: item)
                 }
-                .removeListRowFormatting()
-            }
-        } header: {
-            Text("Exercises")
+            )
         }
     }
 
+    @ViewBuilder
     private var workoutsSection: some View {
-        Section {
-            ForEach(presenter.workouts) { workout in
-                let subtitle = workout.exercises.map { $0.exercise.name }.joined(separator: ", ")
-                CustomListCellView(
-                    imageName: workout.imageURL,
-                    title: workout.name,
-                    subtitle: subtitle.isEmpty ? nil : subtitle
-                )
-                .anyButton(.highlight) {
-                    presenter.onWorkoutPressed(workout: workout)
+        if !presenter.filteredWorkoutTemplates.isEmpty {
+            Section {
+                ForEach(presenter.filteredWorkoutTemplates) { workout in
+                    let subtitle = workout.exercises.map { $0.exercise.name }.joined(separator: ", ")
+                    CustomListCellView(
+                        imageName: workout.imageURL,
+                        title: workout.name,
+                        subtitle: subtitle.isEmpty ? nil : subtitle
+                    )
+                    .anyButton(.highlight) {
+                        presenter.onWorkoutPressed(workout: workout)
+                    }
+                    .removeListRowFormatting()
                 }
-                .removeListRowFormatting()
+            } header: {
+                Text("Workouts")
             }
-        } header: {
-            Text("Workouts")
         }
     }
 
+    @ViewBuilder
     private var recipesSection: some View {
+        if !presenter.filteredRecipeTemplates.isEmpty {
+            Section {
+                ForEach(presenter.filteredRecipeTemplates) { recipe in
+                    CustomListCellView(
+                        imageName: recipe.imageURL,
+                        title: recipe.name,
+                        subtitle: recipe.description
+                    )
+                    .anyButton(.highlight) {
+                        presenter.onRecipePressed(recipe: recipe)
+                    }
+                    .removeListRowFormatting()
+                }
+            } header: {
+                Text("Recipes")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var ingredientsSection: some View {
+        if !presenter.filteredIngredientTemplates.isEmpty {
+            searchItemSection(
+                header: "Ingredients",
+                items: presenter.filteredIngredientTemplates,
+                action: { item in
+                    guard let item = item as? IngredientTemplateModel else { return }
+                    presenter.onIngredientPressed(ingredient: item)
+                }
+            )
+        }
+    }
+    
+    @ViewBuilder
+    private func searchItemSection(header: String, items: [any SearchListItem], action: @escaping (any SearchListItem) -> Void) -> some View {
         Section {
-            ForEach(presenter.recipes) { recipe in
+            ForEach(items, id: \.id) { item in
                 CustomListCellView(
-                    imageName: recipe.imageURL,
-                    title: recipe.name,
-                    subtitle: recipe.description
+                    imageName: item.imageURL,
+                    title: item.name,
+                    subtitle: item.description
                 )
                 .anyButton(.highlight) {
-                    presenter.onRecipePressed(recipe: recipe)
+                    action(item)
                 }
                 .removeListRowFormatting()
             }
         } header: {
-            Text("Recipes")
+            Text("Ingredients")
         }
-    }
 
+    }
+    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                presenter.onProfilePressed("search-profile-button", in: namespace)
+                presenter.onProfilePressed()
             } label: {
                 if let urlString = presenter.userImageUrl {
                     ImageLoaderView(urlString: urlString)
@@ -265,10 +248,16 @@ struct SearchView: View {
                     Image(systemName: "person")
                 }
             }
-            .matchedTransitionSource(id: "search-profile-button", in: namespace)
         }
         .sharedBackgroundVisibility(.hidden)
     }
+}
+
+protocol SearchListItem: Identifiable {
+    var id: String { get }
+    var name: String { get }
+    var description: String? { get }
+    var imageURL: String? { get }
 }
 
 private struct UserSearchRow: View {
@@ -315,6 +304,21 @@ private struct UserSearchRow: View {
             .buttonStyle(.plain)
         }
         .padding(.vertical, 6)
+    }
+}
+
+private struct QuickActionButton: View {
+    
+    @Environment(\.colorScheme) private var colorScheme
+    
+    let title: String
+    let systemImage: String
+    
+    var body: some View {
+            Label(title, systemImage: systemImage)
+                .frame(maxWidth: .infinity)
+                .frame(height: 100)
+                .background(colorScheme.backgroundPrimary, in: .containerRelative)
     }
 }
 

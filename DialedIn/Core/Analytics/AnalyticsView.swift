@@ -23,14 +23,6 @@ struct AnalyticsView<NutritionChart: View>: View {
     
     @ViewBuilder var nutritionTargetChartView: () -> NutritionChart
 
-    private var showDevSettingsButton: Bool {
-        #if DEV || MOCK
-        return true
-        #else
-        return false
-        #endif
-    }
-
     var body: some View {
         List {
             Group {
@@ -49,8 +41,7 @@ struct AnalyticsView<NutritionChart: View>: View {
             moreSection
         }
         .navigationTitle("Analytics")
-        .navigationSubtitle(presenter.selectedDate.formattedDate)
-        .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inlineLarge)
         .toolbarRole(.browser)
         .scrollIndicators(.hidden)
         .toolbar {
@@ -150,16 +141,16 @@ struct AnalyticsView<NutritionChart: View>: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
 
-        ToolbarItem(placement: .topBarTrailing) {
-            if showDevSettingsButton {
-                Button {
-                    presenter.onDevSettingsPressed()
-                } label: {
-                    Image(systemName: "info")
-                }
-            }
-        }
-        
+#if DEV || MOCK
+ToolbarItem(placement: .topBarTrailing) {
+    Button {
+        presenter.onDevSettingsPressed()
+    } label: {
+        Image(systemName: "info")
+    }
+}
+#endif
+
         ToolbarSpacer(.fixed, placement: .topBarTrailing)
                 
         ToolbarItem(placement: .topBarTrailing) {

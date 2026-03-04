@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol CardioFitnessRouter {
-    func showDevSettingsView()
+protocol CardioFitnessRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showExpenditureView(delegate: ExpenditureDelegate)
 }
 

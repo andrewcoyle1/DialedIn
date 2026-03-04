@@ -37,7 +37,7 @@ struct TrainingView<CalendarHeaderView: View>: View {
             moreSection
         }
         .navigationTitle("Training")
-        .toolbarTitleDisplayMode(.inline)
+        .toolbarTitleDisplayMode(.inlineLarge)
         .scrollIndicators(.hidden)
         .toolbar {
             toolbarContent
@@ -204,6 +204,7 @@ struct TrainingView<CalendarHeaderView: View>: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
 
+        #if DEV || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onDevSettingsPressed()
@@ -211,6 +212,7 @@ struct TrainingView<CalendarHeaderView: View>: View {
                 Image(systemName: "info")
             }
         }
+        #endif
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {

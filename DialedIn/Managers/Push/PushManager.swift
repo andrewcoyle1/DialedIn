@@ -14,15 +14,15 @@ class PushManager {
 
     let logManager: LogManager?
 
-    var isAuthorised: UNAuthorizationStatus
+    var isAuthorised: UNAuthorizationStatus = .notDetermined
     
     init(logManager: LogManager? = nil) {
         self.logManager = logManager
-        var authStatus: UNAuthorizationStatus = .notDetermined
-        Task { @MainActor in
-            authStatus = (try? await LocalNotifications.getNotificationStatus()) ?? .notDetermined
-        }
-        self.isAuthorised = authStatus
+    }
+    
+    func checkPushNotificationAuthorisation() async throws -> UNAuthorizationStatus {
+        self.isAuthorised = try await LocalNotifications.getNotificationStatus()
+        return self.isAuthorised
     }
 
     func requestAuthorisation() async throws -> Bool {
@@ -124,6 +124,10 @@ extension CoreInteractor {
     
     var isAuthorised: UNAuthorizationStatus {
         pushManager.isAuthorised
+    }
+    
+    func checkPushNotificationAuthorisation() async throws -> UNAuthorizationStatus {
+        try await pushManager.checkPushNotificationAuthorisation()
     }
     
     func schedulePushNotification(delegate: PushNotificationDelegate) async throws {

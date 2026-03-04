@@ -6,8 +6,10 @@
 //
 
 @MainActor
-protocol ExerciseFrequencyRouter {
-    func showDevSettingsView()
+protocol ExerciseFrequencyRouter: GlobalRouter {
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showActivityView(delegate: ActivityDelegate)
 }
 

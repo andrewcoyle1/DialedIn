@@ -7,7 +7,9 @@
 
 @MainActor
 protocol WorkoutHistoryRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
 }
 

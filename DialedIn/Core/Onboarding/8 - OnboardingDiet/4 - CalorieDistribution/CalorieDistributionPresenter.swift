@@ -61,9 +61,11 @@ class CalorieDistributionPresenter {
         }
     }
 
-    func onDevSettingsPressed() {
-        router.showDevSettingsView()
-    }
+#if DEV || MOCK
+func onDevSettingsPressed() {
+    router.showDevSettingsView()
+}
+#endif
 
     enum Event: LoggableEvent {
         case trainingContextLoaded(daysPerWeek: Int?)

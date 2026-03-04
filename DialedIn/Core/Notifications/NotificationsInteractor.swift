@@ -13,6 +13,7 @@ protocol NotificationsInteractor: GlobalInteractor {
     func requestPushAuthorisation() async throws -> Bool
     func canRequestNotificationAuthorisation() async -> Bool
     func removeDeliveredNotifications(ids: [String])
+    func checkPushNotificationAuthorisation() async throws -> UNAuthorizationStatus
 }
 
 extension CoreInteractor: NotificationsInteractor { }

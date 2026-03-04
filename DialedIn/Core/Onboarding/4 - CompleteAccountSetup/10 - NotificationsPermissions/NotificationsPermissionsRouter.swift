@@ -7,7 +7,9 @@
 
 @MainActor
 protocol NotificationsPermissionsRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showOnboardingHealthDataView()
     func showHealthDisclaimerView()
     func showNotificationsPermissionsModal(onConfirmPressed: @escaping () -> Void, onCancelPressed: @escaping () -> Void) 

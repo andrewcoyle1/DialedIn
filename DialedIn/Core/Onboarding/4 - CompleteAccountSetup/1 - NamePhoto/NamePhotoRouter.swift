@@ -7,9 +7,10 @@
 
 @MainActor
 protocol NamePhotoRouter: GlobalRouter {
-    func showDevSettingsView()
+#if DEV || MOCK
+func showDevSettingsView()
+#endif
     func showGenderView()
-    func showSimpleAlert(title: String, subtitle: String?)
 }
 
 extension CoreRouter: NamePhotoRouter { }
