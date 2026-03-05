@@ -22,6 +22,30 @@ struct MealLogModel: DataSyncModelProtocol, Hashable {
     var totalCarbGrams: Double
     var totalFatGrams: Double
     
+    init(
+        mealId: String = UUID().uuidString,
+        authorId: String,
+        dayKey: String,
+        date: Date,
+        items: [MealItemModel],
+        notes: String? = nil,
+        totalCalories: Double,
+        totalProteinGrams: Double,
+        totalCarbGrams: Double,
+        totalFatGrams: Double
+    ) {
+        self.mealId = mealId
+        self.authorId = authorId
+        self.dayKey = dayKey
+        self.date = date
+        self.items = items
+        self.notes = notes
+        self.totalCalories = totalCalories
+        self.totalProteinGrams = totalProteinGrams
+        self.totalCarbGrams = totalCarbGrams
+        self.totalFatGrams = totalFatGrams
+    }
+    
     enum CodingKeys: String, CodingKey {
         case mealId = "meal_id"
         case authorId = "author_id"
@@ -34,10 +58,6 @@ struct MealLogModel: DataSyncModelProtocol, Hashable {
         case totalCarbGrams = "total_carb_grams"
         case totalFatGrams = "total_fat_grams"
     }
-    
-}
-
-extension MealLogModel {
     
     static var mock: MealLogModel {
         let today = Date()

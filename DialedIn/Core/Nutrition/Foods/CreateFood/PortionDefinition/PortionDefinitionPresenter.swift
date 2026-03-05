@@ -9,22 +9,25 @@ class PortionDefinitionPresenter {
     
     var nutritionDefinitionOption: NutritionDefinitionOption = .serving
     
-    var servingWeight: String = ""
-    var portionSize: String = "1"
+    var preferredWeightUnit: NutritionWeightUnit = .grams
+    var preferredVolumeUnit: NutritionVolumeUnit = .millileter
+    
+    var servingWeight: Double?
+    var portionSize: Double? = 1
     var portionName: String = "portion"
     
-    var portionWeight: String = ""
-    var weightPortionSize: String = ""
+    var portionWeight: Double?
+    var weightPortionSize: Double?
     var weightPortionName: String = ""
     
-    var portionVolume: String = ""
-    var volumePortionSize: String = ""
+    var portionVolume: Double?
+    var volumePortionSize: Double?
     var volumePortionName: String = ""
     
     var canSave: Bool {
         switch nutritionDefinitionOption {
         case .serving:
-            return (!portionSize.isEmpty && !portionName.isEmpty)
+            return (portionSize != nil && portionSize != 0 && !portionName.isEmpty)
         default:
             return true
         }
@@ -43,13 +46,20 @@ class PortionDefinitionPresenter {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
     
-    func onNextPressed() {
+    func onNextPressed(delegate: PortionDefinitionDelegate) {
         switch nutritionDefinitionOption {
         case .serving:
-            guard !portionSize.isEmpty, !portionName.isEmpty else { return }
+            guard (portionSize != nil && portionSize != 0 && !portionName.isEmpty) else { return }
             router.showFoodDefinitionView(
                 delegate: FoodDefinitionDelegate(
+                    mealItems: delegate.mealItems,
                     nutritionDefinitionOption: self.nutritionDefinitionOption,
+                    image: delegate.image,
+                    name: delegate.name,
+                    brandName: delegate.brandName,
+                    barcode: delegate.barcode,
+                    imageFront: delegate.productFront,
+                    nutritionImage: delegate.nutritionPhoto,
                     servingWeight: self.servingWeight,
                     portionSize: self.portionSize,
                     portionName: self.portionName
@@ -58,7 +68,14 @@ class PortionDefinitionPresenter {
         case .standardMass:
             router.showFoodDefinitionView(
                 delegate: FoodDefinitionDelegate(
+                    mealItems: delegate.mealItems,
                     nutritionDefinitionOption: self.nutritionDefinitionOption,
+                    image: delegate.image,
+                    name: delegate.name,
+                    brandName: delegate.brandName,
+                    barcode: delegate.barcode,
+                    imageFront: delegate.productFront,
+                    nutritionImage: delegate.nutritionPhoto,
                     portionWeight: self.portionWeight,
                     weightPortionSize: self.weightPortionSize,
                     weightPortionName: self.weightPortionName
@@ -67,7 +84,14 @@ class PortionDefinitionPresenter {
         case .standardVolume:
             router.showFoodDefinitionView(
                 delegate: FoodDefinitionDelegate(
+                    mealItems: delegate.mealItems,
                     nutritionDefinitionOption: self.nutritionDefinitionOption,
+                    image: delegate.image,
+                    name: delegate.name,
+                    brandName: delegate.brandName,
+                    barcode: delegate.barcode,
+                    imageFront: delegate.productFront,
+                    nutritionImage: delegate.nutritionPhoto,
                     portionVolume: self.portionVolume,
                     volumePortionSize: self.volumePortionSize,
                     volumePortionName: self.volumePortionName

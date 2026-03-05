@@ -14,112 +14,29 @@ struct CreateRecipeView: View {
     
     var body: some View {
         List {
-            imageSection
             nameSection
             ingredientTemplatesSection
         }
         .navigationTitle("Create Recipe")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             toolbarContent
         }
-        .onChange(of: presenter.selectedPhotoItem) {
-            guard let newItem = presenter.selectedPhotoItem else { return }
-            
-            Task {
-                do {
-                    if let data = try await newItem.loadTransferable(type: Data.self) {
-                        await MainActor.run {
-                            presenter.selectedImageData = data
-                        }
-                    }
-                } catch {
-                    
-                }
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                presenter.onNextPressed()
+            } label: {
+                Text("Next")
+                    .padding(.vertical)
+                    .frame(maxWidth: .infinity)
             }
+            .padding()
         }
-        .alert("Error", isPresented: .constant(presenter.saveError != nil)) {
-            Button("OK") {
-                presenter.saveError = nil
-            }
-        } message: {
-            Text(presenter.saveError ?? "")
-        }
-    }
-    
-    private var imageSection: some View {
-        Section {
-            HStack {
-                Spacer()
-                Button {
-                    presenter.onImageSelectorPressed()
-                } label: {
-                    ZStack {
-                        Rectangle()
-                            .fill(Color.secondary.opacity(0.001))
-                        Group {
-                            if let data = presenter.selectedImageData {
-#if canImport(UIKit)
-                                if let uiImage = UIImage(data: data) {
-                                    Image(uiImage: uiImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                }
-#elseif canImport(AppKit)
-                                if let nsImage = NSImage(data: data) {
-                                    Image(nsImage: nsImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                }
-#endif
-                            } else {
-#if canImport(UIKit)
-                                if let generatedImage = presenter.generatedImage {
-                                    Image(uiImage: generatedImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                } else {
-                                    Image(systemName: "tray.fill")
-                                        .font(.system(size: 120))
-                                        .foregroundStyle(.accent)
-                                }
-#else
-                                Image(systemName: "tray.fill")
-                                    .font(.system(size: 120))
-                                    .foregroundStyle(.accent)
-#endif
-                            }
-                        }
-                    }
-                    .frame(width: 120, height: 120)
-                }
-                .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
-                Spacer()
-            }
-        } header: {
-            HStack {
-                Text("Recipe Image")
-                Spacer()
-                Button {
-                    presenter.onGenerateImagePressed()
-                } label: {
-                    Image(systemName: "wand.and.sparkles")
-                        .font(.system(size: 20))
-                }
-                .disabled(presenter.isGenerating || presenter.recipeName.isEmpty)
-            }
-        }
-        .removeListRowFormatting()
     }
     
     private var nameSection: some View {
         Section {
             TextField("Enter recipe name", text: $presenter.recipeName)
-            TextField("Enter recipe description", text: Binding(
-                get: { presenter.recipeTemplateDescription ?? "" },
-                set: { newValue in
-                    presenter.recipeTemplateDescription = newValue.isEmpty ? nil : newValue
-                }
-            ))
         } header: {
             Text("Recipe name")
         }
@@ -174,7 +91,7 @@ struct CreateRecipeView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button {
-                presenter.cancel()
+                presenter.onDismissPressed()
             } label: {
                 Image(systemName: "xmark")
             }
@@ -189,23 +106,6 @@ struct CreateRecipeView: View {
             }
         }
 #endif
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                Task {
-                    do {
-                        try await presenter.onSavePressed()
-                    } catch {
-                        await MainActor.run {
-                            presenter.saveError = "Failed to save recipe. Please try again."
-                        }
-                    }
-                }
-            } label: {
-                Image(systemName: "checkmark")
-            }
-            .buttonStyle(.glassProminent)
-            .disabled(!presenter.canSave || presenter.isSaving)
-        }
     }
 }
 

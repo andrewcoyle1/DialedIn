@@ -49,6 +49,7 @@ class FoodPackagingPresenter {
         #endif
         router.showPortionDefinitionView(
             delegate: PortionDefinitionDelegate(
+                mealItems: delegate.mealItems,
                 name: delegate.name,
                 brandName: delegate.brandName,
                 barcode: delegate.barcode,

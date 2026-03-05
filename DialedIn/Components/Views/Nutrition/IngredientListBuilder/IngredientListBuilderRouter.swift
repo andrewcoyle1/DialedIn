@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 protocol IngredientListBuilderRouter: GlobalRouter {
-    func showCreateIngredientView()
+    func showCreateFoodView(delegate: CreateFoodDelegate)
 }
 
 extension CoreRouter: IngredientListBuilderRouter { }

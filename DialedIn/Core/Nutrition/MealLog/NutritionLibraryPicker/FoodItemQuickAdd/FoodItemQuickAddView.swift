@@ -22,18 +22,24 @@ struct FoodItemQuickAddView: View {
         }
         .safeAreaInset(edge: .bottom) {
             VStack {
-                Text("Quick Add")
-                    .callToActionButton(isPrimaryAction: true)
-                    .anyButton(.press) {
-                        
-                    }
-                Text("Log Food")
-                    .callToActionButton(isPrimaryAction: false)
-                    .anyButton(.press) {
-                        
-                    }
+                Button {
+                    
+                } label: {
+                    Text("Quick Add")
+                        .padding(.vertical)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glassProminent)
+                Button {
+                    
+                } label: {
+                    Text("Log Food")
+                        .padding(.vertical)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glass)
             }
-                .padding(.horizontal)
+            .padding(.horizontal)
         }
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
@@ -57,7 +63,10 @@ struct FoodItemQuickAddView: View {
     
     private var energySection: some View {
         Section {
-            TextFieldwUnitPicker<EnergyUnit>(text: $presenter.energyValue, unit: $presenter.unitOfEnergy)
+            TextFieldwUnitPicker<EnergyUnit>(
+                value: $presenter.energyValue,
+                unit: $presenter.unitOfEnergy
+            )
                 .removeListRowFormatting()
                 .padding()
                 .background(colorScheme.backgroundPrimary, in: .containerRelative)
@@ -76,10 +85,13 @@ struct FoodItemQuickAddView: View {
                         .fontWeight(.medium)
                         .foregroundStyle(.secondary)
                         .padding(.leading)
-                    TextFieldwUnitPicker(text: $presenter.proteinValue, unit: $presenter.weightUnit)
-                        .padding(12)
-                        .background(colorScheme.backgroundPrimary, in: .containerRelative)
-
+                    TextFieldwUnitPicker(
+                        value: $presenter.proteinValue,
+                        unit: $presenter.weightUnit
+                    )
+                    .padding(12)
+                    .background(colorScheme.backgroundPrimary, in: .containerRelative)
+                    
                 }
                 .frame(maxWidth: .infinity)
                 VStack(alignment: .leading) {
@@ -87,10 +99,13 @@ struct FoodItemQuickAddView: View {
                         .fontWeight(.medium)
                         .foregroundStyle(.secondary)
                         .padding(.leading)
-                    TextFieldwUnitPicker(text: $presenter.carbsValue, unit: $presenter.weightUnit)
-                        .padding(12)
-                        .background(colorScheme.backgroundPrimary, in: .containerRelative)
-
+                    TextFieldwUnitPicker(
+                        value: $presenter.carbsValue,
+                        unit: $presenter.weightUnit
+                    )
+                    .padding(12)
+                    .background(colorScheme.backgroundPrimary, in: .containerRelative)
+                    
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 VStack(alignment: .leading) {
@@ -98,9 +113,12 @@ struct FoodItemQuickAddView: View {
                         .fontWeight(.medium)
                         .foregroundStyle(.secondary)
                         .padding(.leading)
-                    TextFieldwUnitPicker(text: $presenter.fatsValue, unit: $presenter.weightUnit)
-                        .padding(12)
-                        .background(colorScheme.backgroundPrimary, in: .containerRelative)
+                    TextFieldwUnitPicker(
+                        value: $presenter.fatsValue,
+                        unit: $presenter.weightUnit
+                    )
+                    .padding(12)
+                    .background(colorScheme.backgroundPrimary, in: .containerRelative)
 
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -111,7 +129,10 @@ struct FoodItemQuickAddView: View {
     
     private var alcoholSection: some View {
         Section {
-            TextFieldwUnitPicker(text: $presenter.alcoholValue, unit: $presenter.weightUnit)
+            TextFieldwUnitPicker(
+                value: $presenter.alcoholValue,
+                unit: $presenter.weightUnit
+            )
                 .removeListRowFormatting()
                 .padding()
                 .background(colorScheme.backgroundPrimary, in: .containerRelative)

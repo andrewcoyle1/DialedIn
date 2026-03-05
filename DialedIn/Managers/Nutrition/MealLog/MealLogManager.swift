@@ -45,7 +45,7 @@ class MealLogManager {
 
     // MARK: - High-level API
 
-    func updateActiveSession(_ draftMeal: MealLogModel) throws {
+    func updateDraftMeal(_ draftMeal: MealLogModel) throws {
         try draftMealLogPersistence.saveDocument(managerKey: Keys.draftMealLogManagerKey, draftMeal)
         self.draftMeal = draftMeal
     }
@@ -112,6 +112,18 @@ extension CoreInteractor {
 
     var draftMeal: MealLogModel? {
         mealLogManager.draftMeal
+    }
+    
+    func updateDraftMeal(_ draftMeal: MealLogModel) throws {
+        try mealLogManager.updateDraftMeal(draftMeal)
+    }
+    
+    func saveMeal(_ meal: MealLogModel) async throws {
+        try await mealLogManager.saveMeal(meal)
+    }
+    
+    func deleteDraftMeal() throws {
+        try mealLogManager.deleteDraftMeal()
     }
 
     func addMeal(_ meal: MealLogModel) async throws {

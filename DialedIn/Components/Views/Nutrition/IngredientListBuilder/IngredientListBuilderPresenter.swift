@@ -43,9 +43,9 @@ class IngredientListBuilderPresenter {
         interactor.trackEvent(event: Event.onDisappear)
     }
         
-    func onAddIngredientPressed() {
+    func onAddIngredientPressed(delegate: IngredientListBuilderDelegate) {
         interactor.trackEvent(event: Event.onAddIngredientPressed)
-        router.showCreateIngredientView()
+        router.showCreateFoodView(delegate: CreateFoodDelegate(mealItems: delegate.mealItems))
     }
 
     func onIngredientPressed(ingredient: IngredientTemplateModel, onIngredientPressed: ((IngredientTemplateModel) -> Void)?) {

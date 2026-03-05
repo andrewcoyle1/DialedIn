@@ -9,6 +9,7 @@
 protocol SearchInteractor: GlobalInteractor {
     var userImageUrl: String? { get }
     var currentUser: UserModel? { get }
+    var draftMeal: MealLogModel? { get }
     var followingIds: [String] { get }
     var recentSearchQueries: [String] { get }
     var allExercises: [ExerciseModel] { get }

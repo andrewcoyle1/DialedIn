@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct AddMealDelegate {
-    let selectedDate: Date
-    let onSave: (MealLogModel) -> Void
+    let mealLog: MealLogModel
 }
 
 struct AddMealView: View {
@@ -40,14 +39,14 @@ struct AddMealView: View {
             HStack {
                 Spacer()
                 Button {
-                    presenter.saveMeal(selectedDate: delegate.selectedDate, onSave: delegate.onSave)
+                    presenter.saveMeal()
                 } label: {
                     Text("Log Foods")
                         .padding(8)
                         .padding(.horizontal, 8)
                 }
                 .buttonStyle(.glassProminent)
-                .disabled(presenter.items.isEmpty)
+                .disabled(presenter.mealLog.items.isEmpty)
             }
             .padding(.horizontal)
         }
@@ -55,7 +54,7 @@ struct AddMealView: View {
 
     private var yourPlateSection: some View {
         Section {
-            if presenter.items.isEmpty {
+            if presenter.mealLog.items.isEmpty {
                 CustomLabelButtonView(symbolName: "info", title: "Your plate is empty", subtitle: "Add foods using Search, Scan or AI.") {
                     Button {
                         presenter.onShowPickerPressed()
@@ -66,8 +65,15 @@ struct AddMealView: View {
                     .buttonStyle(.borderedProminent)
                 }
             } else {
-                ForEach(presenter.items) { mealItem in
-                    CustomListCellView(title: mealItem.id)
+                ForEach(presenter.mealLog.items) { mealItem in
+                    CustomListCellView(title: mealItem.displayName)
+                        .removeListRowFormatting()
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                guard let index = presenter.mealLog.items.firstIndex(of: mealItem) else { return }
+                                presenter.mealLog.items.remove(at: index)
+                            }
+                        }
                 }
             }
         } header: {
@@ -368,9 +374,9 @@ struct AddMealView: View {
                 
             } label: {
                 VStack {
-                    Text(delegate.selectedDate.formatted(date: .omitted, time: .shortened))
+                    Text(delegate.mealLog.date.formatted(date: .omitted, time: .shortened))
                         .font(.subheadline)
-                    Text(delegate.selectedDate.formatted(date: .numeric, time: .omitted))
+                    Text(delegate.mealLog.date.formatted(date: .numeric, time: .omitted))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -412,7 +418,7 @@ struct AddMealView: View {
     
     private var mealItemImagesSection: some View {
         HStack(spacing: -10) {
-            ForEach(presenter.items.prefix(5)) { mealItem in
+            ForEach(presenter.mealLog.items.prefix(5)) { mealItem in
                 mealItemCircle(mealItem: mealItem)
             }
         }
@@ -444,7 +450,8 @@ extension CoreBuilder {
                 router: CoreRouter(
                     router: router,
                     builder: self
-                )
+                ),
+                delegate: delegate
             ),
             delegate: delegate
         )
@@ -463,12 +470,7 @@ extension CoreRouter {
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
-    let delegate = AddMealDelegate(
-        selectedDate: Date(),
-        onSave: { _ in
-
-        }
-    )
+    let delegate = AddMealDelegate(mealLog: MealLogModel.mock)
     RouterView { router in
         builder.addMealView(router: router, delegate: delegate)
     }

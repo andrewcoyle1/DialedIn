@@ -2,12 +2,31 @@ import SwiftUI
 
 struct PortionDefinitionDelegate {
     
+    let mealItems: Binding<[MealItemModel]>?
     let name: String
     let brandName: String?
     let barcode: String?
     let image: PlatformImage?
     let productFront: PlatformImage?
     let nutritionPhoto: PlatformImage?
+    
+    init(
+        mealItems: Binding<[MealItemModel]>? = nil,
+        name: String,
+        brandName: String?,
+        barcode: String?,
+        image: PlatformImage?,
+        productFront: PlatformImage?,
+        nutritionPhoto: PlatformImage?
+    ) {
+        self.mealItems = mealItems
+        self.name = name
+        self.brandName = brandName
+        self.barcode = barcode
+        self.image = image
+        self.productFront = productFront
+        self.nutritionPhoto = nutritionPhoto
+    }
     
     var eventParameters: [String: Any]? {
         nil
@@ -21,18 +40,19 @@ struct PortionDefinitionView: View {
     
     var body: some View {
         List {
-            Section {
-                Picker("", selection: $presenter.nutritionDefinitionOption) {
-                    ForEach(NutritionDefinitionOption.allCases, id: \.self) { option in
-                        Text(option.name).tag(option)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .removeListRowFormatting()
-            } header: {
-                Text("What will you be entering nutrition information for?")
-                    .font(.subheadline)
-            }
+//            Section {
+//                Picker("", selection: $presenter.nutritionDefinitionOption) {
+//                    ForEach(NutritionDefinitionOption.allCases, id: \.self) { option in
+//                        Text(option.name)
+//                        .tag(option)
+//                    }
+//                }
+//                .pickerStyle(.segmented)
+//                .removeListRowFormatting()
+//            } header: {
+//                Text("What will you be entering nutrition information for?")
+//                    .font(.subheadline)
+//            }
             
             switch presenter.nutritionDefinitionOption {
             case .serving: definePortionSection
@@ -44,8 +64,7 @@ struct PortionDefinitionView: View {
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
             Button {
-                presenter.onNextPressed()
-
+                presenter.onNextPressed(delegate: delegate)
             } label: {
                 Text("Next")
                     .padding()
@@ -119,10 +138,10 @@ private struct PortionDefinition<T: PickableUnit>: View {
     let headerText: String
     let sizeHeader: String
     let primaryPrompt: String
-    let primaryValue: Binding<String>
+    let primaryValue: Binding<Double?>
     let unit: T
     let secondaryPrompt: String
-    let secondaryValue: Binding<String>
+    let secondaryValue: Binding<Double?>
     let tertiaryPrompt: String
     let tertiaryValue: Binding<String>
     let footerText: String
@@ -137,10 +156,10 @@ private struct PortionDefinition<T: PickableUnit>: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .padding(.leading)
-                    TextFieldwUnit<NutritionWeightUnit>(
+                    TextFieldwUnit<T>(
                         prompt: primaryPrompt,
-                        text: primaryValue,
-                        unit: NutritionWeightUnit.grams
+                        value: primaryValue,
+                        unit: unit
                     )
                     .padding(.vertical, 8)
                     .padding(.horizontal)
@@ -155,7 +174,8 @@ private struct PortionDefinition<T: PickableUnit>: View {
                     HStack {
                         TextField(
                             secondaryPrompt,
-                            text: secondaryValue
+                            value: secondaryValue,
+                            format: .number
                         )
                         .textFieldStyle(.roundedBorder)
                         .frame(maxWidth: 60)
@@ -164,7 +184,7 @@ private struct PortionDefinition<T: PickableUnit>: View {
                             text: tertiaryValue
                         )
                         .textFieldStyle(.roundedBorder)
-                        
+                        .textInputAutocapitalization(.never)
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal)
@@ -185,19 +205,19 @@ private struct PortionDefinition<T: PickableUnit>: View {
 
 }
 
-enum NutritionDefinitionOption: CaseIterable {    
+enum NutritionDefinitionOption: CaseIterable, Hashable {
     case serving
-    case standardMass// (preferredWeightUnit: NutritionWeightUnit)
+    case standardMass
     case standardVolume
-    
+
     var name: String {
         switch self {
         case .serving:
             return "Serving"
         case .standardMass:
-            return "Standard Mass"
+            return "100 g"
         case .standardVolume:
-            return "Standard Volume"
+            return "100 ml"
         }
     }
 }

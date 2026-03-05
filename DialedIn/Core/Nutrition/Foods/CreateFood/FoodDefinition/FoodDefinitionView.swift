@@ -1,19 +1,68 @@
 import SwiftUI
 
 struct FoodDefinitionDelegate {
+    
+    let mealItems: Binding<[MealItemModel]>?
     let nutritionDefinitionOption: NutritionDefinitionOption
-    var servingWeight: String?
-    var portionSize: String?
+    
+    let image: PlatformImage?
+    let name: String
+    let brandName: String?
+    let barcode: String?
+    
+    let imageFront: PlatformImage?
+    let nutritionImage: PlatformImage?
+    
+    var servingWeight: Double?
+    var portionSize: Double?
     var portionName: String?
     
-    var portionWeight: String?
-    var weightPortionSize: String?
+    var portionWeight: Double?
+    var weightPortionSize: Double?
     var weightPortionName: String?
     
-    var portionVolume: String?
-    var volumePortionSize: String?
+    var portionVolume: Double?
+    var volumePortionSize: Double?
     var volumePortionName: String?
 
+    init(
+        mealItems: Binding<[MealItemModel]>? = nil,
+        nutritionDefinitionOption: NutritionDefinitionOption,
+        image: PlatformImage?,
+        name: String,
+        brandName: String?,
+        barcode: String?,
+        imageFront: PlatformImage?,
+        nutritionImage: PlatformImage?,
+        servingWeight: Double? = nil,
+        portionSize: Double? = nil,
+        portionName: String? = nil,
+        portionWeight: Double? = nil,
+        weightPortionSize: Double? = nil,
+        weightPortionName: String? = nil,
+        portionVolume: Double? = nil,
+        volumePortionSize: Double? = nil,
+        volumePortionName: String? = nil
+    ) {
+        self.mealItems = mealItems
+        self.nutritionDefinitionOption = nutritionDefinitionOption
+        self.image = image
+        self.name = name
+        self.brandName = brandName
+        self.barcode = barcode
+        self.imageFront = imageFront
+        self.nutritionImage = nutritionImage
+        self.servingWeight = servingWeight
+        self.portionSize = portionSize
+        self.portionName = portionName
+        self.portionWeight = portionWeight
+        self.weightPortionSize = weightPortionSize
+        self.weightPortionName = weightPortionName
+        self.portionVolume = portionVolume
+        self.volumePortionSize = volumePortionSize
+        self.volumePortionName = volumePortionName
+    }
+    
     var eventParameters: [String: Any]? {
         nil
     }
@@ -57,18 +106,24 @@ struct FoodDefinitionView: View {
         }
         .safeAreaInset(edge: .bottom) {
             VStack {
-            Text("Create")
-                .callToActionButton(isPrimaryAction: false)
-                .anyButton(.press) {
-                    presenter.onCreatePressed()
+                Button {
+                    presenter.onCreateAndAddPressed(delegate: delegate)
+                } label: {
+                    Text("Create & Add")
+                        .padding()
+                        .frame(maxWidth: .infinity)
                 }
-            Text("Create & Add")
-                .callToActionButton(isPrimaryAction: true)
-                .anyButton(.press) {
-                    presenter.onCreateAndAddPressed()
+                .buttonStyle(.glassProminent)
+                Button {
+                    presenter.onCreatePressed(delegate: delegate)
+                } label: {
+                    Text("Create")
+                        .padding()
+                        .frame(maxWidth: .infinity)
                 }
-        }
-        .padding(.horizontal)
+                .buttonStyle(.glass)
+            }
+            .padding(.horizontal)
         }
     }
     
@@ -83,8 +138,13 @@ struct FoodDefinitionView: View {
             mineralsSection
             otherSection
         } header: {
-            Text("Provide nutrition facts for \(delegate.nutritionDefinitionOption.name.lowercased())")
-            
+            VStack(alignment: .leading) {
+                Text("Provide nutrition facts for \(delegate.nutritionDefinitionOption.name.lowercased())")
+                if let portionSize = delegate.portionSize, let portionName = delegate.portionName {
+                    Text("Serving Size: \(portionSize) \(portionName)")
+                        .font(.caption)
+                }
+            }
         }
     }
     
@@ -93,19 +153,19 @@ struct FoodDefinitionView: View {
             Group {
                 LabeledTextFieldWithUnitPicker<EnergyUnit>(
                     label: "Energy",
-                    text: .constant(""),
+                    value: $presenter.energy,
                     unit: $presenter.energyUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Protein",
-                    text: .constant(""),
+                    value: $presenter.protein,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Carbs",
-                    text: .constant(""),
+                    value: $presenter.carbs,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Fats",
-                    text: .constant(""),
+                    value: $presenter.fats,
                     unit: presenter.nutritionWeightUnit)
             }
             .padding(.bottom)
@@ -119,23 +179,23 @@ struct FoodDefinitionView: View {
     }
     
     private var carbsSection: some View {
-        DisclosureGroup(isExpanded: $presenter.isShowingCarbs) {
+        DisclosureGroup {
             Group {
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Fiber",
-                    text: .constant(""),
+                    value: $presenter.fiber,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Starch",
-                    text: .constant(""),
+                    value: $presenter.starch,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Sugars",
-                    text: .constant(""),
+                    value: $presenter.sugars,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Sugars (Added)",
-                    text: .constant(""),
+                    value: $presenter.addedSugars,
                     unit: presenter.nutritionWeightUnit)
             }
             .padding(.bottom)
@@ -149,43 +209,43 @@ struct FoodDefinitionView: View {
     }
     
     private var fatsSection: some View {
-        DisclosureGroup(isExpanded: $presenter.isShowingFats) {
+        DisclosureGroup {
             Group {
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Monounsaturated Fat",
-                    text: .constant(""),
+                    value: $presenter.monounsaturatedFats,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Polyunsaturated Fat",
-                    text: .constant(""),
+                    value: $presenter.polyunsaturatedFats,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Omega-3",
-                    text: .constant(""),
+                    value: $presenter.omega3,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Omega-3 ALA",
-                    text: .constant(""),
+                    value: $presenter.omega3Ala,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Omega-3 DHA",
-                    text: .constant(""),
+                    value: $presenter.omega3Dha,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Omega-3 EPA",
-                    text: .constant(""),
+                    value: $presenter.omega3Epa,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Omega-6",
-                    text: .constant(""),
+                    value: $presenter.omega6,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Saturated Fat",
-                    text: .constant(""),
+                    value: $presenter.saturatedFats,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Trans Fat",
-                    text: .constant(""),
+                    value: $presenter.transFats,
                     unit: presenter.nutritionWeightUnit)
             }
             .padding(.bottom)
@@ -199,55 +259,51 @@ struct FoodDefinitionView: View {
     }
     
     private var proteinSection: some View {
-        DisclosureGroup(isExpanded: $presenter.isShowingProtein) {
+        DisclosureGroup {
             Group {
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Cysteine",
-                    text: .constant(""),
+                    value: $presenter.cysteine,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Histidine",
-                    text: .constant(""),
+                    value: $presenter.histidine,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Isoleucine",
-                    text: .constant(""),
+                    value: $presenter.isoleucine,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Leucine",
-                    text: .constant(""),
+                    value: $presenter.leucine,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Lysine",
-                    text: .constant(""),
+                    value: $presenter.lysine,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Methionine",
-                    text: .constant(""),
+                    value: $presenter.methionine,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Phenylalanine",
-                    text: .constant(""),
+                    value: $presenter.phenylalinine,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Threonine",
-                    text: .constant(""),
+                    value: $presenter.threonine,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Tryptophan",
-                    text: .constant(""),
-                    unit: presenter.nutritionWeightUnit)
-                LabeledTextFieldWithUnit<NutritionWeightUnit>(
-                    label: "Tyrosene",
-                    text: .constant(""),
+                    value: $presenter.tryptophan,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Tyrosine",
-                    text: .constant(""),
+                    value: $presenter.tyrosine,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Valine",
-                    text: .constant(""),
+                    value: $presenter.valine,
                     unit: presenter.nutritionWeightUnit)
             }
             .padding(.bottom)
@@ -261,57 +317,56 @@ struct FoodDefinitionView: View {
     }
     
     private var vitaminsSection: some View {
-        DisclosureGroup(isExpanded: $presenter.isShowingVitamins) {
+        DisclosureGroup {
             Group {
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "B1, Thiamine",
-                    text: .constant(""),
+                    value: $presenter.b1Thiamine,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "B2, Riboflavin",
-                    text: .constant(""),
+                    value: $presenter.b2Riboflavin,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "B3, Niacin",
-                    text: .constant(""),
+                    value: $presenter.b3Niacin,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "B5, Pantothenic Acid",
-                    text: .constant(""),
+                    value: $presenter.b5PantothenicAcid,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "B6, Pyridoxine",
-                    text: .constant(""),
+                    value: $presenter.b6Pyridoxine,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "B12, Cobalamin",
-                    text: .constant(""),
+                    value: $presenter.b12Cobalamin,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Folate",
-                    text: .constant(""),
+                    value: $presenter.folate,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnitPicker<NutritionWeightUnit>(
                     label: "Vitamin A",
-                    text: .constant(""),
+                    value: $presenter.vitaminA,
                     unit: $presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Vitamin C",
-                    text: .constant(""),
+                    value: $presenter.vitaminC,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnitPicker<NutritionWeightUnit>(
                     label: "Vitamin D",
-                    text: .constant(""),
+                    value: $presenter.vitaminD,
                     unit: $presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnitPicker<NutritionWeightUnit>(
                     label: "Vitamin E",
-                    text: .constant(""),
+                    value: $presenter.vitaminE,
                     unit: $presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Vitamin K",
-                    text: .constant(""),
+                    value: $presenter.vitaminK,
                     unit: presenter.nutritionWeightUnit)
-
             }
             .padding(.bottom)
             .listRowSeparator(.hidden)
@@ -324,47 +379,47 @@ struct FoodDefinitionView: View {
     }
     
     private var mineralsSection: some View {
-        DisclosureGroup(isExpanded: $presenter.isShowingMinerals) {
+        DisclosureGroup {
             Group {
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Calcium",
-                    text: .constant(""),
+                    value: $presenter.calcium,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Copper",
-                    text: .constant(""),
+                    value: $presenter.copper,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Iron",
-                    text: .constant(""),
+                    value: $presenter.iron,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Magnesium",
-                    text: .constant(""),
+                    value: $presenter.magnesium,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Manganese",
-                    text: .constant(""),
+                    value: $presenter.manganese,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Phosphorus",
-                    text: .constant(""),
+                    value: $presenter.phosphorus,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Potassium",
-                    text: .constant(""),
+                    value: $presenter.potassium,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Selenium",
-                    text: .constant(""),
+                    value: $presenter.selenium,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnitPicker<NutritionWeightUnit>(
                     label: "Sodium",
-                    text: .constant(""),
+                    value: $presenter.sodium,
                     unit: $presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Zinc",
-                    text: .constant(""),
+                    value: $presenter.zinc,
                     unit: presenter.nutritionWeightUnit)
             }
             .padding(.bottom)
@@ -377,23 +432,23 @@ struct FoodDefinitionView: View {
         }
     }
     private var otherSection: some View {
-        DisclosureGroup(isExpanded: $presenter.isShowingOther) {
+        DisclosureGroup {
             Group {
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Alcohol",
-                    text: .constant(""),
+                    value: $presenter.alcohol,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Caffeine",
-                    text: .constant(""),
+                    value: $presenter.caffeine,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Cholesterol",
-                    text: .constant(""),
+                    value: $presenter.cholesterol,
                     unit: presenter.nutritionWeightUnit)
                 LabeledTextFieldWithUnit<NutritionWeightUnit>(
                     label: "Water",
-                    text: .constant(""),
+                    value: $presenter.water,
                     unit: presenter.nutritionWeightUnit)
             }
             .padding(.bottom)
@@ -428,7 +483,24 @@ enum FoodDefinitionOption: CaseIterable {
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
-    let delegate = FoodDefinitionDelegate(nutritionDefinitionOption: .serving)
+    let delegate = FoodDefinitionDelegate(
+        nutritionDefinitionOption: .serving,
+        image: nil,
+        name: "Sample Food",
+        brandName: nil,
+        barcode: nil,
+        imageFront: nil,
+        nutritionImage: nil,
+        servingWeight: nil,
+        portionSize: 1,
+        portionName: "portion",
+        portionWeight: nil,
+        weightPortionSize: nil,
+        weightPortionName: nil,
+        portionVolume: nil,
+        volumePortionSize: nil,
+        volumePortionName: nil
+    )
     
     return RouterView { router in
         builder.foodDefinitionView(router: router, delegate: delegate)

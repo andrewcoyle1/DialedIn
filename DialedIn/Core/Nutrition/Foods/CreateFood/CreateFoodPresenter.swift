@@ -1,5 +1,5 @@
 //
-//  CreateIngredientPresenter.swift
+//  CreateFoodPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 26/10/2025.
@@ -10,10 +10,10 @@ import PhotosUI
 
 @Observable
 @MainActor
-class CreateIngredientPresenter {
+class CreateFoodPresenter {
 
-    private let interactor: CreateIngredientInteractor
-    private let router: CreateIngredientRouter
+    private let interactor: CreateFoodInteractor
+    private let router: CreateFoodRouter
 
     var selectedPhotoItem: PhotosPickerItem?
     var selectedImageData: Data?
@@ -28,8 +28,8 @@ class CreateIngredientPresenter {
     }
     
     init(
-        interactor: CreateIngredientInteractor,
-        router: CreateIngredientRouter
+        interactor: CreateFoodInteractor,
+        router: CreateFoodRouter
     ) {
         self.interactor = interactor
         self.router = router
@@ -72,12 +72,13 @@ class CreateIngredientPresenter {
         router.dismissScreen()
     }
     
-    func onNextPressed() {
+    func onNextPressed(delegate: CreateFoodDelegate) {
         if contributeToPublicDatabase {
             #if canImport(UIKit)
             let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
             router.showFoodPackagingView(
                 delegate: FoodPackagingDelegate(
+                    mealItems: delegate.mealItems,
                     name: self.name,
                     brandName: self.brandName,
                     barcode: self.barcode,
@@ -88,6 +89,7 @@ class CreateIngredientPresenter {
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
             router.showFoodPackagingView(
                 delegate: FoodPackagingDelegate(
+                    mealItems: delegate.mealItems,
                     name: self.name,
                     brandName: self.brandName,
                     barcode: self.barcode,
@@ -100,6 +102,7 @@ class CreateIngredientPresenter {
             let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
             router.showPortionDefinitionView(
                 delegate: PortionDefinitionDelegate(
+                    mealItems: delegate.mealItems,
                     name: self.name,
                     brandName: self.brandName,
                     barcode: self.barcode,
@@ -112,6 +115,7 @@ class CreateIngredientPresenter {
             let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
             router.showPortionDefinitionView(
                 delegate: PortionDefinitionDelegate(
+                    mealItems: delegate.mealItems,
                     name: self.name,
                     brandName: self.brandName,
                     barcode: self.barcode,
@@ -147,9 +151,9 @@ func onDevSettingsPressed() {
     enum Event: LoggableEvent {
         case onAppear
         case onDisappear
-        case createIngredientStart
-        case createIngredientSuccess
-        case createIngredientFail(error: Error)
+        case createFoodStart
+        case createFoodSuccess
+        case createFoodFail(error: Error)
         case imageSelectorStart
         case imageSelectorSuccess
         case imageSelectorCancel
@@ -157,11 +161,11 @@ func onDevSettingsPressed() {
 
         var eventName: String {
             switch self {
-            case .onAppear:                         return "CreateIngredientView_Appear"
-            case .onDisappear:                      return "CreateIngredientView_Disappear"
-            case .createIngredientStart:            return "CreateIngredient_Start"
-            case .createIngredientSuccess:          return "CreateIngredient_Success"
-            case .createIngredientFail:             return "CreateIngredient_Fail"
+            case .onAppear:                         return "CreateFoodView_Appear"
+            case .onDisappear:                      return "CreateFoodView_Disappear"
+            case .createFoodStart:            return "CreateFood_Start"
+            case .createFoodSuccess:          return "CreateFood_Success"
+            case .createFoodFail:             return "CreateFood_Fail"
             case .imageSelectorStart:               return "IngredientImageSelector_Start"
             case .imageSelectorSuccess:             return "IngredientImageSelector_Success"
             case .imageSelectorCancel:              return "IngredientImageSelector_Cancel"
@@ -171,7 +175,7 @@ func onDevSettingsPressed() {
 
         var parameters: [String: Any]? {
             switch self {
-            case .createIngredientFail(error: let error), .imageSelectorFail(error: let error):
+            case .createFoodFail(error: let error), .imageSelectorFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -180,7 +184,7 @@ func onDevSettingsPressed() {
 
         var type: LogType {
             switch self {
-            case .createIngredientFail, .imageSelectorFail:
+            case .createFoodFail, .imageSelectorFail:
                 return .severe
             default:
                 return .analytic

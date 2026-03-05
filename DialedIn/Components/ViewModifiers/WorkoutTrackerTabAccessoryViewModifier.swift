@@ -11,13 +11,13 @@ struct WorkoutTrackerTabAccessoryViewModifier<TrackerView: View>: ViewModifier {
 
     @State private var didAppear: Bool = false
     let active: WorkoutSessionModel?
-    let tabViewAccessoryView: (TabViewAccessoryDelegate) -> TrackerView
+    let trainingAccessoryView: (TrainingAccessoryDelegate) -> TrackerView
     
     func body(content: Content) -> some View {
         if let session = active {
             content
                 .tabViewBottomAccessory {
-                    tabViewAccessoryView(TabViewAccessoryDelegate(active: session))
+                    trainingAccessoryView(TrainingAccessoryDelegate(active: session))
                 }
         } else {
             content
@@ -26,7 +26,7 @@ struct WorkoutTrackerTabAccessoryViewModifier<TrackerView: View>: ViewModifier {
 }
 
 extension View {
-    func workoutTabAccessory(active: WorkoutSessionModel?, tabViewAccessoryView: @escaping (TabViewAccessoryDelegate) -> some View) -> some View {
-        modifier(WorkoutTrackerTabAccessoryViewModifier(active: active, tabViewAccessoryView: tabViewAccessoryView))
+    func workoutTabAccessory(active: WorkoutSessionModel?, trainingAccessoryView: @escaping (TrainingAccessoryDelegate) -> some View) -> some View {
+        modifier(WorkoutTrackerTabAccessoryViewModifier(active: active, trainingAccessoryView: trainingAccessoryView))
     }
 }

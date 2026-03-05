@@ -8,6 +8,7 @@
 @MainActor
 protocol TabBarInteractor {
     var activeSession: WorkoutSessionModel? { get }
+    var draftMeal: MealLogModel? { get }
 }
 
 extension CoreInteractor: TabBarInteractor { }

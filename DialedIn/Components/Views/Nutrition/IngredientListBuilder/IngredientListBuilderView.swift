@@ -1,10 +1,23 @@
 import SwiftUI
 
 struct IngredientListBuilderDelegate {
+    
+    let mealItems: Binding<[MealItemModel]>?
+    
     var onIngredientSelectionChanged: ((IngredientTemplateModel) -> Void)?
     /// Optional list of ingredient templates that should display as "selected" in the UI.
     /// If `nil`, no selection state is shown.
     var selectedIngredientTemplates: [IngredientTemplateModel]?
+    
+    init(
+        mealItems: Binding<[MealItemModel]>? = nil,
+        onIngredientSelectionChanged: ((IngredientTemplateModel) -> Void)? = nil,
+        selectedIngredientTemplates: [IngredientTemplateModel]? = nil
+    ) {
+        self.mealItems = mealItems
+        self.onIngredientSelectionChanged = onIngredientSelectionChanged
+        self.selectedIngredientTemplates = selectedIngredientTemplates
+    }
 }
 
 struct IngredientListBuilderView: View {
@@ -40,7 +53,7 @@ struct IngredientListBuilderView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    presenter.onAddIngredientPressed()
+                    presenter.onAddIngredientPressed(delegate: delegate)
                 } label: {
                     Image(systemName: "plus")
                 }

@@ -12,7 +12,7 @@ struct LabeledTextFieldWithUnit<T: PickableUnit>: View {
     @Environment(\.colorScheme) var colorScheme
     
     let label: String
-    let text: Binding<String>
+    let value: Binding<Double?>
     let unit: T
     
     var body: some View {
@@ -20,7 +20,7 @@ struct LabeledTextFieldWithUnit<T: PickableUnit>: View {
             Text(label)
                 .fontWeight(.medium)
                 .foregroundStyle(.secondary)
-            TextFieldwUnit<T>(text: text, unit: unit)
+            TextFieldwUnit<T>(value: value, unit: unit)
                 .background(colorScheme.backgroundPrimary, in: .containerRelative)
         }
     }
@@ -40,7 +40,7 @@ struct LabeledTextFieldWithUnitPicker<T: PickableUnit>: View {
     @Environment(\.colorScheme) var colorScheme
     
     let label: String
-    let text: Binding<String>
+    let value: Binding<Double?>
     let unit: Binding<T>
     
     var body: some View {
@@ -48,18 +48,18 @@ struct LabeledTextFieldWithUnitPicker<T: PickableUnit>: View {
             Text(label)
                 .fontWeight(.medium)
                 .foregroundStyle(.secondary)
-            TextFieldwUnitPicker<T>(text: text, unit: unit)
+            TextFieldwUnitPicker<T>(value: value, unit: unit)
                 .background(colorScheme.backgroundPrimary, in: .containerRelative)
         }
     }
 }
 
 #Preview {
-    @Previewable @State var text: String = ""
+    @Previewable @State var value: Double?
     @Previewable @State var unit: NutritionWeightUnit = .grams
     
     List {
-        LabeledTextFieldWithUnit(label: "Weight", text: $text, unit: unit)
-        LabeledTextFieldWithUnitPicker(label: "Weight", text: $text, unit: $unit)
+        LabeledTextFieldWithUnit(label: "Weight", value: $value, unit: unit)
+        LabeledTextFieldWithUnitPicker(label: "Weight", value: $value, unit: $unit)
     }
 }

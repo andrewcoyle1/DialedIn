@@ -15,7 +15,10 @@ struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
     let ingredientId: String
     let authorId: String?
     let name: String
+    let brandName: String?
     let description: String?
+    
+    
     let measurementMethod: MeasurementMethod
 
     // MARK: Macronutrients
@@ -97,9 +100,10 @@ struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
     let favouriteCount: Int?
     
     init(
-        ingredientId: String,
+        ingredientId: String = UUID().uuidString,
         authorId: String? = nil,
         name: String,
+        brandName: String? = nil,
         description: String? = nil,
         measurementMethod: MeasurementMethod = .weight,
         calories: Double?,
@@ -141,8 +145,8 @@ struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
         cholesterolMg: Double? = nil,
         pantothenicAcidMg: Double? = nil,
         imageURL: String? = nil,
-        dateCreated: Date,
-        dateModified: Date,
+        dateCreated: Date = Date(),
+        dateModified: Date = Date(),
         clickCount: Int? = nil,
         bookmarkCount: Int? = nil,
         favouriteCount: Int? = nil
@@ -150,6 +154,7 @@ struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
         self.ingredientId = ingredientId
         self.authorId = authorId
         self.name = name
+        self.brandName = brandName
         self.description = description
         self.measurementMethod = measurementMethod
         self.calories = calories
@@ -206,6 +211,7 @@ struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
         case ingredientId = "ingredient_id"
         case authorId = "author_id"
         case name
+        case brandName = "brand_name"
         case description
         case measurementMethod = "measurement_method"
         case calories
@@ -259,6 +265,7 @@ struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
             "user_\(CodingKeys.ingredientId.rawValue)": ingredientId,
             "user_\(CodingKeys.authorId.rawValue)": authorId,
             "user_\(CodingKeys.name.rawValue)": name,
+            "user_\(CodingKeys.brandName.rawValue)": brandName,
             "user_\(CodingKeys.description.rawValue)": description,
             "user_\(CodingKeys.measurementMethod.rawValue)": measurementMethod.rawValue,
             "user_\(CodingKeys.calories.rawValue)": calories,
@@ -319,6 +326,7 @@ struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
             ingredientId: "ing-1",
             authorId: "1",
             name: "Rolled Oats",
+            brandName: "Dunnes Stores",
             description: "Whole grain oats.",
             measurementMethod: .weight,
             calories: 389,
@@ -346,6 +354,7 @@ struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
             ingredientId: "ing-2",
             authorId: "2",
             name: "Whole Milk",
+            brandName: nil,
             description: "Dairy, 3.25% fat.",
             measurementMethod: .volume,
             calories: 61,

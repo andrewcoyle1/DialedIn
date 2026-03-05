@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ExerciseTrackerDelegate {
     let exercise: Binding<WorkoutExerciseModel>
+    let lastExercise: WorkoutExerciseModel?
 }
 
 struct ExerciseTrackerView<SetTracker: View>: View {
@@ -16,11 +17,15 @@ struct ExerciseTrackerView<SetTracker: View>: View {
     @State var presenter: ExerciseTrackerPresenter
     let delegate: ExerciseTrackerDelegate
 
-    @ViewBuilder var setTracker: (Binding<WorkoutExerciseModel>) -> SetTracker
+    @ViewBuilder var setTracker: (SetTrackerDelegate) -> SetTracker
 
     var body: some View {
         DisclosureGroup {
-            setTracker(delegate.exercise)
+            let delegate = SetTrackerDelegate(
+                exercise: delegate.exercise,
+                lastExercise: delegate.lastExercise
+            )
+            setTracker(delegate)
         } label: {
             exerciseHeader(delegate.exercise.wrappedValue)
         }
@@ -48,10 +53,11 @@ struct ExerciseTrackerView<SetTracker: View>: View {
 #Preview {
     @Previewable @State var exercise: WorkoutExerciseModel = WorkoutExerciseModel.mock
     @Previewable @State var session: WorkoutSessionModel = WorkoutSessionModel.mock
+    let lastExercise: WorkoutExerciseModel = .mock
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
-    let delegate = ExerciseTrackerDelegate(exercise: $exercise)
+    let delegate = ExerciseTrackerDelegate(exercise: $exercise, lastExercise: lastExercise)
 
     RouterView { router in
         builder.exerciseTrackerView(router: router, delegate: delegate)
@@ -70,10 +76,10 @@ extension CoreBuilder {
                 router: CoreRouter(router: router, builder: self)
             ),
             delegate: delegate,
-            setTracker: { exercise in
+            setTracker: { delegate in
                 self.setTrackerView(
                     router: router,
-                    delegate: SetTrackerDelegate(exercise: exercise),
+                    delegate: delegate,
                     onUpdateRestBefore: onUpdateRestBefore
                 )
             }

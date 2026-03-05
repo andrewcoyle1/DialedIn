@@ -1,5 +1,5 @@
 //
-//  TabViewAccessoryView.swift
+//  MealAccessoryView.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 17/10/2025.
@@ -7,19 +7,19 @@
 
 import SwiftUI
 
-struct TabViewAccessoryDelegate {
-    var active: WorkoutSessionModel
+struct MealAccessoryDelegate {
+    var draftMeal: MealLogModel
 }
 
-struct TabViewAccessoryView: View {
+struct MealAccessoryView: View {
     
-    @State var presenter: TabViewAccessoryPresenter
+    @State var presenter: MealAccessoryPresenter
     
-    let delegate: TabViewAccessoryDelegate
+    let delegate: MealAccessoryDelegate
     
     var body: some View {
         Button {
-            presenter.reopenActiveSession()
+            presenter.reopenMealLog()
         } label: {
             workoutDescriptionSection
                 .frame(maxWidth: .infinity)
@@ -33,7 +33,7 @@ struct TabViewAccessoryView: View {
         HStack {
             VStack(alignment: .leading) {
                 workoutName
-                timeSection(workoutSession: delegate.active)
+                timeSection(draftMeal: delegate.draftMeal)
             }
             Spacer()
             exerciseImagesSection
@@ -42,23 +42,21 @@ struct TabViewAccessoryView: View {
 
     private var exerciseImagesSection: some View {
         HStack(spacing: -10) {
-            if let activeSession = presenter.activeSession {
-                ForEach(activeSession.exercises.prefix(5)) { exercise in
-                    exerciseCircle(exercise: exercise)
-                }
+            ForEach(presenter.draftMeal.items.prefix(5)) { draftMeal in
+                mealItemCircle(draftMeal: draftMeal)
             }
         }
     }
 
     @ViewBuilder
-    private func exerciseCircle(exercise: WorkoutExerciseModel) -> some View {
-        let isCompleted = !exercise.sets.isEmpty && exercise.sets.allSatisfy { $0.completedAt != nil }
+    private func mealItemCircle(draftMeal: MealItemModel) -> some View {
+        let isCompleted = !draftMeal.amount.isZero
         ZStack {
             Circle()
                 .fill(Color(uiColor: .secondarySystemBackground))
 
             ImageLoaderView(
-                urlString: exercise.imageName ?? "SplashScreen",
+                urlString: "SplashScreen",
                 resizingMode: .fit,
                 clipShape: AnyShape(Circle())
             )
@@ -77,13 +75,13 @@ struct TabViewAccessoryView: View {
     }
     
     private var workoutName: some View {
-        Text(delegate.active.name)
+        Text(delegate.draftMeal.date.formatted(date: .omitted, time: .shortened))
             .font(.subheadline)
             .fontWeight(.semibold)
             .lineLimit(1)
     }
 
-    private func timeSection(workoutSession active: WorkoutSessionModel) -> some View {
+    private func timeSection(draftMeal: MealLogModel) -> some View {
         Group {
             let now = Date()
             if let restEndTime = presenter.restEndTime,
@@ -100,7 +98,7 @@ struct TabViewAccessoryView: View {
                 // Elapsed time
                 HStack(spacing: 4) {
                     Text("Elapsed: ")
-                    Text(active.dateCreated, style: .timer)
+                    Text(presenter.draftMeal.date, style: .timer)
                         .monospacedDigit()
                 }
             }
@@ -112,11 +110,12 @@ struct TabViewAccessoryView: View {
 }
 
 extension CoreBuilder {
-    func tabViewAccessoryView(router: AnyRouter, delegate: TabViewAccessoryDelegate) -> some View {
-        return TabViewAccessoryView(
-            presenter: TabViewAccessoryPresenter(
+    func mealAccessoryView(router: AnyRouter, delegate: MealAccessoryDelegate) -> some View {
+        return MealAccessoryView(
+            presenter: MealAccessoryPresenter(
                 interactor: interactor,
-                router: CoreRouter(router: router, builder: self)
+                router: CoreRouter(router: router, builder: self),
+                delegate: delegate
             ),
             delegate: delegate
         )
@@ -136,9 +135,9 @@ extension CoreBuilder {
             }
         }
         .tabViewBottomAccessory {
-            builder.tabViewAccessoryView(
+            builder.mealAccessoryView(
                 router: router, 
-                delegate: TabViewAccessoryDelegate(active: .mock)
+                delegate: MealAccessoryDelegate(draftMeal: .mock)
             )
         }
     }

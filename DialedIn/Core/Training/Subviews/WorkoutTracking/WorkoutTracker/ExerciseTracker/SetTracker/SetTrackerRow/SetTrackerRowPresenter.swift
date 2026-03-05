@@ -35,6 +35,15 @@ class SetTrackerRowPresenter {
     func deleteSet(setId: String, exercise: Binding<WorkoutExerciseModel>) {
         exercise.wrappedValue.sets.removeAll(where: { $0.id == setId })
     }
+    
+    func onSetComplete(_ exercise: WorkoutExerciseModel, _ set: Binding<WorkoutSetModel>) {
+        if set.wrappedValue.completedAt == nil, validateSetData(trackingMode: exercise.trackingMode, set: set.wrappedValue) {
+            interactor.startRest(durationSeconds: 90, session: .mock, currentExerciseIndex: 1)
+            set.wrappedValue.completedAt = Date()
+        } else {
+            set.wrappedValue.completedAt = nil
+        }
+    }
 
     func onRestPickerRequested(setId: String) {
         restPickerTargetSetId = setId

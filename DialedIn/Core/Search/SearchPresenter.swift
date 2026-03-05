@@ -22,6 +22,10 @@ class SearchPresenter {
             .trimmingCharacters(in: .alphanumerics.inverted)
             .lowercased()
     }
+    
+    var currentUser: UserModel? {
+        interactor.currentUser
+    }
 
     var filteredExercises: [ExerciseModel] {
         allExercises
@@ -260,7 +264,56 @@ class SearchPresenter {
     }
 
     func onLogMealPressed() {
-        router.showAddMealView(delegate: AddMealDelegate(selectedDate: .now, onSave: { _ in }))
+        guard let userId = currentUser?.userId else { return }
+        if let meal = interactor.draftMeal {
+            router.showAlert(
+                title: "Unable to add new meal",
+                subtitle: "You already have an draft meal.",
+                buttons: {
+                    AnyView(
+                        VStack {
+                            Button("Continue editing") {
+                                self.router.showAddMealView(
+                                    delegate: AddMealDelegate(mealLog: meal)
+                                )
+                            }
+                            Button("Delete drafted meal", role: .destructive) {
+                                self.router.showAddMealView(
+                                    delegate: AddMealDelegate(
+                                        mealLog: MealLogModel(
+                                            authorId: userId,
+                                            dayKey: Date().dayKey,
+                                            date: Date(),
+                                            items: [],
+                                            totalCalories: 0,
+                                            totalProteinGrams: 0,
+                                            totalCarbGrams: 0,
+                                            totalFatGrams: 0
+                                        )
+                                    )
+                                )
+                            }
+                            Button("Cancel", role: .cancel) { }
+                        }
+                    )
+                }
+            )
+        } else {
+            self.router.showAddMealView(
+                delegate: AddMealDelegate(
+                    mealLog: MealLogModel(
+                        authorId: userId,
+                        dayKey: Date().dayKey,
+                        date: Date(),
+                        items: [],
+                        totalCalories: 0,
+                        totalProteinGrams: 0,
+                        totalCarbGrams: 0,
+                        totalFatGrams: 0
+                    )
+                )
+            )
+        }
     }
 
     func onIngredientPressed(ingredient: IngredientTemplateModel) {

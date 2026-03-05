@@ -17,6 +17,16 @@ class TabBarPresenter {
     var activeSession: WorkoutSessionModel? {
         interactor.activeSession
     }
+    
+    var draftMeal: MealLogModel? {
+        interactor.draftMeal
+    }
+    
+    var showTabAccessory: Bool {
+        activeSession != nil || draftMeal != nil
+    }
+    
+    var tabAccessoryWidth: CGFloat = 400
 
     init(
         interactor: TabBarInteractor,

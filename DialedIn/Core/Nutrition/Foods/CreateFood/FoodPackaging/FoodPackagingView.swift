@@ -2,10 +2,25 @@ import SwiftUI
 import PhotosUI
 
 struct FoodPackagingDelegate {
+    let mealItems: Binding<[MealItemModel]>?
     let name: String
     let brandName: String?
     let barcode: String?
     let image: PlatformImage?
+    
+    init(
+        mealItems: Binding<[MealItemModel]>? = nil,
+        name: String,
+        brandName: String?,
+        barcode: String?,
+        image: PlatformImage?
+    ) {
+        self.mealItems = mealItems
+        self.name = name
+        self.brandName = brandName
+        self.barcode = barcode
+        self.image = image
+    }
     var eventParameters: [String: Any]? {
         nil
     }

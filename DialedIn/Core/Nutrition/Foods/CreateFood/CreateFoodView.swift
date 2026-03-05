@@ -1,5 +1,5 @@
 //
-//  CreateIngredientView.swift
+//  CreateFoodView.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 27/09/2025.
@@ -8,11 +8,20 @@
 import SwiftUI
 import PhotosUI
 
-struct CreateIngredientView: View {
+struct CreateFoodDelegate {
+    let mealItems: Binding<[MealItemModel]>?
+    
+    init(mealItems: Binding<[MealItemModel]>? = nil) {
+        self.mealItems = mealItems
+    }
+}
 
+struct CreateFoodView: View {
+    
     @Environment(\.colorScheme) private var colorScheme
-    @State var presenter: CreateIngredientPresenter
-
+    @State var presenter: CreateFoodPresenter
+    let delegate: CreateFoodDelegate
+    
     var barcodeGenerator = BarcodeGenerator()
     
     var body: some View {
@@ -37,7 +46,7 @@ struct CreateIngredientView: View {
         }
         .safeAreaInset(edge: .bottom) {
             Button {
-                presenter.onNextPressed()
+                presenter.onNextPressed(delegate: delegate)
             } label: {
                 Text("Next")
                     .padding()
@@ -49,13 +58,13 @@ struct CreateIngredientView: View {
         }
         .onChange(of: presenter.selectedPhotoItem) {
             guard let newItem = presenter.selectedPhotoItem else { return }
-
+            
             Task {
                 await presenter.onImageSelectorChanged(newItem)
             }
         }
     }
-
+    
     private var imageSection: some View {
         Section {
             Button {
@@ -66,7 +75,7 @@ struct CreateIngredientView: View {
                         .fill(Color.secondary.opacity(0.001))
                     Group {
                         if let data = presenter.selectedImageData {
-                            #if canImport(UIKit)
+#if canImport(UIKit)
                             if let uiImage = UIImage(data: data) {
                                 Image(uiImage: uiImage)
                                     .resizable()
@@ -74,7 +83,7 @@ struct CreateIngredientView: View {
                                     .clipShape(Circle())
                                     .frame(width: 120, height: 120)
                             }
-                            #elseif canImport(AppKit)
+#elseif canImport(AppKit)
                             if let nsImage = NSImage(data: data) {
                                 Image(nsImage: nsImage)
                                     .resizable()
@@ -82,7 +91,7 @@ struct CreateIngredientView: View {
                                     .clipShape(Circle())
                                     .frame(width: 120, height: 120)
                             }
-                            #endif
+#endif
                         } else {
                             ZStack(alignment: .bottomTrailing) {
                                 Image(systemName: "fork.knife.circle")
@@ -106,6 +115,7 @@ struct CreateIngredientView: View {
     private var foodNameSection: some View {
         Section {
             TextField("Add name", text: $presenter.name)
+                .textInputAutocapitalization(.words)
         } header: {
             HStack(alignment: .firstTextBaseline) {
                 Text("Food Name")
@@ -116,15 +126,19 @@ struct CreateIngredientView: View {
             }
         }
     }
-
+    
     private var brandNameSection: some View {
         Section {
-            TextField("Add name", text: Binding(
-                get: { presenter.brandName ?? "" },
-                set: { newValue in
-                    presenter.brandName = newValue.isEmpty ? nil : newValue
-                }
-            ))
+            TextField(
+                "Add name",
+                text: Binding(
+                    get: { presenter.brandName ?? "" },
+                    set: { newValue in
+                        presenter.brandName = newValue.isEmpty ? nil : newValue
+                    }
+                )
+            )
+            .textInputAutocapitalization(.words)
         } header: {
             Text("Brand Name")
         }
@@ -171,7 +185,7 @@ struct CreateIngredientView: View {
             }
         }
     }
-
+    
     private func inputRow(label: String, value: Binding<Double?>, unit: String? = nil) -> some View {
         HStack(alignment: .bottom, spacing: 0) {
             Text(label)
@@ -184,7 +198,7 @@ struct CreateIngredientView: View {
                 .foregroundStyle(value.wrappedValue != nil ? .primary : .secondary)
         }
     }
-
+    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
@@ -194,7 +208,7 @@ struct CreateIngredientView: View {
                 Image(systemName: "xmark")
             }
         }
-        #if DEBUG || MOCK
+#if DEBUG || MOCK
         ToolbarSpacer(.fixed, placement: .topBarLeading)
         ToolbarItem(placement: .topBarLeading) {
             Button {
@@ -203,22 +217,26 @@ struct CreateIngredientView: View {
                 Image(systemName: "info")
             }
         }
-        #endif
-            }
+#endif
+    }
 }
 
 extension CoreBuilder {
-    func createIngredientView(router: AnyRouter) -> some View {
-        CreateIngredientView(
-            presenter: CreateIngredientPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+    func createFoodView(router: AnyRouter, delegate: CreateFoodDelegate) -> some View {
+        CreateFoodView(
+            presenter: CreateFoodPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate
         )
     }
 }
 
 extension CoreRouter {
-    func showCreateIngredientView() {
+    func showCreateFoodView(delegate: CreateFoodDelegate) {
         router.showScreen(.sheet) { router in
-            builder.createIngredientView(router: router)
+            builder.createFoodView(router: router, delegate: delegate)
         }
     }
 }
@@ -227,8 +245,10 @@ extension CoreRouter {
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
+    let delegate = CreateFoodDelegate()
+    
     RouterView { router in
-        builder.createIngredientView(router: router)
+        builder.createFoodView(router: router, delegate: delegate)
     }
     
 }

@@ -34,7 +34,6 @@ struct NutritionLibraryPickerView<
 
     var body: some View {
         Group {
-            
             switch presenter.mode {
             case .barcode:
                 barcodeScanner(BarcodeScannerDelegate())
@@ -45,11 +44,17 @@ struct NutritionLibraryPickerView<
             case .quickAdd:
                 foodQuickAdd(FoodItemQuickAddDelegate())
             case .library:
-                foodLibrary(FoodLibraryDelegate())
+                foodLibrary(
+                    FoodLibraryDelegate(
+                        mealItems: delegate.items,
+                        onItemPick: { item in
+                            delegate.items.wrappedValue.append(item)
+                        }
+                    )
+                )
             case .describe:
                 mealDescribe(MealDescribeDelegate())
             }
-            
         }
         .navigationTitle("Add Item")
         .navigationBarTitleDisplayMode(.inline)
@@ -61,13 +66,15 @@ struct NutritionLibraryPickerView<
                             presenter.onModePressed(mode)
                         } label: {
                             Label(mode.title, systemImage: mode.systemName).tag(mode)
+                                .padding(.horizontal, 8)
+                                .padding(8)
                         }
                         .glassEffect()
                     }
                 }
+                .padding()
             }
             .scrollIndicators(.hidden)
-            .padding(.horizontal)
         }
     }
     

@@ -3,6 +3,7 @@ import SwiftUI
 struct SetTrackerRowDelegate {
     var exercise: Binding<WorkoutExerciseModel>
     var set: Binding<WorkoutSetModel>
+    let lastSet: WorkoutSetModel?
     var eventParameters: [String: Any]? {
         nil
     }
@@ -88,53 +89,48 @@ struct SetTrackerRowView: View {
         set: Binding<WorkoutSetModel>,
         unitPreference: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)
     ) -> some View {
-        let weightBinding: Binding<String> = Binding<String>(
+        let weightBinding: Binding<Double?> = Binding<Double?>(
             get: {
-                guard let kilograms = set.wrappedValue.weightKg else { return "" }
-                let converted = UnitConversion.convertWeight(kilograms, to: unitPreference.weightUnit)
+                guard let kilograms = set.wrappedValue.weightKg else { return nil }
+                return UnitConversion.convertWeight(kilograms, to: unitPreference.weightUnit)
                 // Use trimming of trailing zeros for nicer display but keep as plain string
-                return String(converted)
             },
             set: { newValue in
-                let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !trimmed.isEmpty, let value = Double(trimmed) else {
-                    set.wrappedValue.weightKg = nil
-                    return
-                }
+                guard let value = newValue else { return }
                 let kilos = UnitConversion.convertWeightToKg(value, from: unitPreference.weightUnit)
                 set.wrappedValue.weightKg = kilos
             }
         )
-        TextField("0", text: weightBinding)
-            .focused($isFocused)
-            .onChange(of: isFocused) { _, newValue in
-                if newValue,
-                   !weightBinding.wrappedValue.isEmpty {
-                    let value = weightBinding.wrappedValue
-                    textSelection = TextSelection(range: value.startIndex..<value.endIndex)
-                }
-            }
-            .textFieldStyle(.roundedBorder)
-            .keyboardType(.decimalPad)
+        AutoSelectNumberField(prompt: "-", value: weightBinding, keyboardType: .decimalPad)
             .frame(width: 70, height: 35)
     }
 
     @ViewBuilder
     private func repsField(exercise: WorkoutExerciseModel, set: Binding<WorkoutSetModel>) -> some View {
-        VStack(alignment: .leading) {
-            TextField("0", value: set.reps, format: .number)
-            .textFieldStyle(.roundedBorder)
-            .keyboardType(.numberPad)
-            .frame(height: 35)
-        }
-        .frame(width: 50)
+        let repsValue: Binding<Double?> = Binding<Double?>(
+            get: {
+                if let reps = set.wrappedValue.reps {
+                    return Double(reps)
+                } else {
+                    return nil
+                }
+            },
+            set: { newValue in
+                if let newValue {
+                    set.wrappedValue.reps = Int(newValue)
+                } else {
+                    set.wrappedValue.reps = nil
+                }
+            }
+        )
+        AutoSelectNumberField(prompt: "-", value: repsValue, keyboardType: .numberPad)
+            .frame(width: 50, height: 35)
     }
 
     func previousValues(exercise: Binding<WorkoutExerciseModel>, set: Binding<WorkoutSetModel>) -> some View {
         let unitPreference = presenter.getUnitPreference(for: exercise.wrappedValue)
-        let previousSet = presenter.previousLookup[set.wrappedValue.index]
         return VStack(alignment: .center) {
-            if let prev = previousSet {
+            if let prev = delegate.lastSet {
                 previousValueContent(trackingMode: exercise.wrappedValue.trackingMode, prev: prev, unitPreference: unitPreference)
             } else {
                 Text("—")
@@ -211,13 +207,7 @@ struct SetTrackerRowView: View {
 
     func completeButton(exercise: WorkoutExerciseModel, set: Binding<WorkoutSetModel>) -> some View {
         Button {
-            if set.wrappedValue.completedAt == nil {
-                if presenter.validateSetData(trackingMode: exercise.trackingMode, set: set.wrappedValue) {
-                    set.wrappedValue.completedAt = Date()
-                }
-            } else {
-                set.wrappedValue.completedAt = nil
-            }
+            presenter.onSetComplete(exercise, set)
         } label: {
             Image(systemName: set.wrappedValue.completedAt != nil ? "checkmark.circle.fill" : "circle")
                 .font(.title3)
@@ -405,10 +395,12 @@ struct SetTrackerRowView: View {
 #Preview {
     @Previewable @State var set: WorkoutSetModel = .mock
     @Previewable @State var exercise: WorkoutExerciseModel = .mock
+    let lastSet: WorkoutSetModel? = .mock
+    
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
-    let delegate = SetTrackerRowDelegate(exercise: $exercise, set: $set)
+    let delegate = SetTrackerRowDelegate(exercise: $exercise, set: $set, lastSet: lastSet)
     
     return RouterView { router in
         builder.setTrackerRowView(router: router, delegate: delegate)

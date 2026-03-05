@@ -1,12 +1,12 @@
 //
-//  CreateIngredientRouter.swift
+//  CreateFoodRouter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 27/11/2025.
 //
 
 @MainActor
-protocol CreateIngredientRouter: GlobalRouter {
+protocol CreateFoodRouter: GlobalRouter {
     #if DEV || MOCK
     func showDevSettingsView()
     #endif
@@ -15,4 +15,4 @@ protocol CreateIngredientRouter: GlobalRouter {
     func showBarcodeScannerView(delegate: BarcodeScannerDelegate)
 }
 
-extension CoreRouter: CreateIngredientRouter { }
+extension CoreRouter: CreateFoodRouter { }

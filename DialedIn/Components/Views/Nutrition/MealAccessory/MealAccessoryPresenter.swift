@@ -1,5 +1,5 @@
 //
-//  TabViewAccessoryPresenter.swift
+//  MealAccessoryPresenter.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 21/10/2025.
@@ -9,21 +9,21 @@ import SwiftUI
 
 @Observable
 @MainActor
-class TabViewAccessoryPresenter {
+class MealAccessoryPresenter {
     
-    private let interactor: TabViewAccessoryInteractor
-    private let router: TabViewAccessoryRouter
+    private let interactor: MealAccessoryInteractor
+    private let router: MealAccessoryRouter
 
-    var activeSession: WorkoutSessionModel? {
-        interactor.activeSession
-    }
+    var draftMeal: MealLogModel
     
     init(
-        interactor: TabViewAccessoryInteractor,
-        router: TabViewAccessoryRouter
+        interactor: MealAccessoryInteractor,
+        router: MealAccessoryRouter,
+        delegate: MealAccessoryDelegate
     ) {
         self.interactor = interactor
         self.router = router
+        self.draftMeal = delegate.draftMeal
     }
     
     var progress: Double {
@@ -45,8 +45,8 @@ class TabViewAccessoryPresenter {
         interactor.restEndTime
     }
     
-    func reopenActiveSession() {
-        router.showWorkoutTrackerView()
+    func reopenMealLog() {
+        router.showAddMealView(delegate: AddMealDelegate(mealLog: draftMeal))
     }
 
     func completedSetsCount(_ session: WorkoutSessionModel) -> Int {

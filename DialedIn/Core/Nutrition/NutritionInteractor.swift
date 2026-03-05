@@ -11,11 +11,13 @@ import Foundation
 protocol NutritionInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     var userMeals: [MealLogModel] { get }
+    var draftMeal: MealLogModel? { get }
     var userImageUrl: String? { get }
     func getMeals(for dayKey: String) throws -> [MealLogModel]
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget
     func getDailyTarget(for date: Date, userId: String) async throws -> DailyMacroTarget?
     func addMeal(_ meal: MealLogModel) async throws
+    func deleteDraftMeal() throws
     func deleteMealAndSync(id: String, dayKey: String, authorId: String) async throws
 }
 

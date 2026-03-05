@@ -15,7 +15,7 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
     
     @State var presenter: WorkoutTrackerPresenter
 
-    @ViewBuilder var exerciseTrackerView: (Binding<WorkoutExerciseModel>) -> ExerciseTracker
+    @ViewBuilder var exerciseTrackerView: (ExerciseTrackerDelegate) -> ExerciseTracker
     
     var body: some View {
         List {
@@ -107,7 +107,15 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                 .removeListRowFormatting()
             } else {
                 ForEach($presenter.workoutSession.exercises) { $exercise in
-                    exerciseTrackerView($exercise)
+                    let delegate = ExerciseTrackerDelegate(
+                        exercise: $exercise,
+                        lastExercise: presenter.previousWorkoutSession?.exercises.first(
+                            where: { previousExercise in
+                                previousExercise.templateId == exercise.templateId
+                            }
+                        )
+                    )
+                    exerciseTrackerView(delegate)
                 }
                 .onMove { source, destination in
                     presenter.moveExercises(from: source, to: destination)
@@ -216,10 +224,10 @@ extension CoreBuilder {
         )
         return WorkoutTrackerView(
             presenter: trackerPresenter,
-            exerciseTrackerView: { exercise in
+            exerciseTrackerView: { delegate in
                 self.exerciseTrackerView(
                     router: router,
-                    delegate: ExerciseTrackerDelegate(exercise: exercise),
+                    delegate: delegate,
                     onUpdateRestBefore: { setId, seconds in
                         trackerPresenter.updateRestBefore(setId: setId, seconds: seconds)
                     }

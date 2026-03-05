@@ -1,6 +1,18 @@
 import SwiftUI
 
 struct FoodLibraryDelegate {
+    
+    let mealItems: Binding<[MealItemModel]>
+    let onItemPick: ((MealItemModel) -> Void)?
+    
+    init(
+        mealItems: Binding<[MealItemModel]>,
+        onItemPick: ((MealItemModel) -> Void)? = nil
+    ) {
+        self.mealItems = mealItems
+        self.onItemPick = onItemPick
+    }
+    
     var eventParameters: [String: Any]? {
         nil
     }
@@ -21,9 +33,38 @@ struct FoodLibraryView<
         Group {
             switch presenter.foodLibraryOption {
             case .recipes:
-                recipeList(RecipeListBuilderDelegate())
+                recipeList(
+                    RecipeListBuilderDelegate(
+                        onRecipeSelectionChanged: { recipe in
+                            let mealLogItem = MealItemModel(
+                                itemId: UUID().uuidString,
+                                sourceType: .recipe,
+                                sourceId: recipe.id,
+                                displayName: recipe.name,
+                                amount: 100,
+                                unit: "grams"
+                            )
+                            delegate.onItemPick?(mealLogItem)
+                        }
+                    )
+                )
             case .foods:
-                ingredientList(IngredientListBuilderDelegate())
+                ingredientList(
+                    IngredientListBuilderDelegate(
+                        mealItems: delegate.mealItems,
+                        onIngredientSelectionChanged: { ingredient in
+                            let mealLogItem = MealItemModel(
+                                itemId: UUID().uuidString,
+                                sourceType: .ingredient,
+                                sourceId: ingredient.id,
+                                displayName: ingredient.name,
+                                amount: 100,
+                                unit: "grams"
+                            )
+                            delegate.onItemPick?(mealLogItem)
+                        }
+                    )
+                )
             case .favourites:
                 List {
                     Text("Hello, World!")
@@ -92,12 +133,13 @@ enum FoodLibraryOption: String, CaseIterable, Hashable, Identifiable {
 }
 
 #Preview {
+    @Previewable @State var mealItems: [MealItemModel] = MealItemModel.mocks
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
-    let delegate = FoodLibraryDelegate()
+    let delegate = FoodLibraryDelegate(mealItems: $mealItems)
     
-    return RouterView { router in
+    RouterView { router in
         builder.foodLibraryView(router: router, delegate: delegate)
     }
 }

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SetTrackerDelegate {
     let exercise: Binding<WorkoutExerciseModel>
+    let lastExercise: WorkoutExerciseModel?
 }
 
 struct SetTrackerView<SetTrackerRow: View>: View {
@@ -25,7 +26,16 @@ struct SetTrackerView<SetTrackerRow: View>: View {
                 columnHeaders
             }
             ForEach(delegate.exercise.sets) { set in
-                setTrackerRow(SetTrackerRowDelegate(exercise: delegate.exercise, set: set))
+                let lastSet = delegate.lastExercise?.sets.first { previousSet in
+                    previousSet.index == set.wrappedValue.index
+                }
+                setTrackerRow(
+                    SetTrackerRowDelegate(
+                        exercise: delegate.exercise,
+                        set: set,
+                        lastSet: lastSet
+                    )
+                )
             }
             addSetButton
         }
@@ -78,7 +88,7 @@ struct SetTrackerView<SetTrackerRow: View>: View {
         HStack {
             Image(systemName: "plus")
                 .padding(4)
-                .background(.secondary.opacity(0.3), in: .circle)
+                .background(.secondary.opacity(0.05), in: .circle)
                 .anyButton(.press) {
                     presenter.addSet(exercise: delegate.exercise)
                 }
@@ -115,10 +125,15 @@ struct SetTrackerView<SetTrackerRow: View>: View {
 
 #Preview {
     @Previewable @State var exercise: WorkoutExerciseModel = .mock
+    let lastExercise: WorkoutExerciseModel = .mock
+
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
-    let delegate = SetTrackerDelegate(exercise: $exercise)
+    let delegate = SetTrackerDelegate(
+        exercise: $exercise,
+        lastExercise: lastExercise
+    )
 
     RouterView { router in
         List {
