@@ -23,7 +23,9 @@ struct IngredientListBuilderView: View {
                 if !presenter.userIngredientTemplates.isEmpty {
                     userIngredientTemplatesSection
                 }
-                systemIngredientTemplatesSection
+                if !presenter.systemIngredientTemplates.isEmpty {
+                    systemIngredientTemplatesSection
+                }
             } else {
                 filteredIngredientTemplatesSection
             }
@@ -62,7 +64,7 @@ struct IngredientListBuilderView: View {
                 .removeListRowFormatting()
             }
         } header: {
-            Text("Custom Exercises")
+            Text("Custom Foods")
         }
     }
 
@@ -81,7 +83,7 @@ struct IngredientListBuilderView: View {
                 .removeListRowFormatting()
             }
         } header: {
-            Text("Custom Exercises")
+            Text("System Foods")
         }
     }
 

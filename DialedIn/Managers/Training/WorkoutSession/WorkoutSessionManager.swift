@@ -40,7 +40,7 @@ class WorkoutSessionManager {
         self.activeWorkoutSessionPersistence = activeWorkoutSessionPersistence
         self.userWorkoutSessionSyncEngine = userWorkoutSessionSyncEngine
         self.followingWorkoutSessionSyncEngine = followingWorkoutSessionSyncEngine
-        self.activeSession = try? activeWorkoutSessionPersistence.getDocument(managerKey: "active_session")
+        self.activeSession = try? activeWorkoutSessionPersistence.getDocument(managerKey: Keys.activeWorkoutSessionManagerKey)
     }
     
     // MARK: - Lifecycle
@@ -70,7 +70,7 @@ class WorkoutSessionManager {
     }
 
     func updateActiveSession(_ session: WorkoutSessionModel) throws {
-        try activeWorkoutSessionPersistence.saveDocument(managerKey: "active_session", session)
+        try activeWorkoutSessionPersistence.saveDocument(managerKey: Keys.activeWorkoutSessionManagerKey, session)
         self.activeSession = session
     }
     
@@ -84,7 +84,7 @@ class WorkoutSessionManager {
     }
     
     private func clearActiveSession() throws {
-        try activeWorkoutSessionPersistence.saveDocument(managerKey: "active_session", nil)
+        try activeWorkoutSessionPersistence.saveDocument(managerKey: Keys.activeWorkoutSessionManagerKey, nil)
         self.activeSession = nil
     }
     

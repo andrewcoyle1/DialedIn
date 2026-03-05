@@ -7,12 +7,12 @@
 
 @MainActor
 protocol CreateIngredientRouter: GlobalRouter {
-#if DEV || MOCK
-func showDevSettingsView()
-#endif
-    func showAlert(error: Error)
-
-    func dismissScreen()
+    #if DEV || MOCK
+    func showDevSettingsView()
+    #endif
+    func showPortionDefinitionView(delegate: PortionDefinitionDelegate)
+    func showFoodPackagingView(delegate: FoodPackagingDelegate)
+    func showBarcodeScannerView(delegate: BarcodeScannerDelegate)
 }
 
 extension CoreRouter: CreateIngredientRouter { }

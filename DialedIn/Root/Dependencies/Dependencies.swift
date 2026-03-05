@@ -190,13 +190,14 @@ struct Dependencies {
                 logger: logManager
             )
             nutritionManager = NutritionManager(dietPlanSyncEngine: dietPlanSyncEngine)
+            let draftMealLogPersistence = FileManagerDocumentPersistence<MealLogModel>()
             let mealLogSyncEngine = CollectionSyncEngine<MealLogModel>(
                 remote: MockRemoteCollectionService(collection: MealLogModel.mockWeekMealsByDay.values.flatMap { $0 }),
                 managerKey: Keys.mealLogManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            mealLogManager = MealLogManager(mealLogSyncEngine: mealLogSyncEngine)
+            mealLogManager = MealLogManager(draftMealLogPersistence: draftMealLogPersistence, mealLogSyncEngine: mealLogSyncEngine)
             aiManager = AIManager(service: MockAIService())
             reportManager = ReportManager(service: MockReportService(), userManager: userManager, logManager: logManager)
             let bodyMeasurementsSyncEngine = CollectionSyncEngine<BodyMeasurementEntry>(
@@ -381,6 +382,7 @@ struct Dependencies {
                 logger: logManager
             )
             nutritionManager = NutritionManager(dietPlanSyncEngine: dietPlanSyncEngine)
+            let draftMealLogPersistence = FileManagerDocumentPersistence<MealLogModel>()
             let mealLogSyncEngine = CollectionSyncEngine<MealLogModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [weak authManager] in
@@ -392,7 +394,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            mealLogManager = MealLogManager(mealLogSyncEngine: mealLogSyncEngine)
+            mealLogManager = MealLogManager(draftMealLogPersistence: draftMealLogPersistence, mealLogSyncEngine: mealLogSyncEngine)
             aiManager = AIManager(service: GoogleAIService())
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logManager)
             let bodyMeasurementsSyncEngine = CollectionSyncEngine<BodyMeasurementEntry>(
@@ -587,6 +589,7 @@ struct Dependencies {
                 logger: logManager
             )
             nutritionManager = NutritionManager(dietPlanSyncEngine: dietPlanSyncEngine)
+            let draftMealLogPersistence = FileManagerDocumentPersistence<MealLogModel>()
             let mealLogSyncEngine = CollectionSyncEngine<MealLogModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [weak authManager] in
@@ -598,7 +601,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            mealLogManager = MealLogManager(mealLogSyncEngine: mealLogSyncEngine)
+            mealLogManager = MealLogManager(draftMealLogPersistence: draftMealLogPersistence, mealLogSyncEngine: mealLogSyncEngine)
             aiManager = AIManager(service: GoogleAIService())
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logManager)
             let bodyMeasurementsSyncEngine = CollectionSyncEngine<BodyMeasurementEntry>(
@@ -876,13 +879,14 @@ class DevPreview {
             logger: logManager
         )
         nutritionManager = NutritionManager(dietPlanSyncEngine: dietPlanSyncEngine)
+        let draftMealLogPersistence = FileManagerDocumentPersistence<MealLogModel>()
         let mealLogSyncEngine = CollectionSyncEngine<MealLogModel>(
             remote: MockRemoteCollectionService(collection: MealLogModel.previewWeekMealsByDay.values.flatMap { $0 }),
             managerKey: Keys.mealLogManagerKey,
             enableLocalPersistence: true,
             logger: logManager
         )
-        self.mealLogManager = MealLogManager(mealLogSyncEngine: mealLogSyncEngine)
+        self.mealLogManager = MealLogManager(draftMealLogPersistence: draftMealLogPersistence, mealLogSyncEngine: mealLogSyncEngine)
         self.aiManager = AIManager(service: MockAIService())
         self.pushManager = PushManager(logManager: logManager)
         self.logManager = logManager

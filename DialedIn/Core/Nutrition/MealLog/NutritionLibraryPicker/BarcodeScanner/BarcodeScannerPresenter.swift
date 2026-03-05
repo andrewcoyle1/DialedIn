@@ -87,6 +87,10 @@ class BarcodeScannerPresenter {
         labelError = nil
         isScanning = true
     }
+    
+    func onDismissPressed() {
+        router.dismissScreen()
+    }
 }
 
 extension BarcodeScannerPresenter {

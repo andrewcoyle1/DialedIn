@@ -11,6 +11,7 @@ import SwiftUI
 @MainActor
 class MealLogManager {
 
+    private let draftMealLogPersistence: any LocalDocumentPersistence<MealLogModel>
     private let mealLogSyncEngine: CollectionSyncEngine<MealLogModel>
 
     // UI state for draft/edit flows
@@ -20,8 +21,14 @@ class MealLogManager {
         mealLogSyncEngine.currentCollection
     }
 
-    init(mealLogSyncEngine: CollectionSyncEngine<MealLogModel>) {
+    init(
+        draftMealLogPersistence: any LocalDocumentPersistence<MealLogModel>,
+        mealLogSyncEngine: CollectionSyncEngine<MealLogModel>
+    ) {
+        self.draftMealLogPersistence = draftMealLogPersistence
         self.mealLogSyncEngine = mealLogSyncEngine
+        self.draftMeal = try? draftMealLogPersistence.getDocument(managerKey: Keys.draftMealLogManagerKey)
+
     }
 
     // MARK: - Lifecycle
@@ -38,6 +45,21 @@ class MealLogManager {
 
     // MARK: - High-level API
 
+    func updateActiveSession(_ draftMeal: MealLogModel) throws {
+        try draftMealLogPersistence.saveDocument(managerKey: Keys.draftMealLogManagerKey, draftMeal)
+        self.draftMeal = draftMeal
+    }
+    
+    func deleteDraftMeal() throws {
+        try self.clearDraftMeal()
+    }
+
+    private func clearDraftMeal() throws {
+        try draftMealLogPersistence.saveDocument(managerKey: Keys.draftMealLogManagerKey, nil)
+        self.draftMeal = nil
+
+    }
+    
     func saveMeal(_ meal: MealLogModel) async throws {
         try await mealLogSyncEngine.saveDocument(meal)
     }

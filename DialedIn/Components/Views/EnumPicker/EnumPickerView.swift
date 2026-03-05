@@ -6,7 +6,7 @@ struct EnumPickerDelegate<Item: PickableItem> {
     var canDelete: Bool
 }
 
-protocol PickableItem: CaseIterable, Hashable {
+protocol PickableItem: CaseIterable, Hashable where AllCases: RandomAccessCollection {
     var name: String { get }
     var description: String? { get }
 }

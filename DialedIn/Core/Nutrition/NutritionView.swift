@@ -177,15 +177,15 @@ struct NutritionView<CalendarHeaderView: View>: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
                 
-#if DEV || MOCK
-ToolbarItem(placement: .topBarTrailing) {
-    Button {
-        presenter.onDevSettingsPressed()
-    } label: {
-        Image(systemName: "info")
-    }
-}
-#endif
+        #if DEV || MOCK
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                presenter.onDevSettingsPressed()
+            } label: {
+                Image(systemName: "info")
+            }
+        }
+        #endif
 
         ToolbarItem(placement: .topBarTrailing) {
             Button {

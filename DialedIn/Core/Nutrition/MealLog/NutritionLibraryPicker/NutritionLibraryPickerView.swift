@@ -12,7 +12,14 @@ struct NutritionLibraryPickerDelegate {
     var onPick: (MealItemModel) -> Void
 }
 
-struct NutritionLibraryPickerView<FoodItemSearch: View, BarcodeScanner: View, FoodPhotoScanner: View>: View {
+struct NutritionLibraryPickerView<
+    FoodItemSearch: View,
+    BarcodeScanner: View,
+    FoodPhotoScanner: View,
+    FoodQuickAdd: View,
+    FoodLibrary: View,
+    MealDescribe: View
+>: View {
 
     @State var presenter: NutritionLibraryPickerPresenter
 
@@ -21,23 +28,12 @@ struct NutritionLibraryPickerView<FoodItemSearch: View, BarcodeScanner: View, Fo
     @ViewBuilder var barcodeScanner: (BarcodeScannerDelegate) -> BarcodeScanner
     @ViewBuilder var foodItemSearch: (FoodItemSearchDelegate) -> FoodItemSearch
     @ViewBuilder var foodPhotoScanner: (FoodPhotoScannerDelegate) -> FoodPhotoScanner
+    @ViewBuilder var foodQuickAdd: (FoodItemQuickAddDelegate) -> FoodQuickAdd
+    @ViewBuilder var foodLibrary: (FoodLibraryDelegate) -> FoodLibrary
+    @ViewBuilder var mealDescribe: (MealDescribeDelegate) -> MealDescribe
 
     var body: some View {
-        VStack {
-            ScrollView(.horizontal) {
-                HStack {
-                    ForEach(NutritionPickerMode.allCases) { mode in
-                        Button {
-                            presenter.onModePressed(mode)
-                        } label: {
-                            Label(mode.title, systemImage: mode.systemName).tag(mode)
-                        }
-                        .buttonStyle(.glass)
-                    }
-                }
-            }
-            .scrollIndicators(.hidden)
-            .padding(.horizontal)
+        Group {
             
             switch presenter.mode {
             case .barcode:
@@ -47,32 +43,34 @@ struct NutritionLibraryPickerView<FoodItemSearch: View, BarcodeScanner: View, Fo
             case .ai:
                 foodPhotoScanner(FoodPhotoScannerDelegate(onPick: delegate.onPick))
             case .quickAdd:
-                List {
-                    quickAddSection
-                }
+                foodQuickAdd(FoodItemQuickAddDelegate())
             case .library:
-                List {
-                    librarySection
-                }
+                foodLibrary(FoodLibraryDelegate())
             case .describe:
-                List {
-                    describeSection
-                }
+                mealDescribe(MealDescribeDelegate())
             }
             
         }
         .navigationTitle("Add Item")
         .navigationBarTitleDisplayMode(.inline)
+        .safeAreaInset(edge: .top) {
+            ScrollView(.horizontal) {
+                HStack {
+                    ForEach(NutritionPickerMode.allCases) { mode in
+                        Button {
+                            presenter.onModePressed(mode)
+                        } label: {
+                            Label(mode.title, systemImage: mode.systemName).tag(mode)
+                        }
+                        .glassEffect()
+                    }
+                }
+            }
+            .scrollIndicators(.hidden)
+            .padding(.horizontal)
+        }
     }
     
-    private var quickAddSection: some View {
-        Text("Quick Add Section...")
-    }
-
-    private var librarySection: some View {
-        Text("Library Section...")
-    }
-
     private var describeSection: some View {
         Text("Describe Section...")
     }
@@ -136,6 +134,15 @@ extension CoreBuilder {
             },
             foodPhotoScanner: { photoDelegate in
                 self.foodPhotoScannerView(router: router, delegate: photoDelegate)
+            },
+            foodQuickAdd: { quickAddDelegate in
+                self.foodItemQuickAddView(router: router, delegate: quickAddDelegate)
+            },
+            foodLibrary: { foodLibraryDelegate in
+                self.foodLibraryView(router: router, delegate: foodLibraryDelegate)
+            },
+            mealDescribe: { mealDescribeDelegate in
+                self.mealDescribeView(router: router, delegate: mealDescribeDelegate)
             }
         )
     }
@@ -143,7 +150,7 @@ extension CoreBuilder {
 
 extension CoreRouter {
     func showNutritionLibraryPickerView(delegate: NutritionLibraryPickerDelegate) {
-        router.showScreen(.sheetConfig(config: ResizableSheetConfig(detents: [.fraction(0.95)], dragIndicator: .visible))) { router in
+        router.showScreen(.sheet) { router in
             builder.nutritionLibraryPickerView(router: router, delegate: delegate)
         }
     }

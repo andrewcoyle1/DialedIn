@@ -11,8 +11,6 @@ struct FoodItemSearchView: View {
     @State var presenter: FoodItemSearchPresenter
     let delegate: FoodItemSearchDelegate
     
-    @FocusState var focusState: FocusField?
-
     var body: some View {
         List {
             fromHistorySection
@@ -21,9 +19,7 @@ struct FoodItemSearchView: View {
             fromOpenFoodFactsSection
         }
         .searchable(text: $presenter.searchText)
-        .searchFocused($focusState, equals: FocusField.searchBar)
         .onAppear {
-            focusState = .searchBar
             presenter.onViewAppear(delegate: delegate)
         }
         .onDisappear {

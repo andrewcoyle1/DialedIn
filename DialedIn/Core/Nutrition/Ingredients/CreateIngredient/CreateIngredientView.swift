@@ -10,22 +10,21 @@ import PhotosUI
 
 struct CreateIngredientView: View {
 
+    @Environment(\.colorScheme) private var colorScheme
     @State var presenter: CreateIngredientPresenter
 
+    var barcodeGenerator = BarcodeGenerator()
+    
     var body: some View {
         List {
             imageSection
-            nameSection
-            macroNutrientSection
-            essentialMacroMineralsSection
-            essentialTraceMineralsSection
-            fatSolubleMineralsSection
-            waterSolubleVitaminsSection
-            bioactiveCompounts
+            foodNameSection
+            brandNameSection
+            barcodeSection
+            submitToPublicDatabaseSection
         }
-        .navigationBarTitle("New Custom Ingredient")
-        .navigationSubtitle("Define ingredient details and nutrition")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitle("Create Food")
+        .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
         .onAppear {
             presenter.onViewAppear()
@@ -35,6 +34,18 @@ struct CreateIngredientView: View {
         }
         .toolbar {
             toolbarContent
+        }
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                presenter.onNextPressed()
+            } label: {
+                Text("Next")
+                    .padding()
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(!presenter.canSave)
+            .padding()
         }
         .onChange(of: presenter.selectedPhotoItem) {
             guard let newItem = presenter.selectedPhotoItem else { return }
@@ -47,169 +58,117 @@ struct CreateIngredientView: View {
 
     private var imageSection: some View {
         Section {
-            HStack {
-                Spacer()
-                Button {
-                    presenter.onImageSelectorPressed()
-                } label: {
-                    ZStack {
-                        Rectangle()
-                            .fill(Color.secondary.opacity(0.001))
-                        Group {
-                            if let data = presenter.selectedImageData {
-                                #if canImport(UIKit)
-                                if let uiImage = UIImage(data: data) {
-                                    Image(uiImage: uiImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                }
-                                #elseif canImport(AppKit)
-                                if let nsImage = NSImage(data: data) {
-                                    Image(nsImage: nsImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                }
-                                #endif
-                            } else {
-                                #if canImport(UIKit)
-                                if let generatedImage = presenter.generatedImage {
-                                    Image(uiImage: generatedImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                } else {
-                                    Image(systemName: "carrot.fill")
-                                        .font(.system(size: 120))
-                                        .foregroundStyle(.accent)
-                                }
-                                #else
-                                Image(systemName: "carrot.fill")
-                                    .font(.system(size: 120))
-                                    .foregroundStyle(.accent)
-                                #endif
+            Button {
+                presenter.onImageSelectorPressed()
+            } label: {
+                ZStack {
+                    Rectangle()
+                        .fill(Color.secondary.opacity(0.001))
+                    Group {
+                        if let data = presenter.selectedImageData {
+                            #if canImport(UIKit)
+                            if let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .clipShape(Circle())
+                                    .frame(width: 120, height: 120)
+                            }
+                            #elseif canImport(AppKit)
+                            if let nsImage = NSImage(data: data) {
+                                Image(nsImage: nsImage)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .clipShape(Circle())
+                                    .frame(width: 120, height: 120)
+                            }
+                            #endif
+                        } else {
+                            ZStack(alignment: .bottomTrailing) {
+                                Image(systemName: "fork.knife.circle")
+                                    .font(.system(size: 100))
+                                    .foregroundStyle(.secondary.opacity(0.4))
+                                Image(systemName: "pencil.circle.fill")
+                                    .font(.system(size: 24))
+                                    .padding(12)
                             }
                         }
                     }
-                    .frame(width: 120, height: 120)
                 }
-                .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
-                Spacer()
-            }
-        } header: {
-            HStack {
-                Text("Ingredient Image")
-                Spacer()
-                Button {
-                    presenter.onGenerateImagePressed()
-                } label: {
-                    Image(systemName: "wand.and.sparkles")
-                        .font(.system(size: 20))
-                }
-                .disabled(presenter.isGenerating || (presenter.name?.isEmpty ?? true))
+                .frame(maxWidth: .infinity)
+                .frame(height: 120)
             }
         }
         .removeListRowFormatting()
+        .photosPicker(isPresented: $presenter.isImagePickerPresented, selection: $presenter.selectedPhotoItem, matching: .images)
     }
     
-    private var nameSection: some View {
+    private var foodNameSection: some View {
+        Section {
+            TextField("Add name", text: $presenter.name)
+        } header: {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Food Name")
+                Spacer()
+                Text("Required")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var brandNameSection: some View {
         Section {
             TextField("Add name", text: Binding(
-                get: { presenter.name ?? "" },
+                get: { presenter.brandName ?? "" },
                 set: { newValue in
-                    presenter.name = newValue.isEmpty ? nil : newValue
-                }
-            ))
-            TextField("Add description", text: Binding(
-                get: { presenter.description ?? "" },
-                set: { newValue in
-                    presenter.description = newValue.isEmpty ? nil : newValue
+                    presenter.brandName = newValue.isEmpty ? nil : newValue
                 }
             ))
         } header: {
-            Text("Name")
+            Text("Brand Name")
         }
     }
     
-    private var macroNutrientSection: some View {
+    private var barcodeSection: some View {
         Section {
-            inputRow(label: "Calories", value: $presenter.calories, unit: "kcal")
-            inputRow(label: "Protein", value: $presenter.protein, unit: "g")
-            inputRow(label: "Carbs", value: $presenter.carbs, unit: "g")
-            inputRow(label: "Total Fat", value: $presenter.fatTotal, unit: "g")
-            inputRow(label: "Saturated Fat", value: $presenter.fatSaturated, unit: "g")
-            inputRow(label: "Monounsaturated Fat", value: $presenter.fatMonounsaturated, unit: "g")
-            inputRow(label: "Polyunsaturated Fat", value: $presenter.fatPolyunsaturated, unit: "g")
-            inputRow(label: "Fiber", value: $presenter.fiber, unit: "g")
-            inputRow(label: "Sugar", value: $presenter.sugar, unit: "g")
+            Group {
+                if let barcode = presenter.barcode {
+                    VStack {
+                        barcodeGenerator.generateBarcode(text: barcode)
+                        Text(barcode)
+                    }
+                } else {
+                    Label("Barcode", systemImage: "barcode")
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 60)
+            .anyButton(.press) {
+                presenter.onBarcodeScannerPressed()
+            }
         } header: {
-            Text("Macronutrients")
+            Text("Barcode")
         }
     }
-
-    private var essentialMacroMineralsSection: some View {
+    
+    private var submitToPublicDatabaseSection: some View {
         Section {
-            // Essential Macrominerals - Required in larger amounts
-            inputRow(label: "Calcium", value: $presenter.calciumMg, unit: "mg")
-            inputRow(label: "Phosphorus", value: $presenter.phosphorusMg, unit: "mg")
-            inputRow(label: "Magnesium", value: $presenter.magnesiumMg, unit: "mg")
-            inputRow(label: "Sodium", value: $presenter.sodiumMg, unit: "mg")
-            inputRow(label: "Potassium", value: $presenter.potassiumMg, unit: "mg")
-            inputRow(label: "Chloride", value: $presenter.chlorideMg, unit: "mg")
-        } header: {
-            Text("Essential Macrominerals")
-        }
-    }
-
-    private var essentialTraceMineralsSection: some View {
-        Section {
-            // Essential Trace Minerals - Required in smaller amounts
-            inputRow(label: "Iron", value: $presenter.ironMg, unit: "mg")
-            inputRow(label: "Zinc", value: $presenter.zincMg, unit: "mg")
-            inputRow(label: "Copper", value: $presenter.copperMg, unit: "mg")
-            inputRow(label: "Manganese", value: $presenter.manganeseMg, unit: "mg")
-            inputRow(label: "Iodine", value: $presenter.iodineMcg, unit: "μg")
-            inputRow(label: "Selenium", value: $presenter.seleniumMcg, unit: "μg")
-            inputRow(label: "Molybdenum", value: $presenter.molybdenumMcg, unit: "μg")
-            inputRow(label: "Chromium", value: $presenter.chromiumMcg, unit: "μg")
-        } header: {
-            Text("Essential Trace Minerals")
-        }
-    }
-
-    private var fatSolubleMineralsSection: some View {
-        Section {
-            // Fat-Soluble Vitamins - A, D, E, K
-            inputRow(label: "Vitamin A", value: $presenter.vitaminAMcg, unit: "μg RAE")
-            inputRow(label: "Vitamin D", value: $presenter.vitaminDMcg, unit: "μg")
-            inputRow(label: "Vitamin E", value: $presenter.vitaminEMg, unit: "mg α-tocopherol")
-            inputRow(label: "Vitamin K", value: $presenter.vitaminKMcg, unit: "μg")
-        } header: {
-            Text("Fat-Soluble Vitamins")
-        }
-    }
-
-    private var waterSolubleVitaminsSection: some View {
-        Section {
-            // Water-Soluble Vitamins - B-Complex & C
-            inputRow(label: "Thiamin - B1", value: $presenter.thiaminMg, unit: "mg")
-            inputRow(label: "Riboflavin - B2", value: $presenter.riboflavinMg, unit: "mg")
-            inputRow(label: "Niacin - B3", value: $presenter.niacinMg, unit: "mg NE")
-            inputRow(label: "Pantothenic Acid - B5", value: $presenter.pantothenicAcidMg, unit: "mg")
-            inputRow(label: "Vitamin B6", value: $presenter.vitaminB6Mg, unit: "mg")
-            inputRow(label: "Biotin - B7", value: $presenter.biotinMcg, unit: "μg")
-            inputRow(label: "Folate - B9", value: $presenter.folateMcg, unit: "μg DFE")
-            inputRow(label: "Vitamin B12", value: $presenter.vitaminB12Mcg, unit: "μg")
-            inputRow(label: "Vitamin C", value: $presenter.vitaminCMg, unit: "mg")
-        } header: {
-            Text("Water-Soluble Vitamins")
-        }
-    }
-    private var bioactiveCompounts: some View {
-        Section {
-            // Bioactive Compounds
-            inputRow(label: "Cholesterol", value: $presenter.cholesterolMg, unit: "mg")
-            inputRow(label: "Caffeine", value: $presenter.caffeineMg, unit: "mg")
-        } header: {
-            Text("Bioactive Compounds")
+            CustomToggleView(
+                title: "Submit Foods to the Public Database?",
+                subtitle: "Toggle this option to contribute new foods",
+                bool: $presenter.contributeToPublicDatabase
+            )
+            .removeListRowFormatting()
+            HStack {
+                Text("Learn More")
+                    .padding(8)
+                    .background(.secondary.opacity(0.3), in: .capsule)
+                Spacer()
+            }
+            .anyButton(.press) {
+                presenter.onLearnMorePressed()
+            }
         }
     }
 
@@ -245,18 +204,7 @@ struct CreateIngredientView: View {
             }
         }
         #endif
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                Task {
-                    await presenter.onSavePressed()
-                }
-            } label: {
-                Image(systemName: "checkmark")
             }
-            .buttonStyle(.glassProminent)
-            .disabled(!presenter.canSave || presenter.isSaving)
-        }
-    }
 }
 
 extension CoreBuilder {

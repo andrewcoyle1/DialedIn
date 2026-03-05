@@ -13,7 +13,6 @@ struct ExpenditureSettingsView: View {
         List {
             Section {
                 CustomLabelButtonView(
-                    symbolName: "",
                     title: "Estimation Method",
                     subtitle: "Default") {
                         Text("Edit")
@@ -25,7 +24,6 @@ struct ExpenditureSettingsView: View {
                             }
                     }
                 CustomLabelButtonView(
-                    symbolName: "",
                     title: "Calculation Start Date",
                     subtitle: "Default") {
                         Text("Edit")
@@ -37,7 +35,6 @@ struct ExpenditureSettingsView: View {
                             }
                     }
                 CustomLabelButtonView(
-                    symbolName: "",
                     title: "BMR Equation",
                     subtitle: "Configure how your BMR is initially calculated") {
                         Image(systemName: "chevron.right")
@@ -53,7 +50,6 @@ struct ExpenditureSettingsView: View {
 
             Section {
                 CustomLabelButtonView(
-                    symbolName: "",
                     title: "Calculation Mode",
                     subtitle: "Dynamic") {
                         Text("Edit")
@@ -65,7 +61,6 @@ struct ExpenditureSettingsView: View {
                             }
                     }
                 CustomLabelButtonView(
-                    symbolName: "",
                     title: "Algorithm",
                     subtitle: "Expenditure V1") {
                         Text("Edit")
@@ -82,13 +77,11 @@ struct ExpenditureSettingsView: View {
 
             Section {
                 CustomToggleView(
-                    symbolName: "",
                     title: "Step-Informed Updates",
                     subtitle: "Uses step trends to speed up expenditure updates during periods where the step data improves confidence",
                     bool: $presenter.stepInformedUpdates
                 )
                 CustomToggleView(
-                    symbolName: "",
                     title: "Predictive Goal Adjustment",
                     subtitle: "Applies a predictive adjustment to expenditure based on the likely impact of goal changes",
                     bool: $presenter.predictiveGoalAdjustments

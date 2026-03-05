@@ -2,6 +2,8 @@ import SwiftUI
 import VisionKit
 
 struct BarcodeScannerDelegate {
+    
+    var onBarcodeScanned: ((String) -> Void)?
     var eventParameters: [String: Any]? {
         nil
     }
@@ -50,6 +52,11 @@ struct BarcodeScannerView: View {
         .onChange(of: presenter.scanningMode) { _, newValue in
             presenter.recognisedTypes = newValue.recognisedTypes
             presenter.onRescanPressed()
+        }
+        .onChange(of: presenter.scannedCode) { _, newValue in
+            guard let code = newValue else { return }
+            delegate.onBarcodeScanned?(code)
+            presenter.onDismissPressed()
         }
         .onAppear {
             presenter.onViewAppear(delegate: delegate)
@@ -400,6 +407,17 @@ extension CoreBuilder {
         )
     }
 
+}
+
+// MARK: CoreRouter
+
+extension CoreRouter {
+    
+    func showBarcodeScannerView(delegate: BarcodeScannerDelegate) {
+        router.showScreen(.sheet) { router in
+            builder.barcodeScannerView(router: router, delegate: delegate)
+        }
+    }
 }
 
 // MARK: - Preview

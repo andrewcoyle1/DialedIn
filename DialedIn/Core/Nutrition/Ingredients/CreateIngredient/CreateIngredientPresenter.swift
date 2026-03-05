@@ -18,61 +18,13 @@ class CreateIngredientPresenter {
     var selectedPhotoItem: PhotosPickerItem?
     var selectedImageData: Data?
     var isImagePickerPresented: Bool = false
-    var name: String?
-    var description: String?
-    var measurementMethod: MeasurementMethod = .weight
-    var calories: Double?
-    var protein: Double?
-    var carbs: Double?
-    var fatTotal: Double?
-    var fatSaturated: Double?
-    var fatMonounsaturated: Double?
-    var fatPolyunsaturated: Double?
-    var fiber: Double?
-    var sugar: Double?
-    var sodiumMg: Double?
-    var potassiumMg: Double?
-    var calciumMg: Double?
-    var ironMg: Double?
-    var vitaminCMg: Double?
-    var vitaminDMcg: Double?
-    var magnesiumMg: Double?
-    var zincMg: Double?
-    
-    // Additional minerals
-    var chromiumMcg: Double?
-    var seleniumMcg: Double?
-    var manganeseMg: Double?
-    var molybdenumMcg: Double?
-    var phosphorusMg: Double?
-    var copperMg: Double?
-    var chlorideMg: Double?
-    var iodineMcg: Double?
-    
-    // Vitamins
-    var vitaminAMcg: Double?
-    var vitaminB6Mg: Double?
-    var vitaminB12Mcg: Double?
-    var vitaminEMg: Double?
-    var vitaminKMcg: Double?
-    var thiaminMg: Double?
-    var riboflavinMg: Double?
-    var niacinMg: Double?
-    var pantothenicAcidMg: Double?
-    var folateMcg: Double?
-    var biotinMcg: Double?
-    
-    // Other compounds
-    var caffeineMg: Double?
-    var cholesterolMg: Double?
+    var name: String = ""
+    var brandName: String?
+    var barcode: String?
+    var contributeToPublicDatabase: Bool = false
 
-    var isGenerating: Bool = false
-    var generatedImage: UIImage?
-
-    private(set) var isSaving: Bool = false
-    
     var canSave: Bool {
-        !(name?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
     init(
@@ -115,90 +67,75 @@ class CreateIngredientPresenter {
             }
         }
     }
-
-    func onSavePressed() async {
-        guard let ingredientName = name, !isSaving, canSave else { return }
-        isSaving = true
-        
-        do {
-            guard let userId = interactor.currentUser?.userId else {
-                return
-            }
-            
-            let newIngredient = IngredientTemplateModel(
-                ingredientId: UUID().uuidString, authorId: userId,
-                name: ingredientName, description: description,
-                measurementMethod: measurementMethod, calories: calories,
-                protein: protein, carbs: carbs, fatTotal: fatTotal,
-                fatSaturated: fatSaturated, fatMonounsaturated: fatMonounsaturated,
-                fatPolyunsaturated: fatPolyunsaturated, fiber: fiber,
-                sugar: sugar, sodiumMg: sodiumMg, potassiumMg: potassiumMg,
-                calciumMg: calciumMg, ironMg: ironMg,
-                vitaminAMcg: vitaminAMcg, vitaminB6Mg: vitaminB6Mg,
-                vitaminB12Mcg: vitaminB12Mcg, vitaminCMg: vitaminCMg,
-                vitaminDMcg: vitaminDMcg, vitaminEMg: vitaminEMg,
-                vitaminKMcg: vitaminKMcg, magnesiumMg: magnesiumMg,
-                zincMg: zincMg, biotinMcg: biotinMcg, copperMg: copperMg,
-                folateMcg: folateMcg, iodineMcg: iodineMcg,
-                niacinMg: niacinMg, thiaminMg: thiaminMg,
-                caffeineMg: caffeineMg, chlorideMg: chlorideMg,
-                chromiumMcg: chromiumMcg, seleniumMcg: seleniumMcg,
-                manganeseMg: manganeseMg, molybdenumMcg: molybdenumMcg,
-                phosphorusMg: phosphorusMg, riboflavinMg: riboflavinMg,
-                cholesterolMg: cholesterolMg,
-                pantothenicAcidMg: pantothenicAcidMg,
-                imageURL: nil,
-                dateCreated: Date(),
-                dateModified: Date(),
-                clickCount: 0
-            )
-            
-#if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
-            try await interactor.saveIngredientTemplate(newIngredient, image: uiImage)
-#elseif canImport(AppKit)
-            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            try await interactor.saveIngredientTemplate(newIngredient, image: uiImage)
-#endif
-        } catch {
-            
-        }
-        isSaving = false
-        router.dismissScreen()
-    }
     
     func onCancelPressed() {
         router.dismissScreen()
     }
-
-    func onGenerateImagePressed() {
-        isGenerating = true
-        Task {
-            do {
-                interactor.trackEvent(eventName: "AI_Image_Generate_Start", parameters: [
-                    "subject": "ingredient",
-                    "has_name": !(name?.isEmpty ?? true)
-                ], type: .analytic)
-                let imageDescriptionBuilder = ImageDescriptionBuilder(
-                    subject: .ingredient,
-                    mode: .marketingConcise,
-                    name: name ?? "",
-                    description: description,
-                    contextNotes: "",
-                    desiredStyle: "",
-                    backgroundPreference: "",
-                    lightingPreference: "",
-                    framingNotes: ""
+    
+    func onNextPressed() {
+        if contributeToPublicDatabase {
+            #if canImport(UIKit)
+            let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
+            router.showFoodPackagingView(
+                delegate: FoodPackagingDelegate(
+                    name: self.name,
+                    brandName: self.brandName,
+                    barcode: self.barcode,
+                    image: uiImage
                 )
-                let prompt = imageDescriptionBuilder.build()
-                generatedImage = try await interactor.generateImage(input: prompt)
-                interactor.trackEvent(eventName: "AI_Image_Generate_Success", parameters: [:], type: .analytic)
-            } catch {
-                interactor.trackEvent(eventName: "AI_Image_Generate_Fail", parameters: error.eventParameters, type: .severe)
-                router.showAlert(error: error)
-            }
-            isGenerating = false
+            )
+            #elseif canImport(AppKit)
+            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
+            router.showFoodPackagingView(
+                delegate: FoodPackagingDelegate(
+                    name: self.name,
+                    brandName: self.brandName,
+                    barcode: self.barcode,
+                    image: nsImage
+                )
+            )
+            #endif
+        } else {
+            #if canImport(UIKit)
+            let uiImage = selectedImageData.flatMap { UIImage(data: $0) }
+            router.showPortionDefinitionView(
+                delegate: PortionDefinitionDelegate(
+                    name: self.name,
+                    brandName: self.brandName,
+                    barcode: self.barcode,
+                    image: uiImage,
+                    productFront: nil,
+                    nutritionPhoto: nil
+                )
+            )
+            #elseif canImport(AppKit)
+            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
+            router.showPortionDefinitionView(
+                delegate: PortionDefinitionDelegate(
+                    name: self.name,
+                    brandName: self.brandName,
+                    barcode: self.barcode,
+                    image: nsImage,
+                    productFront: nil,
+                    nutritionPhoto: nil
+                )
+            )
+            #endif
         }
+    }
+    
+    func onLearnMorePressed() {
+        
+    }
+    
+    func onBarcodeScannerPressed() {
+        router.showBarcodeScannerView(
+            delegate: BarcodeScannerDelegate(
+                onBarcodeScanned: { barcode in
+                    self.barcode = barcode
+                }
+            )
+        )
     }
 
 #if DEV || MOCK
@@ -213,9 +150,6 @@ func onDevSettingsPressed() {
         case createIngredientStart
         case createIngredientSuccess
         case createIngredientFail(error: Error)
-        case ingredientGenerateImageStart
-        case ingredientGenerateImageSuccess
-        case ingredientGenerateImageFail(error: Error)
         case imageSelectorStart
         case imageSelectorSuccess
         case imageSelectorCancel
@@ -228,9 +162,6 @@ func onDevSettingsPressed() {
             case .createIngredientStart:            return "CreateIngredient_Start"
             case .createIngredientSuccess:          return "CreateIngredient_Success"
             case .createIngredientFail:             return "CreateIngredient_Fail"
-            case .ingredientGenerateImageStart:     return "IngredientGenerateImage_Start"
-            case .ingredientGenerateImageSuccess:   return "IngredientGenerateImage_Success"
-            case .ingredientGenerateImageFail:      return "IngredientGenerateImage_Fail"
             case .imageSelectorStart:               return "IngredientImageSelector_Start"
             case .imageSelectorSuccess:             return "IngredientImageSelector_Success"
             case .imageSelectorCancel:              return "IngredientImageSelector_Cancel"
@@ -240,7 +171,7 @@ func onDevSettingsPressed() {
 
         var parameters: [String: Any]? {
             switch self {
-            case .createIngredientFail(error: let error), .ingredientGenerateImageFail(error: let error), .imageSelectorFail(error: let error):
+            case .createIngredientFail(error: let error), .imageSelectorFail(error: let error):
                 return error.eventParameters
             default:
                 return nil
@@ -249,7 +180,7 @@ func onDevSettingsPressed() {
 
         var type: LogType {
             switch self {
-            case .createIngredientFail, .ingredientGenerateImageFail, .imageSelectorFail:
+            case .createIngredientFail, .imageSelectorFail:
                 return .severe
             default:
                 return .analytic

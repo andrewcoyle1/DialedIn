@@ -209,8 +209,8 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
 }
 
 extension CoreBuilder {
-    func workoutTrackerView(router: AnyRouter) -> some View {
-        let trackerPresenter = WorkoutTrackerPresenter(
+    func workoutTrackerView(router: AnyRouter) throws -> some View {
+        let trackerPresenter = try WorkoutTrackerPresenter(
             interactor: interactor,
             router: CoreRouter(router: router, builder: self)
         )
@@ -232,7 +232,7 @@ extension CoreBuilder {
 extension CoreRouter {
     func showWorkoutTrackerView() {
         router.showScreen(.fullScreenCover) { router in
-            builder.workoutTrackerView(router: router)
+            try? builder.workoutTrackerView(router: router)
         }
     }
 }
@@ -257,7 +257,7 @@ extension CoreRouter {
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
     return RouterView { router in
-        builder.workoutTrackerView(router: router)
+        try? builder.workoutTrackerView(router: router)
     }
     
 }
@@ -267,7 +267,7 @@ extension CoreRouter {
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
     RouterView { router in
-        builder.workoutTrackerView(router: router)
+        try? builder.workoutTrackerView(router: router)
     }
     
 }

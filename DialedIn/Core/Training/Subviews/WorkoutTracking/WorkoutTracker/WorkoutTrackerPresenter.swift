@@ -87,16 +87,15 @@ class WorkoutTrackerPresenter {
     init(
         interactor: WorkoutTrackerInteractor,
         router: WorkoutTrackerRouter
-    ) {
+    ) throws {
         self.interactor = interactor
         self.router = router
         
-        self.workoutSession = interactor.activeSession ?? WorkoutSessionModel(
-            authorId: "",
-            name: "",
-            dateCreated: .now,
-            exercises: []
-        )
+        guard let session = interactor.activeSession else {
+            throw WorkoutTrackerError.noActiveWorkout
+        }
+        
+        self.workoutSession = session
         loadUnitPreferences()
         
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
@@ -389,11 +388,11 @@ class WorkoutTrackerPresenter {
         )
     }
     
-#if DEV || MOCK
-func onDevSettingsPressed() {
-    router.showDevSettingsView()
-}
-#endif
+    #if DEV || MOCK
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+    #endif
 
     enum WorkoutTrackerError: LocalizedError {
         case noLocalActiveWorkout
