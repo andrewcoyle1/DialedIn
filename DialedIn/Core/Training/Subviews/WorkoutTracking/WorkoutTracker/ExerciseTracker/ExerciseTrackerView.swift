@@ -10,6 +10,7 @@ import SwiftUI
 struct ExerciseTrackerDelegate {
     let exercise: Binding<WorkoutExerciseModel>
     let lastExercise: WorkoutExerciseModel?
+    var isExpanded: Binding<Bool> = .constant(false)
 }
 
 struct ExerciseTrackerView<SetTracker: View>: View {
@@ -20,7 +21,7 @@ struct ExerciseTrackerView<SetTracker: View>: View {
     @ViewBuilder var setTracker: (SetTrackerDelegate) -> SetTracker
 
     var body: some View {
-        DisclosureGroup {
+        DisclosureGroup(isExpanded: delegate.isExpanded) {
             let delegate = SetTrackerDelegate(
                 exercise: delegate.exercise,
                 lastExercise: delegate.lastExercise
@@ -68,7 +69,7 @@ extension CoreBuilder {
     func exerciseTrackerView(
         router: AnyRouter,
         delegate: ExerciseTrackerDelegate,
-        onUpdateRestBefore: ((String, Int?) -> Void)? = nil
+        onStartRest: ((Int) -> Void)? = nil
     ) -> some View {
         ExerciseTrackerView(
             presenter: ExerciseTrackerPresenter(
@@ -80,7 +81,7 @@ extension CoreBuilder {
                 self.setTrackerView(
                     router: router,
                     delegate: delegate,
-                    onUpdateRestBefore: onUpdateRestBefore
+                    onStartRest: onStartRest
                 )
             }
         )

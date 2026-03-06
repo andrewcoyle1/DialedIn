@@ -24,13 +24,14 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
         }
         .navigationTitle(presenter.workoutSession.name)
         .toolbarTitleDisplayMode(.inlineLarge)
+        .toolbarRole(.browser)
         .scrollIndicators(.hidden)
         .environment(\.editMode, $presenter.editMode)
         .toolbar {
             toolbarContent
         }
         .safeAreaInset(edge: .bottom) {
-            if presenter.showWorkoutTimer || presenter.isRestActive {
+            if presenter.isRestActive {
                 timerHeaderView
             }
         }
@@ -47,44 +48,48 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
     // MARK: - Workout Overview Card
     private var workoutOverviewCard: some View {
         Section {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Current Workout")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(presenter.exercisesCount)
-                            .font(.headline)
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text("Sets Completed")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Text(presenter.completedSetsFraction)
-                            .font(.headline)
-                            .foregroundColor(.green)
-                    }
+            LazyVGrid(columns: [GridItem(), GridItem(), GridItem()], spacing: 16) {
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Current Workout")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(presenter.exercisesCount)
+                        .font(.headline)
                 }
-                
-                // Quick stats
-                HStack(spacing: 20) {
-                    StatCard(
-                        value: presenter.exerciseFraction,
-                        label: "Exercise",
-                    )
-                    StatCard(
-                        value: presenter.formattedVolume,
-                        label: "Volume"
-                    )
-                    StatCard(
-                        value: presenter.workoutNotes.isEmpty ? "None" : "View",
-                        label: "Notes"
-                    )
-                    .onTapGesture {
-                        presenter.presentWorkoutNotes()
-                    }
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Sets Completed")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text(presenter.completedSetsFraction)
+                        .font(.headline)
+                        .foregroundColor(.green)
+                }
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Elapsed Time")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text(presenter.workoutSession.dateCreated, style: .timer)
+                        .font(.headline)
+                }
+                StatCard(
+                    value: presenter.exerciseFraction,
+                    label: "Exercise",
+                    alignment: .center
+                )
+                StatCard(
+                    value: presenter.formattedVolume,
+                    label: "Volume",
+                    alignment: .center
+                )
+                StatCard(
+                    value: presenter.workoutNotes.isEmpty ? "None" : "View",
+                    label: "Notes",
+                    alignment: .center
+                )
+                .onTapGesture {
+                    presenter.presentWorkoutNotes()
                 }
             }
         } header: {
@@ -107,13 +112,19 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                 .removeListRowFormatting()
             } else {
                 ForEach($presenter.workoutSession.exercises) { $exercise in
+                    let exerciseId = exercise.id
+                    let isExpanded = Binding<Bool>(
+                        get: { presenter.expandedExerciseId == exerciseId },
+                        set: { presenter.expandedExerciseId = $0 ? exerciseId : nil }
+                    )
                     let delegate = ExerciseTrackerDelegate(
                         exercise: $exercise,
                         lastExercise: presenter.previousWorkoutSession?.exercises.first(
                             where: { previousExercise in
                                 previousExercise.templateId == exercise.templateId
                             }
-                        )
+                        ),
+                        isExpanded: isExpanded
                     )
                     exerciseTrackerView(delegate)
                 }
@@ -128,47 +139,30 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
     
     // MARK: - Timer Header
     private var timerHeaderView: some View {
-        Group {
-            if presenter.isRestActive {
-                let now = Date()
-
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Rest Timer")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        if let end = presenter.restEndTime,
-                           now < end {
-                            Text(timerInterval: now...end)
-                                .font(.title2.bold())
-                                .foregroundColor(.primary)
-                        } else {
-                            Text((presenter.workoutSession.dateCreated), style: .timer)
-                                .font(.title2.bold())
-                                .foregroundColor(.primary)
-                        }
-                    }
-                    
-                    Spacer()
-                }
-            } else if presenter.showWorkoutTimer {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Workout Time")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(presenter.workoutSession.dateCreated, style: .timer)
-                            .font(.title2.bold())
-                            .foregroundColor(.primary)
-                    }
-                    
-                    Spacer()
+        HStack {
+            let now = Date()
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Rest Timer")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                if let end = presenter.restEndTime,
+                   now < end {
+                    Text(timerInterval: now...end)
+                        .font(.title2.bold())
+                        .foregroundColor(.primary)
+                } else {
+                    Text((presenter.workoutSession.dateCreated), style: .timer)
+                        .font(.title2.bold())
+                        .foregroundColor(.primary)
                 }
             }
+            
+            Spacer()
         }
-        .padding()
+        .padding(8)
+        .padding(.horizontal, 8)
         .glassEffect()
-        .padding(.horizontal)
+        .padding()
     }
 
     @ToolbarContentBuilder
@@ -228,8 +222,8 @@ extension CoreBuilder {
                 self.exerciseTrackerView(
                     router: router,
                     delegate: delegate,
-                    onUpdateRestBefore: { setId, seconds in
-                        trackerPresenter.updateRestBefore(setId: setId, seconds: seconds)
+                    onStartRest: { [weak trackerPresenter] duration in
+                        trackerPresenter?.startRestTimer(durationSeconds: duration)
                     }
                 )
             }

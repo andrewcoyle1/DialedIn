@@ -31,6 +31,10 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     /// The favourite gym profile of the user, or nil if not available
     var favouriteGymProfile: GymProfileModel? { get }
+
+    func setActiveWorkoutGymProfile(_ profile: GymProfileModel?)
+
+    func getGymProfile(gymProfileId: String) async throws -> GymProfileModel
     
     /// The current rest end time for the active session, if any.
     var restEndTime: Date? { get }

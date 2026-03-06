@@ -336,7 +336,7 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
             }
 
             let weightInEquipmentUnit = UnitConversion.convertWeight(weightKg, to: range.unit)
-            let roundedInEquipmentUnit = floor(weightInEquipmentUnit / range.increment) * range.increment
+            let roundedInEquipmentUnit = (weightInEquipmentUnit / range.increment).rounded() * range.increment
             let clampedWeight = max(range.minWeight, min(range.maxWeight, roundedInEquipmentUnit))
             let roundedWeightKg = UnitConversion.convertWeightToKg(clampedWeight, from: range.unit)
 

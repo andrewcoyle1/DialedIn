@@ -8,10 +8,6 @@
 import SwiftUI
 
 @MainActor
-protocol MealAccessoryInteractor {
-    var activeSession: WorkoutSessionModel? { get }
-    var restEndTime: Date? { get }
-    func trackEvent(event: LoggableEvent)
-}
+protocol MealAccessoryInteractor: GlobalInteractor { }
 
 extension CoreInteractor: MealAccessoryInteractor { }

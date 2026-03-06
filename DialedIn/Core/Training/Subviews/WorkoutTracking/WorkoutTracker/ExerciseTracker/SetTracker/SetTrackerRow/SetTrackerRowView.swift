@@ -4,6 +4,7 @@ struct SetTrackerRowDelegate {
     var exercise: Binding<WorkoutExerciseModel>
     var set: Binding<WorkoutSetModel>
     let lastSet: WorkoutSetModel?
+    var showAutoRanges: Bool = false
     var eventParameters: [String: Any]? {
         nil
     }
@@ -52,27 +53,38 @@ struct SetTrackerRowView: View {
     }
     
     func setNumber(set: Binding<WorkoutSetModel>) -> some View {
-        VStack(alignment: .center) {
-            Menu {
-                Button {
-                    set.wrappedValue.isWarmup.toggle()
-                } label: {
-                    Label("Warmup Set", systemImage: set.wrappedValue.isWarmup ? "checkmark" : "")
-                }
-
-                Button {
-                    presenter.onWarmupSetHelpPressed()
-                } label: {
-                    Label("What's a warmup set?", systemImage: "info.circle")
-                }
+        Menu {
+            Button {
+                set.wrappedValue.isWarmup.toggle()
             } label: {
-                Text("\(set.wrappedValue.index)")
-                    .padding(8)
-                    .background(set.wrappedValue.isWarmup ? Color.orange.opacity(0.2) : .secondary.opacity(0.05), in: .circle)
+                Label("Warmup Set", systemImage: set.wrappedValue.isWarmup ? "checkmark" : "")
             }
+            
+            Button {
+                presenter.onWarmupSetHelpPressed()
+            } label: {
+                Label("What's a warmup set?", systemImage: "info.circle")
+            }
+        } label: {
+            let label: String = {
+                if set.wrappedValue.isWarmup {
+                    return "W"
+                } else {
+                    let workingIndex = delegate.exercise.wrappedValue.sets
+                        .prefix(while: { $0.id != set.wrappedValue.id })
+                        .filter { !$0.isWarmup }
+                        .count + 1
+                    return "\(workingIndex)"
+                }
+            }()
+            Text(label)
+                .font(.caption)
         }
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.circle)
+        .tint(set.wrappedValue.isWarmup ? Color.orange : .secondary)
         .foregroundColor(.secondary)
-        .frame(width: 28, alignment: .center)
+        .frame(width: 34, alignment: .center)
     }
 
     func weightRepsFields(exercise: Binding<WorkoutExerciseModel>, set: Binding<WorkoutSetModel>) -> some View {
@@ -129,8 +141,10 @@ struct SetTrackerRowView: View {
 
     func previousValues(exercise: Binding<WorkoutExerciseModel>, set: Binding<WorkoutSetModel>) -> some View {
         let unitPreference = presenter.getUnitPreference(for: exercise.wrappedValue)
-        return VStack(alignment: .center) {
-            if let prev = delegate.lastSet {
+        return Group {
+            if delegate.showAutoRanges {
+                autoTargetContent(exercise: exercise.wrappedValue, set: set.wrappedValue)
+            } else if let prev = delegate.lastSet {
                 previousValueContent(trackingMode: exercise.wrappedValue.trackingMode, prev: prev, unitPreference: unitPreference)
             } else {
                 Text("—")
@@ -139,7 +153,77 @@ struct SetTrackerRowView: View {
                     .frame(height: 35)
             }
         }
-        .frame(width: 60, alignment: .center)
+        .frame(width: 90, alignment: .center)
+    }
+
+    @ViewBuilder
+    private func autoTargetContent(exercise: WorkoutExerciseModel, set: WorkoutSetModel) -> some View {
+        if set.isWarmup {
+            Text("—")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(height: 35)
+        } else {
+            let workingIndex = exercise.sets
+                .prefix(while: { $0.id != set.id })
+                .filter { !$0.isWarmup }
+                .count + 1
+            let target = exercise.setTargets.first { $0.setNumber == workingIndex }
+            let unitPreference = presenter.getUnitPreference(for: exercise)
+
+            if let target,
+               let lastSet = delegate.lastSet,
+               let prevWeight = lastSet.weightKg,
+               let prevReps = lastSet.reps,
+               prevReps > 0 {
+                let targetReps: Int = {
+                    if let min = target.minReps, let max = target.maxReps { return (min + max) / 2 }
+                    if let min = target.minReps { return min }
+                    return 0
+                }()
+                if targetReps > 0 {
+                    let oneRM = ExerciseOneRMAggregator.estimated1RM(weightKg: prevWeight, reps: prevReps)
+                    let rawKg = oneRM / (1.0 + Double(targetReps) / 30.0)
+                    let roundedKg = WorkoutSessionModel.roundWeightToPreferredUnit(
+                        weightKg: rawKg,
+                        preferredUnit: unitPreference.weightUnit
+                    ) ?? rawKg
+                    let displayWeight = UnitConversion.formatWeight(roundedKg, unit: unitPreference.weightUnit)
+                    Text("\(displayWeight) × \(targetReps)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(height: 35)
+                        .anyButton {
+                            delegate.set.wrappedValue.weightKg = roundedKg
+                            delegate.set.wrappedValue.reps = targetReps
+                        }
+                } else {
+                    autoRangeLabel(target: target)
+                }
+            } else if let target {
+                autoRangeLabel(target: target)
+            } else {
+                Text("—")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(height: 35)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func autoRangeLabel(target: SetTarget) -> some View {
+        let label: String = {
+            switch (target.minReps, target.maxReps) {
+            case (let min?, let max?): return "\(min)–\(max)"
+            case (let min?, nil):      return "\(min)+"
+            default:                   return "—"
+            }
+        }()
+        Text(label)
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .frame(height: 35)
     }
 
     @ViewBuilder
@@ -256,6 +340,10 @@ struct SetTrackerRowView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .frame(height: 35)
+                    .anyButton {
+                        delegate.set.wrappedValue.weightKg = weight
+                        delegate.set.wrappedValue.reps = reps
+                    }
             } else {
                 Text("—")
                     .font(.caption)
@@ -403,22 +491,27 @@ struct SetTrackerRowView: View {
     let delegate = SetTrackerRowDelegate(exercise: $exercise, set: $set, lastSet: lastSet)
     
     return RouterView { router in
-        builder.setTrackerRowView(router: router, delegate: delegate)
+        List {
+            builder.setTrackerRowView(router: router, delegate: delegate)
+        }
     }
 }
 
 extension CoreBuilder {
-    
-    func setTrackerRowView(router: AnyRouter, delegate: SetTrackerRowDelegate) -> some View {
-        SetTrackerRowView(
-            presenter: SetTrackerRowPresenter(
-                interactor: interactor,
-                router: CoreRouter(router: router, builder: self)
-            ),
-            delegate: delegate
+
+    func setTrackerRowView(
+        router: AnyRouter,
+        delegate: SetTrackerRowDelegate,
+        onStartRest: ((Int) -> Void)? = nil
+    ) -> some View {
+        let presenter = SetTrackerRowPresenter(
+            interactor: interactor,
+            router: CoreRouter(router: router, builder: self)
         )
+        presenter.onStartRest = onStartRest
+        return SetTrackerRowView(presenter: presenter, delegate: delegate)
     }
-    
+
 }
 
 extension CoreRouter {

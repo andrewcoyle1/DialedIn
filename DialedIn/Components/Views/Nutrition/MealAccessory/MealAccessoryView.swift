@@ -82,26 +82,11 @@ struct MealAccessoryView: View {
     }
 
     private func timeSection(draftMeal: MealLogModel) -> some View {
-        Group {
-            let now = Date()
-            if let restEndTime = presenter.restEndTime,
-               now < restEndTime {
-                    // Rest timer
-                    HStack(alignment: .bottom, spacing: 4) {
-                        Text("Rest: ")
-                        Text(timerInterval: now...restEndTime)
-                            .monospacedDigit()
-                            .foregroundStyle(.orange)
-                    }
-            
-            } else {
-                // Elapsed time
-                HStack(spacing: 4) {
-                    Text("Elapsed: ")
-                    Text(presenter.draftMeal.date, style: .timer)
-                        .monospacedDigit()
-                }
-            }
+        // Elapsed time
+        HStack(spacing: 4) {
+            Text("Elapsed: ")
+            Text(presenter.draftMeal.date, style: .timer)
+                .monospacedDigit()
         }
         .foregroundStyle(.secondary)
         .font(.subheadline)

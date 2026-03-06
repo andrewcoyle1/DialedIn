@@ -781,13 +781,13 @@ class DevPreview {
     init(isSignedIn: Bool = true) {
         let logManager = LogManager(services: [ConsoleService(printParameters: true)])
         let userSyncEngine = DocumentSyncEngine<UserModel>(
-            remote: MockRemoteDocumentService(),
+            remote: MockRemoteDocumentService(document: .mockExisting),
             managerKey: Keys.userManagerKey,
             enableLocalPersistence: true,
             logger: logManager
         )
         let followingUsersSyncEngine = CollectionSyncEngine<UserModel>(
-            remote: MockRemoteCollectionService(),
+            remote: MockRemoteCollectionService(collection: UserModel.mocks),
             managerKey: Keys.followingUsersManagerKey,
             enableLocalPersistence: true,
             logger: logManager

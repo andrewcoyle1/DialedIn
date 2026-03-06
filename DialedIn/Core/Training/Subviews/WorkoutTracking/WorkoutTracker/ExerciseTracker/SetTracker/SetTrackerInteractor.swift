@@ -20,6 +20,7 @@ protocol SetTrackerInteractor: GlobalInteractor {
     func setDistanceUnit(_ unit: ExerciseDistanceUnit, for templateId: String)
 
     var favouriteGymProfile: GymProfileModel? { get }
+    var workoutGymProfile: GymProfileModel? { get }
 
     var workoutSettings: WorkoutSettings { get }
 

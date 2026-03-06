@@ -19,6 +19,7 @@ struct DashboardView<WorkoutSessionRow: View>: View {
             streakSection
             workoutFeedSection
         }
+        .scrollIndicators(.hidden)
         .navigationTitle("Dashboard")
         .navigationSubtitle(Date.now.formatted(date: .abbreviated, time: .omitted))
         .toolbarTitleDisplayMode(.inlineLarge)
@@ -148,13 +149,21 @@ struct DashboardView<WorkoutSessionRow: View>: View {
     
     private var workoutFeedSection: some View {
         Section {
-            ForEach(presenter.feedSessions) { session in
-                if let author = presenter.author(for: session) {
-                    let rowDelegate = WorkoutSessionRowDelegate(session: session, author: author)
-                    workoutSessionRow(rowDelegate)
+            if presenter.feedSessions.isEmpty {
+                ContentUnavailableView(
+                    "No Workout History",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text("Log a workout or follow some friends to see their sessions.")
+                )
+            } else {
+                ForEach(presenter.feedSessions) { session in
+                    if let author = presenter.author(for: session) {
+                        let rowDelegate = WorkoutSessionRowDelegate(session: session, author: author)
+                        workoutSessionRow(rowDelegate)
+                    }
                 }
+                .removeListRowFormatting()
             }
-            .removeListRowFormatting()
         } header: {
             Text("Feed")
         }
@@ -162,6 +171,7 @@ struct DashboardView<WorkoutSessionRow: View>: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        
         #if DEV || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {

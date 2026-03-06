@@ -42,6 +42,9 @@ struct AutoSelectNumberField: View {
                     selection = .init(range: text.startIndex..<text.endIndex)
                 }
             }
+            .onChange(of: value) { _, newValue in
+                text = value.map(\.description) ?? ""
+            }
             .onAppear {
                 text = value.map(\.description) ?? ""
             }

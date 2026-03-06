@@ -49,7 +49,7 @@ class PortionDefinitionPresenter {
     func onNextPressed(delegate: PortionDefinitionDelegate) {
         switch nutritionDefinitionOption {
         case .serving:
-            guard (portionSize != nil && portionSize != 0 && !portionName.isEmpty) else { return }
+            guard portionSize != nil && portionSize != 0 && !portionName.isEmpty else { return }
             router.showFoodDefinitionView(
                 delegate: FoodDefinitionDelegate(
                     mealItems: delegate.mealItems,

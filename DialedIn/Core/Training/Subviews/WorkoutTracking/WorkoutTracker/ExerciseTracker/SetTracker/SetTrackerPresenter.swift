@@ -13,18 +13,11 @@ class SetTrackerPresenter {
     private let interactor: SetTrackerInteractor
     private let router: SetTrackerRouter
 
+    var showAutoRanges: Bool = true
+    
     var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
     var previousWorkoutSession: WorkoutSessionModel?
     var previousLookup: [Int: WorkoutSetModel] = [:]
-    var restPickerTargetSetId: String?
-    var restPickerMinutesSelection: Int = 0
-    var restPickerSecondsSelection: Int = 0
-    var restBeforeSetIdToSec: [String: Int] = [:]
-    var onUpdateRestBefore: ((String, Int?) -> Void)?
-
-    var defaultRestDurationSeconds: Int {
-        interactor.workoutSettings.defaultRestDurationSeconds
-    }
 
     var userId: String? {
         interactor.userId
@@ -79,41 +72,6 @@ class SetTrackerPresenter {
         )
 
         exercise.wrappedValue.sets.append(newSet)
-    }
-
-    func updateRestBefore(setId: String, seconds: Int?) {
-        if let seconds {
-            restBeforeSetIdToSec[setId] = seconds
-        } else {
-            restBeforeSetIdToSec.removeValue(forKey: setId)
-        }
-    }
-
-    func onRestPickerRequested(setId: String) {
-        restPickerTargetSetId = setId
-        let existing = restBeforeSetIdToSec[setId] ?? defaultRestDurationSeconds
-        restPickerMinutesSelection = existing / 60
-        restPickerSecondsSelection = existing % 60
-
-        router.showRestModal(
-            primaryButtonAction: { [weak self] in
-                guard let self else { return }
-                let total = (self.restPickerMinutesSelection * 60) + self.restPickerSecondsSelection
-                let seconds = total > 0 ? total : nil
-                self.updateRestBefore(setId: setId, seconds: seconds)
-                self.onUpdateRestBefore?(setId, seconds)
-                self.router.dismissModal()
-            },
-            secondaryButtonAction: { [weak self] in self?.router.dismissModal() },
-            minutesSelection: Binding(
-                get: { self.restPickerMinutesSelection },
-                set: { self.restPickerMinutesSelection = $0 }
-            ),
-            secondsSelection: Binding(
-                get: { self.restPickerSecondsSelection },
-                set: { self.restPickerSecondsSelection = $0 }
-            )
-        )
     }
 
     func onWarmupSetHelpPressed() {
@@ -200,13 +158,13 @@ class SetTrackerPresenter {
         
         for set in exercise.sets {
             guard let weightKg = set.wrappedValue.weightKg else { continue }
-            let weightInNewUnit = UnitConversion.convertWeight(weightKg, from: currentUnit, into: newUnit)
+            let weightInNewUnit = UnitConversion.convertWeight(weightKg, to: newUnit)
             let weightKgAsNewUnit = UnitConversion.convertWeightToKg(weightInNewUnit, from: newUnit)
 
             let roundedWeightKg = WorkoutSessionModel.roundWeightToEquipmentIncrement(
                 weightKg: weightKgAsNewUnit,
                 workoutExercise: exercise.wrappedValue,
-                gymProfile: interactor.favouriteGymProfile,
+                gymProfile: interactor.workoutGymProfile,
                 preferredWeightUnit: newUnit
             )
 
@@ -283,7 +241,7 @@ class SetTrackerPresenter {
 
         for set in exercise.sets {
             guard let distanceMeters = set.wrappedValue.distanceMeters else { continue }
-            let distanceInNewUnit = UnitConversion.convertDistance(distanceMeters, from: currentUnit, into: newUnit)
+            let distanceInNewUnit = UnitConversion.convertDistance(distanceMeters, to: newUnit)
             let roundedDistance: Double
             if newUnit == .meters {
                 roundedDistance = round(distanceInNewUnit)

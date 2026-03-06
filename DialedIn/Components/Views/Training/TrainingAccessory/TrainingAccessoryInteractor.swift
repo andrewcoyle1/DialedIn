@@ -8,10 +8,9 @@
 import SwiftUI
 
 @MainActor
-protocol TrainingAccessoryInteractor {
+protocol TrainingAccessoryInteractor: GlobalInteractor {
     var activeSession: WorkoutSessionModel? { get }
     var restEndTime: Date? { get }
-    func trackEvent(event: LoggableEvent)
 }
 
 extension CoreInteractor: TrainingAccessoryInteractor { }

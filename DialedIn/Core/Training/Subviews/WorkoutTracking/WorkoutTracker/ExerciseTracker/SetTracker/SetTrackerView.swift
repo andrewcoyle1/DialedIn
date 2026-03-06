@@ -33,9 +33,11 @@ struct SetTrackerView<SetTrackerRow: View>: View {
                     SetTrackerRowDelegate(
                         exercise: delegate.exercise,
                         set: set,
-                        lastSet: lastSet
+                        lastSet: lastSet,
+                        showAutoRanges: presenter.showAutoRanges
                     )
                 )
+                .listRowSeparator(.visible)
             }
             addSetButton
         }
@@ -48,26 +50,59 @@ struct SetTrackerView<SetTrackerRow: View>: View {
     private var equipmentButton: some View {
         ScrollView(.horizontal) {
             HStack {
-                Button {
-                    presenter.onExerciseEquipmentPressed(delegate.exercise)
-                } label: {
-                    Label("Equipment", systemImage: "scalemass")
-                        .padding(4)
-                        .padding(.horizontal, 4)
-                        .background(Color.secondary.opacity(0.3), in: .capsule)
+                Group {
+                    Button {
+                        presenter.onExerciseEquipmentPressed(delegate.exercise)
+                    } label: {
+                        Label("Equipment", systemImage: "scalemass")
+                    }
+                    
+                    Button {
+                        presenter.onExerciseEquipmentPressed(delegate.exercise)
+                    } label: {
+                        Label("Warmup", systemImage: "target")
+                    }
+
+                    Button {
+                        presenter.onExerciseEquipmentPressed(delegate.exercise)
+                    } label: {
+                        Label("Targets", systemImage: "target")
+                    }
+                    
+                    Button {
+                        presenter.onExerciseEquipmentPressed(delegate.exercise)
+                    } label: {
+                        Label("Swap", systemImage: "arrow.left.arrow.right")
+                    }
+
+                    Button {
+                        presenter.onExerciseEquipmentPressed(delegate.exercise)
+                    } label: {
+                        Label("Superset", systemImage: "arrow.left.arrow.right")
+                    }
+                    Button {
+                        presenter.onExerciseEquipmentPressed(delegate.exercise)
+                    } label: {
+                        Label("More", systemImage: "ellipsis")
+                    }
+
                 }
+                .font(.caption)
+
+                .buttonStyle(.bordered)
+                .tint(.secondary)
+                .buttonBorderShape(.capsule)
             }
         }
     }
 
     private var columnHeaders: some View {
         let unitPreference = presenter.getUnitPreference(for: delegate.exercise.wrappedValue)
-        return HStack {
+        return HStack(alignment: .firstTextBaseline) {
             Text("Set")
-                .frame(width: 28, alignment: .center)
+                .frame(width: 34, alignment: .center)
             Spacer()
-            Text("Prev")
-                .frame(width: 60, alignment: .center)
+            prevAutoHeader(exercise: delegate.exercise)
             Spacer()
             HStack(spacing: 8) {
                 unitMenu(exercise: delegate.exercise, unitPreference: unitPreference)
@@ -84,15 +119,34 @@ struct SetTrackerView<SetTrackerRow: View>: View {
         .padding(.top, 4)
     }
     
+    private func prevAutoHeader(exercise: Binding<WorkoutExerciseModel>) -> some View {
+        Button {
+            presenter.showAutoRanges.toggle()
+        } label: {
+            if presenter.showAutoRanges {
+                Label("Auto", systemImage: "wand.and.stars")
+            } else {
+                Label("Prev", systemImage: "arrow.left")
+            }
+        }
+        .buttonStyle(.bordered)
+        .font(.caption2)
+        .foregroundColor(.secondary)
+        .frame(width: 90, alignment: .center)
+    }
+    
     private var addSetButton: some View {
         HStack {
-            Image(systemName: "plus")
-                .padding(4)
-                .background(.secondary.opacity(0.05), in: .circle)
-                .anyButton(.press) {
-                    presenter.addSet(exercise: delegate.exercise)
-                }
-                .frame(width: 28, alignment: .center)
+            Button {
+                presenter.addSet(exercise: delegate.exercise)
+            } label: {
+                Image(systemName: "plus")
+                    .font(.caption)
+            }
+            .tint(.secondary)
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.circle)
+            .frame(width: 34, alignment: .center)
             Spacer()
         }
         
@@ -150,18 +204,17 @@ extension CoreBuilder {
     func setTrackerView(
         router: AnyRouter,
         delegate: SetTrackerDelegate,
-        onUpdateRestBefore: ((String, Int?) -> Void)? = nil
+        onStartRest: ((Int) -> Void)? = nil
     ) -> some View {
         let presenter = SetTrackerPresenter(
             interactor: interactor,
             router: CoreRouter(router: router, builder: self)
         )
-        presenter.onUpdateRestBefore = onUpdateRestBefore
         return SetTrackerView(
             presenter: presenter,
             delegate: delegate,
             setTrackerRow: { delegate in
-                self.setTrackerRowView(router: router, delegate: delegate)
+                self.setTrackerRowView(router: router, delegate: delegate, onStartRest: onStartRest)
             }
         )
     }

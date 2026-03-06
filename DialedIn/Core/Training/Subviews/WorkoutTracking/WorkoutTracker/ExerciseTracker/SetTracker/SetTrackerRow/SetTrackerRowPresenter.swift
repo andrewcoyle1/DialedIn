@@ -12,7 +12,7 @@ class SetTrackerRowPresenter {
     var restPickerMinutesSelection: Int = 0
     var restPickerSecondsSelection: Int = 0
     var restBeforeSetIdToSec: [String: Int] = [:]
-    var onUpdateRestBefore: ((String, Int?) -> Void)?
+    var onStartRest: ((Int) -> Void)?
 
     var previousLookup: [Int: WorkoutSetModel] = [:]
     var defaultRestDurationSeconds: Int {
@@ -38,11 +38,20 @@ class SetTrackerRowPresenter {
     
     func onSetComplete(_ exercise: WorkoutExerciseModel, _ set: Binding<WorkoutSetModel>) {
         if set.wrappedValue.completedAt == nil, validateSetData(trackingMode: exercise.trackingMode, set: set.wrappedValue) {
-            interactor.startRest(durationSeconds: 90, session: .mock, currentExerciseIndex: 1)
             set.wrappedValue.completedAt = Date()
+            if interactor.workoutSettings.useRestTimers {
+                onStartRest?(restDuration(for: exercise, customSetId: set.wrappedValue.id))
+            }
         } else {
             set.wrappedValue.completedAt = nil
         }
+    }
+
+    private func restDuration(for exercise: WorkoutExerciseModel, customSetId: String?) -> Int {
+        if let setId = customSetId, let custom = restBeforeSetIdToSec[setId] {
+            return custom
+        }
+        return interactor.workoutSettings.defaultRestDurationSeconds
     }
 
     func onRestPickerRequested(setId: String) {
@@ -57,7 +66,6 @@ class SetTrackerRowPresenter {
                 let total = (self.restPickerMinutesSelection * 60) + self.restPickerSecondsSelection
                 let seconds = total > 0 ? total : nil
                 self.updateRestBefore(setId: setId, seconds: seconds)
-                self.onUpdateRestBefore?(setId, seconds)
                 self.router.dismissModal()
             },
             secondaryButtonAction: { [weak self] in self?.router.dismissModal() },

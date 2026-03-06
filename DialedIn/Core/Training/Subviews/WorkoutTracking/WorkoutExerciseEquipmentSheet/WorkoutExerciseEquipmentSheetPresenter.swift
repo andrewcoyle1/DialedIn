@@ -59,7 +59,7 @@ class WorkoutExerciseEquipmentSheetPresenter {
         isLoading = true
         loadError = nil
         defer { isLoading = false }
-        guard let gym = interactor.favouriteGymProfile else {
+        guard let gym = interactor.workoutGymProfile else {
             loadError = "Set a favourite gym profile to choose equipment."
             return
         }

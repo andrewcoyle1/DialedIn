@@ -12,21 +12,24 @@ struct StatCard: View {
     let label: String
     let icon: String?
     let color: Color?
+    let alignment: HorizontalAlignment
     
     init(
         value: String,
         label: String,
         icon: String? = nil,
-        color: Color? = nil
+        color: Color? = nil,
+        alignment: HorizontalAlignment = .leading
     ) {
         self.value = value
         self.label = label
         self.icon = icon
         self.color = color
+        self.alignment = alignment
     }
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(alignment: alignment, spacing: 8) {
             if let icon {
                 if let color {
                     Image(systemName: icon)
@@ -47,7 +50,6 @@ struct StatCard: View {
                 .font(.title3)
                 .fontWeight(.bold)
         }
-        .frame(maxWidth: .infinity)
     }
 }
 

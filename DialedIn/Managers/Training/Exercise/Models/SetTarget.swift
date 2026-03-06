@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct SetTarget: DataSyncModelProtocol, Equatable {
+struct SetTarget: DataSyncModelProtocol, Equatable, Hashable {
     var id: String = UUID().uuidString
     var setNumber: Int
     var minReps: Int?

@@ -79,6 +79,9 @@ struct WorkoutExerciseEquipmentSheetView: View {
             presenter.chosenResistance = delegate.exercise.wrappedValue.chosenResistanceEquipment
             presenter.chosenSupport = delegate.exercise.wrappedValue.chosenSupportEquipment
         }
+        .task {
+            await presenter.loadChoosableEquipment(exerciseModelId: delegate.exercise.wrappedValue.templateId)
+        }
     }
 
     private func equipmentRow(item: AnyEquipment, isChosen: Bool, onTap: @escaping () -> Void) -> some View {

@@ -8,7 +8,7 @@
 @MainActor
 protocol WorkoutExerciseEquipmentSheetInteractor {
     var userId: String? { get }
-    var favouriteGymProfile: GymProfileModel? { get }
+    var workoutGymProfile: GymProfileModel? { get }
     var allExercises: [ExerciseModel] { get }
 }
 
