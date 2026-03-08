@@ -14,11 +14,13 @@ struct WorkoutsDelegate {
 struct WorkoutsView<WorkoutList: View>: View {
 
     @State var presenter: WorkoutsPresenter
-
+    let delegate: WorkoutsDelegate
     @ViewBuilder var workoutListViewBuilder: (WorkoutListDelegateBuilder) -> WorkoutList
     
     var body: some View {
-        let delegate = WorkoutListDelegateBuilder(onWorkoutSelectionChanged: presenter.onWorkoutPressed)
+        let delegate = WorkoutListDelegateBuilder(
+            onWorkoutSelectionChanged: presenter.onWorkoutPressed,
+        )
         workoutListViewBuilder(delegate)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -31,9 +33,13 @@ struct WorkoutsView<WorkoutList: View>: View {
 }
 
 extension CoreBuilder {
-    func workoutsView(router: AnyRouter) -> some View {
+    func workoutsView(router: AnyRouter, delegate: WorkoutsDelegate) -> some View {
         WorkoutsView(
-            presenter: WorkoutsPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
+            presenter: WorkoutsPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self)
+            ),
+            delegate: delegate,
             workoutListViewBuilder: { delegate in
                 self.workoutListViewBuilder(router: router, delegate: delegate)
             }
@@ -42,9 +48,9 @@ extension CoreBuilder {
 }
 
 extension CoreRouter {
-    func showWorkoutsView() {
+    func showWorkoutsView(delegate: WorkoutsDelegate) {
         router.showScreen(.sheet) { router in
-            builder.workoutsView(router: router)
+            builder.workoutsView(router: router, delegate: delegate)
         }
     }
 }
@@ -53,8 +59,9 @@ extension CoreRouter {
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
+    let delegate = WorkoutsDelegate()
     RouterView { router in
-        builder.workoutsView(router: router)
+        builder.workoutsView(router: router, delegate: delegate)
     }
     
 }

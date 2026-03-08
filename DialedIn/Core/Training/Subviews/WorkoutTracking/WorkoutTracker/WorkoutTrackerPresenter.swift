@@ -44,6 +44,17 @@ class WorkoutTrackerPresenter {
     var expandedExerciseId: String?
     var workoutNotes = ""
     var currentExerciseIndex = 0
+
+    /// The exercise index to use for Live Activity updates — prefers the expanded exercise
+    /// over `currentExerciseIndex` so the widget reflects what the user is actually working on,
+    /// even when `exerciseAutoNext` is off and `currentExerciseIndex` hasn't advanced.
+    private var liveActivityExerciseIndex: Int {
+        if let id = expandedExerciseId,
+           let idx = workoutSession.exercises.firstIndex(where: { $0.id == id }) {
+            return idx
+        }
+        return currentExerciseIndex
+    }
     
     var previousWorkoutSession: WorkoutSessionModel?
     var exerciseUnitPreferences: [String: (weightUnit: ExerciseWeightUnit, distanceUnit: ExerciseDistanceUnit)] = [:]
@@ -302,6 +313,22 @@ class WorkoutTrackerPresenter {
     
     // MARK: - Rest Timer
     
+    func onExerciseExpansionChanged(exerciseId: String, isExpanded: Bool) {
+        expandedExerciseId = isExpanded ? exerciseId : nil
+
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        interactor.updateLiveActivity(params: LiveActivityUpdateParams(
+            session: workoutSession,
+            isActive: isActive,
+            currentExerciseIndex: liveActivityExerciseIndex,
+            restEndsAt: interactor.restEndTime,
+            statusMessage: isRestActive ? "Resting" : nil,
+            totalVolumeKg: computeTotalVolumeKg(),
+            elapsedTime: elapsedTime
+        ))
+        #endif
+    }
+
     func cancelRestTimer() {
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Cancel in manager (will also update Live Activity)
@@ -388,6 +415,42 @@ class WorkoutTrackerPresenter {
         )
     }
     
+    enum Event: LoggableEvent {
+        case startRestTimerCalled(inputDuration: Int, resolvedDuration: Int)
+        case startRestTimerAfterCall(restEndTime: Date?)
+
+        var eventName: String {
+            switch self {
+            case .startRestTimerCalled:     return "WorkoutTracker_StartRestTimer_Called"
+            case .startRestTimerAfterCall:  return "WorkoutTracker_StartRestTimer_AfterCall"
+            }
+        }
+
+        var parameters: [String: Any]? {
+            switch self {
+            case .startRestTimerCalled(let inputDuration, let resolvedDuration):
+                return [
+                    "input_duration": inputDuration,
+                    "resolved_duration": resolvedDuration
+                ]
+            case .startRestTimerAfterCall(let restEndTime):
+                return [
+                    "rest_end_time": restEndTime?.timeIntervalSince1970 as Any,
+                    "rest_end_time_is_nil": restEndTime == nil
+                ]
+            }
+        }
+
+        var type: LogType {
+            switch self {
+            case .startRestTimerAfterCall(let restEndTime) where restEndTime == nil:
+                return .warning
+            default:
+                return .analytic
+            }
+        }
+    }
+
     enum WorkoutTrackerError: LocalizedError {
         case noLocalActiveWorkout
         case noActiveWorkout
@@ -497,7 +560,7 @@ class WorkoutTrackerPresenter {
         interactor.updateLiveActivity(params: LiveActivityUpdateParams(
             session: workoutSession,
             isActive: isActive,
-            currentExerciseIndex: currentExerciseIndex,
+            currentExerciseIndex: liveActivityExerciseIndex,
             restEndsAt: interactor.restEndTime,
             statusMessage: isRestActive ? "Resting" : nil,
             totalVolumeKg: computeTotalVolumeKg(),
@@ -518,7 +581,9 @@ class WorkoutTrackerPresenter {
 
     func startRestTimer(durationSeconds: Int = 0) {
         let duration = durationSeconds > 0 ? durationSeconds : restDurationSeconds
+        interactor.trackEvent(event: Event.startRestTimerCalled(inputDuration: durationSeconds, resolvedDuration: duration))
         interactor.startRest(durationSeconds: duration, session: workoutSession, currentExerciseIndex: currentExerciseIndex)
+        interactor.trackEvent(event: Event.startRestTimerAfterCall(restEndTime: interactor.restEndTime))
 
         #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
         // Schedule local notification for when rest is complete
@@ -593,7 +658,7 @@ class WorkoutTrackerPresenter {
         interactor.updateLiveActivity(params: LiveActivityUpdateParams(
             session: workoutSession,
             isActive: isActive,
-            currentExerciseIndex: currentExerciseIndex,
+            currentExerciseIndex: liveActivityExerciseIndex,
             restEndsAt: interactor.restEndTime,
             statusMessage: isRestActive ? "Resting" : nil,
             totalVolumeKg: computeTotalVolumeKg(),
@@ -662,7 +727,7 @@ class WorkoutTrackerPresenter {
         interactor.updateLiveActivity(params: LiveActivityUpdateParams(
             session: workoutSession,
             isActive: isActive,
-            currentExerciseIndex: currentExerciseIndex,
+            currentExerciseIndex: liveActivityExerciseIndex,
             restEndsAt: interactor.restEndTime,
             statusMessage: isRestActive ? "Resting" : nil,
             totalVolumeKg: computeTotalVolumeKg(),
@@ -686,7 +751,7 @@ class WorkoutTrackerPresenter {
         interactor.updateLiveActivity(params: LiveActivityUpdateParams(
             session: workoutSession,
             isActive: isActive,
-            currentExerciseIndex: currentExerciseIndex,
+            currentExerciseIndex: liveActivityExerciseIndex,
             restEndsAt: interactor.restEndTime,
             statusMessage: isRestActive ? "Resting" : nil,
             totalVolumeKg: computeTotalVolumeKg(),
@@ -708,7 +773,7 @@ class WorkoutTrackerPresenter {
         interactor.updateLiveActivity(params: LiveActivityUpdateParams(
             session: workoutSession,
             isActive: isActive,
-            currentExerciseIndex: currentExerciseIndex,
+            currentExerciseIndex: liveActivityExerciseIndex,
             restEndsAt: interactor.restEndTime,
             statusMessage: isRestActive ? "Resting" : nil,
             totalVolumeKg: computeTotalVolumeKg(),
@@ -845,6 +910,7 @@ class WorkoutTrackerPresenter {
             do {
                 try await interactor.endWorkoutSession(sessionSnapshot)
                 try await interactor.addWorkoutStreakEvent()
+                await interactor.preCompleteConsecutiveRestDays(after: sessionSnapshot)
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 interactor.endLiveActivity(session: sessionSnapshot, isCompleted: true, statusMessage: "Workout ended & saved.")
                 #endif

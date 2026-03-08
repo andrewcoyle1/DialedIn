@@ -59,7 +59,10 @@ struct WorkoutListViewBuilder: View {
             subtitle: subtitle
         )
         .anyButton(.highlight) {
-            presenter.onWorkoutPressed(workout: workout, onWorkoutPressed: delegate.onWorkoutSelectionChanged)
+            presenter.onWorkoutPressed(
+                workout: workout,
+                onWorkoutPressed: delegate.onWorkoutSelectionChanged
+            )
         }
         .removeListRowFormatting()
     }

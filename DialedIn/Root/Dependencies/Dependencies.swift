@@ -50,7 +50,8 @@ struct Dependencies {
         let liveActivityManager: LiveActivityManager
         #endif
         let imageUploadManager: ImageUploadManager
-        
+        let commentsManager: CommentsManager
+
         switch config {
         case .mock(let scenario):
             logManager = LogManager(services: [
@@ -237,6 +238,7 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
             pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
+            commentsManager = CommentsManager(service: MockCommentsService())
 
         case .dev:
             logManager = LogManager(services: [
@@ -450,6 +452,7 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
             pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
+            commentsManager = CommentsManager(service: FirebaseCommentsService())
 
         case .prod:
             logManager = LogManager(services: [
@@ -657,6 +660,7 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
             pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
+            commentsManager = CommentsManager(service: FirebaseCommentsService())
         }
         hapticManager = HapticManager(logger: logManager)
         soundEffectManager = SoundEffectManager(logger: logManager)
@@ -694,6 +698,7 @@ struct Dependencies {
         container.register(ImageUploadManager.self, service: imageUploadManager)
         container.register(HapticManager.self, service: hapticManager)
         container.register(SoundEffectManager.self, service: soundEffectManager)
+        container.register(CommentsManager.self, service: commentsManager)
 
         self.logManager = logManager
         self.container = container
@@ -738,6 +743,7 @@ class DevPreview {
         container.register(ImageUploadManager.self, service: imageUploadManager)
         container.register(SoundEffectManager.self, service: soundEffectManager)
         container.register(HapticManager.self, service: hapticManager)
+        container.register(CommentsManager.self, service: commentsManager)
 
         return container
     }
@@ -776,7 +782,8 @@ class DevPreview {
     let soundEffectManager: SoundEffectManager
 
     let imageUploadManager: ImageUploadManager
-    
+    let commentsManager: CommentsManager
+
     // swiftlint:disable:next function_body_length
     init(isSignedIn: Bool = true) {
         let logManager = LogManager(services: [ConsoleService(printParameters: true)])
@@ -927,6 +934,7 @@ class DevPreview {
         #endif
         self.appState = AppState(startingModuleId: isSignedIn ? Constants.tabBarModuleId : Constants.onboardingModuleId)
         self.imageUploadManager = ImageUploadManager(service: MockImageUploadService())
+        self.commentsManager = CommentsManager(service: MockCommentsService())
         self.hapticManager = HapticManager()
         self.soundEffectManager = SoundEffectManager()
 

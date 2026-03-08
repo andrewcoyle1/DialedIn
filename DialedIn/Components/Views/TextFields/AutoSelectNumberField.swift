@@ -43,7 +43,9 @@ struct AutoSelectNumberField: View {
                 }
             }
             .onChange(of: value) { _, newValue in
-                text = value.map(\.description) ?? ""
+                if !isFocused {
+                    text = value.map(\.description) ?? ""
+                }
             }
             .onAppear {
                 text = value.map(\.description) ?? ""
@@ -53,7 +55,7 @@ struct AutoSelectNumberField: View {
 }
 
 #Preview {
-    @Previewable @State var value: Double?
+    @Previewable @State var value: Double? = 20
     List {
         AutoSelectNumberField(prompt: "0.0", value: $value)
 //            .textFieldStyle(.roundedBorder)

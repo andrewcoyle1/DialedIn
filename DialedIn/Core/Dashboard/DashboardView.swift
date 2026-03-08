@@ -147,8 +147,9 @@ struct DashboardView<WorkoutSessionRow: View>: View {
         }
     }
     
+    @ViewBuilder
     private var workoutFeedSection: some View {
-        Section {
+//        Section {
             if presenter.feedSessions.isEmpty {
                 ContentUnavailableView(
                     "No Workout History",
@@ -157,16 +158,19 @@ struct DashboardView<WorkoutSessionRow: View>: View {
                 )
             } else {
                 ForEach(presenter.feedSessions) { session in
-                    if let author = presenter.author(for: session) {
-                        let rowDelegate = WorkoutSessionRowDelegate(session: session, author: author)
-                        workoutSessionRow(rowDelegate)
+                    Section {
+                        if let author = presenter.author(for: session) {
+                            let rowDelegate = WorkoutSessionRowDelegate(session: session, author: author)
+                            workoutSessionRow(rowDelegate)
+                                .removeListRowFormatting()
+                        }
                     }
+//                    .removeListRowFormatting()
                 }
-                .removeListRowFormatting()
             }
-        } header: {
-            Text("Feed")
-        }
+//        } header: {
+//            Text("Feed")
+//        }
     }
     
     @ToolbarContentBuilder

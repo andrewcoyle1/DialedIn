@@ -46,6 +46,7 @@ struct CoreInteractor: GlobalInteractor {
     let liveActivityManager: LiveActivityManager
     #endif
     let streakManager: StreakManager
+    let commentsManager: CommentsManager
     let appState: AppState
     let hapticManager: HapticManager
     let soundEffectManager: SoundEffectManager
@@ -80,6 +81,7 @@ struct CoreInteractor: GlobalInteractor {
         self.liveActivityManager = container.resolve(LiveActivityManager.self)!
         #endif
         self.streakManager = container.resolve(StreakManager.self)!
+        self.commentsManager = container.resolve(CommentsManager.self)!
         self.appState = container.resolve(AppState.self)!
 
         self.hapticManager = container.resolve(HapticManager.self)!

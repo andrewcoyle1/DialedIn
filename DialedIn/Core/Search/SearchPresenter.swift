@@ -235,7 +235,15 @@ class SearchPresenter {
 
     func onWorkoutPressed(workout: WorkoutTemplateModel) {
         router.showWorkoutTemplateDetailView(
-            delegate: WorkoutTemplateDetailDelegate(workoutTemplate: workout)
+            delegate: WorkoutTemplateDetailDelegate(
+                workoutTemplate: workout,
+                trainingProgramId: nil,
+                onStartWorkoutPressed: { [weak self] in
+                    Task { @MainActor in
+                        self?.router.showWorkoutTrackerView()
+                    }
+                }
+            )
         )
     }
 
@@ -260,7 +268,7 @@ class SearchPresenter {
     }
 
     func onStartWorkoutPressed() {
-        router.showWorkoutsView()
+        router.showWorkoutsView(delegate: WorkoutsDelegate())
     }
 
     func onLogMealPressed() {

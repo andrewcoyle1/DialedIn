@@ -180,7 +180,7 @@ struct DefineWorkoutView: View {
                   target.maxReps == nil {
             descriptionString = "\(minReps)+ reps"
         }
-           
+        
         return HStack {
             Circle()
                 .frame(width: 12, height: 12)

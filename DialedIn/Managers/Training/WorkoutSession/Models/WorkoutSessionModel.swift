@@ -19,6 +19,8 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
     var notes: String?
     var exercises: [WorkoutExerciseModel]
     var deletedAt: Date?
+    var isRestDay: Bool
+    var likedByUserIds: [String]
 
     init(
         id: String = UUID().uuidString,
@@ -31,7 +33,9 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         endedAt: Date? = nil,
         notes: String? = nil,
         exercises: [WorkoutExerciseModel],
-        deletedAt: Date? = nil
+        deletedAt: Date? = nil,
+        isRestDay: Bool = false,
+        likedByUserIds: [String] = []
     ) {
         self.id = id
         self.authorId = authorId
@@ -44,6 +48,8 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         self.notes = notes
         self.exercises = exercises
         self.deletedAt = deletedAt
+        self.isRestDay = isRestDay
+        self.likedByUserIds = likedByUserIds
     }
     
     enum CodingKeys: String, CodingKey {
@@ -58,6 +64,8 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         case notes
         case exercises
         case deletedAt = "deleted_at"
+        case isRestDay = "is_rest_day"
+        case likedByUserIds = "liked_by_user_ids"
     }
 
     @MainActor
@@ -82,6 +90,8 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         self.endedAt = nil
         self.notes = notes
         self.deletedAt = nil
+        self.isRestDay = false
+        self.likedByUserIds = []
         self.exercises = template.exercises.enumerated().map { (idx, exerciseModel) in
             let mode = WorkoutSessionModel.trackingMode(for: exerciseModel.exercise)
             let targetCount = exerciseModel.setTargets.count

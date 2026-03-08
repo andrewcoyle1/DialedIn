@@ -15,7 +15,7 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
     
     @State var presenter: WorkoutTrackerPresenter
 
-    @ViewBuilder var exerciseTrackerView: (ExerciseTrackerDelegate) -> ExerciseTracker
+    @ViewBuilder var exerciseTrackerView: (ExerciseTrackerDelegate, ((Int) -> Void)?) -> ExerciseTracker
     
     var body: some View {
         List {
@@ -73,21 +73,30 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                     Text(presenter.workoutSession.dateCreated, style: .timer)
                         .font(.headline)
                 }
-                StatCard(
-                    value: presenter.exerciseFraction,
-                    label: "Exercise",
-                    alignment: .center
-                )
-                StatCard(
-                    value: presenter.formattedVolume,
-                    label: "Volume",
-                    alignment: .center
-                )
-                StatCard(
-                    value: presenter.workoutNotes.isEmpty ? "None" : "View",
-                    label: "Notes",
-                    alignment: .center
-                )
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Exercise")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text(presenter.exerciseFraction)
+                        .font(.headline)
+                }
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Volume")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text(presenter.formattedVolume)
+                        .font(.headline)
+                }
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Notes")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text(presenter.workoutNotes.isEmpty ? "None" : "View")
+                        .font(.headline)
+                }
                 .onTapGesture {
                     presenter.presentWorkoutNotes()
                 }
@@ -115,7 +124,7 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                     let exerciseId = exercise.id
                     let isExpanded = Binding<Bool>(
                         get: { presenter.expandedExerciseId == exerciseId },
-                        set: { presenter.expandedExerciseId = $0 ? exerciseId : nil }
+                        set: { presenter.onExerciseExpansionChanged(exerciseId: exerciseId, isExpanded: $0) }
                     )
                     let delegate = ExerciseTrackerDelegate(
                         exercise: $exercise,
@@ -126,7 +135,9 @@ struct WorkoutTrackerView<ExerciseTracker: View>: View {
                         ),
                         isExpanded: isExpanded
                     )
-                    exerciseTrackerView(delegate)
+                    exerciseTrackerView(delegate, { duration in
+                        presenter.startRestTimer(durationSeconds: duration)
+                    })
                 }
                 .onMove { source, destination in
                     presenter.moveExercises(from: source, to: destination)
@@ -218,13 +229,11 @@ extension CoreBuilder {
         )
         return WorkoutTrackerView(
             presenter: trackerPresenter,
-            exerciseTrackerView: { delegate in
+            exerciseTrackerView: { delegate, onStartRest in
                 self.exerciseTrackerView(
                     router: router,
                     delegate: delegate,
-                    onStartRest: { [weak trackerPresenter] duration in
-                        trackerPresenter?.startRestTimer(durationSeconds: duration)
-                    }
+                    onStartRest: onStartRest
                 )
             }
         )

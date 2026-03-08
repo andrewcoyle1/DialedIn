@@ -39,7 +39,7 @@ struct NutritionLibraryPickerView<
                 barcodeScanner(BarcodeScannerDelegate())
             case .search:
                 foodItemSearch(FoodItemSearchDelegate())
-            case .ai:
+            case .aiScanner:
                 foodPhotoScanner(FoodPhotoScannerDelegate(onPick: delegate.onPick))
             case .quickAdd:
                 foodQuickAdd(FoodItemQuickAddDelegate())

@@ -122,6 +122,9 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
     /// Load unit preferences for an exercise template.
     func getPreference(templateId: String) -> ExerciseUnitPreference
 
+    /// Pre-create rest-day sessions for any consecutive rest days that follow the given session in the active training program.
+    func preCompleteConsecutiveRestDays(after session: WorkoutSessionModel) async
+
 }
 
 extension CoreInteractor: WorkoutTrackerInteractor { }

@@ -17,7 +17,7 @@ protocol SearchRouter: GlobalRouter {
     func showWorkoutStartModal(delegate: WorkoutStartDelegate)
     func showRecipesView()
     func showAddMealView(delegate: AddMealDelegate)
-    func showWorkoutsView()
+    func showWorkoutsView(delegate: WorkoutsDelegate)
     func showCreateExerciseView()
     func showExerciseListBuilderView(delegate: ExerciseListBuilderDelegate)
     func showWorkoutTrackerView()

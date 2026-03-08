@@ -344,6 +344,7 @@ extension HKWorkoutManager {
     /// Begin a rest period and schedule a background-safe update at rest end.
     @MainActor
     func startRest(durationSeconds: Int, session: WorkoutSessionModel, currentExerciseIndex: Int = 0) {
+        logger.trackEvent(event: Event.startRestCalled(durationSeconds: durationSeconds, liveActivityUpdaterIsNil: liveActivityUpdater == nil))
         // Cancel any existing rest to avoid multiple timers
         cancelRest()
 
@@ -372,6 +373,7 @@ extension HKWorkoutManager {
 
     /// Cancel any pending rest and clear countdown from Live Activity.
     func cancelRest() {
+        logger.trackEvent(event: Event.cancelRestCalled)
         restTimer?.cancel()
         restTimer = nil
         restEndTime = nil
@@ -389,6 +391,7 @@ extension HKWorkoutManager {
 
     /// Called automatically when the scheduled rest end time is reached.
     func endRest() {
+        logger.trackEvent(event: Event.endRestCalled)
         restTimer?.cancel()
         restTimer = nil
         restEndTime = nil
@@ -421,13 +424,15 @@ extension HKWorkoutManager {
         timer.setEventHandler { [weak self] in
             // Use Task to safely call MainActor-isolated method from background queue
             Task { @MainActor [weak self] in
+                self?.logger.trackEvent(event: Event.restTimerFired)
                 self?.endRest()
             }
         }
         timer.resume()
-        
+
         // Store the timer reference back on MainActor
         Task { @MainActor [weak self] in
+            self?.logger.trackEvent(event: Event.restTimerScheduled(endTime: endTime, deltaSeconds: delta))
             self?.restTimer = timer
         }
     }
@@ -448,6 +453,11 @@ extension HKWorkoutManager {
         case workoutSessionFailed(error: Error)
         case endRestNoSession
         case endRestNoUpdater
+        case startRestCalled(durationSeconds: Int, liveActivityUpdaterIsNil: Bool)
+        case restTimerScheduled(endTime: Date, deltaSeconds: Double)
+        case restTimerFired
+        case cancelRestCalled
+        case endRestCalled
 
         var eventName: String {
             switch self {
@@ -464,6 +474,11 @@ extension HKWorkoutManager {
             case .workoutSessionFailed:     return "HKWorkoutMan_Session_Failed"
             case .endRestNoSession:         return "HKWorkoutMan_EndRest_NoSession"
             case .endRestNoUpdater:         return "HKWorkoutMan_EndRest_NoUpdater"
+            case .startRestCalled:          return "HKWorkoutMan_StartRest_Called"
+            case .restTimerScheduled:       return "HKWorkoutMan_RestTimer_Scheduled"
+            case .restTimerFired:           return "HKWorkoutMan_RestTimer_Fired"
+            case .cancelRestCalled:         return "HKWorkoutMan_CancelRest_Called"
+            case .endRestCalled:            return "HKWorkoutMan_EndRest_Called"
             }
         }
 
@@ -471,6 +486,16 @@ extension HKWorkoutManager {
             switch self {
             case .startWorkoutFail(let error), .finishWorkoutFail(let error), .workoutSessionFailed(let error):
                 return error.eventParameters
+            case .startRestCalled(let durationSeconds, let liveActivityUpdaterIsNil):
+                return [
+                    "duration_seconds": durationSeconds,
+                    "live_activity_updater_is_nil": liveActivityUpdaterIsNil
+                ]
+            case .restTimerScheduled(let endTime, let deltaSeconds):
+                return [
+                    "end_time": endTime.timeIntervalSince1970,
+                    "delta_seconds": deltaSeconds
+                ]
             default:
                 return nil
             }
@@ -481,6 +506,8 @@ extension HKWorkoutManager {
             case .startWorkoutFail, .finishWorkoutFail, .workoutSessionFailed:
                 return .severe
             case .togglePauseInvalidState, .activityTypeNil, .quantityTypeUnhandled, .endRestNoSession, .endRestNoUpdater:
+                return .warning
+            case .startRestCalled(_, let liveActivityUpdaterIsNil) where liveActivityUpdaterIsNil:
                 return .warning
             default:
                 return .analytic

@@ -7,7 +7,6 @@ protocol DashboardInteractor: GlobalInteractor {
     var workoutSessions: [WorkoutSessionModel] { get }
     var followingWorkoutSessions: [WorkoutSessionModel] { get }
     var followingUsers: [UserModel] { get }
-    var currentStreakData: CurrentStreakData { get }
     func followUser(userId: String) async throws
     func unfollowUser(userId: String) async throws
 }

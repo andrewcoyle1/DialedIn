@@ -114,6 +114,7 @@ struct SetTrackerRowView: View {
             }
         )
         AutoSelectNumberField(prompt: "-", value: weightBinding, keyboardType: .decimalPad)
+            .disabled(delegate.set.wrappedValue.completedAt != nil)
             .frame(width: 70, height: 35)
     }
 
@@ -136,6 +137,7 @@ struct SetTrackerRowView: View {
             }
         )
         AutoSelectNumberField(prompt: "-", value: repsValue, keyboardType: .numberPad)
+            .disabled(delegate.set.wrappedValue.completedAt != nil)
             .frame(width: 50, height: 35)
     }
 
@@ -197,6 +199,7 @@ struct SetTrackerRowView: View {
                             delegate.set.wrappedValue.weightKg = roundedKg
                             delegate.set.wrappedValue.reps = targetReps
                         }
+                        .disabled(delegate.set.wrappedValue.completedAt != nil)
                 } else {
                     autoRangeLabel(target: target)
                 }
@@ -344,6 +347,7 @@ struct SetTrackerRowView: View {
                         delegate.set.wrappedValue.weightKg = weight
                         delegate.set.wrappedValue.reps = reps
                     }
+                    .disabled(delegate.set.wrappedValue.completedAt != nil)
             } else {
                 Text("—")
                     .font(.caption)

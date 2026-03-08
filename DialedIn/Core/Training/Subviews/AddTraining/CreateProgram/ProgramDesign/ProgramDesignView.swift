@@ -113,9 +113,9 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                     }
 
                 }
-                .buttonStyle(.glass)
+                .buttonStyle(.bordered)
             }
-            .padding(8)
+            .padding(.horizontal)
         }
         .scrollIndicators(.hidden)
     }
@@ -129,7 +129,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                     Text(dayPlan.name)
                         .fontWeight(.bold)
                 }
-                .buttonStyle(.glassProminent)
+                .buttonStyle(.borderedProminent)
             } else {
                 Button {
                     presenter.onWorkoutTemplateModelSelected(dayPlan)
@@ -137,7 +137,7 @@ struct ProgramDesignView<DefineWorkout: View>: View {
                     Text(dayPlan.name)
                         .fontWeight(.regular)
                 }
-                .buttonStyle(.glass)
+                .buttonStyle(.bordered)
             }
         }
     }
@@ -180,19 +180,23 @@ struct ProgramDesignView<DefineWorkout: View>: View {
         Section {
             ScrollView(.horizontal) {
                 HStack {
-                    OptionCell(imageName: "minus.circle.fill", title: "Remove")
-                        .anyButton {
-                            presenter.onRemoveWorkoutTemplateModelPressed()
-                        }
-                        .disabled(!presenter.canRemoveWorkoutTemplateModel)
+                    Button {
+                        presenter.onRemoveWorkoutTemplateModelPressed()
+                    } label: {
+                        Label("Remove", systemImage: "minus.circle.fill")
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(!presenter.canRemoveWorkoutTemplateModel)
                         .padding(.leading)
                     
-                    OptionCell(imageName: "pencil", title: "Rename")
-                        .anyButton {
-                            presenter.onRenameWorkoutTemplateModelPressed()
-                        }
-                        .disabled(presenter.selectedWorkoutTemplateModel.exercises.isEmpty)
-                        .padding(.trailing)
+                    Button {
+                        presenter.onRenameWorkoutTemplateModelPressed()
+                    } label: {
+                        Label("Rename", systemImage: "pencil")
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(presenter.selectedWorkoutTemplateModel.exercises.isEmpty)
+                    .padding(.trailing)
                 }
             }
             .scrollIndicators(.hidden)
@@ -294,24 +298,4 @@ extension CoreRouter {
         builder.programDesignView(router: router, delegate: delegate)
     }
     
-}
-
-struct OptionCell: View {
-    
-    let imageName: String
-    let title: String
-    
-    var body: some View {
-        HStack {
-            Image(systemName: imageName)
-            Text(title)
-                .font(.caption)
-        }
-        .padding(8)
-        .glassEffect()
-//        .background {
-//            Capsule()
-//                .foregroundStyle(Color.secondary.opacity(0.4))
-//        }
-    }
 }

@@ -77,7 +77,13 @@ service cloud.firestore {
       match /workout_sessions/{workout_session_id} {
         allow read: if isAuthed() && request.auth.uid == user_id;
         allow create: if isAuthed() && request.auth.uid == user_id && request.resource.data.author_id == user_id;
-        allow update, delete: if isAuthed() && request.auth.uid == user_id && resource.data.author_id == user_id;
+        allow update: if isAuthed() && (
+          // Owner can update any field
+          (request.auth.uid == user_id && resource.data.author_id == user_id) ||
+          // Any authenticated user can toggle their like (only liked_by_user_ids may change)
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['liked_by_user_ids'])
+        );
+        allow delete: if isAuthed() && request.auth.uid == user_id && resource.data.author_id == user_id;
       }
       
       // Workout Templates subcollection
@@ -95,6 +101,35 @@ service cloud.firestore {
       // Meal logs: users/{user_id}/meal_logs/{dayKey}/meals/{mealId}
       match /meal_logs/{document=**} {
         allow read, write: if isAuthed() && request.auth.uid == user_id;
+      }
+      
+      // Recipe Templates subcollection
+      match /recipe_templates/{workout_templates_id} {
+        allow read: if isAuthed() && request.auth.uid == user_id;
+        allow create: if isAuthed() && request.auth.uid == user_id && request.resource.data.author_id == user_id;
+        allow update, delete: if isAuthed() && request.auth.uid == user_id && resource.data.author_id == user_id;
+      }
+      
+      // Ingredient Templates subcollection
+      match /ingredient_templates/{workout_templates_id} {
+        allow read: if isAuthed() && request.auth.uid == user_id;
+        allow create: if isAuthed() && request.auth.uid == user_id && request.resource.data.author_id == user_id;
+        allow update, delete: if isAuthed() && request.auth.uid == user_id && resource.data.author_id == user_id;
+      }
+    }
+    
+    // ---------------- STREAKS ----------------
+    match /user_streaks/{user_id} {
+      allow read: if isAuthed();
+      allow write: if isAuthed() && request.auth.uid == user_id;
+      
+      // Workouts subcollection
+      match /workout/{document_id} {
+        allow read, write: if isAuthed() && request.auth.uid == user_id;
+      
+      	match /data/{data_id} {
+	        allow read, write: if isAuthed() && request.auth.uid == user_id;
+        }
       }
     }
 
@@ -192,6 +227,21 @@ service cloud.firestore {
       allow read: if isAuthed();
       allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
       allow update, delete: if isAuthed() && request.auth.uid == resource.data.author_id;
+    }
+
+    // ---------------- WORKOUT SESSION COMMENTS ----------------
+    // Top-level collection to allow cross-user writes (commenting on others' sessions).
+    match /workout_session_comments/{comment_id} {
+      // Any authenticated user can read comments
+      allow read: if isAuthed();
+      // Author can create their own comment
+      allow create: if isAuthed() && request.auth.uid == request.resource.data.author_id;
+      // Only the comment author can soft-delete (set deleted_at); no other fields may change
+      allow update: if isAuthed()
+        && request.auth.uid == resource.data.author_id
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deleted_at']);
+      // No hard deletes
+      allow delete: if false;
     }
   }
 }
