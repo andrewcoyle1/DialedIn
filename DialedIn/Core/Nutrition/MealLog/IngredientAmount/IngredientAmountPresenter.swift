@@ -15,7 +15,7 @@ class IngredientAmountPresenter {
 
     var amountText: String = "100"
 
-    func unitLabel(ingredient: IngredientTemplateModel) -> String {
+    func unitLabel(ingredient: FoodModel) -> String {
         switch ingredient.measurementMethod {
         case .weight: return "g"
         case .volume: return "ml"
@@ -24,10 +24,10 @@ class IngredientAmountPresenter {
 
     var amountValue: Double { Double(amountText) ?? 0 }
     var scale: Double { max(amountValue, 0) / 100.0 }
-    func calories(ingredient: IngredientTemplateModel) -> Double? { ingredient.calories.map { $0 * scale } }
-    func protein(ingredient: IngredientTemplateModel) -> Double? { ingredient.protein.map { $0 * scale } }
-    func carbs(ingredient: IngredientTemplateModel) -> Double? { ingredient.carbs.map { $0 * scale } }
-    func fat(ingredient: IngredientTemplateModel) -> Double? { ingredient.fatTotal.map { $0 * scale } }
+    func calories(ingredient: FoodModel) -> Double? { ingredient.calories.map { $0 * scale } }
+    func protein(ingredient: FoodModel) -> Double? { ingredient.protein.map { $0 * scale } }
+    func carbs(ingredient: FoodModel) -> Double? { ingredient.carbs.map { $0 * scale } }
+    func fat(ingredient: FoodModel) -> Double? { ingredient.fatTotal.map { $0 * scale } }
 
     init(
         interactor: IngredientAmountInteractor,
@@ -37,7 +37,7 @@ class IngredientAmountPresenter {
         self.router = router
     }
 
-    func add(ingredient: IngredientTemplateModel, onConfirm: @escaping (MealItemModel) -> Void) {
+    func add(ingredient: FoodModel, onConfirm: @escaping (MealItemModel) -> Void) {
         let resolvedGrams = ingredient.measurementMethod == .weight ? amountValue : nil
         let resolvedMl = ingredient.measurementMethod == .volume ? amountValue : nil
         let item = MealItemModel(

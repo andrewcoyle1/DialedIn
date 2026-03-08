@@ -62,17 +62,24 @@ struct NutritionLibraryPickerView<
             ScrollView(.horizontal) {
                 HStack {
                     ForEach(NutritionPickerMode.allCases) { mode in
-                        Button {
-                            presenter.onModePressed(mode)
-                        } label: {
-                            Label(mode.title, systemImage: mode.systemName).tag(mode)
-                                .padding(.horizontal, 8)
-                                .padding(8)
+                        if mode == presenter.mode {
+                            Button {
+                                presenter.onModePressed(mode)
+                            } label: {
+                                Label(mode.title, systemImage: mode.systemName).tag(mode)
+                            }
+                            .buttonStyle(.borderedProminent)
+                        } else {
+                            Button {
+                                presenter.onModePressed(mode)
+                            } label: {
+                                Label(mode.title, systemImage: mode.systemName).tag(mode)
+                            }
+                            .buttonStyle(.bordered)
                         }
-                        .glassEffect()
                     }
                 }
-                .padding()
+                .padding(.horizontal)
             }
             .scrollIndicators(.hidden)
         }
@@ -84,11 +91,11 @@ struct NutritionLibraryPickerView<
         
     private var ingredientsSection: some View {
         Section {
-            if presenter.ingredientTemplates.isEmpty {
+            if presenter.foods.isEmpty {
                 Text(presenter.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "No ingredients to show yet" : "No results")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(presenter.ingredientTemplates) { ingredient in
+                ForEach(presenter.foods) { ingredient in
                     Button {
                         presenter.navToIngredientAmount(ingredient, onPick: delegate.onPick)
                     } label: {

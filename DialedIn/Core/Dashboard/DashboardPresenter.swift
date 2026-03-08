@@ -7,6 +7,10 @@ class DashboardPresenter {
     private let interactor: DashboardInteractor
     private let router: DashboardRouter
     
+    var activityNotifications: [ActivityNotificationModel] {
+        interactor.activityNotifications
+    }
+    
     var feedSessions: [WorkoutSessionModel] {
         let ownCompleted = interactor.workoutSessions.filter { $0.endedAt != nil && !$0.isRestDay }
         let combined = ownCompleted + interactor.followingWorkoutSessions
@@ -116,11 +120,15 @@ class DashboardPresenter {
         router.showNotificationsView()
     }
     
-#if DEV || MOCK
-func onDevSettingsPressed() {
-    router.showDevSettingsView()
-}
-#endif
+    #if DEV || MOCK
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+    #endif
+
+    func loadNotifications() async {
+        try? await interactor.fetchActivityNotifications()
+    }
 
 }
 

@@ -116,6 +116,24 @@ service cloud.firestore {
         allow create: if isAuthed() && request.auth.uid == user_id && request.resource.data.author_id == user_id;
         allow update, delete: if isAuthed() && request.auth.uid == user_id && resource.data.author_id == user_id;
       }
+
+      // Activity Notifications subcollection
+      // Owner can read and delete their own notifications.
+      // Any authenticated user can create/overwrite a notification on another user's behalf
+      // (e.g. writing a like or comment notification to the recipient), but cannot modify
+      // existing docs or read other users' notifications.
+      match /notifications/{notification_id} {
+        allow read: if isAuthed() && request.auth.uid == user_id;
+        allow delete: if isAuthed() && (
+          request.auth.uid == user_id ||
+          resource.data.actor_id == request.auth.uid
+        );
+        allow create: if isAuthed() && request.resource.data.actor_id == request.auth.uid;
+        allow update: if isAuthed() && (
+          request.auth.uid == user_id ||
+          request.resource.data.actor_id == request.auth.uid
+        );
+      }
     }
     
     // ---------------- STREAKS ----------------

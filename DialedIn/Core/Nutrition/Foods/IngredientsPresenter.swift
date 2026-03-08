@@ -21,8 +21,8 @@ class IngredientsPresenter {
         self.router = router
     }
     
-    func onIngredientPressed(ingredient: IngredientTemplateModel) {
-        router.showIngredientDetailView(delegate: IngredientDetailDelegate(ingredientTemplate: ingredient))
+    func onIngredientPressed(ingredient: FoodModel) {
+        router.showFoodDetailView(delegate: FoodDetailDelegate(food: ingredient))
     }
     
     // MARK: Analytics Events

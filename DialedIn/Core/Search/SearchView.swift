@@ -202,12 +202,12 @@ struct SearchView: View {
 
     @ViewBuilder
     private var ingredientsSection: some View {
-        if !presenter.filteredIngredientTemplates.isEmpty {
+        if !presenter.filteredFoods.isEmpty {
             searchItemSection(
                 header: "Ingredients",
-                items: presenter.filteredIngredientTemplates,
+                items: presenter.filteredFoods,
                 action: { item in
-                    guard let item = item as? IngredientTemplateModel else { return }
+                    guard let item = item as? FoodModel else { return }
                     presenter.onIngredientPressed(ingredient: item)
                 }
             )

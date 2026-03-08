@@ -4,19 +4,19 @@ struct IngredientListBuilderDelegate {
     
     let mealItems: Binding<[MealItemModel]>?
     
-    var onIngredientSelectionChanged: ((IngredientTemplateModel) -> Void)?
+    var onIngredientSelectionChanged: ((FoodModel) -> Void)?
     /// Optional list of ingredient templates that should display as "selected" in the UI.
     /// If `nil`, no selection state is shown.
-    var selectedIngredientTemplates: [IngredientTemplateModel]?
+    var selectedFoods: [FoodModel]?
     
     init(
         mealItems: Binding<[MealItemModel]>? = nil,
-        onIngredientSelectionChanged: ((IngredientTemplateModel) -> Void)? = nil,
-        selectedIngredientTemplates: [IngredientTemplateModel]? = nil
+        onIngredientSelectionChanged: ((FoodModel) -> Void)? = nil,
+        selectedFoods: [FoodModel]? = nil
     ) {
         self.mealItems = mealItems
         self.onIngredientSelectionChanged = onIngredientSelectionChanged
-        self.selectedIngredientTemplates = selectedIngredientTemplates
+        self.selectedFoods = selectedFoods
     }
 }
 
@@ -26,21 +26,21 @@ struct IngredientListBuilderView: View {
     
     let delegate: IngredientListBuilderDelegate
     
-    private func isIngredientTemplateSelected(_ ingredientTemplate: IngredientTemplateModel) -> Bool {
-        delegate.selectedIngredientTemplates?.contains(ingredientTemplate) ?? false
+    private func isFoodSelected(_ food: FoodModel) -> Bool {
+        delegate.selectedFoods?.contains(food) ?? false
     }
 
     var body: some View {
         List {
             if presenter.searchText.isEmpty {
-                if !presenter.userIngredientTemplates.isEmpty {
-                    userIngredientTemplatesSection
+                if !presenter.userFoods.isEmpty {
+                    userFoodsSection
                 }
-                if !presenter.systemIngredientTemplates.isEmpty {
-                    systemIngredientTemplatesSection
+                if !presenter.systemFoods.isEmpty {
+                    systemFoodsSection
                 }
             } else {
-                filteredIngredientTemplatesSection
+                filteredFoodsSection
             }
         }
         .onAppear {
@@ -62,14 +62,14 @@ struct IngredientListBuilderView: View {
         }
     }
     
-    private var userIngredientTemplatesSection: some View {
+    private var userFoodsSection: some View {
         Section {
-            ForEach(presenter.userIngredientTemplates) { ingredient in
+            ForEach(presenter.userFoods) { ingredient in
                 CustomListCellView(
                     imageName: ingredient.imageURL,
                     title: ingredient.name,
                     subtitle: ingredient.description,
-                    isSelected: isIngredientTemplateSelected(ingredient)
+                    isSelected: isFoodSelected(ingredient)
                 )
                 .anyButton(.highlight) {
                     delegate.onIngredientSelectionChanged?(ingredient)
@@ -81,14 +81,14 @@ struct IngredientListBuilderView: View {
         }
     }
 
-    private var systemIngredientTemplatesSection: some View {
+    private var systemFoodsSection: some View {
         Section {
-            ForEach(presenter.systemIngredientTemplates) { ingredient in
+            ForEach(presenter.systemFoods) { ingredient in
                 CustomListCellView(
                     imageName: ingredient.imageURL,
                     title: ingredient.name,
                     subtitle: ingredient.description,
-                    isSelected: isIngredientTemplateSelected(ingredient)
+                    isSelected: isFoodSelected(ingredient)
                 )
                 .anyButton(.highlight) {
                     delegate.onIngredientSelectionChanged?(ingredient)
@@ -100,14 +100,14 @@ struct IngredientListBuilderView: View {
         }
     }
 
-    private var filteredIngredientTemplatesSection: some View {
+    private var filteredFoodsSection: some View {
         Section {
-            ForEach(presenter.filteredIngredientTemplates) { ingredient in
+            ForEach(presenter.filteredFoods) { ingredient in
                 CustomListCellView(
                     imageName: ingredient.imageURL,
                     title: ingredient.name,
                     subtitle: ingredient.description,
-                    isSelected: isIngredientTemplateSelected(ingredient)
+                    isSelected: isFoodSelected(ingredient)
                 )
                 .anyButton(.highlight) {
                     delegate.onIngredientSelectionChanged?(ingredient)

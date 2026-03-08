@@ -47,11 +47,11 @@ class CreateRecipePresenter {
     #endif
 
     func onNextPressed() {
-        
+        router.showRecipePreparationView(delegate: RecipePreparationDelegate())
     }
         
     func onAddIngredientPressed() {
-        let selectedIngredientsBinding = Binding<[IngredientTemplateModel]>(
+        let selectedIngredientsBinding = Binding<[FoodModel]>(
             get: { [weak self] in
                 guard let self = self else { return [] }
                 return self.ingredients.map { $0.ingredient }
@@ -81,7 +81,7 @@ class CreateRecipePresenter {
         )
         
         router.showAddIngredientView(
-            delegate: AddIngredientModalDelegate(
+            delegate: AddFoodDelegate(
                 selectedIngredients: selectedIngredientsBinding
             )
         )

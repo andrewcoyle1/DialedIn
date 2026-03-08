@@ -10,15 +10,15 @@ class IngredientListBuilderPresenter {
     var isLoading: Bool = false
     var searchText: String = ""
     
-    var userIngredientTemplates: [IngredientTemplateModel] {
-        interactor.ingredientTemplates
+    var userFoods: [FoodModel] {
+        interactor.foods
             .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
-    var systemIngredientTemplates: [IngredientTemplateModel] = []
+    var systemFoods: [FoodModel] = []
     
-    var filteredIngredientTemplates: [IngredientTemplateModel] {
-        interactor.ingredientTemplates
+    var filteredFoods: [FoodModel] {
+        interactor.foods
             .filter {
                 $0.name.lowercased().contains(searchText.lowercased()) ||
                 $0.description?.lowercased().contains(searchText.lowercased()) == true
@@ -48,7 +48,7 @@ class IngredientListBuilderPresenter {
         router.showCreateFoodView(delegate: CreateFoodDelegate(mealItems: delegate.mealItems))
     }
 
-    func onIngredientPressed(ingredient: IngredientTemplateModel, onIngredientPressed: ((IngredientTemplateModel) -> Void)?) {
+    func onIngredientPressed(ingredient: FoodModel, onIngredientPressed: ((FoodModel) -> Void)?) {
         onIngredientPressed?(ingredient)
     }
 

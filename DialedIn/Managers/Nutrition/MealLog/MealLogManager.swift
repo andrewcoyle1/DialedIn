@@ -162,7 +162,7 @@ extension CoreInteractor {
         for meal in meals {
             for item in meal.items {
                 if item.sourceType == .ingredient {
-                    if let ingredient = ingredientTemplates.first(where: { $0.id == item.sourceId }) {
+                    if let ingredient = foods.first(where: { $0.id == item.sourceId }) {
                         let scale = ((item.resolvedGrams ?? item.resolvedMilliliters) ?? 0) / 100.0
                         addIngredientToBreakdown(ingredient, scale: scale, into: &breakdown)
                     }
@@ -192,7 +192,7 @@ extension CoreInteractor {
         }
     }
 
-    private func addIngredientToBreakdown(_ ingredient: IngredientTemplateModel, scale: Double, into breakdown: inout DailyNutritionBreakdown) {
+    private func addIngredientToBreakdown(_ ingredient: FoodModel, scale: Double, into breakdown: inout DailyNutritionBreakdown) {
         func add(_ value: Double?, to keyPath: inout Double?) {
             guard let value, value > 0 else { return }
             keyPath = (keyPath ?? 0) + value * scale
@@ -275,7 +275,7 @@ extension CoreInteractor {
         return totals
     }
 
-    private func addScaledIngredientNutrients(_ ingredient: IngredientTemplateModel, scale: Double, into totals: inout RecipeNutrientTotals) {
+    private func addScaledIngredientNutrients(_ ingredient: FoodModel, scale: Double, into totals: inout RecipeNutrientTotals) {
         addScaled(ingredient.fiber, to: &totals.fiberGrams, scale: scale)
         addScaled(ingredient.sugar, to: &totals.sugarGrams, scale: scale)
         addScaled(ingredient.fatSaturated, to: &totals.fatSaturatedGrams, scale: scale)

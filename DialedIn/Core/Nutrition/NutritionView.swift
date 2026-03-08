@@ -44,6 +44,7 @@ struct NutritionView<CalendarHeaderView: View>: View {
 
     var body: some View {
         List {
+            ringsSection
             mealLogSection
             moreSection
         }
@@ -73,57 +74,49 @@ struct NutritionView<CalendarHeaderView: View>: View {
                     }
                 )
             )
-            HStack {
-                VStack(alignment: .leading) {
-                    HStack(spacing: 0) {
-                        Image(systemName: "flame")
-                            .font(.system(size: 16))
-                        Text("\(Int(presenter.dailyTotals?.calories ?? 0))/\(Int(presenter.dailyTarget?.calories ?? 0))")
-                            .lineLimit(1)
-                            .font(.caption)
-                    }
-                    .frame(height: 16)
-                    ProgressView(value: presenter.caloriePercentage)
-                        .tint(.blue)
-                }
-
-                VStack(alignment: .leading) {
-                    Text("P \(Int(presenter.dailyTotals?.proteinGrams ?? 0))/\(Int(presenter.dailyTarget?.proteinGrams ?? 0))")
-                        .lineLimit(1)
-                        .font(.caption)
-                        .frame(height: 16)
-
-                    ProgressView(value: presenter.carbsPercentage)
-                        .tint(.red)
-                }
-
-                VStack(alignment: .leading) {
-                    Text("F \(Int(presenter.dailyTotals?.fatGrams ?? 0))/\(Int(presenter.dailyTarget?.fatGrams ?? 0))")
-                        .lineLimit(1)
-                        .font(.caption)
-                        .frame(height: 16)
-
-                    ProgressView(value: presenter.fatPercentage)
-                        .tint(.yellow)
-                }
-                
-                VStack(alignment: .leading) {
-                    Text("C \(Int(presenter.dailyTotals?.carbGrams ?? 0))/\(Int(presenter.dailyTarget?.carbGrams ?? 0))")
-                        .lineLimit(1)
-                        .font(.caption)
-                        .frame(height: 16)
-
-                    ProgressView(value: presenter.carbsPercentage)
-                        .tint(.green)
-                }
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .glassEffect()
-            .padding(.horizontal)
         }
     }
 
+    private var ringsSection: some View {
+        Section {
+            HStack {
+                ActivityRingView(
+                    text: "Cals",
+                    imageName: "flame",
+                    progress: (presenter.dailyTotals?.calories ?? 0)/(presenter.dailyTarget?.calories ?? 0),
+                    color: .blue,
+                    size: 50
+                )
+                .frame(maxWidth: .infinity)
+                ActivityRingView(
+                    text: "Fat",
+                    imageName: "carrot",
+                    progress: (presenter.dailyTotals?.fatGrams ?? 0)/(presenter.dailyTarget?.fatGrams ?? 0),
+                    color: .fatColor,
+                    size: 50
+                )
+                .frame(maxWidth: .infinity)
+                ActivityRingView(
+                    text: "Protein",
+                    imageName: "carrot",
+                    progress: (presenter.dailyTotals?.proteinGrams ?? 0)/(presenter.dailyTarget?.proteinGrams ?? 0),
+                    color: .proteinColor,
+                    size: 50
+                )
+                .frame(maxWidth: .infinity)
+                ActivityRingView(
+                    text: "Carbs",
+                    imageName: "carrot",
+                    progress: (presenter.dailyTotals?.carbGrams ?? 0)/(presenter.dailyTarget?.carbGrams ?? 0),
+                    color: .carbsColor,
+                    size: 60
+                )
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .listSectionMargins(.top, 0)
+    }
+    
     private var mealLogSection: some View {
         Section {
             ForEach(workingHours, id: \.self) { hour in

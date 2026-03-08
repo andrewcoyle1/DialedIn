@@ -16,7 +16,7 @@ class BarcodeScannerPresenter {
 
     // MARK: Label scanning state
     private(set) var isParsingLabel: Bool = false
-    private(set) var parsedIngredient: IngredientTemplateModel?
+    private(set) var parsedIngredient: FoodModel?
     private(set) var labelError: String?
     private(set) var isSavingIngredient: Bool = false
     private(set) var savedSuccessfully: Bool = false
@@ -48,7 +48,7 @@ class BarcodeScannerPresenter {
         do {
             let json = try await interactor.analyzeNutritionLabel(text: text)
             let decoded = try JSONDecoder().decode(NutritionLabelResponse.self, from: Data(json.utf8))
-            parsedIngredient = decoded.toIngredientTemplate(authorId: interactor.currentUser?.userId)
+            parsedIngredient = decoded.toFood(authorId: interactor.currentUser?.userId)
         } catch {
             labelError = error.localizedDescription
             interactor.trackEvent(event: Event.onLabelError(message: error.localizedDescription))
@@ -62,7 +62,7 @@ class BarcodeScannerPresenter {
         interactor.trackEvent(event: Event.onSaveIngredient(name: ingredient.name))
 
         do {
-            try await interactor.saveIngredientTemplate(ingredient, image: nil)
+            try await interactor.saveFood(ingredient, image: nil)
             savedSuccessfully = true
             parsedIngredient = nil
             scannedCode = nil
@@ -164,10 +164,10 @@ private struct NutritionLabelResponse: Decodable {
     let calciumMg: Double?
     let ironMg: Double?
 
-    func toIngredientTemplate(authorId: String?) -> IngredientTemplateModel {
+    func toFood(authorId: String?) -> FoodModel {
         let method: MeasurementMethod = measurementMethod == "volume" ? .volume : .weight
         let now = Date()
-        return IngredientTemplateModel(
+        return FoodModel(
             ingredientId: UUID().uuidString,
             authorId: authorId,
             name: name,

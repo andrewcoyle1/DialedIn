@@ -21,6 +21,9 @@ extension Notification.Name {
     
     /// Notification for when app is opened from a Push Notification
     static let pushNotification = Notification.Name("PushNotification")
+
+    /// Notification for a new real-time activity notification (like / comment)
+    static let newActivityNotification = Notification.Name("NewActivityNotification")
 }
 
 // The below code, postFCMToken + getFCMToken are examples of this.

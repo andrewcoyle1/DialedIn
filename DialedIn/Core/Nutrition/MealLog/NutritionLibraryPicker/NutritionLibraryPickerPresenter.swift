@@ -17,8 +17,8 @@ class NutritionLibraryPickerPresenter {
     var searchText: String = ""
     private(set) var recipes: [RecipeTemplateModel] = []
 
-    var ingredientTemplates: [IngredientTemplateModel] {
-        interactor.ingredientTemplates
+    var foods: [FoodModel] {
+        interactor.foods
             .filter {
                 $0.name == searchText
             }
@@ -36,7 +36,7 @@ class NutritionLibraryPickerPresenter {
         self.mode = mode
     }
     
-    func navToIngredientAmount(_ ingredient: IngredientTemplateModel, onPick: @escaping (MealItemModel) -> Void) {
+    func navToIngredientAmount(_ ingredient: FoodModel, onPick: @escaping (MealItemModel) -> Void) {
         router.showIngredientAmountView(delegate: IngredientAmountDelegate(ingredient: ingredient, onPick: onPick))
     }
 

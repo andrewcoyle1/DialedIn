@@ -15,7 +15,9 @@ struct CreateRecipeView: View {
     var body: some View {
         List {
             nameSection
-            ingredientTemplatesSection
+            servingQuantitySection
+            totalWeightSection
+            foodsSection
         }
         .navigationTitle("Create Recipe")
         .navigationBarTitleDisplayMode(.inline)
@@ -30,6 +32,7 @@ struct CreateRecipeView: View {
                     .padding(.vertical)
                     .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.glassProminent)
             .padding()
         }
     }
@@ -38,51 +41,76 @@ struct CreateRecipeView: View {
         Section {
             TextField("Enter recipe name", text: $presenter.recipeName)
         } header: {
-            Text("Recipe name")
+            HStack(alignment: .firstTextBaseline) {
+                Text("Recipe name")
+                Spacer()
+                Text("Required")
+                    .font(.caption)
+            }
         }
     }
     
-    private var ingredientTemplatesSection: some View {
+    private var servingQuantitySection: some View {
         Section {
-            if !presenter.ingredients.isEmpty {
-                ForEach($presenter.ingredients) { $wrapper in
-                    HStack(alignment: .center, spacing: 12) {
-                        CustomListCellView(imageName: wrapper.ingredient.imageURL, title: wrapper.ingredient.name, subtitle: wrapper.ingredient.description)
-                        Spacer()
-                        HStack(spacing: 6) {
-                            TextField("Amount", value: $wrapper.amount, format: .number)
-                                .keyboardType(.decimalPad)
-                                .frame(width: 70)
-                            
-                            Picker("", selection: $wrapper.unit) {
-                                Text("g").tag(IngredientAmountUnit.grams)
-                                Text("ml").tag(IngredientAmountUnit.milliliters)
-                                Text("units").tag(IngredientAmountUnit.units)
-                            }
-                            .pickerStyle(.menu)
-                            .frame(width: 15)
-                        }
-                    }
-                    .removeListRowFormatting()
-                }
-            } else {
-                Text("No ingredient templates added yet.")
-                    .foregroundStyle(.secondary)
+            AutoSelectNumberField(prompt: "Enter serving quantity", value: .constant(1), alignment: .leading, keyboardType: .decimalPad)
+        } header: {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Serving Quantity")
+                Spacer()
+                Text("Required")
+                    .font(.caption)
             }
-            Button {
-                presenter.onAddIngredientPressed()
-            } label: {
-                Text("Add ingredient")
+        }
+    }
+    
+    private var totalWeightSection: some View {
+        Section {
+            TextFieldwUnit<NutritionWeightUnit>(prompt: "Enter weight after preparation", value: .constant(1), unit: .grams)
+
+        } header: {
+            Text("Total Weight")
+        }
+
+    }
+    
+    private var foodsSection: some View {
+        Section {
+            ForEach($presenter.ingredients) { $wrapper in
+                HStack(alignment: .center, spacing: 12) {
+                    CustomListCellView(imageName: wrapper.ingredient.imageURL, title: wrapper.ingredient.name, subtitle: wrapper.ingredient.description)
+                    Spacer()
+                    HStack(spacing: 6) {
+                        TextField("Amount", value: $wrapper.amount, format: .number)
+                            .keyboardType(.decimalPad)
+                            .frame(width: 70)
+                        
+                        Picker("", selection: $wrapper.unit) {
+                            Text("g").tag(IngredientAmountUnit.grams)
+                            Text("ml").tag(IngredientAmountUnit.milliliters)
+                            Text("units").tag(IngredientAmountUnit.units)
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 15)
+                    }
+                }
+                .removeListRowFormatting()
             }
         } header: {
             HStack {
-                Text("Ingredients")
+                VStack(alignment: .leading) {
+                    Text("Ingredients")
+                    Text("Weight of ingredients is 0 \(NutritionWeightUnit.grams.acronym)")
+                        .font(.caption)
+                }
                 Spacer()
                 Button {
                     presenter.onAddIngredientPressed()
                 } label: {
-                    Image(systemName: "plus.circle.fill")
+                    Image(systemName: "plus")
+                        .font(.system(size: 24))
                 }
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.circle)
             }
         }
     }

@@ -117,8 +117,8 @@ class SearchPresenter {
         interactor.userRecipeTemplates
     }
 
-    var filteredIngredientTemplates: [IngredientTemplateModel] {
-        allIngredientTemplates
+    var filteredFoods: [FoodModel] {
+        allFoods
             .filter {
                 $0.name
                     .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -134,8 +134,8 @@ class SearchPresenter {
             .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
-    var allIngredientTemplates: [IngredientTemplateModel] {
-        interactor.ingredientTemplates
+    var allFoods: [FoodModel] {
+        interactor.foods
     }
     
     var filteredUsers: [UserModel] {
@@ -173,7 +173,7 @@ class SearchPresenter {
     }
 
     var hasResults: Bool {
-        !filteredExercises.isEmpty || !filteredWorkoutTemplates.isEmpty || !filteredRecipeTemplates.isEmpty || !filteredIngredientTemplates.isEmpty || !users.isEmpty
+        !filteredExercises.isEmpty || !filteredWorkoutTemplates.isEmpty || !filteredRecipeTemplates.isEmpty || !filteredFoods.isEmpty || !users.isEmpty
     }
 
     func isFollowing(userId: String) -> Bool {
@@ -324,8 +324,8 @@ class SearchPresenter {
         }
     }
 
-    func onIngredientPressed(ingredient: IngredientTemplateModel) {
-        router.showIngredientDetailView(delegate: IngredientDetailDelegate(ingredientTemplate: ingredient))
+    func onIngredientPressed(ingredient: FoodModel) {
+        router.showFoodDetailView(delegate: FoodDetailDelegate(food: ingredient))
     }
     
     func onAddExercisePressed() {

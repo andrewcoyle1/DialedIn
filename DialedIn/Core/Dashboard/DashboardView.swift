@@ -31,6 +31,9 @@ struct DashboardView<WorkoutSessionRow: View>: View {
             presenter.onViewDisappear(delegate: delegate)
         }
         .toolbar { toolbarContent }
+        .task {
+            await presenter.loadNotifications()
+        }
     }
     
     private var streakSection: some View {
@@ -194,6 +197,7 @@ struct DashboardView<WorkoutSessionRow: View>: View {
             } label: {
                 Image(systemName: "bell")
             }
+            .badge(presenter.activityNotifications.count)
         }
         
         ToolbarItem(placement: .topBarTrailing) {

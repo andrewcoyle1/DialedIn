@@ -7,7 +7,7 @@
 
 @MainActor
 protocol IngredientsRouter {
-    func showIngredientDetailView(delegate: IngredientDetailDelegate)
+    func showFoodDetailView(delegate: FoodDetailDelegate)
     func showSimpleAlert(title: String, subtitle: String?)
 }
 

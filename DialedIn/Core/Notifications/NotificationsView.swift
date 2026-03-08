@@ -56,48 +56,57 @@ struct NotificationsView: View {
                 notDeterminedContent
             case .denied, .provisional, .ephemeral:
                 deniedContent
-            @unknown default:
-                deniedContent
+            default:
+                EmptyView()
             }
         }
     }
     
     private var authorizedContent: some View {
         Group {
-            if presenter.notifications.isEmpty {
+            if presenter.activityNotifications.isEmpty {
                 emptyStateContent
             } else {
-                notificationsList
+                activityNotificationsList
             }
         }
     }
-    
+
     @ViewBuilder
-    private var notificationsList: some View {
-        ForEach(presenter.notifications, id: \.request.identifier) { notification in
-            notificationRow(notification)
+    private var activityNotificationsList: some View {
+        ForEach(presenter.activityNotifications) { notification in
+            activityNotificationRow(notification)
+                .swipeActions {
+                    Button(role: .destructive) {
+                        presenter.onNotificationDeleted(notification)
+                    }
+                }
         }
-        .onDelete(perform: presenter.deleteNotifications)
     }
-    
-    private func notificationRow(_ notification: UNNotification) -> some View {
+
+    private func activityNotificationRow(_ notification: ActivityNotificationModel) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(notification.request.content.title)
+            Text(activityNotificationTitle(notification))
                 .font(.headline)
-            
-            if !notification.request.content.body.isEmpty {
-                Text(notification.request.content.body)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Text(notification.date.formatted(date: .abbreviated, time: .shortened))
+                .foregroundStyle(notification.isRead ? .secondary : .primary)
+
+            Text(notification.dateCreated.formatted(date: .abbreviated, time: .shortened))
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
         .padding(.vertical, 4)
     }
-    
+
+    private func activityNotificationTitle(_ notification: ActivityNotificationModel) -> String {
+        switch notification.type {
+        case .like:
+            return "\(notification.actorName) liked your workout"
+        case .comment:
+            let preview = notification.commentText.map { ": \"\($0.prefix(60))\"" } ?? ""
+            return "\(notification.actorName) commented\(preview)"
+        }
+    }
+
     private var emptyStateContent: some View {
         ContentUnavailableView(
             "No Notifications",

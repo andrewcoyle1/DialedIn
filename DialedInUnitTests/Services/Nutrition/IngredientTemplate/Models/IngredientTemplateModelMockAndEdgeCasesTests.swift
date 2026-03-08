@@ -1,5 +1,5 @@
 //
-//  IngredientTemplateModelMockAndEdgeCasesTests.swift
+//  FoodModelMockAndEdgeCasesTests.swift
 //  DialedInUnitTests
 //
 //  Created by Andrew Coyle on 25/10/2025.
@@ -10,13 +10,13 @@ import Foundation
 @testable import DialedIn
 
 @MainActor
-struct IngredientTemplateMockTests {
+struct FoodMockTests {
 
     // MARK: - Mock Tests
     
     @Test("Test Mock Property")
     func testMockProperty() {
-        let mock = IngredientTemplateModel.mock
+        let mock = FoodModel.mock
         
         #expect(mock.ingredientId == "ing-1")
         #expect(mock.name == "Rolled Oats")
@@ -28,7 +28,7 @@ struct IngredientTemplateMockTests {
     
     @Test("Test Mocks Property")
     func testMocksProperty() {
-        let mocks = IngredientTemplateModel.mocks
+        let mocks = FoodModel.mocks
         
         #expect(mocks.count == 2)
         #expect(mocks[0].name == "Rolled Oats")
@@ -37,7 +37,7 @@ struct IngredientTemplateMockTests {
     
     @Test("Test Mocks Have Different Measurement Methods")
     func testMocksHaveDifferentMeasurementMethods() {
-        let mocks = IngredientTemplateModel.mocks
+        let mocks = FoodModel.mocks
         
         #expect(mocks[0].measurementMethod == .weight)
         #expect(mocks[1].measurementMethod == .volume)
@@ -45,7 +45,7 @@ struct IngredientTemplateMockTests {
     
     @Test("Test Mocks Have Different Author IDs")
     func testMocksHaveDifferentAuthorIds() {
-        let mocks = IngredientTemplateModel.mocks
+        let mocks = FoodModel.mocks
         
         #expect(mocks[0].authorId == "1")
         #expect(mocks[1].authorId == "2")
@@ -60,7 +60,7 @@ struct IngredientTemplateMockTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let ingredient = IngredientTemplateModel(
+        let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             authorId: randomAuthorId,
             name: randomName,
@@ -94,7 +94,7 @@ struct IngredientTemplateMockTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let ingredient = IngredientTemplateModel(
+        let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             authorId: nil,
             name: randomName,
@@ -122,7 +122,7 @@ struct IngredientTemplateMockTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let ingredient = IngredientTemplateModel(
+        let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
             calories: 0.0,
@@ -145,7 +145,7 @@ struct IngredientTemplateMockTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let ingredient = IngredientTemplateModel(
+        let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
             calories: 9999.99,
@@ -167,7 +167,7 @@ struct IngredientTemplateMockTests {
         let randomIngredientId = String.random
         let randomDate = Date.random
         
-        let ingredient = IngredientTemplateModel(
+        let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: "",
             calories: 100.0,
@@ -187,7 +187,7 @@ struct IngredientTemplateMockTests {
         let longName = String(repeating: "a", count: 1000)
         let randomDate = Date.random
         
-        let ingredient = IngredientTemplateModel(
+        let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: longName,
             calories: 100.0,

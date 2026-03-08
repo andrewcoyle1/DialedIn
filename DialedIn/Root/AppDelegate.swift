@@ -65,6 +65,14 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         #endif
     }
     
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound, .badge])
+    }
+
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         // Firebase push notifications put the payload within "aps" sub-dictionary.
         // This may not be the case for other push notification services

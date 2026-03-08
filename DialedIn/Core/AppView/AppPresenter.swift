@@ -20,6 +20,8 @@ class AppPresenter {
     var auth: UserAuthInfo? {
         interactor.auth
     }
+
+    var activityBanner: ActivityNotificationModel?
     
     init(interactor: AppInteractor) {
         self.interactor = interactor
@@ -80,6 +82,16 @@ class AppPresenter {
                 try? await Task.sleep(for: .seconds(5))
                 await checkUserStatus()
             }
+        }
+    }
+
+    func onNewActivityNotification(notification: Notification) {
+        guard let notif = notification.object as? ActivityNotificationModel else { return }
+        activityBanner = notif
+        let id = notif.id
+        Task {
+            try? await Task.sleep(for: .seconds(4))
+            if activityBanner?.id == id { activityBanner = nil }
         }
     }
 

@@ -1,5 +1,5 @@
 //
-//  IngredientTemplateModel.swift
+//  FoodModel.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 23/09/2025.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
+struct FoodModel: DataSyncModelProtocol, SearchListItem {
     var id: String {
         ingredientId
     }
@@ -316,13 +316,13 @@ struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
         return dict.compactMapValues({ $0 })
     }
         
-    static var mock: IngredientTemplateModel {
+    static var mock: FoodModel {
         mocks[0]
     }
     
-    static let mocks: [IngredientTemplateModel] =
+    static let mocks: [FoodModel] =
     [
-        IngredientTemplateModel(
+        FoodModel(
             ingredientId: "ing-1",
             authorId: "1",
             name: "Rolled Oats",
@@ -350,7 +350,7 @@ struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
             bookmarkCount: 3,
             favouriteCount: 1
         ),
-        IngredientTemplateModel(
+        FoodModel(
             ingredientId: "ing-2",
             authorId: "2",
             name: "Whole Milk",
@@ -381,10 +381,10 @@ struct IngredientTemplateModel: DataSyncModelProtocol, SearchListItem {
     ]
 }
 
-extension IngredientTemplateModel: Sendable {}
+extension FoodModel: Sendable {}
 
-extension IngredientTemplateModel: Hashable {
-    static func == (lhs: IngredientTemplateModel, rhs: IngredientTemplateModel) -> Bool {
+extension FoodModel: Hashable {
+    static func == (lhs: FoodModel, rhs: FoodModel) -> Bool {
         lhs.ingredientId == rhs.ingredientId
     }
     func hash(into hasher: inout Hasher) {

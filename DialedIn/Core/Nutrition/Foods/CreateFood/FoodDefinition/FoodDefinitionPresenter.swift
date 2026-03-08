@@ -122,8 +122,8 @@ class FoodDefinitionPresenter {
         }
     }
     
-    private func createFood(userId: String, delegate: FoodDefinitionDelegate) async throws -> IngredientTemplateModel {
-        let ingredient = IngredientTemplateModel(
+    private func createFood(userId: String, delegate: FoodDefinitionDelegate) async throws -> FoodModel {
+        let ingredient = FoodModel(
             authorId: userId,
             name: delegate.name,
             brandName: delegate.brandName,
@@ -168,7 +168,7 @@ class FoodDefinitionPresenter {
             cholesterolMg: self.cholesterol,
             pantothenicAcidMg: self.b5PantothenicAcid
         )
-        try await interactor.saveIngredientTemplate(ingredient, image: delegate.image)
+        try await interactor.saveFood(ingredient, image: delegate.image)
         return ingredient
     }
 }
