@@ -16,15 +16,9 @@ protocol NotificationsInteractor: GlobalInteractor {
     func removeDeliveredNotifications(ids: [String])
     func checkPushNotificationAuthorisation() async throws -> UNAuthorizationStatus
     func fetchActivityNotifications() async throws
+    func markActivityNotificationsRead() async throws
+    func deleteActivityNotification(id: String) async throws
+    func clearAllDeliveredNotifications()
 }
 
-extension CoreInteractor: NotificationsInteractor {
-    var activityNotifications: [ActivityNotificationModel] {
-        activityNotificationManager.notifications
-    }
-
-    func fetchActivityNotifications() async throws {
-        guard let userId else { return }
-        try await activityNotificationManager.fetchNotifications(userId: userId)
-    }
-}
+extension CoreInteractor: NotificationsInteractor { }

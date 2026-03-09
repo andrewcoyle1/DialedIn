@@ -38,6 +38,13 @@ class PushManager {
     func removeDeliveredNotifications(ids: [String]) {
         LocalNotifications.removeNotifications(ids: ids, pending: false, delivered: true)
     }
+
+    func clearAllDeliveredNotifications() {
+        LocalNotifications.removeAllDeliveredNotifications()
+        Task {
+            try? await UNUserNotificationCenter.current().setBadgeCount(0)
+        }
+    }
     
     func schedulePushNotificationsForNextWeek() {
         LocalNotifications.removeAllPendingNotifications()
@@ -149,5 +156,9 @@ extension CoreInteractor {
     func removeDeliveredNotifications(ids: [String]) {
         pushManager.removeDeliveredNotifications(ids: ids)
     }
-    
+
+    func clearAllDeliveredNotifications() {
+        pushManager.clearAllDeliveredNotifications()
+    }
+
 }

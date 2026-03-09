@@ -45,6 +45,8 @@ class NotificationsPresenter {
     func loadNotifications() async {
         isLoading = true
         try? await interactor.fetchActivityNotifications()
+        try? await interactor.markActivityNotificationsRead()
+        interactor.clearAllDeliveredNotifications()
         isLoading = false
     }
     
@@ -81,7 +83,10 @@ class NotificationsPresenter {
         }
     }
     
-    func onNotificationDeleted(_ noification: ActivityNotificationModel) {
+    func onNotificationDeleted(_ notification: ActivityNotificationModel) {
+        Task {
+            try? await interactor.deleteActivityNotification(id: notification.id)
+        }
     }
 
     func onDismissPressed() {

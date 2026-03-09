@@ -12,12 +12,45 @@ class IntegrationsPresenter {
         self.router = router
     }
     
+    var stravaIsConnected: Bool { interactor.stravaIsConnected }
+    var isConnectingStrava: Bool = false
+    var isTestingStravaUpload: Bool = false
+
     func onViewAppear() {
         interactor.trackScreenEvent(event: Event.onAppear)
     }
-    
+
     func onViewDisappear() {
         interactor.trackEvent(event: Event.onDisappear)
+    }
+
+    func onStravaConnectPressed() {
+        isConnectingStrava = true
+        Task {
+            defer { isConnectingStrava = false }
+            do {
+                try await interactor.stravaAuthenticate()
+            } catch {
+                router.showSimpleAlert(title: "Connection Failed", subtitle: error.localizedDescription)
+            }
+        }
+    }
+
+    func onStravaDisconnectPressed() {
+        interactor.stravaDisconnect()
+    }
+
+    func onStravaTestUploadPressed() {
+        isTestingStravaUpload = true
+        Task {
+            defer { isTestingStravaUpload = false }
+            do {
+                try await interactor.stravaTestUpload()
+                router.showSimpleAlert(title: "Upload Successful", subtitle: "Check your Strava account for \"DialedIn Test Upload\".")
+            } catch {
+                router.showSimpleAlert(title: "Upload Failed", subtitle: error.localizedDescription)
+            }
+        }
     }
 }
 

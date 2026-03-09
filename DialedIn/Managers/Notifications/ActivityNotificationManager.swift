@@ -61,5 +61,23 @@ class ActivityNotificationManager {
 }
 
 extension CoreInteractor {
-    
+    var activityNotifications: [ActivityNotificationModel] {
+        activityNotificationManager.notifications
+    }
+
+    func fetchActivityNotifications() async throws {
+        guard let userId else { return }
+        try await activityNotificationManager.fetchNotifications(userId: userId)
+    }
+
+    func markActivityNotificationsRead() async throws {
+        guard let userId else { return }
+        try await activityNotificationManager.markAllRead(userId: userId)
+    }
+
+    func deleteActivityNotification(id: String) async throws {
+        guard let userId else { return }
+        try await activityNotificationManager.deleteNotification(id: id, userId: userId)
+    }
+
 }

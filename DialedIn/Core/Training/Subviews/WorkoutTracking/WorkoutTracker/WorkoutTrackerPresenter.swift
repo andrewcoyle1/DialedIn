@@ -911,6 +911,7 @@ class WorkoutTrackerPresenter {
                 try await interactor.endWorkoutSession(sessionSnapshot)
                 try await interactor.addWorkoutStreakEvent()
                 await interactor.preCompleteConsecutiveRestDays(after: sessionSnapshot)
+                await interactor.uploadToStravaIfConnected(sessionSnapshot)
                 #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
                 interactor.endLiveActivity(session: sessionSnapshot, isCompleted: true, statusMessage: "Workout ended & saved.")
                 #endif

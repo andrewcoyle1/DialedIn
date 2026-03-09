@@ -16,7 +16,24 @@ struct DashboardView<WorkoutSessionRow: View>: View {
     
     var body: some View {
         List {
-            streakSection
+            Section {
+                TabView {
+                    if let todaysWorkoutTemplate = presenter.todaysWorkoutTemplate {
+                        Tab {
+                            todaysWorkoutCard(todaysWorkoutTemplate)
+                        }
+                    }
+
+                    Tab {
+                        streakCard
+                    }
+                }
+                .tabViewStyle(.page)
+                .frame(height: 240)
+            }
+            .removeListRowFormatting()
+            .listSectionMargins(.all, 0)
+            .listSectionSeparator(.hidden)
             workoutFeedSection
         }
         .scrollIndicators(.hidden)
@@ -35,25 +52,119 @@ struct DashboardView<WorkoutSessionRow: View>: View {
             await presenter.loadNotifications()
         }
     }
-    
-    private var streakSection: some View {
-        Section {
-            streakCard
-                .removeListRowFormatting()
-        } header: {
-            Text("Workout Streak")
+        
+    private func todaysWorkoutCard(_ todaysWorkoutTemplate: WorkoutTemplateModel) -> some View {
+        VStack(alignment: .leading) {
+            Text("Today's Workout")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+                .padding(.leading)
+            VStack(alignment: .leading, spacing: 12) {
+                if presenter.isTodayRestDay {
+                    HStack(spacing: 12) {
+                        Image(systemName: "moon.zzz.fill")
+                            .font(.title2)
+                            .foregroundStyle(.blue)
+                        VStack(alignment: .leading) {
+                            Text("Rest Day")
+                                .font(.title3.bold())
+                            Text("Recovery is part of the process.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                    }
+                } else if presenter.isTodayCompleted {
+                    HStack(spacing: 12) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.green)
+                        VStack(alignment: .leading) {
+                            Text(todaysWorkoutTemplate.name)
+                                .font(.title3.bold())
+                            Text("Completed")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                    }
+                } else {
+                    Button {
+                        presenter.onTodaysWorkoutPressed()
+                    } label: {
+                        VStack(alignment: .leading) {
+                            HStack(spacing: -10) {
+                                ForEach(todaysWorkoutTemplate.exercises.prefix(5)) { exercise in
+                                    exerciseCircle(exercise: exercise.exercise)
+                                }
+                            }
+                            .frame(maxHeight: .infinity)
+                            Divider()
+                            HStack(spacing: 12) {
+                                Image(systemName: "dumbbell.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(.accent)
+                                VStack(alignment: .leading) {
+                                    Text(todaysWorkoutTemplate.name)
+                                        .font(.title3.bold())
+                                        .foregroundStyle(.primary)
+                                    Text("\(todaysWorkoutTemplate.exercises.count) exercise\(todaysWorkoutTemplate.exercises.count == 1 ? "" : "s")")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+            }
+            .padding()
+            .frame(height: 200)
+            .background(colorScheme.backgroundPrimary)
+            .cornerRadius(24)
         }
+        .padding(.horizontal)
+        .background(colorScheme.backgroundSecondary)
+        .padding(.vertical)
+    }
+    
+    @ViewBuilder
+    private func exerciseCircle(exercise: ExerciseModel) -> some View {
+        ZStack {
+            Circle()
+                .fill(Color(uiColor: .secondarySystemBackground))
+
+            ImageLoaderView(
+                urlString: exercise.imageURL ?? "SplashScreen",
+                resizingMode: .fit,
+                clipShape: AnyShape(Circle())
+            )
+        }
+        .frame(width: 100, height: 100)
+        .overlay(Circle().stroke(Color(uiColor: .systemBackground), lineWidth: 2))
     }
 
     private var streakCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            streakHeader
-            weeklyDotsRow
-            Divider()
-            streakStats
+        VStack(alignment: .leading) {
+            Text("Workout Streak")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+                .padding(.leading)
+            VStack(alignment: .leading, spacing: 16) {
+                streakHeader
+                weeklyDotsRow
+                Divider()
+                streakStats
+            }
+            .padding()
+            .frame(height: 200)
+            .background(colorScheme.backgroundPrimary)
+            .cornerRadius(24)
         }
         .padding()
-        .background(colorScheme.backgroundPrimary)
     }
 
     private var streakHeader: some View {
@@ -197,7 +308,7 @@ struct DashboardView<WorkoutSessionRow: View>: View {
             } label: {
                 Image(systemName: "bell")
             }
-            .badge(presenter.activityNotifications.count)
+            .badge(presenter.activityNotifications.filter({ !$0.isRead }).count)
         }
         
         ToolbarItem(placement: .topBarTrailing) {

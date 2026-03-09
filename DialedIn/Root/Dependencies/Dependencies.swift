@@ -52,6 +52,7 @@ struct Dependencies {
         let imageUploadManager: ImageUploadManager
         let commentsManager: CommentsManager
         let activityNotificationManager: ActivityNotificationManager
+        let stravaManager: StravaManager
 
         switch config {
         case .mock(let scenario):
@@ -241,6 +242,7 @@ struct Dependencies {
             healthKitManager = HealthKitManager(service: HealthKitService())
             commentsManager = CommentsManager(service: MockCommentsService())
             activityNotificationManager = ActivityNotificationManager(service: MockActivityNotificationService())
+            stravaManager = StravaManager(service: MockStravaService(), clientId: "", clientSecret: "")
 
         case .dev:
             logManager = LogManager(services: [
@@ -456,6 +458,7 @@ struct Dependencies {
             healthKitManager = HealthKitManager(service: HealthKitService())
             commentsManager = CommentsManager(service: FirebaseCommentsService())
             activityNotificationManager = ActivityNotificationManager(service: FirebaseActivityNotificationService())
+            stravaManager = StravaManager(service: ProductionStravaService(), clientId: Keys.stravaClientId, clientSecret: Keys.stravaClientSecret)
 
         case .prod:
             logManager = LogManager(services: [
@@ -665,6 +668,7 @@ struct Dependencies {
             healthKitManager = HealthKitManager(service: HealthKitService())
             commentsManager = CommentsManager(service: FirebaseCommentsService())
             activityNotificationManager = ActivityNotificationManager(service: FirebaseActivityNotificationService())
+            stravaManager = StravaManager(service: ProductionStravaService(), clientId: Keys.stravaClientId, clientSecret: Keys.stravaClientSecret)
         }
         hapticManager = HapticManager(logger: logManager)
         soundEffectManager = SoundEffectManager(logger: logManager)
@@ -704,6 +708,7 @@ struct Dependencies {
         container.register(SoundEffectManager.self, service: soundEffectManager)
         container.register(CommentsManager.self, service: commentsManager)
         container.register(ActivityNotificationManager.self, service: activityNotificationManager)
+        container.register(StravaManager.self, service: stravaManager)
 
         self.logManager = logManager
         self.container = container
@@ -750,6 +755,7 @@ class DevPreview {
         container.register(HapticManager.self, service: hapticManager)
         container.register(CommentsManager.self, service: commentsManager)
         container.register(ActivityNotificationManager.self, service: activityNotificationManager)
+        container.register(StravaManager.self, service: stravaManager)
 
         return container
     }
@@ -790,6 +796,7 @@ class DevPreview {
     let imageUploadManager: ImageUploadManager
     let commentsManager: CommentsManager
     let activityNotificationManager: ActivityNotificationManager
+    let stravaManager: StravaManager
 
     // swiftlint:disable:next function_body_length
     init(isSignedIn: Bool = true) {
@@ -943,6 +950,7 @@ class DevPreview {
         self.imageUploadManager = ImageUploadManager(service: MockImageUploadService())
         self.commentsManager = CommentsManager(service: MockCommentsService())
         self.activityNotificationManager = ActivityNotificationManager(service: MockActivityNotificationService())
+        self.stravaManager = StravaManager(service: MockStravaService(), clientId: "", clientSecret: "")
         self.hapticManager = HapticManager()
         self.soundEffectManager = SoundEffectManager()
 

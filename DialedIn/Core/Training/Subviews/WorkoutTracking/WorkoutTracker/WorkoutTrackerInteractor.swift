@@ -125,6 +125,21 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
     /// Pre-create rest-day sessions for any consecutive rest days that follow the given session in the active training program.
     func preCompleteConsecutiveRestDays(after session: WorkoutSessionModel) async
 
+    /// Upload a completed workout to Strava if the user is connected. Silently ignores errors.
+    func uploadToStravaIfConnected(_ session: WorkoutSessionModel) async
 }
 
-extension CoreInteractor: WorkoutTrackerInteractor { }
+extension CoreInteractor: WorkoutTrackerInteractor {
+    func uploadToStravaIfConnected(_ session: WorkoutSessionModel) async {
+        guard stravaManager.isConnected, session.endedAt != nil else { return }
+        do {
+            try await stravaManager.uploadWorkout(session)
+        } catch {
+            trackEvent(
+                eventName: "strava_upload_error",
+                parameters: ["error": error.localizedDescription],
+                type: .warning
+            )
+        }
+    }
+}
