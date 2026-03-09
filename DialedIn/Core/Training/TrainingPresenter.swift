@@ -115,7 +115,10 @@ class TrainingPresenter {
 
     private func sessionsForDate(_ date: Date) -> [WorkoutSessionModel] {
         interactor.workoutSessions.filter { session in
-            session.endedAt != nil && calendar.isDate(session.dateCreated, inSameDayAs: date)
+            guard session.endedAt != nil,
+                  calendar.isDate(session.dateCreated, inSameDayAs: date) else { return false }
+            if session.isRestDay { return session.dateCreated <= Date() }
+            return true
         }
     }
 
@@ -203,27 +206,39 @@ class TrainingPresenter {
     
     private func performStartWorkoutTemplateModelWorkout(_ template: WorkoutTemplateModel, in trainingProgramId: String?) {
         // Notify parent to show WorkoutStartView
-        router.showWorkoutStartModal(
-            delegate: WorkoutStartDelegate(
-                template: template,
+        router.showWorkoutTemplateDetailView(
+            delegate: WorkoutTemplateDetailDelegate(
+                workoutTemplate: template,
                 trainingProgramId: trainingProgramId,
                 onStartWorkoutPressed: { [weak self] in
-                    guard let self else { return }
-                    Task {
-                        do {
-                            try await self.interactor.startWorkout(for: template, in: trainingProgramId)
-                            self.router.dismissModal()
-                            self.router.showWorkoutTrackerView()
-                        } catch {
-                            self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
-                        }
+                    Task { @MainActor in
+                        self?.router.showWorkoutTrackerView()
                     }
-                },
-                onCancelPressed: {
-                    self.router.dismissModal()
                 }
             )
         )
+//
+//        router.showWorkoutStartModal(
+//            delegate: WorkoutStartDelegate(
+//                template: template,
+//                trainingProgramId: trainingProgramId,
+//                onStartWorkoutPressed: { [weak self] in
+//                    guard let self else { return }
+//                    Task {
+//                        do {
+//                            try await self.interactor.startWorkout(for: template, in: trainingProgramId)
+//                            self.router.dismissModal()
+//                            self.router.showWorkoutTrackerView()
+//                        } catch {
+//                            self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
+//                        }
+//                    }
+//                },
+//                onCancelPressed: {
+//                    self.router.dismissModal()
+//                }
+//            )
+//        )
     }
     
     func openCompletedSession(sessionId: String) {
@@ -439,6 +454,7 @@ class TrainingPresenter {
         var itemsByDay: [Date: MicrocycleWorkoutTemplateModelItem] = [:]
         for (session, dayPlan) in completedSessions {
             guard let endedAt = session.endedAt else { continue }
+            if session.isRestDay, session.dateCreated > Date() { continue }
             let day = calendar.startOfDay(for: endedAt)
             guard weekDateSet.contains(day), itemsByDay[day] == nil else { continue }
             itemsByDay[day] = MicrocycleWorkoutTemplateModelItem(
@@ -533,7 +549,7 @@ class TrainingPresenter {
     }
     
     func onWorkoutLibraryPressed() {
-        router.showWorkoutsView()
+        router.showWorkoutsView(delegate: WorkoutsDelegate())
     }
         
     func onWorkoutHistoryPressed() {
@@ -611,3 +627,4 @@ struct MicrocycleCycleState {
     let cyclesTotal: Int
     let completedInCurrentCycle: Set<String>
 }
+

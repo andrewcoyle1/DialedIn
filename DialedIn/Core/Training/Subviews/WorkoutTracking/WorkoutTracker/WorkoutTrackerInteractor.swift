@@ -31,6 +31,10 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     /// The favourite gym profile of the user, or nil if not available
     var favouriteGymProfile: GymProfileModel? { get }
+
+    func setActiveWorkoutGymProfile(_ profile: GymProfileModel?)
+
+    func getGymProfile(gymProfileId: String) async throws -> GymProfileModel
     
     /// The current rest end time for the active session, if any.
     var restEndTime: Date? { get }
@@ -118,6 +122,24 @@ protocol WorkoutTrackerInteractor: GlobalInteractor {
     /// Load unit preferences for an exercise template.
     func getPreference(templateId: String) -> ExerciseUnitPreference
 
+    /// Pre-create rest-day sessions for any consecutive rest days that follow the given session in the active training program.
+    func preCompleteConsecutiveRestDays(after session: WorkoutSessionModel) async
+
+    /// Upload a completed workout to Strava if the user is connected. Silently ignores errors.
+    func uploadToStravaIfConnected(_ session: WorkoutSessionModel) async
 }
 
-extension CoreInteractor: WorkoutTrackerInteractor { }
+extension CoreInteractor: WorkoutTrackerInteractor {
+    func uploadToStravaIfConnected(_ session: WorkoutSessionModel) async {
+        guard stravaManager.isConnected, session.endedAt != nil else { return }
+        do {
+            try await stravaManager.uploadWorkout(session)
+        } catch {
+            trackEvent(
+                eventName: "strava_upload_error",
+                parameters: ["error": error.localizedDescription],
+                type: .warning
+            )
+        }
+    }
+}

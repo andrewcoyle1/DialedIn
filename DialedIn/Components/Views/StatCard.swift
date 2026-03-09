@@ -10,44 +10,41 @@ import SwiftUI
 struct StatCard: View {
     let value: String
     let label: String
-    let icon: String?
+    let icon: String
     let color: Color?
+    let alignment: HorizontalAlignment
     
     init(
         value: String,
         label: String,
-        icon: String? = nil,
-        color: Color? = nil
+        icon: String = "plus",
+        color: Color? = nil,
+        alignment: HorizontalAlignment = .leading
     ) {
         self.value = value
         self.label = label
         self.icon = icon
         self.color = color
+        self.alignment = alignment
     }
     
     var body: some View {
-        VStack(spacing: 8) {
-            if let icon {
-                if let color {
-                    Image(systemName: icon)
-                        .font(.title2)
-                        .foregroundStyle(color)
-                } else {
-                    Image(systemName: icon)
-                        .font(.title2)
-                    
-                }
+        VStack(alignment: alignment, spacing: 8) {
+            
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundStyle(color ?? .secondary)
+                .frame(height: 30)
+            VStack {
+                Text(label)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Text(value)
+                    .font(.title3)
+                    .fontWeight(.bold)
             }
-            
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            
-            Text(value)
-                .font(.title3)
-                .fontWeight(.bold)
         }
-        .frame(maxWidth: .infinity)
     }
 }
 

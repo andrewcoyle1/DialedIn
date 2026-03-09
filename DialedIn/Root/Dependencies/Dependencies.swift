@@ -32,7 +32,7 @@ struct Dependencies {
         let workoutSessionManager: WorkoutSessionManager
         let trainingProgramManager: TrainingProgramManager
         let gymProfileManager: GymProfileManager
-        let ingredientTemplateManager: IngredientTemplateManager
+        let foodManager: FoodManager
         let recipeTemplateManager: RecipeTemplateManager
         let nutritionManager: NutritionManager
         let mealLogManager: MealLogManager
@@ -50,7 +50,10 @@ struct Dependencies {
         let liveActivityManager: LiveActivityManager
         #endif
         let imageUploadManager: ImageUploadManager
-        
+        let commentsManager: CommentsManager
+        let activityNotificationManager: ActivityNotificationManager
+        let stravaManager: StravaManager
+
         switch config {
         case .mock(let scenario):
             logManager = LogManager(services: [
@@ -168,13 +171,13 @@ struct Dependencies {
             )
             gymProfileManager = GymProfileManager(gymProfileSyncEngine: gymProfileSyncEngine)
 
-            let ingredientTemplateSyncEngine = CollectionSyncEngine<IngredientTemplateModel>(
+            let foodSyncEngine = CollectionSyncEngine<FoodModel>(
                 remote: MockRemoteCollectionService(),
-                managerKey: Keys.ingredientTemplateManagerKey,
+                managerKey: Keys.foodManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            ingredientTemplateManager = IngredientTemplateManager(ingredientTemplateSyncEngine: ingredientTemplateSyncEngine)
+            foodManager = FoodManager(foodSyncEngine: foodSyncEngine)
             
             let userRecipeTemplateSyncEngine = CollectionSyncEngine<RecipeTemplateModel>(
                 remote: MockRemoteCollectionService(),
@@ -190,13 +193,14 @@ struct Dependencies {
                 logger: logManager
             )
             nutritionManager = NutritionManager(dietPlanSyncEngine: dietPlanSyncEngine)
+            let draftMealLogPersistence = FileManagerDocumentPersistence<MealLogModel>()
             let mealLogSyncEngine = CollectionSyncEngine<MealLogModel>(
                 remote: MockRemoteCollectionService(collection: MealLogModel.mockWeekMealsByDay.values.flatMap { $0 }),
                 managerKey: Keys.mealLogManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            mealLogManager = MealLogManager(mealLogSyncEngine: mealLogSyncEngine)
+            mealLogManager = MealLogManager(draftMealLogPersistence: draftMealLogPersistence, mealLogSyncEngine: mealLogSyncEngine)
             aiManager = AIManager(service: MockAIService())
             reportManager = ReportManager(service: MockReportService(), userManager: userManager, logManager: logManager)
             let bodyMeasurementsSyncEngine = CollectionSyncEngine<BodyMeasurementEntry>(
@@ -236,6 +240,9 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: MockImageUploadService())
             pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
+            commentsManager = CommentsManager(service: MockCommentsService())
+            activityNotificationManager = ActivityNotificationManager(service: MockActivityNotificationService())
+            stravaManager = StravaManager(service: MockStravaService(), clientId: "", clientSecret: "")
 
         case .dev:
             logManager = LogManager(services: [
@@ -348,18 +355,18 @@ struct Dependencies {
             )
             gymProfileManager = GymProfileManager(gymProfileSyncEngine: gymProfileSyncEngine)
 
-            let ingredientTemplateSyncEngine = CollectionSyncEngine<IngredientTemplateModel>(
+            let foodSyncEngine = CollectionSyncEngine<FoodModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [ weak authManager] in
                         guard let uid = authManager?.auth?.uid else { return nil }
                         return "users/\(uid)/ingredient_templates"
                     }
                 ),
-                managerKey: Keys.ingredientTemplateManagerKey,
+                managerKey: Keys.foodManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            ingredientTemplateManager = IngredientTemplateManager(ingredientTemplateSyncEngine: ingredientTemplateSyncEngine)
+            foodManager = FoodManager(foodSyncEngine: foodSyncEngine)
             let userRecipeTemplateSyncEngine = CollectionSyncEngine<RecipeTemplateModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [ weak authManager] in
@@ -381,6 +388,7 @@ struct Dependencies {
                 logger: logManager
             )
             nutritionManager = NutritionManager(dietPlanSyncEngine: dietPlanSyncEngine)
+            let draftMealLogPersistence = FileManagerDocumentPersistence<MealLogModel>()
             let mealLogSyncEngine = CollectionSyncEngine<MealLogModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [weak authManager] in
@@ -392,7 +400,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            mealLogManager = MealLogManager(mealLogSyncEngine: mealLogSyncEngine)
+            mealLogManager = MealLogManager(draftMealLogPersistence: draftMealLogPersistence, mealLogSyncEngine: mealLogSyncEngine)
             aiManager = AIManager(service: GoogleAIService())
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logManager)
             let bodyMeasurementsSyncEngine = CollectionSyncEngine<BodyMeasurementEntry>(
@@ -448,6 +456,9 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
             pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
+            commentsManager = CommentsManager(service: FirebaseCommentsService())
+            activityNotificationManager = ActivityNotificationManager(service: FirebaseActivityNotificationService())
+            stravaManager = StravaManager(service: ProductionStravaService(), clientId: Keys.stravaClientId, clientSecret: Keys.stravaClientSecret)
 
         case .prod:
             logManager = LogManager(services: [
@@ -554,18 +565,18 @@ struct Dependencies {
             )
             gymProfileManager = GymProfileManager(gymProfileSyncEngine: gymProfileSyncEngine)
 
-            let ingredientTemplateSyncEngine = CollectionSyncEngine<IngredientTemplateModel>(
+            let foodSyncEngine = CollectionSyncEngine<FoodModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [ weak authManager] in
                         guard let uid = authManager?.auth?.uid else { return nil }
                         return "users/\(uid)/ingredient_templates"
                     }
                 ),
-                managerKey: Keys.ingredientTemplateManagerKey,
+                managerKey: Keys.foodManagerKey,
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            ingredientTemplateManager = IngredientTemplateManager(ingredientTemplateSyncEngine: ingredientTemplateSyncEngine)
+            foodManager = FoodManager(foodSyncEngine: foodSyncEngine)
             let userRecipeTemplateSyncEngine = CollectionSyncEngine<RecipeTemplateModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [ weak authManager] in
@@ -587,6 +598,7 @@ struct Dependencies {
                 logger: logManager
             )
             nutritionManager = NutritionManager(dietPlanSyncEngine: dietPlanSyncEngine)
+            let draftMealLogPersistence = FileManagerDocumentPersistence<MealLogModel>()
             let mealLogSyncEngine = CollectionSyncEngine<MealLogModel>(
                 remote: FirebaseRemoteCollectionService(
                     collectionPath: { [weak authManager] in
@@ -598,7 +610,7 @@ struct Dependencies {
                 enableLocalPersistence: true,
                 logger: logManager
             )
-            mealLogManager = MealLogManager(mealLogSyncEngine: mealLogSyncEngine)
+            mealLogManager = MealLogManager(draftMealLogPersistence: draftMealLogPersistence, mealLogSyncEngine: mealLogSyncEngine)
             aiManager = AIManager(service: GoogleAIService())
             reportManager = ReportManager(service: FirebaseReportService(), userManager: userManager, logManager: logManager)
             let bodyMeasurementsSyncEngine = CollectionSyncEngine<BodyMeasurementEntry>(
@@ -654,6 +666,9 @@ struct Dependencies {
             imageUploadManager = ImageUploadManager(service: FirebaseImageUploadService())
             pushManager = PushManager(logManager: logManager)
             healthKitManager = HealthKitManager(service: HealthKitService())
+            commentsManager = CommentsManager(service: FirebaseCommentsService())
+            activityNotificationManager = ActivityNotificationManager(service: FirebaseActivityNotificationService())
+            stravaManager = StravaManager(service: ProductionStravaService(), clientId: Keys.stravaClientId, clientSecret: Keys.stravaClientSecret)
         }
         hapticManager = HapticManager(logger: logManager)
         soundEffectManager = SoundEffectManager(logger: logManager)
@@ -671,7 +686,7 @@ struct Dependencies {
         container.register(WorkoutSessionManager.self, service: workoutSessionManager)
         container.register(TrainingProgramManager.self, service: trainingProgramManager)
         container.register(GymProfileManager.self, service: gymProfileManager)
-        container.register(IngredientTemplateManager.self, service: ingredientTemplateManager)
+        container.register(FoodManager.self, service: foodManager)
         container.register(RecipeTemplateManager.self, service: recipeTemplateManager)
         container.register(NutritionManager.self, service: nutritionManager)
         container.register(MealLogManager.self, service: mealLogManager)
@@ -691,6 +706,9 @@ struct Dependencies {
         container.register(ImageUploadManager.self, service: imageUploadManager)
         container.register(HapticManager.self, service: hapticManager)
         container.register(SoundEffectManager.self, service: soundEffectManager)
+        container.register(CommentsManager.self, service: commentsManager)
+        container.register(ActivityNotificationManager.self, service: activityNotificationManager)
+        container.register(StravaManager.self, service: stravaManager)
 
         self.logManager = logManager
         self.container = container
@@ -714,7 +732,7 @@ class DevPreview {
         container.register(WorkoutSessionManager.self, service: workoutSessionManager)
         container.register(TrainingProgramManager.self, service: trainingProgramManager)
         container.register(GymProfileManager.self, service: gymProfileManager)
-        container.register(IngredientTemplateManager.self, service: ingredientTemplateManager)
+        container.register(FoodManager.self, service: foodManager)
         container.register(RecipeTemplateManager.self, service: recipeTemplateManager)
         container.register(NutritionManager.self, service: nutritionManager)
         container.register(MealLogManager.self, service: mealLogManager)
@@ -735,6 +753,9 @@ class DevPreview {
         container.register(ImageUploadManager.self, service: imageUploadManager)
         container.register(SoundEffectManager.self, service: soundEffectManager)
         container.register(HapticManager.self, service: hapticManager)
+        container.register(CommentsManager.self, service: commentsManager)
+        container.register(ActivityNotificationManager.self, service: activityNotificationManager)
+        container.register(StravaManager.self, service: stravaManager)
 
         return container
     }
@@ -750,7 +771,7 @@ class DevPreview {
     let workoutSessionManager: WorkoutSessionManager
     let trainingProgramManager: TrainingProgramManager
     let gymProfileManager: GymProfileManager
-    let ingredientTemplateManager: IngredientTemplateManager
+    let foodManager: FoodManager
     let recipeTemplateManager: RecipeTemplateManager
     let nutritionManager: NutritionManager
     let mealLogManager: MealLogManager
@@ -773,18 +794,21 @@ class DevPreview {
     let soundEffectManager: SoundEffectManager
 
     let imageUploadManager: ImageUploadManager
-    
+    let commentsManager: CommentsManager
+    let activityNotificationManager: ActivityNotificationManager
+    let stravaManager: StravaManager
+
     // swiftlint:disable:next function_body_length
     init(isSignedIn: Bool = true) {
         let logManager = LogManager(services: [ConsoleService(printParameters: true)])
         let userSyncEngine = DocumentSyncEngine<UserModel>(
-            remote: MockRemoteDocumentService(),
+            remote: MockRemoteDocumentService(document: .mockExisting),
             managerKey: Keys.userManagerKey,
             enableLocalPersistence: true,
             logger: logManager
         )
         let followingUsersSyncEngine = CollectionSyncEngine<UserModel>(
-            remote: MockRemoteCollectionService(),
+            remote: MockRemoteCollectionService(collection: UserModel.mocks),
             managerKey: Keys.followingUsersManagerKey,
             enableLocalPersistence: true,
             logger: logManager
@@ -855,13 +879,13 @@ class DevPreview {
         )
         gymProfileManager = GymProfileManager(gymProfileSyncEngine: gymProfileSyncEngine)
 
-        let ingredientTemplateSyncEngine = CollectionSyncEngine<IngredientTemplateModel>(
+        let foodSyncEngine = CollectionSyncEngine<FoodModel>(
             remote: MockRemoteCollectionService(),
-            managerKey: Keys.ingredientTemplateManagerKey,
+            managerKey: Keys.foodManagerKey,
             enableLocalPersistence: true,
             logger: logManager
         )
-        self.ingredientTemplateManager = IngredientTemplateManager(ingredientTemplateSyncEngine: ingredientTemplateSyncEngine)
+        self.foodManager = FoodManager(foodSyncEngine: foodSyncEngine)
         let userRecipeTemplateSyncEngine = CollectionSyncEngine<RecipeTemplateModel>(
             remote: MockRemoteCollectionService(),
             managerKey: Keys.recipeTemplateManagerKey,
@@ -876,13 +900,14 @@ class DevPreview {
             logger: logManager
         )
         nutritionManager = NutritionManager(dietPlanSyncEngine: dietPlanSyncEngine)
+        let draftMealLogPersistence = FileManagerDocumentPersistence<MealLogModel>()
         let mealLogSyncEngine = CollectionSyncEngine<MealLogModel>(
             remote: MockRemoteCollectionService(collection: MealLogModel.previewWeekMealsByDay.values.flatMap { $0 }),
             managerKey: Keys.mealLogManagerKey,
             enableLocalPersistence: true,
             logger: logManager
         )
-        self.mealLogManager = MealLogManager(mealLogSyncEngine: mealLogSyncEngine)
+        self.mealLogManager = MealLogManager(draftMealLogPersistence: draftMealLogPersistence, mealLogSyncEngine: mealLogSyncEngine)
         self.aiManager = AIManager(service: MockAIService())
         self.pushManager = PushManager(logManager: logManager)
         self.logManager = logManager
@@ -923,6 +948,9 @@ class DevPreview {
         #endif
         self.appState = AppState(startingModuleId: isSignedIn ? Constants.tabBarModuleId : Constants.onboardingModuleId)
         self.imageUploadManager = ImageUploadManager(service: MockImageUploadService())
+        self.commentsManager = CommentsManager(service: MockCommentsService())
+        self.activityNotificationManager = ActivityNotificationManager(service: MockActivityNotificationService())
+        self.stravaManager = StravaManager(service: MockStravaService(), clientId: "", clientSecret: "")
         self.hapticManager = HapticManager()
         self.soundEffectManager = SoundEffectManager()
 

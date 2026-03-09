@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct IngredientAmountDelegate {
-    var ingredient: IngredientTemplateModel
+    var ingredient: FoodModel
     let onPick: (MealItemModel) -> Void
 }
 
@@ -94,7 +94,7 @@ extension CoreRouter {
         builder.ingredientAmountView(
             router: router, 
             delegate: IngredientAmountDelegate(
-                ingredient: IngredientTemplateModel.mock,
+                ingredient: FoodModel.mock,
                 onPick: {ingredient in
                     print(ingredient.displayName)
                 }

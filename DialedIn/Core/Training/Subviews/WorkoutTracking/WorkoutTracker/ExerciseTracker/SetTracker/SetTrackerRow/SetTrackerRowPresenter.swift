@@ -12,7 +12,7 @@ class SetTrackerRowPresenter {
     var restPickerMinutesSelection: Int = 0
     var restPickerSecondsSelection: Int = 0
     var restBeforeSetIdToSec: [String: Int] = [:]
-    var onUpdateRestBefore: ((String, Int?) -> Void)?
+    var onStartRest: ((Int) -> Void)?
 
     var previousLookup: [Int: WorkoutSetModel] = [:]
     var defaultRestDurationSeconds: Int {
@@ -35,6 +35,37 @@ class SetTrackerRowPresenter {
     func deleteSet(setId: String, exercise: Binding<WorkoutExerciseModel>) {
         exercise.wrappedValue.sets.removeAll(where: { $0.id == setId })
     }
+    
+    func onSetComplete(_ exercise: WorkoutExerciseModel, _ set: Binding<WorkoutSetModel>) {
+        if set.wrappedValue.completedAt == nil, validateSetData(trackingMode: exercise.trackingMode, set: set.wrappedValue) {
+            set.wrappedValue.completedAt = Date()
+            let useRestTimers = interactor.workoutSettings.useRestTimers
+            let duration = restDuration(for: exercise, customSetId: set.wrappedValue.id)
+            interactor.trackEvent(event: Event.setCompleted(
+                setId: set.wrappedValue.id,
+                exerciseId: exercise.id,
+                useRestTimers: useRestTimers,
+                restDurationSeconds: duration,
+                onStartRestIsNil: onStartRest == nil
+            ))
+            if useRestTimers {
+                onStartRest?(duration)
+            }
+        } else {
+            set.wrappedValue.completedAt = nil
+        }
+    }
+
+    private func restDuration(for exercise: WorkoutExerciseModel, customSetId: String?) -> Int {
+        if let setId = customSetId, let custom = restBeforeSetIdToSec[setId] {
+            return custom
+        }
+        if let exerciseType = interactor.allExercises.first(where: { $0.id == exercise.templateId })?.type,
+           let typeDuration = interactor.workoutSettings.restDurationsByExerciseType[exerciseType.rawValue] {
+            return typeDuration
+        }
+        return interactor.workoutSettings.defaultRestDurationSeconds
+    }
 
     func onRestPickerRequested(setId: String) {
         restPickerTargetSetId = setId
@@ -48,7 +79,6 @@ class SetTrackerRowPresenter {
                 let total = (self.restPickerMinutesSelection * 60) + self.restPickerSecondsSelection
                 let seconds = total > 0 ? total : nil
                 self.updateRestBefore(setId: setId, seconds: seconds)
-                self.onUpdateRestBefore?(setId, seconds)
                 self.router.dismissModal()
             },
             secondaryButtonAction: { [weak self] in self?.router.dismissModal() },
@@ -158,23 +188,31 @@ extension SetTrackerRowPresenter {
     enum Event: LoggableEvent {
         case onAppear(delegate: SetTrackerRowDelegate)
         case onDisappear(delegate: SetTrackerRowDelegate)
+        case setCompleted(setId: String, exerciseId: String, useRestTimers: Bool, restDurationSeconds: Int, onStartRestIsNil: Bool)
 
         var eventName: String {
             switch self {
             case .onAppear:                 return "SetTrackerRowView_Appear"
             case .onDisappear:              return "SetTrackerRowView_Disappear"
+            case .setCompleted:             return "SetTrackerRow_SetCompleted"
             }
         }
-        
+
         var parameters: [String: Any]? {
             switch self {
             case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
                 return delegate.eventParameters
-//            default:
-//                return nil
+            case .setCompleted(let setId, let exerciseId, let useRestTimers, let restDurationSeconds, let onStartRestIsNil):
+                return [
+                    "set_id": setId,
+                    "exercise_id": exerciseId,
+                    "use_rest_timers": useRestTimers,
+                    "rest_duration_seconds": restDurationSeconds,
+                    "on_start_rest_is_nil": onStartRestIsNil
+                ]
             }
         }
-        
+
         var type: LogType {
             switch self {
             default:

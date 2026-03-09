@@ -6,9 +6,8 @@
 //
 
 @MainActor
-protocol AddMealRouter {
+protocol AddMealRouter: GlobalRouter {
     func showNutritionLibraryPickerView(delegate: NutritionLibraryPickerDelegate)
-    func dismissScreen()
 }
 
 extension CoreRouter: AddMealRouter { }

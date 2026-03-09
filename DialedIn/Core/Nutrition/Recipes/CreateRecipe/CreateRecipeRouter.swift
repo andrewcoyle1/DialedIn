@@ -10,7 +10,8 @@ protocol CreateRecipeRouter: GlobalRouter {
 #if DEV || MOCK
 func showDevSettingsView()
 #endif
-    func showAddIngredientView(delegate: AddIngredientModalDelegate)
+    func showAddIngredientView(delegate: AddFoodDelegate)
+    func showRecipePreparationView(delegate: RecipePreparationDelegate)
 }
 
 extension CoreRouter: CreateRecipeRouter { }

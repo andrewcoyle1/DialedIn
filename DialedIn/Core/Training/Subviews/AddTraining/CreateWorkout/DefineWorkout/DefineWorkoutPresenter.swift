@@ -20,14 +20,7 @@ class DefineWorkoutPresenter {
     var currentUser: UserModel? {
         interactor.currentUser
     }
-    
-    struct TargetMuscleSummary: Identifiable, Hashable {
-        var id: Muscles { muscle }
-        let muscle: Muscles
-        let weightedTargetSets: Double
-        let exerciseCount: Int
-    }
-    
+        
     /// Computes target muscles based on the exercises currently included in the workout.
     ///
     /// - `ExerciseModel.muscleGroups[muscle] == false` (0) -> primary muscle (factor 1.0)
@@ -138,4 +131,11 @@ extension DefineWorkoutPresenter {
             }
         }
     }
+}
+
+struct TargetMuscleSummary: Identifiable, Hashable {
+    var id: Muscles { muscle }
+    let muscle: Muscles
+    let weightedTargetSets: Double
+    let exerciseCount: Int
 }

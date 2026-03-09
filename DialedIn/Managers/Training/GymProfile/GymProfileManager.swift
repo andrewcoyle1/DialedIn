@@ -16,10 +16,22 @@ class GymProfileManager {
     var gymProfiles: [GymProfileModel] {
         gymProfileSyncEngine.currentCollection
     }
-    
+
+    var activeWorkoutGymProfile: GymProfileModel?
+
     init(gymProfileSyncEngine: CollectionSyncEngine<GymProfileModel>) {
         self.gymProfileSyncEngine = gymProfileSyncEngine
     }
+    
+    func signIn() async {
+        await gymProfileSyncEngine.startListening()
+    }
+    
+    func signOut() {
+        gymProfileSyncEngine.stopListening()
+    }
+
+    // MARK: WRITE
     
     func saveGymProfile(profile: GymProfileModel, image: PlatformImage?) async throws {
         var profile = profile
@@ -30,19 +42,23 @@ class GymProfileManager {
         }
         try await gymProfileSyncEngine.saveDocument(profile)
     }
+        
+    // MARK: READ
     
-    func signIn() async {
-        await gymProfileSyncEngine.startListening()
-    }
-    
-    func signOut() {
-        gymProfileSyncEngine.stopListening()
+    func getGymProfile(gymProfileId: String) async throws -> GymProfileModel {
+        try await gymProfileSyncEngine.getDocumentAsync(id: gymProfileId)
     }
     
     // MARK: DELETE
         
     func deleteGymProfile(_ profileId: String) async throws {
         try await gymProfileSyncEngine.deleteDocument(id: profileId)
+    }
+    
+    func deleteAllGymProfiles() async throws {
+        for profile in gymProfiles {
+            try await deleteGymProfile(profile.id)
+        }
     }
 
 }
@@ -60,6 +76,18 @@ extension CoreInteractor {
         return gymProfiles.first { model in
             model.id == favouriteGymProfileId
         }
+    }
+
+    var workoutGymProfile: GymProfileModel? {
+        gymProfileManager.activeWorkoutGymProfile ?? favouriteGymProfile
+    }
+
+    func setActiveWorkoutGymProfile(_ profile: GymProfileModel?) {
+        gymProfileManager.activeWorkoutGymProfile = profile
+    }
+
+    func getGymProfile(gymProfileId: String) async throws -> GymProfileModel {
+        try await gymProfileManager.getGymProfile(gymProfileId: gymProfileId)
     }
 
     func saveGymProfile(profile: GymProfileModel, image: PlatformImage?) async throws {

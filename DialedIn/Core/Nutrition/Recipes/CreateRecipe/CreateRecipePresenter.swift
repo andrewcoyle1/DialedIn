@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import PhotosUI
 
 @Observable
 @MainActor
@@ -15,16 +14,11 @@ class CreateRecipePresenter {
     private let router: CreateRecipeRouter
 
     var recipeName: String = ""
-    var recipeTemplateDescription: String?
-    var selectedPhotoItem: PhotosPickerItem?
-    var selectedImageData: Data?
-    var isImagePickerPresented: Bool = false
+    var servingQuantity: Double?
+    var recipeTotalWeight: Double?
+    var showAllNutrition: Bool = false
+    
     var ingredients: [RecipeIngredientModel] = []
-    private(set) var isSaving: Bool = false
-    var showAddIngredientModal: Bool = false
-    var saveError: String?
-    private(set) var isGenerating: Bool = false
-    private(set) var generatedImage: UIImage?
 
     var currentUser: UserModel? {
         interactor.currentUser
@@ -41,62 +35,23 @@ class CreateRecipePresenter {
         self.interactor = interactor
         self.router = router
     }
-    
-    func onImageSelectorPressed() {
-        // Show the image picker sheet for selecting a profile image
-        isImagePickerPresented = true
-    }
-    
-    func cancel() {
-        router.dismissScreen()
-    }
-
-#if DEV || MOCK
-func onDevSettingsPressed() {
-    router.showDevSettingsView()
-}
-#endif
-
-    func onSavePressed() async throws {
-        guard !isSaving, canSave else { return }
-        isSaving = true
         
-        do {
-            guard let userId = currentUser?.userId else {
-                isSaving = false
-                return
-            }
-            
-            let newRecipe = RecipeTemplateModel(
-                id: UUID().uuidString,
-                authorId: userId,
-                name: recipeName,
-                description: recipeTemplateDescription,
-                imageURL: nil,
-                dateCreated: Date(),
-                dateModified: Date(),
-                ingredients: ingredients
-            )
-            
-            #if canImport(UIKit)
-            let uiImage = selectedImageData.flatMap { UIImage(data: $0) } ?? generatedImage
-            try await interactor.saveRecipeTemplate(newRecipe, image: uiImage)
-            #elseif canImport(AppKit)
-            let nsImage = selectedImageData.flatMap { NSImage(data: $0) }
-            try await interactor.saveRecipeTemplate(newRecipe, image: uiImage)
-            #endif
-            
-        } catch {
-            
-            isSaving = false
-            throw error // Re-throw to allow caller to handle the error
-        }
-        isSaving = false
+    func onDismissPressed() {
         router.dismissScreen()
     }
-    
+
+    #if DEV || MOCK
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+    #endif
+
+    func onNextPressed() {
+        router.showRecipePreparationView(delegate: RecipePreparationDelegate())
+    }
+        
     func onAddIngredientPressed() {
-        let selectedIngredientsBinding = Binding<[IngredientTemplateModel]>(
+        let selectedIngredientsBinding = Binding<[FoodModel]>(
             get: { [weak self] in
                 guard let self = self else { return [] }
                 return self.ingredients.map { $0.ingredient }
@@ -126,39 +81,9 @@ func onDevSettingsPressed() {
         )
         
         router.showAddIngredientView(
-            delegate: AddIngredientModalDelegate(
+            delegate: AddFoodDelegate(
                 selectedIngredients: selectedIngredientsBinding
             )
         )
-    }
-    
-    func onGenerateImagePressed() {
-        isGenerating = true
-        Task {
-            do {
-                interactor.trackEvent(eventName: "AI_Image_Generate_Start", parameters: [
-                    "subject": "recipe",
-                    "has_name": !recipeName.isEmpty
-                ], type: .analytic)
-                let imageDescriptionBuilder = ImageDescriptionBuilder(
-                    subject: .recipe,
-                    mode: .marketingConcise,
-                    name: recipeName,
-                    description: recipeTemplateDescription,
-                    contextNotes: "",
-                    desiredStyle: "",
-                    backgroundPreference: "",
-                    lightingPreference: "",
-                    framingNotes: ""
-                )
-                let prompt = imageDescriptionBuilder.build()
-                generatedImage = try await interactor.generateImage(input: prompt)
-                interactor.trackEvent(eventName: "AI_Image_Generate_Success", parameters: [:], type: .analytic)
-            } catch {
-                interactor.trackEvent(eventName: "AI_Image_Generate_Fail", parameters: error.eventParameters, type: .severe)
-                router.showAlert(error: error)
-            }
-            isGenerating = false
-        }
     }
 }

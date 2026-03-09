@@ -1,5 +1,5 @@
 //
-//  IngredientTemplateModelCodableAndProtocolTests.swift
+//  FoodModelCodableAndProtocolTests.swift
 //  DialedInUnitTests
 //
 //  Created by Andrew Coyle on 25/10/2025.
@@ -10,17 +10,17 @@ import Foundation
 @testable import DialedIn
 
 @MainActor
-struct IngredientTemplateCodableTests {
+struct FoodCodableTests {
 
     // MARK: - Identifiable Tests
     
-    @Test("Test IngredientTemplateModel Is Identifiable")
-    func testIngredientTemplateModelIsIdentifiable() {
+    @Test("Test FoodModel Is Identifiable")
+    func testFoodModelIsIdentifiable() {
         let randomIngredientId = String.random
         let randomName = String.random
         let randomDate = Date.random
         
-        let ingredient = IngredientTemplateModel(
+        let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
             calories: 100.0,
@@ -44,7 +44,7 @@ struct IngredientTemplateCodableTests {
         let randomDate = Date.random
         let randomImageUrl = "https://example.com/\(String.random).jpg"
         
-        var ingredient = IngredientTemplateModel(
+        var ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
             calories: 100.0,
@@ -74,7 +74,7 @@ struct IngredientTemplateCodableTests {
         let randomDateCreated = Date.random
         let randomDateModified = Date.random
         
-        let originalIngredient = IngredientTemplateModel(
+        let originalIngredient = FoodModel(
             ingredientId: randomIngredientId,
             authorId: randomAuthorId,
             name: randomName,
@@ -100,7 +100,7 @@ struct IngredientTemplateCodableTests {
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .millisecondsSince1970
-        let decodedIngredient = try decoder.decode(IngredientTemplateModel.self, from: encodedData)
+        let decodedIngredient = try decoder.decode(FoodModel.self, from: encodedData)
         
         // With millisecondsSince1970, dates preserve sub-second precision
         #expect(decodedIngredient.ingredientId == originalIngredient.ingredientId)
@@ -123,7 +123,7 @@ struct IngredientTemplateCodableTests {
         let randomAuthorId = String.random
         let randomDate = Date.random
         
-        let ingredient = IngredientTemplateModel(
+        let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             authorId: randomAuthorId,
             name: randomName,
@@ -176,7 +176,7 @@ struct IngredientTemplateCodableTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let ingredient1 = IngredientTemplateModel(
+        let ingredient1 = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
             calories: 100.0,
@@ -187,7 +187,7 @@ struct IngredientTemplateCodableTests {
             dateModified: randomDate
         )
         
-        let ingredient2 = IngredientTemplateModel(
+        let ingredient2 = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
             calories: 100.0,
@@ -198,7 +198,7 @@ struct IngredientTemplateCodableTests {
             dateModified: randomDate
         )
         
-        var hashSet = Set<IngredientTemplateModel>()
+        var hashSet = Set<FoodModel>()
         hashSet.insert(ingredient1)
         hashSet.insert(ingredient2)
         

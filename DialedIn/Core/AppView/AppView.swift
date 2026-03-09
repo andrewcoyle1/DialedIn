@@ -52,6 +52,17 @@ struct AppView<Content: View>: View {
         .onNotificationReceived(name: .fcmToken) { notification in
             presenter.onFCMTokenRecieved(notification: notification)
         }
+        .onNotificationReceived(name: .newActivityNotification) { notification in
+            presenter.onNewActivityNotification(notification: notification)
+        }
+        .overlay(alignment: .top) {
+            if let banner = presenter.activityBanner {
+                ActivityNotificationBannerView(notification: banner)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .animation(.spring, value: presenter.activityBanner != nil)
+                    .padding(.top, 8)
+            }
+        }
         .onAppear {
             presenter.onViewAppear()
         }

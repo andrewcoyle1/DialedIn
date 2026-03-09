@@ -9,13 +9,14 @@
 protocol SearchInteractor: GlobalInteractor {
     var userImageUrl: String? { get }
     var currentUser: UserModel? { get }
+    var draftMeal: MealLogModel? { get }
     var followingIds: [String] { get }
     var recentSearchQueries: [String] { get }
     var allExercises: [ExerciseModel] { get }
     var allWorkoutTemplates: [WorkoutTemplateModel] { get }
     var userWorkoutTemplates: [WorkoutTemplateModel] { get }
     var userRecipeTemplates: [RecipeTemplateModel] { get }
-    var ingredientTemplates: [IngredientTemplateModel] { get }
+    var foods: [FoodModel] { get }
     var followingUsers: [UserModel] { get }
     func startWorkout(for template: WorkoutTemplateModel, in trainingProgramId: String?) async throws
     func searchUsers(query: String) async throws -> [UserModel]

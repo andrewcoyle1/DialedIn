@@ -18,5 +18,7 @@
 	<array>
 		<string>group.com.dialedin.app</string>
 	</array>
+	<key>keychain-access-groups</key>
+	<array/>
 </dict>
 </plist>

@@ -28,7 +28,7 @@ struct CoreInteractor: GlobalInteractor {
     let workoutSessionManager: WorkoutSessionManager
     let trainingProgramManager: TrainingProgramManager
     let gymProfileManager: GymProfileManager
-    let ingredientTemplateManager: IngredientTemplateManager
+    let foodManager: FoodManager
     let recipeTemplateManager: RecipeTemplateManager
     let nutritionManager: NutritionManager
     let mealLogManager: MealLogManager
@@ -46,6 +46,9 @@ struct CoreInteractor: GlobalInteractor {
     let liveActivityManager: LiveActivityManager
     #endif
     let streakManager: StreakManager
+    let commentsManager: CommentsManager
+    let activityNotificationManager: ActivityNotificationManager
+    let stravaManager: StravaManager
     let appState: AppState
     let hapticManager: HapticManager
     let soundEffectManager: SoundEffectManager
@@ -62,7 +65,7 @@ struct CoreInteractor: GlobalInteractor {
         self.workoutSessionManager = container.resolve(WorkoutSessionManager.self)!
         self.trainingProgramManager = container.resolve(TrainingProgramManager.self)!
         self.gymProfileManager = container.resolve(GymProfileManager.self)!
-        self.ingredientTemplateManager = container.resolve(IngredientTemplateManager.self)!
+        self.foodManager = container.resolve(FoodManager.self)!
         self.recipeTemplateManager = container.resolve(RecipeTemplateManager.self)!
         self.nutritionManager = container.resolve(NutritionManager.self)!
         self.mealLogManager = container.resolve(MealLogManager.self)!
@@ -80,6 +83,9 @@ struct CoreInteractor: GlobalInteractor {
         self.liveActivityManager = container.resolve(LiveActivityManager.self)!
         #endif
         self.streakManager = container.resolve(StreakManager.self)!
+        self.commentsManager = container.resolve(CommentsManager.self)!
+        self.activityNotificationManager = container.resolve(ActivityNotificationManager.self)!
+        self.stravaManager = container.resolve(StravaManager.self)!
         self.appState = container.resolve(AppState.self)!
 
         self.hapticManager = container.resolve(HapticManager.self)!
@@ -100,7 +106,7 @@ struct CoreInteractor: GlobalInteractor {
         async let followingUsersSignIn: () = userManager.refreshFollowingUsers(followingIds: followingIds)
         async let exerciseSignIn: () = exerciseModelManager.signIn(userId: user.uid)
         async let recipeTemplatesSignIn: () = recipeTemplateManager.signIn()
-        async let ingredientTemplatesSignIn: () = ingredientTemplateManager.signIn()
+        async let foodsSignIn: () = foodManager.signIn()
         async let nutritionSignIn: () = nutritionManager.signIn(dietPlanId: user.uid)
         async let mealLogSignIn: () = mealLogManager.signIn(userId: user.uid)
         async let bodyMeasurementsSignIn: () = bodyMeasurementsManager.signIn(userId: user.uid)
@@ -118,7 +124,7 @@ struct CoreInteractor: GlobalInteractor {
         await followingUsersSignIn
         await exerciseSignIn
         await recipeTemplatesSignIn
-        await ingredientTemplatesSignIn
+        await foodsSignIn
         await mealLogSignIn
         await bodyMeasurementsSignIn
         try await streakSignIn
@@ -138,6 +144,8 @@ struct CoreInteractor: GlobalInteractor {
             )
         )
         logManager.addUserProperties(dict: Utilities.eventParameters, isHighPriority: false)
+
+        activityNotificationManager.startListening(userId: user.uid)
     }
 
     func signOut() async throws {
@@ -152,12 +160,13 @@ struct CoreInteractor: GlobalInteractor {
         exerciseModelManager.signOut()
         workoutSettingsManager.signOut()
         recipeTemplateManager.signOut()
-        ingredientTemplateManager.signOut()
+        foodManager.signOut()
         nutritionManager.signOut()
         mealLogManager.signOut()
         bodyMeasurementsManager.signOut()
         goalManager.signOut()
         streakManager.logOut()
+        activityNotificationManager.stopListening()
     }
     
     func deleteAccount() async throws {
@@ -182,7 +191,7 @@ struct CoreInteractor: GlobalInteractor {
             async let deleteWorkoutTemplates: () = workoutTemplateManager.deleteAllWorkoutTemplateForAuthor()
             async let deleteWorkoutSessions: () = workoutSessionManager.deleteAllWorkoutSessionsForAuthor(authorId: auth.uid)
             async let deleteRecipeTemplates: () = recipeTemplateManager.deleteAllRecipeTemplates()
-            async let deleteIngredientTemplates: () = ingredientTemplateManager.deleteAllIngredientTemplates(id: auth.uid)
+            async let deleteFoods: () = foodManager.deleteAllFoods(id: auth.uid)
             async let deleteMealLogs: () = mealLogManager.deleteAllMealLogsForAuthor(authorId: auth.uid)
             async let deleteWeightEntries: () = bodyMeasurementsManager.deleteAllWeightEntriesForUser()
             async let deleteStepsEntries: () = stepsManager.signOut()
@@ -194,7 +203,7 @@ struct CoreInteractor: GlobalInteractor {
                 deleteWorkoutTemplates,
                 deleteWorkoutSessions,
                 deleteRecipeTemplates,
-                deleteIngredientTemplates,
+                deleteFoods,
                 deleteMealLogs,
                 deleteWeightEntries,
                 deleteStepsEntries,

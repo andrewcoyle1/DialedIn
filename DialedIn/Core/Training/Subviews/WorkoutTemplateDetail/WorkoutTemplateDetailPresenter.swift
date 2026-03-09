@@ -51,6 +51,49 @@ class WorkoutTemplateDetailPresenter {
         })
     }
 
+    func targetMuscleSummaries(exercises: [WorkoutTemplateExercise]) -> [TargetMuscleSummary] {
+        guard !exercises.isEmpty else { return [] }
+        
+        var weightedSetCounts: [Muscles: Double] = [:]
+        var exerciseCounts: [Muscles: Int] = [:]
+        
+        for workoutExercise in exercises {
+            let setCount = Double(workoutExercise.setTargets.count)
+            guard setCount > 0 else { continue }
+            
+            var seenInThisExercise = Set<Muscles>()
+            for (muscle, isSecondary) in workoutExercise.exercise.muscleGroups {
+                let factor: Double = isSecondary ? 0.5 : 1.0
+                weightedSetCounts[muscle, default: 0] += (setCount * factor)
+                
+                if !seenInThisExercise.contains(muscle) {
+                    exerciseCounts[muscle, default: 0] += 1
+                    seenInThisExercise.insert(muscle)
+                }
+            }
+        }
+        
+        let allMuscles = Set(weightedSetCounts.keys).union(exerciseCounts.keys)
+        return allMuscles
+            .map { muscle in
+                TargetMuscleSummary(
+                    muscle: muscle,
+                    weightedTargetSets: weightedSetCounts[muscle, default: 0],
+                    exerciseCount: exerciseCounts[muscle, default: 0]
+                )
+            }
+            .sorted { $0.muscle.name < $1.muscle.name }
+    }
+    
+    func formattedSetCount(_ value: Double) -> String {
+        let rounded = value.rounded()
+        if abs(rounded - value) < 0.000_01 {
+            return "\(Int(rounded))"
+        } else {
+            return String(format: "%.1f", value)
+        }
+    }
+
     func deleteWorkout(template: WorkoutTemplateModel, onDismiss: @escaping () -> Void) async {
         isDeleting = true
         do {
@@ -65,7 +108,7 @@ class WorkoutTemplateDetailPresenter {
         }
     }
 
-    func onStartWorkoutPressed(workoutTemplate: WorkoutTemplateModel) {
+    func onStartWorkoutPressed(onStartWorkout: (@Sendable () -> Void)?, workoutTemplate: WorkoutTemplateModel, trainingProgramId: String?) {
         let shouldProceed = checkForActiveWorkout(
             onResumeWorkout: { [weak self] in
                 Task { @MainActor in
@@ -74,13 +117,13 @@ class WorkoutTemplateDetailPresenter {
             },
             onStartNewWorkout: { [weak self] in
                 Task { @MainActor in
-                    self?.performStartWorkout(workoutTemplate: workoutTemplate)
+                    self?.performStartWorkout(onStartWorkout: onStartWorkout, workoutTemplate: workoutTemplate, trainingProgramId: trainingProgramId)
                 }
             }
         )
         
         if shouldProceed {
-            performStartWorkout(workoutTemplate: workoutTemplate)
+            performStartWorkout(onStartWorkout: onStartWorkout, workoutTemplate: workoutTemplate, trainingProgramId: trainingProgramId)
         }
     }
     
@@ -119,37 +162,24 @@ class WorkoutTemplateDetailPresenter {
         router.showWorkoutTrackerView()
     }
     
-    private func performStartWorkout(workoutTemplate: WorkoutTemplateModel) {
-        router.showWorkoutStartModal(
-            delegate: WorkoutStartDelegate(
-                template: workoutTemplate,
-                trainingProgramId: nil,
-                onStartWorkoutPressed: { [weak self] in
-                    guard let self else { return }
-                    Task {
-                        do {
-                            try await self.interactor.startWorkout(for: workoutTemplate, in: nil)
-                            self.router.dismissModal()
-                            self.router.dismissEnvironment()
-                            self.router.showWorkoutTrackerView()
-                        } catch {
-                            self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
-                        }
-                    }
-                },
-                onCancelPressed: {
-                    self.router.dismissModal()
-                }
-
-            )
-        )
+    private func performStartWorkout(onStartWorkout: (() -> Void)?, workoutTemplate: WorkoutTemplateModel, trainingProgramId: String?) {
+        Task {
+            do {
+                try await self.interactor.startWorkout(for: workoutTemplate, in: trainingProgramId)
+                self.router.dismissEnvironment()
+                self.router.dismissScreen()
+                onStartWorkout?()
+            } catch {
+                self.router.showSimpleAlert(title: "Unable to start workout", subtitle: "Please try again.")
+            }
+        }
     }
 
-#if DEV || MOCK
-func onDevSettingsPressed() {
-    router.showDevSettingsView()
-}
-#endif
+    #if DEV || MOCK
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+    #endif
 
     func onDismissPressed() {
         router.dismissScreen()

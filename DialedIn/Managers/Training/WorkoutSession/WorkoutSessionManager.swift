@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import FirebaseFirestore
 
 @Observable
 @MainActor
 class WorkoutSessionManager {
 
+    private let db = Firestore.firestore()
     private let activeWorkoutSessionPersistence: any LocalDocumentPersistence<WorkoutSessionModel>
     
     private let userWorkoutSessionSyncEngine: CollectionSyncEngine<WorkoutSessionModel>
@@ -40,7 +42,7 @@ class WorkoutSessionManager {
         self.activeWorkoutSessionPersistence = activeWorkoutSessionPersistence
         self.userWorkoutSessionSyncEngine = userWorkoutSessionSyncEngine
         self.followingWorkoutSessionSyncEngine = followingWorkoutSessionSyncEngine
-        self.activeSession = try? activeWorkoutSessionPersistence.getDocument(managerKey: "active_session")
+        self.activeSession = try? activeWorkoutSessionPersistence.getDocument(managerKey: Keys.activeWorkoutSessionManagerKey)
     }
     
     // MARK: - Lifecycle
@@ -70,7 +72,7 @@ class WorkoutSessionManager {
     }
 
     func updateActiveSession(_ session: WorkoutSessionModel) throws {
-        try activeWorkoutSessionPersistence.saveDocument(managerKey: "active_session", session)
+        try activeWorkoutSessionPersistence.saveDocument(managerKey: Keys.activeWorkoutSessionManagerKey, session)
         self.activeSession = session
     }
     
@@ -84,7 +86,7 @@ class WorkoutSessionManager {
     }
     
     private func clearActiveSession() throws {
-        try activeWorkoutSessionPersistence.saveDocument(managerKey: "active_session", nil)
+        try activeWorkoutSessionPersistence.saveDocument(managerKey: Keys.activeWorkoutSessionManagerKey, nil)
         self.activeSession = nil
     }
     
@@ -139,6 +141,18 @@ class WorkoutSessionManager {
         }
     }
 
+    func likeSession(sessionId: String, authorId: String, userId: String) async throws {
+        let ref = db.collection("users").document(authorId)
+            .collection("workout_sessions").document(sessionId)
+        try await ref.updateData(["liked_by_user_ids": FieldValue.arrayUnion([userId])])
+    }
+
+    func unlikeSession(sessionId: String, authorId: String, userId: String) async throws {
+        let ref = db.collection("users").document(authorId)
+            .collection("workout_sessions").document(sessionId)
+        try await ref.updateData(["liked_by_user_ids": FieldValue.arrayRemove([userId])])
+    }
+
     func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
         // Check the already-loaded collection first (current user's sessions)
         let cached = userWorkoutSessionSyncEngine.currentCollection
@@ -173,7 +187,11 @@ extension CoreInteractor {
     }
 
     var restEndTime: Date? {
-        workoutSessionManager.restEndTime
+        #if canImport(ActivityKit) && !targetEnvironment(macCatalyst)
+        return hkWorkoutManager.restEndTime
+        #else
+        return workoutSessionManager.restEndTime
+        #endif
     }
 
     func endWorkoutSession(_ session: WorkoutSessionModel) async throws {
@@ -214,5 +232,57 @@ extension CoreInteractor {
 
     func getLastCompletedSessionForTemplate(templateId: String, authorId: String) async throws -> WorkoutSessionModel? {
         try await workoutSessionManager.getLastCompletedSessionForTemplate(templateId: templateId, authorId: authorId)
+    }
+
+    func likeSession(sessionId: String, authorId: String, userId: String) async throws {
+        try await workoutSessionManager.likeSession(sessionId: sessionId, authorId: authorId, userId: userId)
+        guard authorId != userId else { return }
+        let actor = userManager.currentUser
+        let notification = ActivityNotificationModel(
+            id: "like_\(sessionId)_\(userId)",
+            type: .like,
+            actorId: userId,
+            actorName: actor?.fullNameCalculated ?? "Someone",
+            actorImageUrl: actor?.submittedProfileImage,
+            sessionId: sessionId,
+            sessionAuthorId: authorId,
+            commentText: nil,
+            dateCreated: .now,
+            isRead: false
+        )
+        try? await activityNotificationManager.addNotification(notification, userId: authorId)
+    }
+
+    func unlikeSession(sessionId: String, authorId: String, userId: String) async throws {
+        try await workoutSessionManager.unlikeSession(sessionId: sessionId, authorId: authorId, userId: userId)
+        guard authorId != userId else { return }
+        let notifId = "like_\(sessionId)_\(userId)"
+        try? await activityNotificationManager.deleteNotification(id: notifId, userId: authorId)
+    }
+
+    func fetchComments(sessionId: String) async throws -> [WorkoutSessionComment] {
+        try await commentsManager.fetchComments(sessionId: sessionId)
+    }
+
+    func addComment(_ comment: WorkoutSessionComment) async throws {
+        try await commentsManager.addComment(comment)
+        guard comment.sessionAuthorId != comment.authorId else { return }
+        let notification = ActivityNotificationModel(
+            id: "comment_\(comment.id)",
+            type: .comment,
+            actorId: comment.authorId,
+            actorName: comment.authorName ?? "Someone",
+            actorImageUrl: comment.authorImageUrl,
+            sessionId: comment.sessionId,
+            sessionAuthorId: comment.sessionAuthorId,
+            commentText: comment.text,
+            dateCreated: comment.dateCreated,
+            isRead: false
+        )
+        try? await activityNotificationManager.addNotification(notification, userId: comment.sessionAuthorId)
+    }
+
+    func deleteComment(id: String) async throws {
+        try await commentsManager.deleteComment(id: id)
     }
 }

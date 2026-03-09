@@ -11,13 +11,13 @@ struct CustomLabelButtonView<Content: View>: View {
     
     @Environment(\.colorScheme) private var colorScheme
     
-    let symbolName: String
+    let symbolName: String?
     let title: String
     let subtitle: String?
     var content: (() -> Content)?
     
     init(
-        symbolName: String,
+        symbolName: String? = nil,
         title: String,
         subtitle: String? = nil,
         content: (() -> Content)? = nil
@@ -30,19 +30,32 @@ struct CustomLabelButtonView<Content: View>: View {
     
     var body: some View {
         HStack {
-            Label {
-                Text(title)
-                    .font(.subheadline)
-                    .foregroundColor(.primary)
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+            if let symbolName {
+                Label {
+                    Text(title)
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                } icon: {
+                    Image(systemName: symbolName)
+                        .frame(width: 44, height: 44, alignment: .center)
                 }
-                
-            } icon: {
-                Image(systemName: symbolName)
-                    .frame(width: 44, height: 44, alignment: .center)
+            } else {
+                VStack(alignment: .leading) {
+                    Text(title)
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
             Spacer()
             content?()

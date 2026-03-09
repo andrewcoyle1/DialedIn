@@ -12,7 +12,41 @@ struct IntegrationsView: View {
     var body: some View {
         List {
             Section {
-                Text("Hello, World!")
+                HStack {
+                    Image(systemName: "figure.run")
+                        .foregroundStyle(.orange)
+                    VStack(alignment: .leading) {
+                        Text("Strava")
+                            .fontWeight(.medium)
+                        Text(presenter.stravaIsConnected ? "Connected" : "Not connected")
+                            .font(.caption)
+                            .foregroundStyle(presenter.stravaIsConnected ? .green : .secondary)
+                    }
+                    Spacer()
+                    if presenter.isConnectingStrava {
+                        ProgressView()
+                    } else if presenter.stravaIsConnected {
+                        Button("Disconnect") { presenter.onStravaDisconnectPressed() }
+                            .foregroundStyle(.red)
+                            .font(.subheadline)
+                    } else {
+                        Button("Connect") { presenter.onStravaConnectPressed() }
+                            .font(.subheadline)
+                    }
+                }
+                .foregroundStyle(.primary)
+            if presenter.stravaIsConnected {
+                HStack {
+                    Spacer()
+                    if presenter.isTestingStravaUpload {
+                        ProgressView()
+                    } else {
+                        Button("Test Upload") { presenter.onStravaTestUploadPressed() }
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
             } header: {
                 Text("Available Integrations")
             }

@@ -15,36 +15,41 @@ struct WorkoutSessionDetailDelegate {
     }
 }
 
-struct WorkoutSessionDetailView: View {
+struct WorkoutSessionDetailView<AuthorHeader: View>: View {
 
     @State var presenter: WorkoutSessionDetailPresenter
     @State private var session: WorkoutSessionModel
 
     let delegate: WorkoutSessionDetailDelegate
 
+    @ViewBuilder var authorHeader: (AuthorHeaderDelegate) -> AuthorHeader
     @ViewBuilder var editableExerciseCardWrapper: (EditableExerciseCardWrapperDelegate) -> AnyView
 
     init(
         presenter: WorkoutSessionDetailPresenter,
         delegate: WorkoutSessionDetailDelegate,
+        authorHeader: @escaping (AuthorHeaderDelegate) -> AuthorHeader,
         editableExerciseCardWrapper: @escaping (EditableExerciseCardWrapperDelegate) -> AnyView
     ) {
         self._presenter = State(initialValue: presenter)
         self._session = State(initialValue: delegate.initialSession)
         self.delegate = delegate
+        self.authorHeader = authorHeader
         self.editableExerciseCardWrapper = editableExerciseCardWrapper
     }
     
     var body: some View {
         List {
-            if let endedAt = session.endedAt {
-                headerSection(session: session, endedAt: endedAt)
+            Section {
+                authorHeader(AuthorHeaderDelegate(author: .mock, date: session.dateCreated))
             }
-            summarySection(session: session)
+            .listSectionMargins(.top, 0)
+            headerSection(session: session, endedAt: session.endedAt)
             exercisesSection
             deleteSection
         }
         .navigationTitle(session.name)
+        .navigationSubtitle(session.dateCreated.formatted(date: .long, time: .shortened))
         .navigationBarTitleDisplayMode(.inline)
         .scrollIndicators(.hidden)
         .toolbar {
@@ -55,15 +60,42 @@ struct WorkoutSessionDetailView: View {
         }
     }
 
-    private func headerSection(session: WorkoutSessionModel, endedAt: Date) -> some View {
+    private func headerSection(session: WorkoutSessionModel, endedAt: Date?) -> some View {
         Section {
+                        
+            LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
+                StatCard(
+                    value: "\(session.exercises.count)",
+                    label: "Exercises",
+                    icon: "list.bullet",
+                    color: .blue,
+                    alignment: .center
+                )
+                
+                StatCard(
+                    value: "\(presenter.totalSets(session: session))",
+                    label: "Sets",
+                    icon: "square.stack.3d.up",
+                    color: .purple,
+                    alignment: .center
+                )
+
+                StatCard(
+                    value: presenter.volumeFormatted(session: session),
+                    label: "Volume",
+                    icon: "scalemass",
+                    color: .orange,
+                    alignment: .center
+                )
+            }
+
+            notesEditor()
+
+        } header: {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(session.dateCreated.formatted(date: .long, time: .shortened))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    
-                    let duration = endedAt.timeIntervalSince(session.dateCreated)
+                Text("Workout Summary")
+                Spacer()
+                if let duration = endedAt?.timeIntervalSince(session.dateCreated) {
                     HStack(spacing: 4) {
                         Image(systemName: "clock")
                             .font(.caption)
@@ -72,50 +104,11 @@ struct WorkoutSessionDetailView: View {
                     }
                     .foregroundStyle(.secondary)
                 }
-                
-                Spacer()
-                
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.title)
-                    .foregroundStyle(.green)
-            }
-            
-            notesEditor()
-            
-        } header: {
-            Text("Workout Summary")
-        }
-    }
-    
-    private func summarySection(session: WorkoutSessionModel) -> some View {
-        Section {
-            HStack(spacing: 12) {
-                StatCard(
-                    value: "\(session.exercises.count)",
-                    label: "Exercises",
-                    icon: "list.bullet",
-                    color: .blue
-                )
-                
-                StatCard(
-                    value: "\(presenter.totalSets(session: session))",
-                    label: "Sets",
-                    icon: "square.stack.3d.up",
-                    color: .purple
-                )
 
-                StatCard(
-                    value: presenter.volumeFormatted(session: session),
-                    label: "Volume",
-                    icon: "scalemass",
-                    color: .orange
-                )
             }
-        } header: {
-            Text("Stats")
         }
     }
-    
+        
     private var exercisesSection: some View {
         Section {
             if presenter.isEditMode {
@@ -179,6 +172,7 @@ struct WorkoutSessionDetailView: View {
             Button(role: .destructive) {
                 presenter.onDeletePressed(session: session)
             }
+            .foregroundStyle(.red)
             .disabled(presenter.isLoading)
         }
     }
@@ -199,14 +193,16 @@ struct WorkoutSessionDetailView: View {
         if presenter.isAuthor(sessionAuthorId: session.authorId) {
             ToolbarItem(placement: .topBarTrailing) {
                 if presenter.isEditMode {
-                    Button("Save") {
+                    Button(role: .confirm) {
                         Task { await presenter.saveChanges(initialSession: delegate.initialSession, session: $session) }
                     }
                     .disabled(presenter.isLoading || !presenter.hasUnsavedChanges(session: delegate.initialSession, editedSession: session))
                     .fontWeight(.semibold)
                 } else {
-                    Button("Edit") {
+                    Button {
                         presenter.enterEditMode(session: session)
+                    } label: {
+                        Image(systemName: "pencil")
                     }
                 }
             }
@@ -261,6 +257,9 @@ extension CoreBuilder {
         WorkoutSessionDetailView(
             presenter: WorkoutSessionDetailPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             delegate: delegate,
+            authorHeader: { delegate in
+                self.authorHeaderView(router: router, delegate: delegate)
+            },
             editableExerciseCardWrapper: { delegate in
                 self.editableExerciseCardWrapper(delegate: delegate)
                     .any()

@@ -17,12 +17,14 @@ struct WorkoutSessionRowDelegate {
     }
 }
 
-struct WorkoutSessionRowView: View {
+struct WorkoutSessionRowView<AuthorHeader: View>: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
     @State var presenter: WorkoutSessionRowPresenter
 
+    @ViewBuilder var authorHeader: (AuthorHeaderDelegate) -> AuthorHeader
+    
     // MARK: - Computed Properties
 
     private var durationFormatted: String? {
@@ -44,49 +46,31 @@ struct WorkoutSessionRowView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        Section {
             VStack(alignment: .leading) {
-                authorHeader
-                sessionTitleAndStats
-                exerciseList
+                authorHeader(AuthorHeaderDelegate(author: presenter.author, date: presenter.session.dateCreated))
+                sessionContent
             }
-            .anyButton {
-                presenter.onWorkoutPressed()
-            }
-            Divider()
+            .frame(maxWidth: .infinity)
             footerBar
         }
         .padding()
         .background(colorScheme.backgroundPrimary)
     }
 
-    // MARK: - Author Header
-
-    private var authorHeader: some View {
-        HStack(spacing: 10) {
-            ImageLoaderView(
-                urlString: presenter.author.profileImageNameCalculated ?? Constants.randomImage,
-                clipShape: AnyShape(.circle)
-            )
-            .frame(width: 40, height: 40)
-            VStack(alignment: .leading, spacing: 2) {
-                if let name = presenter.author.fullNameCalculated {
-                    Text(name)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                }
-                Text(presenter.session.dateCreated.formatted(date: .abbreviated, time: .shortened))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .anyButton {
-            presenter.onUserPressed()
-        }
-    }
-
     // MARK: - Session Title and Stats
 
+    private var sessionContent: some View {
+        VStack {
+            sessionTitleAndStats
+            exerciseList
+        }
+        .anyButton {
+            presenter.onWorkoutPressed()
+        }
+
+    }
+    
     private var sessionTitleAndStats: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(presenter.session.name)
@@ -130,22 +114,23 @@ struct WorkoutSessionRowView: View {
             Button {
                 presenter.onLikeButtonPressed()
             } label: {
-                Image(systemName: presenter.isLiked ? "hand.thumbsup.fill" : "hand.thumbsup")
+                Label("\(presenter.likeCount)", systemImage: presenter.isLiked ? "hand.thumbsup.fill" : "hand.thumbsup")
             }
-            Spacer()
+            .frame(maxWidth: .infinity)
             Button {
                 presenter.onCommentButtonPressed()
             } label: {
                 Image(systemName: "bubble")
             }
-            Spacer()
+            .frame(maxWidth: .infinity)
             Button {
                 presenter.onShareButtonPressed()
             } label: {
                 Image(systemName: "square.and.arrow.up")
             }
+            .frame(maxWidth: .infinity)
         }
-        .padding(.horizontal)
+        .buttonStyle(.plain)
     }
 
     // MARK: - Helpers
@@ -215,7 +200,10 @@ extension CoreBuilder {
                 interactor: interactor,
                 router: CoreRouter(router: router, builder: self),
                 delegate: delegate
-            )
+            ),
+            authorHeader: { delegate in
+                self.authorHeaderView(router: router, delegate: delegate)
+            }
         )
     }
 }

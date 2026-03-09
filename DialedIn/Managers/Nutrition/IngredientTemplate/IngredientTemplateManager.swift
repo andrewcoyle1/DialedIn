@@ -1,5 +1,5 @@
 //
-//  IngredientTemplateManager.swift
+//  FoodManager.swift
 //  DialedIn
 //
 //  Created by Andrew Coyle on 24/09/2025.
@@ -9,60 +9,60 @@ import SwiftUI
 
 @Observable
 @MainActor
-class IngredientTemplateManager {
+class FoodManager {
     
-    private let ingredientTemplateSyncEngine: CollectionSyncEngine<IngredientTemplateModel>
+    private let foodSyncEngine: CollectionSyncEngine<FoodModel>
     
-    var ingredientTemplates: [IngredientTemplateModel] {
-        ingredientTemplateSyncEngine.currentCollection
+    var foods: [FoodModel] {
+        foodSyncEngine.currentCollection
     }
     
-    init(ingredientTemplateSyncEngine: CollectionSyncEngine<IngredientTemplateModel>) {
-        self.ingredientTemplateSyncEngine = ingredientTemplateSyncEngine
+    init(foodSyncEngine: CollectionSyncEngine<FoodModel>) {
+        self.foodSyncEngine = foodSyncEngine
     }
     
     func signIn() async {
-        await ingredientTemplateSyncEngine.startListening()
+        await foodSyncEngine.startListening()
     }
 
     func signOut() {
-        ingredientTemplateSyncEngine.stopListening()
+        foodSyncEngine.stopListening()
     }
 
     // MARK: - Method Aliases for Backward Compatibility
     
-    func saveIngredientTemplate(_ ingredient: IngredientTemplateModel, image: PlatformImage?) async throws {
+    func saveFood(_ ingredient: FoodModel, image: PlatformImage?) async throws {
         var ingredient = ingredient
         if let image {
             let path = "ingredient_templates/\(ingredient.id)"
             let url = try await FirebaseImageUploadService().uploadImage(image: image, path: path)
             ingredient.updateImageURL(imageUrl: url.absoluteString)
         }
-        try await ingredientTemplateSyncEngine.saveDocument(ingredient)
+        try await foodSyncEngine.saveDocument(ingredient)
     }
     
-    func deleteIngredientTemplate(ingredientId id: String) async throws {
-        try await ingredientTemplateSyncEngine.deleteDocument(id: id)
+    func deleteFood(ingredientId id: String) async throws {
+        try await foodSyncEngine.deleteDocument(id: id)
     }
     
-    func deleteAllIngredientTemplates(id: String) async throws {
+    func deleteAllFoods(id: String) async throws {
         // TODO: Add delete all ingredients here
     }
 
 }
  
 extension CoreInteractor {
-    // MARK: IngredientTemplateManager
+    // MARK: FoodManager
     
-    var ingredientTemplates: [IngredientTemplateModel] {
-        ingredientTemplateManager.ingredientTemplates
+    var foods: [FoodModel] {
+        foodManager.foods
     }
     
-    func saveIngredientTemplate(_ ingredient: IngredientTemplateModel, image: PlatformImage?) async throws {
-        try await ingredientTemplateManager.saveIngredientTemplate(ingredient, image: image)
+    func saveFood(_ ingredient: FoodModel, image: PlatformImage?) async throws {
+        try await foodManager.saveFood(ingredient, image: image)
     }
     
     func deleteIngredientTempalte(ingredientId id: String) async throws {
-        try await ingredientTemplateManager.deleteIngredientTemplate(ingredientId: id)
+        try await foodManager.deleteFood(ingredientId: id)
     }
 }

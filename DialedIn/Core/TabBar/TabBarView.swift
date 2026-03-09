@@ -17,14 +17,15 @@ struct TabBarScreen: Identifiable {
     @ViewBuilder var screen: () -> AnyView
 }
 
-struct TabBarView<TabAccessory: View, Search: View>: View {
+struct TabBarView<TrainingTabAccessory: View, MealTabAccessory: View, Search: View>: View {
 
     @State var presenter: TabBarPresenter
 
     var tabs: [TabBarScreen]
     
-    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
-
+    @ViewBuilder var trainingAccessoryView: (TrainingAccessoryDelegate) -> TrainingTabAccessory
+    @ViewBuilder var mealAccessoryView: (MealAccessoryDelegate) -> MealTabAccessory
+    
     @ViewBuilder var searchView: () -> Search
         
     var body: some View {
@@ -46,30 +47,42 @@ struct TabBarView<TabAccessory: View, Search: View>: View {
         }
         .tabViewStyle(.tabBarOnly)
         .tabBarMinimizeBehavior(.onScrollDown)
-        .tabViewBottomAccessory(isEnabled: presenter.activeSession != nil) {
-//            GeometryReader { geometry in
-//                ScrollView(.horizontal) {
-//                    HStack(alignment: .center) {
-                        if let active = presenter.activeSession {
-                            tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
-//                                .frame(width: geometry.size.width)
-                        }
-
-//                        HStack {
-//                            Image(systemName: "magnifyingglass")
-//                            TextField("Search for a food", text: .constant(""))
-//                            Image(systemName: "barcode.viewfinder")
-//                        }
-//                        .padding(.horizontal)
-//                        .frame(width: geometry.size.width)
-//                    }
-//                    .scrollTargetLayout()
-//                }
-//                .scrollIndicators(.hidden)
-//                .scrollTargetBehavior(.viewAligned)
-//                .frame(maxHeight: .infinity)
-//            }
+        .tabViewBottomAccessory(isEnabled: presenter.showTabAccessory) {
+            ScrollView(.horizontal) {
+                HStack(alignment: .center) {
+                    if let active = presenter.activeSession {
+                        trainingAccessoryView(TrainingAccessoryDelegate(active: active))
+                            .frame(width: presenter.tabAccessoryWidth)
+                    }
+                    if let draftMeal = presenter.draftMeal {
+                        mealAccessoryView(MealAccessoryDelegate(draftMeal: draftMeal))
+                            .frame(width: presenter.tabAccessoryWidth)
+                    }
+                }
+                //                    .frame(width: geometry.size.height)
+                .scrollTargetLayout()
+            }
+            //                .padding(.horizontal)
+            .scrollIndicators(.hidden)
+            .scrollTargetBehavior(.viewAligned)
+            //                .frame(maxHeight: .infinity)
+            .background {
+                GeometryReader { geo in
+                    Color.clear.preference(key: WidthPreferenceKey.self, value: geo.size.width)
+                }
+            }
+            .onPreferenceChange(WidthPreferenceKey.self) { width in
+                self.presenter.tabAccessoryWidth = width
+            }
         }
+    }
+}
+
+struct WidthPreferenceKey: PreferenceKey {
+    static let defaultValue: CGFloat = 400
+    
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 
@@ -123,8 +136,11 @@ extension CoreBuilder {
         return TabBarView(
             presenter: TabBarPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             tabs: tabs,
-            tabViewAccessoryView: { delegate in
-                self.tabViewAccessoryView(router: router, delegate: delegate)
+            trainingAccessoryView: { delegate in
+                self.trainingAccessoryView(router: router, delegate: delegate)
+            },
+            mealAccessoryView: { delegate in
+                self.mealAccessoryView(router: router, delegate: delegate)
             },
             searchView: {
                 RouterView { router in

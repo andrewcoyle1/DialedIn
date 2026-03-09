@@ -127,7 +127,7 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
             dateModified: Date(timeIntervalSinceNow: -86400 * 5),
             ingredients: [
                 RecipeIngredientModel(
-                    ingredient: IngredientTemplateModel(
+                    ingredient: FoodModel(
                     ingredientId: "ing1",
                     authorId: "user1",
                     name: "Pizza Dough",
@@ -156,7 +156,7 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
                     unit: .grams
                 ),
                 RecipeIngredientModel(
-                    ingredient: IngredientTemplateModel(
+                    ingredient: FoodModel(
                     ingredientId: "ing2",
                     authorId: "user1",
                     name: "Fresh Mozzarella",
@@ -185,7 +185,7 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
                     unit: .grams
                 ),
                 RecipeIngredientModel(
-                    ingredient: IngredientTemplateModel(
+                    ingredient: FoodModel(
                     ingredientId: "ing3",
                     authorId: "user1",
                     name: "Tomato Sauce",
@@ -227,7 +227,7 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
             dateModified: Date(timeIntervalSinceNow: -86400 * 15),
             ingredients: [
                 RecipeIngredientModel(
-                    ingredient: IngredientTemplateModel(
+                    ingredient: FoodModel(
                     ingredientId: "ing4",
                     authorId: "user2",
                     name: "Oat Flour",
@@ -256,7 +256,7 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
                     unit: .grams
                 ),
                 RecipeIngredientModel(
-                    ingredient: IngredientTemplateModel(
+                    ingredient: FoodModel(
                     ingredientId: "ing5",
                     authorId: "user2",
                     name: "Whey Protein",
@@ -298,7 +298,7 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
             dateModified: Date(timeIntervalSinceNow: -86400 * 2),
             ingredients: [
                 RecipeIngredientModel(
-                    ingredient: IngredientTemplateModel(
+                    ingredient: FoodModel(
                     ingredientId: "ing6",
                     authorId: "user3",
                     name: "Quinoa",
@@ -327,7 +327,7 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
                     unit: .grams
                 ),
                 RecipeIngredientModel(
-                    ingredient: IngredientTemplateModel(
+                    ingredient: FoodModel(
                     ingredientId: "ing7",
                     authorId: "user3",
                     name: "Chickpeas",
@@ -356,7 +356,7 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
                     unit: .grams
                 ),
                 RecipeIngredientModel(
-                    ingredient: IngredientTemplateModel(
+                    ingredient: FoodModel(
                     ingredientId: "ing8",
                     authorId: "user3",
                     name: "Spinach",

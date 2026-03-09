@@ -23,7 +23,9 @@ struct RecipeListBuilderView: View {
                 if !presenter.userRecipeTemplates.isEmpty {
                     userRecipeTemplatesSection
                 }
-                systemRecipeTemplatesSection
+                if !presenter.systemRecipeTemplates.isEmpty {
+                    systemRecipeTemplatesSection
+                }
             } else {
                 filteredRecipeTemplatesSection
             }
@@ -34,8 +36,6 @@ struct RecipeListBuilderView: View {
         .onDisappear {
             presenter.onViewDisappear()
         }
-        .navigationTitle("Recipes")
-        .navigationSubtitle("\(presenter.userRecipeTemplates.count) recipes")
         .scrollIndicators(.hidden)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -65,7 +65,7 @@ struct RecipeListBuilderView: View {
                 .removeListRowFormatting()
             }
         } header: {
-            Text("Custom Exercises")
+            Text("Custom Recipes")
         }
     }
 
@@ -84,7 +84,7 @@ struct RecipeListBuilderView: View {
                 .removeListRowFormatting()
             }
         } header: {
-            Text("Custom Exercises")
+            Text("System Recipes")
         }
     }
 

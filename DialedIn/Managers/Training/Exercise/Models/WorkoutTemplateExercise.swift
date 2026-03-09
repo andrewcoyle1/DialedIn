@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WorkoutTemplateExercise: DataSyncModelProtocol, Equatable {
+struct WorkoutTemplateExercise: DataSyncModelProtocol, Equatable, Hashable {
     var id: String = UUID().uuidString
     var exercise: ExerciseModel
     var setTargets: [SetTarget] = [SetTarget(setNumber: 1, setType: SetTargetSetType.standard)]

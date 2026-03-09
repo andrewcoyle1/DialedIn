@@ -13,7 +13,6 @@ struct FoodLogSettingsView: View {
         List {
             Section {
                 CustomToggleView(
-                    symbolName: "",
                     title: "Show Overages",
                     subtitle: presenter.showOverages ? "No negative numbers will be used if you exceed a nutrient target." : "Negative numbers will be used in nutrient remaining views if you exceed your target.",
                     bool: $presenter.showOverages
@@ -90,13 +89,11 @@ struct FoodLogSettingsView: View {
 
             Section {
                 CustomToggleView(
-                    symbolName: "",
                     title: "Branded Results",
                     subtitle: presenter.showBrandedFoods ? "On" : "Off",
                     bool: $presenter.showBrandedFoods
                 )
                 CustomToggleView(
-                    symbolName: "",
                     title: "Open Food Facts Results",
                     subtitle: presenter.showOpenFoodFactsFoods ? "On" : "Off",
                     bool: $presenter.showOpenFoodFactsFoods
@@ -107,7 +104,6 @@ struct FoodLogSettingsView: View {
 
             Section {
                 CustomLabelButtonView(
-                    symbolName: "",
                     title: "Timeline Food Tiles",
                     subtitle: "Customise how foods appear in your timeline") {
                         Image(systemName: "chevron.right")
@@ -119,7 +115,6 @@ struct FoodLogSettingsView: View {
 
                     }
                 CustomLabelButtonView(
-                    symbolName: "",
                     title: "Logger Food Tiles",
                     subtitle: "Customise how foods appear in search") {
                         Image(systemName: "chevron.right")
@@ -136,7 +131,6 @@ struct FoodLogSettingsView: View {
 
             Section {
                 CustomLabelButtonView(
-                    symbolName: "",
                     title: "Logger Banner",
                     subtitle: "Customise the top of your plate") {
                         Image(systemName: "chevron.right")
@@ -148,7 +142,6 @@ struct FoodLogSettingsView: View {
 
                     }
                 CustomLabelButtonView(
-                    symbolName: "",
                     title: "Time Selection",
                     subtitle: "Customise how you change time while logging") {
                         Image(systemName: "chevron.right")
@@ -160,7 +153,6 @@ struct FoodLogSettingsView: View {
 
                     }
                 CustomLabelButtonView(
-                    symbolName: "",
                     title: "Favourite Measurements",
                     subtitle: "Select the measurements to pin to serving size selections.") {
                         Image(systemName: "chevron.right")
@@ -172,7 +164,6 @@ struct FoodLogSettingsView: View {
 
                     }
                 CustomLabelButtonView(
-                    symbolName: "clock",
                     title: "Optimisation",
                     subtitle: "Optimise for speed") {
                         Text("Edit")

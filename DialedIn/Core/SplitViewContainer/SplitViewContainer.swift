@@ -12,7 +12,7 @@ struct SplitViewContainer<TabAccessory: View>: View {
     @State var presenter: SplitViewContainerPresenter
     var tabs: [TabBarScreen]
 
-    @ViewBuilder var tabViewAccessoryView: (TabViewAccessoryDelegate) -> TabAccessory
+    @ViewBuilder var trainingAccessoryView: (TrainingAccessoryDelegate) -> TabAccessory
 
     var body: some View {
         RouterView { _ in
@@ -31,7 +31,7 @@ struct SplitViewContainer<TabAccessory: View>: View {
                 }
                 .safeAreaInset(edge: .bottom) {
                     if let active = presenter.activeSession {
-                        tabViewAccessoryView(TabViewAccessoryDelegate(active: active))
+                        trainingAccessoryView(TrainingAccessoryDelegate(active: active))
                             .padding()
                             .buttonStyle(.bordered)
                     }
@@ -85,8 +85,8 @@ extension CoreBuilder {
         return SplitViewContainer(
             presenter: SplitViewContainerPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self)),
             tabs: tabs,
-            tabViewAccessoryView: { accessoryDelegate in
-                self.tabViewAccessoryView(router: router, delegate: accessoryDelegate)
+            trainingAccessoryView: { accessoryDelegate in
+                self.trainingAccessoryView(router: router, delegate: accessoryDelegate)
             }
         )
     }

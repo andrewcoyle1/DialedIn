@@ -37,25 +37,21 @@ struct StrategySettingsView: View {
             Section {
                 Label("Introduction", systemImage: "info")
                 CustomToggleView(
-                    symbolName: "",
                     title: "Partial Logging",
                     subtitle: nil,
                     bool: $presenter.partialLoggingEnabled
                 )
                 CustomToggleView(
-                    symbolName: "",
                     title: "Weigh-In",
                     subtitle: nil,
                     bool: $presenter.weighInEnabled
                 )
                 CustomToggleView(
-                    symbolName: "",
                     title: "Fasting",
                     subtitle: nil,
                     bool: $presenter.fastingEnabled
                 )
                 CustomToggleView(
-                    symbolName: "",
                     title: "Logging Break",
                     subtitle: nil,
                     bool: $presenter.loggingBreakEnabled

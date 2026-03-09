@@ -16,7 +16,6 @@ struct TimerDurationView: View {
             Section {
                 ForEach(ExerciseType.allCases, id: \.self) { type in
                     CustomLabelButtonView(
-                        symbolName: "",
                         title: type.name,
                         subtitle: presenter.formattedDuration(for: type)) {
                             Text("Edit")
@@ -29,7 +28,6 @@ struct TimerDurationView: View {
                         }
                 }
                 CustomLabelButtonView(
-                    symbolName: "",
                     title: "Reset Defaults",
                     subtitle: "Reset timers to default settings") {
                         Text("Reset")
@@ -46,7 +44,6 @@ struct TimerDurationView: View {
 
             Section {
                 CustomLabelButtonView(
-                    symbolName: "",
                     title: "Add Exercise Timer",
                     subtitle: "Set timers for specific exercises") {
                         Text("Add")

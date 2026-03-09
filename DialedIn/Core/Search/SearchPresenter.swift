@@ -22,6 +22,10 @@ class SearchPresenter {
             .trimmingCharacters(in: .alphanumerics.inverted)
             .lowercased()
     }
+    
+    var currentUser: UserModel? {
+        interactor.currentUser
+    }
 
     var filteredExercises: [ExerciseModel] {
         allExercises
@@ -113,8 +117,8 @@ class SearchPresenter {
         interactor.userRecipeTemplates
     }
 
-    var filteredIngredientTemplates: [IngredientTemplateModel] {
-        allIngredientTemplates
+    var filteredFoods: [FoodModel] {
+        allFoods
             .filter {
                 $0.name
                     .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -130,8 +134,8 @@ class SearchPresenter {
             .sortedByKeyPath(keyPath: \.name, ascending: true)
     }
     
-    var allIngredientTemplates: [IngredientTemplateModel] {
-        interactor.ingredientTemplates
+    var allFoods: [FoodModel] {
+        interactor.foods
     }
     
     var filteredUsers: [UserModel] {
@@ -169,7 +173,7 @@ class SearchPresenter {
     }
 
     var hasResults: Bool {
-        !filteredExercises.isEmpty || !filteredWorkoutTemplates.isEmpty || !filteredRecipeTemplates.isEmpty || !filteredIngredientTemplates.isEmpty || !users.isEmpty
+        !filteredExercises.isEmpty || !filteredWorkoutTemplates.isEmpty || !filteredRecipeTemplates.isEmpty || !filteredFoods.isEmpty || !users.isEmpty
     }
 
     func isFollowing(userId: String) -> Bool {
@@ -231,7 +235,15 @@ class SearchPresenter {
 
     func onWorkoutPressed(workout: WorkoutTemplateModel) {
         router.showWorkoutTemplateDetailView(
-            delegate: WorkoutTemplateDetailDelegate(workoutTemplate: workout)
+            delegate: WorkoutTemplateDetailDelegate(
+                workoutTemplate: workout,
+                trainingProgramId: nil,
+                onStartWorkoutPressed: { [weak self] in
+                    Task { @MainActor in
+                        self?.router.showWorkoutTrackerView()
+                    }
+                }
+            )
         )
     }
 
@@ -256,15 +268,64 @@ class SearchPresenter {
     }
 
     func onStartWorkoutPressed() {
-        router.showWorkoutsView()
+        router.showWorkoutsView(delegate: WorkoutsDelegate())
     }
 
     func onLogMealPressed() {
-        router.showAddMealView(delegate: AddMealDelegate(selectedDate: .now, onSave: { _ in }))
+        guard let userId = currentUser?.userId else { return }
+        if let meal = interactor.draftMeal {
+            router.showAlert(
+                title: "Unable to add new meal",
+                subtitle: "You already have an draft meal.",
+                buttons: {
+                    AnyView(
+                        VStack {
+                            Button("Continue editing") {
+                                self.router.showAddMealView(
+                                    delegate: AddMealDelegate(mealLog: meal)
+                                )
+                            }
+                            Button("Delete drafted meal", role: .destructive) {
+                                self.router.showAddMealView(
+                                    delegate: AddMealDelegate(
+                                        mealLog: MealLogModel(
+                                            authorId: userId,
+                                            dayKey: Date().dayKey,
+                                            date: Date(),
+                                            items: [],
+                                            totalCalories: 0,
+                                            totalProteinGrams: 0,
+                                            totalCarbGrams: 0,
+                                            totalFatGrams: 0
+                                        )
+                                    )
+                                )
+                            }
+                            Button("Cancel", role: .cancel) { }
+                        }
+                    )
+                }
+            )
+        } else {
+            self.router.showAddMealView(
+                delegate: AddMealDelegate(
+                    mealLog: MealLogModel(
+                        authorId: userId,
+                        dayKey: Date().dayKey,
+                        date: Date(),
+                        items: [],
+                        totalCalories: 0,
+                        totalProteinGrams: 0,
+                        totalCarbGrams: 0,
+                        totalFatGrams: 0
+                    )
+                )
+            )
+        }
     }
 
-    func onIngredientPressed(ingredient: IngredientTemplateModel) {
-        router.showIngredientDetailView(delegate: IngredientDetailDelegate(ingredientTemplate: ingredient))
+    func onIngredientPressed(ingredient: FoodModel) {
+        router.showFoodDetailView(delegate: FoodDetailDelegate(food: ingredient))
     }
     
     func onAddExercisePressed() {

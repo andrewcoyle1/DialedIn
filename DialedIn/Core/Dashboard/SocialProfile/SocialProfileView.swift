@@ -88,7 +88,6 @@ struct SocialProfileView: View {
     private var dataSection: some View {
         Section {
             CustomLabelButtonView(
-                symbolName: "",
                 title: "Activities",
                 subtitle: "Yesterday") {
                     Image(systemName: "chevron.right")
@@ -99,7 +98,6 @@ struct SocialProfileView: View {
                         }
                 }
             CustomLabelButtonView(
-                symbolName: "",
                 title: "Statistics",
                 subtitle: "This year: 93.0 km") {
                     Image(systemName: "chevron.right")
@@ -110,7 +108,6 @@ struct SocialProfileView: View {
                         }
                 }
             CustomLabelButtonView(
-                symbolName: "",
                 title: "Routes",
                 subtitle: "-") {
                     Image(systemName: "chevron.right")
@@ -121,7 +118,6 @@ struct SocialProfileView: View {
                         }
                 }
             CustomLabelButtonView(
-                symbolName: "",
                 title: "Segments",
                 subtitle: "-") {
                     Image(systemName: "chevron.right")
@@ -132,7 +128,6 @@ struct SocialProfileView: View {
                         }
                 }
             CustomLabelButtonView(
-                symbolName: "",
                 title: "Best Efforts",
                 subtitle: "See all") {
                     Image(systemName: "chevron.right")
@@ -143,7 +138,6 @@ struct SocialProfileView: View {
                         }
                 }
             CustomLabelButtonView(
-                symbolName: "",
                 title: "Posts",
                 subtitle: "1") {
                     Image(systemName: "chevron.right")

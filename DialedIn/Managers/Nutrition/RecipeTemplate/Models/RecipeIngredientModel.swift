@@ -18,11 +18,11 @@ struct RecipeIngredientModel: DataSyncModelProtocol {
     var name: String { ingredient.name }
     var description: String? { ingredient.description }
     var imageURL: String? { ingredient.imageURL }
-    let ingredient: IngredientTemplateModel
+    let ingredient: FoodModel
     var amount: Double
     var unit: IngredientAmountUnit
     
-    init(ingredient: IngredientTemplateModel, amount: Double, unit: IngredientAmountUnit? = nil) {
+    init(ingredient: FoodModel, amount: Double, unit: IngredientAmountUnit? = nil) {
         self.ingredient = ingredient
         self.amount = amount
         if let unit = unit {
@@ -39,5 +39,5 @@ struct RecipeIngredientModel: DataSyncModelProtocol {
     static var mock: RecipeIngredientModel {
         mocks[0]
     }
-    static let mocks: [RecipeIngredientModel] = Array(IngredientTemplateModel.mocks.prefix(10)).map { RecipeIngredientModel(ingredient: $0, amount: 1) }
+    static let mocks: [RecipeIngredientModel] = Array(FoodModel.mocks.prefix(10)).map { RecipeIngredientModel(ingredient: $0, amount: 1) }
 }

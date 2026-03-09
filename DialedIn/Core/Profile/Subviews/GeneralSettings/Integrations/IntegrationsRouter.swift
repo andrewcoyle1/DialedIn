@@ -1,8 +1,6 @@
 import SwiftUI
 
 @MainActor
-protocol IntegrationsRouter {
-    
-}
+protocol IntegrationsRouter: GlobalRouter { }
 
 extension CoreRouter: IntegrationsRouter { }

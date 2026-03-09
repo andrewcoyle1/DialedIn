@@ -97,7 +97,24 @@ func onDevSettingsPressed() {
     }
 }
 
-enum UnitOfWeight {
+enum UnitOfWeight: String, PickableUnit {
+    
+    var id: String { self.rawValue }
     case kilograms
     case pounds
+    
+    var name: String {
+        switch self {
+        case .kilograms: return "Kilograms"
+        case .pounds: return "Pounds"
+        }
+    }
+    
+    var acronym: String {
+        switch self {
+        case .kilograms: return "kg"
+        case .pounds: return "lbs"
+        }
+    }
+    
 }

@@ -14,6 +14,11 @@ class NutritionPresenter {
     private let router: NutritionRouter
    
     var selectedDate: Date = Date()
+    
+    var draftMeal: MealLogModel? {
+        interactor.draftMeal
+    }
+    
     var meals: [MealLogModel] {
         interactor.userMeals
     }
@@ -117,15 +122,57 @@ func onDevSettingsPressed() {
     }
 
     func onAddMealPressed(selectedTime: Date = Date()) {
-        let delegate = AddMealDelegate(
-            selectedDate: selectedTime,
-            onSave: { meal in
-                Task { [weak self] in
-                    await self?.saveMeal(meal)
+        guard let userId = currentUser?.userId else { return }
+        if let meal = interactor.draftMeal {
+            router.showAlert(
+                title: "Unable to add new meal",
+                subtitle: "You already have an draft meal.",
+                buttons: {
+                    AnyView(
+                        VStack {
+                            Button("Continue editing") {
+                                self.router.showAddMealView(
+                                    delegate: AddMealDelegate(mealLog: meal)
+                                )
+                            }
+                            Button("Delete drafted meal", role: .destructive) {
+                                try? self.interactor.deleteDraftMeal()
+                                self.router.showAddMealView(
+                                    delegate: AddMealDelegate(
+                                        mealLog: MealLogModel(
+                                            authorId: userId,
+                                            dayKey: selectedTime.dayKey,
+                                            date: selectedTime,
+                                            items: [],
+                                            totalCalories: 0,
+                                            totalProteinGrams: 0,
+                                            totalCarbGrams: 0,
+                                            totalFatGrams: 0
+                                        )
+                                    )
+                                )
+                            }
+                            Button("Cancel", role: .cancel) { }
+                        }
+                    )
                 }
-            }
-        )
-        router.showAddMealView(delegate: delegate)
+            )
+        } else {
+            self.router.showAddMealView(
+                delegate: AddMealDelegate(
+                    mealLog: MealLogModel(
+                        authorId: userId,
+                        dayKey: selectedTime.dayKey,
+                        date: selectedTime,
+                        items: [],
+                        totalCalories: 0,
+                        totalProteinGrams: 0,
+                        totalCarbGrams: 0,
+                        totalFatGrams: 0
+                    )
+                )
+            )
+        }
     }
 
     func getMealCountForDate(date: Date) -> Int {

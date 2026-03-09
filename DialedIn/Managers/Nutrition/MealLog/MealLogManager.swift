@@ -11,6 +11,7 @@ import SwiftUI
 @MainActor
 class MealLogManager {
 
+    private let draftMealLogPersistence: any LocalDocumentPersistence<MealLogModel>
     private let mealLogSyncEngine: CollectionSyncEngine<MealLogModel>
 
     // UI state for draft/edit flows
@@ -20,8 +21,14 @@ class MealLogManager {
         mealLogSyncEngine.currentCollection
     }
 
-    init(mealLogSyncEngine: CollectionSyncEngine<MealLogModel>) {
+    init(
+        draftMealLogPersistence: any LocalDocumentPersistence<MealLogModel>,
+        mealLogSyncEngine: CollectionSyncEngine<MealLogModel>
+    ) {
+        self.draftMealLogPersistence = draftMealLogPersistence
         self.mealLogSyncEngine = mealLogSyncEngine
+        self.draftMeal = try? draftMealLogPersistence.getDocument(managerKey: Keys.draftMealLogManagerKey)
+
     }
 
     // MARK: - Lifecycle
@@ -38,6 +45,21 @@ class MealLogManager {
 
     // MARK: - High-level API
 
+    func updateDraftMeal(_ draftMeal: MealLogModel) throws {
+        try draftMealLogPersistence.saveDocument(managerKey: Keys.draftMealLogManagerKey, draftMeal)
+        self.draftMeal = draftMeal
+    }
+    
+    func deleteDraftMeal() throws {
+        try self.clearDraftMeal()
+    }
+
+    private func clearDraftMeal() throws {
+        try draftMealLogPersistence.saveDocument(managerKey: Keys.draftMealLogManagerKey, nil)
+        self.draftMeal = nil
+
+    }
+    
     func saveMeal(_ meal: MealLogModel) async throws {
         try await mealLogSyncEngine.saveDocument(meal)
     }
@@ -91,6 +113,18 @@ extension CoreInteractor {
     var draftMeal: MealLogModel? {
         mealLogManager.draftMeal
     }
+    
+    func updateDraftMeal(_ draftMeal: MealLogModel) throws {
+        try mealLogManager.updateDraftMeal(draftMeal)
+    }
+    
+    func saveMeal(_ meal: MealLogModel) async throws {
+        try await mealLogManager.saveMeal(meal)
+    }
+    
+    func deleteDraftMeal() throws {
+        try mealLogManager.deleteDraftMeal()
+    }
 
     func addMeal(_ meal: MealLogModel) async throws {
         try await mealLogManager.saveMeal(meal)
@@ -128,7 +162,7 @@ extension CoreInteractor {
         for meal in meals {
             for item in meal.items {
                 if item.sourceType == .ingredient {
-                    if let ingredient = ingredientTemplates.first(where: { $0.id == item.sourceId }) {
+                    if let ingredient = foods.first(where: { $0.id == item.sourceId }) {
                         let scale = ((item.resolvedGrams ?? item.resolvedMilliliters) ?? 0) / 100.0
                         addIngredientToBreakdown(ingredient, scale: scale, into: &breakdown)
                     }
@@ -158,7 +192,7 @@ extension CoreInteractor {
         }
     }
 
-    private func addIngredientToBreakdown(_ ingredient: IngredientTemplateModel, scale: Double, into breakdown: inout DailyNutritionBreakdown) {
+    private func addIngredientToBreakdown(_ ingredient: FoodModel, scale: Double, into breakdown: inout DailyNutritionBreakdown) {
         func add(_ value: Double?, to keyPath: inout Double?) {
             guard let value, value > 0 else { return }
             keyPath = (keyPath ?? 0) + value * scale
@@ -241,7 +275,7 @@ extension CoreInteractor {
         return totals
     }
 
-    private func addScaledIngredientNutrients(_ ingredient: IngredientTemplateModel, scale: Double, into totals: inout RecipeNutrientTotals) {
+    private func addScaledIngredientNutrients(_ ingredient: FoodModel, scale: Double, into totals: inout RecipeNutrientTotals) {
         addScaled(ingredient.fiber, to: &totals.fiberGrams, scale: scale)
         addScaled(ingredient.sugar, to: &totals.sugarGrams, scale: scale)
         addScaled(ingredient.fatSaturated, to: &totals.fatSaturatedGrams, scale: scale)

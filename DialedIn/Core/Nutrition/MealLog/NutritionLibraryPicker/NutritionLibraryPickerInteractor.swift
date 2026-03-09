@@ -7,7 +7,7 @@
 
 @MainActor
 protocol NutritionLibraryPickerInteractor: GlobalInteractor {
-    var ingredientTemplates: [IngredientTemplateModel] { get }
+    var foods: [FoodModel] { get }
 }
 
 extension CoreInteractor: NutritionLibraryPickerInteractor { }

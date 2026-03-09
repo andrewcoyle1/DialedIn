@@ -8,6 +8,7 @@
 @MainActor
 protocol WorkoutsRouter: GlobalRouter {
     func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate)
+    func showWorkoutTrackerView()
 }
 
 extension CoreRouter: WorkoutsRouter { }

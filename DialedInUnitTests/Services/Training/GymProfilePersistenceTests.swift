@@ -2,7 +2,7 @@
 //  GymProfilePersistenceTests.swift
 //  DialedInUnitTests
 //
-//  Created by AI on 21/01/2026.
+//  Created by Andrew Coyle on 21/01/2026.
 //
 
 import SwiftUI

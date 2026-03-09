@@ -10,6 +10,7 @@ import SwiftUI
 @MainActor
 protocol EnergyBalanceInteractor {
     var currentUser: UserModel? { get }
+    var draftMeal: MealLogModel? { get }
     func getDailyTotals(dayKey: String) throws -> DailyMacroTarget
     func getDailyTotals(startDayKey: String, endDayKey: String) throws -> [(dayKey: String, totals: DailyMacroTarget)]
     func estimateTDEE(user: UserModel?) -> Double

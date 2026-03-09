@@ -27,7 +27,7 @@ struct RecipeDetailView: View {
         }
         .navigationTitle(delegate.recipeTemplate.name)
         .navigationSubtitle(delegate.recipeTemplate.description ?? "")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             toolbarContent
         }

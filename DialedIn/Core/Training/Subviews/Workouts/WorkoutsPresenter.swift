@@ -27,7 +27,17 @@ class WorkoutsPresenter {
     }
     
     func onWorkoutPressed(workout: WorkoutTemplateModel) {
-        router.showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate(workoutTemplate: workout))
+        router.showWorkoutTemplateDetailView(
+            delegate: WorkoutTemplateDetailDelegate(
+                workoutTemplate: workout,
+                trainingProgramId: nil,
+                onStartWorkoutPressed: { [weak self] in
+                    Task { @MainActor in
+                        self?.router.showWorkoutTrackerView()
+                    }
+                }
+            )
+        )
     }
 
     enum Event: LoggableEvent {

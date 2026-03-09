@@ -75,7 +75,10 @@ class WorkoutListPresenterBuilder {
         router.showCreateWorkoutView(delegate: CreateWorkoutDelegate(workoutTemplate: nil))
     }
 
-    func onWorkoutPressed(workout: WorkoutTemplateModel, onWorkoutPressed: ((WorkoutTemplateModel) -> Void)? = nil) {
+    func onWorkoutPressed(
+        workout: WorkoutTemplateModel,
+        onWorkoutPressed: ((WorkoutTemplateModel) -> Void)? = nil
+    ) {
         onWorkoutPressed?(workout)
     }
 

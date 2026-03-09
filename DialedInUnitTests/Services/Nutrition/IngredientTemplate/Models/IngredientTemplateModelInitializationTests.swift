@@ -1,5 +1,5 @@
 //
-//  IngredientTemplateModelInitializationTests.swift
+//  FoodModelInitializationTests.swift
 //  DialedInUnitTests
 //
 //  Created by Andrew Coyle on 25/10/2025.
@@ -10,7 +10,7 @@ import Foundation
 @testable import DialedIn
 
 @MainActor
-struct IngredientTemplateInitTests {
+struct FoodInitTests {
 
     // MARK: - Initialization Tests
     
@@ -20,7 +20,7 @@ struct IngredientTemplateInitTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let ingredient = IngredientTemplateModel(
+        let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
             calories: 100.0,
@@ -46,7 +46,7 @@ struct IngredientTemplateInitTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let ingredient = IngredientTemplateModel(
+        let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             authorId: randomAuthorId,
             name: randomName,
@@ -80,7 +80,7 @@ struct IngredientTemplateInitTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let ingredient = IngredientTemplateModel(
+        let ingredient = FoodModel(
             ingredientId: randomIngredientId,
             authorId: nil,
             name: randomName,
@@ -117,7 +117,7 @@ struct IngredientTemplateInitTests {
         let randomName = String.random
         let randomDate = Date.random
         
-        let weightIngredient = IngredientTemplateModel(
+        let weightIngredient = FoodModel(
             ingredientId: randomIngredientId,
             name: randomName,
             measurementMethod: .weight,
@@ -129,7 +129,7 @@ struct IngredientTemplateInitTests {
             dateModified: randomDate
         )
         
-        let volumeIngredient = IngredientTemplateModel(
+        let volumeIngredient = FoodModel(
             ingredientId: String.random,
             name: randomName,
             measurementMethod: .volume,

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ExerciseModel: DataSyncModelProtocol, SearchListItem {
+struct ExerciseModel: DataSyncModelProtocol, SearchListItem, Hashable {
     var id: String
     var authorId: String
     var name: String
@@ -338,12 +338,3 @@ struct ExerciseModel: DataSyncModelProtocol, SearchListItem {
 }
 
 extension ExerciseModel: Sendable {}
-
-extension ExerciseModel: Hashable {
-    nonisolated static func == (lhs: ExerciseModel, rhs: ExerciseModel) -> Bool {
-        lhs.id == rhs.id
-    }
-    nonisolated func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-}

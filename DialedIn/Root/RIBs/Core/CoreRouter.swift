@@ -44,4 +44,10 @@ struct CoreRouter: GlobalRouter {
         }
     }
 
+    func showCommentsView(delegate: CommentsDelegate) {
+        router.showScreen(.sheet) { router in
+            self.builder.commentsView(router: router, delegate: delegate)
+        }
+    }
+
 }

@@ -25,7 +25,7 @@ class RecipeAmountPresenter {
         self.router = router
     }
 
-    private func aggregate(_ keyPath: (IngredientTemplateModel) -> Double?, recipe: RecipeTemplateModel) -> Double? {
+    private func aggregate(_ keyPath: (FoodModel) -> Double?, recipe: RecipeTemplateModel) -> Double? {
         var total: Double = 0
         var hasValue = false
         for recipeIngredient in recipe.ingredients {

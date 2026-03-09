@@ -3,7 +3,7 @@ import SwiftUI
 @MainActor
 protocol IngredientListBuilderInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
-    var ingredientTemplates: [IngredientTemplateModel] { get }
+    var foods: [FoodModel] { get }
 }
 
 extension CoreInteractor: IngredientListBuilderInteractor { }

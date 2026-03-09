@@ -9,6 +9,7 @@
 protocol WorkoutSessionRowRouter: GlobalRouter {
     func showWorkoutSessionDetailView(delegate: WorkoutSessionDetailDelegate)
     func showSocialProfileView(delegate: SocialProfileDelegate)
+    func showCommentsView(delegate: CommentsDelegate)
 }
 
 extension CoreRouter: WorkoutSessionRowRouter { }

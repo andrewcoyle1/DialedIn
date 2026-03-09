@@ -24,6 +24,34 @@ struct MealItemModel: DataSyncModelProtocol, Hashable {
     let proteinGrams: Double?
     let carbGrams: Double?
     let fatGrams: Double?
+    
+    init(
+        itemId: String,
+        sourceType: MealItemSourceType,
+        sourceId: String,
+        displayName: String,
+        amount: Double,
+        unit: String,
+        resolvedGrams: Double? = nil,
+        resolvedMilliliters: Double? = nil,
+        calories: Double? = nil,
+        proteinGrams: Double? = nil,
+        carbGrams: Double? = nil,
+        fatGrams: Double? = nil
+    ) {
+        self.itemId = itemId
+        self.sourceType = sourceType
+        self.sourceId = sourceId
+        self.displayName = displayName
+        self.amount = amount
+        self.unit = unit
+        self.resolvedGrams = resolvedGrams
+        self.resolvedMilliliters = resolvedMilliliters
+        self.calories = calories
+        self.proteinGrams = proteinGrams
+        self.carbGrams = carbGrams
+        self.fatGrams = fatGrams
+    }
 }
 
 extension MealItemModel {

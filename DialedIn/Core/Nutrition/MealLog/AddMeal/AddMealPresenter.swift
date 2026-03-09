@@ -12,20 +12,25 @@ import SwiftUI
 class AddMealPresenter {
     private let interactor: AddMealInteractor
     private let router: AddMealRouter
-
-    var mealTime: Date = Date()
-    var notes: String = ""
-    var items: [MealItemModel] = []
-    var showLibraryPicker: Bool = false
+    
+    var mealLog: MealLogModel {
+        didSet {
+            guard !mealLog.items.isEmpty else { return }
+            saveDraftMeal()
+        }
+    }
+    
     var showAllNutrients: Bool = false
     var nutritionScope: NutritionScope = .plate
     
     init(
         interactor: AddMealInteractor,
-        router: AddMealRouter
+        router: AddMealRouter,
+        delegate: AddMealDelegate
     ) {
         self.interactor = interactor
         self.router = router
+        self.mealLog = delegate.mealLog
     }
     
     var currentUser: UserModel? {
@@ -33,63 +38,47 @@ class AddMealPresenter {
     }
         
     func deleteItems(at offsets: IndexSet) {
-        items.remove(atOffsets: offsets)
+        mealLog.items.remove(atOffsets: offsets)
     }
     
     func onShowPickerPressed() {
         let delegate = NutritionLibraryPickerDelegate(
             items: Binding(get: {
-                self.items
+                self.mealLog.items
             }, set: { newValues in
-                self.items = newValues
+                self.mealLog.items = newValues
             }),
             onPick: { newItem in
-            self.items.append(newItem)
+                self.mealLog.items.append(newItem)
         })
         router.showNutritionLibraryPickerView(delegate: delegate)
     }
+    
+    // MARK: - Persistence
+    
+    func saveDraftMeal() {
+        do {
+            try interactor.updateDraftMeal(mealLog)
+        } catch {
+            router.showSimpleAlert(title: "Unable to Save Progress", subtitle: "We were unable to save your workout. Please try again.")
+        }
+    }
 
-    func saveMeal(selectedDate: Date, onSave: @escaping (MealLogModel) -> Void) {
-        guard let userId = interactor.currentUser?.userId else { return }
-        
-        // Combine selected date with selected time
-        let calendar = Calendar.current
-        let dateComponents = calendar.dateComponents([.year, .month, .day], from: selectedDate)
-        let timeComponents = calendar.dateComponents([.hour, .minute], from: mealTime)
-        
-        var finalComponents = DateComponents()
-        finalComponents.year = dateComponents.year
-        finalComponents.month = dateComponents.month
-        finalComponents.day = dateComponents.day
-        finalComponents.hour = timeComponents.hour
-        finalComponents.minute = timeComponents.minute
-        
-        let finalDate = calendar.date(from: finalComponents) ?? selectedDate
-        
-        // Calculate totals
-        let totalCalories = items.compactMap { $0.calories }.reduce(0, +)
-        let totalProtein = items.compactMap { $0.proteinGrams }.reduce(0, +)
-        let totalCarbs = items.compactMap { $0.carbGrams }.reduce(0, +)
-        let totalFat = items.compactMap { $0.fatGrams }.reduce(0, +)
-        
-        let meal = MealLogModel(
-            mealId: UUID().uuidString,
-            authorId: userId,
-            dayKey: selectedDate.dayKey,
-            date: finalDate,
-            items: items,
-            notes: notes.isEmpty ? nil : notes,
-            totalCalories: totalCalories,
-            totalProteinGrams: totalProtein,
-            totalCarbGrams: totalCarbs,
-            totalFatGrams: totalFat
-        )
-        
-        onSave(meal)
-        dismissScreen()
+    func saveMeal() {
+        Task {
+            do {
+                try await interactor.saveMeal(mealLog)
+                self.dismissScreen()
+            } catch {
+                
+            }
+        }
     }
 
     func dismissScreen() {
+        if self.mealLog.items.isEmpty {
+            try? self.interactor.deleteDraftMeal()
+        }
         router.dismissScreen()
     }
 }
@@ -99,3 +88,5 @@ enum NutritionScope: String, DataSyncModelProtocol, CaseIterable {
     case plate
     case day
 }
+
+enum AddMealError: LocalizedError { case noCurrentUser }

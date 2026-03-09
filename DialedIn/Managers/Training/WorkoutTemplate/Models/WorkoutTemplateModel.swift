@@ -7,18 +7,18 @@
 
 import Foundation
 
-struct WorkoutTemplateModel: DataSyncModelProtocol {
-    var id: String {
-        workoutId
-    }
+struct WorkoutTemplateModel: DataSyncModelProtocol, Hashable {
+    
+    var id: String { self.workoutId }
     
     let workoutId: String
     let authorId: String
     var name: String
     let description: String?
+    let gymProfileId: String?
     private(set) var imageURL: String?
     let dateCreated: Date
-    let dateModified: Date
+    var dateModified: Date
     var exercises: [WorkoutTemplateExercise]
     
     init(
@@ -26,6 +26,7 @@ struct WorkoutTemplateModel: DataSyncModelProtocol {
         authorId: String,
         name: String,
         description: String? = nil,
+        gymProfileId: String? = nil,
         imageURL: String? = nil,
         dateCreated: Date = .now,
         dateModified: Date = .now,
@@ -35,34 +36,19 @@ struct WorkoutTemplateModel: DataSyncModelProtocol {
         self.authorId = authorId
         self.name = name
         self.description = description
+        self.gymProfileId = gymProfileId
         self.imageURL = imageURL
         self.dateCreated = dateCreated
         self.dateModified = dateModified
         self.exercises = exercises
     }
-    
-    mutating func updateImageURL(imageUrl: String) {
-        self.imageURL = imageUrl
-    }
-    
-    mutating func updateDateModified(dateModified: Date) {
-        self = WorkoutTemplateModel(
-            id: workoutId,
-            authorId: authorId,
-            name: name,
-            description: description,
-            imageURL: imageURL,
-            dateCreated: dateCreated,
-            dateModified: dateModified,
-            exercises: exercises,
-        )
-    }
-    
+            
     enum CodingKeys: String, CodingKey {
         case workoutId = "workout_id"
         case authorId = "author_id"
         case name = "name"
         case description = "description"
+        case gymProfileId = "gym_profile_id"
         case imageURL = "image_url"
         case dateCreated = "date_created"
         case dateModified = "date_modified"
@@ -75,6 +61,7 @@ struct WorkoutTemplateModel: DataSyncModelProtocol {
             "workout_\(CodingKeys.authorId.rawValue)": authorId,
             "workout_\(CodingKeys.name.rawValue)": name,
             "workout_\(CodingKeys.description.rawValue)": description,
+            "workout_\(CodingKeys.gymProfileId.rawValue)": gymProfileId,
             "workout_\(CodingKeys.imageURL.rawValue)": imageURL,
             "workout_\(CodingKeys.dateCreated.rawValue)": dateCreated,
             "workout_\(CodingKeys.dateModified.rawValue)": dateModified,
@@ -82,6 +69,13 @@ struct WorkoutTemplateModel: DataSyncModelProtocol {
         ]
         return dict.compactMapValues { $0 }
     }
+    
+    mutating func updateImageURL(imageUrl: String) {
+        self.imageURL = imageUrl
+    }
+}
+
+extension WorkoutTemplateModel {
     
     static func newWorkoutTemplate(
         name: String,
@@ -140,15 +134,5 @@ struct WorkoutTemplateModel: DataSyncModelProtocol {
             exercises: WorkoutTemplateExercise.mocks
         )
         ]
-    }
-}
-
-extension WorkoutTemplateModel: Hashable {
-    nonisolated static func == (lhs: WorkoutTemplateModel, rhs: WorkoutTemplateModel) -> Bool {
-        lhs.workoutId == rhs.workoutId
-    }
-
-    nonisolated func hash(into hasher: inout Hasher) {
-        hasher.combine(workoutId)
     }
 }

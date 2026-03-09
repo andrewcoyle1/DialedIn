@@ -17,8 +17,8 @@ class NutritionLibraryPickerPresenter {
     var searchText: String = ""
     private(set) var recipes: [RecipeTemplateModel] = []
 
-    var ingredientTemplates: [IngredientTemplateModel] {
-        interactor.ingredientTemplates
+    var foods: [FoodModel] {
+        interactor.foods
             .filter {
                 $0.name == searchText
             }
@@ -36,7 +36,7 @@ class NutritionLibraryPickerPresenter {
         self.mode = mode
     }
     
-    func navToIngredientAmount(_ ingredient: IngredientTemplateModel, onPick: @escaping (MealItemModel) -> Void) {
+    func navToIngredientAmount(_ ingredient: FoodModel, onPick: @escaping (MealItemModel) -> Void) {
         router.showIngredientAmountView(delegate: IngredientAmountDelegate(ingredient: ingredient, onPick: onPick))
     }
 
@@ -85,7 +85,7 @@ enum NutritionPickerMode: String, CaseIterable, DataSyncModelProtocol {
     
     case barcode
     case search
-    case ai
+    case aiScanner
     case quickAdd
     case library
     case describe
@@ -94,7 +94,7 @@ enum NutritionPickerMode: String, CaseIterable, DataSyncModelProtocol {
         switch self {
         case .barcode: return "Barcode"
         case .search: return "Search"
-        case .ai: return "AI"
+        case .aiScanner: return "AI"
         case .quickAdd: return "Quick Add"
         case .library: return "Library"
         case .describe: return "Describe"
@@ -105,7 +105,7 @@ enum NutritionPickerMode: String, CaseIterable, DataSyncModelProtocol {
         switch self {
         case .barcode: return "barcode"
         case .search: return "magnifyingglass"
-        case .ai: return "wand.and.stars"
+        case .aiScanner: return "wand.and.stars"
         case .quickAdd: return "hare"
         case .library: return "book"
         case .describe: return "pencil"

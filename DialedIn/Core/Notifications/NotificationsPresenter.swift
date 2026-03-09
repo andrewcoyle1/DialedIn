@@ -15,7 +15,11 @@ class NotificationsPresenter {
     private let router: NotificationsRouter
 
     private(set) var notifications: [UNNotification] = []
-    
+
+    var activityNotifications: [ActivityNotificationModel] {
+        interactor.activityNotifications
+    }
+
     var authorizationStatus: UNAuthorizationStatus {
         interactor.isAuthorised
     }
@@ -40,9 +44,9 @@ class NotificationsPresenter {
 
     func loadNotifications() async {
         isLoading = true
-                
-        try? await Task.sleep(for: .seconds(1))
-        
+        try? await interactor.fetchActivityNotifications()
+        try? await interactor.markActivityNotificationsRead()
+        interactor.clearAllDeliveredNotifications()
         isLoading = false
     }
     
@@ -76,6 +80,12 @@ class NotificationsPresenter {
     func openSettings() {
         if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
+        }
+    }
+    
+    func onNotificationDeleted(_ notification: ActivityNotificationModel) {
+        Task {
+            try? await interactor.deleteActivityNotification(id: notification.id)
         }
     }
 
