@@ -206,6 +206,28 @@ struct FoodModel: DataSyncModelProtocol, SearchListItem {
     mutating func updateImageURL(imageUrl: String) {
         self.imageURL = imageUrl
     }
+
+    func withAuthorId(_ id: String) -> FoodModel {
+        FoodModel(
+            ingredientId: ingredientId, authorId: id, name: name, brandName: brandName,
+            description: description, measurementMethod: measurementMethod,
+            calories: calories, protein: protein, carbs: carbs, fatTotal: fatTotal,
+            fatSaturated: fatSaturated, fatMonounsaturated: fatMonounsaturated,
+            fatPolyunsaturated: fatPolyunsaturated, fiber: fiber, sugar: sugar,
+            sodiumMg: sodiumMg, potassiumMg: potassiumMg, calciumMg: calciumMg, ironMg: ironMg,
+            vitaminAMcg: vitaminAMcg, vitaminB6Mg: vitaminB6Mg, vitaminB12Mcg: vitaminB12Mcg,
+            vitaminCMg: vitaminCMg, vitaminDMcg: vitaminDMcg, vitaminEMg: vitaminEMg,
+            vitaminKMcg: vitaminKMcg, magnesiumMg: magnesiumMg, zincMg: zincMg,
+            biotinMcg: biotinMcg, copperMg: copperMg, folateMcg: folateMcg,
+            iodineMcg: iodineMcg, niacinMg: niacinMg, thiaminMg: thiaminMg,
+            caffeineMg: caffeineMg, chlorideMg: chlorideMg, chromiumMcg: chromiumMcg,
+            seleniumMcg: seleniumMcg, manganeseMg: manganeseMg, molybdenumMcg: molybdenumMcg,
+            phosphorusMg: phosphorusMg, riboflavinMg: riboflavinMg, cholesterolMg: cholesterolMg,
+            pantothenicAcidMg: pantothenicAcidMg, imageURL: imageURL,
+            dateCreated: dateCreated, dateModified: dateModified,
+            clickCount: clickCount, bookmarkCount: bookmarkCount, favouriteCount: favouriteCount
+        )
+    }
     
     enum CodingKeys: String, CodingKey {
         case ingredientId = "ingredient_id"

@@ -112,6 +112,11 @@ class SettingsPresenter {
         router.showPaywall()
     }
 
+    func onNutritionPlanPressed() {
+        interactor.trackEvent(event: Event.navigate)
+        router.showPreferredDietView(isFromSettings: true)
+    }
+
     private func onDeleteAccountConfirmed() {
         interactor.trackEvent(event: Event.deleteAccountStartConfirm)
 

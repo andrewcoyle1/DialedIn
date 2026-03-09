@@ -10,10 +10,12 @@ import SwiftUI
 struct CalorieDistributionDelegate {
     let preferredDiet: PreferredDiet
     let calorieFloor: CalorieFloor
-    
+    var isFromSettings: Bool
+
     init(delegate: CalorieFloorDelegate, calorieFloor: CalorieFloor) {
         self.preferredDiet = delegate.preferredDiet
         self.calorieFloor = calorieFloor
+        self.isFromSettings = delegate.isFromSettings
     }
     
     static var mock: Self {

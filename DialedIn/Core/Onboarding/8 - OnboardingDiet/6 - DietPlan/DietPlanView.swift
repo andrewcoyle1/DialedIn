@@ -12,12 +12,14 @@ struct DietPlanDelegate {
     let calorieFloor: CalorieFloor
     let calorieDistribution: CalorieDistribution
     let proteinIntake: ProteinIntake
-    
+    var isFromSettings: Bool
+
     init(oldDelegate delegate: ProteinIntakeDelegate, proteinIntake: ProteinIntake) {
         self.preferredDiet = delegate.preferredDiet
         self.calorieFloor = delegate.calorieFloor
         self.calorieDistribution = delegate.calorieDistrubtion
         self.proteinIntake = proteinIntake
+        self.isFromSettings = delegate.isFromSettings
     }
     
     static var mock: Self {

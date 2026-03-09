@@ -70,9 +70,13 @@ struct PreferredDietView: View {
 }
 
 extension CoreBuilder {
-    func preferredDietView(router: AnyRouter) -> some View {
+    func preferredDietView(router: AnyRouter, isFromSettings: Bool = false) -> some View {
         PreferredDietView(
-            presenter: PreferredDietPresenter(interactor: interactor, router: CoreRouter(router: router, builder: self))
+            presenter: PreferredDietPresenter(
+                interactor: interactor,
+                router: CoreRouter(router: router, builder: self),
+                isFromSettings: isFromSettings
+            )
         )
     }
 }
@@ -81,6 +85,12 @@ extension CoreRouter {
     func showPreferredDietView() {
         router.showScreen(.push) { router in
             builder.preferredDietView(router: router)
+        }
+    }
+
+    func showPreferredDietView(isFromSettings: Bool) {
+        router.showScreen(.push) { router in
+            builder.preferredDietView(router: router, isFromSettings: isFromSettings)
         }
     }
 }

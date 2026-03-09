@@ -11,6 +11,7 @@ import SwiftUI
 protocol SettingsRouter: GlobalRouter {
     func showPaywall()
     func switchToOnboardingModule()
+    func showPreferredDietView(isFromSettings: Bool)
 }
 
 extension CoreRouter: SettingsRouter { }

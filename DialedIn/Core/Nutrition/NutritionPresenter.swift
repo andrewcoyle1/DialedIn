@@ -118,7 +118,7 @@ func onDevSettingsPressed() {
     }
     
     func onNutritionOverviewPressed() {
-        router.showNutritionOverviewView(delegate: NutritionOverviewDelegate())
+        router.showNutritionOverviewView(delegate: NutritionOverviewDelegate(dayKey: dayKey))
     }
 
     func onAddMealPressed(selectedTime: Date = Date()) {

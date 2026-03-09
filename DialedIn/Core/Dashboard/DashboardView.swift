@@ -6,34 +6,25 @@ struct DashboardDelegate {
     }
 }
 
-struct DashboardView<WorkoutSessionRow: View>: View {
+struct DashboardView<
+    WorkoutSessionRow: View,
+    TodaysCard: View
+>: View {
 
     @Environment(\.colorScheme) private var colorScheme
     @State var presenter: DashboardPresenter
     let delegate: DashboardDelegate
 
     @ViewBuilder var workoutSessionRow: (WorkoutSessionRowDelegate) -> WorkoutSessionRow
-    
+    @ViewBuilder var todaysWorkoutCard: (TodaysWorkoutCardDelegate) -> TodaysCard
     var body: some View {
         List {
-            Section {
-                TabView {
-                    if let todaysWorkoutTemplate = presenter.todaysWorkoutTemplate {
-                        Tab {
-                            todaysWorkoutCard(todaysWorkoutTemplate)
-                        }
-                    }
-
-                    Tab {
-                        streakCard
-                    }
-                }
-                .tabViewStyle(.page)
-                .frame(height: 240)
+            cardsSection
+            Section { } header: {
+                Text("Workout Feed")
             }
-            .removeListRowFormatting()
-            .listSectionMargins(.all, 0)
-            .listSectionSeparator(.hidden)
+            .listSectionMargins(.vertical, 0)
+            .listSectionSpacing(0)
             workoutFeedSection
         }
         .scrollIndicators(.hidden)
@@ -52,99 +43,46 @@ struct DashboardView<WorkoutSessionRow: View>: View {
             await presenter.loadNotifications()
         }
     }
-        
-    private func todaysWorkoutCard(_ todaysWorkoutTemplate: WorkoutTemplateModel) -> some View {
-        VStack(alignment: .leading) {
-            Text("Today's Workout")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .padding(.leading)
-            VStack(alignment: .leading, spacing: 12) {
-                if presenter.isTodayRestDay {
-                    HStack(spacing: 12) {
-                        Image(systemName: "moon.zzz.fill")
-                            .font(.title2)
-                            .foregroundStyle(.blue)
-                        VStack(alignment: .leading) {
-                            Text("Rest Day")
-                                .font(.title3.bold())
-                            Text("Recovery is part of the process.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                    }
-                } else if presenter.isTodayCompleted {
-                    HStack(spacing: 12) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.green)
-                        VStack(alignment: .leading) {
-                            Text(todaysWorkoutTemplate.name)
-                                .font(.title3.bold())
-                            Text("Completed")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                    }
-                } else {
-                    Button {
-                        presenter.onTodaysWorkoutPressed()
-                    } label: {
-                        VStack(alignment: .leading) {
-                            HStack(spacing: -10) {
-                                ForEach(todaysWorkoutTemplate.exercises.prefix(5)) { exercise in
-                                    exerciseCircle(exercise: exercise.exercise)
-                                }
-                            }
-                            .frame(maxHeight: .infinity)
-                            Divider()
-                            HStack(spacing: 12) {
-                                Image(systemName: "dumbbell.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.accent)
-                                VStack(alignment: .leading) {
-                                    Text(todaysWorkoutTemplate.name)
-                                        .font(.title3.bold())
-                                        .foregroundStyle(.primary)
-                                    Text("\(todaysWorkoutTemplate.exercises.count) exercise\(todaysWorkoutTemplate.exercises.count == 1 ? "" : "s")")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
+    
+    private var cardsSection: some View {
+        Section {
+            TabView {
+                if let todaysWorkoutTemplate = presenter.todaysWorkoutTemplate,
+                    presenter.isTodayCompleted == false {
+                    Tab {
+                        todaysWorkoutCard(
+                            TodaysWorkoutCardDelegate(
+                                todaysWorkoutTemplate: todaysWorkoutTemplate
+                            )
+                        )
                     }
                 }
-            }
-            .padding()
-            .frame(height: 200)
-            .background(colorScheme.backgroundPrimary)
-            .cornerRadius(24)
-        }
-        .padding(.horizontal)
-        .background(colorScheme.backgroundSecondary)
-        .padding(.vertical)
-    }
-    
-    @ViewBuilder
-    private func exerciseCircle(exercise: ExerciseModel) -> some View {
-        ZStack {
-            Circle()
-                .fill(Color(uiColor: .secondarySystemBackground))
 
-            ImageLoaderView(
-                urlString: exercise.imageURL ?? "SplashScreen",
-                resizingMode: .fit,
-                clipShape: AnyShape(Circle())
-            )
+                Tab { streakCard }
+
+                Tab { nutritionCard }
+            }
+            .tabViewStyle(.page)
+            .frame(height: 240)
         }
-        .frame(width: 100, height: 100)
-        .overlay(Circle().stroke(Color(uiColor: .systemBackground), lineWidth: 2))
+        .removeListRowFormatting()
+        .listSectionMargins(.all, 0)
+        .listSectionSeparator(.hidden)
+
+    }
+
+    private var nutritionCard: some View {
+        NutritionCard(
+            calories: presenter.nutritionTotals?.calories ?? 0,
+            calorieTarget: presenter.nutritionTarget?.calories ?? 2000,
+            proteinGrams: presenter.nutritionTotals?.proteinGrams ?? 0,
+            proteinTarget: presenter.nutritionTarget?.proteinGrams ?? 150,
+            carbGrams: presenter.nutritionTotals?.carbGrams ?? 0,
+            carbTarget: presenter.nutritionTarget?.carbGrams ?? 250,
+            fatGrams: presenter.nutritionTotals?.fatGrams ?? 0,
+            fatTarget: presenter.nutritionTarget?.fatGrams ?? 70,
+            onLogMealTapped: { presenter.onLogMealPressed() }
+        )
     }
 
     private var streakCard: some View {
@@ -354,6 +292,9 @@ extension CoreBuilder {
             delegate: delegate,
             workoutSessionRow: { delegate in
                 self.workoutSessionRowView(router: router, delegate: delegate)
+            },
+            todaysWorkoutCard: { cardDelegate in
+                self.todaysWorkoutCard(router: router, delegate: cardDelegate)
             }
         )
     }

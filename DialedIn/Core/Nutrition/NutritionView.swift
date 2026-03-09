@@ -209,6 +209,14 @@ struct NutritionView<CalendarHeaderView: View>: View {
     }
 }
 
+extension CoreRouter {
+    func showNutritionView() {
+        router.showScreen(.push) { router in
+            builder.nutritionView(delegate: NutritionDelegate(), router: router)
+        }
+    }
+}
+
 extension CoreBuilder {
     func nutritionView(delegate: NutritionDelegate, router: AnyRouter) -> some View {
         NutritionView(

@@ -49,6 +49,7 @@ struct CoreInteractor: GlobalInteractor {
     let commentsManager: CommentsManager
     let activityNotificationManager: ActivityNotificationManager
     let stravaManager: StravaManager
+    let openFoodFactsService: any OpenFoodFactsService
     let appState: AppState
     let hapticManager: HapticManager
     let soundEffectManager: SoundEffectManager
@@ -86,6 +87,7 @@ struct CoreInteractor: GlobalInteractor {
         self.commentsManager = container.resolve(CommentsManager.self)!
         self.activityNotificationManager = container.resolve(ActivityNotificationManager.self)!
         self.stravaManager = container.resolve(StravaManager.self)!
+        self.openFoodFactsService = container.resolve(OpenFoodFactsServiceContainer.self)!.service
         self.appState = container.resolve(AppState.self)!
 
         self.hapticManager = container.resolve(HapticManager.self)!

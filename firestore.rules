@@ -151,6 +151,13 @@ service cloud.firestore {
       }
     }
 
+    // ---------------- FOOD SEARCH CACHE ----------------
+    // Only the Cloud Function (admin SDK) reads/writes this — clients never access it directly.
+    match /food_search_cache/{doc} {
+      allow read: if false;
+      allow write: if false;
+    }
+
     // ---------------- WORKOUT SESSIONS (collection group) ----------------
     // Required for the following feed query (collectionGroup("workout_sessions")
     // filtered by author_id). Any authenticated user can read any session.

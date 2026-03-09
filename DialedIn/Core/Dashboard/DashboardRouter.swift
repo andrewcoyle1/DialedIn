@@ -4,8 +4,8 @@ import SwiftUI
 protocol DashboardRouter: GlobalRouter {
     func showProfileView()
     func showNotificationsView()
-    func showWorkoutTemplateDetailView(delegate: WorkoutTemplateDetailDelegate)
-    func showWorkoutTrackerView()
+    func showNutritionView()
+    func showAddMealView(delegate: AddMealDelegate)
 #if DEV || MOCK
 func showDevSettingsView()
 #endif

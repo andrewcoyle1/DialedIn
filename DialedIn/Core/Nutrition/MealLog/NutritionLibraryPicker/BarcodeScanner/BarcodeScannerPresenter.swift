@@ -21,6 +21,10 @@ class BarcodeScannerPresenter {
     private(set) var isSavingIngredient: Bool = false
     private(set) var savedSuccessfully: Bool = false
 
+    // MARK: Barcode lookup state
+    private(set) var isLookingUpBarcode: Bool = false
+    private(set) var barcodeError: String?
+
     init(interactor: BarcodeScannerInteractor, router: BarcodeScannerRouter) {
         self.interactor = interactor
         self.router = router
@@ -85,9 +89,28 @@ class BarcodeScannerPresenter {
         scannedCode = nil
         parsedIngredient = nil
         labelError = nil
+        barcodeError = nil
+        isLookingUpBarcode = false
         isScanning = true
     }
-    
+
+    func onBarcodeDetected(_ code: String) {
+        scannedCode = code
+        isLookingUpBarcode = true
+        barcodeError = nil
+        parsedIngredient = nil
+        interactor.trackEvent(event: Event.onBarcodeDetected(code: code))
+        Task {
+            defer { isLookingUpBarcode = false }
+            do {
+                parsedIngredient = try await interactor.lookupBarcode(code)
+            } catch {
+                barcodeError = error.localizedDescription
+                interactor.trackEvent(event: Event.onBarcodeError(message: error.localizedDescription))
+            }
+        }
+    }
+
     func onDismissPressed() {
         router.dismissScreen()
     }
@@ -101,14 +124,18 @@ extension BarcodeScannerPresenter {
         case onParseLabel
         case onSaveIngredient(name: String)
         case onLabelError(message: String)
+        case onBarcodeDetected(code: String)
+        case onBarcodeError(message: String)
 
         var eventName: String {
             switch self {
-            case .onAppear:          return "BarcodeScannerView_Appear"
-            case .onDisappear:       return "BarcodeScannerView_Disappear"
-            case .onParseLabel:      return "BarcodeScanner_ParseLabel"
-            case .onSaveIngredient:  return "BarcodeScanner_SaveIngredient"
-            case .onLabelError:      return "BarcodeScanner_LabelError"
+            case .onAppear:           return "BarcodeScannerView_Appear"
+            case .onDisappear:        return "BarcodeScannerView_Disappear"
+            case .onParseLabel:       return "BarcodeScanner_ParseLabel"
+            case .onSaveIngredient:   return "BarcodeScanner_SaveIngredient"
+            case .onLabelError:       return "BarcodeScanner_LabelError"
+            case .onBarcodeDetected:  return "BarcodeScanner_BarcodeDetected"
+            case .onBarcodeError:     return "BarcodeScanner_BarcodeError"
             }
         }
 
@@ -120,6 +147,10 @@ extension BarcodeScannerPresenter {
                 return ["ingredient_name": name]
             case .onLabelError(let message):
                 return ["error": message]
+            case .onBarcodeDetected(let code):
+                return ["code": code]
+            case .onBarcodeError(let message):
+                return ["error": message]
             default:
                 return nil
             }
@@ -127,8 +158,8 @@ extension BarcodeScannerPresenter {
 
         var type: LogType {
             switch self {
-            case .onLabelError: return .severe
-            default:            return .analytic
+            case .onLabelError, .onBarcodeError: return .severe
+            default:                              return .analytic
             }
         }
     }

@@ -3,61 +3,86 @@ import SwiftUI
 @Observable
 @MainActor
 class FoodItemSearchPresenter {
-    
+
     private let interactor: FoodItemSearchInteractor
     private let router: FoodItemSearchRouter
-    
-    private(set) var fromHistoryFoodItems: [MealLogModel] = [MealLogModel.mock]
-    private(set) var fromCommonFoodItems: [MealLogModel] = [MealLogModel.mock]
-    private(set) var fromBrandedFoodItems: [MealLogModel] = [MealLogModel.mock]
-    private(set) var fromOpenFoodFactsFoodItems: [MealLogModel] = [MealLogModel.mock]
-    
+
+    private(set) var historyFoods: [FoodModel] = []
+    private(set) var openFoodFactsFoods: [FoodModel] = []
+    private(set) var isSearching: Bool = false
+
     var searchText: String = ""
-    
+
+    private var searchTask: Task<Void, Never>?
+
     init(interactor: FoodItemSearchInteractor, router: FoodItemSearchRouter) {
         self.interactor = interactor
         self.router = router
     }
-    
+
     func onViewAppear(delegate: FoodItemSearchDelegate) {
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
+        historyFoods = interactor.recentFoods
     }
-    
+
     func onViewDisappear(delegate: FoodItemSearchDelegate) {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
+        searchTask?.cancel()
+    }
+
+    func onSearchTextChanged(_ text: String) {
+        searchTask?.cancel()
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else {
+            openFoodFactsFoods = []
+            return
+        }
+        searchTask = Task {
+            try? await Task.sleep(nanoseconds: 700_000_000)
+            guard !Task.isCancelled else { return }
+            isSearching = true
+            defer { isSearching = false }
+            do {
+                openFoodFactsFoods = try await interactor.searchOpenFoodFacts(query: trimmed)
+            } catch {
+                interactor.trackEvent(event: Event.searchError(error: error))
+                openFoodFactsFoods = []
+            }
+        }
     }
 }
 
 extension FoodItemSearchPresenter {
-    
+
     enum Event: LoggableEvent {
         case onAppear(delegate: FoodItemSearchDelegate)
         case onDisappear(delegate: FoodItemSearchDelegate)
+        case searchError(error: Error)
 
         var eventName: String {
             switch self {
-            case .onAppear:                 return "FoodItemSearchView_Appear"
-            case .onDisappear:              return "FoodItemSearchView_Disappear"
+            case .onAppear:    return "FoodItemSearchView_Appear"
+            case .onDisappear: return "FoodItemSearchView_Disappear"
+            case .searchError: return "FoodItemSearchView_SearchError"
             }
         }
-        
+
         var parameters: [String: Any]? {
             switch self {
-            case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
+            case .onAppear(let delegate), .onDisappear(let delegate):
                 return delegate.eventParameters
-//            default:
-//                return nil
+            case .searchError(error: let error):
+                return error.eventParameters
             }
         }
-        
+
         var type: LogType {
             switch self {
-            default:
-                return .analytic
+            case .searchError: return .severe
+            default: return .analytic
             }
         }
     }
-
 }
 
 enum FocusField: Hashable {

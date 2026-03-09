@@ -14,18 +14,21 @@ class PreferredDietPresenter {
     private let router: PreferredDietRouter
 
     var selectedDiet: PreferredDiet?
-        
+    private var isFromSettings: Bool = false
+
     init(
         interactor: PreferredDietInteractor,
-        router: PreferredDietRouter
+        router: PreferredDietRouter,
+        isFromSettings: Bool = false
     ) {
         self.interactor = interactor
         self.router = router
+        self.isFromSettings = isFromSettings
     }
-    
+
     func navigateToCalorieFloor() {
         if let diet = selectedDiet {
-            let delegate = CalorieFloorDelegate(preferredDiet: diet)
+            let delegate = CalorieFloorDelegate(preferredDiet: diet, isFromSettings: isFromSettings)
             interactor.trackEvent(event: Event.navigate)
             router.showCalorieFloorView(delegate: delegate)
         }

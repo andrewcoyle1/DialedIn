@@ -9,7 +9,8 @@ import SwiftUI
 
 struct CalorieFloorDelegate {
     let preferredDiet: PreferredDiet
-    
+    var isFromSettings: Bool = false
+
     static var mock: Self {
         Self(preferredDiet: .balanced)
     }

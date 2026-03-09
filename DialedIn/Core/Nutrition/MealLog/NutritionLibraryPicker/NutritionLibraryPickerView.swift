@@ -36,9 +36,13 @@ struct NutritionLibraryPickerView<
         Group {
             switch presenter.mode {
             case .barcode:
-                barcodeScanner(BarcodeScannerDelegate())
+                barcodeScanner(BarcodeScannerDelegate(onFoodFound: { food in
+                    presenter.navToIngredientAmount(food, onPick: delegate.onPick)
+                }))
             case .search:
-                foodItemSearch(FoodItemSearchDelegate())
+                foodItemSearch(FoodItemSearchDelegate(onFoodSelected: { food in
+                    presenter.navToIngredientAmount(food, onPick: delegate.onPick)
+                }))
             case .aiScanner:
                 foodPhotoScanner(FoodPhotoScannerDelegate(onPick: delegate.onPick))
             case .quickAdd:

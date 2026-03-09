@@ -37,6 +37,9 @@ class NutritionLibraryPickerPresenter {
     }
     
     func navToIngredientAmount(_ ingredient: FoodModel, onPick: @escaping (MealItemModel) -> Void) {
+        if ingredient.authorId == nil {
+            Task { await interactor.saveExternalFood(ingredient) }
+        }
         router.showIngredientAmountView(delegate: IngredientAmountDelegate(ingredient: ingredient, onPick: onPick))
     }
 

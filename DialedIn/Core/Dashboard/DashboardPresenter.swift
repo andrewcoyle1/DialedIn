@@ -7,6 +7,9 @@ class DashboardPresenter {
     private let interactor: DashboardInteractor
     private let router: DashboardRouter
     
+    private(set) var nutritionTotals: DailyMacroTarget?
+    private(set) var nutritionTarget: DailyMacroTarget?
+
     var activityNotifications: [ActivityNotificationModel] {
         interactor.activityNotifications
     }
@@ -101,10 +104,6 @@ class DashboardPresenter {
         todaysScheduledItem?.dayPlan
     }
 
-    var isTodayRestDay: Bool {
-        todaysWorkoutTemplate?.exercises.isEmpty == true
-    }
-
     var isTodayCompleted: Bool {
         todaysScheduledItem?.completedSessionId != nil
     }
@@ -190,22 +189,6 @@ class DashboardPresenter {
         return interactor.followingUsers.first { $0.userId == session.authorId }
     }
 
-    func onTodaysWorkoutPressed() {
-        guard let template = todaysWorkoutTemplate, !isTodayRestDay else { return }
-        let programId = interactor.activeTrainingProgram?.id
-        router.showWorkoutTemplateDetailView(
-            delegate: WorkoutTemplateDetailDelegate(
-                workoutTemplate: template,
-                trainingProgramId: programId,
-                onStartWorkoutPressed: { [weak self] in
-                    Task { @MainActor in
-                        self?.router.showWorkoutTrackerView()
-                    }
-                }
-            )
-        )
-    }
-
     init(interactor: DashboardInteractor, router: DashboardRouter) {
         self.interactor = interactor
         self.router = router
@@ -213,6 +196,7 @@ class DashboardPresenter {
     
     func onViewAppear(delegate: DashboardDelegate) {
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
+        loadNutrition()
     }
     
     func onViewDisappear(delegate: DashboardDelegate) {
@@ -237,6 +221,68 @@ class DashboardPresenter {
         try? await interactor.fetchActivityNotifications()
     }
 
+    func onLogMealPressed() {
+        guard let userId = interactor.currentUser?.userId else { return }
+        if let meal = interactor.draftMeal {
+            router.showAlert(
+                title: "Unable to add new meal",
+                subtitle: "You already have an draft meal.",
+                buttons: {
+                    AnyView(
+                        VStack {
+                            Button("Continue editing") {
+                                self.router.showAddMealView(
+                                    delegate: AddMealDelegate(mealLog: meal)
+                                )
+                            }
+                            Button("Delete drafted meal", role: .destructive) {
+                                try? self.interactor.deleteDraftMeal()
+                                self.router.showAddMealView(
+                                    delegate: AddMealDelegate(
+                                        mealLog: MealLogModel(
+                                            authorId: userId,
+                                            dayKey: Date().dayKey,
+                                            date: Date(),
+                                            items: [],
+                                            totalCalories: 0,
+                                            totalProteinGrams: 0,
+                                            totalCarbGrams: 0,
+                                            totalFatGrams: 0
+                                        )
+                                    )
+                                )
+                            }
+                            Button("Cancel", role: .cancel) { }
+                        }
+                    )
+                }
+            )
+        } else {
+            self.router.showAddMealView(
+                delegate: AddMealDelegate(
+                    mealLog: MealLogModel(
+                        authorId: userId,
+                        dayKey: Date().dayKey,
+                        date: Date(),
+                        items: [],
+                        totalCalories: 0,
+                        totalProteinGrams: 0,
+                        totalCarbGrams: 0,
+                        totalFatGrams: 0
+                    )
+                )
+            )
+        }
+    }
+
+    private func loadNutrition() {
+        let dayKey = Date().dayKey
+        nutritionTotals = try? interactor.getDailyTotals(dayKey: dayKey)
+        guard let userId = interactor.userId else { return }
+        Task {
+            nutritionTarget = try? await interactor.getDailyTarget(for: Date(), userId: userId)
+        }
+    }
 }
 
 extension DashboardPresenter {
