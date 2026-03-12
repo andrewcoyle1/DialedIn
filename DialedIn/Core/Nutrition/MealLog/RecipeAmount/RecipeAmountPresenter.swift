@@ -62,10 +62,23 @@ class RecipeAmountPresenter {
     }
 
     func add(recipe: RecipeTemplateModel, onConfirm: @escaping (MealItemModel) -> Void) {
-        let calories = baseCalories(recipe: recipe).map { $0 * servings }
-        let protein = baseProtein(recipe: recipe).map { $0 * servings }
-        let carbs = baseCarbs(recipe: recipe).map { $0 * servings }
-        let fat = baseFat(recipe: recipe).map { $0 * servings }
+        var baseNutrients: [NutrientKey: Double] = [:]
+        for recipeIngredient in recipe.ingredients {
+            let grams: Double
+            switch recipeIngredient.unit {
+            case .grams: grams = recipeIngredient.amount
+            case .milliliters: grams = recipeIngredient.amount
+            case .units: grams = recipeIngredient.amount * 100
+            }
+            let scale = grams / 100.0
+            for (key, value) in recipeIngredient.ingredient.nutrients {
+                baseNutrients[key, default: 0] += value * scale
+            }
+        }
+        var scaledNutrients: [NutrientKey: Double] = [:]
+        for (key, value) in baseNutrients {
+            scaledNutrients[key] = value * servings
+        }
         let item = MealItemModel(
             itemId: UUID().uuidString,
             sourceType: .recipe,
@@ -75,10 +88,7 @@ class RecipeAmountPresenter {
             unit: "serving",
             resolvedGrams: nil,
             resolvedMilliliters: nil,
-            calories: calories,
-            proteinGrams: protein,
-            carbGrams: carbs,
-            fatGrams: fat
+            nutrients: scaledNutrients
         )
         onConfirm(item)
     }

@@ -6,9 +6,9 @@ protocol DashboardRouter: GlobalRouter {
     func showNotificationsView()
     func showNutritionView()
     func showAddMealView(delegate: AddMealDelegate)
-#if DEV || MOCK
-func showDevSettingsView()
-#endif
+    #if DEV || MOCK
+    func showDevSettingsView()
+    #endif
 }
 
 extension CoreRouter: DashboardRouter { }

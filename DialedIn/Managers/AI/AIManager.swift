@@ -31,6 +31,10 @@ class AIManager {
     func analyzeNutritionLabel(text: String) async throws -> String {
         try await service.analyzeNutritionLabel(text: text)
     }
+
+    func describeMeal(text: String) async throws -> String {
+        try await service.describeMeal(text: text)
+    }
 }
 
 extension CoreInteractor {
@@ -50,6 +54,10 @@ extension CoreInteractor {
 
     func analyzeNutritionLabel(text: String) async throws -> String {
         try await aiManager.analyzeNutritionLabel(text: text)
+    }
+
+    func describeMeal(text: String) async throws -> String {
+        try await aiManager.describeMeal(text: text)
     }
 
 }

@@ -98,7 +98,37 @@ struct TrainingProgram: DataSyncModelProtocol {
 
 }
 
-enum DeloadType: String, Hashable, Codable {
+enum PeriodisationPhase {
+    case hypertrophy
+    case strength
+    case power
+
+    var repRange: ClosedRange<Int> {
+        switch self {
+        case .hypertrophy: return 8...15
+        case .strength:    return 5...8
+        case .power:       return 1...5
+        }
+    }
+
+    var weightMultiplier: Double {
+        switch self {
+        case .hypertrophy: return 0.65
+        case .strength:    return 0.80
+        case .power:       return 0.90
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .hypertrophy: return "Hypertrophy Phase"
+        case .strength:    return "Strength Phase"
+        case .power:       return "Power Phase"
+        }
+    }
+}
+
+enum DeloadType: String, Hashable, Codable, CaseIterable {
     case none
     case start
     case end

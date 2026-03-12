@@ -246,5 +246,8 @@ class DevPreview {
         self.hapticManager = HapticManager()
         self.soundEffectManager = SoundEffectManager()
 
+        Task { @MainActor in
+            await self.mealLogManager.signIn(userId: UserModel.mock.userId)
+        }
     }
 }

@@ -52,17 +52,7 @@ struct FoodLibraryView<
                 ingredientList(
                     IngredientListBuilderDelegate(
                         mealItems: delegate.mealItems,
-                        onIngredientSelectionChanged: { ingredient in
-                            let mealLogItem = MealItemModel(
-                                itemId: UUID().uuidString,
-                                sourceType: .ingredient,
-                                sourceId: ingredient.id,
-                                displayName: ingredient.name,
-                                amount: 100,
-                                unit: "grams"
-                            )
-                            delegate.onItemPick?(mealLogItem)
-                        }
+                        onMealItemConfirmed: { item in delegate.onItemPick?(item) }
                     )
                 )
             case .favourites:

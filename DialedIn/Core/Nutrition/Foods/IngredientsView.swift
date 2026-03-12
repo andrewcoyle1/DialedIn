@@ -19,6 +19,16 @@ struct IngredientsView<IngredientList: View>: View {
     }
 }
 
+#Preview("Ingredients View") {
+    let container = DevPreview.shared.container()
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
+    
+    RouterView { router in
+        builder.ingredientsView(router: router)
+    }
+}
+
 extension CoreBuilder {
     func ingredientsView(router: AnyRouter) -> some View {
         IngredientsView(
@@ -39,18 +49,4 @@ extension CoreRouter {
             builder.ingredientsView(router: router)
         }
     }
-}
-
-#Preview("Ingredients View") {
-    let container = DevPreview.shared.container()
-    let interactor = CoreInteractor(container: container)
-    let builder = CoreBuilder(interactor: interactor)
-    List {
-        RouterView { router in
-            builder.ingredientsView(
-                router: router
-            )
-        }
-    }
-    
 }

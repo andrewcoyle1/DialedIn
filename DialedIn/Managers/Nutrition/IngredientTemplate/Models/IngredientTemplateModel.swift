@@ -7,90 +7,78 @@
 
 import Foundation
 
-struct FoodModel: DataSyncModelProtocol, SearchListItem {
-    var id: String {
-        ingredientId
-    }
-    
+struct FoodModel: DataSyncModelProtocol, SearchListItem, FoodItem {
+
+    var id: String { ingredientId }
+
     let ingredientId: String
     let authorId: String?
     let name: String
     let brandName: String?
     let description: String?
-    
-    
     let measurementMethod: MeasurementMethod
 
-    // MARK: Macronutrients
-    let calories: Double?
-    let protein: Double?
-    let carbs: Double?
-    let fatTotal: Double?
-    let fatSaturated: Double?
-    let fatMonounsaturated: Double?
-    let fatPolyunsaturated: Double?
-    let fiber: Double?
-    let sugar: Double?
+    // MARK: Nutrients (dictionary-backed)
+    let nutrients: [NutrientKey: Double]
 
-    // MARK: Micronutrients (all units per 100g edible portion unless otherwise specified)
-    /// Sodium (mg)
-    let sodiumMg: Double?
-    /// Potassium (mg)
-    let potassiumMg: Double?
-    /// Calcium (mg)
-    let calciumMg: Double?
-    /// Iron (mg)
-    let ironMg: Double?
-    /// Vitamin A (mcg RAE)
-    let vitaminAMcg: Double?
-    /// Vitamin B6 (mg)
-    let vitaminB6Mg: Double?
-    /// Vitamin B12 (mcg)
-    let vitaminB12Mcg: Double?
-    /// Vitamin C (mg)
-    let vitaminCMg: Double?
-    /// Vitamin D (mcg)
-    let vitaminDMcg: Double?
-    /// Vitamin E (mg alpha-tocopherol)
-    let vitaminEMg: Double?
-    /// Vitamin K (mcg)
-    let vitaminKMcg: Double?
-    /// Magnesium (mg)
-    let magnesiumMg: Double?
-    /// Zinc (mg)
-    let zincMg: Double?
-    /// Biotin (mcg)
-    let biotinMcg: Double?
-    /// Copper (mg)
-    let copperMg: Double?
-    /// Folate (mcg DFE)
-    let folateMcg: Double?
-    /// Iodine (mcg)
-    let iodineMcg: Double?
-    /// Niacin (mg NE)
-    let niacinMg: Double?
-    /// Thiamin (mg)
-    let thiaminMg: Double?
-    /// Caffeine (mg)
-    let caffeineMg: Double?
-    /// Chloride (mg)
-    let chlorideMg: Double?
-    /// Chromium (mcg)
-    let chromiumMcg: Double?
-    /// Selenium (mcg)
-    let seleniumMcg: Double?
-    /// Manganese (mg)
-    let manganeseMg: Double?
-    /// Molybdenum (mcg)
-    let molybdenumMcg: Double?
-    /// Phosphorus (mg)
-    let phosphorusMg: Double?
-    /// Riboflavin (mg)
-    let riboflavinMg: Double?
-    /// Cholesterol (mg)
-    let cholesterolMg: Double?
-    /// Pantothenic Acid (mg)
-    let pantothenicAcidMg: Double?
+    // MARK: Convenience subscript
+    subscript(key: NutrientKey) -> Double? { nutrients[key] }
+
+    // MARK: Computed wrappers — keep existing read-sites working
+    var calories: Double? { nutrients[.calories] }
+    var protein: Double? { nutrients[.protein] }
+    var carbs: Double? { nutrients[.carbs] }
+    var fatTotal: Double? { nutrients[.fatTotal] }
+    var fats: Double? { nutrients[.fatTotal] }
+    var fatSaturated: Double? { nutrients[.fatSaturated] }
+    var fatMonounsaturated: Double? { nutrients[.fatMonounsaturated] }
+    var fatPolyunsaturated: Double? { nutrients[.fatPolyunsaturated] }
+    var fiber: Double? { nutrients[.fiber] }
+    var sugar: Double? { nutrients[.sugar] }
+    var sodiumMg: Double? { nutrients[.sodiumMg] }
+    var potassiumMg: Double? { nutrients[.potassiumMg] }
+    var calciumMg: Double? { nutrients[.calciumMg] }
+    var ironMg: Double? { nutrients[.ironMg] }
+    var vitaminAMcg: Double? { nutrients[.vitaminAMcg] }
+    var vitaminB6Mg: Double? { nutrients[.vitaminB6Mg] }
+    var vitaminB12Mcg: Double? { nutrients[.vitaminB12Mcg] }
+    var vitaminCMg: Double? { nutrients[.vitaminCMg] }
+    var vitaminDMcg: Double? { nutrients[.vitaminDMcg] }
+    var vitaminEMg: Double? { nutrients[.vitaminEMg] }
+    var vitaminKMcg: Double? { nutrients[.vitaminKMcg] }
+    var magnesiumMg: Double? { nutrients[.magnesiumMg] }
+    var zincMg: Double? { nutrients[.zincMg] }
+    var biotinMcg: Double? { nutrients[.biotinMcg] }
+    var copperMg: Double? { nutrients[.copperMg] }
+    var folateMcg: Double? { nutrients[.folateMcg] }
+    var iodineMcg: Double? { nutrients[.iodineMcg] }
+    var niacinMg: Double? { nutrients[.niacinMg] }
+    var thiaminMg: Double? { nutrients[.thiaminMg] }
+    var caffeineMg: Double? { nutrients[.caffeineMg] }
+    var chlorideMg: Double? { nutrients[.chlorideMg] }
+    var chromiumMcg: Double? { nutrients[.chromiumMcg] }
+    var seleniumMcg: Double? { nutrients[.seleniumMcg] }
+    var manganeseMg: Double? { nutrients[.manganeseMg] }
+    var molybdenumMcg: Double? { nutrients[.molybdenumMcg] }
+    var phosphorusMg: Double? { nutrients[.phosphorusMg] }
+    var riboflavinMg: Double? { nutrients[.riboflavinMg] }
+    var cholesterolMg: Double? { nutrients[.cholesterolMg] }
+    var pantothenicAcidMg: Double? { nutrients[.pantothenicAcidMg] }
+
+    let barcode: String?
+
+    // MARK: Portion definition
+    let servingWeight: Double?
+    let portionSize: Double?
+    let portionName: String?
+
+    let portionWeight: Double?
+    let weightPortionSize: Double?
+    let weightPortionName: String?
+
+    let portionVolume: Double?
+    let volumePortionSize: Double?
+    let volumePortionName: String?
 
     private(set) var imageURL: String?
     let dateCreated: Date
@@ -98,7 +86,7 @@ struct FoodModel: DataSyncModelProtocol, SearchListItem {
     let clickCount: Int?
     let bookmarkCount: Int?
     let favouriteCount: Int?
-    
+
     init(
         ingredientId: String = UUID().uuidString,
         authorId: String? = nil,
@@ -106,44 +94,17 @@ struct FoodModel: DataSyncModelProtocol, SearchListItem {
         brandName: String? = nil,
         description: String? = nil,
         measurementMethod: MeasurementMethod = .weight,
-        calories: Double?,
-        protein: Double?,
-        carbs: Double?,
-        fatTotal: Double?,
-        fatSaturated: Double? = nil,
-        fatMonounsaturated: Double? = nil,
-        fatPolyunsaturated: Double? = nil,
-        fiber: Double? = nil,
-        sugar: Double? = nil,
-        sodiumMg: Double? = nil,
-        potassiumMg: Double? = nil,
-        calciumMg: Double? = nil,
-        ironMg: Double? = nil,
-        vitaminAMcg: Double? = nil,
-        vitaminB6Mg: Double? = nil,
-        vitaminB12Mcg: Double? = nil,
-        vitaminCMg: Double? = nil,
-        vitaminDMcg: Double? = nil,
-        vitaminEMg: Double? = nil,
-        vitaminKMcg: Double? = nil,
-        magnesiumMg: Double? = nil,
-        zincMg: Double? = nil,
-        biotinMcg: Double? = nil,
-        copperMg: Double? = nil,
-        folateMcg: Double? = nil,
-        iodineMcg: Double? = nil,
-        niacinMg: Double? = nil,
-        thiaminMg: Double? = nil,
-        caffeineMg: Double? = nil,
-        chlorideMg: Double? = nil,
-        chromiumMcg: Double? = nil,
-        seleniumMcg: Double? = nil,
-        manganeseMg: Double? = nil,
-        molybdenumMcg: Double? = nil,
-        phosphorusMg: Double? = nil,
-        riboflavinMg: Double? = nil,
-        cholesterolMg: Double? = nil,
-        pantothenicAcidMg: Double? = nil,
+        nutrients: [NutrientKey: Double] = [:],
+        barcode: String? = nil,
+        servingWeight: Double? = nil,
+        portionSize: Double? = nil,
+        portionName: String? = nil,
+        portionWeight: Double? = nil,
+        weightPortionSize: Double? = nil,
+        weightPortionName: String? = nil,
+        portionVolume: Double? = nil,
+        volumePortionSize: Double? = nil,
+        volumePortionName: String? = nil,
         imageURL: String? = nil,
         dateCreated: Date = Date(),
         dateModified: Date = Date(),
@@ -157,44 +118,17 @@ struct FoodModel: DataSyncModelProtocol, SearchListItem {
         self.brandName = brandName
         self.description = description
         self.measurementMethod = measurementMethod
-        self.calories = calories
-        self.protein = protein
-        self.carbs = carbs
-        self.fatTotal = fatTotal
-        self.fatSaturated = fatSaturated
-        self.fatMonounsaturated = fatMonounsaturated
-        self.fatPolyunsaturated = fatPolyunsaturated
-        self.fiber = fiber
-        self.sugar = sugar
-        self.sodiumMg = sodiumMg
-        self.potassiumMg = potassiumMg
-        self.calciumMg = calciumMg
-        self.ironMg = ironMg
-        self.vitaminAMcg = vitaminAMcg
-        self.vitaminB6Mg = vitaminB6Mg
-        self.vitaminB12Mcg = vitaminB12Mcg
-        self.vitaminCMg = vitaminCMg
-        self.vitaminDMcg = vitaminDMcg
-        self.vitaminEMg = vitaminEMg
-        self.vitaminKMcg = vitaminKMcg
-        self.magnesiumMg = magnesiumMg
-        self.zincMg = zincMg
-        self.biotinMcg = biotinMcg
-        self.copperMg = copperMg
-        self.folateMcg = folateMcg
-        self.iodineMcg = iodineMcg
-        self.niacinMg = niacinMg
-        self.thiaminMg = thiaminMg
-        self.caffeineMg = caffeineMg
-        self.chlorideMg = chlorideMg
-        self.chromiumMcg = chromiumMcg
-        self.seleniumMcg = seleniumMcg
-        self.manganeseMg = manganeseMg
-        self.molybdenumMcg = molybdenumMcg
-        self.phosphorusMg = phosphorusMg
-        self.riboflavinMg = riboflavinMg
-        self.cholesterolMg = cholesterolMg
-        self.pantothenicAcidMg = pantothenicAcidMg
+        self.nutrients = nutrients
+        self.barcode = barcode
+        self.servingWeight = servingWeight
+        self.portionSize = portionSize
+        self.portionName = portionName
+        self.portionWeight = portionWeight
+        self.weightPortionSize = weightPortionSize
+        self.weightPortionName = weightPortionName
+        self.portionVolume = portionVolume
+        self.volumePortionSize = volumePortionSize
+        self.volumePortionName = volumePortionName
         self.imageURL = imageURL
         self.dateCreated = dateCreated
         self.dateModified = dateModified
@@ -202,205 +136,241 @@ struct FoodModel: DataSyncModelProtocol, SearchListItem {
         self.bookmarkCount = bookmarkCount
         self.favouriteCount = favouriteCount
     }
-    
+
     mutating func updateImageURL(imageUrl: String) {
         self.imageURL = imageUrl
+    }
+
+    // MARK: Computed portion helpers
+
+    /// Grams in one canonical serving/portion. Prefers serving weight, falls back to mass portion weight.
+    var portionGramsCalculated: Double? {
+        servingWeight ?? portionWeight
+    }
+
+    /// Millilitres in one canonical portion (volume-based foods only).
+    var portionMillilitersCalculated: Double? {
+        portionVolume
+    }
+
+    /// Display quantity for one portion, e.g. 4 for "4 pieces".
+    var portionQuantityCalculated: Double? {
+        portionSize ?? weightPortionSize ?? volumePortionSize
+    }
+
+    /// Display name for the portion unit, e.g. "pieces".
+    var portionNameCalculated: String? {
+        [portionName, weightPortionName, volumePortionName].first(where: { $0 != nil && !$0!.isEmpty }) ?? nil
     }
 
     func withAuthorId(_ id: String) -> FoodModel {
         FoodModel(
             ingredientId: ingredientId, authorId: id, name: name, brandName: brandName,
             description: description, measurementMethod: measurementMethod,
-            calories: calories, protein: protein, carbs: carbs, fatTotal: fatTotal,
-            fatSaturated: fatSaturated, fatMonounsaturated: fatMonounsaturated,
-            fatPolyunsaturated: fatPolyunsaturated, fiber: fiber, sugar: sugar,
-            sodiumMg: sodiumMg, potassiumMg: potassiumMg, calciumMg: calciumMg, ironMg: ironMg,
-            vitaminAMcg: vitaminAMcg, vitaminB6Mg: vitaminB6Mg, vitaminB12Mcg: vitaminB12Mcg,
-            vitaminCMg: vitaminCMg, vitaminDMcg: vitaminDMcg, vitaminEMg: vitaminEMg,
-            vitaminKMcg: vitaminKMcg, magnesiumMg: magnesiumMg, zincMg: zincMg,
-            biotinMcg: biotinMcg, copperMg: copperMg, folateMcg: folateMcg,
-            iodineMcg: iodineMcg, niacinMg: niacinMg, thiaminMg: thiaminMg,
-            caffeineMg: caffeineMg, chlorideMg: chlorideMg, chromiumMcg: chromiumMcg,
-            seleniumMcg: seleniumMcg, manganeseMg: manganeseMg, molybdenumMcg: molybdenumMcg,
-            phosphorusMg: phosphorusMg, riboflavinMg: riboflavinMg, cholesterolMg: cholesterolMg,
-            pantothenicAcidMg: pantothenicAcidMg, imageURL: imageURL,
+            nutrients: nutrients, barcode: barcode,
+            servingWeight: servingWeight, portionSize: portionSize, portionName: portionName,
+            portionWeight: portionWeight, weightPortionSize: weightPortionSize,
+            weightPortionName: weightPortionName,
+            portionVolume: portionVolume, volumePortionSize: volumePortionSize,
+            volumePortionName: volumePortionName, imageURL: imageURL,
             dateCreated: dateCreated, dateModified: dateModified,
             clickCount: clickCount, bookmarkCount: bookmarkCount, favouriteCount: favouriteCount
         )
     }
-    
+
     enum CodingKeys: String, CodingKey {
-        case ingredientId = "ingredient_id"
-        case authorId = "author_id"
+        case ingredientId    = "ingredient_id"
+        case authorId        = "author_id"
         case name
-        case brandName = "brand_name"
+        case brandName       = "brand_name"
         case description
         case measurementMethod = "measurement_method"
-        case calories
-        case protein
-        case carbs
-        case fatTotal = "fat_total"
-        case fatSaturated = "fat_saturated"
-        case fatMonounsaturated = "fat_monounsaturated"
-        case fatPolyunsaturated = "fat_polyunsaturated"
-        case fiber
-        case sugar
-        case sodiumMg = "sodium_mg"
-        case potassiumMg = "potassium_mg"
-        case calciumMg = "calcium_mg"
-        case ironMg = "iron_mg"
-        case vitaminAMcg = "vitamin_a_mcg"
-        case vitaminB6Mg = "vitamin_b6_mg"
-        case vitaminB12Mcg = "vitamin_b12_mcg"
-        case vitaminCMg = "vitamin_c_mg"
-        case vitaminDMcg = "vitamin_d_mcg"
-        case vitaminEMg = "vitamin_e_mg"
-        case vitaminKMcg = "vitamin_k_mcg"
-        case magnesiumMg = "magnesium_mg"
-        case zincMg = "zinc_mg"
-        case biotinMcg = "biotin_mcg"
-        case copperMg = "copper_mg"
-        case folateMcg = "folate_mcg"
-        case iodineMcg = "iodine_mcg"
-        case niacinMg = "niacin_mg"
-        case thiaminMg = "thiamin_mg"
-        case caffeineMg = "caffeine_mg"
-        case chlorideMg = "chloride_mg"
-        case chromiumMcg = "chromium_mcg"
-        case seleniumMcg = "selenium_mcg"
-        case manganeseMg = "manganese_mg"
-        case molybdenumMcg = "molybdenum_mcg"
-        case phosphorusMg = "phosphorus_mg"
-        case riboflavinMg = "riboflavin_mg"
-        case cholesterolMg = "cholesterol_mg"
-        case pantothenicAcidMg = "pantothenic_acid_mg"
-        case imageURL = "image_url"
-        case dateCreated = "date_created"
-        case dateModified = "date_modified"
-        case clickCount = "click_count"
-        case bookmarkCount = "bookmark_count"
-        case favouriteCount = "favourite_count"
+        case nutrients
+        case barcode
+        case servingWeight   = "serving_weight"
+        case portionSize     = "portion_size"
+        case portionName     = "portion_name"
+        case portionWeight   = "portion_weight"
+        case weightPortionSize  = "weight_portion_size"
+        case weightPortionName  = "weight_portion_name"
+        case portionVolume   = "portion_volume"
+        case volumePortionSize  = "volume_portion_size"
+        case volumePortionName  = "volume_portion_name"
+        case imageURL        = "image_url"
+        case dateCreated     = "date_created"
+        case dateModified    = "date_modified"
+        case clickCount      = "click_count"
+        case bookmarkCount   = "bookmark_count"
+        case favouriteCount  = "favourite_count"
     }
-    
+
     var eventParameters: [String: Any] {
         let dict: [String: Any?] = [
-            "user_\(CodingKeys.ingredientId.rawValue)": ingredientId,
-            "user_\(CodingKeys.authorId.rawValue)": authorId,
-            "user_\(CodingKeys.name.rawValue)": name,
-            "user_\(CodingKeys.brandName.rawValue)": brandName,
-            "user_\(CodingKeys.description.rawValue)": description,
-            "user_\(CodingKeys.measurementMethod.rawValue)": measurementMethod.rawValue,
-            "user_\(CodingKeys.calories.rawValue)": calories,
-            "user_\(CodingKeys.protein.rawValue)": protein,
-            "user_\(CodingKeys.carbs.rawValue)": carbs,
-            "user_\(CodingKeys.fatTotal.rawValue)": fatTotal,
-            "user_\(CodingKeys.fatSaturated.rawValue)": fatSaturated,
-            "user_\(CodingKeys.fatMonounsaturated.rawValue)": fatMonounsaturated,
-            "user_\(CodingKeys.fatPolyunsaturated.rawValue)": fatPolyunsaturated,
-            "user_\(CodingKeys.fiber.rawValue)": fiber,
-            "user_\(CodingKeys.sugar.rawValue)": sugar,
-            "user_\(CodingKeys.sodiumMg.rawValue)": sodiumMg,
-            "user_\(CodingKeys.potassiumMg.rawValue)": potassiumMg,
-            "user_\(CodingKeys.calciumMg.rawValue)": calciumMg,
-            "user_\(CodingKeys.ironMg.rawValue)": ironMg,
-            "user_\(CodingKeys.vitaminAMcg.rawValue)": vitaminAMcg,
-            "user_\(CodingKeys.vitaminB6Mg.rawValue)": vitaminB6Mg,
-            "user_\(CodingKeys.vitaminB12Mcg.rawValue)": vitaminB12Mcg,
-            "user_\(CodingKeys.vitaminCMg.rawValue)": vitaminCMg,
-            "user_\(CodingKeys.vitaminDMcg.rawValue)": vitaminDMcg,
-            "user_\(CodingKeys.vitaminEMg.rawValue)": vitaminEMg,
-            "user_\(CodingKeys.vitaminKMcg.rawValue)": vitaminKMcg,
-            "user_\(CodingKeys.magnesiumMg.rawValue)": magnesiumMg,
-            "user_\(CodingKeys.zincMg.rawValue)": zincMg,
-            "user_\(CodingKeys.biotinMcg.rawValue)": biotinMcg,
-            "user_\(CodingKeys.copperMg.rawValue)": copperMg,
-            "user_\(CodingKeys.folateMcg.rawValue)": folateMcg,
-            "user_\(CodingKeys.iodineMcg.rawValue)": iodineMcg,
-            "user_\(CodingKeys.niacinMg.rawValue)": niacinMg,
-            "user_\(CodingKeys.thiaminMg.rawValue)": thiaminMg,
-            "user_\(CodingKeys.caffeineMg.rawValue)": caffeineMg,
-            "user_\(CodingKeys.chlorideMg.rawValue)": chlorideMg,
-            "user_\(CodingKeys.chromiumMcg.rawValue)": chromiumMcg,
-            "user_\(CodingKeys.seleniumMcg.rawValue)": seleniumMcg,
-            "user_\(CodingKeys.manganeseMg.rawValue)": manganeseMg,
-            "user_\(CodingKeys.molybdenumMcg.rawValue)": molybdenumMcg,
-            "user_\(CodingKeys.phosphorusMg.rawValue)": phosphorusMg,
-            "user_\(CodingKeys.riboflavinMg.rawValue)": riboflavinMg,
-            "user_\(CodingKeys.cholesterolMg.rawValue)": cholesterolMg,
-            "user_\(CodingKeys.pantothenicAcidMg.rawValue)": pantothenicAcidMg,
-            "user_\(CodingKeys.imageURL.rawValue)": imageURL,
-            "user_\(CodingKeys.dateCreated.rawValue)": dateCreated,
-            "user_\(CodingKeys.dateModified.rawValue)": dateModified,
-            "user_\(CodingKeys.clickCount.rawValue)": clickCount,
-            "user_\(CodingKeys.bookmarkCount.rawValue)": bookmarkCount,
-            "user_\(CodingKeys.favouriteCount.rawValue)": favouriteCount
+            "user_ingredient_id": ingredientId,
+            "user_author_id": authorId,
+            "user_name": name,
+            "user_brand_name": brandName,
+            "user_description": description,
+            "user_measurement_method": measurementMethod.rawValue,
+            "user_calories": calories,
+            "user_protein": protein,
+            "user_carbs": carbs,
+            "user_fat_total": fatTotal,
+            "user_image_url": imageURL,
+            "user_date_created": dateCreated,
+            "user_date_modified": dateModified,
+            "user_click_count": clickCount,
+            "user_bookmark_count": bookmarkCount,
+            "user_favourite_count": favouriteCount
         ]
         return dict.compactMapValues({ $0 })
     }
-        
+
     static var mock: FoodModel {
         mocks[0]
     }
-    
-    static let mocks: [FoodModel] =
-    [
-        FoodModel(
-            ingredientId: "ing-1",
-            authorId: "1",
-            name: "Rolled Oats",
-            brandName: "Dunnes Stores",
-            description: "Whole grain oats.",
-            measurementMethod: .weight,
-            calories: 389,
-            protein: 16.9,
-            carbs: 66.3,
-            fatTotal: 6.9,
-            fiber: 10.6,
-            sugar: 0.0,
-            sodiumMg: 2,
-            potassiumMg: 429,
-            calciumMg: 54,
-            ironMg: 4.7,
-            vitaminCMg: 0.0,
-            vitaminDMcg: 0.0,
-            magnesiumMg: 0.0,
-            zincMg: 0.0,
-            imageURL: Constants.randomImage,
-            dateCreated: Date(),
-            dateModified: Date(),
-            clickCount: 12,
-            bookmarkCount: 3,
-            favouriteCount: 1
-        ),
-        FoodModel(
-            ingredientId: "ing-2",
-            authorId: "2",
-            name: "Whole Milk",
-            brandName: nil,
-            description: "Dairy, 3.25% fat.",
-            measurementMethod: .volume,
-            calories: 61,
-            protein: 3.2,
-            carbs: 4.8,
-            fatTotal: 3.3,
-            fiber: nil,
-            sugar: 5.1,
-            sodiumMg: 43,
-            potassiumMg: 150,
-            calciumMg: 113,
-            ironMg: 0.0,
-            vitaminCMg: 0.0,
-            vitaminDMcg: 0.0,
-            magnesiumMg: 0.0,
-            zincMg: 0.0,
-            imageURL: nil,
-            dateCreated: Date(),
-            dateModified: Date(),
-            clickCount: 5,
-            bookmarkCount: 1,
-            favouriteCount: 0
-        )
-    ]
+
+    static var mocks: [FoodModel] {
+        [mockRolledOats, mockWholeMilk, mockChickenBreast, mockGreekYogurt, mockOliveOil, mockBanana]
+    }
+
+    // MARK: - Individual mocks (mass / volume / serving modes)
+
+    static let mockRolledOats = FoodModel(
+        ingredientId: "ing-1",
+        authorId: "1",
+        name: "Rolled Oats",
+        brandName: "Dunnes Stores",
+        description: "Whole grain oats.",
+        measurementMethod: .weight,
+        nutrients: [
+            .calories: 389, .protein: 16.9, .carbs: 66.3, .fatTotal: 6.9,
+            .fiber: 10.6, .sugar: 0.0, .sodiumMg: 2, .potassiumMg: 429,
+            .calciumMg: 54, .ironMg: 4.7, .vitaminCMg: 0.0, .vitaminDMcg: 0.0,
+            .magnesiumMg: 0.0, .zincMg: 0.0
+        ],
+        portionWeight: 40,
+        weightPortionSize: 0.5,
+        weightPortionName: "cup",
+        imageURL: Constants.randomImage,
+        dateCreated: Date(),
+        dateModified: Date(),
+        clickCount: 12,
+        bookmarkCount: 3,
+        favouriteCount: 1
+    )
+
+    static let mockWholeMilk = FoodModel(
+        ingredientId: "ing-2",
+        authorId: "2",
+        name: "Whole Milk",
+        brandName: nil,
+        description: "Dairy, 3.25% fat.",
+        measurementMethod: .volume,
+        nutrients: [
+            .calories: 61, .protein: 3.2, .carbs: 4.8, .fatTotal: 3.3,
+            .sugar: 5.1, .sodiumMg: 43, .potassiumMg: 150, .calciumMg: 113,
+            .ironMg: 0.0, .vitaminCMg: 0.0, .vitaminDMcg: 0.0,
+            .magnesiumMg: 0.0, .zincMg: 0.0
+        ],
+        portionVolume: 244,
+        volumePortionSize: 1,
+        volumePortionName: "cup",
+        imageURL: nil,
+        dateCreated: Date(),
+        dateModified: Date(),
+        clickCount: 5,
+        bookmarkCount: 1,
+        favouriteCount: 0
+    )
+
+    static let mockChickenBreast = FoodModel(
+        ingredientId: "ing-3",
+        authorId: "1",
+        name: "Chicken Breast",
+        description: "Boneless, skinless chicken breast.",
+        measurementMethod: .weight,
+        nutrients: [
+            .calories: 165, .protein: 31, .carbs: 0, .fatTotal: 3.6,
+            .fiber: 0, .sugar: 0, .sodiumMg: 74, .potassiumMg: 256,
+            .calciumMg: 15, .ironMg: 1, .vitaminCMg: 0, .vitaminDMcg: 0,
+            .magnesiumMg: 29, .zincMg: 1
+        ],
+        portionWeight: 150,
+        weightPortionSize: 1,
+        weightPortionName: "breast",
+        dateCreated: Date(),
+        dateModified: Date(),
+        clickCount: 20,
+        bookmarkCount: 5,
+        favouriteCount: 3
+    )
+
+    static let mockGreekYogurt = FoodModel(
+        ingredientId: "ing-4",
+        authorId: "2",
+        name: "Greek Yogurt",
+        description: "Plain, full-fat Greek yogurt.",
+        measurementMethod: .weight,
+        nutrients: [
+            .calories: 97, .protein: 9, .carbs: 3.6, .fatTotal: 5,
+            .fiber: 0, .sugar: 3.2, .sodiumMg: 36, .potassiumMg: 141,
+            .calciumMg: 110, .ironMg: 0.1, .vitaminCMg: 0, .vitaminDMcg: 0,
+            .magnesiumMg: 11, .zincMg: 0.5
+        ],
+        servingWeight: 245,
+        portionSize: 1,
+        portionName: "cup",
+        dateCreated: Date(),
+        dateModified: Date(),
+        clickCount: 8,
+        bookmarkCount: 2,
+        favouriteCount: 1
+    )
+
+    static let mockOliveOil = FoodModel(
+        ingredientId: "ing-5",
+        authorId: "1",
+        name: "Olive Oil",
+        description: "Extra virgin olive oil.",
+        measurementMethod: .volume,
+        nutrients: [
+            .calories: 884, .protein: 0, .carbs: 0, .fatTotal: 100,
+            .fiber: 0, .sugar: 0, .sodiumMg: 2, .potassiumMg: 1,
+            .calciumMg: 1, .ironMg: 0.6, .vitaminCMg: 0, .vitaminDMcg: 0,
+            .magnesiumMg: 0, .zincMg: 0
+        ],
+        portionVolume: 14,
+        volumePortionSize: 1,
+        volumePortionName: "tbsp",
+        dateCreated: Date(),
+        dateModified: Date(),
+        clickCount: 7,
+        bookmarkCount: 1,
+        favouriteCount: 0
+    )
+
+    static let mockBanana = FoodModel(
+        ingredientId: "ing-6",
+        authorId: "2",
+        name: "Banana",
+        description: "Fresh ripe banana.",
+        measurementMethod: .weight,
+        nutrients: [
+            .calories: 89, .protein: 1.1, .carbs: 23, .fatTotal: 0.3,
+            .fiber: 2.6, .sugar: 12, .sodiumMg: 1, .potassiumMg: 358,
+            .calciumMg: 5, .ironMg: 0.3, .vitaminCMg: 8.7, .vitaminDMcg: 0,
+            .magnesiumMg: 27, .zincMg: 0.2
+        ],
+        servingWeight: 118,
+        portionSize: 1,
+        portionName: "medium banana",
+        dateCreated: Date(),
+        dateModified: Date(),
+        clickCount: 15,
+        bookmarkCount: 4,
+        favouriteCount: 2
+    )
 }
 
 extension FoodModel: Sendable {}

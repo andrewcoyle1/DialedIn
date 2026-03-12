@@ -42,7 +42,9 @@ class TrainingPresenter {
     var activeProgramisExpanded: Bool = true
     var selectedDate: Date = Date()
     var selectedTime: Date = Date()
-    
+    var isDeloadCycle: Bool = false
+    var periodisationPhase: PeriodisationPhase?
+
     var today: Date = Date()
     
     var favouriteGymProfile: GymProfileModel? {
@@ -165,7 +167,7 @@ class TrainingPresenter {
             subtitle: "Are you sure you want to delete your active training program? This cannot be undone.",
             buttons: {
                 AnyView(
-                    VStack {
+                    HStack {
                         Button(role: .destructive) {
                             Task { try? await self.deleteTrainingProgram(programId: program.id) }
                         }
@@ -214,7 +216,9 @@ class TrainingPresenter {
                     Task { @MainActor in
                         self?.router.showWorkoutTrackerView()
                     }
-                }
+                },
+                isDeloadCycle: isDeloadCycle,
+                periodisationPhase: periodisationPhase
             )
         )
 //
@@ -438,7 +442,7 @@ class TrainingPresenter {
                 completedInCurrentCycle.removeAll()
             }
         }
-        let cycleIndex = min(completedCycles + 1, cyclesTotal)
+        let cycleIndex = (completedCycles % cyclesTotal) + 1
         return MicrocycleCycleState(
             cycleIndex: cycleIndex,
             cyclesTotal: cyclesTotal,
@@ -477,6 +481,23 @@ class TrainingPresenter {
             return first
         }
         return 0
+    }
+
+    func isCurrentCycleDeload(cycleIndex: Int, program: TrainingProgram) -> Bool {
+        switch program.deload {
+        case .none:  return false
+        case .start: return cycleIndex == 1
+        case .end:   return cycleIndex == program.numMicrocycles
+        }
+    }
+
+    func currentPeriodisationPhase(cycleIndex: Int, program: TrainingProgram) -> PeriodisationPhase? {
+        guard program.periodisation else { return nil }
+        let number = max(program.numMicrocycles, 1)
+        let third = max(number / 3, 1)
+        if cycleIndex <= third { return .hypertrophy }
+        if cycleIndex <= third * 2 { return .strength }
+        return .power
     }
 
     func currentMicrocycleItems() -> [MicrocycleItem] {
@@ -521,7 +542,9 @@ class TrainingPresenter {
                 sessionByPlanId.removeAll()
             }
         }
-        let cycleIndex = min(completedCycles + 1, cyclesTotal)
+        let cycleIndex = (completedCycles % cyclesTotal) + 1
+        isDeloadCycle = isCurrentCycleDeload(cycleIndex: cycleIndex, program: program)
+        periodisationPhase = currentPeriodisationPhase(cycleIndex: cycleIndex, program: program)
         microcycleHeaderText = "Microcycle \(cycleIndex) of \(cyclesTotal)"
 
         return dayPlans.map { plan in
@@ -627,4 +650,3 @@ struct MicrocycleCycleState {
     let cyclesTotal: Int
     let completedInCurrentCycle: Set<String>
 }
-

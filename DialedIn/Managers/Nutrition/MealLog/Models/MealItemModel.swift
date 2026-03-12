@@ -19,12 +19,15 @@ struct MealItemModel: DataSyncModelProtocol, Hashable {
     // Resolved standardized amounts for nutrition calculations when available
     let resolvedGrams: Double?
     let resolvedMilliliters: Double?
-    // Snapshot of nutrition at time of logging
-    let calories: Double?
-    let proteinGrams: Double?
-    let carbGrams: Double?
-    let fatGrams: Double?
-    
+    // Full nutrient snapshot at time of logging
+    let nutrients: [NutrientKey: Double]
+
+    // Backward-compat computed wrappers
+    var calories: Double? { nutrients[.calories] }
+    var proteinGrams: Double? { nutrients[.protein] }
+    var carbGrams: Double? { nutrients[.carbs] }
+    var fatGrams: Double? { nutrients[.fatTotal] }
+
     init(
         itemId: String,
         sourceType: MealItemSourceType,
@@ -34,10 +37,7 @@ struct MealItemModel: DataSyncModelProtocol, Hashable {
         unit: String,
         resolvedGrams: Double? = nil,
         resolvedMilliliters: Double? = nil,
-        calories: Double? = nil,
-        proteinGrams: Double? = nil,
-        carbGrams: Double? = nil,
-        fatGrams: Double? = nil
+        nutrients: [NutrientKey: Double] = [:]
     ) {
         self.itemId = itemId
         self.sourceType = sourceType
@@ -47,10 +47,7 @@ struct MealItemModel: DataSyncModelProtocol, Hashable {
         self.unit = unit
         self.resolvedGrams = resolvedGrams
         self.resolvedMilliliters = resolvedMilliliters
-        self.calories = calories
-        self.proteinGrams = proteinGrams
-        self.carbGrams = carbGrams
-        self.fatGrams = fatGrams
+        self.nutrients = nutrients
     }
 }
 
@@ -65,15 +62,11 @@ extension MealItemModel {
             unit: "g",
             resolvedGrams: 200,
             resolvedMilliliters: nil,
-            calories: 330,
-            proteinGrams: 62,
-            carbGrams: 0,
-            fatGrams: 7
+            nutrients: [.calories: 330, .protein: 62, .carbs: 0, .fatTotal: 7]
         )
     }
-    
-    static let mocks: [MealItemModel] =
-    [
+
+    static let mocks: [MealItemModel] = [
         MealItemModel(
             itemId: UUID().uuidString,
             sourceType: .ingredient,
@@ -83,10 +76,7 @@ extension MealItemModel {
             unit: "g",
             resolvedGrams: 50,
             resolvedMilliliters: nil,
-            calories: 190,
-            proteinGrams: 7,
-            carbGrams: 32,
-            fatGrams: 3.5
+            nutrients: [.calories: 190, .protein: 7, .carbs: 32, .fatTotal: 3.5]
         ),
         MealItemModel(
             itemId: UUID().uuidString,
@@ -97,10 +87,7 @@ extension MealItemModel {
             unit: "unit",
             resolvedGrams: 120,
             resolvedMilliliters: nil,
-            calories: 105,
-            proteinGrams: 1.3,
-            carbGrams: 27,
-            fatGrams: 0.4
+            nutrients: [.calories: 105, .protein: 1.3, .carbs: 27, .fatTotal: 0.4]
         ),
         MealItemModel(
             itemId: UUID().uuidString,
@@ -111,10 +98,7 @@ extension MealItemModel {
             unit: "g",
             resolvedGrams: 20,
             resolvedMilliliters: nil,
-            calories: 120,
-            proteinGrams: 4,
-            carbGrams: 4,
-            fatGrams: 10
+            nutrients: [.calories: 120, .protein: 4, .carbs: 4, .fatTotal: 10]
         ),
         MealItemModel(
             itemId: UUID().uuidString,
@@ -125,10 +109,7 @@ extension MealItemModel {
             unit: "g",
             resolvedGrams: 150,
             resolvedMilliliters: nil,
-            calories: 135,
-            proteinGrams: 18,
-            carbGrams: 8,
-            fatGrams: 3.5
+            nutrients: [.calories: 135, .protein: 18, .carbs: 8, .fatTotal: 3.5]
         ),
         MealItemModel(
             itemId: UUID().uuidString,
@@ -139,10 +120,7 @@ extension MealItemModel {
             unit: "serving",
             resolvedGrams: nil,
             resolvedMilliliters: 350,
-            calories: 280,
-            proteinGrams: 32,
-            carbGrams: 25,
-            fatGrams: 8
+            nutrients: [.calories: 280, .protein: 32, .carbs: 25, .fatTotal: 8]
         )
     ]
 }

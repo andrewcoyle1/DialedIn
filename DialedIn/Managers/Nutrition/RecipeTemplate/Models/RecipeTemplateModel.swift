@@ -113,282 +113,151 @@ struct RecipeTemplateModel: DataSyncModelProtocol {
     static var mock: RecipeTemplateModel {
         mocks[0]
     }
-    
+
     static var mocks: [RecipeTemplateModel] {
-        [
-            
-        RecipeTemplateModel(
-            id: "recipe1",
-            authorId: "user1",
-            name: "Classic Margherita Pizza",
+        [mockMargheritaPizza, mockProteinPancakes, mockVeganBuddhaBowl]
+    }
+
+    static var mockMargheritaPizza: RecipeTemplateModel {
+        let pizzaDough = FoodModel(
+            ingredientId: "ing1", authorId: "user1", name: "Pizza Dough",
+            description: "Homemade classic pizza dough.", measurementMethod: .weight,
+            nutrients: [
+                .calories: 250, .protein: 7, .carbs: 50, .fatTotal: 2, .fiber: 2, .sugar: 1,
+                .sodiumMg: 400, .potassiumMg: 80, .calciumMg: 20, .ironMg: 1.5,
+                .vitaminCMg: 0, .vitaminDMcg: 0, .magnesiumMg: 10, .zincMg: 0.5
+            ],
+            portionWeight: 200, weightPortionSize: 1, weightPortionName: "base",
+            dateCreated: Date(timeIntervalSinceNow: -86400 * 10),
+            dateModified: Date(timeIntervalSinceNow: -86400 * 5), clickCount: 5
+        )
+        let mozzarella = FoodModel(
+            ingredientId: "ing2", authorId: "user1", name: "Fresh Mozzarella",
+            description: "Creamy mozzarella cheese.", measurementMethod: .weight,
+            nutrients: [
+                .calories: 80, .protein: 6, .carbs: 1, .fatTotal: 6, .fiber: 0, .sugar: 1,
+                .sodiumMg: 150, .potassiumMg: 30, .calciumMg: 120, .ironMg: 0.1,
+                .vitaminCMg: 0, .vitaminDMcg: 0.2, .magnesiumMg: 8, .zincMg: 0.4
+            ],
+            portionWeight: 125, weightPortionSize: 1, weightPortionName: "ball",
+            dateCreated: Date(timeIntervalSinceNow: -86400 * 10),
+            dateModified: Date(timeIntervalSinceNow: -86400 * 5), clickCount: 3
+        )
+        let tomatoSauce = FoodModel(
+            ingredientId: "ing3", authorId: "user1", name: "Tomato Sauce",
+            description: "Rich tomato sauce with herbs.", measurementMethod: .volume,
+            nutrients: [
+                .calories: 30, .protein: 1, .carbs: 6, .fatTotal: 0, .fiber: 1, .sugar: 4,
+                .sodiumMg: 200, .potassiumMg: 180, .calciumMg: 15, .ironMg: 0.3,
+                .vitaminCMg: 8, .vitaminDMcg: 0, .magnesiumMg: 6, .zincMg: 0.1
+            ],
+            portionVolume: 150, volumePortionSize: 150, volumePortionName: "ml",
+            dateCreated: Date(timeIntervalSinceNow: -86400 * 10),
+            dateModified: Date(timeIntervalSinceNow: -86400 * 5), clickCount: 2
+        )
+        return RecipeTemplateModel(
+            id: "recipe1", authorId: "user1", name: "Classic Margherita Pizza",
             description: "A simple and delicious pizza with fresh mozzarella, tomatoes, and basil.",
             imageURL: Constants.randomImage,
             dateCreated: Date(timeIntervalSinceNow: -86400 * 10),
             dateModified: Date(timeIntervalSinceNow: -86400 * 5),
             ingredients: [
-                RecipeIngredientModel(
-                    ingredient: FoodModel(
-                    ingredientId: "ing1",
-                    authorId: "user1",
-                    name: "Pizza Dough",
-                    description: "Homemade classic pizza dough.",
-                    measurementMethod: .weight,
-                    calories: 250,
-                    protein: 7,
-                    carbs: 50,
-                    fatTotal: 2,
-                    fiber: 2,
-                    sugar: 1,
-                    sodiumMg: 400,
-                    potassiumMg: 80,
-                    calciumMg: 20,
-                    ironMg: 1.5,
-                    vitaminCMg: 0,
-                    vitaminDMcg: 0,
-                    magnesiumMg: 10,
-                    zincMg: 0.5,
-                    imageURL: nil,
-                    dateCreated: Date(timeIntervalSinceNow: -86400 * 10),
-                    dateModified: Date(timeIntervalSinceNow: -86400 * 5),
-                    clickCount: 5
-                ),
-                    amount: 200,
-                    unit: .grams
-                ),
-                RecipeIngredientModel(
-                    ingredient: FoodModel(
-                    ingredientId: "ing2",
-                    authorId: "user1",
-                    name: "Fresh Mozzarella",
-                    description: "Creamy mozzarella cheese.",
-                    measurementMethod: .weight,
-                    calories: 80,
-                    protein: 6,
-                    carbs: 1,
-                    fatTotal: 6,
-                    fiber: 0,
-                    sugar: 1,
-                    sodiumMg: 150,
-                    potassiumMg: 30,
-                    calciumMg: 120,
-                    ironMg: 0.1,
-                    vitaminCMg: 0,
-                    vitaminDMcg: 0.2,
-                    magnesiumMg: 8,
-                    zincMg: 0.4,
-                    imageURL: nil,
-                    dateCreated: Date(timeIntervalSinceNow: -86400 * 10),
-                    dateModified: Date(timeIntervalSinceNow: -86400 * 5),
-                    clickCount: 3
-                ),
-                    amount: 100,
-                    unit: .grams
-                ),
-                RecipeIngredientModel(
-                    ingredient: FoodModel(
-                    ingredientId: "ing3",
-                    authorId: "user1",
-                    name: "Tomato Sauce",
-                    description: "Rich tomato sauce with herbs.",
-                    measurementMethod: .weight,
-                    calories: 30,
-                    protein: 1,
-                    carbs: 6,
-                    fatTotal: 0,
-                    fiber: 1,
-                    sugar: 4,
-                    sodiumMg: 200,
-                    potassiumMg: 180,
-                    calciumMg: 15,
-                    ironMg: 0.3,
-                    vitaminCMg: 8,
-                    vitaminDMcg: 0,
-                    magnesiumMg: 6,
-                    zincMg: 0.1,
-                    imageURL: nil,
-                    dateCreated: Date(timeIntervalSinceNow: -86400 * 10),
-                    dateModified: Date(timeIntervalSinceNow: -86400 * 5),
-                    clickCount: 2
-                ),
-                    amount: 150,
-                    unit: .milliliters
-                )
+                RecipeIngredientModel(ingredient: pizzaDough, amount: 200, unit: .grams),
+                RecipeIngredientModel(ingredient: mozzarella, amount: 100, unit: .grams),
+                RecipeIngredientModel(ingredient: tomatoSauce, amount: 150, unit: .milliliters)
             ],
-            bookmarkCount: 22,
-            favouriteCount: 8
-        ),
-        RecipeTemplateModel(
-            id: "recipe2",
-            authorId: "user2",
-            name: "Protein Pancakes",
+            bookmarkCount: 22, favouriteCount: 8
+        )
+    }
+
+    static var mockProteinPancakes: RecipeTemplateModel {
+        let oatFlour = FoodModel(
+            ingredientId: "ing4", authorId: "user2", name: "Oat Flour",
+            description: "Ground oats for a healthy base.", measurementMethod: .weight,
+            nutrients: [
+                .calories: 150, .protein: 5, .carbs: 27, .fatTotal: 3, .fiber: 4, .sugar: 1,
+                .sodiumMg: 2, .potassiumMg: 120, .calciumMg: 20, .ironMg: 1.2,
+                .vitaminCMg: 0, .vitaminDMcg: 0, .magnesiumMg: 40, .zincMg: 1
+            ],
+            portionWeight: 80, weightPortionSize: 0.75, weightPortionName: "cup",
+            dateCreated: Date(timeIntervalSinceNow: -86400 * 20),
+            dateModified: Date(timeIntervalSinceNow: -86400 * 15), clickCount: 4
+        )
+        let wheyProtein = FoodModel(
+            ingredientId: "ing5", authorId: "user2", name: "Whey Protein",
+            description: "Vanilla flavored whey protein powder.", measurementMethod: .weight,
+            nutrients: [
+                .calories: 120, .protein: 24, .carbs: 3, .fatTotal: 1, .fiber: 0, .sugar: 2,
+                .sodiumMg: 50, .potassiumMg: 100, .calciumMg: 130, .ironMg: 0.2,
+                .vitaminCMg: 0, .vitaminDMcg: 0, .magnesiumMg: 10, .zincMg: 0.2
+            ],
+            portionWeight: 30, weightPortionSize: 1, weightPortionName: "scoop",
+            dateCreated: Date(timeIntervalSinceNow: -86400 * 20),
+            dateModified: Date(timeIntervalSinceNow: -86400 * 15), clickCount: 6
+        )
+        return RecipeTemplateModel(
+            id: "recipe2", authorId: "user2", name: "Protein Pancakes",
             description: "Fluffy pancakes packed with protein for a healthy breakfast.",
-            imageURL: nil,
             dateCreated: Date(timeIntervalSinceNow: -86400 * 20),
             dateModified: Date(timeIntervalSinceNow: -86400 * 15),
             ingredients: [
-                RecipeIngredientModel(
-                    ingredient: FoodModel(
-                    ingredientId: "ing4",
-                    authorId: "user2",
-                    name: "Oat Flour",
-                    description: "Ground oats for a healthy base.",
-                    measurementMethod: .weight,
-                    calories: 150,
-                    protein: 5,
-                    carbs: 27,
-                    fatTotal: 3,
-                    fiber: 4,
-                    sugar: 1,
-                    sodiumMg: 2,
-                    potassiumMg: 120,
-                    calciumMg: 20,
-                    ironMg: 1.2,
-                    vitaminCMg: 0,
-                    vitaminDMcg: 0,
-                    magnesiumMg: 40,
-                    zincMg: 1,
-                    imageURL: nil,
-                    dateCreated: Date(timeIntervalSinceNow: -86400 * 20),
-                    dateModified: Date(timeIntervalSinceNow: -86400 * 15),
-                    clickCount: 4
-                ),
-                    amount: 80,
-                    unit: .grams
-                ),
-                RecipeIngredientModel(
-                    ingredient: FoodModel(
-                    ingredientId: "ing5",
-                    authorId: "user2",
-                    name: "Whey Protein",
-                    description: "Vanilla flavored whey protein powder.",
-                    measurementMethod: .weight,
-                    calories: 120,
-                    protein: 24,
-                    carbs: 3,
-                    fatTotal: 1,
-                    fiber: 0,
-                    sugar: 2,
-                    sodiumMg: 50,
-                    potassiumMg: 100,
-                    calciumMg: 130,
-                    ironMg: 0.2,
-                    vitaminCMg: 0,
-                    vitaminDMcg: 0,
-                    magnesiumMg: 10,
-                    zincMg: 0.2,
-                    imageURL: nil,
-                    dateCreated: Date(timeIntervalSinceNow: -86400 * 20),
-                    dateModified: Date(timeIntervalSinceNow: -86400 * 15),
-                    clickCount: 6
-                ),
-                    amount: 30,
-                    unit: .grams
-                )
+                RecipeIngredientModel(ingredient: oatFlour, amount: 80, unit: .grams),
+                RecipeIngredientModel(ingredient: wheyProtein, amount: 30, unit: .grams)
             ],
-            bookmarkCount: 15,
-            favouriteCount: 4
-        ),
-        RecipeTemplateModel(
-            id: "recipe3",
-            authorId: "user3",
-            name: "Vegan Buddha Bowl",
+            bookmarkCount: 15, favouriteCount: 4
+        )
+    }
+
+    static var mockVeganBuddhaBowl: RecipeTemplateModel {
+        let quinoa = FoodModel(
+            ingredientId: "ing6", authorId: "user3", name: "Quinoa",
+            description: "Fluffy cooked quinoa.", measurementMethod: .weight,
+            nutrients: [
+                .calories: 120, .protein: 4, .carbs: 21, .fatTotal: 2, .fiber: 3, .sugar: 0,
+                .sodiumMg: 7, .potassiumMg: 120, .calciumMg: 15, .ironMg: 1.5,
+                .vitaminCMg: 0, .vitaminDMcg: 0, .magnesiumMg: 30, .zincMg: 1
+            ],
+            portionWeight: 150, weightPortionSize: 0.75, weightPortionName: "cup",
+            dateCreated: Date(timeIntervalSinceNow: -86400 * 5),
+            dateModified: Date(timeIntervalSinceNow: -86400 * 2), clickCount: 7
+        )
+        let chickpeas = FoodModel(
+            ingredientId: "ing7", authorId: "user3", name: "Chickpeas",
+            description: "Roasted chickpeas for protein.", measurementMethod: .weight,
+            nutrients: [
+                .calories: 140, .protein: 7, .carbs: 23, .fatTotal: 2, .fiber: 6, .sugar: 2,
+                .sodiumMg: 120, .potassiumMg: 180, .calciumMg: 40, .ironMg: 2,
+                .vitaminCMg: 1, .vitaminDMcg: 0, .magnesiumMg: 25, .zincMg: 1.3
+            ],
+            portionWeight: 100, weightPortionSize: 0.5, weightPortionName: "cup",
+            dateCreated: Date(timeIntervalSinceNow: -86400 * 5),
+            dateModified: Date(timeIntervalSinceNow: -86400 * 2), clickCount: 5
+        )
+        let spinach = FoodModel(
+            ingredientId: "ing8", authorId: "user3", name: "Spinach",
+            description: "Fresh baby spinach leaves.", measurementMethod: .weight,
+            nutrients: [
+                .calories: 20, .protein: 2, .carbs: 3, .fatTotal: 0, .fiber: 2, .sugar: 0,
+                .sodiumMg: 65, .potassiumMg: 167, .calciumMg: 30, .ironMg: 0.8,
+                .vitaminCMg: 14, .vitaminDMcg: 0, .magnesiumMg: 24, .zincMg: 0.2
+            ],
+            portionWeight: 50, weightPortionSize: 1, weightPortionName: "handful",
+            dateCreated: Date(timeIntervalSinceNow: -86400 * 5),
+            dateModified: Date(timeIntervalSinceNow: -86400 * 2), clickCount: 2
+        )
+        return RecipeTemplateModel(
+            id: "recipe3", authorId: "user3", name: "Vegan Buddha Bowl",
             description: "A nourishing bowl with grains, greens, and plant protein.",
             imageURL: Constants.randomImage,
             dateCreated: Date(timeIntervalSinceNow: -86400 * 5),
             dateModified: Date(timeIntervalSinceNow: -86400 * 2),
             ingredients: [
-                RecipeIngredientModel(
-                    ingredient: FoodModel(
-                    ingredientId: "ing6",
-                    authorId: "user3",
-                    name: "Quinoa",
-                    description: "Fluffy cooked quinoa.",
-                    measurementMethod: .weight,
-                    calories: 120,
-                    protein: 4,
-                    carbs: 21,
-                    fatTotal: 2,
-                    fiber: 3,
-                    sugar: 0,
-                    sodiumMg: 7,
-                    potassiumMg: 120,
-                    calciumMg: 15,
-                    ironMg: 1.5,
-                    vitaminCMg: 0,
-                    vitaminDMcg: 0,
-                    magnesiumMg: 30,
-                    zincMg: 1,
-                    imageURL: nil,
-                    dateCreated: Date(timeIntervalSinceNow: -86400 * 5),
-                    dateModified: Date(timeIntervalSinceNow: -86400 * 2),
-                    clickCount: 7
-                ),
-                    amount: 150,
-                    unit: .grams
-                ),
-                RecipeIngredientModel(
-                    ingredient: FoodModel(
-                    ingredientId: "ing7",
-                    authorId: "user3",
-                    name: "Chickpeas",
-                    description: "Roasted chickpeas for protein.",
-                    measurementMethod: .weight,
-                    calories: 140,
-                    protein: 7,
-                    carbs: 23,
-                    fatTotal: 2,
-                    fiber: 6,
-                    sugar: 2,
-                    sodiumMg: 120,
-                    potassiumMg: 180,
-                    calciumMg: 40,
-                    ironMg: 2,
-                    vitaminCMg: 1,
-                    vitaminDMcg: 0,
-                    magnesiumMg: 25,
-                    zincMg: 1.3,
-                    imageURL: nil,
-                    dateCreated: Date(timeIntervalSinceNow: -86400 * 5),
-                    dateModified: Date(timeIntervalSinceNow: -86400 * 2),
-                    clickCount: 5
-                ),
-                    amount: 100,
-                    unit: .grams
-                ),
-                RecipeIngredientModel(
-                    ingredient: FoodModel(
-                    ingredientId: "ing8",
-                    authorId: "user3",
-                    name: "Spinach",
-                    description: "Fresh baby spinach leaves.",
-                    measurementMethod: .weight,
-                    calories: 20,
-                    protein: 2,
-                    carbs: 3,
-                    fatTotal: 0,
-                    fiber: 2,
-                    sugar: 0,
-                    sodiumMg: 65,
-                    potassiumMg: 167,
-                    calciumMg: 30,
-                    ironMg: 0.8,
-                    vitaminCMg: 14,
-                    vitaminDMcg: 0,
-                    magnesiumMg: 24,
-                    zincMg: 0.2,
-                    imageURL: nil,
-                    dateCreated: Date(timeIntervalSinceNow: -86400 * 5),
-                    dateModified: Date(timeIntervalSinceNow: -86400 * 2),
-                    clickCount: 2
-                ),
-                    amount: 50,
-                    unit: .grams
-                )
+                RecipeIngredientModel(ingredient: quinoa, amount: 150, unit: .grams),
+                RecipeIngredientModel(ingredient: chickpeas, amount: 100, unit: .grams),
+                RecipeIngredientModel(ingredient: spinach, amount: 50, unit: .grams)
             ],
-            bookmarkCount: 30,
-            favouriteCount: 10
+            bookmarkCount: 30, favouriteCount: 10
         )
-        ]
     }
 }
 

@@ -108,7 +108,7 @@ class WorkoutTemplateDetailPresenter {
         }
     }
 
-    func onStartWorkoutPressed(onStartWorkout: (@Sendable () -> Void)?, workoutTemplate: WorkoutTemplateModel, trainingProgramId: String?) {
+    func onStartWorkoutPressed(onStartWorkout: (@Sendable () -> Void)?, workoutTemplate: WorkoutTemplateModel, trainingProgramId: String?, isDeloadCycle: Bool = false) {
         let shouldProceed = checkForActiveWorkout(
             onResumeWorkout: { [weak self] in
                 Task { @MainActor in
@@ -117,13 +117,13 @@ class WorkoutTemplateDetailPresenter {
             },
             onStartNewWorkout: { [weak self] in
                 Task { @MainActor in
-                    self?.performStartWorkout(onStartWorkout: onStartWorkout, workoutTemplate: workoutTemplate, trainingProgramId: trainingProgramId)
+                    self?.performStartWorkout(onStartWorkout: onStartWorkout, workoutTemplate: workoutTemplate, trainingProgramId: trainingProgramId, isDeloadCycle: isDeloadCycle)
                 }
             }
         )
-        
+
         if shouldProceed {
-            performStartWorkout(onStartWorkout: onStartWorkout, workoutTemplate: workoutTemplate, trainingProgramId: trainingProgramId)
+            performStartWorkout(onStartWorkout: onStartWorkout, workoutTemplate: workoutTemplate, trainingProgramId: trainingProgramId, isDeloadCycle: isDeloadCycle)
         }
     }
     
@@ -162,10 +162,14 @@ class WorkoutTemplateDetailPresenter {
         router.showWorkoutTrackerView()
     }
     
-    private func performStartWorkout(onStartWorkout: (() -> Void)?, workoutTemplate: WorkoutTemplateModel, trainingProgramId: String?) {
+    private func performStartWorkout(onStartWorkout: (() -> Void)?, workoutTemplate: WorkoutTemplateModel, trainingProgramId: String?, isDeloadCycle: Bool = false) {
         Task {
             do {
                 try await self.interactor.startWorkout(for: workoutTemplate, in: trainingProgramId)
+                if isDeloadCycle, var session = self.activeSession {
+                    session.applyDeloadWeightReduction()
+                    try? self.interactor.updateActiveSession(session)
+                }
                 self.router.dismissEnvironment()
                 self.router.dismissScreen()
                 onStartWorkout?()

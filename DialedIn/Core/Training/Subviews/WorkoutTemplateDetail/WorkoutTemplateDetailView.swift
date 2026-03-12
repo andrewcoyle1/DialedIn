@@ -11,6 +11,8 @@ struct WorkoutTemplateDetailDelegate {
     let workoutTemplate: WorkoutTemplateModel
     let trainingProgramId: String?
     let onStartWorkoutPressed: (@Sendable () -> Void)?
+    var isDeloadCycle: Bool = false
+    var periodisationPhase: PeriodisationPhase?
 }
 
 struct WorkoutTemplateDetailView: View {
@@ -43,6 +45,7 @@ struct WorkoutTemplateDetailView: View {
                     onStartWorkout: delegate.onStartWorkoutPressed,
                     workoutTemplate: delegate.workoutTemplate,
                     trainingProgramId: delegate.trainingProgramId,
+                    isDeloadCycle: delegate.isDeloadCycle
                 )
             } label: {
                 Text("Start Workout")

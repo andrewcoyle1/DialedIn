@@ -57,7 +57,7 @@ struct NutritionLibraryPickerView<
                     )
                 )
             case .describe:
-                mealDescribe(MealDescribeDelegate())
+                mealDescribe(MealDescribeDelegate(onPick: delegate.onPick))
             }
         }
         .navigationTitle("Add Item")

@@ -16,32 +16,17 @@ struct NutritionDelegate {
     }
 }
 
-struct NutritionView<CalendarHeaderView: View>: View {
-
+struct NutritionView<
+    CalendarHeaderView: View,
+    MealHeader: View
+>: View {
+    
     @State var presenter: NutritionPresenter
     let delegate: NutritionDelegate
     @ViewBuilder var calendarHeader: (CalendarHeaderDelegate) -> CalendarHeaderView
-
+    @ViewBuilder var mealHourHeader: (MealHourHeaderDelegate) -> MealHeader
     @Namespace private var namespace
-    
-    var workingHours: [Date] {
-        let calendar = Calendar.current
-        // Start at 7 AM today
-        let start = calendar.date(bySettingHour: 7, minute: 0, second: 0, of: Date())!
-        // End at 11 PM today (23:00)
-        let end = calendar.date(bySettingHour: 23, minute: 0, second: 0, of: Date())!
         
-        var dates: [Date] = []
-        var current = start
-        
-        // Step through hour by hour until reaching the end
-        while current <= end {
-            dates.append(current)
-            current = calendar.date(byAdding: .hour, value: 1, to: current)!
-        }
-        return dates
-    }
-
     var body: some View {
         List {
             ringsSection
@@ -51,6 +36,8 @@ struct NutritionView<CalendarHeaderView: View>: View {
         .scrollIndicators(.hidden)
         .navigationTitle("Nutrition")
         .toolbarTitleDisplayMode(.inlineLarge)
+        .onAppear { presenter.onViewAppear(delegate: delegate) }
+        .onDisappear { presenter.onViewDisappear(delegate: delegate) }
         .toolbar {
             toolbarContent
         }
@@ -76,73 +63,50 @@ struct NutritionView<CalendarHeaderView: View>: View {
             )
         }
     }
-
+    
     private var ringsSection: some View {
         Section {
-            HStack {
-                ActivityRingView(
-                    text: "Cals",
-                    imageName: "flame",
-                    progress: (presenter.dailyTotals?.calories ?? 0)/(presenter.dailyTarget?.calories ?? 0),
-                    color: .blue,
-                    size: 50
-                )
-                .frame(maxWidth: .infinity)
-                ActivityRingView(
-                    text: "Fat",
-                    imageName: "carrot",
-                    progress: (presenter.dailyTotals?.fatGrams ?? 0)/(presenter.dailyTarget?.fatGrams ?? 0),
-                    color: .fatColor,
-                    size: 50
-                )
-                .frame(maxWidth: .infinity)
-                ActivityRingView(
-                    text: "Protein",
-                    imageName: "carrot",
-                    progress: (presenter.dailyTotals?.proteinGrams ?? 0)/(presenter.dailyTarget?.proteinGrams ?? 0),
-                    color: .proteinColor,
-                    size: 50
-                )
-                .frame(maxWidth: .infinity)
-                ActivityRingView(
-                    text: "Carbs",
-                    imageName: "carrot",
-                    progress: (presenter.dailyTotals?.carbGrams ?? 0)/(presenter.dailyTarget?.carbGrams ?? 0),
-                    color: .carbsColor,
-                    size: 60
-                )
-                .frame(maxWidth: .infinity)
-            }
+            let ringSize: CGFloat = 75
+            return MacroHeader(
+                caloriePercentage: presenter.caloriePercentage,
+                fatPercentage: presenter.fatPercentage,
+                proteinPercentage: presenter.proteinPercentage,
+                carbsPercentage: presenter.carbsPercentage
+            )
+            .listRowInsets(.horizontal, 0)
         }
         .listSectionMargins(.top, 0)
     }
     
     private var mealLogSection: some View {
-        Section {
-            ForEach(workingHours, id: \.self) { hour in
-                HStack {
-                    Text(hour, style: .time)
-                        .lineLimit(1)
-                        .padding(8)
-                        .frame(width: 70)
-                        .background(.secondary.opacity(0.2), in: .capsule)
-                    
-                    Image(systemName: "plus")
-                        .padding(8)
-                        .background(.secondary.opacity(0.2), in: .circle)
-                        .anyButton {
-                            presenter.onAddMealPressed(selectedTime: hour)
-                        }
+        ForEach(presenter.workingHours, id: \.self) { hour in
+            Section {
+                let hourssMeals = presenter.meals(inHour: hour)
+                let delegate = MealHourHeaderDelegate(hour: hour, meals: hourssMeals)
+                mealHourHeader(delegate)
+                    .removeListRowFormatting()
+                    .padding(.horizontal)
+                ForEach(hourssMeals) { meal in
+                    ForEach(meal.items) { item in
+                        mealItemRow(item, meal: meal)
+                    }
                 }
-                .font(.caption)
-                .padding(.bottom)
             }
+            .listSectionMargins(.all, 0)
+            .listSectionSpacing(0)
+        }
+        .listRowSeparator(.hidden)
+    }
+
+    private func mealItemRow(_ item: MealItemModel, meal: MealLogModel) -> some View {
+        MealItemRowView(mealLogModel: meal, item: item)
             .removeListRowFormatting()
             .padding(.horizontal)
-        }
-        .listSectionMargins(.top, 0)
-        .listSectionMargins(.horizontal, 0)
-        .listRowSeparator(.hidden)
+            .swipeActions(edge: .trailing) {
+                Button(role: .destructive) {
+                    presenter.deleteMealItem(item, from: meal)
+                }
+            }
     }
     
     private var moreSection: some View {
@@ -166,10 +130,10 @@ struct NutritionView<CalendarHeaderView: View>: View {
             Text("More")
         }
     }
-        
+    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-                
+        
         #if DEV || MOCK
         ToolbarItem(placement: .topBarTrailing) {
             Button {
@@ -178,8 +142,9 @@ struct NutritionView<CalendarHeaderView: View>: View {
                 Image(systemName: "info")
             }
         }
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
         #endif
-
+        
         ToolbarItem(placement: .topBarTrailing) {
             Button {
                 presenter.onTimelineActionsPressed()
@@ -190,7 +155,7 @@ struct NutritionView<CalendarHeaderView: View>: View {
         
         ToolbarItem(placement: .topBarTrailing) {
             let avatarSize: CGFloat = 44
-
+            
             Button {
                 presenter.onProfilePressed()
             } label: {
@@ -227,12 +192,15 @@ extension CoreBuilder {
             delegate: delegate,
             calendarHeader: { delegate in
                 self.calendarHeaderView(router: router, delegate: delegate)
+            },
+            mealHourHeader: { delegate in
+                self.mealHourHeader(router: router, delegate: delegate)
             }
         )
     }
 }
 
-#Preview {
+#Preview("No Meals ") {
     let container = DevPreview.shared.container()
     let interactor = CoreInteractor(container: container)
     let builder = CoreBuilder(interactor: interactor)
@@ -241,4 +209,29 @@ extension CoreBuilder {
         builder.nutritionView(delegate: delegate, router: router)
     }
     
+}
+
+#Preview("With Meals") {
+    let container = DevPreview.shared.container()
+    
+    let meals = MealLogModel.previewWeekMealsByDay.values.flatMap { $0 }
+    let mealLogSyncEngine = CollectionSyncEngine<MealLogModel>(
+        remote: MockRemoteCollectionService(collection: meals),
+        managerKey: Keys.mealLogManagerKey,
+        enableLocalPersistence: false,
+        logger: nil
+    )
+    let draftMealPersistence = MockLocalDocumentPersistence<MealLogModel>()
+    let mealLogManager = MealLogManager(draftMealLogPersistence: draftMealPersistence, mealLogSyncEngine: mealLogSyncEngine)
+    container.register(MealLogManager.self, service: mealLogManager)
+    
+    let interactor = CoreInteractor(container: container)
+    let builder = CoreBuilder(interactor: interactor)
+    let delegate = NutritionDelegate()
+    return RouterView { router in
+        builder.nutritionView(delegate: delegate, router: router)
+    }
+    .task {
+        await mealLogManager.signIn(userId: UserModel.mock.userId)
+    }
 }

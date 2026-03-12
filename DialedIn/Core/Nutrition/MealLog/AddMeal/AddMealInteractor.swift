@@ -6,11 +6,13 @@
 //
 
 @MainActor
-protocol AddMealInteractor {
+protocol AddMealInteractor: GlobalInteractor {
     var currentUser: UserModel? { get }
     var draftMeal: MealLogModel? { get }
+    var currentDietPlan: DietPlan? { get }
+    func getDailyTotals(dayKey: String) throws -> DailyMacroTarget
     func updateDraftMeal(_ draftMeal: MealLogModel) throws
-    func deleteDraftMeal() throws 
+    func deleteDraftMeal() throws
     func saveMeal(_ meal: MealLogModel) async throws
 }
 

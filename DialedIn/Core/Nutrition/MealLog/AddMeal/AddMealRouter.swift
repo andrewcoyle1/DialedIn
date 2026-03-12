@@ -8,6 +8,7 @@
 @MainActor
 protocol AddMealRouter: GlobalRouter {
     func showNutritionLibraryPickerView(delegate: NutritionLibraryPickerDelegate)
+    func showMealItemAmountViewView(delegate: MealItemAmountViewDelegate)
 }
 
 extension CoreRouter: AddMealRouter { }

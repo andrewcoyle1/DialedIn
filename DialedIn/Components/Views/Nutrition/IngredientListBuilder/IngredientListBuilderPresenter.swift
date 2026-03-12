@@ -52,6 +52,39 @@ class IngredientListBuilderPresenter {
         onIngredientPressed?(ingredient)
     }
 
+    func navToMealItemAmountView(food: FoodModel, delegate: IngredientListBuilderDelegate) {
+        if delegate.onMealItemConfirmed != nil {
+            router.showMealItemAmountViewView(delegate: MealItemAmountViewDelegate(
+                mode: .addFood(food),
+                onConfirm: { item in delegate.onMealItemConfirmed?(item) }
+            ))
+        } else {
+            delegate.onIngredientSelectionChanged?(food)
+        }
+    }
+
+    func quickAdd(food: FoodModel, delegate: IngredientListBuilderDelegate) {
+        guard delegate.onMealItemConfirmed != nil else {
+            delegate.onIngredientSelectionChanged?(food)
+            return
+        }
+        let baseAmount = food.portionGramsCalculated ?? food.portionMillilitersCalculated ?? 100
+        let scale = baseAmount / 100.0
+        let nutrients = food.nutrients.mapValues { $0 * scale }
+        let item = MealItemModel(
+            itemId: UUID().uuidString,
+            sourceType: .ingredient,
+            sourceId: food.ingredientId,
+            displayName: food.name,
+            amount: food.portionQuantityCalculated ?? baseAmount,
+            unit: food.portionNameCalculated ?? (food.measurementMethod == .volume ? "ml" : "g"),
+            resolvedGrams: food.measurementMethod != .volume ? baseAmount : nil,
+            resolvedMilliliters: food.measurementMethod == .volume ? baseAmount : nil,
+            nutrients: nutrients
+        )
+        delegate.onMealItemConfirmed?(item)
+    }
+
     // MARK: Analytics Events
     
     enum Event: LoggableEvent {

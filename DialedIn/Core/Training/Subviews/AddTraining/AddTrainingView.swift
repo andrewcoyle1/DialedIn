@@ -36,7 +36,7 @@ struct AddTrainingView: View {
                 .removeListRowFormatting()
 
             }
-            .listSectionMargins(.top, 0)
+            .listSectionMargins(.vertical, 0)
         }
         .navigationTitle("Add")
         .navigationBarTitleDisplayMode(.inline)

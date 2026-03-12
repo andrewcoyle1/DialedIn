@@ -66,25 +66,41 @@ struct TrainingView<CalendarHeaderView: View>: View {
                 }
                 .listRowInsets(.leading, 0)
             } label: {
-                HStack(spacing: 12) {
-                    HStack {
-                        ZStack {
-                            Circle()
-                                .fill(Color(hex: program.colour).opacity(0.2))
-                            Image(systemName: program.icon)
-                            
-                                .foregroundStyle(Color(hex: program.colour))
-                        }
-                        .frame(width: 44, height: 44)
+                HStack {
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: program.colour).opacity(0.2))
+                        Image(systemName: program.icon)
                         
+                            .foregroundStyle(Color(hex: program.colour))
+                    }
+                    .frame(width: 44, height: 44)
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(program.name)
                             .font(.title3)
                             .fontWeight(.semibold)
+                        HStack(spacing: 6) {
+                            if presenter.isDeloadCycle {
+                                Text("Deload Week")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.secondary.opacity(0.15), in: Capsule())
+                            }
+                            if let phase = presenter.periodisationPhase {
+                                Text(phase.label)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.secondary.opacity(0.15), in: Capsule())
+                            }
+                        }
                     }
-                    .anyButton(.press) {
-                        presenter.onProgramPressed(program: program)
-                    }
-                    Spacer()
+                }
+                .anyButton(.press) {
+                    presenter.onProgramPressed(program: program)
                 }
                 .swipeActions(edge: .trailing) {
                     Button(role: .destructive) {

@@ -243,6 +243,16 @@ struct WorkoutSessionModel: DataSyncModelProtocol, Equatable {
         self.dateModified = Date()
     }
     
+    mutating func applyDeloadWeightReduction() {
+        for iindex in exercises.indices {
+            for jindex in exercises[iindex].sets.indices {
+                if let weight = exercises[iindex].sets[jindex].weightKg {
+                    exercises[iindex].sets[jindex].weightKg = weight * 0.65
+                }
+            }
+        }
+    }
+
     mutating func endSession(at date: Date) {
         self.endedAt = date
         self.dateModified = date

@@ -11,4 +11,5 @@ protocol AIService: Sendable {
     func generateText(chats: [AIChatModel]) async throws -> AIChatModel
     func analyzeFood(imageData: Data) async throws -> String
     func analyzeNutritionLabel(text: String) async throws -> String
+    func describeMeal(text: String) async throws -> String
 }

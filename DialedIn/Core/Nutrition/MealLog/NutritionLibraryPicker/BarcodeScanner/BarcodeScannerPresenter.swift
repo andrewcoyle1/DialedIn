@@ -103,7 +103,13 @@ class BarcodeScannerPresenter {
         Task {
             defer { isLookingUpBarcode = false }
             do {
-                parsedIngredient = try await interactor.lookupBarcode(code)
+                if let local = interactor.findLocalFood(withBarcode: code) {
+                    parsedIngredient = local
+                    return
+                }
+                let food = try await interactor.lookupBarcode(code)
+                try? await interactor.saveFood(food.withAuthorId(interactor.currentUser?.userId ?? ""), image: nil)
+                parsedIngredient = food
             } catch {
                 barcodeError = error.localizedDescription
                 interactor.trackEvent(event: Event.onBarcodeError(message: error.localizedDescription))
@@ -198,22 +204,27 @@ private struct NutritionLabelResponse: Decodable {
     func toFood(authorId: String?) -> FoodModel {
         let method: MeasurementMethod = measurementMethod == "volume" ? .volume : .weight
         let now = Date()
+        var nutrients: [NutrientKey: Double] = [:]
+        func set(_ key: NutrientKey, _ value: Double?) {
+            if let val = value { nutrients[key] = val }
+        }
+        set(.calories, calories)
+        set(.protein, protein)
+        set(.carbs, carbs)
+        set(.fatTotal, fatTotal)
+        set(.fatSaturated, fatSaturated)
+        set(.fiber, fiber)
+        set(.sugar, sugar)
+        set(.sodiumMg, sodiumMg)
+        set(.potassiumMg, potassiumMg)
+        set(.calciumMg, calciumMg)
+        set(.ironMg, ironMg)
         return FoodModel(
             ingredientId: UUID().uuidString,
             authorId: authorId,
             name: name,
             measurementMethod: method,
-            calories: calories,
-            protein: protein,
-            carbs: carbs,
-            fatTotal: fatTotal,
-            fatSaturated: fatSaturated,
-            fiber: fiber,
-            sugar: sugar,
-            sodiumMg: sodiumMg,
-            potassiumMg: potassiumMg,
-            calciumMg: calciumMg,
-            ironMg: ironMg,
+            nutrients: nutrients,
             dateCreated: now,
             dateModified: now
         )

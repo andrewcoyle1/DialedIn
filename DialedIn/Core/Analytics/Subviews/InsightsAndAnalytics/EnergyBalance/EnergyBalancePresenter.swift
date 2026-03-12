@@ -58,11 +58,7 @@ class EnergyBalancePresenter {
                                             authorId: userId,
                                             dayKey: Date().dayKey,
                                             date: Date(),
-                                            items: [],
-                                            totalCalories: 0,
-                                            totalProteinGrams: 0,
-                                            totalCarbGrams: 0,
-                                            totalFatGrams: 0
+                                            items: []
                                         )
                                     )
                                 )
@@ -79,11 +75,7 @@ class EnergyBalancePresenter {
                         authorId: userId,
                         dayKey: Date().dayKey,
                         date: Date(),
-                        items: [],
-                        totalCalories: 0,
-                        totalProteinGrams: 0,
-                        totalCarbGrams: 0,
-                        totalFatGrams: 0
+                        items: []
                     )
                 )
             )

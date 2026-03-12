@@ -47,8 +47,7 @@ struct DashboardView<
     private var cardsSection: some View {
         Section {
             TabView {
-                if let todaysWorkoutTemplate = presenter.todaysWorkoutTemplate,
-                    presenter.isTodayCompleted == false {
+                if let todaysWorkoutTemplate = presenter.todaysWorkoutTemplate {
                     Tab {
                         todaysWorkoutCard(
                             TodaysWorkoutCardDelegate(

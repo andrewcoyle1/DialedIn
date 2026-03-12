@@ -18,14 +18,45 @@ class NutritionPresenter {
     var draftMeal: MealLogModel? {
         interactor.draftMeal
     }
-    
-    var meals: [MealLogModel] {
-        interactor.userMeals
+
+    var mealsForSelectedDate: [MealLogModel] {
+        (try? interactor.getMeals(for: selectedDate.dayKey)) ?? []
+    }
+
+    func meals(inHour hour: Date) -> [MealLogModel] {
+        let cal = Calendar.current
+        return mealsForSelectedDate.filter { cal.isDate($0.date, equalTo: hour, toGranularity: .hour) }
     }
     
-    private(set) var dailyTotals: DailyMacroTarget?
-    private(set) var dailyTarget: DailyMacroTarget?
-    private(set) var isLoading: Bool = false
+    var dailyTotals: DailyMacroTarget? {
+        try? interactor.getDailyTotals(dayKey: dayKey)
+    }
+
+    var dailyTarget: DailyMacroTarget? {
+        guard let plan = interactor.currentDietPlan else { return nil }
+        let weekday = Calendar.current.component(.weekday, from: selectedDate)
+        let dayIndex = (weekday + 5) % 7
+        guard dayIndex < plan.days.count else { return nil }
+        return plan.days[dayIndex]
+    }
+
+    var workingHours: [Date] {
+        let calendar = Calendar.current
+        // Start at 7 AM on selected date
+        let start = calendar.date(bySettingHour: 7, minute: 0, second: 0, of: selectedDate)!
+        // End at 11 PM on selected date (23:00)
+        let end = calendar.date(bySettingHour: 23, minute: 0, second: 0, of: selectedDate)!
+        
+        var dates: [Date] = []
+        var current = start
+        
+        // Step through hour by hour until reaching the end
+        while current <= end {
+            dates.append(current)
+            current = calendar.date(byAdding: .hour, value: 1, to: current)!
+        }
+        return dates
+    }
 
     var caloriePercentage: Double {
         guard let target = dailyTarget?.calories, target > 0 else { return 0 }
@@ -69,39 +100,81 @@ class NutritionPresenter {
 
     func onViewAppear(delegate: NutritionDelegate) {
         interactor.trackScreenEvent(event: Event.onAppear(delegate: delegate))
+        scheduleMealRemindersIfNeeded()
     }
-    
+
     func onViewDisappear(delegate: NutritionDelegate) {
         interactor.trackEvent(event: Event.onDisappear(delegate: delegate))
     }
 
+    private func scheduleMealRemindersIfNeeded() {
+        let key = "hasMealRemindersScheduled"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        Task {
+            do {
+                try await interactor.scheduleMealReminderNotifications()
+                UserDefaults.standard.set(true, forKey: key)
+            } catch {
+                // Silent — non-critical
+            }
+        }
+    }
+    
     func onProfilePressed() {
         router.showProfileView()
     }
 
-#if DEV || MOCK
-func onDevSettingsPressed() {
-    router.showDevSettingsView()
-}
-#endif
+    #if DEV || MOCK
+    func onDevSettingsPressed() {
+        router.showDevSettingsView()
+    }
+    #endif
 
-    func saveMeal(_ meal: MealLogModel) async {
-        do {
-            try await interactor.addMeal(meal)
-        } catch {
-            router.showAlert(error: error)
+//    func saveMeal(_ meal: MealLogModel) async {
+//        do {
+//            try await interactor.addMeal(meal)
+//        } catch {
+//            router.showAlert(error: error)
+//        }
+//    }
+    
+    func deleteMealItem(_ item: MealItemModel, from meal: MealLogModel) {
+        var updatedMeal = meal
+        updatedMeal.items.removeAll { $0.itemId == item.itemId }
+        Task {
+            interactor.trackEvent(event: Event.saveMealStart)
+            do {
+                if updatedMeal.items.isEmpty {
+                    try await interactor.deleteMealAndSync(
+                        id: meal.mealId,
+                        dayKey: meal.dayKey,
+                        authorId: meal.authorId
+                    )
+                } else {
+                    try await interactor.addMeal(updatedMeal)
+                }
+                interactor.trackEvent(event: Event.saveMealSuccess)
+            } catch {
+                router.showAlert(error: error)
+                interactor.trackEvent(event: Event.saveMealFail(error: error))
+            }
         }
     }
-    
-    func deleteMeal(_ meal: MealLogModel) async {
-        do {
-            try await interactor.deleteMealAndSync(
-                id: meal.mealId,
-                dayKey: meal.dayKey,
-                authorId: meal.authorId
-            )
-        } catch {
-            router.showAlert(error: error)
+
+    func deleteMeal(_ meal: MealLogModel) {
+        Task {
+            interactor.trackEvent(event: Event.saveMealStart)
+            do {
+                try await interactor.deleteMealAndSync(
+                    id: meal.mealId,
+                    dayKey: meal.dayKey,
+                    authorId: meal.authorId
+                )
+                interactor.trackEvent(event: Event.saveMealSuccess)
+            } catch {
+                router.showAlert(error: error)
+                interactor.trackEvent(event: Event.saveMealFail(error: error))
+            }
         }
     }
 
@@ -121,60 +194,6 @@ func onDevSettingsPressed() {
         router.showNutritionOverviewView(delegate: NutritionOverviewDelegate(dayKey: dayKey))
     }
 
-    func onAddMealPressed(selectedTime: Date = Date()) {
-        guard let userId = currentUser?.userId else { return }
-        if let meal = interactor.draftMeal {
-            router.showAlert(
-                title: "Unable to add new meal",
-                subtitle: "You already have an draft meal.",
-                buttons: {
-                    AnyView(
-                        VStack {
-                            Button("Continue editing") {
-                                self.router.showAddMealView(
-                                    delegate: AddMealDelegate(mealLog: meal)
-                                )
-                            }
-                            Button("Delete drafted meal", role: .destructive) {
-                                try? self.interactor.deleteDraftMeal()
-                                self.router.showAddMealView(
-                                    delegate: AddMealDelegate(
-                                        mealLog: MealLogModel(
-                                            authorId: userId,
-                                            dayKey: selectedTime.dayKey,
-                                            date: selectedTime,
-                                            items: [],
-                                            totalCalories: 0,
-                                            totalProteinGrams: 0,
-                                            totalCarbGrams: 0,
-                                            totalFatGrams: 0
-                                        )
-                                    )
-                                )
-                            }
-                            Button("Cancel", role: .cancel) { }
-                        }
-                    )
-                }
-            )
-        } else {
-            self.router.showAddMealView(
-                delegate: AddMealDelegate(
-                    mealLog: MealLogModel(
-                        authorId: userId,
-                        dayKey: selectedTime.dayKey,
-                        date: selectedTime,
-                        items: [],
-                        totalCalories: 0,
-                        totalProteinGrams: 0,
-                        totalCarbGrams: 0,
-                        totalFatGrams: 0
-                    )
-                )
-            )
-        }
-    }
-
     func getMealCountForDate(date: Date) -> Int {
         (try? interactor.getMeals(for: date.dayKey).count) ?? 0
     }
@@ -184,11 +203,17 @@ extension NutritionPresenter {
     enum Event: LoggableEvent {
         case onAppear(delegate: NutritionDelegate)
         case onDisappear(delegate: NutritionDelegate)
+        case saveMealStart
+        case saveMealSuccess
+        case saveMealFail(error: Error)
         
         var eventName: String {
             switch self {
-            case .onAppear: return "NutritionView_Appear"
-            case .onDisappear: return "NutritionView_Disappear"
+            case .onAppear:         return "NutritionView_Appear"
+            case .onDisappear:      return "NutritionView_Disappear"
+            case .saveMealStart:    return "NutritionView_SaveMeal_Start"
+            case .saveMealSuccess:  return "NutritionView_SaveMeal_Success"
+            case .saveMealFail:     return "NutritionView_SaveMeal_Fail"
             }
         }
         
@@ -196,13 +221,17 @@ extension NutritionPresenter {
             switch self {
             case .onAppear(delegate: let delegate), .onDisappear(delegate: let delegate):
                 return delegate.eventParameters
-//            default:
-//                return nil
+            case .saveMealFail(error: let error):
+                return error.eventParameters
+            default:
+                return nil
             }
         }
         
         var type: LogType {
             switch self {
+            case .saveMealFail:
+                return .severe
             default:
                 return .analytic
             }

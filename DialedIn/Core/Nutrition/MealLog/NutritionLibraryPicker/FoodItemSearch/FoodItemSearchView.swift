@@ -68,34 +68,11 @@ struct FoodItemSearchView: View {
     }
 
     private func foodRow(_ food: FoodModel) -> some View {
-        Button {
-            delegate.onFoodSelected?(food)
-        } label: {
-            CustomListCellView(
-                imageName: food.imageURL,
-                title: food.name,
-                subtitle: foodSubtitle(food)
-            )
-        }
-    }
-
-    private func foodSubtitle(_ food: FoodModel) -> String? {
-        var parts: [String] = []
-        if let cal = food.calories { parts.append("\(Int(cal)) kcal") }
-        if let protein = food.protein { parts.append("P \(formatted(protein))g") }
-        if let carbs = food.carbs { parts.append("C \(formatted(carbs))g") }
-        if let fats = food.fatTotal { parts.append("F \(formatted(fats))g") }
-        let macro = parts.joined(separator: " · ")
-        if let brand = food.brandName, !brand.isEmpty {
-            return brand + (macro.isEmpty ? "" : " · " + macro)
-        }
-        return macro.isEmpty ? nil : macro
-    }
-
-    private func formatted(_ value: Double) -> String {
-        value.truncatingRemainder(dividingBy: 1) == 0
-            ? String(Int(value))
-            : String(format: "%.1f", value)
+        FoodLibraryPickerRowView(delegate: FoodLibraryPickerRowDelegate(
+            item: food,
+            onAdd: { delegate.onFoodSelected?(food) },
+            onQuickAdd: { delegate.onFoodSelected?(food) }
+        ))
     }
 }
 
